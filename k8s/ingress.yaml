@@ -20,7 +20,20 @@ spec:
               number: 3080
         path: /
         pathType: Prefix
+  # App subdomains (dsh-<port>.example.com, dsh-<alias>.example.com) go to the same auth proxy,
+  # which requires login and forwards to the port inside the pod.
+  - host: '*.example.com'
+    http:
+      paths:
+      - backend:
+          service:
+            name: dsh
+            port:
+              number: 3080
+        path: /
+        pathType: Prefix
   tls:
   - hosts:
     - dsh.example.com
+    - '*.example.com'
     secretName: dsh-tls-secret

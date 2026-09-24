@@ -16,7 +16,7 @@ Enterprise-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with:
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │       Kubernetes Ingress-Nginx (dsh.example.com)            │
-│             TLS Secret: dsh-wildcard-tls                    │
+│             TLS Secret: dsh-tls-secret                      │
 └─────────────────────────────┬───────────────────────────────┘
                               │ Port 3080
                               ▼
@@ -104,6 +104,7 @@ Enterprise-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with:
   - 100% dynamic port selection on the fly (1–65535); any server started inside DSH is immediately accessible.
 - **WebSocket Upgrade Forwarding**: Supports real-time protocols for Streamlit, Vite/Next.js HMR, and WebSocket services.
 - **Named Port Aliases**: Optional mapping via `/workspace/.ports.json` (e.g. `{"dashboard": 8501, "api": 8000}`).
+- **Domain setup**: set `DSH_TRUSTED_HOST` in `k8s/deployment.yaml` to the public host (e.g. `dsh.example.com`); the agent's app links are built from it. Option 1 also needs a wildcard DNS record `*.example.com` pointing at the ingress controller, and the `dsh-tls-secret` certificate must cover both `dsh.example.com` and `*.example.com`. A wildcard matches one label, so every `*.example.com` host reaches this one Deployment; a second DSH instance on the same domain needs its own Ingress with explicit `dsh2-<port>` hosts or its own subdomain (e.g. `*.dsh2.example.com`).
 
 ---
 

@@ -109,6 +109,9 @@ spec:
 
           wait $DSH_PID
         env:
+        # Public host of this DSH instance: used by `dsh web --trusted-host` and for the app links in AGENTS.md
+        - name: DSH_TRUSTED_HOST
+          value: dsh.example.com
         - name: DSH_AUTH_PASS
           valueFrom:
             secretKeyRef:
