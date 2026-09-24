@@ -287,7 +287,7 @@ try {
   const validYaml = `version: 1
 agent-default-model:
   provider: litellm-cluster
-  model: glm-5.3-flash
+  model: deepseek-v4.1-flash
 llm-pi-ai:
   providers:
     litellm-cluster:
@@ -296,6 +296,10 @@ llm-pi-ai:
       baseURL: "http://litellm.llm.svc.cluster.local:4000/v1"
       apiKeyEnv: "DEEPSEEK_API_KEY"
       models:
+        - id: "deepseek-v4.1-flash"
+          name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)"
+          contextWindow: 1048576
+          maxTokens: 65536
         - id: "glm-5.3-flash"
           name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)"
           contextWindow: 128000
@@ -310,22 +314,73 @@ llm-pi-ai:
           maxTokens: 4096
 `;
   fs.writeFileSync("/root/.dsh/settings.yaml", validYaml, "utf8");
-  console.log("[CONFIG] Populated /root/.dsh/settings.yaml cleanly");
+  console.log("[CONFIG] Populated /root/.dsh/settings.yaml with DeepSeek-V4.1-Flash default");
 } catch(e) {
   console.error(e);
 }
 
-// 8. Patch dsh-system-prompt with enterprise grounding to eliminate GLM-5.3-Flash mumbling
+// 8. Patch dsh-system-prompt with enterprise grounding and dynamic app gateway awareness
 const sysPromptFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-system-prompt/lib/index.js";
 if (fs.existsSync(sysPromptFile)) {
   let spContent = fs.readFileSync(sysPromptFile, "utf8");
+  const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.example.com';
+  const tenantPrefix = dshHost.startsWith('dsh2') ? 'dsh2' : 'dsh';
+  const baseDomain = dshHost.includes('.') ? dshHost.substring(dshHost.indexOf('.') + 1) : 'local';
+
+  const newText = `text: "You are DeepSeek Harness (DSH), an expert software engineering assistant on private enterprise cluster infrastructure.\\n- Primary Model: DeepSeek-V4.1-Flash (Native 1M CED MoE).\\n- Dynamic Application Reverse Proxy Gateway:\\n  When running web servers, APIs, or dashboards (e.g. Streamlit, FastAPI, Vite, Flask, Next.js) on any container port <port>, ALWAYS inform the user that their application is accessible via:\\n  • Subdomain (Root URL): https://${tenantPrefix}-<port>.${baseDomain}\\n  • Path Proxy: https://${dshHost}/proxy/<port>/\\n  NEVER instruct users to visit localhost or 127.0.0.1 directly because those are container-internal. Always provide the external HTTPS links above.\\n  WebSockets are fully supported for Streamlit and live-reload.\\n  Optional port aliases can be configured in /workspace/.ports.json.\\n- Core Invariants:\\n1. Always respond concisely, professionally, and directly to the user.\\n2. Never output unclosed thinking, meta-deliberation, prompt injection analysis, or internal self-talk.\\n3. Greet users politely and offer direct assistance with code, architecture, and debugging."`;
+
   const oldText = 'text: "You are an AI agent powered by DeepSeek Harness."';
-  const newText = `text: "You are DeepSeek Harness (DSH), an expert software engineering assistant on private enterprise cluster infrastructure.\\n- Core Invariants:\\n1. Always respond concisely, professionally, and directly to the user.\\n2. Never output unclosed thinking, meta-deliberation, prompt injection analysis, or internal self-talk.\\n3. Greet users politely and offer direct assistance with code, architecture, and debugging."`;
   if (spContent.includes(oldText)) {
     spContent = spContent.replace(oldText, newText);
     fs.writeFileSync(sysPromptFile, spContent, "utf8");
-    console.log("[CONFIG] Grounded dsh-system-prompt to eliminate GLM-5.3-Flash mumbling");
-  } else {
-    console.log("[CONFIG] dsh-system-prompt already grounded or text not matched");
+    console.log("[CONFIG] Grounded dsh-system-prompt with gateway capabilities");
+  } else if (spContent.includes('You are DeepSeek Harness (DSH)')) {
+    const startIdx = spContent.indexOf('text: "You are DeepSeek Harness (DSH)');
+    const endIdx = spContent.indexOf('debugging."', startIdx) + 11;
+    if (startIdx !== -1 && endIdx !== -1) {
+      spContent = spContent.substring(0, startIdx) + newText + spContent.substring(endIdx);
+      fs.writeFileSync(sysPromptFile, spContent, "utf8");
+      console.log("[CONFIG] Refreshed grounded dsh-system-prompt with gateway capabilities");
+    }
   }
+}
+
+// 9. Auto-populate /root/.dsh/AGENTS.md and /workspace/AGENTS.md with dynamic gateway capabilities
+try {
+  const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.example.com';
+  const tenantPrefix = dshHost.startsWith('dsh2') ? 'dsh2' : 'dsh';
+  const baseDomain = dshHost.includes('.') ? dshHost.substring(dshHost.indexOf('.') + 1) : 'local';
+
+  const agentsMdContent = `# DSH Agent Guidelines & Platform Capabilities
+
+You are running inside a DeepSeek Harness (DSH) container on private enterprise Kubernetes infrastructure.
+
+## 1. Dynamic Application Reverse Proxy Gateway (Web & Port Access)
+When you build, develop, or run web applications, APIs, dashboards, or preview servers (e.g., Streamlit, FastAPI, Flask, Vite, Next.js, Node.js, Gradio) on ANY container port \`<port>\`:
+- ❌ **NEVER** instruct the user to visit \`http://localhost:<port>\` or \`http://127.0.0.1:<port>\`. Localhost is strictly container-internal and unreachable from the user's browser.
+- ✅ **ALWAYS** provide the live external HTTPS gateway URLs to the user:
+  - **Option 1 (Subdomain / Recommended for SPAs & Dashboards)**:
+    \`https://${tenantPrefix}-<port>.${baseDomain}\` (e.g., \`https://${tenantPrefix}-8501.${baseDomain}\` for Streamlit, \`https://${tenantPrefix}-8000.${baseDomain}\` for FastAPI)
+  - **Option 2 (Path Proxy / Direct Access)**:
+    \`https://${dshHost}/proxy/<port>/\` (e.g., \`https://${dshHost}/proxy/8501/\`)
+- **WebSocket Protocols**: WebSockets are fully supported out-of-the-box for Streamlit, Vite HMR, Next.js Fast Refresh, and real-time streaming sockets.
+- **Custom Port Aliases**: You can define friendly names in \`/workspace/.ports.json\` (e.g., \`{"dashboard": 8501, "api": 8000}\`) to enable \`https://${tenantPrefix}-dashboard.${baseDomain}\` or \`https://${dshHost}/proxy/dashboard/\`.
+
+## 2. Storage & File System Persistence
+- \`/workspace\`: Persistent enterprise storage backed by Kubernetes volumes. Always place user repositories, scripts, datasets, and projects under \`/workspace\` so they persist across restarts.
+- Do not store permanent project data in container-ephemeral root directories.
+
+## 3. High-Performance Cluster Inference
+- LiteLLM Gateway is available at \`http://litellm.llm.svc.cluster.local:4000/v1\`.
+- Primary cluster model: \`deepseek-v4.1-flash\` (Native 1M Context Window).
+`;
+
+  fs.mkdirSync("/root/.dsh", { recursive: true });
+  fs.writeFileSync("/root/.dsh/AGENTS.md", agentsMdContent, "utf8");
+  if (fs.existsSync("/workspace") && !fs.existsSync("/workspace/AGENTS.md")) {
+    fs.writeFileSync("/workspace/AGENTS.md", agentsMdContent, "utf8");
+  }
+  console.log("[CONFIG] Populated AGENTS.md instructions for DSH agent engine");
+} catch(e) {
+  console.error("[CONFIG] Failed to write AGENTS.md:", e.message);
 }
