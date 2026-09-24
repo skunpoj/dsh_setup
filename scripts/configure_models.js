@@ -377,7 +377,7 @@ When you build, develop, or run web applications, APIs, dashboards, or preview s
 
   fs.mkdirSync("/root/.dsh", { recursive: true });
   fs.writeFileSync("/root/.dsh/AGENTS.md", agentsMdContent, "utf8");
-  if (fs.existsSync("/workspace") && !fs.existsSync("/workspace/AGENTS.md")) {
+  if (fs.existsSync("/workspace")) {
     fs.writeFileSync("/workspace/AGENTS.md", agentsMdContent, "utf8");
   }
   console.log("[CONFIG] Populated AGENTS.md instructions for DSH agent engine");
