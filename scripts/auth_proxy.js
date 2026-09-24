@@ -59,6 +59,10 @@ function parseAppTarget(inHost, reqUrl) {
     }
   }
 
+  // Only user app ports are forwarded; the gateway and DSH ports are never app targets.
+  if (!Number.isInteger(port) || port < 1 || port > 65535 || port === PROXY_PORT || port === DSH_TARGET_PORT) {
+    port = null;
+  }
   return { port, targetPath };
 }
 
@@ -190,7 +194,7 @@ if (!adminPass && !fs.existsSync(USER_STORE_PATH)) {
   process.exit(1);
 }
 const DEFAULT_USERS = {
-  'admin': adminPass || 'admin123'
+  ...(adminPass ? { 'admin': adminPass } : {})
 };
 
 function loadUsers() {
@@ -642,13 +646,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Check Dynamic App Gateway (Option 1 Subdomain or Option 2 Path Proxy)
-  const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
-  const appTarget = parseAppTarget(incomingHost, req.url);
-  if (appTarget && appTarget.port) {
-    return forwardToLocalApp(appTarget.port, appTarget.targetPath, req, res);
-  }
-
   // Check Session Cookie
   let authenticated = false;
   let sessionUser = null;
@@ -671,6 +668,13 @@ const server = http.createServer((req, res) => {
     const tab = parsedUrl.query.tab || 'login';
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     return res.end(renderAuthPage({ tab }));
+  }
+
+  // Dynamic App Gateway (Option 1 Subdomain or Option 2 Path Proxy); only reachable after login
+  const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
+  const appTarget = parseAppTarget(incomingHost, req.url);
+  if (appTarget && appTarget.port) {
+    return forwardToLocalApp(appTarget.port, appTarget.targetPath, req, res);
   }
 
   // If authenticated, proxy request to DSH internal port 3081
@@ -721,13 +725,6 @@ const server = http.createServer((req, res) => {
 
 // Handle WebSocket Upgrades
 server.on('upgrade', (req, socket, head) => {
-  // Check Dynamic App Gateway for WebSockets (e.g. Streamlit, Vite HMR, Next.js)
-  const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
-  const appTarget = parseAppTarget(incomingHost, req.url);
-  if (appTarget && appTarget.port) {
-    return forwardWebSocketToLocalApp(appTarget.port, appTarget.targetPath, req, socket, head);
-  }
-
   let authenticated = false;
   const cookieHeader = req.headers.cookie;
   if (cookieHeader) {
@@ -746,6 +743,13 @@ server.on('upgrade', (req, socket, head) => {
   if (!authenticated) {
     socket.destroy();
     return;
+  }
+
+  // Dynamic App Gateway for WebSockets (e.g. Streamlit, Vite HMR, Next.js); only reachable after login
+  const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
+  const appTarget = parseAppTarget(incomingHost, req.url);
+  if (appTarget && appTarget.port) {
+    return forwardWebSocketToLocalApp(appTarget.port, appTarget.targetPath, req, socket, head);
   }
 
   const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';

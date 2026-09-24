@@ -11,7 +11,7 @@ WORKDIR /app
 RUN apk add --no-cache git curl bash jq ca-certificates
 
 # Install DSH globally
-RUN npm install -g --ignore-scripts @deepseek-ai/dsh
+RUN npm install -g --ignore-scripts @deepseek-ai/dsh@0.1.5-rc.3
 
 # Prepare workspace & configuration directories
 RUN mkdir -p /workspace/users /workspace/repos /root/.dsh /scripts
