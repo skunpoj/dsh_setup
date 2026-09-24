@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: dsh-model-config
+  name: dsh-scripts
   namespace: llm
 data:
   auth_proxy.js: |

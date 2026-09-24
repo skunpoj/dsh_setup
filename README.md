@@ -114,6 +114,9 @@ Enterprise-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with:
 # Create the admin password Secret (required; the auth proxy refuses to start without it)
 kubectl create secret generic dsh-auth -n llm --from-literal=admin-password='<strong-password>'
 
+# The Deployment mounts an existing PersistentVolumeClaim named dsh-workspace-pvc at /workspace;
+# create it (or edit claimName in k8s/deployment.yaml) before applying.
+
 # Apply Kubernetes manifests
 kubectl apply -f k8s/configmap.yaml -n llm
 kubectl apply -f k8s/deployment.yaml -n llm
