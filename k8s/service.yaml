@@ -5,9 +5,6 @@ metadata:
   name: dsh
   namespace: llm
 spec:
-  clusterIP: 10.43.76.59
-  clusterIPs:
-  - 10.43.76.59
   internalTrafficPolicy: Cluster
   ipFamilies:
   - IPv4
