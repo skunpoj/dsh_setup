@@ -93,9 +93,17 @@ Enterprise-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with:
 - Preserves `host` persistence in `@deepseek-ai/dsh-client-ui-settings` for authorized domain sessions.
 
 ### 4. Dynamic Multi-Tenant Workspaces & Storage Isolation
-- **Storage Backend**: Kubernetes PersistentVolumeClaim (`volume01`, `volume02`, etc.).
+- **Storage Backend**: Kubernetes PersistentVolumeClaim (e.g. `subPath` isolation for shared volumes, or dedicated local block storage).
 - **User Workspaces**: Partitioned by username under `/workspace/users/<username>`.
 - **Mount Isolation**: Pods can mount dedicated PVC subpaths to prevent cross-tenant directory access.
+
+### 5. Dynamic Application Port & Subdomain Reverse Proxy Gateway
+- **Option 1 (Subdomain-based)**: `https://<tenant>-<port>.domain.com` (e.g. `https://dsh-8000.domain.com`, `https://dsh-8501.domain.com`)
+  - Flawless single-page app (SPA) and dashboard asset compatibility where scripts load from `/`.
+- **Option 2 (Path-based)**: `https://<tenant>.domain.com/proxy/<port>/` (e.g. `https://dsh.domain.com/proxy/8000/`, `https://dsh.domain.com/proxy/8501/`)
+  - 100% dynamic port selection on the fly (1–65535); any server started inside DSH is immediately accessible.
+- **WebSocket Upgrade Forwarding**: Supports real-time protocols for Streamlit, Vite/Next.js HMR, and WebSocket services.
+- **Named Port Aliases**: Optional mapping via `/workspace/.ports.json` (e.g. `{"dashboard": 8501, "api": 8000}`).
 
 ---
 
