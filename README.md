@@ -93,7 +93,7 @@ Enterprise-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with:
 - Preserves `host` persistence in `@deepseek-ai/dsh-client-ui-settings` for authorized domain sessions.
 
 ### 4. Dynamic Multi-Tenant Workspaces & Storage Isolation
-- **Storage Backend**: Kubernetes PersistentVolumeClaim (`volume01`, `volume02`, etc.).
+- **Storage Backend**: Kubernetes PersistentVolumeClaim (e.g. `subPath` isolation for shared volumes, or dedicated local block storage).
 - **User Workspaces**: Partitioned by username under `/workspace/users/<username>`.
 - **Mount Isolation**: Pods can mount dedicated PVC subpaths to prevent cross-tenant directory access.
 
