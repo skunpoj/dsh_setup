@@ -323,7 +323,7 @@ llm-pi-ai:
 const sysPromptFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-system-prompt/lib/index.js";
 if (fs.existsSync(sysPromptFile)) {
   let spContent = fs.readFileSync(sysPromptFile, "utf8");
-  const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.aiportal.bot.or.th';
+  const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.example.com';
   const tenantPrefix = dshHost.startsWith('dsh2') ? 'dsh2' : 'dsh';
   const baseDomain = dshHost.includes('.') ? dshHost.substring(dshHost.indexOf('.') + 1) : 'local';
 
@@ -347,7 +347,7 @@ if (fs.existsSync(sysPromptFile)) {
 
 // 9. Auto-populate /root/.dsh/AGENTS.md and /workspace/AGENTS.md with dynamic gateway capabilities
 try {
-  const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.aiportal.bot.or.th';
+  const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.example.com';
   const tenantPrefix = dshHost.startsWith('dsh2') ? 'dsh2' : 'dsh';
   const baseDomain = dshHost.includes('.') ? dshHost.substring(dshHost.indexOf('.') + 1) : 'local';
 
