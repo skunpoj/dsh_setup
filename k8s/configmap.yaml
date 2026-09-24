@@ -4,558 +4,988 @@ metadata:
   name: dsh-model-config
   namespace: llm
 data:
-  auth_proxy.js: "const http = require('http');\nconst url = require('url');\nconst\
-    \ fs = require('fs');\nconst crypto = require('crypto');\n\nconst PROXY_PORT =\
-    \ 3080;\nconst DSH_TARGET_PORT = 3081;\nconst DSH_TARGET_HOST = '127.0.0.1';\n\
-    const USER_STORE_PATH = '/workspace/users/.user_auth.json';\n\n// In-memory sessions\n\
-    const SESSIONS = new Map();\nconst cachedDshAuthCookies = new Map();\n\nfunction\
-    \ getOrMintDshCookie(clientHost, callback) {\n  const existing = cachedDshAuthCookies.get(clientHost);\n\
-    \  if (existing) {\n    return callback(null, existing);\n  }\n  const token =\
-    \ getDshToken();\n  if (!token) {\n    return callback(new Error(\"No DSH launch\
-    \ token available\"));\n  }\n  const authReq = http.request({\n    host: DSH_TARGET_HOST,\n\
-    \    port: DSH_TARGET_PORT,\n    path: `/?token=${encodeURIComponent(token)}`,\n\
-    \    method: \"GET\",\n    headers: { \"host\": clientHost }\n  }, (authRes) =>\
-    \ {\n    let mintedCookie = null;\n    const setCookies = authRes.headers[\"set-cookie\"\
-    ];\n    if (setCookies) {\n      for (const sc of setCookies) {\n        if (sc.startsWith(\"\
-    dsh-auth-\")) {\n          mintedCookie = sc.split(\";\")[0];\n          cachedDshAuthCookies.set(clientHost,\
-    \ mintedCookie);\n          console.log(`[AUTH-PROXY] Successfully minted and\
-    \ cached upstream DSH cookie for authority ${clientHost}`);\n          break;\n\
-    \        }\n      }\n    }\n    authRes.resume();\n    callback(null, mintedCookie);\n\
-    \  });\n  authReq.on(\"error\", (err) => {\n    callback(err);\n  });\n  authReq.end();\n\
-    }\n\n// Default users\nconst DEFAULT_USERS = {\n  'admin': process.env.DSH_AUTH_PASS\
-    \ || 'ChangeMeInProduction123!',\n  'kim': 'UserPassword123!',\n  'somchai': 'UserPassword123!'\n\
-    };\n\nfunction loadUsers() {\n  try {\n    if (fs.existsSync(USER_STORE_PATH))\
-    \ {\n      const raw = fs.readFileSync(USER_STORE_PATH, 'utf8');\n      const\
-    \ data = JSON.parse(raw);\n      return Object.assign({}, DEFAULT_USERS, data);\n\
-    \    }\n  } catch (e) {\n    console.error('[AUTH-PROXY] Failed to load user store:',\
-    \ e.message);\n  }\n  return Object.assign({}, DEFAULT_USERS);\n}\n\nfunction\
-    \ saveUsers(users) {\n  try {\n    fs.mkdirSync('/workspace/users', { recursive:\
-    \ true });\n    fs.writeFileSync(USER_STORE_PATH, JSON.stringify(users, null,\
-    \ 2), 'utf8');\n    return true;\n  } catch (e) {\n    console.error('[AUTH-PROXY]\
-    \ Failed to save user store:', e.message);\n    return false;\n  }\n}\n\n// Initialize\
-    \ user store if missing\nlet USERS = loadUsers();\nif (!fs.existsSync(USER_STORE_PATH))\
-    \ {\n  saveUsers(USERS);\n}\n\nfunction getDshToken() {\n  try {\n    if (fs.existsSync('/tmp/dsh_token.txt'))\
-    \ {\n      return fs.readFileSync('/tmp/dsh_token.txt', 'utf8').trim();\n    }\n\
-    \  } catch (e) {}\n  return '';\n}\n\nfunction renderAuthPage({ tab = 'login',\
-    \ errorMsg = '', successMsg = '' } = {}) {\n  return `<!DOCTYPE html>\n<html lang=\"\
-    th\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"\
-    width=device-width, initial-scale=1.0\">\n  <title>Login \xB7 DeepSeek Harness\
-    \ (DSH) \u2014 Enterprise AI Platform</title>\n  <link href=\"https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap\"\
-    \ rel=\"stylesheet\">\n  <style>\n    :root {\n      --primary-navy: #0F4C81;\n\
-    \      --primary-deep: #0A2540;\n      --primary-gold: #C5A880;\n      --bg-dark:\
-    \ #0B0F19;\n      --card-bg: #131C2E;\n      --border: #202E49;\n      --text-main:\
-    \ #E2E8F0;\n      --text-muted: #94A3B8;\n      --success-bg: rgba(16, 185, 129,\
-    \ 0.15);\n      --success-border: rgba(16, 185, 129, 0.35);\n      --success-text:\
-    \ #34D399;\n      --error-bg: rgba(239, 68, 68, 0.15);\n      --error-border:\
-    \ rgba(239, 68, 68, 0.35);\n      --error-text: #F87171;\n    }\n    * { box-sizing:\
-    \ border-box; margin: 0; padding: 0; font-family: 'Sarabun', -apple-system, sans-serif;\
-    \ }\n    body {\n      background-color: var(--bg-dark);\n      background-image:\
-    \ radial-gradient(circle at top right, #1a2f4d 0%, transparent 60%), radial-gradient(circle\
-    \ at bottom left, #0d1e38 0%, transparent 60%);\n      color: var(--text-main);\n\
-    \      min-height: 100vh;\n      display: flex;\n      align-items: center;\n\
-    \      justify-content: center;\n      padding: 20px;\n    }\n    .login-card\
-    \ {\n      background: var(--card-bg);\n      border: 1px solid var(--border);\n\
-    \      border-radius: 16px;\n      width: 100%;\n      max-width: 460px;\n   \
-    \   padding: 36px 32px;\n      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0\
-    \ 0 1px rgba(255, 255, 255, 0.05);\n      position: relative;\n      overflow:\
-    \ hidden;\n    }\n    .login-card::before {\n      content: \"\";\n      position:\
-    \ absolute;\n      top: 0; left: 0; right: 0;\n      height: 4px;\n      background:\
-    \ linear-gradient(90deg, var(--primary-gold), #e8d5b5, var(--primary-navy));\n\
-    \    }\n    .brand-header {\n      text-align: center;\n      margin-bottom: 24px;\n\
-    \    }\n    .brand-logo {\n      width: 52px;\n      height: 52px;\n      margin:\
-    \ 0 auto 12px;\n      background: linear-gradient(135deg, var(--primary-navy),\
-    \ var(--primary-deep));\n      border: 1px solid rgba(197, 168, 128, 0.4);\n \
-    \     border-radius: 12px;\n      display: flex;\n      align-items: center;\n\
-    \      justify-content: center;\n      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n\
-    \    }\n    .brand-logo svg {\n      width: 28px;\n      height: 28px;\n     \
-    \ fill: var(--primary-gold);\n    }\n    .org-title {\n      font-size: 13px;\n\
-    \      letter-spacing: 1px;\n      color: var(--primary-gold);\n      font-weight:\
-    \ 600;\n      text-transform: uppercase;\n    }\n    .app-title {\n      font-size:\
-    \ 20px;\n      font-weight: 700;\n      color: #FFF;\n      margin: 4px 0 2px;\n\
-    \    }\n    .app-subtitle {\n      font-size: 12px;\n      color: var(--text-muted);\n\
-    \    }\n    \n    /* Tabs */\n    .auth-tabs {\n      display: flex;\n      background:\
-    \ rgba(11, 15, 25, 0.7);\n      border-radius: 8px;\n      padding: 4px;\n   \
-    \   margin-bottom: 20px;\n      border: 1px solid var(--border);\n    }\n    .auth-tab\
-    \ {\n      flex: 1;\n      text-align: center;\n      padding: 8px 4px;\n    \
-    \  font-size: 13px;\n      font-weight: 500;\n      color: var(--text-muted);\n\
-    \      border-radius: 6px;\n      cursor: pointer;\n      transition: all 0.2s;\n\
-    \      text-decoration: none;\n    }\n    .auth-tab.active {\n      background:\
-    \ var(--primary-navy);\n      color: #FFF;\n      font-weight: 600;\n      box-shadow:\
-    \ 0 2px 6px rgba(0, 0, 0, 0.3);\n    }\n\n    .alert-badge {\n      padding: 10px\
-    \ 14px;\n      border-radius: 8px;\n      font-size: 13px;\n      margin-bottom:\
-    \ 18px;\n      line-height: 1.4;\n    }\n    .alert-error {\n      background:\
-    \ var(--error-bg);\n      border: 1px solid var(--error-border);\n      color:\
-    \ var(--error-text);\n    }\n    .alert-success {\n      background: var(--success-bg);\n\
-    \      border: 1px solid var(--success-border);\n      color: var(--success-text);\n\
-    \    }\n\n    .form-group {\n      margin-bottom: 16px;\n    }\n    .form-label\
-    \ {\n      display: block;\n      font-size: 13px;\n      font-weight: 500;\n\
-    \      color: var(--text-muted);\n      margin-bottom: 6px;\n    }\n    .form-control\
-    \ {\n      width: 100%;\n      padding: 11px 14px;\n      background: rgba(11,\
-    \ 15, 25, 0.6);\n      border: 1px solid var(--border);\n      border-radius:\
-    \ 8px;\n      color: #FFF;\n      font-size: 14px;\n      transition: all 0.2s;\n\
-    \    }\n    .form-control:focus {\n      outline: none;\n      border-color: var(--primary-navy);\n\
-    \      box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.25);\n      background: rgba(11,\
-    \ 15, 25, 0.9);\n    }\n    .btn-submit {\n      width: 100%;\n      padding:\
-    \ 12px;\n      background: linear-gradient(135deg, var(--primary-navy), #165b99);\n\
-    \      border: 1px solid rgba(255, 255, 255, 0.1);\n      border-radius: 8px;\n\
-    \      color: #FFFFFF;\n      font-size: 14px;\n      font-weight: 600;\n    \
-    \  cursor: pointer;\n      transition: all 0.2s;\n      box-shadow: 0 4px 12px\
-    \ rgba(15, 76, 129, 0.4);\n      margin-top: 6px;\n    }\n    .btn-submit:hover\
-    \ {\n      background: linear-gradient(135deg, #165b99, #1b6cb4);\n      transform:\
-    \ translateY(-1px);\n    }\n    .footer-note {\n      text-align: center;\n  \
-    \    margin-top: 22px;\n      font-size: 11px;\n      color: #64748B;\n    }\n\
-    \  </style>\n  <script>\n    function switchTab(name) {\n      document.querySelectorAll('.tab-pane').forEach(el\
-    \ => el.style.display = 'none');\n      document.querySelectorAll('.auth-tab').forEach(el\
-    \ => el.classList.remove('active'));\n      document.getElementById('pane-' +\
-    \ name).style.display = 'block';\n      document.getElementById('tab-' + name).classList.add('active');\n\
-    \    }\n  </script>\n</head>\n<body>\n  <div class=\"login-card\">\n    <div class=\"\
-    brand-header\">\n      <div class=\"brand-logo\">\n        <svg viewBox=\"0 0\
-    \ 24 24\"><path d=\"M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\"\
-    /></svg>\n      </div>\n      <div class=\"org-title\">Enterprise AI Platform</div>\n\
-    \      <h1 class=\"app-title\">DeepSeek Harness (DSH)</h1>\n      <p class=\"\
-    app-subtitle\">Enterprise Agentic Coding & Knowledge Gateway</p>\n    </div>\n\
-    \n    <div class=\"auth-tabs\">\n      <div id=\"tab-login\" class=\"auth-tab\
-    \ ${tab === 'login' ? 'active' : ''}\" onclick=\"switchTab('login')\">\u0E40\u0E02\
-    \u0E49\u0E32\u0E2A\u0E39\u0E48\u0E23\u0E30\u0E1A\u0E1A</div>\n      <div id=\"\
-    tab-register\" class=\"auth-tab ${tab === 'register' ? 'active' : ''}\" onclick=\"\
-    switchTab('register')\">\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E1A\u0E31\u0E0D\u0E0A\
-    \u0E35\u0E1C\u0E39\u0E49\u0E43\u0E0A\u0E49\u0E43\u0E2B\u0E21\u0E48</div>\n   \
-    \   <div id=\"tab-change\" class=\"auth-tab ${tab === 'change' ? 'active' : ''}\"\
-    \ onclick=\"switchTab('change')\">\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E23\
-    \u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19</div>\n    </div>\n\n    ${errorMsg\
-    \ ? `<div class=\"alert-badge alert-error\">\u26A0\uFE0F ${errorMsg}</div>` :\
-    \ ''}\n    ${successMsg ? `<div class=\"alert-badge alert-success\">\u2705 ${successMsg}</div>`\
-    \ : ''}\n\n    <!-- 1. Form: \u0E40\u0E02\u0E49\u0E32\u0E2A\u0E39\u0E48\u0E23\u0E30\
-    \u0E1A\u0E1A -->\n    <div id=\"pane-login\" class=\"tab-pane\" style=\"display:\
-    \ ${tab === 'login' ? 'block' : 'none'};\">\n      <form method=\"POST\" action=\"\
-    /login\">\n        <div class=\"form-group\">\n          <label class=\"form-label\"\
-    \ for=\"login_username\">\u0E0A\u0E37\u0E48\u0E2D\u0E1C\u0E39\u0E49\u0E43\u0E0A\
-    \u0E49\u0E07\u0E32\u0E19 (Username)</label>\n          <input type=\"text\" id=\"\
-    login_username\" name=\"username\" class=\"form-control\" placeholder=\"\u0E40\
-    \u0E0A\u0E48\u0E19 kim, admin \u0E2B\u0E23\u0E37\u0E2D\u0E0A\u0E37\u0E48\u0E2D\
-    \u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13\" required autofocus>\n        </div>\n \
-    \       <div class=\"form-group\">\n          <label class=\"form-label\" for=\"\
-    login_password\">\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19 (Password)</label>\n\
-    \          <input type=\"password\" id=\"login_password\" name=\"password\" class=\"\
-    form-control\" placeholder=\"\u0E23\u0E30\u0E1A\u0E38\u0E23\u0E2B\u0E31\u0E2A\u0E1C\
-    \u0E48\u0E32\u0E19\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E40\u0E02\u0E49\u0E32\u0E43\
-    \u0E0A\u0E49\u0E07\u0E32\u0E19\" required>\n        </div>\n        <button type=\"\
-    submit\" class=\"btn-submit\">\u0E40\u0E02\u0E49\u0E32\u0E2A\u0E39\u0E48\u0E23\
-    \u0E30\u0E1A\u0E1A (Sign In)</button>\n      </form>\n    </div>\n\n    <!-- 2.\
-    \ Form: \u0E2A\u0E23\u0E49\u0E32\u0E07\u0E1A\u0E31\u0E0D\u0E0A\u0E35\u0E1C\u0E39\
-    \u0E49\u0E43\u0E0A\u0E49\u0E43\u0E2B\u0E21\u0E48 -->\n    <div id=\"pane-register\"\
-    \ class=\"tab-pane\" style=\"display: ${tab === 'register' ? 'block' : 'none'};\"\
-    >\n      <form method=\"POST\" action=\"/register\">\n        <div class=\"form-group\"\
-    >\n          <label class=\"form-label\" for=\"reg_username\">\u0E0A\u0E37\u0E48\
-    \u0E2D\u0E1C\u0E39\u0E49\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19\u0E43\u0E2B\u0E21\
-    \u0E48 (New Username)</label>\n          <input type=\"text\" id=\"reg_username\"\
-    \ name=\"username\" class=\"form-control\" placeholder=\"\u0E15\u0E31\u0E27\u0E2D\
-    \u0E31\u0E01\u0E29\u0E23\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E31\u0E07\u0E01\u0E24\
-    \u0E29\u0E2B\u0E23\u0E37\u0E2D\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02 (\u0E40\u0E0A\
-    \u0E48\u0E19 somchai)\" pattern=\"[a-zA-Z0-9_\\-\\.]{3,30}\" title=\"\u0E22\u0E32\
-    \u0E27 3-30 \u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23 \u0E43\u0E0A\u0E49\
-    \u0E44\u0E14\u0E49\u0E40\u0E09\u0E1E\u0E32\u0E30 a-z, 0-9, _, -\" required>\n\
-    \        </div>\n        <div class=\"form-group\">\n          <label class=\"\
-    form-label\" for=\"reg_password\">\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\
-    \ (Password)</label>\n          <input type=\"password\" id=\"reg_password\" name=\"\
-    password\" class=\"form-control\" placeholder=\"\u0E23\u0E2B\u0E31\u0E2A\u0E1C\
-    \u0E48\u0E32\u0E19\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E19\u0E49\u0E2D\u0E22 6 \u0E15\
-    \u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23\" minlength=\"6\" required>\n     \
-    \   </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\"\
-    \ for=\"reg_confirm\">\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19\u0E23\u0E2B\u0E31\u0E2A\
-    \u0E1C\u0E48\u0E32\u0E19 (Confirm Password)</label>\n          <input type=\"\
-    password\" id=\"reg_confirm\" name=\"confirm_password\" class=\"form-control\"\
-    \ placeholder=\"\u0E01\u0E23\u0E2D\u0E01\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\
-    \u0E19\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07\" minlength=\"6\" required>\n\
-    \        </div>\n        <button type=\"submit\" class=\"btn-submit\">\u0E2A\u0E23\
-    \u0E49\u0E32\u0E07\u0E1A\u0E31\u0E0D\u0E0A\u0E35\u0E1C\u0E39\u0E49\u0E43\u0E0A\
-    \u0E49\u0E43\u0E2B\u0E21\u0E48 (Create Account)</button>\n      </form>\n    </div>\n\
-    \n    <!-- 3. Form: \u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E23\u0E2B\u0E31\
-    \u0E2A\u0E1C\u0E48\u0E32\u0E19 -->\n    <div id=\"pane-change\" class=\"tab-pane\"\
-    \ style=\"display: ${tab === 'change' ? 'block' : 'none'};\">\n      <form method=\"\
-    POST\" action=\"/change-password\">\n        <div class=\"form-group\">\n    \
-    \      <label class=\"form-label\" for=\"chg_username\">\u0E0A\u0E37\u0E48\u0E2D\
-    \u0E1C\u0E39\u0E49\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19 (Username)</label>\n  \
-    \        <input type=\"text\" id=\"chg_username\" name=\"username\" class=\"form-control\"\
-    \ placeholder=\"\u0E23\u0E30\u0E1A\u0E38\u0E0A\u0E37\u0E48\u0E2D\u0E1C\u0E39\u0E49\
-    \u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19\" required>\n        </div>\n        <div\
-    \ class=\"form-group\">\n          <label class=\"form-label\" for=\"chg_old_password\"\
-    >\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\u0E40\u0E14\u0E34\u0E21 (Current\
-    \ Password)</label>\n          <input type=\"password\" id=\"chg_old_password\"\
-    \ name=\"old_password\" class=\"form-control\" placeholder=\"\u0E23\u0E30\u0E1A\
-    \u0E38\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\u0E1B\u0E31\u0E08\u0E08\
-    \u0E38\u0E1A\u0E31\u0E19\" required>\n        </div>\n        <div class=\"form-group\"\
-    >\n          <label class=\"form-label\" for=\"chg_new_password\">\u0E23\u0E2B\
-    \u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\u0E43\u0E2B\u0E21\u0E48 (New Password)</label>\n\
-    \          <input type=\"password\" id=\"chg_new_password\" name=\"new_password\"\
-    \ class=\"form-control\" placeholder=\"\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\
-    \u0E19\u0E43\u0E2B\u0E21\u0E48\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E19\u0E49\u0E2D\
-    \u0E22 6 \u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23\" minlength=\"6\" required>\n\
-    \        </div>\n        <button type=\"submit\" class=\"btn-submit\">\u0E40\u0E1B\
-    \u0E25\u0E35\u0E48\u0E22\u0E19\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\
-    \ (Update Password)</button>\n      </form>\n    </div>\n\n    <div class=\"footer-note\"\
-    >\n      \u0E23\u0E30\u0E1A\u0E1A\u0E2A\u0E32\u0E23\u0E2A\u0E19\u0E40\u0E17\u0E28\
-    \u0E40\u0E09\u0E1E\u0E32\u0E30\u0E01\u0E34\u0E08 \u0E18\u0E1B\u0E17. \xB7 \u0E23\
-    \u0E31\u0E01\u0E29\u0E32\u0E04\u0E27\u0E32\u0E21\u0E25\u0E31\u0E1A\u0E17\u0E32\
-    \u0E07\u0E01\u0E32\u0E23\u0E40\u0E07\u0E34\u0E19\u0E02\u0E31\u0E49\u0E19\u0E2A\
-    \u0E39\u0E07\u0E2A\u0E38\u0E14\n    </div>\n  </div>\n</body>\n</html>`;\n}\n\n\
-    const server = http.createServer((req, res) => {\n  const parsedUrl = url.parse(req.url,\
-    \ true);\n\n  // Handle Login Form Submission\n  if (req.method === 'POST' &&\
-    \ parsedUrl.pathname === '/login') {\n    let body = '';\n    req.on('data', chunk\
-    \ => { body += chunk; });\n    req.on('end', () => {\n      const params = new\
-    \ URLSearchParams(body);\n      const username = params.get('username') ? params.get('username').trim().toLowerCase()\
-    \ : '';\n      const password = params.get('password') ? params.get('password').trim()\
-    \ : '';\n\n      USERS = loadUsers();\n      if (USERS[username] && USERS[username]\
-    \ === password) {\n        const sessionId = crypto.randomBytes(24).toString('hex');\n\
-    \        SESSIONS.set(sessionId, { user: username, created: Date.now() });\n\n\
-    \        // Create personal workspace folder for user if not exists\n        try\
-    \ {\n          fs.mkdirSync(`/workspace/users/${username}`, { recursive: true\
-    \ });\n        } catch (e) {}\n\n        console.log(`[AUTH-PROXY] Successful\
-    \ login for user: ${username}`);\n        const clientHost = req.headers['x-forwarded-host']\
-    \ || req.headers.host || 'dsh.example.com';\n        getOrMintDshCookie(clientHost,\
-    \ (err, dshCookie) => {\n          const cookieHeaders = [`dsh_auth=${sessionId};\
-    \ Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`];\n          if (dshCookie) {\n\
-    \            cookieHeaders.push(`${dshCookie}; Path=/; HttpOnly; SameSite=Lax;\
-    \ Max-Age=86400`);\n          }\n          res.writeHead(302, {\n            'Set-Cookie':\
-    \ cookieHeaders,\n            'Location': '/'\n          });\n          return\
-    \ res.end();\n        });\n      } else {\n        console.log(`[AUTH-PROXY] Failed\
-    \ login attempt for user: ${username}`);\n        res.writeHead(401, { 'Content-Type':\
-    \ 'text/html; charset=utf-8' });\n        return res.end(renderAuthPage({ tab:\
-    \ 'login', errorMsg: '\u0E0A\u0E37\u0E48\u0E2D\u0E1C\u0E39\u0E49\u0E43\u0E0A\u0E49\
-    \u0E07\u0E32\u0E19\u0E2B\u0E23\u0E37\u0E2D\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\
-    \u0E32\u0E19\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07 \u0E01\
-    \u0E23\u0E38\u0E13\u0E32\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48\u0E2D\u0E35\
-    \u0E01\u0E04\u0E23\u0E31\u0E49\u0E07' }));\n      }\n    });\n    return;\n  }\n\
-    \n  // Handle User Registration Form Submission\n  if (req.method === 'POST' &&\
-    \ parsedUrl.pathname === '/register') {\n    let body = '';\n    req.on('data',\
-    \ chunk => { body += chunk; });\n    req.on('end', () => {\n      const params\
-    \ = new URLSearchParams(body);\n      const username = params.get('username')\
-    \ ? params.get('username').trim().toLowerCase() : '';\n      const password =\
-    \ params.get('password') ? params.get('password').trim() : '';\n      const confirmPassword\
-    \ = params.get('confirm_password') ? params.get('confirm_password').trim() : '';\n\
-    \n      if (!username || !/^[a-z0-9_\\-\\.]{3,30}$/.test(username)) {\n      \
-    \  res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });\n     \
-    \   return res.end(renderAuthPage({ tab: 'register', errorMsg: '\u0E0A\u0E37\u0E48\
-    \u0E2D\u0E1C\u0E39\u0E49\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19\u0E15\u0E49\u0E2D\
-    \u0E07\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E31\u0E07\u0E01\
-    \u0E24\u0E29/\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02 \u0E04\u0E27\u0E32\u0E21\u0E22\
-    \u0E32\u0E27 3-30 \u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23' }));\n   \
-    \   }\n\n      if (!password || password.length < 6) {\n        res.writeHead(400,\
-    \ { 'Content-Type': 'text/html; charset=utf-8' });\n        return res.end(renderAuthPage({\
-    \ tab: 'register', errorMsg: '\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\
-    \u0E15\u0E49\u0E2D\u0E07\u0E21\u0E35\u0E04\u0E27\u0E32\u0E21\u0E22\u0E32\u0E27\
-    \u0E2D\u0E22\u0E48\u0E32\u0E07\u0E19\u0E49\u0E2D\u0E22 6 \u0E15\u0E31\u0E27\u0E2D\
-    \u0E31\u0E01\u0E29\u0E23' }));\n      }\n\n      if (password !== confirmPassword)\
-    \ {\n        res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });\n\
-    \        return res.end(renderAuthPage({ tab: 'register', errorMsg: '\u0E23\u0E2B\
-    \u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E30\u0E22\u0E37\u0E19\u0E22\
-    \u0E31\u0E19\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\u0E44\u0E21\u0E48\
-    \u0E15\u0E23\u0E07\u0E01\u0E31\u0E19 \u0E01\u0E23\u0E38\u0E13\u0E32\u0E15\u0E23\
-    \u0E27\u0E08\u0E2A\u0E2D\u0E1A\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07\
-    ' }));\n      }\n\n      USERS = loadUsers();\n      if (USERS[username]) {\n\
-    \        res.writeHead(409, { 'Content-Type': 'text/html; charset=utf-8' });\n\
-    \        return res.end(renderAuthPage({ tab: 'register', errorMsg: `\u0E0A\u0E37\
-    \u0E48\u0E2D\u0E1C\u0E39\u0E49\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19 \"${username}\"\
-    \ \u0E21\u0E35\u0E2D\u0E22\u0E39\u0E48\u0E43\u0E19\u0E23\u0E30\u0E1A\u0E1A\u0E41\
-    \u0E25\u0E49\u0E27 \u0E01\u0E23\u0E38\u0E13\u0E32\u0E43\u0E0A\u0E49\u0E0A\u0E37\
-    \u0E48\u0E2D\u0E2D\u0E37\u0E48\u0E19\u0E2B\u0E23\u0E37\u0E2D\u0E40\u0E02\u0E49\
-    \u0E32\u0E2A\u0E39\u0E48\u0E23\u0E30\u0E1A\u0E1A` }));\n      }\n\n      USERS[username]\
-    \ = password;\n      if (saveUsers(USERS)) {\n        try {\n          fs.mkdirSync(`/workspace/users/${username}`,\
-    \ { recursive: true });\n        } catch (e) {}\n        console.log(`[AUTH-PROXY]\
-    \ Successfully registered new user: ${username}`);\n        res.writeHead(200,\
-    \ { 'Content-Type': 'text/html; charset=utf-8' });\n        return res.end(renderAuthPage({\
-    \ tab: 'login', successMsg: `\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E1A\u0E31\u0E0D\u0E0A\
-    \u0E35 \"${username}\" \u0E40\u0E23\u0E35\u0E22\u0E1A\u0E23\u0E49\u0E2D\u0E22\u0E41\
-    \u0E25\u0E49\u0E27 \u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E40\u0E02\u0E49\u0E32\
-    \u0E2A\u0E39\u0E48\u0E23\u0E30\u0E1A\u0E1A\u0E44\u0E14\u0E49\u0E17\u0E31\u0E19\
-    \u0E17\u0E35` }));\n      } else {\n        res.writeHead(500, { 'Content-Type':\
-    \ 'text/html; charset=utf-8' });\n        return res.end(renderAuthPage({ tab:\
-    \ 'register', errorMsg: '\u0E40\u0E01\u0E34\u0E14\u0E02\u0E49\u0E2D\u0E1C\u0E34\
-    \u0E14\u0E1E\u0E25\u0E32\u0E14\u0E43\u0E19\u0E01\u0E32\u0E23\u0E1A\u0E31\u0E19\
-    \u0E17\u0E36\u0E01\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25 \u0E01\u0E23\u0E38\u0E13\
-    \u0E32\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48\u0E2D\u0E35\u0E01\u0E04\u0E23\
-    \u0E31\u0E49\u0E07' }));\n      }\n    });\n    return;\n  }\n\n  // Handle Password\
-    \ Change Form Submission\n  if (req.method === 'POST' && parsedUrl.pathname ===\
-    \ '/change-password') {\n    let body = '';\n    req.on('data', chunk => { body\
-    \ += chunk; });\n    req.on('end', () => {\n      const params = new URLSearchParams(body);\n\
-    \      const username = params.get('username') ? params.get('username').trim().toLowerCase()\
-    \ : '';\n      const oldPassword = params.get('old_password') ? params.get('old_password').trim()\
-    \ : '';\n      const newPassword = params.get('new_password') ? params.get('new_password').trim()\
-    \ : '';\n\n      if (!username || !oldPassword || !newPassword) {\n        res.writeHead(400,\
-    \ { 'Content-Type': 'text/html; charset=utf-8' });\n        return res.end(renderAuthPage({\
-    \ tab: 'change', errorMsg: '\u0E01\u0E23\u0E38\u0E13\u0E32\u0E01\u0E23\u0E2D\u0E01\
-    \u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E43\u0E2B\u0E49\u0E04\u0E23\u0E1A\u0E17\
-    \u0E38\u0E01\u0E0A\u0E48\u0E2D\u0E07' }));\n      }\n\n      if (newPassword.length\
-    \ < 6) {\n        res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8'\
-    \ });\n        return res.end(renderAuthPage({ tab: 'change', errorMsg: '\u0E23\
-    \u0E2B\u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\u0E43\u0E2B\u0E21\u0E48\u0E15\u0E49\
-    \u0E2D\u0E07\u0E21\u0E35\u0E04\u0E27\u0E32\u0E21\u0E22\u0E32\u0E27\u0E2D\u0E22\
-    \u0E48\u0E32\u0E07\u0E19\u0E49\u0E2D\u0E22 6 \u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\
-    \u0E29\u0E23' }));\n      }\n\n      USERS = loadUsers();\n      if (!USERS[username]\
-    \ || USERS[username] !== oldPassword) {\n        res.writeHead(401, { 'Content-Type':\
-    \ 'text/html; charset=utf-8' });\n        return res.end(renderAuthPage({ tab:\
-    \ 'change', errorMsg: '\u0E0A\u0E37\u0E48\u0E2D\u0E1C\u0E39\u0E49\u0E43\u0E0A\u0E49\
-    \u0E07\u0E32\u0E19\u0E2B\u0E23\u0E37\u0E2D\u0E23\u0E2B\u0E31\u0E2A\u0E1C\u0E48\
-    \u0E32\u0E19\u0E40\u0E14\u0E34\u0E21\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01\u0E15\
-    \u0E49\u0E2D\u0E07' }));\n      }\n\n      USERS[username] = newPassword;\n  \
-    \    if (saveUsers(USERS)) {\n        console.log(`[AUTH-PROXY] Successfully changed\
-    \ password for user: ${username}`);\n        res.writeHead(200, { 'Content-Type':\
-    \ 'text/html; charset=utf-8' });\n        return res.end(renderAuthPage({ tab:\
-    \ 'login', successMsg: `\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E23\u0E2B\
-    \u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E1C\
-    \u0E39\u0E49\u0E43\u0E0A\u0E49 \"${username}\" \u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08\
-    \u0E41\u0E25\u0E49\u0E27 \u0E01\u0E23\u0E38\u0E13\u0E32\u0E40\u0E02\u0E49\u0E32\
-    \u0E2A\u0E39\u0E48\u0E23\u0E30\u0E1A\u0E1A\u0E14\u0E49\u0E27\u0E22\u0E23\u0E2B\
-    \u0E31\u0E2A\u0E1C\u0E48\u0E32\u0E19\u0E43\u0E2B\u0E21\u0E48` }));\n      } else\
-    \ {\n        res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });\n\
-    \        return res.end(renderAuthPage({ tab: 'change', errorMsg: '\u0E40\u0E01\
-    \u0E34\u0E14\u0E02\u0E49\u0E2D\u0E1C\u0E34\u0E14\u0E1E\u0E25\u0E32\u0E14\u0E43\
-    \u0E19\u0E01\u0E32\u0E23\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E23\u0E2B\u0E31\
-    \u0E2A\u0E1C\u0E48\u0E32\u0E19\u0E43\u0E2B\u0E21\u0E48 \u0E01\u0E23\u0E38\u0E13\
-    \u0E32\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48\u0E2D\u0E35\u0E01\u0E04\u0E23\
-    \u0E31\u0E49\u0E07' }));\n      }\n    });\n    return;\n  }\n\n  // Check Session\
-    \ Cookie\n  let authenticated = false;\n  let sessionUser = null;\n  const cookieHeader\
-    \ = req.headers.cookie;\n  if (cookieHeader) {\n    const cookies = cookieHeader.split(';').map(c\
-    \ => c.trim());\n    for (const c of cookies) {\n      if (c.startsWith('dsh_auth='))\
-    \ {\n        const sid = c.substring('dsh_auth='.length);\n        if (SESSIONS.has(sid))\
-    \ {\n          authenticated = true;\n          sessionUser = SESSIONS.get(sid).user;\n\
-    \          break;\n        }\n      }\n    }\n  }\n\n  if (!authenticated) {\n\
-    \    const tab = parsedUrl.query.tab || 'login';\n    res.writeHead(200, { 'Content-Type':\
-    \ 'text/html; charset=utf-8' });\n    return res.end(renderAuthPage({ tab }));\n\
-    \  }\n\n  // If authenticated, proxy request to DSH internal port 3081\n  const\
-    \ token = getDshToken();\n\n  // Ensure upstream DSH authentication cookie is\
-    \ established via internal token exchange\n  function forwardToDsh(dshCookie)\
-    \ {\n    const proxyHeaders = { ...req.headers };\n    // Preserve client Host\
-    \ header (dsh.example.com) to satisfy trustedHosts and Origin checks\n    const\
-    \ clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';\n\
-    \    proxyHeaders['host'] = clientHost;\n    proxyHeaders['x-dsh-user'] = sessionUser;\n\
-    \n    if (dshCookie) {\n      const existingCookies = req.headers.cookie ? req.headers.cookie.split(';').map(c\
-    \ => c.trim()) : [];\n      // Filter out any stale dsh-auth cookies and append\
-    \ current valid upstream cookie\n      const filtered = existingCookies.filter(c\
-    \ => !c.startsWith('dsh-auth-'));\n      filtered.push(dshCookie);\n      proxyHeaders['cookie']\
-    \ = filtered.join('; ');\n    }\n\n    const proxyReq = http.request({\n     \
-    \ host: DSH_TARGET_HOST,\n      port: DSH_TARGET_PORT,\n      path: req.url,\n\
-    \      method: req.method,\n      headers: proxyHeaders\n    }, (proxyRes) =>\
-    \ {\n      // If upstream returns a redirect to / and we already passed a valid\
-    \ cookie, avoid client redirect storm\n      res.writeHead(proxyRes.statusCode,\
-    \ proxyRes.headers);\n      proxyRes.pipe(res);\n    });\n\n    proxyReq.on('error',\
-    \ (err) => {\n      console.error('[AUTH-PROXY] Forward error:', err.message);\n\
-    \      res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });\n\
-    \      res.end('Gateway Error: \u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\
-    \u0E16\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E15\u0E48\u0E2D\u0E1A\u0E23\u0E34\
-    \u0E01\u0E32\u0E23 DSH \u0E20\u0E32\u0E22\u0E43\u0E19\u0E44\u0E14\u0E49 \u0E01\
-    \u0E23\u0E38\u0E13\u0E32\u0E23\u0E2D\u0E2A\u0E31\u0E01\u0E04\u0E23\u0E39\u0E48\
-    ');\n    });\n\n    req.pipe(proxyReq);\n  }\n\n  const clientHost = req.headers['x-forwarded-host']\
-    \ || req.headers.host || 'dsh.example.com';\n  getOrMintDshCookie(clientHost,\
-    \ (err, dshCookie) => {\n    forwardToDsh(dshCookie);\n  });\n});\n\n// Handle\
-    \ WebSocket Upgrades\nserver.on('upgrade', (req, socket, head) => {\n  let authenticated\
-    \ = false;\n  const cookieHeader = req.headers.cookie;\n  if (cookieHeader) {\n\
-    \    const cookies = cookieHeader.split(';').map(c => c.trim());\n    for (const\
-    \ c of cookies) {\n      if (c.startsWith('dsh_auth=')) {\n        const sid =\
-    \ c.substring('dsh_auth='.length);\n        if (SESSIONS.has(sid)) {\n       \
-    \   authenticated = true;\n          break;\n        }\n      }\n    }\n  }\n\n\
-    \  if (!authenticated) {\n    socket.destroy();\n    return;\n  }\n\n  const clientHost\
-    \ = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';\n\
-    \  getOrMintDshCookie(clientHost, (err, dshCookie) => {\n    // Reconstruct HTTP\
-    \ upgrade request buffer to guarantee dsh-auth cookie is included\n    const rawHeaders\
-    \ = req.rawHeaders;\n    let hasDshAuthInCookie = false;\n    let cookieIdx =\
-    \ -1;\n    for (let i = 0; i < rawHeaders.length; i += 2) {\n      if (rawHeaders[i].toLowerCase()\
-    \ === 'cookie') {\n        cookieIdx = i;\n        if (rawHeaders[i + 1].includes('dsh-auth-'))\
-    \ {\n          hasDshAuthInCookie = true;\n        }\n      }\n    }\n\n    let\
-    \ upgradeReqText = `${req.method} ${req.url} HTTP/${req.httpVersion}\\r\\n`;\n\
-    \    for (let i = 0; i < rawHeaders.length; i += 2) {\n      const headerKey =\
-    \ rawHeaders[i];\n      let headerVal = rawHeaders[i + 1];\n      if (headerKey.toLowerCase()\
-    \ === 'host') {\n        headerVal = clientHost;\n      }\n      if (headerKey.toLowerCase()\
-    \ === 'cookie' && dshCookie && !hasDshAuthInCookie) {\n        headerVal = headerVal\
-    \ ? `${headerVal}; ${dshCookie}` : dshCookie;\n      }\n      upgradeReqText +=\
-    \ `${headerKey}: ${headerVal}\\r\\n`;\n    }\n    if (cookieIdx === -1 && dshCookie)\
-    \ {\n      upgradeReqText += `Cookie: ${dshCookie}\\r\\n`;\n    }\n    upgradeReqText\
-    \ += `\\r\\n`;\n\n    const net = require('net');\n    const targetSocket = net.connect(DSH_TARGET_PORT,\
-    \ DSH_TARGET_HOST, () => {\n      targetSocket.write(upgradeReqText);\n      if\
-    \ (head && head.length > 0) {\n        targetSocket.write(head);\n      }\n  \
-    \    socket.pipe(targetSocket);\n      targetSocket.pipe(socket);\n    });\n\n\
-    \    targetSocket.on('error', () => {\n      socket.destroy();\n    });\n  });\n\
-    });\n\nserver.listen(PROXY_PORT, '0.0.0.0', () => {\n  console.log(`[AUTH-PROXY]\
-    \ Enterprise DSH Auth Gate running on port ${PROXY_PORT} -> forwarding to ${DSH_TARGET_HOST}:${DSH_TARGET_PORT}`);\n\
-    });\n"
-  configure_models.js: "const fs = require(\"fs\");\n\n// 1. Maintain official DeepSeek\
-    \ models in dsh-llm-deepseek\nconst file = \"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-deepseek/lib/index.js\"\
-    ;\nif (fs.existsSync(file)) {\n  let content = fs.readFileSync(file, \"utf8\"\
-    );\n  const idx1 = content.indexOf(\"const DEFAULT_MODELS = [\");\n  if (idx1\
-    \ !== -1) {\n    const idx2 = content.indexOf(\"];\", idx1) + 2;\n    const officialModels\
-    \ = `const DEFAULT_MODELS = [\n\t{\n\t\tid: \"deepseek-chat\",\n\t\tname: \"DeepSeek\
-    \ Chat\",\n\t\tdescription: \"Official DeepSeek Chat Model\",\n\t\tcontextWindow:\
-    \ 64000\n\t},\n\t{\n\t\tid: \"deepseek-reasoner\",\n\t\tname: \"DeepSeek Reasoner\"\
-    ,\n\t\tdescription: \"Official DeepSeek Reasoner Model (R1)\",\n\t\tcontextWindow:\
-    \ 64000\n\t}\n];`;\n    content = content.substring(0, idx1) + officialModels\
-    \ + content.substring(idx2);\n  }\n  content = content.replace(/const DEFAULT_MAX_TOKENS\
-    \ = 256e3;/g, \"const DEFAULT_MAX_TOKENS = 4096;\");\n  content = content.replace(/maxTokens:\\\
-    s*config\\.maxTokens\\s*\\?\\?\\s*256e3/g, \"maxTokens: Math.min(config.maxTokens\
-    \ ?? 4096, 4096)\");\n  fs.writeFileSync(file, content, \"utf8\");\n  console.log(\"\
-    [CONFIG] Restored official DeepSeek models in dsh-llm-deepseek\");\n}\n\n// 2.\
-    \ Set authoritative default model to glm-5.3-flash on litellm-cluster in base\
-    \ cordis.patch.yml\nconst basePatch = \"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-base/cordis.patch.yml\"\
-    ;\nif (fs.existsSync(basePatch)) {\n  let patchContent = fs.readFileSync(basePatch,\
-    \ \"utf8\");\n  patchContent = patchContent.replace(\n    /- id: agent-default-model\\\
-    s*\\n\\s*name: '@deepseek-ai\\/dsh-agent-default-model'\\s*\\n\\s*config:\\s*\\\
-    n\\s*provider:\\s*[^\\n]+\\s*\\n\\s*model:\\s*[^\\n]+/g,\n    `- id: agent-default-model\\\
-    n      name: '@deepseek-ai/dsh-agent-default-model'\\n      config:\\n       \
-    \ provider: litellm-cluster\\n        model: glm-5.3-flash`\n  );\n  // Also configure\
-    \ session-title-llm to explicitly use litellm-cluster / glm-5.3-flash\n  patchContent\
-    \ = patchContent.replace(\n    /name: '@deepseek-ai\\/dsh-session-title-first-prompt-llm'\\\
-    s*\\n\\s*config:\\s*\\n\\s*targetWords: 5/g,\n    `name: '@deepseek-ai/dsh-session-title-first-prompt-llm'\\\
-    n      config:\\n        provider: litellm-cluster\\n        model: glm-5.3-flash\\\
-    n        targetWords: 5`\n  );\n  fs.writeFileSync(basePatch, patchContent, \"\
-    utf8\");\n  console.log(\"[CONFIG] Updated default model and session-title-llm\
-    \ to litellm-cluster/glm-5.3-flash in cordis.patch.yml\");\n}\n\n// 3. Set authoritative\
-    \ catalog in session controller\nconst scFile = \"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js\"\
-    ;\nif (fs.existsSync(scFile)) {\n  let scContent = fs.readFileSync(scFile, \"\
-    utf8\");\n  const idx = scContent.indexOf(\"async function buildModelCatalog(\"\
-    );\n  if (idx !== -1) {\n    const idxEnd = scContent.indexOf(\"//#endregion\"\
-    , idx);\n    const injectedCatalog = `async function buildModelCatalog(ctx, defaultSelection)\
-    \ {\n\treturn {\n\t\tdefault: { provider: \"litellm-cluster\", model: \"glm-5.3-flash\"\
-    \ },\n\t\troutableProviders: [\"litellm-cluster\", \"deepseek-official\"],\n\t\
-    \tgroups: [\n\t\t\t{\n\t\t\t\tid: \"litellm-cluster\",\n\t\t\t\tname: \"Cluster\
-    \ LiteLLM Gateway\",\n\t\t\t\tmodels: [\n\t\t\t\t\t{\n\t\t\t\t\t\tid: \"glm-5.3-flash\"\
-    ,\n\t\t\t\t\t\tname: \"GLM-5.3-Flash (Cluster LiteLLM TP=4)\",\n\t\t\t\t\t\tdescription:\
-    \ \"Primary ultra-low-latency 4-GPU cluster model\"\n\t\t\t\t\t},\n\t\t\t\t\t\
-    {\n\t\t\t\t\t\tid: \"glm-5.3-flash-awq\",\n\t\t\t\t\t\tname: \"GLM-5.3-Flash AWQ\
-    \ (Cluster LiteLLM TP=2)\",\n\t\t\t\t\t\tdescription: \"Quantized 2-GPU standby\
-    \ cluster model\"\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\tid: \"qwen3.8-flash-next\"\
-    ,\n\t\t\t\t\t\tname: \"Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)\",\n\t\t\t\t\
-    \t\tdescription: \"Next-gen agile reasoning model served via LiteLLM proxy\"\n\
-    \t\t\t\t\t}\n\t\t\t\t]\n\t\t\t},\n\t\t\t{\n\t\t\t\tid: \"deepseek-official\",\n\
-    \t\t\t\tname: \"DeepSeek (Official)\",\n\t\t\t\tmodels: [\n\t\t\t\t\t{\n\t\t\t\
-    \t\t\tid: \"deepseek-chat\",\n\t\t\t\t\t\tname: \"DeepSeek Chat\",\n\t\t\t\t\t\
-    \tdescription: \"Official DeepSeek Chat Model\"\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\
-    \t\t\t\t\tid: \"deepseek-reasoner\",\n\t\t\t\t\t\tname: \"DeepSeek Reasoner\"\
-    ,\n\t\t\t\t\t\tdescription: \"Official DeepSeek Reasoner Model (R1)\"\n\t\t\t\t\
-    \t}\n\t\t\t\t]\n\t\t\t}\n\t\t],\n\t\tfailures: []\n\t};\n}\n`;\n    scContent\
-    \ = scContent.substring(0, idx) + injectedCatalog + scContent.substring(idxEnd);\n\
-    \    fs.writeFileSync(scFile, scContent, \"utf8\");\n    console.log(\"[CONFIG]\
-    \ Injected buildModelCatalog cleanly\");\n  }\n}\n\n// 4. Patch dsh-client-ui-settings-models\
-    \ to populate cluster models\nconst smFile = \"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-ui-settings-models/lib/client.js\"\
-    ;\nif (fs.existsSync(smFile)) {\n  let sm = fs.readFileSync(smFile, \"utf8\");\n\
-    \  const oldInherited = `const inheritedModels = () => {\n\t\t\t\treturn schema.getPath(namespace.base,\
-    \ [...settingsPath, \"models\"]) ?? schema.nodeAtPath(root, [...settingsPath,\
-    \ \"models\"])?.meta.default;\n\t\t\t};`;\n  const newInherited = `const inheritedModels\
-    \ = () => {\n\t\t\t\tconst fromSchema = schema.getPath(namespace.base, [...settingsPath,\
-    \ \"models\"]) ?? schema.nodeAtPath(root, [...settingsPath, \"models\"])?.meta.default;\n\
-    \t\t\t\tif (Array.isArray(fromSchema) && fromSchema.length > 0) return fromSchema;\n\
-    \t\t\t\tif (settingsPath.includes(\"litellm-cluster\") || props.provider === \"\
-    litellm-cluster\") {\n\t\t\t\t\treturn [\n\t\t\t\t\t\t{ id: \"glm-5.3-flash\"\
-    , name: \"GLM-5.3-Flash (Cluster LiteLLM TP=4)\", contextWindow: 128000, maxTokens:\
-    \ 4096 },\n\t\t\t\t\t\t{ id: \"glm-5.3-flash-awq\", name: \"GLM-5.3-Flash AWQ\
-    \ (Cluster LiteLLM TP=2)\", contextWindow: 64000, maxTokens: 4096 },\n\t\t\t\t\
-    \t\t{ id: \"qwen3.8-flash-next\", name: \"Qwen3.8-Flash-Next (Cluster LiteLLM\
-    \ Mode 2)\", contextWindow: 128000, maxTokens: 4096 }\n\t\t\t\t\t];\n\t\t\t\t\
-    }\n\t\t\t\treturn fromSchema;\n\t\t\t};`;\n  if (sm.includes(oldInherited)) {\n\
-    \    sm = sm.replace(oldInherited, newInherited);\n  }\n\n  sm = sm.replace(\"\
-    disabled: protocols.length === 0 || !state.writable,\", \"disabled: false,\");\n\
-    \  sm = sm.replace(\"function providerUsable(row) {\", \"function providerUsable(row)\
-    \ {\\n\\t\\t\\treturn true;\");\n\n  fs.writeFileSync(smFile, sm, \"utf8\");\n\
-    \  console.log(\"[CONFIG] Patched client-ui-settings-models cleanly\");\n}\n\n\
-    // 5. Patch dsh-client-ui-model-selection (ModelCatalogDirectory instant catalog)\n\
-    const msFile = \"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-ui-model-selection/lib/client.js\"\
-    ;\nif (fs.existsSync(msFile)) {\n  let ms = fs.readFileSync(msFile, \"utf8\");\n\
-    \  let idx = ms.indexOf(\"ModelCatalogDirectory = class\");\n  if (idx !== -1)\
-    \ {\n    let idxEnd = ms.indexOf(\"};\", idx) + 2;\n    const fallbackCatalog\
-    \ = `ModelCatalogDirectory = class {\n\tctx;\n\tstore = (0, _deepseek_ai_dsh_client_store.createSnapshotStore)({\n\
-    \t\tvalue: {\n\t\t\tdefault: { provider: \"litellm-cluster\", model: \"glm-5.3-flash\"\
-    \ },\n\t\t\troutableProviders: [\"litellm-cluster\", \"deepseek-official\"],\n\
-    \t\t\tgroups: [\n\t\t\t\t{\n\t\t\t\t\tid: \"litellm-cluster\",\n\t\t\t\t\tname:\
-    \ \"Cluster LiteLLM Gateway\",\n\t\t\t\t\tmodels: [\n\t\t\t\t\t\t{ id: \"glm-5.3-flash\"\
-    , name: \"GLM-5.3-Flash (Cluster LiteLLM TP=4)\", description: \"Primary ultra-low-latency\
-    \ 4-GPU cluster model\" },\n\t\t\t\t\t\t{ id: \"glm-5.3-flash-awq\", name: \"\
-    GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)\", description: \"Quantized 2-GPU standby\
-    \ cluster model\" },\n\t\t\t\t\t\t{ id: \"qwen3.8-flash-next\", name: \"Qwen3.8-Flash-Next\
-    \ (Cluster LiteLLM Mode 2)\", description: \"Next-gen agile reasoning model served\
-    \ via LiteLLM proxy\" }\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\tid: \"\
-    deepseek-official\",\n\t\t\t\t\tname: \"DeepSeek (Official)\",\n\t\t\t\t\tmodels:\
-    \ [\n\t\t\t\t\t\t{ id: \"deepseek-chat\", name: \"DeepSeek Chat\", description:\
-    \ \"Official DeepSeek Chat Model\" },\n\t\t\t\t\t\t{ id: \"deepseek-reasoner\"\
-    , name: \"DeepSeek Reasoner\", description: \"Official DeepSeek Reasoner Model\
-    \ (R1)\" }\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\tfailures: []\n\t\t},\n\t\t\
-    status: \"ready\",\n\t\terror: null\n\t});\n\tgeneration = 0;\n\tinflight;\n\t\
-    constructor(ctx) { this.ctx = ctx; }\n\tload() { return Promise.resolve(this.store.getSnapshot().value);\
-    \ }\n\tresetGeneration() {}\n};`;\n    ms = ms.substring(0, idx) + fallbackCatalog\
-    \ + ms.substring(idxEnd);\n  }\n\n  // Patch syncInputs in ModelDirectory\n  const\
-    \ oldSync = `syncInputs() {\n\t\t\t\tif (this.disposed) return;\n\t\t\t\tconst\
-    \ catalog = this.catalog.store.getSnapshot();\n\t\t\t\tconst projected = modelSelectionProjection(this.projected.getSnapshot());\n\
-    \t\t\t\tif (catalog.status !== \"ready\" || catalog.value === null || projected\
-    \ === void 0) {\n\t\t\t\t\tif (this.resolved) {\n\t\t\t\t\t\tif (catalog.status\
-    \ === \"error\") this.store.update((state) => {\n\t\t\t\t\t\t\tstate.status =\
-    \ \"error\";\n\t\t\t\t\t\t\tstate.error = catalog.error;\n\t\t\t\t\t\t});\n\t\t\
-    \t\t\t\treturn;\n\t\t\t\t\t}\n\t\t\t\t\tthis.store.set({\n\t\t\t\t\t\tcurrent:\
-    \ null,\n\t\t\t\t\t\troutable: null,\n\t\t\t\t\t\tgroups: [],\n\t\t\t\t\t\tfailures:\
-    \ [],\n\t\t\t\t\t\tstatus: catalog.status === \"error\" ? \"error\" : \"loading\"\
-    ,\n\t\t\t\t\t\terror: catalog.error\n\t\t\t\t\t});\n\t\t\t\t\treturn;\n\t\t\t\t\
-    }\n\t\t\t\tconst current = projected.next ?? catalog.value.default;\n\t\t\t\t\
-    this.resolved = true;\n\t\t\t\tthis.store.set({\n\t\t\t\t\tcurrent,\n\t\t\t\t\t\
-    routable: catalog.value.routableProviders.includes(current.provider),\n\t\t\t\t\
-    \tgroups: catalog.value.groups,\n\t\t\t\t\tfailures: catalog.value.failures,\n\
-    \t\t\t\t\tstatus: this.store.getSnapshot().status === \"selecting\" ? \"selecting\"\
-    \ : \"ready\",\n\t\t\t\t\terror: null\n\t\t\t\t});\n\t\t\t}`;\n\n  const newSync\
-    \ = `syncInputs() {\n\t\t\t\tif (this.disposed) return;\n\t\t\t\tconst catalog\
-    \ = this.catalog.store.getSnapshot();\n\t\t\t\tconst projected = modelSelectionProjection(this.projected?.getSnapshot?.());\n\
-    \t\t\t\tconst catVal = catalog.value ?? {\n\t\t\t\t\tdefault: { provider: \"litellm-cluster\"\
-    , model: \"glm-5.3-flash\" },\n\t\t\t\t\troutableProviders: [\"litellm-cluster\"\
-    , \"deepseek-official\"],\n\t\t\t\t\tgroups: [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\
-    id: \"litellm-cluster\",\n\t\t\t\t\t\t\tname: \"Cluster LiteLLM Gateway\",\n\t\
-    \t\t\t\t\t\tmodels: [\n\t\t\t\t\t\t\t\t{ id: \"glm-5.3-flash\", name: \"GLM-5.3-Flash\
-    \ (Cluster LiteLLM TP=4)\", description: \"Primary ultra-low-latency 4-GPU cluster\
-    \ model\" },\n\t\t\t\t\t\t\t\t{ id: \"glm-5.3-flash-awq\", name: \"GLM-5.3-Flash\
-    \ AWQ (Cluster LiteLLM TP=2)\", description: \"Quantized 2-GPU standby cluster\
-    \ model\" },\n\t\t\t\t\t\t\t\t{ id: \"qwen3.8-flash-next\", name: \"Qwen3.8-Flash-Next\
-    \ (Cluster LiteLLM Mode 2)\", description: \"Next-gen agile reasoning model served\
-    \ via LiteLLM proxy\" }\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\
-    \t\t\t\tid: \"deepseek-official\",\n\t\t\t\t\t\t\tname: \"DeepSeek (Official)\"\
-    ,\n\t\t\t\t\t\t\tmodels: [\n\t\t\t\t\t\t\t\t{ id: \"deepseek-chat\", name: \"\
-    DeepSeek Chat\", description: \"Official DeepSeek Chat Model\" },\n\t\t\t\t\t\t\
-    \t\t{ id: \"deepseek-reasoner\", name: \"DeepSeek Reasoner\", description: \"\
-    Official DeepSeek Reasoner Model (R1)\" }\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\
-    \t\t\t],\n\t\t\t\t\tfailures: []\n\t\t\t\t};\n\t\t\t\tconst current = projected?.next\
-    \ ?? catVal.default;\n\t\t\t\tthis.resolved = true;\n\t\t\t\tthis.store.set({\n\
-    \t\t\t\t\tcurrent,\n\t\t\t\t\troutable: catVal.routableProviders.includes(current.provider),\n\
-    \t\t\t\t\tgroups: catVal.groups,\n\t\t\t\t\tfailures: catVal.failures,\n\t\t\t\
-    \t\tstatus: \"ready\",\n\t\t\t\t\terror: null\n\t\t\t\t});\n\t\t\t}`;\n\n  if\
-    \ (ms.includes(oldSync)) {\n    ms = ms.replace(oldSync, newSync);\n  }\n\n  //\
-    \ Patch waiting in ModelSelect\n  const oldWaiting = `const waiting = state.current\
-    \ === null && state.status === \"loading\";\n\t\t\tconst modelLabel = waiting\
-    \ ? t(\"trigger.loading\") : currentChoice?.model.name ?? (state.current === null\
-    \ ? t(\"trigger.fallback\") : \\`\\${state.current.provider}/\\${state.current.model}\\\
-    `);`;\n\n  const newWaiting = `const waiting = false;\n\t\t\tconst modelLabel\
-    \ = currentChoice?.model.name ?? (state.current ? \\`\\${state.current.provider}/\\\
-    ${state.current.model}\\` : \"GLM-5.3-Flash (Cluster LiteLLM TP=4)\");`;\n\n \
-    \ if (ms.includes(oldWaiting)) {\n    ms = ms.replace(oldWaiting, newWaiting);\n\
-    \  }\n\n  fs.writeFileSync(msFile, ms, \"utf8\");\n  console.log(\"[CONFIG] Patched\
-    \ dsh-client-ui-model-selection with instant ModelCatalogDirectory and eliminated\
-    \ loading state\");\n}\n\n// 6. Write valid settings.yaml into persistent storage\
-    \ directory\ntry {\n  fs.mkdirSync(\"/root/.dsh\", { recursive: true });\n  const\
-    \ validYaml = `version: 1\nagent-default-model:\n  provider: litellm-cluster\n\
-    \  model: glm-5.3-flash\nllm-pi-ai:\n  providers:\n    litellm-cluster:\n    \
-    \  displayName: \"Cluster LiteLLM Gateway\"\n      api: \"openai-completions\"\
-    \n      baseURL: \"http://litellm.llm.svc.cluster.local:4000/v1\"\n      apiKeyEnv:\
-    \ \"DEEPSEEK_API_KEY\"\n      models:\n        - id: \"glm-5.3-flash\"\n     \
-    \     name: \"GLM-5.3-Flash (Cluster LiteLLM TP=4)\"\n          contextWindow:\
-    \ 128000\n          maxTokens: 4096\n        - id: \"glm-5.3-flash-awq\"\n   \
-    \       name: \"GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)\"\n          contextWindow:\
-    \ 64000\n          maxTokens: 4096\n        - id: \"qwen3.8-flash-next\"\n   \
-    \       name: \"Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)\"\n          contextWindow:\
-    \ 128000\n          maxTokens: 4096\n`;\n  fs.writeFileSync(\"/root/.dsh/settings.yaml\"\
-    , validYaml, \"utf8\");\n  console.log(\"[CONFIG] Populated /root/.dsh/settings.yaml\
-    \ cleanly\");\n} catch(e) {\n  console.error(e);\n}\n\n// 8. Patch dsh-system-prompt\
-    \ with enterprise grounding to eliminate GLM-5.3-Flash mumbling\nconst sysPromptFile\
-    \ = \"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-system-prompt/lib/index.js\"\
-    ;\nif (fs.existsSync(sysPromptFile)) {\n  let spContent = fs.readFileSync(sysPromptFile,\
-    \ \"utf8\");\n  const oldText = 'text: \"You are an AI agent powered by DeepSeek\
-    \ Harness.\"';\n  const newText = `text: \"You are DeepSeek Harness (DSH), an\
-    \ expert software engineering assistant on private enterprise cluster infrastructure.\\\
-    \\n- Core Invariants:\\\\n1. Always respond concisely, professionally, and directly\
-    \ to the user.\\\\n2. Never output unclosed thinking, meta-deliberation, prompt\
-    \ injection analysis, or internal self-talk.\\\\n3. Greet users politely and offer\
-    \ direct assistance with code, architecture, and debugging.\"`;\n  if (spContent.includes(oldText))\
-    \ {\n    spContent = spContent.replace(oldText, newText);\n    fs.writeFileSync(sysPromptFile,\
-    \ spContent, \"utf8\");\n    console.log(\"[CONFIG] Grounded dsh-system-prompt\
-    \ to eliminate GLM-5.3-Flash mumbling\");\n  } else {\n    console.log(\"[CONFIG]\
-    \ dsh-system-prompt already grounded or text not matched\");\n  }\n}\n"
+  auth_proxy.js: |
+    const http = require('http');
+    const url = require('url');
+    const fs = require('fs');
+    const crypto = require('crypto');
+
+    const PROXY_PORT = 3080;
+    const DSH_TARGET_PORT = 3081;
+    const DSH_TARGET_HOST = '127.0.0.1';
+    const USER_STORE_PATH = '/workspace/users/.user_auth.json';
+
+    // In-memory sessions
+    const SESSIONS = new Map();
+    const cachedDshAuthCookies = new Map();
+
+    function getOrMintDshCookie(clientHost, callback) {
+      const existing = cachedDshAuthCookies.get(clientHost);
+      if (existing) {
+        return callback(null, existing);
+      }
+      const token = getDshToken();
+      if (!token) {
+        return callback(new Error("No DSH launch token available"));
+      }
+      const authReq = http.request({
+        host: DSH_TARGET_HOST,
+        port: DSH_TARGET_PORT,
+        path: `/?token=${encodeURIComponent(token)}`,
+        method: "GET",
+        headers: { "host": clientHost }
+      }, (authRes) => {
+        let mintedCookie = null;
+        const setCookies = authRes.headers["set-cookie"];
+        if (setCookies) {
+          for (const sc of setCookies) {
+            if (sc.startsWith("dsh-auth-")) {
+              mintedCookie = sc.split(";")[0];
+              cachedDshAuthCookies.set(clientHost, mintedCookie);
+              console.log(`[AUTH-PROXY] Successfully minted and cached upstream DSH cookie for authority ${clientHost}`);
+              break;
+            }
+          }
+        }
+        authRes.resume();
+        callback(null, mintedCookie);
+      });
+      authReq.on("error", (err) => {
+        callback(err);
+      });
+      authReq.end();
+    }
+
+    // The admin password must come from the environment; there is no built-in fallback.
+    if (!process.env.DSH_AUTH_PASS) {
+      console.error('[AUTH-PROXY] DSH_AUTH_PASS is not set; refusing to start without an admin password.');
+      process.exit(1);
+    }
+    const DEFAULT_USERS = {
+      'admin': process.env.DSH_AUTH_PASS
+    };
+
+    function loadUsers() {
+      try {
+        if (fs.existsSync(USER_STORE_PATH)) {
+          const raw = fs.readFileSync(USER_STORE_PATH, 'utf8');
+          const data = JSON.parse(raw);
+          return Object.assign({}, DEFAULT_USERS, data);
+        }
+      } catch (e) {
+        console.error('[AUTH-PROXY] Failed to load user store:', e.message);
+      }
+      return Object.assign({}, DEFAULT_USERS);
+    }
+
+    function saveUsers(users) {
+      try {
+        fs.mkdirSync('/workspace/users', { recursive: true });
+        fs.writeFileSync(USER_STORE_PATH, JSON.stringify(users, null, 2), 'utf8');
+        return true;
+      } catch (e) {
+        console.error('[AUTH-PROXY] Failed to save user store:', e.message);
+        return false;
+      }
+    }
+
+    // Initialize user store if missing
+    let USERS = loadUsers();
+    if (!fs.existsSync(USER_STORE_PATH)) {
+      saveUsers(USERS);
+    }
+
+    function getDshToken() {
+      try {
+        if (fs.existsSync('/tmp/dsh_token.txt')) {
+          return fs.readFileSync('/tmp/dsh_token.txt', 'utf8').trim();
+        }
+      } catch (e) {}
+      return '';
+    }
+
+    function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) {
+      return `<!DOCTYPE html>
+    <html lang="th">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Login · DeepSeek Harness (DSH) — Enterprise AI Platform</title>
+      <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+      <style>
+        :root {
+          --primary-navy: #0F4C81;
+          --primary-deep: #0A2540;
+          --primary-gold: #C5A880;
+          --bg-dark: #0B0F19;
+          --card-bg: #131C2E;
+          --border: #202E49;
+          --text-main: #E2E8F0;
+          --text-muted: #94A3B8;
+          --success-bg: rgba(16, 185, 129, 0.15);
+          --success-border: rgba(16, 185, 129, 0.35);
+          --success-text: #34D399;
+          --error-bg: rgba(239, 68, 68, 0.15);
+          --error-border: rgba(239, 68, 68, 0.35);
+          --error-text: #F87171;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Sarabun', -apple-system, sans-serif; }
+        body {
+          background-color: var(--bg-dark);
+          background-image: radial-gradient(circle at top right, #1a2f4d 0%, transparent 60%), radial-gradient(circle at bottom left, #0d1e38 0%, transparent 60%);
+          color: var(--text-main);
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+        .login-card {
+          background: var(--card-bg);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          width: 100%;
+          max-width: 460px;
+          padding: 36px 32px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+          position: relative;
+          overflow: hidden;
+        }
+        .login-card::before {
+          content: "";
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, var(--primary-gold), #e8d5b5, var(--primary-navy));
+        }
+        .brand-header {
+          text-align: center;
+          margin-bottom: 24px;
+        }
+        .brand-logo {
+          width: 52px;
+          height: 52px;
+          margin: 0 auto 12px;
+          background: linear-gradient(135deg, var(--primary-navy), var(--primary-deep));
+          border: 1px solid rgba(197, 168, 128, 0.4);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .brand-logo svg {
+          width: 28px;
+          height: 28px;
+          fill: var(--primary-gold);
+        }
+        .org-title {
+          font-size: 13px;
+          letter-spacing: 1px;
+          color: var(--primary-gold);
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+        .app-title {
+          font-size: 20px;
+          font-weight: 700;
+          color: #FFF;
+          margin: 4px 0 2px;
+        }
+        .app-subtitle {
+          font-size: 12px;
+          color: var(--text-muted);
+        }
+
+        /* Tabs */
+        .auth-tabs {
+          display: flex;
+          background: rgba(11, 15, 25, 0.7);
+          border-radius: 8px;
+          padding: 4px;
+          margin-bottom: 20px;
+          border: 1px solid var(--border);
+        }
+        .auth-tab {
+          flex: 1;
+          text-align: center;
+          padding: 8px 4px;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--text-muted);
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-decoration: none;
+        }
+        .auth-tab.active {
+          background: var(--primary-navy);
+          color: #FFF;
+          font-weight: 600;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .alert-badge {
+          padding: 10px 14px;
+          border-radius: 8px;
+          font-size: 13px;
+          margin-bottom: 18px;
+          line-height: 1.4;
+        }
+        .alert-error {
+          background: var(--error-bg);
+          border: 1px solid var(--error-border);
+          color: var(--error-text);
+        }
+        .alert-success {
+          background: var(--success-bg);
+          border: 1px solid var(--success-border);
+          color: var(--success-text);
+        }
+
+        .form-group {
+          margin-bottom: 16px;
+        }
+        .form-label {
+          display: block;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--text-muted);
+          margin-bottom: 6px;
+        }
+        .form-control {
+          width: 100%;
+          padding: 11px 14px;
+          background: rgba(11, 15, 25, 0.6);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          color: #FFF;
+          font-size: 14px;
+          transition: all 0.2s;
+        }
+        .form-control:focus {
+          outline: none;
+          border-color: var(--primary-navy);
+          box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.25);
+          background: rgba(11, 15, 25, 0.9);
+        }
+        .btn-submit {
+          width: 100%;
+          padding: 12px;
+          background: linear-gradient(135deg, var(--primary-navy), #165b99);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          color: #FFFFFF;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          box-shadow: 0 4px 12px rgba(15, 76, 129, 0.4);
+          margin-top: 6px;
+        }
+        .btn-submit:hover {
+          background: linear-gradient(135deg, #165b99, #1b6cb4);
+          transform: translateY(-1px);
+        }
+        .footer-note {
+          text-align: center;
+          margin-top: 22px;
+          font-size: 11px;
+          color: #64748B;
+        }
+      </style>
+      <script>
+        function switchTab(name) {
+          document.querySelectorAll('.tab-pane').forEach(el => el.style.display = 'none');
+          document.querySelectorAll('.auth-tab').forEach(el => el.classList.remove('active'));
+          document.getElementById('pane-' + name).style.display = 'block';
+          document.getElementById('tab-' + name).classList.add('active');
+        }
+      </script>
+    </head>
+    <body>
+      <div class="login-card">
+        <div class="brand-header">
+          <div class="brand-logo">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="org-title">Enterprise AI Platform</div>
+          <h1 class="app-title">DeepSeek Harness (DSH)</h1>
+          <p class="app-subtitle">Enterprise Agentic Coding & Knowledge Gateway</p>
+        </div>
+
+        <div class="auth-tabs">
+          <div id="tab-login" class="auth-tab ${tab === 'login' ? 'active' : ''}" onclick="switchTab('login')">เข้าสู่ระบบ</div>
+          <div id="tab-register" class="auth-tab ${tab === 'register' ? 'active' : ''}" onclick="switchTab('register')">สร้างบัญชีผู้ใช้ใหม่</div>
+          <div id="tab-change" class="auth-tab ${tab === 'change' ? 'active' : ''}" onclick="switchTab('change')">เปลี่ยนรหัสผ่าน</div>
+        </div>
+
+        ${errorMsg ? `<div class="alert-badge alert-error">⚠️ ${errorMsg}</div>` : ''}
+        ${successMsg ? `<div class="alert-badge alert-success">✅ ${successMsg}</div>` : ''}
+
+        <!-- 1. Form: เข้าสู่ระบบ -->
+        <div id="pane-login" class="tab-pane" style="display: ${tab === 'login' ? 'block' : 'none'};">
+          <form method="POST" action="/login">
+            <div class="form-group">
+              <label class="form-label" for="login_username">ชื่อผู้ใช้งาน (Username)</label>
+              <input type="text" id="login_username" name="username" class="form-control" placeholder="เช่น admin หรือชื่อของคุณ" required autofocus>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="login_password">รหัสผ่าน (Password)</label>
+              <input type="password" id="login_password" name="password" class="form-control" placeholder="ระบุรหัสผ่านเพื่อเข้าใช้งาน" required>
+            </div>
+            <button type="submit" class="btn-submit">เข้าสู่ระบบ (Sign In)</button>
+          </form>
+        </div>
+
+        <!-- 2. Form: สร้างบัญชีผู้ใช้ใหม่ -->
+        <div id="pane-register" class="tab-pane" style="display: ${tab === 'register' ? 'block' : 'none'};">
+          <form method="POST" action="/register">
+            <div class="form-group">
+              <label class="form-label" for="reg_username">ชื่อผู้ใช้งานใหม่ (New Username)</label>
+              <input type="text" id="reg_username" name="username" class="form-control" placeholder="ตัวอักษรภาษาอังกฤษหรือตัวเลข (เช่น johndoe)" pattern="[a-zA-Z0-9_\-\.]{3,30}" title="ยาว 3-30 ตัวอักษร ใช้ได้เฉพาะ a-z, 0-9, _, -" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg_password">รหัสผ่าน (Password)</label>
+              <input type="password" id="reg_password" name="password" class="form-control" placeholder="รหัสผ่านอย่างน้อย 6 ตัวอักษร" minlength="6" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg_confirm">ยืนยันรหัสผ่าน (Confirm Password)</label>
+              <input type="password" id="reg_confirm" name="confirm_password" class="form-control" placeholder="กรอกรหัสผ่านอีกครั้ง" minlength="6" required>
+            </div>
+            <button type="submit" class="btn-submit">สร้างบัญชีผู้ใช้ใหม่ (Create Account)</button>
+          </form>
+        </div>
+
+        <!-- 3. Form: เปลี่ยนรหัสผ่าน -->
+        <div id="pane-change" class="tab-pane" style="display: ${tab === 'change' ? 'block' : 'none'};">
+          <form method="POST" action="/change-password">
+            <div class="form-group">
+              <label class="form-label" for="chg_username">ชื่อผู้ใช้งาน (Username)</label>
+              <input type="text" id="chg_username" name="username" class="form-control" placeholder="ระบุชื่อผู้ใช้งาน" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="chg_old_password">รหัสผ่านเดิม (Current Password)</label>
+              <input type="password" id="chg_old_password" name="old_password" class="form-control" placeholder="ระบุรหัสผ่านปัจจุบัน" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="chg_new_password">รหัสผ่านใหม่ (New Password)</label>
+              <input type="password" id="chg_new_password" name="new_password" class="form-control" placeholder="รหัสผ่านใหม่อย่างน้อย 6 ตัวอักษร" minlength="6" required>
+            </div>
+            <button type="submit" class="btn-submit">เปลี่ยนรหัสผ่าน (Update Password)</button>
+          </form>
+        </div>
+
+        <div class="footer-note">
+          ระบบสารสนเทศเฉพาะกิจองค์กร · รักษาความลับข้อมูลขั้นสูงสุด
+        </div>
+      </div>
+    </body>
+    </html>`;
+    }
+
+    const server = http.createServer((req, res) => {
+      const parsedUrl = url.parse(req.url, true);
+
+      // Handle Login Form Submission
+      if (req.method === 'POST' && parsedUrl.pathname === '/login') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+          const params = new URLSearchParams(body);
+          const username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
+          const password = params.get('password') ? params.get('password').trim() : '';
+
+          USERS = loadUsers();
+          if (USERS[username] && USERS[username] === password) {
+            const sessionId = crypto.randomBytes(24).toString('hex');
+            SESSIONS.set(sessionId, { user: username, created: Date.now() });
+
+            // Create personal workspace folder for user if not exists
+            try {
+              fs.mkdirSync(`/workspace/users/${username}`, { recursive: true });
+            } catch (e) {}
+
+            console.log(`[AUTH-PROXY] Successful login for user: ${username}`);
+            const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
+            getOrMintDshCookie(clientHost, (err, dshCookie) => {
+              const cookieHeaders = [`dsh_auth=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`];
+              if (dshCookie) {
+                cookieHeaders.push(`${dshCookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+              }
+              res.writeHead(302, {
+                'Set-Cookie': cookieHeaders,
+                'Location': '/'
+              });
+              return res.end();
+            });
+          } else {
+            console.log(`[AUTH-PROXY] Failed login attempt for user: ${username}`);
+            res.writeHead(401, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'login', errorMsg: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง' }));
+          }
+        });
+        return;
+      }
+
+      // Handle User Registration Form Submission
+      if (req.method === 'POST' && parsedUrl.pathname === '/register') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+          const params = new URLSearchParams(body);
+          const username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
+          const password = params.get('password') ? params.get('password').trim() : '';
+          const confirmPassword = params.get('confirm_password') ? params.get('confirm_password').trim() : '';
+
+          if (!username || !/^[a-z0-9_\-\.]{3,30}$/.test(username)) {
+            res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'register', errorMsg: 'ชื่อผู้ใช้งานต้องเป็นภาษาอังกฤษ/ตัวเลข ความยาว 3-30 ตัวอักษร' }));
+          }
+
+          if (!password || password.length < 6) {
+            res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'register', errorMsg: 'รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร' }));
+          }
+
+          if (password !== confirmPassword) {
+            res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'register', errorMsg: 'รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง' }));
+          }
+
+          USERS = loadUsers();
+          if (USERS[username]) {
+            res.writeHead(409, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'register', errorMsg: `ชื่อผู้ใช้งาน "${username}" มีอยู่ในระบบแล้ว กรุณาใช้ชื่ออื่นหรือเข้าสู่ระบบ` }));
+          }
+
+          USERS[username] = password;
+          if (saveUsers(USERS)) {
+            try {
+              fs.mkdirSync(`/workspace/users/${username}`, { recursive: true });
+            } catch (e) {}
+            console.log(`[AUTH-PROXY] Successfully registered new user: ${username}`);
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'login', successMsg: `สร้างบัญชี "${username}" เรียบร้อยแล้ว สามารถเข้าสู่ระบบได้ทันที` }));
+          } else {
+            res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'register', errorMsg: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง' }));
+          }
+        });
+        return;
+      }
+
+      // Handle Password Change Form Submission
+      if (req.method === 'POST' && parsedUrl.pathname === '/change-password') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+          const params = new URLSearchParams(body);
+          const username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
+          const oldPassword = params.get('old_password') ? params.get('old_password').trim() : '';
+          const newPassword = params.get('new_password') ? params.get('new_password').trim() : '';
+
+          if (!username || !oldPassword || !newPassword) {
+            res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'change', errorMsg: 'กรุณากรอกข้อมูลให้ครบทุกช่อง' }));
+          }
+
+          if (newPassword.length < 6) {
+            res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'change', errorMsg: 'รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 6 ตัวอักษร' }));
+          }
+
+          USERS = loadUsers();
+          if (!USERS[username] || USERS[username] !== oldPassword) {
+            res.writeHead(401, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'change', errorMsg: 'ชื่อผู้ใช้งานหรือรหัสผ่านเดิมไม่ถูกต้อง' }));
+          }
+
+          USERS[username] = newPassword;
+          if (saveUsers(USERS)) {
+            console.log(`[AUTH-PROXY] Successfully changed password for user: ${username}`);
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'login', successMsg: `เปลี่ยนรหัสผ่านสำหรับผู้ใช้ "${username}" สำเร็จแล้ว กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่` }));
+          } else {
+            res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
+            return res.end(renderAuthPage({ tab: 'change', errorMsg: 'เกิดข้อผิดพลาดในการบันทึกรหัสผ่านใหม่ กรุณาลองใหม่อีกครั้ง' }));
+          }
+        });
+        return;
+      }
+
+      // Check Session Cookie
+      let authenticated = false;
+      let sessionUser = null;
+      const cookieHeader = req.headers.cookie;
+      if (cookieHeader) {
+        const cookies = cookieHeader.split(';').map(c => c.trim());
+        for (const c of cookies) {
+          if (c.startsWith('dsh_auth=')) {
+            const sid = c.substring('dsh_auth='.length);
+            if (SESSIONS.has(sid)) {
+              authenticated = true;
+              sessionUser = SESSIONS.get(sid).user;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!authenticated) {
+        const tab = parsedUrl.query.tab || 'login';
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        return res.end(renderAuthPage({ tab }));
+      }
+
+      // If authenticated, proxy request to DSH internal port 3081
+      const token = getDshToken();
+
+      // Ensure upstream DSH authentication cookie is established via internal token exchange
+      function forwardToDsh(dshCookie) {
+        const proxyHeaders = { ...req.headers };
+        // Preserve client Host header (dsh.example.com) to satisfy trustedHosts and Origin checks
+        const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
+        proxyHeaders['host'] = clientHost;
+        proxyHeaders['x-dsh-user'] = sessionUser;
+
+        if (dshCookie) {
+          const existingCookies = req.headers.cookie ? req.headers.cookie.split(';').map(c => c.trim()) : [];
+          // Filter out any stale dsh-auth cookies and append current valid upstream cookie
+          const filtered = existingCookies.filter(c => !c.startsWith('dsh-auth-'));
+          filtered.push(dshCookie);
+          proxyHeaders['cookie'] = filtered.join('; ');
+        }
+
+        const proxyReq = http.request({
+          host: DSH_TARGET_HOST,
+          port: DSH_TARGET_PORT,
+          path: req.url,
+          method: req.method,
+          headers: proxyHeaders
+        }, (proxyRes) => {
+          // If upstream returns a redirect to / and we already passed a valid cookie, avoid client redirect storm
+          res.writeHead(proxyRes.statusCode, proxyRes.headers);
+          proxyRes.pipe(res);
+        });
+
+        proxyReq.on('error', (err) => {
+          console.error('[AUTH-PROXY] Forward error:', err.message);
+          res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('Gateway Error: ไม่สามารถเชื่อมต่อบริการ DSH ภายในได้ กรุณารอสักครู่');
+        });
+
+        req.pipe(proxyReq);
+      }
+
+      const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
+      getOrMintDshCookie(clientHost, (err, dshCookie) => {
+        forwardToDsh(dshCookie);
+      });
+    });
+
+    // Handle WebSocket Upgrades
+    server.on('upgrade', (req, socket, head) => {
+      let authenticated = false;
+      const cookieHeader = req.headers.cookie;
+      if (cookieHeader) {
+        const cookies = cookieHeader.split(';').map(c => c.trim());
+        for (const c of cookies) {
+          if (c.startsWith('dsh_auth=')) {
+            const sid = c.substring('dsh_auth='.length);
+            if (SESSIONS.has(sid)) {
+              authenticated = true;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!authenticated) {
+        socket.destroy();
+        return;
+      }
+
+      const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
+      getOrMintDshCookie(clientHost, (err, dshCookie) => {
+        // Reconstruct HTTP upgrade request buffer to guarantee dsh-auth cookie is included
+        const rawHeaders = req.rawHeaders;
+        let hasDshAuthInCookie = false;
+        let cookieIdx = -1;
+        for (let i = 0; i < rawHeaders.length; i += 2) {
+          if (rawHeaders[i].toLowerCase() === 'cookie') {
+            cookieIdx = i;
+            if (rawHeaders[i + 1].includes('dsh-auth-')) {
+              hasDshAuthInCookie = true;
+            }
+          }
+        }
+
+        let upgradeReqText = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
+        for (let i = 0; i < rawHeaders.length; i += 2) {
+          const headerKey = rawHeaders[i];
+          let headerVal = rawHeaders[i + 1];
+          if (headerKey.toLowerCase() === 'host') {
+            headerVal = clientHost;
+          }
+          if (headerKey.toLowerCase() === 'cookie' && dshCookie && !hasDshAuthInCookie) {
+            headerVal = headerVal ? `${headerVal}; ${dshCookie}` : dshCookie;
+          }
+          upgradeReqText += `${headerKey}: ${headerVal}\r\n`;
+        }
+        if (cookieIdx === -1 && dshCookie) {
+          upgradeReqText += `Cookie: ${dshCookie}\r\n`;
+        }
+        upgradeReqText += `\r\n`;
+
+        const net = require('net');
+        const targetSocket = net.connect(DSH_TARGET_PORT, DSH_TARGET_HOST, () => {
+          targetSocket.write(upgradeReqText);
+          if (head && head.length > 0) {
+            targetSocket.write(head);
+          }
+          socket.pipe(targetSocket);
+          targetSocket.pipe(socket);
+        });
+
+        targetSocket.on('error', () => {
+          socket.destroy();
+        });
+      });
+    });
+
+    server.listen(PROXY_PORT, '0.0.0.0', () => {
+      console.log(`[AUTH-PROXY] Enterprise DSH Auth Gate running on port ${PROXY_PORT} -> forwarding to ${DSH_TARGET_HOST}:${DSH_TARGET_PORT}`);
+    });
+  configure_models.js: |
+    const fs = require("fs");
+
+    // 1. Maintain official DeepSeek models in dsh-llm-deepseek
+    const file = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-deepseek/lib/index.js";
+    if (fs.existsSync(file)) {
+      let content = fs.readFileSync(file, "utf8");
+      const idx1 = content.indexOf("const DEFAULT_MODELS = [");
+      if (idx1 !== -1) {
+        const idx2 = content.indexOf("];", idx1) + 2;
+        const officialModels = `const DEFAULT_MODELS = [
+    	{
+    		id: "deepseek-chat",
+    		name: "DeepSeek Chat",
+    		description: "Official DeepSeek Chat Model",
+    		contextWindow: 64000
+    	},
+    	{
+    		id: "deepseek-reasoner",
+    		name: "DeepSeek Reasoner",
+    		description: "Official DeepSeek Reasoner Model (R1)",
+    		contextWindow: 64000
+    	}
+    ];`;
+        content = content.substring(0, idx1) + officialModels + content.substring(idx2);
+      }
+      content = content.replace(/const DEFAULT_MAX_TOKENS = 256e3;/g, "const DEFAULT_MAX_TOKENS = 4096;");
+      content = content.replace(/maxTokens:\s*config\.maxTokens\s*\?\?\s*256e3/g, "maxTokens: Math.min(config.maxTokens ?? 4096, 4096)");
+      fs.writeFileSync(file, content, "utf8");
+      console.log("[CONFIG] Restored official DeepSeek models in dsh-llm-deepseek");
+    }
+
+    // 2. Set authoritative default model to deepseek-v4.1-flash on litellm-cluster in base cordis.patch.yml
+    const basePatch = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-base/cordis.patch.yml";
+    if (fs.existsSync(basePatch)) {
+      let patchContent = fs.readFileSync(basePatch, "utf8");
+      patchContent = patchContent.replace(
+        /- id: agent-default-model\s*\n\s*name: '@deepseek-ai\/dsh-agent-default-model'\s*\n\s*config:\s*\n\s*provider:\s*[^\n]+\s*\n\s*model:\s*[^\n]+/g,
+        `- id: agent-default-model\n      name: '@deepseek-ai/dsh-agent-default-model'\n      config:\n        provider: litellm-cluster\n        model: deepseek-v4.1-flash`
+      );
+      // Also configure session-title-llm to explicitly use litellm-cluster / deepseek-v4.1-flash
+      patchContent = patchContent.replace(
+        /name: '@deepseek-ai\/dsh-session-title-first-prompt-llm'\s*\n\s*config:\s*\n\s*targetWords: 5/g,
+        `name: '@deepseek-ai/dsh-session-title-first-prompt-llm'\n      config:\n        provider: litellm-cluster\n        model: deepseek-v4.1-flash\n        targetWords: 5`
+      );
+      fs.writeFileSync(basePatch, patchContent, "utf8");
+      console.log("[CONFIG] Updated default model and session-title-llm to litellm-cluster/deepseek-v4.1-flash in cordis.patch.yml");
+    }
+
+    // 3. Set authoritative catalog in session controller
+    const scFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js";
+    if (fs.existsSync(scFile)) {
+      let scContent = fs.readFileSync(scFile, "utf8");
+      const idx = scContent.indexOf("async function buildModelCatalog(");
+      if (idx !== -1) {
+        const idxEnd = scContent.indexOf("//#endregion", idx);
+        const injectedCatalog = `async function buildModelCatalog(ctx, defaultSelection) {
+    	return {
+    		default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
+    		routableProviders: ["litellm-cluster", "deepseek-official"],
+    		groups: [
+    			{
+    				id: "litellm-cluster",
+    				name: "Cluster LiteLLM Gateway",
+    				models: [
+    					{
+    						id: "deepseek-v4.1-flash",
+    						name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)",
+    						description: "Primary in-cluster ultra-low-latency 1M context MoE model"
+    					},
+    					{
+    						id: "deepseek-flash",
+    						name: "DeepSeek-Flash (V4.1-Flash Alias)",
+    						description: "DeepSeek-V4.1-Flash model alias"
+    					},
+    					{
+    						id: "glm-5.3-flash",
+    						name: "GLM-5.3-Flash (Cluster LiteLLM Standby)",
+    						description: "Standby 4-GPU cluster model"
+    					},
+    					{
+    						id: "qwen3.8-27b",
+    						name: "Qwen3.8-27B (Cluster LiteLLM Standby)",
+    						description: "Agile 27B dense reasoning model"
+    					}
+    				]
+    			},
+    			{
+    				id: "deepseek-official",
+    				name: "DeepSeek (Official)",
+    				models: [
+    					{
+    						id: "deepseek-chat",
+    						name: "DeepSeek Chat",
+    						description: "Official DeepSeek Chat Model"
+    					},
+    					{
+    						id: "deepseek-reasoner",
+    						name: "DeepSeek Reasoner",
+    						description: "Official DeepSeek Reasoner Model (R1)"
+    					}
+    				]
+    			}
+    		],
+    		failures: []
+    	};
+    }
+    `;
+        scContent = scContent.substring(0, idx) + injectedCatalog + scContent.substring(idxEnd);
+        fs.writeFileSync(scFile, scContent, "utf8");
+        console.log("[CONFIG] Injected buildModelCatalog cleanly");
+      }
+    }
+
+    // 4. Patch dsh-client-ui-settings-models to populate cluster models
+    const smFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-ui-settings-models/lib/client.js";
+    if (fs.existsSync(smFile)) {
+      let sm = fs.readFileSync(smFile, "utf8");
+      const oldInherited = `const inheritedModels = () => {
+    				return schema.getPath(namespace.base, [...settingsPath, "models"]) ?? schema.nodeAtPath(root, [...settingsPath, "models"])?.meta.default;
+    			};`;
+      const newInherited = `const inheritedModels = () => {
+    				const fromSchema = schema.getPath(namespace.base, [...settingsPath, "models"]) ?? schema.nodeAtPath(root, [...settingsPath, "models"])?.meta.default;
+    				if (Array.isArray(fromSchema) && fromSchema.length > 0) return fromSchema;
+    				if (settingsPath.includes("litellm-cluster") || props.provider === "litellm-cluster") {
+    					return [
+    						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)", contextWindow: 128000, maxTokens: 4096 },
+    						{ id: "glm-5.3-flash-awq", name: "GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)", contextWindow: 64000, maxTokens: 4096 },
+    						{ id: "qwen3.8-flash-next", name: "Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)", contextWindow: 128000, maxTokens: 4096 }
+    					];
+    				}
+    				return fromSchema;
+    			};`;
+      if (sm.includes(oldInherited)) {
+        sm = sm.replace(oldInherited, newInherited);
+      }
+
+      sm = sm.replace("disabled: protocols.length === 0 || !state.writable,", "disabled: false,");
+      sm = sm.replace("function providerUsable(row) {", "function providerUsable(row) {\n\t\t\treturn true;");
+
+      fs.writeFileSync(smFile, sm, "utf8");
+      console.log("[CONFIG] Patched client-ui-settings-models cleanly");
+    }
+
+    // 5. Patch dsh-client-ui-model-selection (ModelCatalogDirectory instant catalog)
+    const msFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-ui-model-selection/lib/client.js";
+    if (fs.existsSync(msFile)) {
+      let ms = fs.readFileSync(msFile, "utf8");
+      let idx = ms.indexOf("ModelCatalogDirectory = class");
+      if (idx !== -1) {
+        let idxEnd = ms.indexOf("};", idx) + 2;
+        const fallbackCatalog = `ModelCatalogDirectory = class {
+    	ctx;
+    	store = (0, _deepseek_ai_dsh_client_store.createSnapshotStore)({
+    		value: {
+    			default: { provider: "litellm-cluster", model: "glm-5.3-flash" },
+    			routableProviders: ["litellm-cluster", "deepseek-official"],
+    			groups: [
+    				{
+    					id: "litellm-cluster",
+    					name: "Cluster LiteLLM Gateway",
+    					models: [
+    						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)", description: "Primary ultra-low-latency 4-GPU cluster model" },
+    						{ id: "glm-5.3-flash-awq", name: "GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)", description: "Quantized 2-GPU standby cluster model" },
+    						{ id: "qwen3.8-flash-next", name: "Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)", description: "Next-gen agile reasoning model served via LiteLLM proxy" }
+    					]
+    				},
+    				{
+    					id: "deepseek-official",
+    					name: "DeepSeek (Official)",
+    					models: [
+    						{ id: "deepseek-chat", name: "DeepSeek Chat", description: "Official DeepSeek Chat Model" },
+    						{ id: "deepseek-reasoner", name: "DeepSeek Reasoner", description: "Official DeepSeek Reasoner Model (R1)" }
+    					]
+    				}
+    			],
+    			failures: []
+    		},
+    		status: "ready",
+    		error: null
+    	});
+    	generation = 0;
+    	inflight;
+    	constructor(ctx) { this.ctx = ctx; }
+    	load() { return Promise.resolve(this.store.getSnapshot().value); }
+    	resetGeneration() {}
+    };`;
+        ms = ms.substring(0, idx) + fallbackCatalog + ms.substring(idxEnd);
+      }
+
+      // Patch syncInputs in ModelDirectory
+      const oldSync = `syncInputs() {
+    				if (this.disposed) return;
+    				const catalog = this.catalog.store.getSnapshot();
+    				const projected = modelSelectionProjection(this.projected.getSnapshot());
+    				if (catalog.status !== "ready" || catalog.value === null || projected === void 0) {
+    					if (this.resolved) {
+    						if (catalog.status === "error") this.store.update((state) => {
+    							state.status = "error";
+    							state.error = catalog.error;
+    						});
+    						return;
+    					}
+    					this.store.set({
+    						current: null,
+    						routable: null,
+    						groups: [],
+    						failures: [],
+    						status: catalog.status === "error" ? "error" : "loading",
+    						error: catalog.error
+    					});
+    					return;
+    				}
+    				const current = projected.next ?? catalog.value.default;
+    				this.resolved = true;
+    				this.store.set({
+    					current,
+    					routable: catalog.value.routableProviders.includes(current.provider),
+    					groups: catalog.value.groups,
+    					failures: catalog.value.failures,
+    					status: this.store.getSnapshot().status === "selecting" ? "selecting" : "ready",
+    					error: null
+    				});
+    			}`;
+
+      const newSync = `syncInputs() {
+    				if (this.disposed) return;
+    				const catalog = this.catalog.store.getSnapshot();
+    				const projected = modelSelectionProjection(this.projected?.getSnapshot?.());
+    				const catVal = catalog.value ?? {
+    					default: { provider: "litellm-cluster", model: "glm-5.3-flash" },
+    					routableProviders: ["litellm-cluster", "deepseek-official"],
+    					groups: [
+    						{
+    							id: "litellm-cluster",
+    							name: "Cluster LiteLLM Gateway",
+    							models: [
+    								{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)", description: "Primary ultra-low-latency 4-GPU cluster model" },
+    								{ id: "glm-5.3-flash-awq", name: "GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)", description: "Quantized 2-GPU standby cluster model" },
+    								{ id: "qwen3.8-flash-next", name: "Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)", description: "Next-gen agile reasoning model served via LiteLLM proxy" }
+    							]
+    						},
+    						{
+    							id: "deepseek-official",
+    							name: "DeepSeek (Official)",
+    							models: [
+    								{ id: "deepseek-chat", name: "DeepSeek Chat", description: "Official DeepSeek Chat Model" },
+    								{ id: "deepseek-reasoner", name: "DeepSeek Reasoner", description: "Official DeepSeek Reasoner Model (R1)" }
+    							]
+    						}
+    					],
+    					failures: []
+    				};
+    				const current = projected?.next ?? catVal.default;
+    				this.resolved = true;
+    				this.store.set({
+    					current,
+    					routable: catVal.routableProviders.includes(current.provider),
+    					groups: catVal.groups,
+    					failures: catVal.failures,
+    					status: "ready",
+    					error: null
+    				});
+    			}`;
+
+      if (ms.includes(oldSync)) {
+        ms = ms.replace(oldSync, newSync);
+      }
+
+      // Patch waiting in ModelSelect
+      const oldWaiting = `const waiting = state.current === null && state.status === "loading";
+    			const modelLabel = waiting ? t("trigger.loading") : currentChoice?.model.name ?? (state.current === null ? t("trigger.fallback") : \`\${state.current.provider}/\${state.current.model}\`);`;
+
+      const newWaiting = `const waiting = false;
+    			const modelLabel = currentChoice?.model.name ?? (state.current ? \`\${state.current.provider}/\${state.current.model}\` : "GLM-5.3-Flash (Cluster LiteLLM TP=4)");`;
+
+      if (ms.includes(oldWaiting)) {
+        ms = ms.replace(oldWaiting, newWaiting);
+      }
+
+      fs.writeFileSync(msFile, ms, "utf8");
+      console.log("[CONFIG] Patched dsh-client-ui-model-selection with instant ModelCatalogDirectory and eliminated loading state");
+    }
+
+    // 6. Write valid settings.yaml into persistent storage directory
+    try {
+      fs.mkdirSync("/root/.dsh", { recursive: true });
+      const validYaml = `version: 1
+    agent-default-model:
+      provider: litellm-cluster
+      model: glm-5.3-flash
+    llm-pi-ai:
+      providers:
+        litellm-cluster:
+          displayName: "Cluster LiteLLM Gateway"
+          api: "openai-completions"
+          baseURL: "http://litellm.llm.svc.cluster.local:4000/v1"
+          apiKeyEnv: "DEEPSEEK_API_KEY"
+          models:
+            - id: "glm-5.3-flash"
+              name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)"
+              contextWindow: 128000
+              maxTokens: 4096
+            - id: "glm-5.3-flash-awq"
+              name: "GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)"
+              contextWindow: 64000
+              maxTokens: 4096
+            - id: "qwen3.8-flash-next"
+              name: "Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)"
+              contextWindow: 128000
+              maxTokens: 4096
+    `;
+      fs.writeFileSync("/root/.dsh/settings.yaml", validYaml, "utf8");
+      console.log("[CONFIG] Populated /root/.dsh/settings.yaml cleanly");
+    } catch(e) {
+      console.error(e);
+    }
+
+    // 8. Patch dsh-system-prompt with enterprise grounding to eliminate GLM-5.3-Flash mumbling
+    const sysPromptFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-system-prompt/lib/index.js";
+    if (fs.existsSync(sysPromptFile)) {
+      let spContent = fs.readFileSync(sysPromptFile, "utf8");
+      const oldText = 'text: "You are an AI agent powered by DeepSeek Harness."';
+      const newText = `text: "You are DeepSeek Harness (DSH), an expert software engineering assistant on private enterprise cluster infrastructure.\\n- Core Invariants:\\n1. Always respond concisely, professionally, and directly to the user.\\n2. Never output unclosed thinking, meta-deliberation, prompt injection analysis, or internal self-talk.\\n3. Greet users politely and offer direct assistance with code, architecture, and debugging."`;
+      if (spContent.includes(oldText)) {
+        spContent = spContent.replace(oldText, newText);
+        fs.writeFileSync(sysPromptFile, spContent, "utf8");
+        console.log("[CONFIG] Grounded dsh-system-prompt to eliminate GLM-5.3-Flash mumbling");
+      } else {
+        console.log("[CONFIG] dsh-system-prompt already grounded or text not matched");
+      }
+    }
