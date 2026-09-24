@@ -49,11 +49,13 @@ function getOrMintDshCookie(clientHost, callback) {
   authReq.end();
 }
 
-// Default users
+// The admin password must come from the environment; there is no built-in fallback.
+if (!process.env.DSH_AUTH_PASS) {
+  console.error('[AUTH-PROXY] DSH_AUTH_PASS is not set; refusing to start without an admin password.');
+  process.exit(1);
+}
 const DEFAULT_USERS = {
-  'admin': process.env.DSH_AUTH_PASS || 'ChangeMeInProduction123!',
-  'alex': 'UserPassword123!',
-  'johndoe': 'UserPassword123!'
+  'admin': process.env.DSH_AUTH_PASS
 };
 
 function loadUsers() {
@@ -187,7 +189,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       font-size: 12px;
       color: var(--text-muted);
     }
-    
+
     /* Tabs */
     .auth-tabs {
       display: flex;
@@ -319,7 +321,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       <form method="POST" action="/login">
         <div class="form-group">
           <label class="form-label" for="login_username">ชื่อผู้ใช้งาน (Username)</label>
-          <input type="text" id="login_username" name="username" class="form-control" placeholder="เช่น alex, admin หรือชื่อของคุณ" required autofocus>
+          <input type="text" id="login_username" name="username" class="form-control" placeholder="เช่น admin หรือชื่อของคุณ" required autofocus>
         </div>
         <div class="form-group">
           <label class="form-label" for="login_password">รหัสผ่าน (Password)</label>
