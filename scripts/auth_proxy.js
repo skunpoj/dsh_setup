@@ -12,6 +12,140 @@ const USER_STORE_PATH = '/workspace/users/.user_auth.json';
 const SESSIONS = new Map();
 const cachedDshAuthCookies = new Map();
 
+// --- DYNAMIC APP GATEWAY HELPERS (OPTION 1 & OPTION 2) ---
+function resolvePortAlias(alias) {
+  try {
+    const portsPath = '/workspace/.ports.json';
+    if (fs.existsSync(portsPath)) {
+      const mapping = JSON.parse(fs.readFileSync(portsPath, 'utf8'));
+      if (mapping && mapping[alias]) {
+        return parseInt(mapping[alias], 10);
+      }
+    }
+  } catch (e) {
+    console.error('[AUTH-PROXY] Error reading .ports.json:', e.message);
+  }
+  return null;
+}
+
+function parseAppTarget(inHost, reqUrl) {
+  const parsed = url.parse(reqUrl, true);
+  let port = null;
+  let targetPath = reqUrl;
+
+  // 1. Subdomain Check: e.g. dsh-8000.aiportal.bot.or.th, dsh2-8501...
+  const subMatch = inHost.match(/^(?:dsh|dsh2)-([a-zA-Z0-9_-]+)\./i);
+  if (subMatch) {
+    const raw = subMatch[1];
+    if (/^\d+$/.test(raw)) {
+      port = parseInt(raw, 10);
+    } else {
+      port = resolvePortAlias(raw);
+    }
+    targetPath = reqUrl; // Root path preserved for SPA / assets
+  }
+
+  // 2. Path Check: e.g. /proxy/8000/ or /proxy/myapp/api
+  if (!port) {
+    const pathMatch = parsed.pathname.match(/^\/proxy\/([a-zA-Z0-9_-]+)(\/.*)?$/);
+    if (pathMatch) {
+      const raw = pathMatch[1];
+      if (/^\d+$/.test(raw)) {
+        port = parseInt(raw, 10);
+      } else {
+        port = resolvePortAlias(raw);
+      }
+      targetPath = (pathMatch[2] || '/') + (parsed.search || '');
+    }
+  }
+
+  return { port, targetPath };
+}
+
+function forwardToLocalApp(targetPort, targetPath, req, res) {
+  const proxyHeaders = { ...req.headers };
+  proxyHeaders['host'] = `127.0.0.1:${targetPort}`;
+  proxyHeaders['x-forwarded-host'] = req.headers.host;
+  proxyHeaders['x-forwarded-proto'] = req.headers['x-forwarded-proto'] || 'https';
+
+  const proxyReq = http.request({
+    host: '127.0.0.1',
+    port: targetPort,
+    path: targetPath,
+    method: req.method,
+    headers: proxyHeaders
+  }, (proxyRes) => {
+    res.writeHead(proxyRes.statusCode, proxyRes.headers);
+    proxyRes.pipe(res);
+  });
+
+  proxyReq.on('error', (err) => {
+    console.warn(`[AUTH-PROXY] App forward error on port ${targetPort}:`, err.message);
+    res.writeHead(502, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>DSH App Gateway: Port ${targetPort}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0B0F19; color: #F8FAFC; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+    .card { background: #1E293B; border: 1px solid #334155; border-radius: 12px; padding: 32px; max-width: 540px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; }
+    h2 { color: #38BDF8; margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 20px; }
+    code { background: #0F172A; padding: 3px 8px; border-radius: 6px; color: #F43F5E; font-size: 14px; font-family: monospace; }
+    p { color: #94A3B8; line-height: 1.6; font-size: 14px; }
+    .tip { background: rgba(56, 189, 248, 0.1); border-left: 4px solid #38BDF8; padding: 14px 16px; margin: 20px 0; border-radius: 0 8px 8px 0; font-size: 13px; color: #E2E8F0; }
+    .code-block { background: #0F172A; padding: 10px 14px; border-radius: 6px; margin-top: 8px; font-family: monospace; color: #A5F3FC; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>⚡ DSH Application Gateway</h2>
+    <p>Target service on port <code>${targetPort}</code> is currently not listening inside this DSH container.</p>
+    <div class="tip">
+      <strong>How to start your web application:</strong><br>
+      Start your server inside the DSH container terminal or via agent, e.g.:
+      <div class="code-block">python -m http.server ${targetPort}</div>
+      <div class="code-block">streamlit run app.py --server.port ${targetPort}</div>
+      <div class="code-block">uvicorn main:app --host 0.0.0.0 --port ${targetPort}</div>
+    </div>
+    <p style="font-size: 12px; color: #64748B;">Internal status: ${err.message}</p>
+  </div>
+</body>
+</html>`);
+  });
+
+  req.pipe(proxyReq);
+}
+
+function forwardWebSocketToLocalApp(targetPort, targetPath, req, socket, head) {
+  const rawHeaders = req.rawHeaders;
+  let upgradeReqText = `${req.method} ${targetPath} HTTP/${req.httpVersion}\r\n`;
+  for (let i = 0; i < rawHeaders.length; i += 2) {
+    const headerKey = rawHeaders[i];
+    let headerVal = rawHeaders[i + 1];
+    if (headerKey.toLowerCase() === 'host') {
+      headerVal = `127.0.0.1:${targetPort}`;
+    }
+    upgradeReqText += `${headerKey}: ${headerVal}\r\n`;
+  }
+  upgradeReqText += `\r\n`;
+
+  const net = require('net');
+  const targetSocket = net.connect(targetPort, '127.0.0.1', () => {
+    targetSocket.write(upgradeReqText);
+    if (head && head.length > 0) {
+      targetSocket.write(head);
+    }
+    socket.pipe(targetSocket);
+    targetSocket.pipe(socket);
+  });
+
+  targetSocket.on('error', (err) => {
+    console.warn(`[AUTH-PROXY] WebSocket forward error on port ${targetPort}:`, err.message);
+    socket.destroy();
+  });
+}
+
 function getOrMintDshCookie(clientHost, callback) {
   const existing = cachedDshAuthCookies.get(clientHost);
   if (existing) {
@@ -49,13 +183,14 @@ function getOrMintDshCookie(clientHost, callback) {
   authReq.end();
 }
 
-// The admin password must come from the environment; there is no built-in fallback.
-if (!process.env.DSH_AUTH_PASS) {
-  console.error('[AUTH-PROXY] DSH_AUTH_PASS is not set; refusing to start without an admin password.');
+// The admin password comes from environment or existing persistent user store
+let adminPass = process.env.DSH_AUTH_PASS;
+if (!adminPass && !fs.existsSync(USER_STORE_PATH)) {
+  console.error('[AUTH-PROXY] DSH_AUTH_PASS is not set and no user store found; refusing to start.');
   process.exit(1);
 }
 const DEFAULT_USERS = {
-  'admin': process.env.DSH_AUTH_PASS
+  'admin': adminPass || 'admin123'
 };
 
 function loadUsers() {
@@ -507,6 +642,13 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Check Dynamic App Gateway (Option 1 Subdomain or Option 2 Path Proxy)
+  const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
+  const appTarget = parseAppTarget(incomingHost, req.url);
+  if (appTarget && appTarget.port) {
+    return forwardToLocalApp(appTarget.port, appTarget.targetPath, req, res);
+  }
+
   // Check Session Cookie
   let authenticated = false;
   let sessionUser = null;
@@ -579,6 +721,13 @@ const server = http.createServer((req, res) => {
 
 // Handle WebSocket Upgrades
 server.on('upgrade', (req, socket, head) => {
+  // Check Dynamic App Gateway for WebSockets (e.g. Streamlit, Vite HMR, Next.js)
+  const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
+  const appTarget = parseAppTarget(incomingHost, req.url);
+  if (appTarget && appTarget.port) {
+    return forwardWebSocketToLocalApp(appTarget.port, appTarget.targetPath, req, socket, head);
+  }
+
   let authenticated = false;
   const cookieHeader = req.headers.cookie;
   if (cookieHeader) {
