@@ -33,8 +33,8 @@ function parseAppTarget(inHost, reqUrl) {
   let port = null;
   let targetPath = reqUrl;
 
-  // 1. Subdomain Check: e.g. dsh-8000.example.com, dsh2-8501...
-  const subMatch = inHost.match(/^(?:dsh|dsh2)-([a-zA-Z0-9_-]+)\./i);
+  // 1. Subdomain Check: e.g. dsh-8000.example.com, dsh2-8501, dsh3-8000...
+  const subMatch = inHost.match(/^(?:dsh[0-9]*|dsh-user[0-9]*)-([a-zA-Z0-9_-]+)\./i);
   if (subMatch) {
     const raw = subMatch[1];
     if (/^\d+$/.test(raw)) {

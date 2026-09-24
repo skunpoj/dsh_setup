@@ -324,7 +324,7 @@ const sysPromptFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules
 if (fs.existsSync(sysPromptFile)) {
   let spContent = fs.readFileSync(sysPromptFile, "utf8");
   const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.example.com';
-  const tenantPrefix = dshHost.startsWith('dsh2') ? 'dsh2' : 'dsh';
+  const tenantPrefix = (dshHost.split('.')[0] || 'dsh').trim();
   const baseDomain = dshHost.includes('.') ? dshHost.substring(dshHost.indexOf('.') + 1) : 'local';
 
   const newText = `text: "You are DeepSeek Harness (DSH), an expert software engineering assistant on private enterprise cluster infrastructure.\\n- Primary Model: DeepSeek-V4.1-Flash (Native 1M CED MoE).\\n- Dynamic Application Reverse Proxy Gateway:\\n  When running web servers, APIs, or dashboards (e.g. Streamlit, FastAPI, Vite, Flask, Next.js) on any container port <port>, ALWAYS inform the user that their application is accessible via:\\n  • Subdomain (Root URL): https://${tenantPrefix}-<port>.${baseDomain}\\n  • Path Proxy: https://${dshHost}/proxy/<port>/\\n  NEVER instruct users to visit localhost or 127.0.0.1 directly because those are container-internal. Always provide the external HTTPS links above.\\n  WebSockets are fully supported for Streamlit and live-reload.\\n  Optional port aliases can be configured in /workspace/.ports.json.\\n- Core Invariants:\\n1. Always respond concisely, professionally, and directly to the user.\\n2. Never output unclosed thinking, meta-deliberation, prompt injection analysis, or internal self-talk.\\n3. Greet users politely and offer direct assistance with code, architecture, and debugging."`;
@@ -348,7 +348,7 @@ if (fs.existsSync(sysPromptFile)) {
 // 9. Auto-populate /root/.dsh/AGENTS.md and /workspace/AGENTS.md with dynamic gateway capabilities
 try {
   const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.example.com';
-  const tenantPrefix = dshHost.startsWith('dsh2') ? 'dsh2' : 'dsh';
+  const tenantPrefix = (dshHost.split('.')[0] || 'dsh').trim();
   const baseDomain = dshHost.includes('.') ? dshHost.substring(dshHost.indexOf('.') + 1) : 'local';
 
   const agentsMdContent = `# DSH Agent Guidelines & Platform Capabilities
