@@ -69,7 +69,7 @@ spec:
               if [ -f /root/.dsh/.credentials.yaml ]; then
                 cp -u /root/.dsh/.credentials.yaml /workspace/dsh_storage/.credentials.yaml 2>/dev/null || true
               fi
-              # Sync any directory created in /root (like /root/kim954) to /workspace/dsh_storage/workspaces
+              # Sync any directory created in /root (like /root/<user>) to /workspace/dsh_storage/workspaces
               for p in /root/*; do
                 if [ -d "$p" ] && [ ! -L "$p" ]; then
                   base=$(basename "$p")
@@ -109,6 +109,11 @@ spec:
 
           wait $DSH_PID
         env:
+        - name: DSH_AUTH_PASS
+          valueFrom:
+            secretKeyRef:
+              name: dsh-auth
+              key: admin-password
         - name: DEEPSEEK_BASE_URL
           value: http://litellm.llm.svc.cluster.local:4000/v1
         - name: DEEPSEEK_API_KEY

@@ -3,7 +3,6 @@
 
 FROM node:22-alpine
 
-LABEL maintainer="Community Contributor <skunpoj@users.noreply.github.com>"
 LABEL description="DeepSeek Harness (DSH) with Multi-User Authentication & LiteLLM Gateway Adapter"
 
 WORKDIR /app
