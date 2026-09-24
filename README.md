@@ -1,6 +1,10 @@
-# DeepSeek Harness (DSH) Sovereign Cluster Setup & Enterprise Auth Gateway
+# DeepSeek Harness (DSH) Cluster Deployment & Enterprise Auth Gateway
 
-Enterprise-Ready DeepSeek Harness (DSH) deployment on **Kubernetes GPU Cluster** with **Multi-User Web Login Gate, LiteLLM Gateway Integration & Reverse Proxy Architecture**
+Enterprise-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with:
+- **Default Local Model**: **DeepSeek-V4.1-Flash** (Native 1M Context Window CED MoE)
+- **Multi-Tenant User Isolation**: Per-user directory sandboxes and storage isolation
+- **Reverse Proxy Authentication Gate**: Session-to-cookie translation solving `directoryPicker` remote access
+- **Cordis Plugin**: `cordis-plugin-custom-llm-gateway` for dynamic provider and model catalog registration
 
 ---
 
@@ -11,8 +15,8 @@ Enterprise-Ready DeepSeek Harness (DSH) deployment on **Kubernetes GPU Cluster**
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│       Kubernetes Ingress-Nginx (dsh.example.com)     │
-│             SSL Wildcard: dsh-tls-secret             │
+│       Kubernetes Ingress-Nginx (dsh.example.com)            │
+│             TLS Secret: dsh-wildcard-tls                    │
 └─────────────────────────────┬───────────────────────────────┘
                               │ Port 3080
                               ▼
@@ -21,36 +25,33 @@ Enterprise-Ready DeepSeek Harness (DSH) deployment on **Kubernetes GPU Cluster**
 │                                                             │
 │   ┌─────────────────────────────────────────────────────┐   │
 │   │ 🔐 Web Login Auth Proxy & Session Gate (Node.js :3080)│   │
-│   │  • Branded Login Form (/login)                      │   │
+│   │  • Web-based Login Form (/login)                    │   │
 │   │  • Session Cookie Management                        │   │
 │   │  • Dynamic User Isolation: /workspace/users/<user>  │   │
-│   │  • DSH One-Time Token Auto-Capture & Handshake      │   │
-│   │  • Full HTTP & WebSocket Upgrades Forwarding        │   │
+│   │  • DSH Launch Token Auto-Capture & Cookie Minting   │   │
+│   │  • Full HTTP REST & WebSocket Upgrades Forwarding   │   │
 │   └──────────────────────────┬──────────────────────────┘   │
 │                              │ Forward to 127.0.0.1:3081    │
 │                              ▼                              │
 │   ┌─────────────────────────────────────────────────────┐   │
-│   │ 🤖 DeepSeek Harness Engine (DSH Web CLI on :3081)   │   │
-│   │  • In-House LLM Gateway: DEEPSEEK_BASE_URL (LiteLLM)│   │
-│   │  • Multi-Model Catalog: GLM-5.3, Qwen-Flash-Next,   │   │
-│   │    Qwen3.8-27B (MIG 94GB), DeepSeek-V4-Flash        │   │
+│   │ 🤖 DeepSeek Harness Engine (DSH Web on :3081)       │   │
+│   │  • Default Model: DeepSeek-V4.1-Flash (Native 1M)   │   │
+│   │  • Provider Gateway: In-Cluster LiteLLM / vLLM      │   │
 │   │  • Pre-initialized Settings: /root/.dsh/settings.yaml│  │
-│   │  • Shared Enterprise Storage: /workspace (158.7 TB) │   │
-│   │  • Azure DevOps Git Integration via PAT             │   │
+│   │  • Isolated User Storage: /workspace (PVC)          │   │
+│   │  • Cordis Custom LLM Gateway Plugin                 │   │
 │   └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📁 Repository Structure & Dual-Remote Sync
-
-The setup is actively synchronized across two repositories:
-1. **Azure DevOps (Internal Sovereign)**: `https://github.com/skunpoj/dsh_setup.git`
-2. **GitHub Enterprise / Personal**: `https://github.com/skunpoj/dsh_setup`
+## 📁 Repository Structure
 
 ```
 .
+├── cordis_plugin/
+│   └── index.ts              # Cordis Plugin (cordis-plugin-custom-llm-gateway)
 ├── k8s/
 │   ├── deployment.yaml       # Kubernetes Deployment (Node:22-alpine + DSH + Proxy)
 │   ├── service.yaml          # ClusterIP Service (Port 3080)
@@ -69,45 +70,32 @@ The setup is actively synchronized across two repositories:
 ### 1. Enterprise Web Authentication & User Self-Service Gate
 - **No CLI Token Hassle**: Users log in via the Web Login Portal at `https://dsh.example.com/login`.
 - **Self-Service User Registration & Password Change**:
-  - Direct UI tabs on the login gate for:
-    - **เข้าสู่ระบบ (Sign In)**
-    - **สร้างบัญชีผู้ใช้ใหม่ (Create Account)**: Automatically sets up user workspace `/workspace/users/<username>` and persists credentials in `/workspace/users/.user_auth.json`.
-    - **เปลี่ยนรหัสผ่าน (Change Password)**: Secure in-place password update verifying previous credentials.
-- **Security Guard**: Full HTTP REST API and WebSocket connection protection. Requests without valid session cookies are redirected to login.
-- **Default System Accounts**:
-  - `admin`: Full administrative access
-  - `kim`: Analytical workspace
-  - `somchai`: Engineering workspace
+  - Direct UI tabs on the login gate:
+    - **Sign In**
+    - **Create Account**: Automatically sets up user workspace `/workspace/users/<username>` and persists credentials in `/workspace/users/.user_auth.json`.
+    - **Change Password**: Secure in-place password update verifying previous credentials.
+- **Remote Access & Cookie Exchange**: Intercepts the one-time launch token at container startup, mints upstream authority-bound session cookies, and injects them into downstream REST calls (e.g. `/api/directoryPicker/list`), preventing HTTP 401/403 errors when accessed via reverse proxies.
 
-### 2. Zero-Cost In-Cluster LLM Gateway (`DEEPSEEK_BASE_URL`)
-- **Internal LiteLLM Service**: `http://litellm.llm.svc.cluster.local:4000/v1`
-- **Configured Models**:
-  - `glm-5.3-flash`: Default agile model for coding & conversation (128k context)
-  - `qwen3.8-flash-next`: Next-gen agile reasoning model
-  - `qwen3.8-27b`: Continuous batching on NVIDIA MIG 94GB GPU slice
-  - `deepseek-v4-flash`: Cluster-hosted DeepSeek V4 model
-- **vLLM Context Limit & Token Clamping Guard**:
-  - Transparently clamps wire `max_tokens` to `4096` to prevent `litellm.BadRequestError: max_tokens=256000 cannot be greater than max_model_len=4096`.
-  - LiteLLM parameter handling drops unsupported parameters (`thinking`, `reasoning_effort`) gracefully.
+### 2. In-Cluster LLM Gateway & DeepSeek-V4.1-Flash Default
+- **Internal Inference Gateway**: OpenAI-compatible endpoint (LiteLLM / vLLM).
+- **Default Primary Model**:
+  - `deepseek-v4.1-flash`: **DeepSeek-V4.1-Flash (Native 1M CED MoE)** with 1,048,576 context window and 65,536 max output tokens.
+- **Standby Models**:
+  - `deepseek-flash`: Alias for DeepSeek-V4.1-Flash
+  - `glm-5.3-flash`: Standby low-latency model
+  - `qwen3.8-27b`: Agile reasoning model
+- **Context Limit & Token Clamping Guard**:
+  - Clamps wire `max_tokens` to model limits, avoiding upstream context overflow rejections.
 
 ### 3. Settings Provider Persistence & Browser Access Guard
-- Solves the DSH web UI error: `"Loading the provider directory failed: settings are unavailable in this browser"`.
-- Container entrypoint explicitly creates `/root/.dsh/settings.yaml` (`echo "version: 1" > /root/.dsh/settings.yaml`), allowing `@deepseek-ai/dsh-settings-file` to register and serve `settings/describe` RPC calls seamlessly.
-- Automatically enables `host` persistence in `@deepseek-ai/dsh-client-ui-settings` for authorized enterprise domain sessions (`dsh.example.com`).
+- Addresses DSH web UI issue: `"Loading the provider directory failed: settings are unavailable in this browser"`.
+- Container entrypoint initializes `/root/.dsh/settings.yaml` (`version: 1`), enabling `@deepseek-ai/dsh-settings-file` to register and serve `settings/describe` RPC calls reliably.
+- Preserves `host` persistence in `@deepseek-ai/dsh-client-ui-settings` for authorized domain sessions.
 
-### 4. Dynamic Multi-Tenant Workspaces
-- **Backing PVC**: `da-workspace-pvc` (158.7 TB shared CephFS/NAS).
-- **Personal Directories**: Automatically created on login at `/workspace/users/<username>`.
-- **Root Aliases**:
-  - `/root/workspace` -> `/workspace`
-  - `/root/users` -> `/workspace/users`
-
-### 5. Automated Azure DevOps Git Integration
-- Pre-configured Git credentials with SSL verification disabled for internal PKI.
-- Developers can clone internal repos via HTTPS directly from inside the DSH workspace terminal:
-  ```bash
-  git clone https://github.com/skunpoj/<repo-name>.git
-  ```
+### 4. Dynamic Multi-Tenant Workspaces & Storage Isolation
+- **Storage Backend**: Kubernetes PersistentVolumeClaim (`volume01`, `volume02`, etc.).
+- **User Workspaces**: Partitioned by username under `/workspace/users/<username>`.
+- **Mount Isolation**: Pods can mount dedicated PVC subpaths to prevent cross-tenant directory access.
 
 ---
 
@@ -115,13 +103,13 @@ The setup is actively synchronized across two repositories:
 
 ### 1. Deploy or Update
 ```bash
-# Apply updated manifests
+# Apply Kubernetes manifests
 kubectl apply -f k8s/configmap.yaml -n llm
 kubectl apply -f k8s/deployment.yaml -n llm
 kubectl apply -f k8s/service.yaml -n llm
 kubectl apply -f k8s/ingress.yaml -n llm
 
-# Restart deployment to pull fresh scripts
+# Restart deployment to load updated scripts
 kubectl rollout restart deployment dsh -n llm
 ```
 
@@ -135,5 +123,7 @@ kubectl logs -n llm deployment/dsh -c dsh --tail=100 -f
 ```
 
 ---
+
+## 📄 License
 
 Released under the MIT License.

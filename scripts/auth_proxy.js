@@ -52,8 +52,8 @@ function getOrMintDshCookie(clientHost, callback) {
 // Default users
 const DEFAULT_USERS = {
   'admin': process.env.DSH_AUTH_PASS || 'ChangeMeInProduction123!',
-  'kim': 'UserPassword123!',
-  'somchai': 'UserPassword123!'
+  'alex': 'UserPassword123!',
+  'johndoe': 'UserPassword123!'
 };
 
 function loadUsers() {
@@ -319,7 +319,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       <form method="POST" action="/login">
         <div class="form-group">
           <label class="form-label" for="login_username">ชื่อผู้ใช้งาน (Username)</label>
-          <input type="text" id="login_username" name="username" class="form-control" placeholder="เช่น kim, admin หรือชื่อของคุณ" required autofocus>
+          <input type="text" id="login_username" name="username" class="form-control" placeholder="เช่น alex, admin หรือชื่อของคุณ" required autofocus>
         </div>
         <div class="form-group">
           <label class="form-label" for="login_password">รหัสผ่าน (Password)</label>
@@ -334,7 +334,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       <form method="POST" action="/register">
         <div class="form-group">
           <label class="form-label" for="reg_username">ชื่อผู้ใช้งานใหม่ (New Username)</label>
-          <input type="text" id="reg_username" name="username" class="form-control" placeholder="ตัวอักษรภาษาอังกฤษหรือตัวเลข (เช่น somchai)" pattern="[a-zA-Z0-9_\-\.]{3,30}" title="ยาว 3-30 ตัวอักษร ใช้ได้เฉพาะ a-z, 0-9, _, -" required>
+          <input type="text" id="reg_username" name="username" class="form-control" placeholder="ตัวอักษรภาษาอังกฤษหรือตัวเลข (เช่น johndoe)" pattern="[a-zA-Z0-9_\-\.]{3,30}" title="ยาว 3-30 ตัวอักษร ใช้ได้เฉพาะ a-z, 0-9, _, -" required>
         </div>
         <div class="form-group">
           <label class="form-label" for="reg_password">รหัสผ่าน (Password)</label>
@@ -368,7 +368,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
     </div>
 
     <div class="footer-note">
-      ระบบสารสนเทศเฉพาะกิจ ธปท. · รักษาความลับทางการเงินขั้นสูงสุด
+      ระบบสารสนเทศเฉพาะกิจองค์กร · รักษาความลับข้อมูลขั้นสูงสุด
     </div>
   </div>
 </body>
