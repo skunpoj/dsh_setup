@@ -33,8 +33,9 @@ function parseAppTarget(inHost, reqUrl) {
   let port = null;
   let targetPath = reqUrl;
 
-  // 1. Subdomain Check: e.g. dsh-8000.example.com, dsh2-8501, dsh3-8000...
-  const subMatch = inHost.match(/^(?:dsh[0-9]*|dsh-user[0-9]*)-([a-zA-Z0-9_-]+)\./i);
+  // 1. Subdomain Check: e.g. dsh-8000.example.com, dsh2-8501, dsh-user2-8000...
+  // dsh-user<N> is tried before dsh<N> so dsh-user2-8000 resolves to port 8000, not alias "user2-8000".
+  const subMatch = inHost.match(/^(?:dsh-user[0-9]*|dsh[0-9]*)-([a-zA-Z0-9_-]+)\./i);
   if (subMatch) {
     const raw = subMatch[1];
     if (/^\d+$/.test(raw)) {
