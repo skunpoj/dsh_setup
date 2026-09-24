@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '600'
+  name: dsh-ingress
+  namespace: llm
+spec:
+  rules:
+  - host: dsh.example.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: dsh
+            port:
+              number: 3080
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - dsh.example.com
+    secretName: dsh-tls-secret
