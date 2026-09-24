@@ -22,16 +22,17 @@ export const Config: Schema<CustomGatewayConfig> = Schema.object({
   baseUrl: Schema.string().default('http://litellm.llm.svc.cluster.local:4000/v1'),
   apiKey: Schema.string().role('secret').default(''),
   defaultProvider: Schema.string().default('litellm-cluster'),
-  defaultModel: Schema.string().default('glm-5.3-flash'),
+  defaultModel: Schema.string().default('deepseek-v4.1-flash'),
   models: Schema.array(Schema.object({
     id: Schema.string().required(),
     name: Schema.string().required(),
-    contextWindow: Schema.number().default(4096),
-    maxTokens: Schema.number().default(2048),
+    contextWindow: Schema.number().default(1048576),
+    maxTokens: Schema.number().default(65536),
   })).default([
-    { id: 'glm-5.3-flash', name: 'GLM-5.3-Flash BF16 (4-GPU TP=4)', contextWindow: 4096, maxTokens: 2048 },
-    { id: 'glm-5.3-flash-awq', name: 'GLM-5.3-Flash AWQ W4A16 (2-GPU TP=2)', contextWindow: 2048, maxTokens: 1024 },
-    { id: 'qwen3.8-flash-next', name: 'Qwen 3.8-Flash-Next (Mode 2 Standby 2-GPU)', contextWindow: 32768, maxTokens: 4096 }
+    { id: 'deepseek-v4.1-flash', name: 'DeepSeek-V4.1-Flash (Native 1M CED MoE)', contextWindow: 1048576, maxTokens: 65536 },
+    { id: 'deepseek-flash', name: 'DeepSeek-Flash (V4.1-Flash Alias)', contextWindow: 1048576, maxTokens: 65536 },
+    { id: 'glm-5.3-flash', name: 'GLM-5.3-Flash (Cluster Standby)', contextWindow: 4096, maxTokens: 2048 },
+    { id: 'qwen3.8-27b', name: 'Qwen3.8-27B (Cluster Standby)', contextWindow: 32768, maxTokens: 4096 }
   ]),
   workspaceRoot: Schema.string().default('/workspace/users'),
   multiUserIsolation: Schema.boolean().default(true),

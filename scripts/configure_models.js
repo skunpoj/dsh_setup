@@ -29,21 +29,21 @@ if (fs.existsSync(file)) {
   console.log("[CONFIG] Restored official DeepSeek models in dsh-llm-deepseek");
 }
 
-// 2. Set authoritative default model to glm-5.3-flash on litellm-cluster in base cordis.patch.yml
+// 2. Set authoritative default model to deepseek-v4.1-flash on litellm-cluster in base cordis.patch.yml
 const basePatch = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-base/cordis.patch.yml";
 if (fs.existsSync(basePatch)) {
   let patchContent = fs.readFileSync(basePatch, "utf8");
   patchContent = patchContent.replace(
     /- id: agent-default-model\s*\n\s*name: '@deepseek-ai\/dsh-agent-default-model'\s*\n\s*config:\s*\n\s*provider:\s*[^\n]+\s*\n\s*model:\s*[^\n]+/g,
-    `- id: agent-default-model\n      name: '@deepseek-ai/dsh-agent-default-model'\n      config:\n        provider: litellm-cluster\n        model: glm-5.3-flash`
+    `- id: agent-default-model\n      name: '@deepseek-ai/dsh-agent-default-model'\n      config:\n        provider: litellm-cluster\n        model: deepseek-v4.1-flash`
   );
-  // Also configure session-title-llm to explicitly use litellm-cluster / glm-5.3-flash
+  // Also configure session-title-llm to explicitly use litellm-cluster / deepseek-v4.1-flash
   patchContent = patchContent.replace(
     /name: '@deepseek-ai\/dsh-session-title-first-prompt-llm'\s*\n\s*config:\s*\n\s*targetWords: 5/g,
-    `name: '@deepseek-ai/dsh-session-title-first-prompt-llm'\n      config:\n        provider: litellm-cluster\n        model: glm-5.3-flash\n        targetWords: 5`
+    `name: '@deepseek-ai/dsh-session-title-first-prompt-llm'\n      config:\n        provider: litellm-cluster\n        model: deepseek-v4.1-flash\n        targetWords: 5`
   );
   fs.writeFileSync(basePatch, patchContent, "utf8");
-  console.log("[CONFIG] Updated default model and session-title-llm to litellm-cluster/glm-5.3-flash in cordis.patch.yml");
+  console.log("[CONFIG] Updated default model and session-title-llm to litellm-cluster/deepseek-v4.1-flash in cordis.patch.yml");
 }
 
 // 3. Set authoritative catalog in session controller
@@ -55,7 +55,7 @@ if (fs.existsSync(scFile)) {
     const idxEnd = scContent.indexOf("//#endregion", idx);
     const injectedCatalog = `async function buildModelCatalog(ctx, defaultSelection) {
 	return {
-		default: { provider: "litellm-cluster", model: "glm-5.3-flash" },
+		default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
 		routableProviders: ["litellm-cluster", "deepseek-official"],
 		groups: [
 			{
@@ -63,19 +63,24 @@ if (fs.existsSync(scFile)) {
 				name: "Cluster LiteLLM Gateway",
 				models: [
 					{
+						id: "deepseek-v4.1-flash",
+						name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)",
+						description: "Primary in-cluster ultra-low-latency 1M context MoE model"
+					},
+					{
+						id: "deepseek-flash",
+						name: "DeepSeek-Flash (V4.1-Flash Alias)",
+						description: "DeepSeek-V4.1-Flash model alias"
+					},
+					{
 						id: "glm-5.3-flash",
-						name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)",
-						description: "Primary ultra-low-latency 4-GPU cluster model"
+						name: "GLM-5.3-Flash (Cluster LiteLLM Standby)",
+						description: "Standby 4-GPU cluster model"
 					},
 					{
-						id: "glm-5.3-flash-awq",
-						name: "GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)",
-						description: "Quantized 2-GPU standby cluster model"
-					},
-					{
-						id: "qwen3.8-flash-next",
-						name: "Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)",
-						description: "Next-gen agile reasoning model served via LiteLLM proxy"
+						id: "qwen3.8-27b",
+						name: "Qwen3.8-27B (Cluster LiteLLM Standby)",
+						description: "Agile 27B dense reasoning model"
 					}
 				]
 			},
