@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsh
+  namespace: llm
+  labels:
+    app: dsh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dsh
+  template:
+    metadata:
+      labels:
+        app: dsh
+    spec:
+      containers:
+      - name: dsh
+        image: node:22-alpine
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        - |
+          apk add --no-cache git curl
+          echo "Configuring Git Credentials..."
+          git config --global http.sslVerify false
+          git config --global user.name "AI Engineer"
+          git config --global user.email "developer@example.com"
+
+          # Prepare Enterprise Persistent User Workspaces and Persistence Storage
+          mkdir -p /workspace/users /workspace/repos /workspace/dsh_storage/sessions /workspace/dsh_storage/storages
+          ln -s /workspace /root/workspace 2>/dev/null || true
+          ln -s /workspace/users /root/users 2>/dev/null || true
+
+          # Keep /root/.dsh on local rootfs (supports node_modules symlinks)
+          # but symlink sessions & storages to /workspace/dsh_storage
+          rm -rf /root/.dsh
+          mkdir -p /root/.dsh
+          ln -s /workspace/dsh_storage/sessions /root/.dsh/sessions
+          ln -s /workspace/dsh_storage/storages /root/.dsh/storages
+          if [ -f /workspace/dsh_storage/.credentials.yaml ]; then
+            cp /workspace/dsh_storage/.credentials.yaml /root/.dsh/.credentials.yaml
+            chmod 600 /root/.dsh/.credentials.yaml
+          fi
+
+          # Ensure all user workspaces created under /root are restored/linked from CIFS upfront
+          mkdir -p /workspace/dsh_storage/workspaces
+          for d in /workspace/dsh_storage/workspaces/*; do
+            if [ -d "$d" ]; then
+              base=$(basename "$d")
+              if [ ! -e "/root/$base" ]; then
+                ln -s "$d" "/root/$base" 2>/dev/null || true
+              fi
+            fi
+          done
+
+          echo "Installing DSH..."
+          npm install -g --ignore-scripts @deepseek-ai/dsh
+
+          echo "Configuring cluster LiteLLM models in DSH catalog..."
+          node /scripts/configure_models.js || true
+
+          # Persist credentials & user workspace folders back to CIFS in background watcher
+          (
+            while true; do
+              sleep 10
+              if [ -f /root/.dsh/.credentials.yaml ]; then
+                cp -u /root/.dsh/.credentials.yaml /workspace/dsh_storage/.credentials.yaml 2>/dev/null || true
+              fi
+              # Sync any directory created in /root (like /root/kim954) to /workspace/dsh_storage/workspaces
+              for p in /root/*; do
+                if [ -d "$p" ] && [ ! -L "$p" ]; then
+                  base=$(basename "$p")
+                  case "$base" in
+                    "workspace"|"users"|"repos"|"npm"|"dsh_setup"|".npm"|".dsh"|".cache")
+                      ;;
+                    *)
+                      mkdir -p "/workspace/dsh_storage/workspaces/$base"
+                      cp -ru "$p/." "/workspace/dsh_storage/workspaces/$base/" 2>/dev/null || true
+                      ;;
+                  esac
+                fi
+              done
+            done
+          ) &
+
+          echo "Starting Enterprise SSO Auth Proxy on port 3080..."
+          node /scripts/auth_proxy.js &
+
+          echo "Launching dsh web UI on port 3081 (127.0.0.1) with token logging..."
+          mkfifo /tmp/dsh_fifo
+          node --expose-internals /usr/local/bin/dsh web --port 3081 --no-open --trusted-host ${DSH_TRUSTED_HOST:-dsh.example.com} > /tmp/dsh_fifo 2>&1 &
+          DSH_PID=$!
+
+          while read -r line < /tmp/dsh_fifo; do
+            echo "$line"
+            case "$line" in
+              *"token="*)
+                TOKEN=$(echo "$line" | sed -n 's/.*token=\([A-Za-z0-9_-]*\).*/\1/p')
+                if [ -n "$TOKEN" ]; then
+                  echo "$TOKEN" > /tmp/dsh_token.txt
+                  echo "[DSH-LAUNCHER] Captured token: ${TOKEN:0:8}..."
+                fi
+                ;;
+            esac
+          done &
+
+          wait $DSH_PID
+        env:
+        - name: DEEPSEEK_BASE_URL
+          value: http://litellm.llm.svc.cluster.local:4000/v1
+        - name: DEEPSEEK_API_KEY
+          value: sk-your-litellm-cluster-key
+        - name: OPENAI_BASE_URL
+          value: http://litellm.llm.svc.cluster.local:4000/v1
+        - name: OPENAI_API_KEY
+          value: sk-your-litellm-cluster-key
+        - name: LITELLM_API_BASE
+          value: http://litellm.llm.svc.cluster.local:4000/v1
+        - name: LITELLM_API_KEY
+          value: sk-your-litellm-cluster-key
+        ports:
+        - containerPort: 3080
+          name: auth-proxy
+        - containerPort: 3081
+          name: dsh-web
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+          limits:
+            cpu: 4000m
+            memory: 8Gi
+        volumeMounts:
+        - name: workspace-storage
+          mountPath: /workspace
+        - name: dsh-scripts
+          mountPath: /scripts
+      volumes:
+      - name: workspace-storage
+        persistentVolumeClaim:
+          claimName: dsh-workspace-pvc
+      - name: dsh-scripts
+        configMap:
+          name: dsh-scripts
+          defaultMode: 493
