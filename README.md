@@ -1,144 +1,234 @@
 # DeepSeek Harness (DSH) Cluster Deployment & Enterprise Auth Gateway
 
-Enterprise-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with:
-- **Default Local Model**: **DeepSeek-V4.1-Flash** (Native 1M Context Window CED MoE)
-- **Multi-Tenant User Isolation**: Per-user directory sandboxes and storage isolation
-- **Reverse Proxy Authentication Gate**: Session-to-cookie translation solving `directoryPicker` remote access
-- **Cordis Plugin**: `cordis-plugin-custom-llm-gateway` for dynamic provider and model catalog registration
+[![Base Image](https://img.shields.io/badge/Base%20OS-Ubuntu%2024.04%20LTS-E95420?logo=ubuntu&logoColor=white)](https://ubuntu.com/)
+[![Runtime](https://img.shields.io/badge/Runtime-Node.js%2022%20LTS-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Python](https://img.shields.io/badge/Python-3.12%20%2B%20Pip-3776AB?logo=python&logoColor=white)](https://python.org/)
+[![Terminal](https://img.shields.io/badge/Terminal-ttyd%201.7.7-blue)](https://github.com/tsl0922/ttyd)
+[![Default Model](https://img.shields.io/badge/Default%20Model-DeepSeek--V4.1--Flash%20(1M)-10B981)](https://github.com/deepseek-ai)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kubernetes. Built on **Ubuntu 24.04 LTS (GLIBC)** with integrated multi-tenant session isolation, reverse-proxy authentication gate, dynamic application gateway, interactive web terminal, and in-cluster LLM integration.
 
 ---
 
-## 🏛️ Architecture Overview
+## 🏛️ System Architecture
 
 ```
-                      HTTPS / WSS Request
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│       Kubernetes Ingress-Nginx (dsh.example.com)            │
-│             TLS Secret: dsh-tls-secret                      │
-└─────────────────────────────┬───────────────────────────────┘
-                              │ Port 3080
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                 Pod: dsh (Namespace: llm)                   │
-│                                                             │
-│   ┌─────────────────────────────────────────────────────┐   │
-│   │ 🔐 Web Login Auth Proxy & Session Gate (Node.js :3080)│   │
-│   │  • Web-based Login Form (/login)                    │   │
-│   │  • Session Cookie Management                        │   │
-│   │  • Dynamic User Isolation: /workspace/users/<user>  │   │
-│   │  • DSH Launch Token Auto-Capture & Cookie Minting   │   │
-│   │  • Full HTTP REST & WebSocket Upgrades Forwarding   │   │
-│   └──────────────────────────┬──────────────────────────┘   │
-│                              │ Forward to 127.0.0.1:3081    │
-│                              ▼                              │
-│   ┌─────────────────────────────────────────────────────┐   │
-│   │ 🤖 DeepSeek Harness Engine (DSH Web on :3081)       │   │
-│   │  • Default Model: DeepSeek-V4.1-Flash (Native 1M)   │   │
-│   │  • Provider Gateway: In-Cluster LiteLLM / vLLM      │   │
-│   │  • Pre-initialized Settings: /root/.dsh/settings.yaml│  │
-│   │  • Isolated User Storage: /workspace (PVC)          │   │
-│   │  • Cordis Custom LLM Gateway Plugin                 │   │
-│   └─────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
+                               HTTPS / WSS Inbound Traffic
+                                            │
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                      Kubernetes Ingress-Nginx (*.example.com)                          │
+│                             TLS Secret: dsh-tls-secret                                 │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │ Port 3080
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                Pod: dsh (Namespace: llm)                               │
+│                                                                                        │
+│   ┌────────────────────────────────────────────────────────────────────────────────┐   │
+│   │ 🔐 Enterprise Auth Proxy & Session Gate (Node.js Port 3080)                     │   │
+│   │  • Web-based Login, Registration, and Password Reset Portal (/login)          │   │
+│   │  • Dynamic Subdomain (*-<port>.domain) & Path (/proxy/<port>/) App Gateway     │   │
+│   │  • HTTP REST, SSE & WebSocket Upgrades (Streamlit, Vite HMR, ttyd)             │   │
+│   │  • DSH Launch Token Interception & Session Cookie Injection                    │   │
+│   └───────────────┬───────────────────────┬───────────────────────┬────────────────┘   │
+│                   │                       │                       │                    │
+│      Forward to   │ Port 3081             │ Port 7681             │ Port N             │
+│      127.0.0.1    ▼                       ▼                       ▼                    │
+│   ┌───────────────────────────┐ ┌───────────────────┐ ┌───────────────────────────┐   │
+│   │ 🤖 DeepSeek Harness Engine│ │ 🖥️ Interactive Web│ │ 🚀 User Applications      │   │
+│   │  • Ubuntu 24.04 + Node 22 │ │    Terminal (ttyd)│ │  • Streamlit (8501)       │   │
+│   │  • Python 3.12 + Pip + venv││  • Port 7681      │ │  • FastAPI / Uvicorn (8000│   │
+│   │  • In-Cluster LLM Gateway │ │  • Full bash -l   │ │  • Flask / Gradio (5000)  │   │
+│   │  • DeepSeek-V4.1-Flash 1M │ │  • WebSocket stream││  • Next.js / React (3000) │   │
+│   └───────────────────────────┘ └───────────────────┘ └───────────────────────────┘   │
+│                   │                       │                       │                    │
+│                   └───────────────────────┼───────────────────────┘                    │
+│                                           ▼                                            │
+│   ┌────────────────────────────────────────────────────────────────────────────────┐   │
+│   │ 💾 Persistent Storage Layer (Kubernetes PVC mounted at /workspace)              │   │
+│   │  • Multi-Tenant User Homes: /workspace/users/<username>/                       │   │
+│   │  • Git Repositories: /workspace/repos/                                         │   │
+│   │  • State & Sessions: /workspace/dsh_storage/                                   │   │
+│   │  • Background Sync Watcher: 10s auto-reconciliation loop                       │   │
+│   └────────────────────────────────────────────────────────────────────────────────┘   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📁 Repository Structure
+## 🌟 Full Feature Matrix
+
+### 1. Ubuntu 24.04 LTS Runtime & GLIBC Foundation
+- **Modern Linux Stack**: Replaces Alpine (`musl` libc) with official **Ubuntu 24.04 LTS (Noble Numbat)** powered by `glibc 2.39`.
+- **Pre-compiled Wheel Compatibility**: Eliminates loader errors (`ld-linux-x86-64.so.2 not found`) when running native binaries like `python-build-standalone`, uv, PyTorch, and compiled C-extensions.
+- **Developer Toolchain**: Bundles `Python 3.12.3`, `pip 24.0`, `python3-venv`, `build-essential` (`gcc 13.3.0`, `g++ 13.3.0`, `make 4.3`), `git`, `curl`, `socat`, and `jq`.
+- **Node.js 22 LTS**: Powered by official NodeSource Node.js 22 distribution.
+
+### 2. Interactive Web Terminal (`ttyd`)
+- **Direct Web Terminal**: Integrated `ttyd` (xterm.js web terminal) bound to `127.0.0.1:7681`.
+- **Full Shell Capabilities**: Spawns an interactive login bash shell (`bash -l`) with ANSI color, tab completion, nano/vim, and git.
+- **Zero-Trust Access**: Terminal port is strictly protected behind the enterprise authentication proxy.
+- **Access Routes**: Accessible via `https://<tenant>-terminal.example.com` or `https://<tenant>.example.com/proxy/terminal/`.
+
+### 3. Dual Dynamic Application Reverse Proxy Gateway
+- **Option 1 (Wildcard Subdomains)**: `https://<tenant>-<port>.example.com` (e.g., `dsh-8501.example.com`).
+  - Perfect for single-page applications (Vite, Next.js, Streamlit, Gradio) that load assets from root `/`.
+- **Option 2 (Dynamic Path Proxy)**: `https://<tenant>.example.com/proxy/<port>/` (e.g., `dsh.example.com/proxy/8501/`).
+  - Forwards any arbitrary port (`1`–`65535`) dynamically on the fly without DNS changes.
+- **Full WebSocket / SSE Support**: Transparent HTTP `Upgrade` forwarding for Streamlit state, Vite HMR, and WebSocket servers.
+- **Named Port Aliases**: Define friendly aliases in `/workspace/.ports.json` (e.g., `{"dashboard": 8501, "api": 8000}`).
+
+### 4. Enterprise Web Authentication & Session Gate
+- **No CLI Token Hassle**: Users authenticate via the Web Login Portal at `/login`.
+- **Self-Service Onboarding**:
+  - **Sign In**: Authenticates against salted SHA-256 credentials in `/workspace/users/.user_auth.json`.
+  - **Create Account**: Instantly provisions an isolated home workspace at `/workspace/users/<username>/`.
+  - **Change Password**: Secure in-place password modification.
+- **Token Capture & Reverse Proxy Invariant**: Automatically intercepts the one-time DSH launch token on container boot, mints authority-bound session cookies, and injects credentials into downstream REST calls (e.g., `/api/directoryPicker/list`), eliminating HTTP 401/403 remote proxy issues.
+
+### 5. In-Cluster LLM Gateway & DeepSeek-V4.1-Flash Default
+- **In-Cluster Inference**: Connects directly to internal OpenAI-compatible endpoints (LiteLLM / vLLM) with zero public API cost.
+- **Default Model**: **DeepSeek-V4.1-Flash** (Native 1M Context Window CED MoE, 65,536 max tokens).
+- **Standby Catalog**: Pre-registers `deepseek-flash`, `glm-5.3-flash`, and `qwen3.8-27b`.
+- **Token Clamping**: Automatically clamps requested `max_tokens` to model limits to prevent gateway overflow rejections.
+
+### 6. Multi-Tenant Workspaces & Storage Persistence
+- **Partitioned User Storage**: Each tenant works inside `/workspace/users/<username>/`.
+- **Symlink Layer**: Automatically maps `/workspace/dsh_storage/workspaces/<username>` to `/root/<username>` for transparent IDE compatibility.
+- **Background Sync Watcher**: A 10-second background daemon continuously synchronizes `/root/.dsh/.credentials.yaml` and new user workspaces to the persistent volume.
+
+### 7. Enterprise Root CA & SSL Inspection Support
+- **Custom PKI Trust**: Automatically detects and registers custom enterprise CA certificates mounted into `/usr/local/share/ca-certificates/`.
+- **Runtime Propagation**: System store updates propagate to OpenSSL, Curl, Python (`REQUESTS_CA_BUNDLE`, `SSL_CERT_FILE`), Node.js (`NODE_EXTRA_CA_CERTS`), and Git (`http.sslCAInfo`).
+- **Complete Setup Guide**: See [docs/ENTERPRISE_ROOT_CA_SETUP.md](docs/ENTERPRISE_ROOT_CA_SETUP.md).
+
+---
+
+## 📁 Repository Directory Structure
 
 ```
 .
+├── Dockerfile                              # Multi-stage Ubuntu 24.04 image with Python 3.12, Node 22 & ttyd
+├── README.md                               # Master system documentation & deployment manual
 ├── cordis_plugin/
-│   └── index.ts              # Cordis Plugin (cordis-plugin-custom-llm-gateway)
+│   └── index.ts                            # Cordis Plugin (cordis-plugin-custom-llm-gateway)
+├── docs/                                   # Dedicated feature guides
+│   ├── DYNAMIC_APP_GATEWAY.md              # Deep dive on Subdomain & Path proxy routing + ttyd
+│   ├── ENTERPRISE_ROOT_CA_SETUP.md         # Step-by-step Enterprise CA extraction & mounting
+│   └── MULTI_TENANT_STORAGE_AND_PERSISTENCE.md # User homes, storage layouts & sync watchers
 ├── k8s/
-│   ├── deployment.yaml       # Kubernetes Deployment (Ubuntu 24.04 + Node 22 + Python 3.12 + DSH + Proxy)
-│   ├── service.yaml          # ClusterIP Service (Port 3080)
-│   ├── ingress.yaml          # Ingress Resource (dsh.example.com)
-│   └── configmap.yaml        # ConfigMap holding proxy & model patch scripts
+│   ├── configmap.yaml                      # ConfigMap containing auth_proxy.js & configure_models.js
+│   ├── deployment.yaml                     # Kubernetes Deployment manifest (Ubuntu 24.04)
+│   ├── ingress.yaml                        # Ingress manifest with wildcard host routing
+│   └── service.yaml                        # ClusterIP Service manifest (Port 3080)
 ├── scripts/
-│   ├── auth_proxy.js         # Enterprise Login Gate & Reverse Proxy
-│   └── configure_models.js   # Script injecting In-Cluster models to DSH catalog
-└── README.md                 # System documentation & deployment guide
+│   ├── auth_proxy.js                       # Enterprise Auth Proxy, login UI, session gate & proxy
+│   └── configure_models.js                 # Script injecting In-Cluster models into DSH catalog
+└── upstream_rfc/
+    └── RFC_ENTERPRISE_CORDIS_PLUGIN_AND_GATEWAY.md # Upstream specification RFC
 ```
 
 ---
 
-## 🚀 Key Operational Features
+## 🛠️ Step-by-Step Deployment Guide
 
-### 1. Enterprise Web Authentication & User Self-Service Gate
-- **No CLI Token Hassle**: Users log in via the Web Login Portal at `https://dsh.example.com/login`.
-- **Self-Service User Registration & Password Change**:
-  - Direct UI tabs on the login gate:
-    - **Sign In**
-    - **Create Account**: Automatically sets up user workspace `/workspace/users/<username>` and persists credentials in `/workspace/users/.user_auth.json`.
-    - **Change Password**: Secure in-place password update verifying previous credentials.
-- **Remote Access & Cookie Exchange**: Intercepts the one-time launch token at container startup, mints upstream authority-bound session cookies, and injects them into downstream REST calls (e.g. `/api/directoryPicker/list`), preventing HTTP 401/403 errors when accessed via reverse proxies.
+### Prerequisites
+- Kubernetes cluster (v1.24+)
+- Ingress Controller with Wildcard TLS support (e.g. Ingress-Nginx)
+- Existing PersistentVolumeClaim (e.g. `dsh-workspace-pvc`)
 
-### 2. In-Cluster LLM Gateway & DeepSeek-V4.1-Flash Default
-- **Internal Inference Gateway**: OpenAI-compatible endpoint (LiteLLM / vLLM).
-- **Default Primary Model**:
-  - `deepseek-v4.1-flash`: **DeepSeek-V4.1-Flash (Native 1M CED MoE)** with 1,048,576 context window and 65,536 max output tokens.
-- **Standby Models**:
-  - `deepseek-flash`: Alias for DeepSeek-V4.1-Flash
-  - `glm-5.3-flash`: Standby low-latency model
-  - `qwen3.8-27b`: Agile reasoning model
-- **Context Limit & Token Clamping Guard**:
-  - Clamps wire `max_tokens` to model limits, avoiding upstream context overflow rejections.
-
-### 3. Settings Provider Persistence & Browser Access Guard
-- Addresses DSH web UI issue: `"Loading the provider directory failed: settings are unavailable in this browser"`.
-- Container entrypoint initializes `/root/.dsh/settings.yaml` (`version: 1`), enabling `@deepseek-ai/dsh-settings-file` to register and serve `settings/describe` RPC calls reliably.
-- Preserves `host` persistence in `@deepseek-ai/dsh-client-ui-settings` for authorized domain sessions.
-
-### 4. Dynamic Multi-Tenant Workspaces & Storage Isolation
-- **Storage Backend**: Kubernetes PersistentVolumeClaim (e.g. `subPath` isolation for shared volumes, or dedicated local block storage).
-- **User Workspaces**: Partitioned by username under `/workspace/users/<username>`.
-- **Mount Isolation**: Pods can mount dedicated PVC subpaths to prevent cross-tenant directory access.
-
-### 5. Dynamic Application Port & Subdomain Reverse Proxy Gateway
-- **Option 1 (Subdomain-based)**: `https://<tenant>-<port>.domain.com` (e.g. `https://dsh-8000.domain.com`, `https://dsh-8501.domain.com`)
-  - Flawless single-page app (SPA) and dashboard asset compatibility where scripts load from `/`.
-- **Option 2 (Path-based)**: `https://<tenant>.domain.com/proxy/<port>/` (e.g. `https://dsh.domain.com/proxy/8000/`, `https://dsh.domain.com/proxy/8501/`)
-  - 100% dynamic port selection on the fly (1–65535); any server started inside DSH is immediately accessible.
-- **WebSocket Upgrade Forwarding**: Supports real-time protocols for Streamlit, Vite/Next.js HMR, and WebSocket services.
-- **Named Port Aliases**: Optional mapping via `/workspace/.ports.json` (e.g. `{"dashboard": 8501, "api": 8000}`).
-- **Domain setup**: set `DSH_TRUSTED_HOST` in `k8s/deployment.yaml` to the public host (e.g. `dsh.example.com`); the agent's app links are built from it. Option 1 also needs a wildcard DNS record `*.example.com` pointing at the ingress controller, and the `dsh-tls-secret` certificate must cover both `dsh.example.com` and `*.example.com`. A wildcard matches one label, so every `*.example.com` host reaches this one Deployment; a second DSH instance on the same domain needs its own Ingress with explicit `dsh2-<port>` hosts or its own subdomain (e.g. `*.dsh2.example.com`).
-
----
-
-## 🛠️ Deployment & Maintenance Instructions
-
-### 1. Deploy or Update
+### Step 1: Create Admin Secret
+Create the initial administrator secret for the auth proxy:
 ```bash
-# Create the admin password Secret (required; the auth proxy refuses to start without it)
-kubectl create secret generic dsh-auth -n llm --from-literal=admin-password='<strong-password>'
+kubectl create secret generic dsh-auth -n llm \
+  --from-literal=admin-password='YourStrongAdminPasswordHere'
+```
 
-# The Deployment mounts an existing PersistentVolumeClaim named dsh-workspace-pvc at /workspace;
-# create it (or edit claimName in k8s/deployment.yaml) before applying.
+### Step 2: Configure Ingress Domain
+Edit `k8s/deployment.yaml` and set `DSH_TRUSTED_HOST` to your domain:
+```yaml
+        env:
+          - name: DSH_TRUSTED_HOST
+            value: "dsh.example.com"
+          - name: DSH_COOKIE_DOMAIN
+            value: ".example.com"  # Optional: defaults to parent domain
+```
 
-# Apply Kubernetes manifests
+### Step 3: Deploy Manifests
+```bash
+# Apply ConfigMap, Deployment, Service, and Ingress
 kubectl apply -f k8s/configmap.yaml -n llm
 kubectl apply -f k8s/deployment.yaml -n llm
 kubectl apply -f k8s/service.yaml -n llm
 kubectl apply -f k8s/ingress.yaml -n llm
-
-# Restart deployment to load updated scripts
-kubectl rollout restart deployment dsh -n llm
 ```
 
-### 2. Operational Health Check
+### Step 4: Verify Rollout
 ```bash
-# Check Pod status
+# Verify pod status
 kubectl get pods -n llm -l app=dsh
 
-# View container startup logs & token capture
+# Tail container boot logs
 kubectl logs -n llm deployment/dsh -c dsh --tail=100 -f
 ```
 
 ---
 
+## ⚙️ Environment Variables Reference
+
+| Variable | Default Value | Description |
+| :--- | :--- | :--- |
+| `DSH_TRUSTED_HOST` | `dsh.example.com` | Public Ingress hostname passed to DSH engine |
+| `DSH_COOKIE_DOMAIN` | Derived from host | Cookie domain for multi-tenant SSO across subdomains |
+| `DSH_COOKIE_NAME` | `dsh_auth` | Name of the authentication session cookie |
+| `DSH_ADMIN_PASSWORD`| *(from Secret)* | Master administrator password |
+| `PORT` | `3080` | Port where `auth_proxy.js` listens |
+| `DSH_PORT` | `3081` | Internal port where DSH engine listens |
+| `TERMINAL_PORT` | `7681` | Internal port where `ttyd` web terminal listens |
+| `WORKSPACE_ROOT` | `/workspace/users` | Base path for partitioned user workspaces |
+| `REQUESTS_CA_BUNDLE`| `/etc/ssl/certs/ca-certificates.crt` | CA trust bundle for Python `requests` |
+| `SSL_CERT_FILE` | `/etc/ssl/certs/ca-certificates.crt` | CA trust bundle for OpenSSL / urllib |
+| `NODE_EXTRA_CA_CERTS`| `/etc/ssl/certs/ca-certificates.crt` | CA trust bundle for Node.js runtimes |
+
+---
+
+## 🔍 Verification & Health Checks
+
+Exec into the running DSH container to verify all subsystems:
+
+```bash
+POD=$(kubectl get pod -n llm -l app=dsh -o jsonpath='{.items[0].metadata.name}')
+
+# 1. Verify OS and C runtime
+kubectl exec -n llm $POD -- cat /etc/os-release | grep PRETTY_NAME
+
+# 2. Verify tool versions
+kubectl exec -n llm $POD -- python3 --version
+kubectl exec -n llm $POD -- pip3 --version
+kubectl exec -n llm $POD -- gcc --version | head -n 1
+kubectl exec -n llm $POD -- node -v
+kubectl exec -n llm $POD -- npm -v
+kubectl exec -n llm $POD -- dsh --version
+
+# 3. Test local internal service ports
+kubectl exec -n llm $POD -- curl -s -I http://127.0.0.1:3080/ | head -n 3 # Auth Proxy
+kubectl exec -n llm $POD -- curl -s -I http://127.0.0.1:3081/ | head -n 3 # DSH Web
+kubectl exec -n llm $POD -- curl -s -I http://127.0.0.1:7681/ | head -n 3 # ttyd Terminal
+```
+
+---
+
+## 📚 Specialized Documentation Guides
+
+- [Enterprise Root CA & SSL Inspection Setup Guide](docs/ENTERPRISE_ROOT_CA_SETUP.md)
+- [Dynamic Application Gateway & Web Terminal Guide](docs/DYNAMIC_APP_GATEWAY.md)
+- [Multi-Tenant Workspaces & Storage Persistence Guide](docs/MULTI_TENANT_STORAGE_AND_PERSISTENCE.md)
+- [Enterprise Cordis Plugin & Gateway RFC](upstream_rfc/RFC_ENTERPRISE_CORDIS_PLUGIN_AND_GATEWAY.md)
+
+---
+
 ## 📄 License
 
-Released under the MIT License.
+Released under the [MIT License](LICENSE).

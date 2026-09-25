@@ -43,15 +43,10 @@ spec:
             curl -fsSL -o /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 && chmod +x /usr/local/bin/ttyd || true
           fi
 
-          # Register Bank of Thailand Internal Root CA if available
-          if command -v openssl >/dev/null 2>&1; then
-            echo "Checking enterprise root CA trust..."
-            echo | openssl s_client -showcerts -servername ${DSH_TRUSTED_HOST:-dsh.example.com} -connect 172.22.13.54:443 2>/dev/null \
-              | awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/{ if(/BEGIN CERTIFICATE/) {cert++} if(cert==2) print }' \
-              > /usr/local/share/ca-certificates/bot-internal-root-ca.crt 2>/dev/null || true
-            if [ -s /usr/local/share/ca-certificates/bot-internal-root-ca.crt ]; then
-              update-ca-certificates 2>/dev/null || true
-            fi
+          # Optional: Register Custom Enterprise Root CAs if mounted
+          if [ -d /usr/local/share/ca-certificates ] && [ -n "$(ls -A /usr/local/share/ca-certificates 2>/dev/null)" ]; then
+            echo "Registering custom enterprise root CA certificates..."
+            update-ca-certificates 2>/dev/null || true
           fi
 
           echo "Configuring Git Credentials..."
