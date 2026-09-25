@@ -92,12 +92,13 @@ The proxy transparently handles HTTP `Upgrade: websocket` requests for:
 
 ---
 
-## 🏷️ Named Port Aliases (`/workspace/.ports.json`)
+## 🏷️ Named Port Aliases & Live Hot-Reload (`/workspace/.ports.json`)
 
-To use friendly names instead of port numbers, create `/workspace/.ports.json`:
+To use friendly names instead of port numbers, create or edit `/workspace/.ports.json` on the persistent volume:
 
 ```json
 {
+  "app": 5000,
   "dashboard": 8501,
   "api": 8000,
   "eda": 8080,
@@ -105,7 +106,18 @@ To use friendly names instead of port numbers, create `/workspace/.ports.json`:
 }
 ```
 
-Once defined, requests to `https://dsh-dashboard.example.com` or `https://dsh.example.com/proxy/dashboard/` automatically resolve to port `8501`.
+### ⚡ Zero Redeployment / Instant Live Hot-Reload
+- **No container restarts, no pod redeployment, and no proxy reloads are required.**
+- `auth_proxy.js` checks `/workspace/.ports.json` synchronously **on every incoming HTTP request**.
+- As soon as you save the file, requests to `https://dsh-app.example.com` or `https://dsh.example.com/proxy/app/` will **immediately** proxy to port `5000`.
+
+### 🕒 When to Set:
+1. **When Launching a Custom Webapp**: When you spin up a server (e.g., `python -m flask run -p 5000` or `streamlit run app.py --server.port 8501`) and want the pre-registered `dsh-app.example.com` entrypoint to point directly to your app.
+2. **From Terminal or Scripts**: You can configure it on the fly directly inside the interactive terminal:
+   ```bash
+   echo '{"app": 5000}' > /workspace/.ports.json
+   ```
+3. **Automatic Fallback**: If `/workspace/.ports.json` does not exist or omits `"app"`, `dsh-app.example.com` automatically falls back to serving the main **DSH Web UI (Port 3081)**.
 
 ---
 
