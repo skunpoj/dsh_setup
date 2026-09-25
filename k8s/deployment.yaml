@@ -89,6 +89,16 @@ spec:
           echo "Starting Enterprise SSO Auth Proxy on port 3080..."
           node /scripts/auth_proxy.js &
 
+          # Ensure ttyd web terminal is installed and started on port 7681 (127.0.0.1)
+          if ! command -v ttyd >/dev/null 2>&1; then
+            echo "Installing ttyd for browser web terminal..."
+            apk add --no-cache ttyd || true
+          fi
+          if command -v ttyd >/dev/null 2>&1; then
+            echo "Launching interactive Web Terminal (ttyd) on port 7681 (127.0.0.1)..."
+            nohup ttyd -p 7681 -i 127.0.0.1 -W bash -l > /tmp/ttyd.log 2>&1 &
+          fi
+
           echo "Launching dsh web UI on port 3081 (127.0.0.1) with token logging..."
           mkfifo /tmp/dsh_fifo
           node --expose-internals /usr/local/bin/dsh web --port 3081 --no-open --trusted-host ${DSH_TRUSTED_HOST:-dsh.example.com} > /tmp/dsh_fifo 2>&1 &
@@ -112,6 +122,8 @@ spec:
         # Public host of this DSH instance: used by `dsh web --trusted-host` and for the app links in AGENTS.md
         - name: DSH_TRUSTED_HOST
           value: dsh.example.com
+        - name: DSH_COOKIE_NAME
+          value: dsh_auth
         - name: DSH_AUTH_PASS
           valueFrom:
             secretKeyRef:

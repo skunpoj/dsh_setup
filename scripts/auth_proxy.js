@@ -7,6 +7,20 @@ const PROXY_PORT = 3080;
 const DSH_TARGET_PORT = 3081;
 const DSH_TARGET_HOST = '127.0.0.1';
 const USER_STORE_PATH = '/workspace/users/.user_auth.json';
+const COOKIE_NAME = process.env.DSH_COOKIE_NAME || 'dsh_auth';
+
+function getCookieDomain(host) {
+  if (!host) return '';
+  const clean = host.split(':')[0].toLowerCase();
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(clean) || clean === 'localhost') return '';
+  if (clean.endsWith('.aiportal.bot.or.th')) return '; Domain=.aiportal.bot.or.th';
+  if (clean.endsWith('.example.com')) return '; Domain=.example.com';
+  const parts = clean.split('.');
+  if (parts.length >= 3) {
+    return '; Domain=.' + parts.slice(-3).join('.');
+  }
+  return '';
+}
 
 // In-memory sessions
 const SESSIONS = new Map();
@@ -14,18 +28,29 @@ const cachedDshAuthCookies = new Map();
 
 // --- DYNAMIC APP GATEWAY HELPERS (OPTION 1 & OPTION 2) ---
 function resolvePortAlias(alias) {
+  if (!alias) return null;
+  const key = alias.toLowerCase();
   try {
     const portsPath = '/workspace/.ports.json';
     if (fs.existsSync(portsPath)) {
       const mapping = JSON.parse(fs.readFileSync(portsPath, 'utf8'));
-      if (mapping && mapping[alias]) {
-        return parseInt(mapping[alias], 10);
+      if (mapping && mapping[key]) {
+        return parseInt(mapping[key], 10);
       }
     }
   } catch (e) {
     console.error('[AUTH-PROXY] Error reading .ports.json:', e.message);
   }
-  return null;
+  const defaults = {
+    'terminal': 7681,
+    'ttyd': 7681,
+    'streamlit': 8501,
+    'dashboard': 8501,
+    'api': 8000,
+    'fastapi': 8000,
+    'web': 3000
+  };
+  return defaults[key] || null;
 }
 
 function parseAppTarget(inHost, reqUrl) {
@@ -542,7 +567,8 @@ const server = http.createServer((req, res) => {
         console.log(`[AUTH-PROXY] Successful login for user: ${username}`);
         const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
         getOrMintDshCookie(clientHost, (err, dshCookie) => {
-          const cookieHeaders = [`dsh_auth=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`];
+          const domainAttr = getCookieDomain(clientHost);
+          const cookieHeaders = [`${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${domainAttr}`];
           if (dshCookie) {
             cookieHeaders.push(`${dshCookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
           }
@@ -647,6 +673,17 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Handle Logout
+  if (parsedUrl.pathname === '/logout') {
+    const clientHost = req.headers['x-forwarded-host'] || req.headers.host || '';
+    const domainAttr = getCookieDomain(clientHost);
+    res.writeHead(302, {
+      'Set-Cookie': `${COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${domainAttr}`,
+      'Location': '/login'
+    });
+    return res.end();
+  }
+
   // Check Session Cookie
   let authenticated = false;
   let sessionUser = null;
@@ -654,7 +691,15 @@ const server = http.createServer((req, res) => {
   if (cookieHeader) {
     const cookies = cookieHeader.split(';').map(c => c.trim());
     for (const c of cookies) {
-      if (c.startsWith('dsh_auth=')) {
+      if (c.startsWith(`${COOKIE_NAME}=`)) {
+        const sid = c.substring(`${COOKIE_NAME}=`.length);
+        if (SESSIONS.has(sid)) {
+          authenticated = true;
+          sessionUser = SESSIONS.get(sid).user;
+          break;
+        }
+      }
+      if (!authenticated && COOKIE_NAME !== 'dsh_auth' && c.startsWith('dsh_auth=')) {
         const sid = c.substring('dsh_auth='.length);
         if (SESSIONS.has(sid)) {
           authenticated = true;
@@ -669,6 +714,12 @@ const server = http.createServer((req, res) => {
     const tab = parsedUrl.query.tab || 'login';
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     return res.end(renderAuthPage({ tab }));
+  }
+
+  // Convenient Terminal Shortcuts (/terminal, /term)
+  if (parsedUrl.pathname === '/terminal' || parsedUrl.pathname === '/term') {
+    res.writeHead(302, { 'Location': '/proxy/terminal/' });
+    return res.end();
   }
 
   // Dynamic App Gateway (Option 1 Subdomain or Option 2 Path Proxy); only reachable after login
@@ -731,7 +782,14 @@ server.on('upgrade', (req, socket, head) => {
   if (cookieHeader) {
     const cookies = cookieHeader.split(';').map(c => c.trim());
     for (const c of cookies) {
-      if (c.startsWith('dsh_auth=')) {
+      if (c.startsWith(`${COOKIE_NAME}=`)) {
+        const sid = c.substring(`${COOKIE_NAME}=`.length);
+        if (SESSIONS.has(sid)) {
+          authenticated = true;
+          break;
+        }
+      }
+      if (!authenticated && COOKIE_NAME !== 'dsh_auth' && c.startsWith('dsh_auth=')) {
         const sid = c.substring('dsh_auth='.length);
         if (SESSIONS.has(sid)) {
           authenticated = true;

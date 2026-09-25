@@ -373,6 +373,13 @@ When you build, develop, or run web applications, APIs, dashboards, or preview s
 ## 3. High-Performance Cluster Inference
 - LiteLLM Gateway is available at \`http://litellm.llm.svc.cluster.local:4000/v1\`.
 - Primary cluster model: \`deepseek-v4.1-flash\` (Native 1M Context Window).
+
+## 4. Built-in Interactive Web Terminal
+- An interactive bash web terminal (powered by ttyd) runs natively on port 7681 (alias \`terminal\` or \`ttyd\`).
+- Users can access the web terminal directly via:
+  - **Subdomain**: \`https://${tenantPrefix}-7681.${baseDomain}\` or \`https://${tenantPrefix}-terminal.${baseDomain}\`
+  - **Path Proxy**: \`https://${dshHost}/proxy/terminal/\` (or shortcut \`https://${dshHost}/terminal\`)
+- Web terminal authentication is unified with the DSH Enterprise login session.
 `;
 
   fs.mkdirSync("/root/.dsh", { recursive: true });
