@@ -17,13 +17,43 @@ spec:
     spec:
       containers:
       - name: dsh
-        image: node:22-alpine
+        image: ubuntu:24.04
         imagePullPolicy: IfNotPresent
         command:
-        - /bin/sh
+        - /bin/bash
         - -c
         - |
-          apk add --no-cache git curl
+          export DEBIAN_FRONTEND=noninteractive
+          echo "Updating apt repositories and installing packages..."
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            git curl bash socat python3 python3-pip python3-venv python-is-python3 \
+            build-essential ca-certificates jq openssl procps
+
+          # Install Node.js 22 LTS if not already present
+          if ! command -v node >/dev/null 2>&1; then
+            echo "Installing Node.js 22 LTS via NodeSource..."
+            curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+            apt-get install -y --no-install-recommends nodejs
+          fi
+
+          # Install ttyd web terminal
+          if ! command -v ttyd >/dev/null 2>&1; then
+            echo "Installing ttyd binary..."
+            curl -fsSL -o /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 && chmod +x /usr/local/bin/ttyd || true
+          fi
+
+          # Register Bank of Thailand Internal Root CA if available
+          if command -v openssl >/dev/null 2>&1; then
+            echo "Checking enterprise root CA trust..."
+            echo | openssl s_client -showcerts -servername ${DSH_TRUSTED_HOST:-dsh.example.com} -connect 172.22.13.54:443 2>/dev/null \
+              | awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/{ if(/BEGIN CERTIFICATE/) {cert++} if(cert==2) print }' \
+              > /usr/local/share/ca-certificates/bot-internal-root-ca.crt 2>/dev/null || true
+            if [ -s /usr/local/share/ca-certificates/bot-internal-root-ca.crt ]; then
+              update-ca-certificates 2>/dev/null || true
+            fi
+          fi
+
           echo "Configuring Git Credentials..."
           git config --global http.sslVerify false
           git config --global user.name "AI Engineer"
@@ -89,11 +119,6 @@ spec:
           echo "Starting Enterprise SSO Auth Proxy on port 3080..."
           node /scripts/auth_proxy.js &
 
-          # Ensure ttyd web terminal is installed and started on port 7681 (127.0.0.1)
-          if ! command -v ttyd >/dev/null 2>&1; then
-            echo "Installing ttyd for browser web terminal..."
-            apk add --no-cache ttyd || true
-          fi
           if command -v ttyd >/dev/null 2>&1; then
             echo "Launching interactive Web Terminal (ttyd) on port 7681 (127.0.0.1)..."
             nohup ttyd -p 7681 -i 127.0.0.1 -W bash -l > /tmp/ttyd.log 2>&1 &

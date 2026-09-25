@@ -53,7 +53,7 @@ Enterprise-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with:
 ├── cordis_plugin/
 │   └── index.ts              # Cordis Plugin (cordis-plugin-custom-llm-gateway)
 ├── k8s/
-│   ├── deployment.yaml       # Kubernetes Deployment (Node:22-alpine + DSH + Proxy)
+│   ├── deployment.yaml       # Kubernetes Deployment (Ubuntu 24.04 + Node 22 + Python 3.12 + DSH + Proxy)
 │   ├── service.yaml          # ClusterIP Service (Port 3080)
 │   ├── ingress.yaml          # Ingress Resource (dsh.example.com)
 │   └── configmap.yaml        # ConfigMap holding proxy & model patch scripts
