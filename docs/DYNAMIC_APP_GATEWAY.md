@@ -45,17 +45,23 @@ Subdomain routing proxies traffic based on the hostname prefix:
 `https://<tenant>-<port>.<domain>` or `https://<tenant>-<alias>.<domain>`
 
 ### Examples:
-| Subdomain | Forwarded Target Inside Container | Typical Application |
-| :--- | :--- | :--- |
-| `dsh.example.com` | `http://127.0.0.1:3081/` | DSH Web User Interface |
-| `dsh-terminal.example.com` | `http://127.0.0.1:7681/` | Interactive bash web terminal |
-| `dsh-8501.example.com` | `http://127.0.0.1:8501/` | Streamlit Dashboard |
-| `dsh-8000.example.com` | `http://127.0.0.1:8000/` | FastAPI / Uvicorn Server |
-| `dsh-5000.example.com` | `http://127.0.0.1:5000/` | Flask / Gradio Application |
-| `dsh-3000.example.com` | `http://127.0.0.1:3000/` | Next.js / React / Vite Dev Server |
+| Subdomain | Forwarded Target Inside Container | Typical Application | Default Resolution |
+| :--- | :--- | :--- | :--- |
+| `dsh.example.com` | `http://127.0.0.1:3081/` | DSH Web User Interface | Root Host ➔ DSH Engine |
+| `dsh-app.example.com` | Customizable via `.ports.json` | General Application Alias | **Port 3081** (Fallback to DSH UI) or custom port via `{"app": 5000}` |
+| `dsh-terminal.example.com` | `http://127.0.0.1:7681/` | Interactive bash web terminal | Built-in Alias `'terminal'` ➔ 7681 |
+| `dsh-8501.example.com` | `http://127.0.0.1:8501/` | Streamlit Dashboard | Direct Numeric Port 8501 |
+| `dsh-8000.example.com` | `http://127.0.0.1:8000/` | FastAPI / Uvicorn Server | Direct Numeric Port 8000 |
+| `dsh-8080.example.com` | `http://127.0.0.1:8080/` | EDA / Web Microservice | Direct Numeric Port 8080 |
+| `dsh-5000.example.com` | `http://127.0.0.1:5000/` | Flask / Gradio Application | Direct Numeric Port 5000 |
+| `dsh-3000.example.com` | `http://127.0.0.1:3000/` | Next.js / React / Vite Dev Server | Direct Numeric Port 3000 |
+| `dsh-7681.example.com` | `http://127.0.0.1:7681/` | ttyd Web Terminal (by port) | Direct Numeric Port 7681 |
 
 ### Why use Subdomain Routing?
 Modern single-page applications (Vite, Next.js, Streamlit, Grafana) frequently load assets from absolute root paths (e.g., `<script src="/_assets/vendor.js">`). Path-based proxies break unless the app is specially configured with a subpath prefix. Subdomain routing provides 100% transparent root-relative URL routing.
+
+### Multi-Tenant Shared Domain Consideration:
+On a shared corporate domain (where multiple tenants like `dsh`, `dsh2`, `dsh3` run concurrently), standard Kubernetes Ingress does not allow partial wildcards (`dsh-*`). In this scenario, either declare explicit 1-level subdomains in the Ingress manifest (as shown above) or utilize **Option 2 (Path Proxy)**.
 
 ---
 
