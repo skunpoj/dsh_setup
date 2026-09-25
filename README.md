@@ -181,12 +181,12 @@ kubectl logs -n llm deployment/dsh -c dsh --tail=100 -f
 | Variable | Default Value | Description |
 | :--- | :--- | :--- |
 | `DSH_TRUSTED_HOST` | `dsh.example.com` | Public Ingress hostname passed to DSH engine |
-| `DSH_COOKIE_DOMAIN` | Derived from host | Cookie domain for multi-tenant SSO across subdomains |
-| `DSH_COOKIE_NAME` | `dsh_auth` | Name of the authentication session cookie |
-| `DSH_ADMIN_PASSWORD`| *(from Secret)* | Master administrator password |
+| `DSH_COOKIE_DOMAIN` | Parent of `DSH_TRUSTED_HOST` (e.g. `.example.com`) | Cookie domain shared with the app subdomains; never derived from the request's Host header |
+| `DSH_COOKIE_NAME` | `dsh_auth` | Name of the session cookie; give each DSH instance on the same cookie domain its own name (e.g. `dsh2_auth`) so their logins do not overwrite each other |
+| `DSH_AUTH_PASS` | *(from Secret `dsh-auth`)* | Administrator password; the proxy refuses to start without it unless a user store already exists |
 | `PORT` | `3080` | Port where `auth_proxy.js` listens |
 | `DSH_PORT` | `3081` | Internal port where DSH engine listens |
-| `TERMINAL_PORT` | `7681` | Internal port where `ttyd` web terminal listens |
+| *(fixed)* | `7681` | Internal port where the `ttyd` web terminal listens (alias `terminal`) |
 | `WORKSPACE_ROOT` | `/workspace/users` | Base path for partitioned user workspaces |
 | `REQUESTS_CA_BUNDLE`| `/etc/ssl/certs/ca-certificates.crt` | CA trust bundle for Python `requests` |
 | `SSL_CERT_FILE` | `/etc/ssl/certs/ca-certificates.crt` | CA trust bundle for OpenSSL / urllib |

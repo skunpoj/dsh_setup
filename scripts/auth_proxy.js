@@ -9,22 +9,30 @@ const DSH_TARGET_HOST = '127.0.0.1';
 const USER_STORE_PATH = '/workspace/users/.user_auth.json';
 const COOKIE_NAME = process.env.DSH_COOKIE_NAME || 'dsh_auth';
 
-function getCookieDomain(host) {
+// The session cookie is shared with the app subdomains (dsh-<port>.<parent>) through its Domain
+// attribute. The domain comes from configuration, never from the request's Host header, and
+// defaults to the parent of DSH_TRUSTED_HOST (dsh.example.com -> .example.com); a host with
+// fewer than three labels gets a host-only cookie.
+function getCookieDomain() {
   if (process.env.DSH_COOKIE_DOMAIN) {
     const d = process.env.DSH_COOKIE_DOMAIN;
     return d.startsWith('.') ? `; Domain=${d}` : `; Domain=.${d}`;
   }
-  if (!host) return '';
-  const clean = host.split(':')[0].toLowerCase();
-  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(clean) || clean === 'localhost') return '';
-  const parts = clean.split('.');
+  const trusted = (process.env.DSH_TRUSTED_HOST || '').split(':')[0].toLowerCase();
+  if (!trusted || /^(\d{1,3}\.){3}\d{1,3}$/.test(trusted)) return '';
+  const parts = trusted.split('.');
   if (parts.length >= 3) {
-    return '; Domain=.' + parts.slice(-3).join('.');
-  }
-  if (parts.length >= 2) {
-    return '; Domain=.' + parts.slice(-2).join('.');
+    return '; Domain=.' + parts.slice(1).join('.');
   }
   return '';
+}
+
+// Proxy session cookies (this tenant's, the legacy dsh_auth name, and DSH's dsh-auth-*) are
+// removed before a request reaches a user app, so an app cannot read and replay them.
+function stripAuthCookies(cookieHeader) {
+  if (!cookieHeader) return '';
+  return cookieHeader.split(';').map(c => c.trim()).filter(c => c &&
+    !c.startsWith(`${COOKIE_NAME}=`) && !c.startsWith('dsh_auth=') && !c.startsWith('dsh-auth-')).join('; ');
 }
 
 // In-memory sessions
@@ -101,6 +109,12 @@ function forwardToLocalApp(targetPort, targetPath, req, res) {
   const proxyHeaders = { ...req.headers };
   proxyHeaders['host'] = `127.0.0.1:${targetPort}`;
   proxyHeaders['x-forwarded-host'] = req.headers.host;
+  const appCookies = stripAuthCookies(req.headers.cookie);
+  if (appCookies) {
+    proxyHeaders['cookie'] = appCookies;
+  } else {
+    delete proxyHeaders['cookie'];
+  }
   proxyHeaders['x-forwarded-proto'] = req.headers['x-forwarded-proto'] || 'https';
 
   const proxyReq = http.request({
@@ -160,6 +174,10 @@ function forwardWebSocketToLocalApp(targetPort, targetPath, req, socket, head) {
     let headerVal = rawHeaders[i + 1];
     if (headerKey.toLowerCase() === 'host') {
       headerVal = `127.0.0.1:${targetPort}`;
+    }
+    if (headerKey.toLowerCase() === 'cookie') {
+      headerVal = stripAuthCookies(headerVal);
+      if (!headerVal) continue;
     }
     upgradeReqText += `${headerKey}: ${headerVal}\r\n`;
   }
@@ -572,7 +590,7 @@ const server = http.createServer((req, res) => {
         console.log(`[AUTH-PROXY] Successful login for user: ${username}`);
         const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
         getOrMintDshCookie(clientHost, (err, dshCookie) => {
-          const domainAttr = getCookieDomain(clientHost);
+          const domainAttr = getCookieDomain();
           const cookieHeaders = [`${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${domainAttr}`];
           if (dshCookie) {
             cookieHeaders.push(`${dshCookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
@@ -680,8 +698,12 @@ const server = http.createServer((req, res) => {
 
   // Handle Logout
   if (parsedUrl.pathname === '/logout') {
-    const clientHost = req.headers['x-forwarded-host'] || req.headers.host || '';
-    const domainAttr = getCookieDomain(clientHost);
+    for (const c of (req.headers.cookie || '').split(';').map(v => v.trim())) {
+      for (const name of [COOKIE_NAME, 'dsh_auth']) {
+        if (c.startsWith(`${name}=`)) SESSIONS.delete(c.substring(name.length + 1));
+      }
+    }
+    const domainAttr = getCookieDomain();
     res.writeHead(302, {
       'Set-Cookie': `${COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${domainAttr}`,
       'Location': '/login'
