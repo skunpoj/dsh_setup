@@ -899,8 +899,14 @@ data:
   configure_models.js: |
     const fs = require("fs");
 
+    const dshPkgDir = [
+      "/usr/local/lib/node_modules/@deepseek-ai/dsh",
+      "/usr/lib/node_modules/@deepseek-ai/dsh"
+    ].find(d => fs.existsSync(d)) || "/usr/local/lib/node_modules/@deepseek-ai/dsh";
+    const baseModulesDir = `${dshPkgDir}/node_modules/@deepseek-ai`;
+
     // 1. Maintain official DeepSeek models in dsh-llm-deepseek
-    const file = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-deepseek/lib/index.js";
+    const file = `${baseModulesDir}/dsh-llm-deepseek/lib/index.js`;
     if (fs.existsSync(file)) {
       let content = fs.readFileSync(file, "utf8");
       const idx1 = content.indexOf("const DEFAULT_MODELS = [");
@@ -929,7 +935,7 @@ data:
     }
 
     // 2. Set authoritative default model to deepseek-v4.1-flash on litellm-cluster in base cordis.patch.yml
-    const basePatch = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-base/cordis.patch.yml";
+    const basePatch = `${baseModulesDir}/dsh-base/cordis.patch.yml`;
     if (fs.existsSync(basePatch)) {
       let patchContent = fs.readFileSync(basePatch, "utf8");
       patchContent = patchContent.replace(
@@ -946,7 +952,7 @@ data:
     }
 
     // 3. Set authoritative catalog in session controller
-    const scFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js";
+    const scFile = `${baseModulesDir}/dsh-api-session-controller/lib/index.js`;
     if (fs.existsSync(scFile)) {
       let scContent = fs.readFileSync(scFile, "utf8");
       const idx = scContent.indexOf("async function buildModelCatalog(");
@@ -1017,7 +1023,7 @@ data:
     }
 
     // 4. Patch dsh-client-ui-settings-models to populate cluster models
-    const smFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-ui-settings-models/lib/client.js";
+    const smFile = `${baseModulesDir}/dsh-client-ui-settings-models/lib/client.js`;
     if (fs.existsSync(smFile)) {
       let sm = fs.readFileSync(smFile, "utf8");
       const oldInherited = `const inheritedModels = () => {
@@ -1048,7 +1054,7 @@ data:
     }
 
     // 5. Patch dsh-client-ui-model-selection (ModelCatalogDirectory instant catalog)
-    const msFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-ui-model-selection/lib/client.js";
+    const msFile = `${baseModulesDir}/dsh-client-ui-model-selection/lib/client.js`;
     if (fs.existsSync(msFile)) {
       let ms = fs.readFileSync(msFile, "utf8");
       let idx = ms.indexOf("ModelCatalogDirectory = class");
@@ -1247,7 +1253,7 @@ data:
     }
 
     // 8. Patch dsh-system-prompt with enterprise grounding and dynamic app gateway awareness
-    const sysPromptFile = "/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-system-prompt/lib/index.js";
+    const sysPromptFile = `${baseModulesDir}/dsh-system-prompt/lib/index.js`;
     if (fs.existsSync(sysPromptFile)) {
       let spContent = fs.readFileSync(sysPromptFile, "utf8");
       const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.example.com';

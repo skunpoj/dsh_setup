@@ -84,6 +84,7 @@ spec:
           echo "Installing DSH..."
           npm install -g --ignore-scripts @deepseek-ai/dsh@0.1.5-rc.3
           ln -sf $(which dsh 2>/dev/null) /usr/local/bin/dsh 2>/dev/null || true
+          ln -sf /usr/lib/node_modules /usr/local/lib/node_modules 2>/dev/null || true
 
           echo "Configuring cluster LiteLLM models in DSH catalog..."
           node /scripts/configure_models.js || true
