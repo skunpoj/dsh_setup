@@ -83,6 +83,7 @@ spec:
 
           echo "Installing DSH..."
           npm install -g --ignore-scripts @deepseek-ai/dsh@0.1.5-rc.3
+          ln -sf $(which dsh 2>/dev/null) /usr/local/bin/dsh 2>/dev/null || true
 
           echo "Configuring cluster LiteLLM models in DSH catalog..."
           node /scripts/configure_models.js || true
@@ -121,7 +122,8 @@ spec:
 
           echo "Launching dsh web UI on port 3081 (127.0.0.1) with token logging..."
           mkfifo /tmp/dsh_fifo
-          node --expose-internals /usr/local/bin/dsh web --port 3081 --no-open --trusted-host ${DSH_TRUSTED_HOST:-dsh.example.com} > /tmp/dsh_fifo 2>&1 &
+          DSH_BIN=$(which dsh 2>/dev/null || ls /usr/bin/dsh /usr/local/bin/dsh 2>/dev/null | head -n1)
+          node --expose-internals "$DSH_BIN" web --port 3081 --no-open --trusted-host ${DSH_TRUSTED_HOST:-dsh.example.com} > /tmp/dsh_fifo 2>&1 &
           DSH_PID=$!
 
           while read -r line < /tmp/dsh_fifo; do
