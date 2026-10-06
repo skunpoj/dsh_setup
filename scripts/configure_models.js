@@ -65,22 +65,26 @@ if (fs.existsSync(scFile)) {
 					{
 						id: "deepseek-v4.1-flash",
 						name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)",
-						description: "Primary in-cluster ultra-low-latency 1M context MoE model"
+						description: "Primary in-cluster ultra-low-latency 1M context MoE model (Vision + Tool-Use)",
+						inputModalities: ["text", "image"]
 					},
 					{
 						id: "deepseek-flash",
 						name: "DeepSeek-Flash (V4.1-Flash Alias)",
-						description: "DeepSeek-V4.1-Flash model alias"
+						description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
+						inputModalities: ["text", "image"]
 					},
 					{
 						id: "glm-5.3-flash",
 						name: "GLM-5.3-Flash (Cluster LiteLLM Standby)",
-						description: "Standby 4-GPU cluster model"
+						description: "Standby 4-GPU cluster model",
+						inputModalities: ["text"]
 					},
 					{
 						id: "qwen3.8-27b",
 						name: "Qwen3.8-27B (Cluster LiteLLM Standby)",
-						description: "Agile 27B dense reasoning model"
+						description: "Agile 27B dense reasoning model",
+						inputModalities: ["text"]
 					}
 				]
 			},
@@ -91,12 +95,14 @@ if (fs.existsSync(scFile)) {
 					{
 						id: "deepseek-chat",
 						name: "DeepSeek Chat",
-						description: "Official DeepSeek Chat Model"
+						description: "Official DeepSeek Chat Model",
+						inputModalities: ["text"]
 					},
 					{
 						id: "deepseek-reasoner",
 						name: "DeepSeek Reasoner",
-						description: "Official DeepSeek Reasoner Model (R1)"
+						description: "Official DeepSeek Reasoner Model (R1)",
+						inputModalities: ["text"]
 					}
 				]
 			}
@@ -123,9 +129,10 @@ if (fs.existsSync(smFile)) {
 				if (Array.isArray(fromSchema) && fromSchema.length > 0) return fromSchema;
 				if (settingsPath.includes("litellm-cluster") || props.provider === "litellm-cluster") {
 					return [
-						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)", contextWindow: 128000, maxTokens: 4096 },
-						{ id: "glm-5.3-flash-awq", name: "GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)", contextWindow: 64000, maxTokens: 4096 },
-						{ id: "qwen3.8-flash-next", name: "Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)", contextWindow: 128000, maxTokens: 4096 }
+						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)", contextWindow: 1048576, maxTokens: 65536, input: ["text", "image"] },
+						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 1048576, maxTokens: 65536, input: ["text", "image"] },
+						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] },
+						{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] }
 					];
 				}
 				return fromSchema;
@@ -152,24 +159,25 @@ if (fs.existsSync(msFile)) {
 	ctx;
 	store = (0, _deepseek_ai_dsh_client_store.createSnapshotStore)({
 		value: {
-			default: { provider: "litellm-cluster", model: "glm-5.3-flash" },
+			default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
 			routableProviders: ["litellm-cluster", "deepseek-official"],
 			groups: [
 				{
 					id: "litellm-cluster",
 					name: "Cluster LiteLLM Gateway",
 					models: [
-						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)", description: "Primary ultra-low-latency 4-GPU cluster model" },
-						{ id: "glm-5.3-flash-awq", name: "GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)", description: "Quantized 2-GPU standby cluster model" },
-						{ id: "qwen3.8-flash-next", name: "Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)", description: "Next-gen agile reasoning model served via LiteLLM proxy" }
+						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)", description: "Primary in-cluster ultra-low-latency 1M context MoE model (Vision + Tool-Use)", inputModalities: ["text", "image"] },
+						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)", inputModalities: ["text", "image"] },
+						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", description: "Standby 4-GPU cluster model", inputModalities: ["text"] },
+						{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", description: "Agile 27B dense reasoning model", inputModalities: ["text"] }
 					]
 				},
 				{
 					id: "deepseek-official",
 					name: "DeepSeek (Official)",
 					models: [
-						{ id: "deepseek-chat", name: "DeepSeek Chat", description: "Official DeepSeek Chat Model" },
-						{ id: "deepseek-reasoner", name: "DeepSeek Reasoner", description: "Official DeepSeek Reasoner Model (R1)" }
+						{ id: "deepseek-chat", name: "DeepSeek Chat", description: "Official DeepSeek Chat Model", inputModalities: ["text"] },
+						{ id: "deepseek-reasoner", name: "DeepSeek Reasoner", description: "Official DeepSeek Reasoner Model (R1)", inputModalities: ["text"] }
 					]
 				}
 			],
@@ -227,24 +235,25 @@ if (fs.existsSync(msFile)) {
 				const catalog = this.catalog.store.getSnapshot();
 				const projected = modelSelectionProjection(this.projected?.getSnapshot?.());
 				const catVal = catalog.value ?? {
-					default: { provider: "litellm-cluster", model: "glm-5.3-flash" },
+					default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
 					routableProviders: ["litellm-cluster", "deepseek-official"],
 					groups: [
 						{
 							id: "litellm-cluster",
 							name: "Cluster LiteLLM Gateway",
 							models: [
-								{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)", description: "Primary ultra-low-latency 4-GPU cluster model" },
-								{ id: "glm-5.3-flash-awq", name: "GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)", description: "Quantized 2-GPU standby cluster model" },
-								{ id: "qwen3.8-flash-next", name: "Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)", description: "Next-gen agile reasoning model served via LiteLLM proxy" }
+								{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)", description: "Primary in-cluster ultra-low-latency 1M context MoE model (Vision + Tool-Use)", inputModalities: ["text", "image"] },
+								{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)", inputModalities: ["text", "image"] },
+								{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", description: "Standby 4-GPU cluster model", inputModalities: ["text"] },
+								{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", description: "Agile 27B dense reasoning model", inputModalities: ["text"] }
 							]
 						},
 						{
 							id: "deepseek-official",
 							name: "DeepSeek (Official)",
 							models: [
-								{ id: "deepseek-chat", name: "DeepSeek Chat", description: "Official DeepSeek Chat Model" },
-								{ id: "deepseek-reasoner", name: "DeepSeek Reasoner", description: "Official DeepSeek Reasoner Model (R1)" }
+								{ id: "deepseek-chat", name: "DeepSeek Chat", description: "Official DeepSeek Chat Model", inputModalities: ["text"] },
+								{ id: "deepseek-reasoner", name: "DeepSeek Reasoner", description: "Official DeepSeek Reasoner Model (R1)", inputModalities: ["text"] }
 							]
 						}
 					],
@@ -271,7 +280,7 @@ if (fs.existsSync(msFile)) {
 			const modelLabel = waiting ? t("trigger.loading") : currentChoice?.model.name ?? (state.current === null ? t("trigger.fallback") : \`\${state.current.provider}/\${state.current.model}\`);`;
 
   const newWaiting = `const waiting = false;
-			const modelLabel = currentChoice?.model.name ?? (state.current ? \`\${state.current.provider}/\${state.current.model}\` : "GLM-5.3-Flash (Cluster LiteLLM TP=4)");`;
+			const modelLabel = currentChoice?.model.name ?? (state.current ? \`\${state.current.provider}/\${state.current.model}\` : "DeepSeek-V4.1-Flash (Native 1M CED MoE)");`;
 
   if (ms.includes(oldWaiting)) {
     ms = ms.replace(oldWaiting, newWaiting);
@@ -295,23 +304,42 @@ llm-pi-ai:
       api: "openai-completions"
       baseURL: "http://litellm.llm.svc.cluster.local:4000/v1"
       apiKeyEnv: "DEEPSEEK_API_KEY"
+      defaultInput:
+        - text
+        - image
       models:
         - id: "deepseek-v4.1-flash"
           name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)"
           contextWindow: 1048576
           maxTokens: 65536
+          input:
+            - text
+            - image
+        - id: "deepseek-flash"
+          name: "DeepSeek-Flash (V4.1-Flash Alias)"
+          contextWindow: 1048576
+          maxTokens: 65536
+          input:
+            - text
+            - image
         - id: "glm-5.3-flash"
           name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)"
           contextWindow: 128000
           maxTokens: 4096
+          input:
+            - text
         - id: "glm-5.3-flash-awq"
           name: "GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)"
           contextWindow: 64000
           maxTokens: 4096
+          input:
+            - text
         - id: "qwen3.8-flash-next"
           name: "Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)"
           contextWindow: 128000
           maxTokens: 4096
+          input:
+            - text
 `;
   fs.writeFileSync("/root/.dsh/settings.yaml", validYaml, "utf8");
   console.log("[CONFIG] Populated /root/.dsh/settings.yaml with DeepSeek-V4.1-Flash default");
