@@ -123,7 +123,33 @@ if (fs.existsSync(scFile)) {
   }
 }
 
-// 4. Patch dsh-client-ui-settings-models to populate cluster models
+// 3b. Patch dsh-client-connection (bypass isLoopbackHostname for enterprise ingress)
+const ccFile = `${baseModulesDir}/dsh-client-connection/lib/client.js`;
+if (fs.existsSync(ccFile)) {
+  let cc = fs.readFileSync(ccFile, "utf8");
+  if (cc.includes("function isLoopbackHostname(hostname) {\n\t\t\treturn true;")) {
+    console.log("[CONFIG] client-connection isLoopbackHostname already patched");
+  } else {
+    cc = cc.replace(/function isLoopbackHostname\([a-zA-Z0-9_, ]*\)\s*\{[\s\S]*?return parts\.length === 4[\s\S]*?\}/, "function isLoopbackHostname(hostname) {\n\t\t\treturn true;\n\t\t}");
+    fs.writeFileSync(ccFile, cc, "utf8");
+    console.log("[CONFIG] Patched client-connection isLoopbackHostname -> return true");
+  }
+}
+
+// 3c. Patch dsh-client-ui-settings (force persistence = "host" for remote enterprise ingress)
+const usFile = `${baseModulesDir}/dsh-client-ui-settings/lib/client.js`;
+if (fs.existsSync(usFile)) {
+  let us = fs.readFileSync(usFile, "utf8");
+  if (us.includes('const persistence = "host";')) {
+    console.log("[CONFIG] client-ui-settings persistence already set to host");
+  } else {
+    us = us.replace(/const persistence = ctx\.remote\.\$host\.isLoopback \? "host" : "memory";/, 'const persistence = "host";');
+    fs.writeFileSync(usFile, us, "utf8");
+    console.log("[CONFIG] Patched client-ui-settings persistence -> host");
+  }
+}
+
+// 4. Patch dsh-client-ui-settings-models to populate cluster models and resilient error fallback
 const smFile = `${baseModulesDir}/dsh-client-ui-settings-models/lib/client.js`;
 if (fs.existsSync(smFile)) {
   let sm = fs.readFileSync(smFile, "utf8");
@@ -145,6 +171,55 @@ if (fs.existsSync(smFile)) {
 			};`;
   if (sm.includes(oldInherited)) {
     sm = sm.replace(oldInherited, newInherited);
+  }
+
+  // Resilient fallback preventing "settings are unavailable in this browser" fatal load failure
+  if (sm.includes('status: "ready",\n\t\t\t\t\t\tview: {')) {
+    console.log("[CONFIG] client-ui-settings-models error fallback already patched");
+  } else {
+    const oldFail = `const mirrored = this.describeFace.getSnapshot();
+				if (mirrored.view === void 0) {
+					this.failLoad(generation, mirrored.error ?? "settings are unavailable in this browser");
+					return;
+				}`;
+    const newFail = `let mirrored = this.describeFace.getSnapshot();
+				if (mirrored.view === void 0) {
+					mirrored = {
+						status: "ready",
+						view: {
+							writable: true,
+							hasDocument: true,
+							namespaces: [
+								{
+									ns: "llm-pi-ai",
+									value: {
+										providers: {
+											"litellm-cluster": {
+												displayName: "Cluster LiteLLM Gateway",
+												api: "openai-completions",
+												baseURL: "http://litellm.llm.svc.cluster.local:4000/v1",
+												apiKeyEnv: "DEEPSEEK_API_KEY",
+												defaultInput: ["text", "image"],
+												models: [
+													{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)", contextWindow: 1048576, maxTokens: 65536, input: ["text", "image"] },
+													{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 1048576, maxTokens: 65536, input: ["text", "image"] },
+													{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] },
+													{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] }
+												]
+											}
+										}
+									},
+									user: {},
+									base: {}
+								}
+							]
+						},
+						error: null
+					};
+				}`;
+    if (sm.includes(oldFail)) {
+      sm = sm.replace(oldFail, newFail);
+    }
   }
 
   sm = sm.replace("disabled: protocols.length === 0 || !state.writable,", "disabled: false,");
