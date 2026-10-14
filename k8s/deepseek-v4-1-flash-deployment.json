@@ -1,0 +1,239 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "vllm-deepseek-v4-1-flash",
+    "namespace": "llm",
+    "labels": {
+      "app": "vllm-deepseek-v4-1-flash",
+      "model": "deepseek-v4-1-flash",
+      "tier": "inference"
+    }
+  },
+  "spec": {
+    "progressDeadlineSeconds": 600,
+    "replicas": 1,
+    "revisionHistoryLimit": 10,
+    "selector": {
+      "matchLabels": {
+        "app": "vllm-deepseek-v4-1-flash"
+      }
+    },
+    "strategy": {
+      "type": "Recreate"
+    },
+    "template": {
+      "metadata": {
+        "creationTimestamp": null,
+        "labels": {
+          "app": "vllm-deepseek-v4-1-flash",
+          "model": "deepseek-v4-1-flash",
+          "tier": "inference"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "args": [
+              "--model-path",
+              "/models/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+              "--served-model-name",
+              "deepseek-ai/DeepSeek-V4.1-Flash,deepseek-v4.1-flash,deepseek-v4-flash,deepseek",
+              "--host",
+              "0.0.0.0",
+              "--port",
+              "8000",
+              "--tp-size",
+              "4",
+              "--moe-runner-backend",
+              "marlin",
+              "--trust-remote-code",
+              "--mem-fraction-static",
+              "0.92",
+              "--max-running-requests",
+              "16",
+              "--swa-prefix-tails",
+              "0",
+              "--context-length",
+              "1048576",
+              "--reasoning-parser",
+              "deepseek-v41",
+              "--tool-call-parser",
+              "deepseekv41"
+            ],
+            "command": [
+              "python3",
+              "-m",
+              "sglang.launch_server"
+            ],
+            "env": [
+              {
+                "name": "PYTHONUNBUFFERED",
+                "value": "1"
+              },
+              {
+                "name": "SGLANG_ENABLE_DSV41_ENGRAM_HOST_TABLE",
+                "value": "1"
+              },
+              {
+                "name": "SGLANG_DSV41_ENGRAM_HOST_TABLE_LAYOUT",
+                "value": "private"
+              },
+              {
+                "name": "SGLANG_DSV41_ENGRAM_HOST_TABLE_PIN",
+                "value": "1"
+              },
+              {
+                "name": "SGLANG_ENABLE_DSV41_ENGRAM_KV_PREFETCH",
+                "value": "1"
+              },
+              {
+                "name": "SGLANG_ENABLE_DSV41_ENGRAM_DROP_PAGE_CACHE",
+                "value": "1"
+              },
+              {
+                "name": "HF_HUB_OFFLINE",
+                "value": "1"
+              },
+              {
+                "name": "TRANSFORMERS_OFFLINE",
+                "value": "1"
+              },
+              {
+                "name": "HF_HOME",
+                "value": "/models/huggingface"
+              },
+              {
+                "name": "NCCL_DEBUG",
+                "value": "WARN"
+              },
+              {
+                "name": "PYTORCH_CUDA_ALLOC_CONF",
+                "value": "expandable_segments:True"
+              }
+            ],
+            "image": "lmsysorg/sglang:dev-cu13-dsv41",
+            "imagePullPolicy": "IfNotPresent",
+            "livenessProbe": {
+              "failureThreshold": 5,
+              "httpGet": {
+                "path": "/health",
+                "port": 8000,
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 30,
+              "successThreshold": 1,
+              "timeoutSeconds": 15
+            },
+            "name": "vllm",
+            "ports": [
+              {
+                "containerPort": 8000,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": 8000,
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "timeoutSeconds": 15
+            },
+            "resources": {
+              "limits": {
+                "cpu": "32",
+                "memory": "512Gi",
+                "nvidia.com/gpu": "4"
+              },
+              "requests": {
+                "cpu": "16",
+                "memory": "256Gi",
+                "nvidia.com/gpu": "4"
+              }
+            },
+            "startupProbe": {
+              "failureThreshold": 120,
+              "httpGet": {
+                "path": "/health",
+                "port": 8000,
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 60,
+              "periodSeconds": 15,
+              "successThreshold": 1,
+              "timeoutSeconds": 15
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              },
+              {
+                "mountPath": "/dev/shm",
+                "name": "shm"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "initContainers": [
+          {
+            "command": [
+              "/bin/sh",
+              "-c",
+              "MODEL_DIR=\"/models/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277\"\necho \"Verifying DeepSeek-V4.1-Flash snapshot dir: $MODEL_DIR\"\ntest -r \"$MODEL_DIR/config.json\" || exit 1\necho \"Snapshot config verified. Starting SGLang server.\"\n"
+            ],
+            "image": "alpine:3.19",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "verify-weights",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/models",
+                "name": "model-cache"
+              }
+            ]
+          }
+        ],
+        "nodeSelector": {
+          "kubernetes.io/hostname": "dagpu-gn-p1"
+        },
+        "priorityClassName": "system-cluster-critical",
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "key": "node.kubernetes.io/disk-pressure",
+            "operator": "Exists"
+          }
+        ],
+        "volumes": [
+          {
+            "name": "model-cache",
+            "persistentVolumeClaim": {
+              "claimName": "model-cache-2tb"
+            }
+          },
+          {
+            "emptyDir": {
+              "medium": "Memory",
+              "sizeLimit": "128Gi"
+            },
+            "name": "shm"
+          }
+        ]
+      }
+    }
+  }
+}

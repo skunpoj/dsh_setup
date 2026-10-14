@@ -1,7 +1,7 @@
 import litellm
 from litellm.integrations.custom_logger import CustomLogger
 
-MAX_CONTEXT_TOKENS = 131072
+MAX_CONTEXT_TOKENS = 1048576
 MAX_OUTPUT_TOKENS = 8192
 SAFETY_BUFFER_TOKENS = 256
 
@@ -34,7 +34,7 @@ class DynamicContextClamper(CustomLogger):
         )
         if available_output < 1:
             raise ValueError(
-                "Input exceeds the deployed 128K context budget; compact the session "
+                "Input exceeds the deployed 1M context budget; compact the session "
                 "or start a new session before retrying."
             )
 

@@ -254,9 +254,16 @@ spec:
           name: dsh-web
         # DSH spends several minutes bootstrapping packages before port 3081
         # listens. Keep this pod out of Service endpoints until the engine is up.
+        startupProbe:
+          exec:
+            command: ["/bin/bash", "-c", "</dev/tcp/127.0.0.1/3081"]
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 180
+          successThreshold: 1
         readinessProbe:
-          tcpSocket:
-            port: dsh-web
+          exec:
+            command: ["/bin/bash", "-c", "</dev/tcp/127.0.0.1/3081"]
           periodSeconds: 5
           timeoutSeconds: 2
           failureThreshold: 3

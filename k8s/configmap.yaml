@@ -548,8 +548,8 @@
     \ },\n\t\troutableProviders: [\"litellm-cluster\", \"deepseek-official\"],\n\t\
     \tgroups: [\n\t\t\t{\n\t\t\t\tid: \"litellm-cluster\",\n\t\t\t\tname: \"Cluster\
     \ LiteLLM Gateway\",\n\t\t\t\tmodels: [\n\t\t\t\t\t{\n\t\t\t\t\t\tid: \"deepseek-v4.1-flash\"\
-    ,\n\t\t\t\t\t\tname: \"DeepSeek-V4.1-Flash (128K Gateway)\",\n\t\t\t\t\t\t\
-    description: \"Primary in-cluster model with a 128K gateway context limit (Vision\
+    ,\n\t\t\t\t\t\tname: \"DeepSeek-V4.1-Flash (Native 1M CED MoE)\",\n\t\t\t\t\t\t\
+    description: \"Primary in-cluster model with a 1M context window (Vision\
     \ + Tool-Use)\",\n\t\t\t\t\t\tinputModalities: [\"text\", \"image\"]\n\t\t\t\t\
     \t},\n\t\t\t\t\t{\n\t\t\t\t\t\tid: \"deepseek-flash\",\n\t\t\t\t\t\tname: \"DeepSeek-Flash\
     \ (V4.1-Flash Alias)\",\n\t\t\t\t\t\tdescription: \"DeepSeek-V4.1-Flash model\
@@ -601,9 +601,9 @@
     \t\t\t\tif (Array.isArray(fromSchema) && fromSchema.length > 0) return fromSchema;\n\
     \t\t\t\tif (settingsPath.includes(\"litellm-cluster\") || props.provider === \"\
     litellm-cluster\") {\n\t\t\t\t\treturn [\n\t\t\t\t\t\t{ id: \"deepseek-v4.1-flash\"\
-    , name: \"DeepSeek-V4.1-Flash (128K Gateway)\", contextWindow: 131072, maxTokens:\
+    , name: \"DeepSeek-V4.1-Flash (Native 1M CED MoE)\", contextWindow: 1048576, maxTokens:\
     \ 8192, input: [\"text\", \"image\"] },\n\t\t\t\t\t\t{ id: \"deepseek-flash\"\
-    , name: \"DeepSeek-Flash (V4.1-Flash Alias)\", contextWindow: 131072, maxTokens:\
+    , name: \"DeepSeek-Flash (V4.1-Flash Alias)\", contextWindow: 1048576, maxTokens:\
     \ 8192, input: [\"text\", \"image\"] },\n\t\t\t\t\t\t{ id: \"glm-5.3-flash\",\
     \ name: \"GLM-5.3-Flash (Cluster LiteLLM Standby)\", contextWindow: 128000, maxTokens:\
     \ 4096, input: [\"text\"] },\n\t\t\t\t\t\t{ id: \"qwen3.8-27b\", name: \"Qwen3.8-27B\
@@ -628,9 +628,9 @@
     \t\t\t\t\t\t\t\t\t\tapiKeyEnv: \"DEEPSEEK_API_KEY\",\n\t\t\t\t\t\t\t\t\t\t\t\t\
     defaultInput: [\"text\", \"image\"],\n\t\t\t\t\t\t\t\t\t\t\t\tmodels: [\n\t\t\t\
     \t\t\t\t\t\t\t\t\t\t{ id: \"deepseek-v4.1-flash\", name: \"DeepSeek-V4.1-Flash\
-    \ (128K Gateway)\", contextWindow: 131072, maxTokens: 8192, input: [\"text\"\
+    \ (Native 1M CED MoE)\", contextWindow: 1048576, maxTokens: 8192, input: [\"text\"\
     , \"image\"] },\n\t\t\t\t\t\t\t\t\t\t\t\t\t{ id: \"deepseek-flash\", name: \"\
-    DeepSeek-Flash (V4.1-Flash Alias)\", contextWindow: 131072, maxTokens: 8192, input:\
+    DeepSeek-Flash (V4.1-Flash Alias)\", contextWindow: 1048576, maxTokens: 8192, input:\
     \ [\"text\", \"image\"] },\n\t\t\t\t\t\t\t\t\t\t\t\t\t{ id: \"glm-5.3-flash\"\
     , name: \"GLM-5.3-Flash (Cluster LiteLLM Standby)\", contextWindow: 128000, maxTokens:\
     \ 4096, input: [\"text\"] },\n\t\t\t\t\t\t\t\t\t\t\t\t\t{ id: \"qwen3.8-27b\"\
@@ -654,8 +654,8 @@
     \ },\n\t\t\troutableProviders: [\"litellm-cluster\", \"deepseek-official\"],\n\
     \t\t\tgroups: [\n\t\t\t\t{\n\t\t\t\t\tid: \"litellm-cluster\",\n\t\t\t\t\tname:\
     \ \"Cluster LiteLLM Gateway\",\n\t\t\t\t\tmodels: [\n\t\t\t\t\t\t{ id: \"deepseek-v4.1-flash\"\
-    , name: \"DeepSeek-V4.1-Flash (128K Gateway)\", description: \"Primary in-cluster\
-    \ model with a 128K gateway context limit (Vision + Tool-Use)\", inputModalities:\
+    , name: \"DeepSeek-V4.1-Flash (Native 1M CED MoE)\", description: \"Primary in-cluster\
+    \ model with a 1M context window (Vision + Tool-Use)\", inputModalities:\
     \ [\"text\", \"image\"] },\n\t\t\t\t\t\t{ id: \"deepseek-flash\", name: \"DeepSeek-Flash\
     \ (V4.1-Flash Alias)\", description: \"DeepSeek-V4.1-Flash model alias (Vision\
     \ + Tool-Use)\", inputModalities: [\"text\", \"image\"] },\n\t\t\t\t\t\t{ id:\
@@ -703,8 +703,8 @@
     , \"deepseek-official\"],\n\t\t\t\t\tgroups: [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\
     id: \"litellm-cluster\",\n\t\t\t\t\t\t\tname: \"Cluster LiteLLM Gateway\",\n\t\
     \t\t\t\t\t\tmodels: [\n\t\t\t\t\t\t\t\t{ id: \"deepseek-v4.1-flash\", name: \"\
-    DeepSeek-V4.1-Flash (128K Gateway)\", description: \"Primary in-cluster model with\
-    \ a 128K gateway context limit (Vision + Tool-Use)\", inputModalities: [\"text\", \"image\"\
+    DeepSeek-V4.1-Flash (Native 1M CED MoE)\", description: \"Primary in-cluster model with\
+    \ a 1M context window (Vision + Tool-Use)\", inputModalities: [\"text\", \"image\"\
     ] },\n\t\t\t\t\t\t\t\t{ id: \"deepseek-flash\", name: \"DeepSeek-Flash (V4.1-Flash\
     \ Alias)\", description: \"DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)\"\
     , inputModalities: [\"text\", \"image\"] },\n\t\t\t\t\t\t\t\t{ id: \"glm-5.3-flash\"\
@@ -742,10 +742,10 @@
     \n      baseURL: \"http://litellm.llm.svc.cluster.local:4000/v1\"\n      apiKeyEnv:\
     \ \"DEEPSEEK_API_KEY\"\n      defaultInput:\n        - text\n        - image\n\
     \      models:\n        - id: \"deepseek-v4.1-flash\"\n          name: \"DeepSeek-V4.1-Flash\
-    \ (128K Gateway)\"\n          contextWindow: 131072\n          maxTokens:\
+    \ (Native 1M CED MoE)\"\n          contextWindow: 1048576\n          maxTokens:\
     \ 8192\n          input:\n            - text\n            - image\n        - id:\
     \ \"deepseek-flash\"\n          name: \"DeepSeek-Flash (V4.1-Flash Alias)\"\n\
-    \          contextWindow: 131072\n          maxTokens: 8192\n          input:\n\
+    \          contextWindow: 1048576\n          maxTokens: 8192\n          input:\n\
     \            - text\n            - image\n        - id: \"glm-5.3-flash\"\n  \
     \        name: \"GLM-5.3-Flash (Cluster LiteLLM TP=4)\"\n          contextWindow:\
     \ 128000\n          maxTokens: 4096\n          input:\n            - text\n  \
@@ -765,7 +765,7 @@
     \ ? dshHost.substring(dshHost.indexOf('.') + 1) : 'local';\n\n  const newText\
     \ = `text: \"You are DeepSeek Harness (DSH), an expert software engineering assistant\
     \ on private enterprise cluster infrastructure.\\\\n- Primary Model: DeepSeek-V4.1-Flash\
-    \ (128K Gateway).\\\\n- Dynamic Application Reverse Proxy Gateway:\\\\n \
+    \ (Native 1M CED MoE).\\\\n- Dynamic Application Reverse Proxy Gateway:\\\\n \
     \ When running web servers, APIs, or dashboards (e.g. Streamlit, FastAPI, Vite,\
     \ Flask, Next.js) on any container port <port>, ALWAYS inform the user that their\
     \ application is accessible via:\\\\n  \u2022 Subdomain (Root URL): https://${tenantPrefix}-<port>.${baseDomain}\\\
@@ -815,7 +815,7 @@
     \ \\`/workspace\\` so they persist across restarts.\n- Do not store permanent\
     \ project data in container-ephemeral root directories.\n\n## 3. High-Performance\
     \ Cluster Inference\n- LiteLLM Gateway is available at \\`http://litellm.llm.svc.cluster.local:4000/v1\\\
-    `.\n- Primary cluster model: \\`deepseek-v4.1-flash\\` (effective 128K gateway context window).\n\
+    `.\n- Primary cluster model: \\`deepseek-v4.1-flash\\` (native 1M context window).\n\
     \n## 4. Built-in Interactive Web Terminal\n- An interactive bash web terminal\
     \ (powered by ttyd) runs natively on port 7681 (alias \\`terminal\\` or \\`ttyd\\\
     `).\n- Users can access the web terminal directly via:\n  - **Subdomain**: \\\
@@ -891,7 +891,7 @@
     \ {\n    alContent = alContent.replace(oldReadImage, newReadImage);\n    fs.writeFileSync(alFile,\
     \ alContent, \"utf8\");\n    console.log(\"[CONFIG] Patched dsh-attachment-local\
     \ readImageFile with synthetic fallback\");\n  }\n}\n\n// 12. Enforce Web Profile\
-    \ cordis.patch.yml with Compaction and 128K Context Window\ntry {\n  const profileDir\
+    \ cordis.patch.yml with Compaction and 1M Context Window\ntry {\n  const profileDir\
     \ = \"/root/.dsh/profiles/web\";\n  fs.mkdirSync(profileDir, { recursive: true\
     \ });\n  const patchYmlPath = `${profileDir}/cordis.patch.yml`;\n  const cordisContent\
     \ = `# Enterprise Cordis Profile Configuration for DSH Web UI\n- id: llm-pi-ai\n\
@@ -900,10 +900,10 @@
     \        baseURL: http://litellm.llm.svc.cluster.local:4000/v1\n        apiKeyEnv:\
     \ DEEPSEEK_API_KEY\n        defaultInput:\n          - text\n          - image\n\
     \        models:\n          - id: deepseek-v4.1-flash\n            name: DeepSeek-V4.1-Flash\
-    \ (128K Gateway)\n            contextWindow: 131072\n            maxTokens:\
+    \ (Native 1M CED MoE)\n            contextWindow: 1048576\n            maxTokens:\
     \ 8192\n            input:\n              - text\n              - image\n    \
     \      - id: deepseek-flash\n            name: DeepSeek-Flash (V4.1-Flash Alias)\n\
-    \            contextWindow: 131072\n            maxTokens: 8192\n            input:\n\
+    \            contextWindow: 1048576\n            maxTokens: 8192\n            input:\n\
     \              - text\n              - image\n          - id: glm-5.3-flash\n\
     \            name: GLM-5.3-Flash (Cluster LiteLLM TP=4)\n            contextWindow:\
     \ 128000\n            maxTokens: 4096\n            input:\n              - text\n\
@@ -917,5 +917,5 @@
     \  disabled: false\n\n- id: ui-settings-general\n  name: \"@deepseek-ai/dsh-client-ui-settings-general\"\
     \n  config:\n    welcomeNoticeVersion: 2026-09-28.1\n`;\n  fs.writeFileSync(patchYmlPath,\
     \ cordisContent, \"utf8\");\n  console.log(\"[CONFIG] Enforced cordis.patch.yml\
-    \ with auto-compaction and 128K context window\");\n} catch (e) {\n  console.error(\"\
+    \ with auto-compaction and 1M context window\");\n} catch (e) {\n  console.error(\"\
     [CONFIG] Failed to write cordis.patch.yml:\", e.message);\n}\n\n\n"

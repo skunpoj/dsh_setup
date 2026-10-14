@@ -6,81 +6,81 @@ data:
     litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     deepseek-v4.1-flash\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     deepseek-flash\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     deepseek-chat\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     deepseek-reasoner\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     deepseek-v4.1\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     deepseek-v4\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     deepseek-v4-flash\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     glm-5.3-flash\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     glm53flash\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     glm-flash\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     default\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     qwen3.8-flash-next\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     qwen3.8-27b\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://typhoon-audio-8b.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/typhoon2-audio-8b\r\n  model_name:
     typhoon2-audio-8b\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     claude-sonnet-4\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     claude-3-7-sonnet-20250219\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     claude-3-5-sonnet-20241022\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     claude-sonnet-4-6\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     claude-sonnet-5\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1\r\n
     \   api_key: sk-no-key-required\r\n    model: openai/deepseek-v4.1-flash\r\n  model_name:
     claude-opus-4-6\r\n  model_info:\r\n    supports_vision: true\r\n    supports_function_calling:
-    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 131072\r\n    max_output_tokens:
+    true\r\n    supports_tool_choice: true\r\n    max_input_tokens: 1048576\r\n    max_output_tokens:
     8192\r\n- litellm_params:\r\n    api_base: http://ollama.ollama.svc.cluster.local:11434\r\n
     \   model: ollama/bge-m3:latest\r\n  model_name: bge-m3\r\n- litellm_params:\r\n
     \   api_base: http://ollama.ollama.svc.cluster.local:11434\r\n    model: ollama/bge-m3:latest\r\n
@@ -89,7 +89,7 @@ data:
     import litellm
     from litellm.integrations.custom_logger import CustomLogger
 
-    MAX_CONTEXT_TOKENS = 131072
+    MAX_CONTEXT_TOKENS = 1048576
     MAX_OUTPUT_TOKENS = 8192
     SAFETY_BUFFER_TOKENS = 256
 
@@ -122,7 +122,7 @@ data:
             )
             if available_output < 1:
                 raise ValueError(
-                    "Input exceeds the deployed 128K context budget; compact the session "
+                    "Input exceeds the deployed 1M context budget; compact the session "
                     "or start a new session before retrying."
                 )
 

@@ -178,8 +178,9 @@ The container startup script automatically launches persistent HTTP servers for 
 - The DSH containers install runtime packages before starting the internal engine on port 3081. Kubernetes must not publish a replacement pod during this bootstrap interval.
 - Each DSH manifest therefore uses a TCP readiness probe against the named `dsh-web` port (3081). For the primary `dsh` RollingUpdate, this keeps the previous pod serving until the replacement engine is listening.
 - `dsh-user2` and `dsh3` currently use the `Recreate` strategy. Their probes prevent premature endpoint publication but do not provide zero-downtime replacement.
-- The active request path is `DSH -> LiteLLM -> service/vllm-deepseek-v4-flash -> deployment/vllm-deepseek-v4-1-flash (SGLang)`. Every active layer enforces a 131,072-token context budget. The stopped legacy `deployment/vllm-deepseek-v4-flash` has a 1,048,576-token setting but receives no traffic.
-- Do not describe the live DSH selector as `Native 1M`. The accurate label is `DeepSeek-V4.1-Flash (128K Gateway)`.
+- The active request path is `DSH -> LiteLLM -> service/vllm-deepseek-v4-flash -> deployment/vllm-deepseek-v4-1-flash (SGLang)`. The active engine, LiteLLM clamp, and DSH catalog use a 1,048,576-token request budget with an 8,192-token completion ceiling.
+- SGLang keeps `max-running-requests=16`; this is a scheduler ceiling, not a reservation of 1M tokens for every request. The shared cache pool determines simultaneous capacity. At `mem-fraction-static=0.92`, the verified startup allocation is 2,185,984 aggregate token slots, 88,832 more than two complete 1,048,576-token contexts.
+- Two maximum-length requests therefore fit concurrently. Shorter requests continue in parallel while their combined input, cached prefix, and generated output remain within the shared pool; additional work queues under the FCFS scheduler.
 
 ---
 
@@ -199,15 +200,15 @@ The container startup script automatically launches persistent HTTP servers for 
 - Model token limits (`max_tokens`) are clamped dynamically in `configure_models.js` to match the in-cluster LiteLLM gateway ceilings, preventing HTTP 400 Bad Request errors.
 
 ### 4.4 Dynamic Context Window Clamping & Auto-Compaction
-- **Problem**: When conversation turns grow large (e.g. 65k+ prompt tokens), requesting completion tokens up to 65,536 exceeds the vLLM engine context ceiling of 131,072 tokens ($67,730 + 65,536 = 133,266 > 131,072$), throwing `HTTP 400: Requested token count exceeds maximum context length`.
+- **Problem**: Input tokens, retained tool results, and requested completion tokens share one context budget. A request fails when their total exceeds the active engine limit.
 - **LiteLLM Gateway Layer (`DynamicContextClamper`)**:
   - Implemented custom pre-call hook `custom_callbacks.py` in ConfigMap `litellm-config` inheriting from `CustomLogger`.
-  - Dynamically calculates exact available headroom: `available_output = 131072 - input_tokens - 256`.
-  - Automatically clamps every request to `max_tokens = min(requested, 8192, available_output)`. This also corrects explicit 65,536-token headers retained by sessions created under the former 1M profile.
+  - Dynamically calculates exact available headroom: `available_output = 1048576 - input_tokens - 256`.
+  - Automatically clamps every request to `max_tokens = min(requested, 8192, available_output)`.
   - Rejects requests whose input alone has consumed the safe context budget with an instruction to compact or start a new session; it never creates a knowingly invalid request.
 - **DSH Client Layer (`compaction-basic`)**:
-  - Configured in `/root/.dsh/profiles/web/cordis.patch.yml` with `thresholdRatio: 0.75` and `contextWindow: 131072`.
-  - When conversation tokens reach 75% of 131,072 (~98k tokens), DSH triggers autonomous background compaction (`/compact`) to summarize prior turns down to ~2k–3k tokens without user intervention.
+  - Configured in `/root/.dsh/profiles/web/cordis.patch.yml` with `thresholdRatio: 0.75`; the selected model supplies `contextWindow: 1048576`.
+  - At approximately 75% of the 1M window (~786k tokens), DSH triggers autonomous background compaction (`/compact`) to preserve output and tool-call headroom.
   - The model selector displays the resolved catalog model. While the catalog is loading it displays the loading state; if no model resolves it displays `Model unavailable` rather than a hardcoded model name.
 
 ---
@@ -336,9 +337,9 @@ The container startup script automatically launches persistent HTTP servers for 
 
 ### Case 9: Context Window Exceeded (HTTP 400 During Long Turns or Compaction)
 - **Symptom**: Chat turn or manual `/compact` fails with:
-  `This turn failed 400: litellm.BadRequestError: OpenAIException - Requested token count exceeds the model's maximum context length of 131072 tokens. You requested a total of 132880 tokens...`
+  `This turn failed 400: ... Requested token count exceeds the model's maximum context length ...`
 - **Root Cause**:
-  LiteLLM's built-in `modify_params: true` bypasses dynamic clamping if `max_input_tokens != max_output_tokens`. When large prompts (>65k tokens) request completion up to 65,536 tokens, total tokens exceed the vLLM 131,072 context window.
+  The combined input and requested completion exceed the engine's configured 1,048,576-token window, or one layer still advertises a stale limit.
 - **Diagnostic**:
   1. Inspect LiteLLM custom callback status:
      ```bash
@@ -361,7 +362,7 @@ The container startup script automatically launches persistent HTTP servers for 
 - **Resolution**:
   1. Ensure `litellm-config` ConfigMap in namespace `llm` has `custom_callbacks.py` (`DynamicContextClamper`) mounted and registered in `litellm_settings.callbacks`.
   2. Ensure `model_info.max_output_tokens` is configured to `8192` in `litellm-config`.
-  3. Ensure `/root/.dsh/profiles/web/cordis.patch.yml` and `/root/.dsh/settings.yaml` specify `contextWindow: 131072` and `maxTokens: 8192`.
+  3. Ensure `/root/.dsh/profiles/web/cordis.patch.yml` and `/root/.dsh/settings.yaml` specify `contextWindow: 1048576` and `maxTokens: 8192`.
   4. Run `/compact` in the active session to summarize older turns down to ~2,000 tokens.
 
 ---
