@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: llm-da-workspace-pv-new
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  volumeMode: Filesystem
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation#llm#
+    volumeAttributes:
+      source: //bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation
+    nodeStageSecretRef:
+      name: cifs-smb-secret
+      namespace: llm
+  mountOptions:
+    - dir_mode=0770
+    - file_mode=0770
+    - vers=3.0
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: da-workspace-pvc-new
+  namespace: llm
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ""
+  volumeName: llm-da-workspace-pv-new

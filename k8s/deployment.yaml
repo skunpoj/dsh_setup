@@ -226,7 +226,7 @@ spec:
       volumes:
       - name: workspace-storage
         persistentVolumeClaim:
-          claimName: da-workspace-pvc
+          claimName: da-workspace-pvc-new
       - name: dsh-scripts
         configMap:
           name: dsh-scripts
