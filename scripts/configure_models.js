@@ -127,10 +127,11 @@ if (fs.existsSync(scFile)) {
 const ccFile = `${baseModulesDir}/dsh-client-connection/lib/client.js`;
 if (fs.existsSync(ccFile)) {
   let cc = fs.readFileSync(ccFile, "utf8");
-  if (cc.includes("function isLoopbackHostname(hostname) {\n\t\t\treturn true;")) {
+  if (cc.includes("function isLoopbackHostname(hostname) {\n\t\t\treturn true;\n\t\t}")) {
     console.log("[CONFIG] client-connection isLoopbackHostname already patched");
   } else {
-    cc = cc.replace(/function isLoopbackHostname\([a-zA-Z0-9_, ]*\)\s*\{[\s\S]*?return parts\.length === 4[\s\S]*?\}/, "function isLoopbackHostname(hostname) {\n\t\t\treturn true;\n\t\t}");
+    cc = cc.replace(/function isLoopbackHostname\([a-zA-Z0-9_, ]*\)\s*\{[\s\S]*?Number\(part\) <= 255\);\s*\}/, "function isLoopbackHostname(hostname) {\n\t\t\treturn true;\n\t\t}");
+    cc = cc.replace(/function isLoopbackHostname\(hostname\)\s*\{\s*return true;\s*\}\$\/\.test\(part\) && Number\(part\) <= 255\);\s*\}/, "function isLoopbackHostname(hostname) {\n\t\t\treturn true;\n\t\t}");
     fs.writeFileSync(ccFile, cc, "utf8");
     console.log("[CONFIG] Patched client-connection isLoopbackHostname -> return true");
   }
