@@ -11,8 +11,8 @@ This deployment of DeepSeek Harness (DSH) provides enterprise-grade multi-tenant
 ├── root/
 │   ├── .dsh/
 │   │   ├── settings.yaml            # Pre-configured DSH runtime settings
-│   │   ├── sessions/ -> symlink     # /workspace/dsh_storage/sessions
-│   │   ├── storages/ -> symlink     # /workspace/dsh_storage/storages
+│   │   ├── sessions/                # Local rootfs session store (zero-latency locking)
+│   │   ├── storages/                # Local rootfs extension DBs (resilient to CIFS locks)
 │   │   └── .credentials.yaml        # Cloned from /workspace/dsh_storage
 │   ├── users -> symlink             # /workspace/users
 │   ├── workspace -> symlink         # /workspace
@@ -23,9 +23,9 @@ This deployment of DeepSeek Harness (DSH) provides enterprise-grade multi-tenant
     │   ├── user2/                   # Isolated workspace for user2
     │   └── .user_auth.json          # Salted SHA-256 hashed credentials
     ├── repos/                       # Cloned git repositories
-    ├── dsh_storage/                 # Non-volatile DSH engine state
-    │   ├── sessions/                # DSH chat sessions
-    │   ├── storages/                # Cordis extension databases
+    ├── dsh_storage/                 # Non-volatile DSH engine state backup
+    │   ├── sessions/                # DSH chat sessions backup
+    │   ├── storages/                # Cordis extension databases backup
     │   ├── workspaces/              # User workspace directories
     │   └── .credentials.yaml        # Persisted provider API credentials
     └── .ports.json                  # Named port aliases for dynamic gateway
