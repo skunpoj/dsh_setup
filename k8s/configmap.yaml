@@ -1507,19 +1507,8 @@ data:
     const alFile = `${baseModulesDir}/dsh-attachment-local/lib/index.js`;
     if (fs.existsSync(alFile)) {
       let alContent = fs.readFileSync(alFile, "utf8");
-      const oldReadImage = `		if (error instanceof Error && "code" in error && error.code === "ENOENT") throw new AttachmentError("Attachment object is missing.", "ATTACHMENT_NOT_FOUND");
-		throw new AttachmentError("Unable to read image attachment.", "ATTACHMENT_READ_FAILED", { cause: error });
-	}`;
-      const newReadImage = `		if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-			console.warn(\`[DSH-ATTACHMENT-LOCAL] Image \${sha256} missing on host, generating synthetic placeholder\`);
-			const fallbackPng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
-			return {
-				ref: { ...ref, bytes: fallbackPng.byteLength, mediaType: "image/png" },
-				data: new Uint8Array(fallbackPng)
-			};
-		}
-		throw new AttachmentError("Unable to read image attachment.", "ATTACHMENT_READ_FAILED", { cause: error });
-	}`;
+      const oldReadImage = "\t\tif (error instanceof Error && \"code\" in error && error.code === \"ENOENT\") throw new AttachmentError(\"Attachment object is missing.\", \"ATTACHMENT_NOT_FOUND\");\n\t\tthrow new AttachmentError(\"Unable to read image attachment.\", \"ATTACHMENT_READ_FAILED\", { cause: error });\n\t}";
+      const newReadImage = "\t\tif (error instanceof Error && \"code\" in error && error.code === \"ENOENT\") {\n\t\t\tconsole.warn(`[DSH-ATTACHMENT-LOCAL] Image ${sha256} missing on host, generating synthetic placeholder`);\n\t\t\tconst fallbackPng = Buffer.from(\"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==\", \"base64\");\n\t\t\treturn {\n\t\t\t\tref: { ...ref, bytes: fallbackPng.byteLength, mediaType: \"image/png\" },\n\t\t\t\tdata: new Uint8Array(fallbackPng)\n\t\t\t};\n\t\t}\n\t\tthrow new AttachmentError(\"Unable to read image attachment.\", \"ATTACHMENT_READ_FAILED\", { cause: error });\n\t}";
 
       if (alContent.includes(oldReadImage)) {
         alContent = alContent.replace(oldReadImage, newReadImage);
