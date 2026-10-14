@@ -3,10 +3,12 @@ const url = require('url');
 const fs = require('fs');
 const crypto = require('crypto');
 
-const PROXY_PORT = 3080;
-const DSH_TARGET_PORT = 3081;
-const DSH_TARGET_HOST = '127.0.0.1';
-const USER_STORE_PATH = '/workspace/users/.user_auth.json';
+const PROXY_PORT = Number(process.env.PORT || 3080);
+const DSH_TARGET_PORT = Number(process.env.DSH_PORT || 3081);
+const DSH_TARGET_HOST = process.env.DSH_HOST || '127.0.0.1';
+const USER_ROOT = process.env.WORKSPACE_ROOT || '/workspace/users';
+const USER_STORE_PATH = process.env.DSH_USER_STORE_PATH || `${USER_ROOT}/.user_auth.json`;
+const USER_SETTINGS_PATH = process.env.DSH_USER_SETTINGS_PATH || `${USER_ROOT}/.user_settings.json`;
 const COOKIE_NAME = process.env.DSH_COOKIE_NAME || 'dsh_auth';
 
 // The session cookie is shared with the app subdomains (dsh-<port>.<parent>) through its Domain
@@ -267,13 +269,46 @@ function loadUsers() {
 
 function saveUsers(users) {
   try {
-    fs.mkdirSync('/workspace/users', { recursive: true });
+    fs.mkdirSync(USER_ROOT, { recursive: true });
     fs.writeFileSync(USER_STORE_PATH, JSON.stringify(users, null, 2), 'utf8');
     return true;
   } catch (e) {
     console.error('[AUTH-PROXY] Failed to save user store:', e.message);
     return false;
   }
+}
+
+function loadUserSettings() {
+  try {
+    if (fs.existsSync(USER_SETTINGS_PATH)) {
+      const data = JSON.parse(fs.readFileSync(USER_SETTINGS_PATH, 'utf8'));
+      if (data && typeof data === 'object' && !Array.isArray(data)) return data;
+    }
+  } catch (e) {
+    console.error('[AUTH-PROXY] Failed to load user settings:', e.message);
+  }
+  return {};
+}
+
+function saveUserSettings(settings) {
+  try {
+    fs.mkdirSync(USER_ROOT, { recursive: true });
+    fs.writeFileSync(USER_SETTINGS_PATH, JSON.stringify(settings, null, 2), { encoding: 'utf8', mode: 0o600 });
+    return true;
+  } catch (e) {
+    console.error('[AUTH-PROXY] Failed to save user settings:', e.message);
+    return false;
+  }
+}
+
+function normalizeInternetMode(value) {
+  return value === 'on' ? 'on' : 'off';
+}
+
+function setUserInternetMode(username, mode) {
+  const settings = loadUserSettings();
+  settings[username] = { ...(settings[username] || {}), internet: normalizeInternetMode(mode) };
+  return saveUserSettings(settings);
 }
 
 // Initialize user store if missing
@@ -456,6 +491,24 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.25);
       background: rgba(11, 15, 25, 0.9);
     }
+    .radio-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(11, 15, 25, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .radio-option:has(input:checked) { border-color: var(--primary-navy); background: rgba(15, 76, 129, 0.2); }
+    .form-help { margin-top: 6px; color: var(--text-muted); font-size: 11px; line-height: 1.4; }
     .btn-submit {
       width: 100%;
       padding: 12px;
@@ -521,6 +574,14 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
           <label class="form-label" for="login_password">รหัสผ่าน (Password)</label>
           <input type="password" id="login_password" name="password" class="form-control" placeholder="ระบุรหัสผ่านเพื่อเข้าใช้งาน" required>
         </div>
+        <div class="form-group">
+          <span class="form-label">Internet access</span>
+          <div class="radio-group" role="radiogroup" aria-label="Internet access">
+            <label class="radio-option"><input type="radio" name="internet" value="off" checked> Off (Default)</label>
+            <label class="radio-option"><input type="radio" name="internet" value="on"> On</label>
+          </div>
+          <div class="form-help">The selected policy is attached to this authenticated session and retained as the user's next-login preference.</div>
+        </div>
         <button type="submit" class="btn-submit">เข้าสู่ระบบ (Sign In)</button>
       </form>
     </div>
@@ -582,15 +643,20 @@ const server = http.createServer((req, res) => {
       const params = new URLSearchParams(body);
       const username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
       const password = params.get('password') ? params.get('password').trim() : '';
+      const internet = normalizeInternetMode(params.get('internet'));
 
       USERS = loadUsers();
       if (USERS[username] && USERS[username] === password) {
+        if (!setUserInternetMode(username, internet)) {
+          res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
+          return res.end(renderAuthPage({ tab: 'login', errorMsg: 'ไม่สามารถบันทึกนโยบาย Internet access ได้ กรุณาลองใหม่อีกครั้ง' }));
+        }
         const sessionId = crypto.randomBytes(24).toString('hex');
-        SESSIONS.set(sessionId, { user: username, created: Date.now() });
+        SESSIONS.set(sessionId, { user: username, internet, created: Date.now() });
 
         // Create personal workspace folder for user if not exists
         try {
-          fs.mkdirSync(`/workspace/users/${username}`, { recursive: true });
+          fs.mkdirSync(`${USER_ROOT}/${username}`, { recursive: true });
         } catch (e) {}
 
         console.log(`[AUTH-PROXY] Successful login for user: ${username}`);
@@ -650,7 +716,7 @@ const server = http.createServer((req, res) => {
       USERS[username] = password;
       if (saveUsers(USERS)) {
         try {
-          fs.mkdirSync(`/workspace/users/${username}`, { recursive: true });
+          fs.mkdirSync(`${USER_ROOT}/${username}`, { recursive: true });
         } catch (e) {}
         console.log(`[AUTH-PROXY] Successfully registered new user: ${username}`);
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -720,6 +786,7 @@ const server = http.createServer((req, res) => {
   // Check Session Cookie
   let authenticated = false;
   let sessionUser = null;
+  let activeSession = null;
   const cookieHeader = req.headers.cookie;
   if (cookieHeader) {
     const cookies = cookieHeader.split(';').map(c => c.trim());
@@ -728,7 +795,8 @@ const server = http.createServer((req, res) => {
         const sid = c.substring(`${COOKIE_NAME}=`.length);
         if (SESSIONS.has(sid)) {
           authenticated = true;
-          sessionUser = SESSIONS.get(sid).user;
+          activeSession = SESSIONS.get(sid);
+          sessionUser = activeSession.user;
           break;
         }
       }
@@ -736,7 +804,8 @@ const server = http.createServer((req, res) => {
         const sid = c.substring('dsh_auth='.length);
         if (SESSIONS.has(sid)) {
           authenticated = true;
-          sessionUser = SESSIONS.get(sid).user;
+          activeSession = SESSIONS.get(sid);
+          sessionUser = activeSession.user;
           break;
         }
       }
@@ -747,6 +816,13 @@ const server = http.createServer((req, res) => {
     const tab = parsedUrl.query.tab || 'login';
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     return res.end(renderAuthPage({ tab }));
+  }
+
+  const internetMode = normalizeInternetMode(activeSession && activeSession.internet);
+
+  if (req.method === 'GET' && parsedUrl.pathname === '/api/auth/session') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ user: sessionUser, internet: internetMode }));
   }
 
   // Convenient Terminal Shortcuts (/terminal, /term)
@@ -772,6 +848,7 @@ const server = http.createServer((req, res) => {
     const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
     proxyHeaders['host'] = clientHost;
     proxyHeaders['x-dsh-user'] = sessionUser;
+    proxyHeaders['x-dsh-internet-access'] = internetMode;
 
     if (dshCookie) {
       const existingCookies = req.headers.cookie ? req.headers.cookie.split(';').map(c => c.trim()) : [];
