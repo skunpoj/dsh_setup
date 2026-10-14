@@ -146,6 +146,26 @@ spec:
             nohup ttyd -p 7681 -i 127.0.0.1 -W bash -l > /tmp/ttyd.log 2>&1 &
           fi
 
+          # Supervised Auto-Server for Data Quality (DQ) Report on Ports 8099 & 8899
+          if [ -f /workspace/dsh_storage/workspaces/Spark/site/index.html ]; then
+            echo "Starting Supervised Data Quality (DQ) Report Servers on ports 8099 and 8899..."
+            mkdir -p /tmp/dqsite
+            cp /workspace/dsh_storage/workspaces/Spark/site/index.html /tmp/dqsite/index.html
+            cp /workspace/dsh_storage/workspaces/Spark/site/index.html /tmp/dqsite/dq_report.html
+            (
+              while true; do
+                python3 -m http.server 8099 --directory /tmp/dqsite --bind 127.0.0.1 >/dev/null 2>&1
+                sleep 2
+              done
+            ) &
+            (
+              while true; do
+                python3 -m http.server 8899 --directory /tmp/dqsite --bind 127.0.0.1 >/dev/null 2>&1
+                sleep 2
+              done
+            ) &
+          fi
+
           echo "Launching dsh web UI on port 3081 (127.0.0.1) with token logging..."
           mkfifo /tmp/dsh_fifo
           DSH_BIN=$(which dsh 2>/dev/null || ls /usr/bin/dsh /usr/local/bin/dsh 2>/dev/null | head -n1)
