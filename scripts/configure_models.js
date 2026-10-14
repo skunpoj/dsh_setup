@@ -377,7 +377,7 @@ if (fs.existsSync(msFile)) {
   }
 
   fs.writeFileSync(msFile, ms, "utf8");
-  console.log("[CONFIG] Patched dsh-client-ui-model-selection with instant ModelCatalogDirectory and eliminated loading state");
+  console.log("[CONFIG] Patched dsh-client-ui-model-selection with instant ModelCatalogDirectory and uses truthful loading and unavailable states");
 }
 
 // 6. Write valid settings.yaml into persistent storage directory
