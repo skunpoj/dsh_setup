@@ -26,11 +26,11 @@ export const Config: Schema<CustomGatewayConfig> = Schema.object({
   models: Schema.array(Schema.object({
     id: Schema.string().required(),
     name: Schema.string().required(),
-    contextWindow: Schema.number().default(1048576),
-    maxTokens: Schema.number().default(65536),
+    contextWindow: Schema.number().default(131072),
+    maxTokens: Schema.number().default(8192),
   })).default([
-    { id: 'deepseek-v4.1-flash', name: 'DeepSeek-V4.1-Flash (Native 1M CED MoE)', contextWindow: 1048576, maxTokens: 65536 },
-    { id: 'deepseek-flash', name: 'DeepSeek-Flash (V4.1-Flash Alias)', contextWindow: 1048576, maxTokens: 65536 },
+    { id: 'deepseek-v4.1-flash', name: 'DeepSeek-V4.1-Flash (128K Gateway)', contextWindow: 131072, maxTokens: 8192 },
+    { id: 'deepseek-flash', name: 'DeepSeek-Flash (V4.1-Flash Alias)', contextWindow: 131072, maxTokens: 8192 },
     { id: 'glm-5.3-flash', name: 'GLM-5.3-Flash (Cluster Standby)', contextWindow: 4096, maxTokens: 2048 },
     { id: 'qwen3.8-27b', name: 'Qwen3.8-27B (Cluster Standby)', contextWindow: 32768, maxTokens: 4096 }
   ]),

@@ -233,6 +233,14 @@ spec:
           name: auth-proxy
         - containerPort: 3081
           name: dsh-web
+        # Do not publish the pod as a Service endpoint before DSH is listening.
+        readinessProbe:
+          tcpSocket:
+            port: dsh-web
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+          successThreshold: 1
         resources:
           requests:
             cpu: 1000m

@@ -4,7 +4,7 @@
 [![Runtime](https://img.shields.io/badge/Runtime-Node.js%2022%20LTS-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Python](https://img.shields.io/badge/Python-3.12%20%2B%20Pip-3776AB?logo=python&logoColor=white)](https://python.org/)
 [![Terminal](https://img.shields.io/badge/Terminal-ttyd%201.7.7-blue)](https://github.com/tsl0922/ttyd)
-[![Default Model](https://img.shields.io/badge/Default%20Model-DeepSeek--V4.1--Flash%20(1M)-10B981)](https://github.com/deepseek-ai)
+[![Default Model](https://img.shields.io/badge/Default%20Model-DeepSeek--V4.1--Flash%20(128K)-10B981)](https://github.com/deepseek-ai)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kubernetes. Built on **Ubuntu 24.04 LTS (GLIBC)** with integrated multi-tenant session isolation, reverse-proxy authentication gate, dynamic application gateway, interactive web terminal, and in-cluster LLM integration.
@@ -41,7 +41,7 @@ Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kuberne
 │   │  • Ubuntu 24.04 + Node 22 │ │    Terminal (ttyd)│ │  • Streamlit (8501)       │   │
 │   │  • Python 3.12 + Pip + venv││  • Port 7681      │ │  • FastAPI / Uvicorn (8000│   │
 │   │  • In-Cluster LLM Gateway │ │  • Full bash -l   │ │  • Flask / Gradio (5000)  │   │
-│   │  • DeepSeek-V4.1-Flash 1M │ │  • WebSocket stream││  • Next.js / React (3000) │   │
+│   │  • DeepSeek-V4.1-Flash 128K│ │  • WebSocket stream││  • Next.js / React (3000) │   │
 │   └───────────────────────────┘ └───────────────────┘ └───────────────────────────┘   │
 │                   │                       │                       │                    │
 │                   └───────────────────────┼───────────────────────┘                    │
@@ -93,6 +93,8 @@ Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kuberne
 - **Default Model**: **DeepSeek-V4.1-Flash** (effective 128K gateway context window, 8,192 max output tokens).
 - **Standby Catalog**: Pre-registers `deepseek-flash`, `glm-5.3-flash`, and `qwen3.8-27b`.
 - **Token Clamping**: Automatically clamps requested `max_tokens` to model limits to prevent gateway overflow rejections.
+- **Effective Context**: All DSH traffic is limited to 131,072 total tokens by the DSH profile, LiteLLM metadata and clamper, and the active SGLang server. The model family or an inactive deployment may advertise 1M capability, but that capacity is not available on the current DSH route.
+- **Readiness-Gated Rollout**: Kubernetes publishes a DSH pod only after its internal engine listens on port 3081, preventing traffic from reaching the several-minute bootstrap phase.
 
 ### 6. Multi-Tenant Workspaces & Storage Persistence
 - **Partitioned User Storage**: Each tenant works inside `/workspace/users/<username>/`.

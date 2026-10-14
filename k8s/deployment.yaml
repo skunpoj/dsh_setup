@@ -252,6 +252,15 @@ spec:
           name: auth-proxy
         - containerPort: 3081
           name: dsh-web
+        # DSH spends several minutes bootstrapping packages before port 3081
+        # listens. Keep this pod out of Service endpoints until the engine is up.
+        readinessProbe:
+          tcpSocket:
+            port: dsh-web
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+          successThreshold: 1
         resources:
           requests:
             cpu: 1000m

@@ -107,7 +107,7 @@ DeepSeek Harness (DSH) is deployed inside the Kubernetes namespace `llm` behind 
 
 ### 2.3 Model Catalog & Selection
 - DSH comes pre-configured with the Bank's in-cluster LLM models:
-  - **`litellm-cluster/deepseek-v4.1-flash`** *(Default)*: 1M context window, high reasoning throughput.
+  - **`litellm-cluster/deepseek-v4.1-flash`** *(Default)*: effective 131,072-token context window and 8,192-token maximum output through the current DSH route.
   - **`litellm-cluster/deepseek-flash`**: High-speed, lightweight conversational model.
   - **`litellm-cluster/glm-5.3-flash`**: Enterprise multilingual reasoning model.
   - **`litellm-cluster/qwen3.8-27b`**: 27B parameter instruction-tuned model.
@@ -173,6 +173,13 @@ The container startup script automatically launches persistent HTTP servers for 
 - **Access URLs**:
   - `https://dsh.aiportal.bot.or.th/proxy/8099/dq_report.html`
   - `https://dsh.aiportal.bot.or.th/proxy/8899/dq_report.html`
+
+### 3.6 Deployment Readiness and Context-Limit Invariants
+- The DSH containers install runtime packages before starting the internal engine on port 3081. Kubernetes must not publish a replacement pod during this bootstrap interval.
+- Each DSH manifest therefore uses a TCP readiness probe against the named `dsh-web` port (3081). For the primary `dsh` RollingUpdate, this keeps the previous pod serving until the replacement engine is listening.
+- `dsh-user2` and `dsh3` currently use the `Recreate` strategy. Their probes prevent premature endpoint publication but do not provide zero-downtime replacement.
+- The active request path is `DSH -> LiteLLM -> service/vllm-deepseek-v4-flash -> deployment/vllm-deepseek-v4-1-flash (SGLang)`. Every active layer enforces a 131,072-token context budget. The stopped legacy `deployment/vllm-deepseek-v4-flash` has a 1,048,576-token setting but receives no traffic.
+- Do not describe the live DSH selector as `Native 1M`. The accurate label is `DeepSeek-V4.1-Flash (128K Gateway)`.
 
 ---
 
