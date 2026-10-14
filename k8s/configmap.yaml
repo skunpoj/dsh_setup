@@ -1412,3 +1412,94 @@ data:
     } catch(e) {
       console.error("[CONFIG] Failed to write AGENTS.md:", e.message);
     }
+
+    // 10. Resilient Attachment Handling in dsh-llm-pi-ai (Prevents "Attachment object is missing" fatal turn failure)
+    const piAiFile = `${baseModulesDir}/dsh-llm-pi-ai/lib/index.js`;
+    if (fs.existsSync(piAiFile)) {
+      let piContent = fs.readFileSync(piAiFile, "utf8");
+
+      // 10a. Patch prepareRequestImages: catch missing/unreadable historical attachments gracefully
+      const oldPrepare = `async function prepareRequestImages(messages, attachments, budget, signal) {
+    	const refs = /* @__PURE__ */ new Map();
+    	for (const message of messages) collectImageRefs(message.content, refs);
+    	const orderedRefs = [...refs.values()];
+    	const prepared = await Promise.all(orderedRefs.map((ref) => attachments.readImageRequest(ref, requestImageTarget(ref, budget), signal)));
+    	const versions = /* @__PURE__ */ new Map();
+    	for (const [index, ref] of orderedRefs.entries()) versions.set(ref.attachmentId, prepared[index]);
+    	return versions;
+    }`;
+
+      const newPrepare = `async function prepareRequestImages(messages, attachments, budget, signal) {
+    	const refs = /* @__PURE__ */ new Map();
+    	for (const message of messages) collectImageRefs(message.content, refs);
+    	const orderedRefs = [...refs.values()];
+    	const prepared = await Promise.all(orderedRefs.map(async (ref) => {
+    		try {
+    			return await attachments.readImageRequest(ref, requestImageTarget(ref, budget), signal);
+    		} catch (error) {
+    			console.warn(\`[DSH-LLM-PI-AI] Attachment \${ref.attachmentId} missing or unreadable; omitting: \${error.message}\`);
+    			return null;
+    		}
+    	}));
+    	const versions = /* @__PURE__ */ new Map();
+    	for (const [index, ref] of orderedRefs.entries()) {
+    		if (prepared[index]) versions.set(ref.attachmentId, prepared[index]);
+    	}
+    	return versions;
+    }`;
+
+      if (piContent.includes(oldPrepare)) {
+        piContent = piContent.replace(oldPrepare, newPrepare);
+      }
+
+      // 10b. Patch userContent: handle omitted/missing image gracefully
+      const oldUserContent = `		case "image": {
+    			const version = requestImages.get(block.attachment.attachmentId);
+    			content.push({
+    				type: "text",
+    				text: requestImageHandleText(block.attachment, version, resolveImageAccess(block.attachment))
+    			});
+    			content.push({
+    				type: "image",
+    				data: Buffer.from(version.data).toString("base64"),
+    				mimeType: version.mediaType
+    			});
+    			break;
+    		}`;
+
+      const newUserContent = `		case "image": {
+    			const version = requestImages.get(block.attachment.attachmentId);
+    			if (!version) {
+    				content.push({
+    					type: "text",
+    					text: \`[image omitted: attachment \${block.attachment?.name || block.attachment?.attachmentId} not found on host]\`
+    				});
+    				break;
+    			}
+    			content.push({
+    				type: "text",
+    				text: requestImageHandleText(block.attachment, version, resolveImageAccess(block.attachment))
+    			});
+    			content.push({
+    				type: "image",
+    				data: Buffer.from(version.data).toString("base64"),
+    				mimeType: version.mediaType
+    			});
+    			break;
+    		}`;
+
+      if (piContent.includes(oldUserContent)) {
+        piContent = piContent.replace(oldUserContent, newUserContent);
+      }
+
+      // 10c. Safe access in requiredImageOffload
+      const oldOffload = `(block) => requestImages.get(block.attachment.attachmentId).bytes`;
+      const newOffload = `(block) => requestImages.get(block.attachment.attachmentId)?.bytes ?? 0`;
+      if (piContent.includes(oldOffload)) {
+        piContent = piContent.replace(oldOffload, newOffload);
+      }
+
+      fs.writeFileSync(piAiFile, piContent, "utf8");
+      console.log("[CONFIG] Patched dsh-llm-pi-ai with resilient image attachment handling");
+    }
+

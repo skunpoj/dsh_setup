@@ -55,7 +55,7 @@ spec:
           git config --global user.email "developer@example.com"
 
           # Prepare Enterprise Persistent User Workspaces and Persistence Storage
-          mkdir -p /workspace/users /workspace/repos /workspace/dsh_storage/sessions /workspace/dsh_storage/storages 2>/dev/null || true
+          mkdir -p /workspace/users /workspace/repos /workspace/dsh_storage/sessions /workspace/dsh_storage/storages /workspace/dsh_storage/attachments 2>/dev/null || true
           ln -s /workspace /root/workspace 2>/dev/null || true
           ln -s /workspace/users /root/users 2>/dev/null || true
 
@@ -63,13 +63,16 @@ spec:
           # Keep /root/.dsh on local rootfs (supports node_modules symlinks & zero-latency file locking)
           # Restore persistent sessions & storages from CIFS to local rootfs (never symlink directly to CIFS to prevent EACCES/CIFS lock failures)
           rm -rf /root/.dsh
-          mkdir -p /root/.dsh/sessions /root/.dsh/storages
+          mkdir -p /root/.dsh/sessions /root/.dsh/storages /root/.dsh/attachments
           if [ -d /workspace/dsh_storage/sessions ]; then
             cp -ru /workspace/dsh_storage/sessions/. /root/.dsh/sessions/ 2>/dev/null || true
             find /root/.dsh/sessions -name "session.lock" -delete 2>/dev/null || true
           fi
           if [ -d /workspace/dsh_storage/storages ]; then
             cp -ru /workspace/dsh_storage/storages/. /root/.dsh/storages/ 2>/dev/null || true
+          fi
+          if [ -d /workspace/dsh_storage/attachments ]; then
+            cp -ru /workspace/dsh_storage/attachments/. /root/.dsh/attachments/ 2>/dev/null || true
           fi
           if [ -f /workspace/dsh_storage/.credentials.yaml ]; then
             cp /workspace/dsh_storage/.credentials.yaml /root/.dsh/.credentials.yaml 2>/dev/null || true
@@ -111,6 +114,10 @@ spec:
               if [ -d /root/.dsh/storages ] && [ -w /workspace/dsh_storage ]; then
                 mkdir -p /workspace/dsh_storage/storages 2>/dev/null || true
                 cp -ru /root/.dsh/storages/. /workspace/dsh_storage/storages/ 2>/dev/null || true
+              fi
+              if [ -d /root/.dsh/attachments ] && [ -w /workspace/dsh_storage ]; then
+                mkdir -p /workspace/dsh_storage/attachments 2>/dev/null || true
+                cp -ru /root/.dsh/attachments/. /workspace/dsh_storage/attachments/ 2>/dev/null || true
               fi
               # Sync any directory created in /root (like /root/<user>) to /workspace/dsh_storage/workspaces
               for p in /root/*; do
