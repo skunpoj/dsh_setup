@@ -124,7 +124,13 @@ function forwardToLocalApp(targetPort, targetPath, req, res) {
     method: req.method,
     headers: proxyHeaders
   }, (proxyRes) => {
-    res.writeHead(proxyRes.statusCode, proxyRes.headers);
+    const resHeaders = { ...proxyRes.headers };
+    if (resHeaders['content-type'] && resHeaders['content-type'].includes('text/html')) {
+      resHeaders['cache-control'] = 'no-cache, no-store, must-revalidate';
+      resHeaders['pragma'] = 'no-cache';
+      resHeaders['expires'] = '0';
+    }
+    res.writeHead(proxyRes.statusCode, resHeaders);
     proxyRes.pipe(res);
   });
 
@@ -783,7 +789,13 @@ const server = http.createServer((req, res) => {
       headers: proxyHeaders
     }, (proxyRes) => {
       // If upstream returns a redirect to / and we already passed a valid cookie, avoid client redirect storm
-      res.writeHead(proxyRes.statusCode, proxyRes.headers);
+      const resHeaders = { ...proxyRes.headers };
+      if (resHeaders['content-type'] && resHeaders['content-type'].includes('text/html')) {
+        resHeaders['cache-control'] = 'no-cache, no-store, must-revalidate';
+        resHeaders['pragma'] = 'no-cache';
+        resHeaders['expires'] = '0';
+      }
+      res.writeHead(proxyRes.statusCode, resHeaders);
       proxyRes.pipe(res);
     });
 
