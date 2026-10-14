@@ -196,10 +196,12 @@ The container startup script automatically launches persistent HTTP servers for 
 - **LiteLLM Gateway Layer (`DynamicContextClamper`)**:
   - Implemented custom pre-call hook `custom_callbacks.py` in ConfigMap `litellm-config` inheriting from `CustomLogger`.
   - Dynamically calculates exact available headroom: `available_output = 131072 - input_tokens - 256`.
-  - Automatically clamps `max_tokens = min(requested, available_output)`, guaranteeing that the sum never exceeds 131,072 tokens.
+  - Automatically clamps every request to `max_tokens = min(requested, 8192, available_output)`. This also corrects explicit 65,536-token headers retained by sessions created under the former 1M profile.
+  - Rejects requests whose input alone has consumed the safe context budget with an instruction to compact or start a new session; it never creates a knowingly invalid request.
 - **DSH Client Layer (`compaction-basic`)**:
   - Configured in `/root/.dsh/profiles/web/cordis.patch.yml` with `thresholdRatio: 0.75` and `contextWindow: 131072`.
   - When conversation tokens reach 75% of 131,072 (~98k tokens), DSH triggers autonomous background compaction (`/compact`) to summarize prior turns down to ~2k–3k tokens without user intervention.
+  - The model selector displays the resolved catalog model. While the catalog is loading it displays the loading state; if no model resolves it displays `Model unavailable` rather than a hardcoded model name.
 
 ---
 

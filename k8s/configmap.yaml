@@ -548,8 +548,8 @@
     \ },\n\t\troutableProviders: [\"litellm-cluster\", \"deepseek-official\"],\n\t\
     \tgroups: [\n\t\t\t{\n\t\t\t\tid: \"litellm-cluster\",\n\t\t\t\tname: \"Cluster\
     \ LiteLLM Gateway\",\n\t\t\t\tmodels: [\n\t\t\t\t\t{\n\t\t\t\t\t\tid: \"deepseek-v4.1-flash\"\
-    ,\n\t\t\t\t\t\tname: \"DeepSeek-V4.1-Flash (Native 1M CED MoE)\",\n\t\t\t\t\t\t\
-    description: \"Primary in-cluster ultra-low-latency 1M context MoE model (Vision\
+    ,\n\t\t\t\t\t\tname: \"DeepSeek-V4.1-Flash (128K Gateway)\",\n\t\t\t\t\t\t\
+    description: \"Primary in-cluster model with a 128K gateway context limit (Vision\
     \ + Tool-Use)\",\n\t\t\t\t\t\tinputModalities: [\"text\", \"image\"]\n\t\t\t\t\
     \t},\n\t\t\t\t\t{\n\t\t\t\t\t\tid: \"deepseek-flash\",\n\t\t\t\t\t\tname: \"DeepSeek-Flash\
     \ (V4.1-Flash Alias)\",\n\t\t\t\t\t\tdescription: \"DeepSeek-V4.1-Flash model\
@@ -601,7 +601,7 @@
     \t\t\t\tif (Array.isArray(fromSchema) && fromSchema.length > 0) return fromSchema;\n\
     \t\t\t\tif (settingsPath.includes(\"litellm-cluster\") || props.provider === \"\
     litellm-cluster\") {\n\t\t\t\t\treturn [\n\t\t\t\t\t\t{ id: \"deepseek-v4.1-flash\"\
-    , name: \"DeepSeek-V4.1-Flash (Native 1M CED MoE)\", contextWindow: 131072, maxTokens:\
+    , name: \"DeepSeek-V4.1-Flash (128K Gateway)\", contextWindow: 131072, maxTokens:\
     \ 8192, input: [\"text\", \"image\"] },\n\t\t\t\t\t\t{ id: \"deepseek-flash\"\
     , name: \"DeepSeek-Flash (V4.1-Flash Alias)\", contextWindow: 131072, maxTokens:\
     \ 8192, input: [\"text\", \"image\"] },\n\t\t\t\t\t\t{ id: \"glm-5.3-flash\",\
@@ -628,7 +628,7 @@
     \t\t\t\t\t\t\t\t\t\tapiKeyEnv: \"DEEPSEEK_API_KEY\",\n\t\t\t\t\t\t\t\t\t\t\t\t\
     defaultInput: [\"text\", \"image\"],\n\t\t\t\t\t\t\t\t\t\t\t\tmodels: [\n\t\t\t\
     \t\t\t\t\t\t\t\t\t\t{ id: \"deepseek-v4.1-flash\", name: \"DeepSeek-V4.1-Flash\
-    \ (Native 1M CED MoE)\", contextWindow: 131072, maxTokens: 8192, input: [\"text\"\
+    \ (128K Gateway)\", contextWindow: 131072, maxTokens: 8192, input: [\"text\"\
     , \"image\"] },\n\t\t\t\t\t\t\t\t\t\t\t\t\t{ id: \"deepseek-flash\", name: \"\
     DeepSeek-Flash (V4.1-Flash Alias)\", contextWindow: 131072, maxTokens: 8192, input:\
     \ [\"text\", \"image\"] },\n\t\t\t\t\t\t\t\t\t\t\t\t\t{ id: \"glm-5.3-flash\"\
@@ -654,8 +654,8 @@
     \ },\n\t\t\troutableProviders: [\"litellm-cluster\", \"deepseek-official\"],\n\
     \t\t\tgroups: [\n\t\t\t\t{\n\t\t\t\t\tid: \"litellm-cluster\",\n\t\t\t\t\tname:\
     \ \"Cluster LiteLLM Gateway\",\n\t\t\t\t\tmodels: [\n\t\t\t\t\t\t{ id: \"deepseek-v4.1-flash\"\
-    , name: \"DeepSeek-V4.1-Flash (Native 1M CED MoE)\", description: \"Primary in-cluster\
-    \ ultra-low-latency 1M context MoE model (Vision + Tool-Use)\", inputModalities:\
+    , name: \"DeepSeek-V4.1-Flash (128K Gateway)\", description: \"Primary in-cluster\
+    \ model with a 128K gateway context limit (Vision + Tool-Use)\", inputModalities:\
     \ [\"text\", \"image\"] },\n\t\t\t\t\t\t{ id: \"deepseek-flash\", name: \"DeepSeek-Flash\
     \ (V4.1-Flash Alias)\", description: \"DeepSeek-V4.1-Flash model alias (Vision\
     \ + Tool-Use)\", inputModalities: [\"text\", \"image\"] },\n\t\t\t\t\t\t{ id:\
@@ -703,8 +703,8 @@
     , \"deepseek-official\"],\n\t\t\t\t\tgroups: [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\
     id: \"litellm-cluster\",\n\t\t\t\t\t\t\tname: \"Cluster LiteLLM Gateway\",\n\t\
     \t\t\t\t\t\tmodels: [\n\t\t\t\t\t\t\t\t{ id: \"deepseek-v4.1-flash\", name: \"\
-    DeepSeek-V4.1-Flash (Native 1M CED MoE)\", description: \"Primary in-cluster ultra-low-latency\
-    \ 1M context MoE model (Vision + Tool-Use)\", inputModalities: [\"text\", \"image\"\
+    DeepSeek-V4.1-Flash (128K Gateway)\", description: \"Primary in-cluster model with\
+    \ a 128K gateway context limit (Vision + Tool-Use)\", inputModalities: [\"text\", \"image\"\
     ] },\n\t\t\t\t\t\t\t\t{ id: \"deepseek-flash\", name: \"DeepSeek-Flash (V4.1-Flash\
     \ Alias)\", description: \"DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)\"\
     , inputModalities: [\"text\", \"image\"] },\n\t\t\t\t\t\t\t\t{ id: \"glm-5.3-flash\"\
@@ -728,9 +728,9 @@
     \ === null && state.status === \"loading\";\n\t\t\tconst modelLabel = waiting\
     \ ? t(\"trigger.loading\") : currentChoice?.model.name ?? (state.current === null\
     \ ? t(\"trigger.fallback\") : \\`\\${state.current.provider}/\\${state.current.model}\\\
-    `);`;\n\n  const newWaiting = `const waiting = false;\n\t\t\tconst modelLabel\
-    \ = currentChoice?.model.name ?? (state.current ? \\`\\${state.current.provider}/\\\
-    ${state.current.model}\\` : \"DeepSeek-V4.1-Flash (Native 1M CED MoE)\");`;\n\n\
+    `);`;\n\n  const newWaiting = `const waiting = state.current === null && state.status === \"loading\";\n\t\t\tconst modelLabel\
+    \ = waiting ? t(\"trigger.loading\") : currentChoice?.model.name ?? (state.current ? \\`\\${state.current.provider}/\\\
+    ${state.current.model} (catalog details unavailable)\\` : \"Model unavailable\");`;\n\n\
     \  if (ms.includes(oldWaiting)) {\n    ms = ms.replace(oldWaiting, newWaiting);\n\
     \  }\n\n  fs.writeFileSync(msFile, ms, \"utf8\");\n  console.log(\"[CONFIG] Patched\
     \ dsh-client-ui-model-selection with instant ModelCatalogDirectory and eliminated\
@@ -742,7 +742,7 @@
     \n      baseURL: \"http://litellm.llm.svc.cluster.local:4000/v1\"\n      apiKeyEnv:\
     \ \"DEEPSEEK_API_KEY\"\n      defaultInput:\n        - text\n        - image\n\
     \      models:\n        - id: \"deepseek-v4.1-flash\"\n          name: \"DeepSeek-V4.1-Flash\
-    \ (Native 1M CED MoE)\"\n          contextWindow: 131072\n          maxTokens:\
+    \ (128K Gateway)\"\n          contextWindow: 131072\n          maxTokens:\
     \ 8192\n          input:\n            - text\n            - image\n        - id:\
     \ \"deepseek-flash\"\n          name: \"DeepSeek-Flash (V4.1-Flash Alias)\"\n\
     \          contextWindow: 131072\n          maxTokens: 8192\n          input:\n\
@@ -765,7 +765,7 @@
     \ ? dshHost.substring(dshHost.indexOf('.') + 1) : 'local';\n\n  const newText\
     \ = `text: \"You are DeepSeek Harness (DSH), an expert software engineering assistant\
     \ on private enterprise cluster infrastructure.\\\\n- Primary Model: DeepSeek-V4.1-Flash\
-    \ (Native 1M CED MoE).\\\\n- Dynamic Application Reverse Proxy Gateway:\\\\n \
+    \ (128K Gateway).\\\\n- Dynamic Application Reverse Proxy Gateway:\\\\n \
     \ When running web servers, APIs, or dashboards (e.g. Streamlit, FastAPI, Vite,\
     \ Flask, Next.js) on any container port <port>, ALWAYS inform the user that their\
     \ application is accessible via:\\\\n  \u2022 Subdomain (Root URL): https://${tenantPrefix}-<port>.${baseDomain}\\\
@@ -815,7 +815,7 @@
     \ \\`/workspace\\` so they persist across restarts.\n- Do not store permanent\
     \ project data in container-ephemeral root directories.\n\n## 3. High-Performance\
     \ Cluster Inference\n- LiteLLM Gateway is available at \\`http://litellm.llm.svc.cluster.local:4000/v1\\\
-    `.\n- Primary cluster model: \\`deepseek-v4.1-flash\\` (Native 1M Context Window).\n\
+    `.\n- Primary cluster model: \\`deepseek-v4.1-flash\\` (effective 128K gateway context window).\n\
     \n## 4. Built-in Interactive Web Terminal\n- An interactive bash web terminal\
     \ (powered by ttyd) runs natively on port 7681 (alias \\`terminal\\` or \\`ttyd\\\
     `).\n- Users can access the web terminal directly via:\n  - **Subdomain**: \\\
@@ -900,7 +900,7 @@
     \        baseURL: http://litellm.llm.svc.cluster.local:4000/v1\n        apiKeyEnv:\
     \ DEEPSEEK_API_KEY\n        defaultInput:\n          - text\n          - image\n\
     \        models:\n          - id: deepseek-v4.1-flash\n            name: DeepSeek-V4.1-Flash\
-    \ (Native 1M CED MoE)\n            contextWindow: 131072\n            maxTokens:\
+    \ (128K Gateway)\n            contextWindow: 131072\n            maxTokens:\
     \ 8192\n            input:\n              - text\n              - image\n    \
     \      - id: deepseek-flash\n            name: DeepSeek-Flash (V4.1-Flash Alias)\n\
     \            contextWindow: 131072\n            maxTokens: 8192\n            input:\n\

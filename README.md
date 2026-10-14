@@ -90,7 +90,7 @@ Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kuberne
 
 ### 5. In-Cluster LLM Gateway & DeepSeek-V4.1-Flash Default
 - **In-Cluster Inference**: Connects directly to internal OpenAI-compatible endpoints (LiteLLM / vLLM) with zero public API cost.
-- **Default Model**: **DeepSeek-V4.1-Flash** (Native 1M Context Window CED MoE, 65,536 max tokens).
+- **Default Model**: **DeepSeek-V4.1-Flash** (effective 128K gateway context window, 8,192 max output tokens).
 - **Standby Catalog**: Pre-registers `deepseek-flash`, `glm-5.3-flash`, and `qwen3.8-27b`.
 - **Token Clamping**: Automatically clamps requested `max_tokens` to model limits to prevent gateway overflow rejections.
 
