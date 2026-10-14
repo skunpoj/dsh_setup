@@ -733,8 +733,8 @@
     ${state.current.model} (catalog details unavailable)\\` : \"Model unavailable\");`;\n\n\
     \  if (ms.includes(oldWaiting)) {\n    ms = ms.replace(oldWaiting, newWaiting);\n\
     \  }\n\n  fs.writeFileSync(msFile, ms, \"utf8\");\n  console.log(\"[CONFIG] Patched\
-    \ dsh-client-ui-model-selection with instant ModelCatalogDirectory and eliminated\
-    \ loading state\");\n}\n\n// 6. Write valid settings.yaml into persistent storage\
+    \ dsh-client-ui-model-selection with instant ModelCatalogDirectory and uses truthful\
+    \ loading and unavailable states\");\n}\n\n// 6. Write valid settings.yaml into persistent storage\
     \ directory\ntry {\n  fs.mkdirSync(\"/root/.dsh\", { recursive: true });\n  const\
     \ validYaml = `version: 1\nagent-default-model:\n  provider: litellm-cluster\n\
     \  model: deepseek-v4.1-flash\nllm-pi-ai:\n  providers:\n    litellm-cluster:\n\
