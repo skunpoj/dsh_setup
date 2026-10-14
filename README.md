@@ -97,12 +97,25 @@ Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kuberne
 ### 6. Multi-Tenant Workspaces & Storage Persistence
 - **Partitioned User Storage**: Each tenant works inside `/workspace/users/<username>/`.
 - **Symlink Layer**: Automatically maps `/workspace/dsh_storage/workspaces/<username>` to `/root/<username>` for transparent IDE compatibility.
-- **Background Sync Watcher**: A 10-second background daemon continuously synchronizes `/root/.dsh/.credentials.yaml` and new user workspaces to the persistent volume.
+- **Background Sync Watcher**: A continuous background daemon synchronizes `/root/.dsh/.credentials.yaml`, active sessions, storages, attachments, and workspaces to the persistent volume every 15 seconds.
 
 ### 7. Enterprise Root CA & SSL Inspection Support
 - **Custom PKI Trust**: Automatically detects and registers custom enterprise CA certificates mounted into `/usr/local/share/ca-certificates/`.
 - **Runtime Propagation**: System store updates propagate to OpenSSL, Curl, Python (`REQUESTS_CA_BUNDLE`, `SSL_CERT_FILE`), Node.js (`NODE_EXTRA_CA_CERTS`), and Git (`http.sslCAInfo`).
 - **Complete Setup Guide**: See [docs/ENTERPRISE_ROOT_CA_SETUP.md](docs/ENTERPRISE_ROOT_CA_SETUP.md).
+
+### 8. Zero-Data-Loss Session & State Persistence (PreStop Lifecycle Hook)
+- **Decoupled Fast Storage**: Session histories, SQLite databases, and lockfiles are maintained on local container rootfs (`/root/.dsh/`) to guarantee microsecond POSIX locking and bypass SMB/CIFS latency.
+- **Synchronous PreStop Hook**: A Kubernetes `lifecycle.preStop` hook triggers immediately before pod termination, executing a synchronous flush of all active sessions, storages, attachments, and credentials to CIFS with `terminationGracePeriodSeconds: 60`.
+- **Lock Purge on Boot**: Automatically eliminates stale SMB/CIFS `session.lock` files on pod recreation, ensuring zero locked sessions after unexpected restarts.
+
+### 9. Attachment Resilience & Crash Immunity
+- **Missing Object Recovery**: When historical image or file attachments are missing from disk (`ENOENT`), upstream DSH typically throws fatal `AttachmentError("Attachment object is missing.")`, permanently locking the conversation turn.
+- **Self-Healing Fallback**: Section 11 of `configure_models.js` intercepts `readImageFile` in `@deepseek-ai/dsh-attachment-local`, generating and returning a synthetic 1x1 transparent PNG placeholder. Chat turns, session controllers, and thumbnail renderers complete smoothly without interruption.
+
+### 10. Supervised Data Quality (DQ) & Multi-Port Server Architecture
+- **Persistent Report Daemons**: Container startup automatically spawns supervised HTTP servers on ports `8099` and `8899` serving project deliverables and Data Quality reports.
+- **Instant Gateway Access**: Accessible seamlessly via the dynamic reverse proxy at `https://dsh.aiportal.bot.or.th/proxy/8099/dq_report.html` and `/proxy/8899/dq_report.html`.
 
 ---
 
@@ -114,18 +127,19 @@ Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kuberne
 ├── README.md                               # Master system documentation & deployment manual
 ├── cordis_plugin/
 │   └── index.ts                            # Cordis Plugin (cordis-plugin-custom-llm-gateway)
-├── docs/                                   # Dedicated feature guides
+├── docs/                                   # Dedicated feature guides & manuals
+│   ├── OPERATIONS_AND_TROUBLESHOOTING_MANUAL.md # Authoritative Enterprise Operations & Troubleshooting Manual
 │   ├── DYNAMIC_APP_GATEWAY.md              # Deep dive on Subdomain & Path proxy routing + ttyd
 │   ├── ENTERPRISE_ROOT_CA_SETUP.md         # Step-by-step Enterprise CA extraction & mounting
-│   └── MULTI_TENANT_STORAGE_AND_PERSISTENCE.md # User homes, storage layouts & sync watchers
+│   └── MULTI_TENANT_STORAGE_AND_PERSISTENCE.md # Storage tiers, preStop hook & zero-data-loss
 ├── k8s/
 │   ├── configmap.yaml                      # ConfigMap containing auth_proxy.js & configure_models.js
-│   ├── deployment.yaml                     # Kubernetes Deployment manifest (Ubuntu 24.04)
+│   ├── deployment.yaml                     # Kubernetes Deployment manifest (Ubuntu 24.04 + preStop hook)
 │   ├── ingress.yaml                        # Ingress manifest with wildcard host routing
 │   └── service.yaml                        # ClusterIP Service manifest (Port 3080)
 ├── scripts/
 │   ├── auth_proxy.js                       # Enterprise Auth Proxy, login UI, session gate & proxy
-│   └── configure_models.js                 # Script injecting In-Cluster models into DSH catalog
+│   └── configure_models.js                 # Script injecting In-Cluster models & resilience patches
 └── upstream_rfc/
     └── RFC_ENTERPRISE_CORDIS_PLUGIN_AND_GATEWAY.md # Upstream specification RFC
 ```
@@ -216,16 +230,22 @@ kubectl exec -n llm $POD -- dsh --version
 kubectl exec -n llm $POD -- curl -s -I http://127.0.0.1:3080/ | head -n 3 # Auth Proxy
 kubectl exec -n llm $POD -- curl -s -I http://127.0.0.1:3081/ | head -n 3 # DSH Web
 kubectl exec -n llm $POD -- curl -s -I http://127.0.0.1:7681/ | head -n 3 # ttyd Terminal
+kubectl exec -n llm $POD -- curl -s -I http://127.0.0.1:8099/dq_report.html | head -n 3 # Supervised DQ Server 8099
+kubectl exec -n llm $POD -- curl -s -I http://127.0.0.1:8899/dq_report.html | head -n 3 # Supervised DQ Server 8899
+
+# 4. Verify Resilience & Self-Healing Patches
+kubectl logs -n llm $POD -c dsh | grep -E "dsh-attachment-local|dsh-llm-pi-ai|SHUTDOWN-TRAP"
 ```
 
 ---
 
-## 📚 Specialized Documentation Guides
+## 📚 Specialized Documentation Guides & Manuals
 
-- [Enterprise Root CA & SSL Inspection Setup Guide](docs/ENTERPRISE_ROOT_CA_SETUP.md)
-- [Dynamic Application Gateway & Web Terminal Guide](docs/DYNAMIC_APP_GATEWAY.md)
-- [Multi-Tenant Workspaces & Storage Persistence Guide](docs/MULTI_TENANT_STORAGE_AND_PERSISTENCE.md)
-- [Enterprise Cordis Plugin & Gateway RFC](upstream_rfc/RFC_ENTERPRISE_CORDIS_PLUGIN_AND_GATEWAY.md)
+- 📖 **[Authoritative Operations & Troubleshooting Manual](docs/OPERATIONS_AND_TROUBLESHOOTING_MANUAL.md)** *(Comprehensive user guide, administration runbook, self-healing architecture & 8 disaster recovery scenarios)*
+- 💾 **[Multi-Tenant Storage & Zero-Data-Loss Persistence Guide](docs/MULTI_TENANT_STORAGE_AND_PERSISTENCE.md)** *(Decoupled storage tiers, CIFS lock prevention & PreStop lifecycle synchronization)*
+- 🌐 **[Dynamic Application Gateway & Web Terminal Guide](docs/DYNAMIC_APP_GATEWAY.md)** *(Subdomain & Path proxy routing, WebSocket streaming & ttyd terminal)*
+- 🔐 **[Enterprise Root CA & SSL Inspection Setup Guide](docs/ENTERPRISE_ROOT_CA_SETUP.md)** *(Step-by-step Enterprise CA extraction & runtime mounting)*
+- 📜 **[Enterprise Cordis Plugin & Gateway RFC](upstream_rfc/RFC_ENTERPRISE_CORDIS_PLUGIN_AND_GATEWAY.md)** *(Upstream specification RFC for custom LLM gateway injection)*
 
 ---
 
