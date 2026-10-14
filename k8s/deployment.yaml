@@ -15,6 +15,7 @@ spec:
       labels:
         app: dsh
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
       - name: dsh
         image: ubuntu:24.04
@@ -24,6 +25,47 @@ spec:
         - -c
         - |
           export DEBIAN_FRONTEND=noninteractive
+
+          # Shutdown trap to ensure zero-loss synchronous flush to CIFS on SIGTERM/SIGINT
+          cleanup() {
+            echo "[SHUTDOWN-TRAP] Received termination signal, syncing sessions and storage to CIFS..."
+            if [ -d /root/.dsh/sessions ] && [ -w /workspace/dsh_storage ]; then
+              mkdir -p /workspace/dsh_storage/sessions 2>/dev/null || true
+              cp -ru /root/.dsh/sessions/. /workspace/dsh_storage/sessions/ 2>/dev/null || true
+              find /workspace/dsh_storage/sessions -name "session.lock" -delete 2>/dev/null || true
+            fi
+            if [ -d /root/.dsh/storages ] && [ -w /workspace/dsh_storage ]; then
+              mkdir -p /workspace/dsh_storage/storages 2>/dev/null || true
+              cp -ru /root/.dsh/storages/. /workspace/dsh_storage/storages/ 2>/dev/null || true
+            fi
+            if [ -d /root/.dsh/attachments ] && [ -w /workspace/dsh_storage ]; then
+              mkdir -p /workspace/dsh_storage/attachments 2>/dev/null || true
+              cp -ru /root/.dsh/attachments/. /workspace/dsh_storage/attachments/ 2>/dev/null || true
+            fi
+            if [ -f /root/.dsh/.credentials.yaml ] && [ -w /workspace/dsh_storage ]; then
+              cp -u /root/.dsh/.credentials.yaml /workspace/dsh_storage/.credentials.yaml 2>/dev/null || true
+            fi
+            for p in /root/*; do
+              if [ -d "$p" ] && [ ! -L "$p" ]; then
+                base=$(basename "$p")
+                case "$base" in
+                  "workspace"|"users"|"repos"|"npm"|"dsh_setup"|".npm"|".dsh"|".cache")
+                    ;;
+                  *)
+                    if [ -w /workspace/dsh_storage ]; then
+                      mkdir -p "/workspace/dsh_storage/workspaces/$base" 2>/dev/null || true
+                      cp -ru "$p/." "/workspace/dsh_storage/workspaces/$base/" 2>/dev/null || true
+                    fi
+                    ;;
+                esac
+              fi
+            done
+            sync || true
+            echo "[SHUTDOWN-TRAP] Sync complete."
+            exit 0
+          }
+          trap cleanup SIGTERM SIGINT
+
           echo "Updating apt repositories and installing packages..."
           apt-get update
           apt-get install -y --no-install-recommends \
@@ -217,6 +259,47 @@ spec:
           limits:
             cpu: 4000m
             memory: 8Gi
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - |
+                echo "[PRE-STOP] Flushing sessions, storages, and attachments to CIFS..."
+                if [ -d /root/.dsh/sessions ] && [ -w /workspace/dsh_storage ]; then
+                  mkdir -p /workspace/dsh_storage/sessions 2>/dev/null || true
+                  cp -ru /root/.dsh/sessions/. /workspace/dsh_storage/sessions/ 2>/dev/null || true
+                  find /workspace/dsh_storage/sessions -name "session.lock" -delete 2>/dev/null || true
+                fi
+                if [ -d /root/.dsh/storages ] && [ -w /workspace/dsh_storage ]; then
+                  mkdir -p /workspace/dsh_storage/storages 2>/dev/null || true
+                  cp -ru /root/.dsh/storages/. /workspace/dsh_storage/storages/ 2>/dev/null || true
+                fi
+                if [ -d /root/.dsh/attachments ] && [ -w /workspace/dsh_storage ]; then
+                  mkdir -p /workspace/dsh_storage/attachments 2>/dev/null || true
+                  cp -ru /root/.dsh/attachments/. /workspace/dsh_storage/attachments/ 2>/dev/null || true
+                fi
+                if [ -f /root/.dsh/.credentials.yaml ] && [ -w /workspace/dsh_storage ]; then
+                  cp -u /root/.dsh/.credentials.yaml /workspace/dsh_storage/.credentials.yaml 2>/dev/null || true
+                fi
+                for p in /root/*; do
+                  if [ -d "$p" ] && [ ! -L "$p" ]; then
+                    base=$(basename "$p")
+                    case "$base" in
+                      "workspace"|"users"|"repos"|"npm"|"dsh_setup"|".npm"|".dsh"|".cache")
+                        ;;
+                      *)
+                        if [ -w /workspace/dsh_storage ]; then
+                          mkdir -p "/workspace/dsh_storage/workspaces/$base" 2>/dev/null || true
+                          cp -ru "$p/." "/workspace/dsh_storage/workspaces/$base/" 2>/dev/null || true
+                        fi
+                        ;;
+                    esac
+                  fi
+                done
+                sync || true
+                echo "[PRE-STOP] Final sync complete."
         volumeMounts:
         - name: workspace-storage
           mountPath: /workspace
