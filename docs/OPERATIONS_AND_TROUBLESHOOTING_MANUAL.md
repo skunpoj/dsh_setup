@@ -24,6 +24,7 @@
    - [4.1 Attachment Crash Immunity (Layer 10 & 11)](#41-attachment-crash-immunity-layer-10--11)
    - [4.2 Stale Session Lock Cleanser](#42-stale-session-lock-cleanser)
    - [4.3 Model Clamping & Gateway Fallback](#43-model-clamping--gateway-fallback)
+   - [4.4 Dynamic Context Window Clamping & Auto-Compaction](#44-dynamic-context-window-clamping--auto-compaction)
 5. [Troubleshooting & Diagnostic Runbook](#5-troubleshooting--diagnostic-runbook)
    - [Case 1: "This turn failed Attachment object is missing"](#case-1-this-turn-failed-attachment-object-is-missing)
    - [Case 2: Session is Locked / Read-Only After Pod Crash](#case-2-session-is-locked--read-only-after-pod-crash)
@@ -33,6 +34,7 @@
    - [Case 6: Model Selection Reverts or Shows Loading Indefinitely](#case-6-model-selection-reverts-or-shows-loading-indefinitely)
    - [Case 7: Custom CA Certificate SSL Verification Failures](#case-7-custom-ca-certificate-ssl-verification-failures)
    - [Case 8: Missing History After Pod Redeploy](#case-8-missing-history-after-pod-redeploy)
+   - [Case 9: Context Window Exceeded (HTTP 400 During Long Turns or Compaction)](#case-9-context-window-exceeded-http-400-during-long-turns-or-compaction)
 6. [Maintenance & Routine Operations](#6-maintenance--routine-operations)
    - [6.1 Zero-Downtime Rolling Restarts](#61-zero-downtime-rolling-restarts)
    - [6.2 Manual Data Synchronization Trigger](#62-manual-data-synchronization-trigger)
@@ -189,6 +191,16 @@ The container startup script automatically launches persistent HTTP servers for 
 ### 4.3 Model Clamping & Gateway Fallback
 - Model token limits (`max_tokens`) are clamped dynamically in `configure_models.js` to match the in-cluster LiteLLM gateway ceilings, preventing HTTP 400 Bad Request errors.
 
+### 4.4 Dynamic Context Window Clamping & Auto-Compaction
+- **Problem**: When conversation turns grow large (e.g. 65k+ prompt tokens), requesting completion tokens up to 65,536 exceeds the vLLM engine context ceiling of 131,072 tokens ($67,730 + 65,536 = 133,266 > 131,072$), throwing `HTTP 400: Requested token count exceeds maximum context length`.
+- **LiteLLM Gateway Layer (`DynamicContextClamper`)**:
+  - Implemented custom pre-call hook `custom_callbacks.py` in ConfigMap `litellm-config` inheriting from `CustomLogger`.
+  - Dynamically calculates exact available headroom: `available_output = 131072 - input_tokens - 256`.
+  - Automatically clamps `max_tokens = min(requested, available_output)`, guaranteeing that the sum never exceeds 131,072 tokens.
+- **DSH Client Layer (`compaction-basic`)**:
+  - Configured in `/root/.dsh/profiles/web/cordis.patch.yml` with `thresholdRatio: 0.75` and `contextWindow: 131072`.
+  - When conversation tokens reach 75% of 131,072 (~98k tokens), DSH triggers autonomous background compaction (`/compact`) to summarize prior turns down to ~2k–3k tokens without user intervention.
+
 ---
 
 ## 5. Troubleshooting & Diagnostic Runbook
@@ -308,6 +320,40 @@ The container startup script automatically launches persistent HTTP servers for 
      ```bash
      kubectl exec -n llm deployment/dsh -c dsh -- find /root/.dsh/sessions -name "session.lock" -delete
      ```
+
+---
+
+---
+
+### Case 9: Context Window Exceeded (HTTP 400 During Long Turns or Compaction)
+- **Symptom**: Chat turn or manual `/compact` fails with:
+  `This turn failed 400: litellm.BadRequestError: OpenAIException - Requested token count exceeds the model's maximum context length of 131072 tokens. You requested a total of 132880 tokens...`
+- **Root Cause**:
+  LiteLLM's built-in `modify_params: true` bypasses dynamic clamping if `max_input_tokens != max_output_tokens`. When large prompts (>65k tokens) request completion up to 65,536 tokens, total tokens exceed the vLLM 131,072 context window.
+- **Diagnostic**:
+  1. Inspect LiteLLM custom callback status:
+     ```bash
+     kubectl logs -n llm deployment/litellm -c litellm --tail=50 | grep -i "DynamicContextClamper"
+     ```
+  2. Test completion headroom directly from cluster:
+     ```bash
+     kubectl exec -n llm deployment/dsh -c dsh -- python3 -c '
+     import urllib.request, json
+     payload = {"model": "deepseek-flash", "messages": [{"role": "user", "content": "hi " * 30000}], "max_tokens": 65536}
+     req = urllib.request.Request("http://litellm.llm.svc.cluster.local:4000/v1/chat/completions",
+         data=json.dumps(payload).encode(), headers={"Content-Type": "application/json", "Authorization": "Bearer sk-1234"})
+     try:
+         res = urllib.request.urlopen(req)
+         print("OK:", res.status)
+     except Exception as e:
+         print("ERR:", e)
+     '
+     ```
+- **Resolution**:
+  1. Ensure `litellm-config` ConfigMap in namespace `llm` has `custom_callbacks.py` (`DynamicContextClamper`) mounted and registered in `litellm_settings.callbacks`.
+  2. Ensure `model_info.max_output_tokens` is configured to `8192` in `litellm-config`.
+  3. Ensure `/root/.dsh/profiles/web/cordis.patch.yml` and `/root/.dsh/settings.yaml` specify `contextWindow: 131072` and `maxTokens: 8192`.
+  4. Run `/compact` in the active session to summarize older turns down to ~2,000 tokens.
 
 ---
 

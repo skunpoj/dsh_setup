@@ -162,8 +162,8 @@ if (fs.existsSync(smFile)) {
 				if (Array.isArray(fromSchema) && fromSchema.length > 0) return fromSchema;
 				if (settingsPath.includes("litellm-cluster") || props.provider === "litellm-cluster") {
 					return [
-						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)", contextWindow: 1048576, maxTokens: 65536, input: ["text", "image"] },
-						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 1048576, maxTokens: 65536, input: ["text", "image"] },
+						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)", contextWindow: 131072, maxTokens: 8192, input: ["text", "image"] },
+						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 131072, maxTokens: 8192, input: ["text", "image"] },
 						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] },
 						{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] }
 					];
@@ -400,15 +400,15 @@ llm-pi-ai:
       models:
         - id: "deepseek-v4.1-flash"
           name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)"
-          contextWindow: 1048576
-          maxTokens: 65536
+          contextWindow: 131072
+          maxTokens: 8192
           input:
             - text
             - image
         - id: "deepseek-flash"
           name: "DeepSeek-Flash (V4.1-Flash Alias)"
-          contextWindow: 1048576
-          maxTokens: 65536
+          contextWindow: 131072
+          maxTokens: 8192
           input:
             - text
             - image
