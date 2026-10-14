@@ -202,8 +202,8 @@ if (fs.existsSync(smFile)) {
 												apiKeyEnv: "DEEPSEEK_API_KEY",
 												defaultInput: ["text", "image"],
 												models: [
-													{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)", contextWindow: 1048576, maxTokens: 65536, input: ["text", "image"] },
-													{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 1048576, maxTokens: 65536, input: ["text", "image"] },
+													{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Native 1M CED MoE)", contextWindow: 131072, maxTokens: 8192, input: ["text", "image"] },
+													{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 131072, maxTokens: 8192, input: ["text", "image"] },
 													{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] },
 													{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] }
 												]
@@ -615,6 +615,81 @@ if (fs.existsSync(alFile)) {
     fs.writeFileSync(alFile, alContent, "utf8");
     console.log("[CONFIG] Patched dsh-attachment-local readImageFile with synthetic fallback");
   }
+}
+
+// 12. Enforce Web Profile cordis.patch.yml with Compaction and 128K Context Window
+try {
+  const profileDir = "/root/.dsh/profiles/web";
+  fs.mkdirSync(profileDir, { recursive: true });
+  const patchYmlPath = `${profileDir}/cordis.patch.yml`;
+  const cordisContent = `# Enterprise Cordis Profile Configuration for DSH Web UI
+- id: llm-pi-ai
+  name: "@deepseek-ai/dsh-llm-pi-ai"
+  config:
+    providers:
+      litellm-cluster:
+        displayName: Cluster LiteLLM Gateway
+        api: openai-completions
+        baseURL: http://litellm.llm.svc.cluster.local:4000/v1
+        apiKeyEnv: DEEPSEEK_API_KEY
+        defaultInput:
+          - text
+          - image
+        models:
+          - id: deepseek-v4.1-flash
+            name: DeepSeek-V4.1-Flash (Native 1M CED MoE)
+            contextWindow: 131072
+            maxTokens: 8192
+            input:
+              - text
+              - image
+          - id: deepseek-flash
+            name: DeepSeek-Flash (V4.1-Flash Alias)
+            contextWindow: 131072
+            maxTokens: 8192
+            input:
+              - text
+              - image
+          - id: glm-5.3-flash
+            name: GLM-5.3-Flash (Cluster LiteLLM TP=4)
+            contextWindow: 128000
+            maxTokens: 4096
+            input:
+              - text
+          - id: glm-5.3-flash-awq
+            name: GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)
+            contextWindow: 64000
+            maxTokens: 4096
+            input:
+              - text
+          - id: qwen3.8-flash-next
+            name: Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)
+            contextWindow: 128000
+            maxTokens: 4096
+            input:
+              - text
+
+- id: compaction-basic
+  disabled: false
+  config:
+    auto: true
+    thresholdRatio: 0.75
+
+- id: command-compact
+  disabled: false
+
+- id: tool-result-pruner
+  disabled: false
+
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+`;
+  fs.writeFileSync(patchYmlPath, cordisContent, "utf8");
+  console.log("[CONFIG] Enforced cordis.patch.yml with auto-compaction and 128K context window");
+} catch (e) {
+  console.error("[CONFIG] Failed to write cordis.patch.yml:", e.message);
 }
 
 
