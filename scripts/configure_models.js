@@ -272,6 +272,14 @@ if (fs.existsSync(msFile)) {
 	inflight;
 	constructor(ctx) { this.ctx = ctx; }
 	load() { return Promise.resolve(this.store.getSnapshot().value); }
+	reasoningFor(selection) {
+		if (!selection) return undefined;
+		const snapshot = this.store.getSnapshot();
+		const group = snapshot?.value?.groups?.find((g) => g.id === selection.provider);
+		const model = group?.models?.find((m) => m.id === selection.model);
+		return model?.reasoning ?? (selection.model === "deepseek-reasoner" ? { defaultEffort: "medium", efforts: [{ id: "low", name: "Low" }, { id: "medium", name: "Medium" }, { id: "high", name: "High" }] } : undefined);
+	}
+	refresh() {}
 	resetGeneration() {}
 };`;
     ms = ms.substring(0, idx) + fallbackCatalog + ms.substring(idxEnd);
