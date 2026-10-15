@@ -18,6 +18,10 @@ The current upstream comparison is:
 | Official upstream | `deepseek-ai/deepseek-harness` `master` at `571902028a75c64c1d767f4ae5fd099485f0ddf0` |
 | Latest upstream tag inspected | `dsh-v0.2.1-alpha.3` (`2fbf4359b8`) |
 
+These references were fetched again on 15 October 2026. Official `master` and the
+latest inspected tag were unchanged, so no upstream source was incorporated into
+the enterprise overlay in this update.
+
 The upstream interval changes thousands of files and includes Session v4 persistence, remote-access principals, permission policy, web tools, sandbox behavior, compaction, attachment handling, plugin composition, and the Web client. Treating it as a drop-in package update would put stored sessions and runtime byte patches at risk.
 
 ## Synchronization procedure
