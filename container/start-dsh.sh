@@ -30,11 +30,12 @@ if [ ! -f /state/settings.yaml ]; then
 fi
 
 ttyd -p 7681 -i 0.0.0.0 -W bash -l >/tmp/ttyd.log 2>&1 &
+socat TCP-LISTEN:3081,bind=0.0.0.0,reuseaddr,fork TCP:127.0.0.1:3080 >/tmp/dsh-bridge.log 2>&1 &
 
 fifo=/tmp/dsh-fifo
 rm -f "$fifo"
 mkfifo "$fifo"
-dsh web --host 0.0.0.0 --port 3081 --no-open --trusted-host "$DSH_TRUSTED_HOST" >"$fifo" 2>&1 &
+dsh web --host 127.0.0.1 --port 3080 --no-open --trusted-host "$DSH_TRUSTED_HOST" >"$fifo" 2>&1 &
 dsh_pid=$!
 
 while IFS= read -r line; do
