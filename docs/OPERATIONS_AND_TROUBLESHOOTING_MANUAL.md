@@ -407,3 +407,9 @@ To restore:
 ```bash
 kubectl exec -n llm deployment/dsh -c dsh -- tar -xzf /workspace/<backup_file>.tar.gz -C /workspace
 ```
+
+## Shared-model scheduling validation
+
+The model's `interactive-v2` overlay is maintained in GPU_server, not in the DSH package overlay. It matches queued cache prefixes before reserving up to 512 prefill tokens, retains long-request progress, and uses mixed chunking plus a decode interval of four. The first revision passed tiny prompts but failed cached 24K sessions; V2 passed both. See [the full scheduling record](SCHEDULING_FAIRNESS_20261015.md).
+
+Before changing either the model image or client prompt construction, repeat the fresh-input and continuing-session interference gates. Preserve the original scheduler source-hash check and review it against the next image; do not blindly rebase or accept a new hash. The present 128K client guardrail remains in force. Large uncached history can still queue, and near-1M mixed-load behavior has not been revalidated.

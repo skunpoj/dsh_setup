@@ -79,3 +79,9 @@ Deployment remains gated on building and pushing the referenced image, creating 
 `k8s/dsh-egress-policies.yaml` defines the enforcement boundary. Pods labelled `dsh.bot.or.th/egress-mode=offline` may resolve cluster DNS and call LiteLLM on TCP 4000, while public egress is denied. Pods labelled `dsh.bot.or.th/egress-mode=online` retain egress. The policies do not select unlabeled Production pods.
 
 On 15 October 2026, `tests/test_egress_policies.ps1` was exercised against the live Calico cluster. The offline canary timed out when connecting to GitHub, returned HTTP 200 from LiteLLM liveliness, and the online canary returned HTTP 200 from GitHub. This proves policy enforcement; it does not prove that the login toggle routes a user to a pool.
+
+## Shared-model scheduling validation
+
+The model's `interactive-v2` overlay is maintained in GPU_server, not in the DSH package overlay. It matches queued cache prefixes before reserving up to 512 prefill tokens, retains long-request progress, and uses mixed chunking plus a decode interval of four. The first revision passed tiny prompts but failed cached 24K sessions; V2 passed both. See [the full scheduling record](SCHEDULING_FAIRNESS_20261015.md).
+
+Before changing either the model image or client prompt construction, repeat the fresh-input and continuing-session interference gates. Preserve the original scheduler source-hash check and review it against the next image; do not blindly rebase or accept a new hash. The present 128K client guardrail remains in force. Large uncached history can still queue, and near-1M mixed-load behavior has not been revalidated.

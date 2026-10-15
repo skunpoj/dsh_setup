@@ -28,6 +28,10 @@ Dependencies cross the boundary through a controlled package workflow rather tha
 
 Other included features are the interactive web terminal, authenticated dynamic application proxy, persistent sessions and attachments, enterprise CA support, readiness-gated startup, and a DeepSeek-V4.1-Flash path aligned to a 131,072-token total context window with an 8,192-token output ceiling.
 
+### Interactive model scheduling
+
+The shared model now reserves part of each prefill chunk for small uncached input tails and interleaves decode work. Tests with a 133K-token long request reduced small-request completion from approximately 33 seconds to 0.59–1.47 seconds; cached 24K histories also passed. Large cold prompts and resource saturation can still cause queuing. This measures model requests, not the duration of an entire agent turn containing reasoning and tools. [Trials, failed cached-session test, final results and rollback](docs/SCHEDULING_FAIRNESS_20261015.md).
+
 ### Design decision and reason
 
 The deployment uses **one gateway plus separate Secure and Internet CPU/RAM execution pools**, while keeping the expensive LiteLLM and four-GPU model service shared. This design was selected because:
