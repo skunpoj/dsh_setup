@@ -65,7 +65,7 @@ async function waitReady(port) {
     const page = await request(proxyPort, 'GET', '/login');
     assert.equal(page.status, 200);
     assert.match(page.body, /name="internet" value="off" checked/);
-    assert.match(page.body, /Secure \/ Internal \(Default\)/);
+    assert.match(page.body, /No Internet \/ Internal \(Default\)/);
     assert.match(page.body, /Internet uses a separate approved staging workspace/);
 
     const denied = await request(proxyPort, 'POST', '/login', 'username=alice&password=wrong&internet=on');

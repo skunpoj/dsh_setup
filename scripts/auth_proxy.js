@@ -632,10 +632,10 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
         <div class="form-group">
           <span class="form-label">Working environment</span>
           <div class="radio-group" role="radiogroup" aria-label="Working environment">
-            <label class="radio-option"><input type="radio" name="internet" value="off" checked> Secure / Internal (Default)</label>
+            <label class="radio-option"><input type="radio" name="internet" value="off" checked> No Internet / Internal (Default)</label>
             <label class="radio-option"><input type="radio" name="internet" value="on"> Internet</label>
           </div>
-          <div class="form-help">The environment is fixed for this login session. Secure/Internal can use protected data; Internet uses a separate approved staging workspace.</div>
+          <div class="form-help">The environment is fixed for this login session. No Internet / Internal permits approved internal services only; Internet uses a separate staging workspace. These environments do not share project files or chat history.</div>
         </div>
         <button type="submit" class="btn-submit">เข้าสู่ระบบ (Sign In)</button>
       </form>
