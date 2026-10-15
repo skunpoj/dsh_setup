@@ -2,9 +2,9 @@
 
 ## Verified production context boundary
 
-The model family supports a 1M context, but the current four-H100 runtime does not safely serve it. On 15 October 2026, a real request containing approximately 262K prompt tokens reached the SGLang server and failed during sparse-attention scoring with a CUDA out-of-memory error. GPU 3 had about 1,001.75 MiB free while the operation requested another 1,022 MiB. The model process exited and required about fourteen minutes to reload weights, pre-fault the Engram tables, compile kernels, capture CUDA graphs, and become Ready again.
+The initial static-0.92 deployment failed a real approximately 262K-token request with a CUDA OOM. Subsequent controlled tests on the same four-H100 node progressed through 256K and 512K, including failed configurations and rollback, to a successful 1,000,015-input-token request with static 0.90, prefill chunk 1,024 and max prefill tokens 2,048. The model ceiling is 1,048,576 total tokens. This does not establish unrestricted 1M concurrency or full-window output quality.
 
-Until a lower static-memory reservation or another runtime design passes progressive long-context tests, DSH and LiteLLM must enforce a 131,072-token total context boundary. The repository therefore advertises 128K, compacts at 75%, and rejects requests that cannot leave the configured output and safety headroom. A future 1M canary must test 128K, 256K, 512K, and 1M on an isolated endpoint before changing the shared route.
+DSH and LiteLLM still enforce 131,072 total tokens, an 8,192 output ceiling, a 256-token LiteLLM safety buffer and compaction around 98,304 tokens. Product-level admission, long-session compaction and end-to-end gates remain before exposing a larger budget. The complete trial matrix, failures, evidence limits and rollback are in [CONTEXT_OPTIMIZATION_20261015.md](CONTEXT_OPTIMIZATION_20261015.md).
 
 ## Deployed source layers
 

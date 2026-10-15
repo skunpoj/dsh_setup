@@ -178,8 +178,8 @@ The container startup script automatically launches persistent HTTP servers for 
 - The DSH containers install runtime packages before starting the internal engine on port 3081. Kubernetes must not publish a replacement pod during this bootstrap interval.
 - Each DSH manifest therefore uses a TCP readiness probe against the named `dsh-web` port (3081). For the primary `dsh` RollingUpdate, this keeps the previous pod serving until the replacement engine is listening.
 - `dsh-user2` and `dsh3` currently use the `Recreate` strategy. Their probes prevent premature endpoint publication but do not provide zero-downtime replacement.
-- The active request path is `DSH -> LiteLLM -> service/vllm-deepseek-v4-flash -> deployment/vllm-deepseek-v4-1-flash (SGLang)`. The active engine, LiteLLM clamp, and DSH catalog use a 131,072-token request budget with an 8,192-token completion ceiling.
-- SGLang keeps `max-running-requests=16`; this is a scheduler ceiling, not a reservation of 1M tokens for every request. The shared cache pool determines simultaneous capacity. At `mem-fraction-static=0.92`, the verified startup allocation is 2,185,984 aggregate token slots, 88,832 more than two complete 131,072-token contexts.
+- The active request path is `DSH -> LiteLLM -> service/vllm-deepseek-v4-flash -> deployment/vllm-deepseek-v4-1-flash (SGLang)`. The backend is configured for 1,048,576 total tokens after progressive testing; LiteLLM and DSH retain a 131,072-token user budget and 8,192-token output ceiling. See [the complete optimization record](CONTEXT_OPTIMIZATION_20261015.md).
+- SGLang keeps `max-running-requests=16`; this is a scheduler ceiling, not a reservation of 1M tokens for every request. The shared cache pool determines simultaneous capacity. The final static-0.90/chunk-1024 startup reported 1,179,648 aggregate slots. The historical 2,185,984-slot count at static 0.92 did not account for temporary workspace and was followed by an OOM. Neither count proves two full 1M requests can execute.
 - Two maximum-length requests therefore fit concurrently. Shorter requests continue in parallel while their combined input, cached prefix, and generated output remain within the shared pool; additional work queues under the FCFS scheduler.
 
 ---
@@ -208,7 +208,7 @@ The container startup script automatically launches persistent HTTP servers for 
   - Rejects requests whose input alone has consumed the safe context budget with an instruction to compact or start a new session; it never creates a knowingly invalid request.
 - **DSH Client Layer (`compaction-basic`)**:
   - Configured in `/root/.dsh/profiles/web/cordis.patch.yml` with `thresholdRatio: 0.75`; the selected model supplies `contextWindow: 131072`.
-  - At approximately 75% of the 1M window (~786k tokens), DSH triggers autonomous background compaction (`/compact`) to preserve output and tool-call headroom.
+  - At approximately 75% of the current 131,072-token user window (98,304 tokens), DSH triggers autonomous background compaction (`/compact`) to preserve output and tool-call headroom.
   - The model selector displays the resolved catalog model. While the catalog is loading it displays the loading state; if no model resolves it displays `Model unavailable` rather than a hardcoded model name.
 
 ---

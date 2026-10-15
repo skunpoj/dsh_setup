@@ -99,7 +99,7 @@ Network enforcement also depends on a Kubernetes CNI that implements NetworkPoli
 - [Actual No-Internet tests and label readback](docs/NO_INTERNET_VERIFICATION_20261015.md) record the tested destinations and identify DSH2/DSH3 as unrestricted legacy instances.
 - Secure egress permits cluster DNS and the in-cluster LiteLLM service only; Internet egress is enabled.
 - Authentication is shared at the gateway; pool state, session storage, workspace, launch token, and package directories are separate.
-- DeepSeek-V4.1-Flash, LiteLLM, and the DSH catalog use the verified 131,072-token guardrail.
+- The model backend has a tested 1M configuration; DSH and LiteLLM retain the 131,072-token user guardrail. [Full trial history and lessons](docs/CONTEXT_OPTIMIZATION_20261015.md).
 
 ### Setup method
 
@@ -207,7 +207,7 @@ The diagram below describes the earlier deployment retained only as rollback con
 - **Default Model**: **DeepSeek-V4.1-Flash** (verified 128K gateway context window, 8,192 max output tokens).
 - **Standby Catalog**: Pre-registers `deepseek-flash`, `glm-5.3-flash`, and `qwen3.8-27b`.
 - **Token Clamping**: Automatically clamps requested `max_tokens` to model limits to prevent gateway overflow rejections.
-- **Effective Context**: The DSH profile, LiteLLM metadata and clamper, and active SGLang server are aligned to a 131,072-token total context window. Automatic compaction starts around 98,304 tokens, with an 8,192-token output cap and a 256-token LiteLLM safety buffer.
+- **Effective Context**: The DSH profile and LiteLLM clamp retain a 131,072-token user budget; the SGLang backend has the tested 1,048,576-token ceiling. Automatic compaction starts around 98,304 tokens, with an 8,192-token output cap and a 256-token LiteLLM safety buffer.
 - **Readiness-Gated Rollout**: Kubernetes publishes a DSH pod only after its internal engine listens on port 3081, preventing traffic from reaching the several-minute bootstrap phase.
 
 ### 6. Environment-isolated workspaces and persistent state
