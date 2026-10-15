@@ -37,12 +37,12 @@ class DynamicContextClamperTests(unittest.TestCase):
         self.assertEqual(result["max_tokens"], 8192)
 
     def test_output_limit_uses_remaining_context_headroom(self):
-        litellm.token_counter = lambda **_: 1047504
+        litellm.token_counter = lambda **_: 130000
         result = run({"messages": [{"role": "user", "content": "large"}], "max_tokens": 65536})
         self.assertEqual(result["max_tokens"], 816)
 
     def test_input_that_exhausts_context_is_rejected_before_dispatch(self):
-        litellm.token_counter = lambda **_: 1048320
+        litellm.token_counter = lambda **_: 130816
         with self.assertRaisesRegex(ValueError, "compact the session"):
             run({"messages": [{"role": "user", "content": "too large"}], "max_tokens": 65536})
 

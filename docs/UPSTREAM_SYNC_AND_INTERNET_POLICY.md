@@ -1,5 +1,11 @@
 # DSH upstream synchronization and internet policy
 
+## Verified production context boundary
+
+The model family supports a 1M context, but the current four-H100 runtime does not safely serve it. On 15 October 2026, a real request containing approximately 262K prompt tokens reached the SGLang server and failed during sparse-attention scoring with a CUDA out-of-memory error. GPU 3 had about 1,001.75 MiB free while the operation requested another 1,022 MiB. The model process exited and required about fourteen minutes to reload weights, pre-fault the Engram tables, compile kernels, capture CUDA graphs, and become Ready again.
+
+Until a lower static-memory reservation or another runtime design passes progressive long-context tests, DSH and LiteLLM must enforce a 131,072-token total context boundary. The repository therefore advertises 128K, compacts at 75%, and rejects requests that cannot leave the configured output and safety headroom. A future 1M canary must test 128K, 256K, 512K, and 1M on an isolated endpoint before changing the shared route.
+
 ## Deployed source layers
 
 The deployment installs a published `@deepseek-ai/dsh` package and then applies repository-owned configuration and compatibility patches from `scripts/configure_models.js`. The enterprise authentication gateway in `scripts/auth_proxy.js` is also repository-owned. These files are overlays; they are not part of the official DeepSeek Harness repository.

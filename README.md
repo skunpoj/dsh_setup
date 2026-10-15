@@ -4,7 +4,7 @@
 [![Runtime](https://img.shields.io/badge/Runtime-Node.js%2022%20LTS-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Python](https://img.shields.io/badge/Python-3.12%20%2B%20Pip-3776AB?logo=python&logoColor=white)](https://python.org/)
 [![Terminal](https://img.shields.io/badge/Terminal-ttyd%201.7.7-blue)](https://github.com/tsl0922/ttyd)
-[![Default Model](https://img.shields.io/badge/Default%20Model-DeepSeek--V4.1--Flash%20(1M)-10B981)](https://github.com/deepseek-ai)
+[![Default Model](https://img.shields.io/badge/Default%20Model-DeepSeek--V4.1--Flash%20(128K)-10B981)](https://github.com/deepseek-ai)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kubernetes. Built on **Ubuntu 24.04 LTS (GLIBC)** with integrated multi-tenant session isolation, reverse-proxy authentication gate, dynamic application gateway, interactive web terminal, and in-cluster LLM integration.
@@ -90,10 +90,10 @@ Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kuberne
 
 ### 5. In-Cluster LLM Gateway & DeepSeek-V4.1-Flash Default
 - **In-Cluster Inference**: Connects directly to internal OpenAI-compatible endpoints (LiteLLM / vLLM) with zero public API cost.
-- **Default Model**: **DeepSeek-V4.1-Flash** (effective 1M gateway context window, 8,192 max output tokens).
+- **Default Model**: **DeepSeek-V4.1-Flash** (verified 128K gateway context window, 8,192 max output tokens).
 - **Standby Catalog**: Pre-registers `deepseek-flash`, `glm-5.3-flash`, and `qwen3.8-27b`.
 - **Token Clamping**: Automatically clamps requested `max_tokens` to model limits to prevent gateway overflow rejections.
-- **Effective Context**: The DSH profile, LiteLLM metadata and clamper, and active SGLang server are aligned to a 1,048,576-token total context window. Automatic compaction starts at 75% (about 786,432 tokens), with an 8,192-token output cap and a 256-token LiteLLM safety buffer.
+- **Effective Context**: The DSH profile, LiteLLM metadata and clamper, and active SGLang server are aligned to a 131,072-token total context window. Automatic compaction starts at 75% (about 786,432 tokens), with an 8,192-token output cap and a 256-token LiteLLM safety buffer.
 - **Readiness-Gated Rollout**: Kubernetes publishes a DSH pod only after its internal engine listens on port 3081, preventing traffic from reaching the several-minute bootstrap phase.
 
 ### 6. Multi-Tenant Workspaces & Storage Persistence

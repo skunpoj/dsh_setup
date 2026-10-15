@@ -55,7 +55,7 @@
               "--swa-prefix-tails",
               "0",
               "--context-length",
-              "1048576",
+              "131072",
               "--reasoning-parser",
               "deepseek-v41",
               "--tool-call-parser",
