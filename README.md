@@ -14,7 +14,7 @@ Production-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with aut
 
 | Environment | Network access | Writable workspace and state | Intended use |
 | --- | --- | --- | --- |
-| **Secure / Internal (default)** | Restricted egress: cluster DNS and approved in-cluster services such as LiteLLM only | Dedicated Secure workspace, session storage, runtime state, and launch token | Work involving protected internal data |
+| **No Internet / Internal (default)** | Restricted egress: cluster DNS and approved in-cluster services such as LiteLLM only | Dedicated Secure workspace, session storage, runtime state, and launch token | Work involving protected internal data |
 | **Internet** | General Internet egress enabled | Separate staging workspace, session storage, runtime state, and launch token | Downloading dependencies and work that explicitly requires Internet access |
 
 The login page selects the working environment. The authenticated session is pinned to that environment for HTTP, WebSocket, terminal, and proxied application traffic. Both environments use the same authentication gateway and shared LiteLLM/GPU inference service, while their writable data and runtime volumes remain separate. **Secure / Internal is a restricted-egress environment, not a strict air gap**, because it still communicates with approved internal cluster services.
@@ -95,7 +95,8 @@ Network enforcement also depends on a Kubernetes CNI that implements NetworkPoli
 ### Current Production deployment
 
 - Public DSH ingress routes through `dsh-environment-gateway`.
-- Secure and Internet pools run immutable image digest `sha256:d3a300605a87aa63ec4a2588f827658a132407ff17908ba49403fa7cca8d261a`, built by Azure build `62647` from GPU infrastructure commit `f55f439659aa6946b60b1189df90bc76062821d6`.
+- The gateway runs Azure build `62680`, digest `sha256:53c9f8222d48084175bb8e18abcfb8b953eea646539880bd3643b639572f1129`, with the explicit `No Internet / Internal (Default)` label. Secure and Internet pools remain on build `62655`, digest `sha256:0505beb62188a32a63366735cead3a2e87c11e4963f6a10f6ec957b758345cbc`.
+- [Actual No-Internet tests and label readback](docs/NO_INTERNET_VERIFICATION_20261015.md) record the tested destinations and identify DSH2/DSH3 as unrestricted legacy instances.
 - Secure egress permits cluster DNS and the in-cluster LiteLLM service only; Internet egress is enabled.
 - Authentication is shared at the gateway; pool state, session storage, workspace, launch token, and package directories are separate.
 - DeepSeek-V4.1-Flash, LiteLLM, and the DSH catalog use the verified 131,072-token guardrail.

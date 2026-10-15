@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:d3a300605a87aa63ec4a2588f827658a132407ff17908ba49403fa7cca8d261a
+          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:53c9f8222d48084175bb8e18abcfb8b953eea646539880bd3643b639572f1129
           command: [node, /opt/dsh/scripts/auth_proxy.js]
           securityContext:
             runAsNonRoot: true
