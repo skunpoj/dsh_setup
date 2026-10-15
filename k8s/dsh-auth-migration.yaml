@@ -26,8 +26,10 @@ spec:
                 fi
               done
               (cd /source && tar --exclude=users --exclude=dsh_storage -cf - .) | (cd /workspace && tar -xf -)
-              chown -R 10001:10001 /auth /workspace
+              (cd /source/dsh_storage && tar -cf - .) | (cd /state && tar -xf -)
+              chown -R 10001:10001 /auth /workspace /state
               test -s /auth/.user_auth.json
+              test -d /state/sessions
           securityContext:
             runAsUser: 0
             runAsGroup: 0
@@ -37,6 +39,7 @@ spec:
             - { name: legacy-state, mountPath: /source, subPath: dsh, readOnly: true }
             - { name: auth-state, mountPath: /auth }
             - { name: secure-workspace, mountPath: /workspace }
+            - { name: secure-state, mountPath: /state }
       volumes:
         - name: legacy-state
           persistentVolumeClaim: { claimName: da-workspace-pvc-new }
@@ -44,3 +47,5 @@ spec:
           persistentVolumeClaim: { claimName: dsh-auth-state }
         - name: secure-workspace
           persistentVolumeClaim: { claimName: dsh-secure-workspace }
+        - name: secure-state
+          persistentVolumeClaim: { claimName: dsh-secure-state }
