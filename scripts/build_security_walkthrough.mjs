@@ -24,7 +24,7 @@ html = html.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pr
 });
 const toc = [];
 html = html.replace(/<h2>(.*?)<\/h2>/g, (_, title) => { const id = `section-${toc.length+1}`; toc.push(`<a href="#${id}">${title}</a>`); return `<h2 id="${id}">${title}</h2>`; });
-const evidence = ['central-workspace-live-20261015.json','storage-design-audit-20261015.json','runtime-rollout-live-20261015.json','rdt-gateway-live-20261015.json','rdt-egress-recheck-20261015.json','rdt-candidate-cluster-check-62696.log','html-verification-20261015.json'];
+const evidence = ['environment-session-storage-review-20261015.json','central-workspace-live-20261015.json','storage-design-audit-20261015.json','runtime-rollout-live-20261015.json','rdt-gateway-live-20261015.json','rdt-egress-recheck-20261015.json','rdt-candidate-cluster-check-62696.log','html-verification-20261015.json'];
 html = html.replace(/href="context-evidence\/([^"]+)"/g, (_, name) => `href="#evidence-${name.replaceAll('.','-')}"`);
 html = html.replace(/href="(?!https?:|#)([^"]+)"/g, (_, name) => `href="https://github.com/skunpoj/dsh_setup/blob/main/docs/${name}"`);
 html += '<h2 id="evidence">หลักฐานที่ฝังในรายงาน</h2><p>Recorded test responses และ logs ตามเวลาที่ระบุ ไม่ใช่ live webpage หรือการทดสอบระบบใหม่เมื่อเปิดไฟล์นี้</p>';

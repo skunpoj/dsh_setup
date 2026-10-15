@@ -113,3 +113,8 @@ Registration is closed and active catalogs are internal-only. Named-user isolati
 ## Central workspace correction verified — 15 October 2026, 21:32 ICT
 
 Both mount directions were tested through an independent peer pod, followed by a real Secure restart and fresh/held login/logout checks. Secure still lists 80 histories. Reconciliation verified all 2,651 local workspace files and retained central-only content. A coherent history baseline was restored into scratch storage and 29,067 extracted files checked. The first validator failed on an unsupported Python API and triggered an actual mount rollback; the portable validator and retry passed. This is not a full restored-runtime boot or continuous history-sync claim. See [live evidence](docs/context-evidence/central-workspace-live-20261015.json).
+
+
+## Session storage and compatibility review
+
+The original folder name verified in the supplied transcript is `dsh_storage`, not `dsh_volume`. Secure workspace is now mounted on CIFS, while active sessions/history remain in its local `/state`; Internet uses separate local workspace/state and cannot mount the protected share. Historical `dsh_storage/sessions` on CIFS is not a live mirror. A read-only API/path check found 43 of 80 stored Secure sessions still reference inaccessible `/root/...` cwd values; the other 37 use readable `/workspace/...` paths. History listing and restart checks do not establish full tool resumption for those legacy records. See [review evidence](docs/context-evidence/environment-session-storage-review-20261015.json).

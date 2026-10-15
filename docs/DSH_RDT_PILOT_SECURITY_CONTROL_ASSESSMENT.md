@@ -172,6 +172,27 @@ Workspace เดิมใช้ `//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstati
 
 แนวทางแก้คือคืน DA_WORKSPACE เป็น **mounted workspace จริง** หลังเทียบไฟล์ใหม่บน local PVC กับไฟล์บน share และเก็บ conflict ทั้งสองเวอร์ชันไว้ ไม่ mount สำเนาเก่าทับจนทำให้งานใหม่หายจากมุมมอง Runtime state ที่ต้องใช้ local locking อาจอยู่บน storage ที่เหมาะสมได้ แต่ต้องรักษา central durable-history requirement ด้วยวิธีที่สอดคล้องและทดสอบ restore แล้ว การมี local workspace แล้วเสนอ backup ไป central ไม่ใช่สิ่งทดแทน mount เดิม
 
+### Internet On/Off, ชื่อโฟลเดอร์เดิม และ active session paths
+
+การตรวจ mounts และ session API ซ้ำหลังคืน CIFS ยืนยันว่า Internet Off กับ Internet On ยังแยก workspace/state กัน ไม่ได้ใช้ chat history หรือ writable workspace ร่วมกัน และตัวเลือก Internet On ไม่ใช่ชื่อเดียวกับ legacy instance DSH2/DSH3
+
+| ตำแหน่ง | Internet Off / Secure | Internet On |
+|---|---|---|
+| `/workspace` | CIFS share เดิม, subpath `dsh`, claim `dsh-da-workspace-secure` | Local XFS/TopoLVM, claim `dsh-internet-staging` |
+| Active sessions/history, attachments และ runtime state | `/state` บน local claim `dsh-secure-state` | `/state` บน local claim `dsh-internet-state` |
+| DSH_HOME | `/home/dsh/.dsh` resolve ไป `/state` | เช่นเดียวกัน แต่เป็น state คนละ volume |
+| Packages | Approved cache แบบ read-only | Incoming แยกสำหรับดาวน์โหลด |
+
+ใน raw engineering export ที่ผู้ใช้แนบ พบ USER_INPUT วันที่ 12 ตุลาคมระบุ UNC `\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation\dsh\dsh_storage\workspaces\Spark` โดยตรง ชื่อที่ยืนยันคือ **`dsh_storage`**; ไม่พบชื่อ `dsh_volume` ในเนื้อหา text ของ bundle ที่ตรวจ ยังมีโฟลเดอร์ `volume01` ใน workspace ด้วย จึงไม่ควรเปลี่ยนชื่อหรือย้ายข้อมูลโดยเดาชื่อจากความจำ
+
+Export เดียวกันมี retrieved prior user request, Turn 6078 ซึ่งระบุให้ DSH เข้าถึง CIFS เฉพาะโฟลเดอร์ `dsh` และ DSH2 ไม่เข้าถึง CIFS เลย ข้อนี้สอดคล้องกับ legacy manifest ที่ mount `subPath: dsh` ไม่ใช่เปิด root/parent ของ share ให้ runtime
+
+ระบบเดิมมี background copy ทุก 15 วินาทีและ shutdown/preStop copy จาก `/root/.dsh` ไป `/workspace/dsh_storage` ตาม legacy manifest ส่วน pools ใหม่ยังไม่มี continuous mirror นั้น การมี `/workspace/dsh_storage/sessions` อยู่บน CIFS จึงหมายถึงยังเก็บสำเนาเดิม ไม่ได้แปลว่า active sessions ล่าสุดกำลังเขียนที่นั่น ปัจจุบันแหล่ง active state คือ `/state` และ central archive ที่ตรวจแล้วเป็น point-in-time baseline เท่านั้น
+
+**พบ compatibility gap เพิ่มเติม:** session API แสดง 80 records แต่ 43 records ยังเก็บ `cwd` เป็น `/root/...` ที่ non-root runtime เข้าถึงไม่ได้ อีก 37 records ชี้ไป `/workspace/...` ที่ตรวจว่าอ่าน/เข้า directory ได้ การแสดง history ครบไม่ใช่หลักฐานว่าทั้ง 80 sessions กลับมารัน tools ต่อได้ รายการเหล่านี้เป็น stored records ไม่ได้หมายถึงมี 43 sessions กำลังรันอยู่ และยังไม่ได้ทดสอบ tool resumption ทุก session
+
+ขั้นแก้ที่ต้องตรวจต่อคือทำ backed-up, explicit mapping ของ legacy cwd ไปยัง canonical CIFS workspace และทดสอบต่อ session ให้สำเร็จ โดยไม่เปิดสิทธิ์ root หรือแก้ข้อความในประวัติแบบ blanket replacement พร้อมคืน central history persistence ที่สอดคล้องกับ locking การตรวจรอบนี้ไม่ได้ย้ายหรือแก้ session records ดู [live storage และ raw-transcript review](context-evidence/environment-session-storage-review-20261015.json)
+
 ### ผลแก้ไขที่ deploy และตรวจจริง เวลา 21:32 น. ICT
 
 Secure กลับมา mount `//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation` ผ่าน claim `dsh-da-workspace-secure`, subpath `dsh` ที่ `/workspace` แล้ว อ่าน `/proc/mounts` ได้ filesystem `cifs` และ process ยังเป็น UID 10001 ค่า mount ใช้ UID/GID mapping และ `file_mode=0770` เพื่อให้สคริปต์รันตรงได้เหมือน share เดิม; Git repositories ที่ตรวจทั้งสองแห่งตั้ง `core.filemode=false` อยู่แล้ว

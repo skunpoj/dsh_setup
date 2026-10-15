@@ -44,3 +44,10 @@ Per-user runtime source now uses distinct central workspace subpaths, but privat
 Use `k8s/dsh-da-workspace.yaml` for the reviewed claim. Keep legacy PVs and local rollback PVCs. `scripts/restore_central_workspace.py` stops Secure, reconciles and verifies content, applies the bounded mount, then checks actual held/fresh gateway sessions. It restores the original deployment specification on failure and preserves both data locations. Always use a fresh rollback directory and reviewed targets.
 
 Do not rerun the historical migration job to revert this mapping. Before any later rollback, account for new writes already committed to CIFS; restoring a local mount must not hide them without a recorded reconciliation. Preserve source and central recovery material until independently verified recovery is available. Use the [security walkthrough](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) for the three pilot controls and evidence limits.
+
+
+## Follow-up: environment boundaries and legacy session cwd
+
+A fresh read-only mount/API review confirms Secure workspace is CIFS, Internet workspace/state are separate local volumes, and both active DSH homes resolve to their own local `/state`. The user-supplied raw engineering export names `dsh_storage`, including a direct 12 October UNC path; no `dsh_volume` text match was found in that bundle. Historical DSH2 zero-CIFS policy and the new Internet environment selection are separate concepts.
+
+Legacy background/preStop mirroring to `/workspace/dsh_storage` has not been restored in the new pools. Existing central session folders are historical copies, not evidence of current synchronization. An additional compatibility gap is now verified: 43 of the 80 listed Secure session records retain inaccessible `/root/...` working directories; 37 point to readable `/workspace/...` paths. This does not establish that all 80 can resume tool execution. No session records or runtime settings were changed in this follow-up. See [raw-source provenance and live path checks](context-evidence/environment-session-storage-review-20261015.json).

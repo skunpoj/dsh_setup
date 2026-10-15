@@ -86,3 +86,10 @@ This proves non-root access is achievable on this share. It does not prove deplo
 ## Production correction completed — 15 October 2026, 21:32 ICT
 
 Secure now mounts the same share through the non-root `dsh-da-workspace-secure` claim at `/workspace`, subpath `dsh`. All 2,651 local workspace files were verified against central content before cutover, and central-only files retained. Two-way peer readback and another runtime restart passed; fresh/held login/logout worked and 80 histories remained listed. The first archive-validator failure triggered automatic rollback; the portable validator and retry passed. The active `/state` remains local, with a coherent central baseline whose 29,067 extracted files were checked; continuous state synchronization is not configured. [Live correction record](context-evidence/central-workspace-live-20261015.json).
+
+
+## Follow-up: environment boundaries and legacy session cwd
+
+A fresh read-only mount/API review confirms Secure workspace is CIFS, Internet workspace/state are separate local volumes, and both active DSH homes resolve to their own local `/state`. The user-supplied raw engineering export names `dsh_storage`, including a direct 12 October UNC path; no `dsh_volume` text match was found in that bundle. Historical DSH2 zero-CIFS policy and the new Internet environment selection are separate concepts.
+
+Legacy background/preStop mirroring to `/workspace/dsh_storage` has not been restored in the new pools. Existing central session folders are historical copies, not evidence of current synchronization. An additional compatibility gap is now verified: 43 of the 80 listed Secure session records retain inaccessible `/root/...` working directories; 37 point to readable `/workspace/...` paths. This does not establish that all 80 can resume tool execution. No session records or runtime settings were changed in this follow-up. See [raw-source provenance and live path checks](context-evidence/environment-session-storage-review-20261015.json).

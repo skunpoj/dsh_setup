@@ -186,6 +186,42 @@
 <p>การตรวจ raw transcript พบว่าผู้ช่วยเลือกเปลี่ยน protected workspace เป็น local volume เวลา <strong>09:29:33 น. ICT วันที่ 15 ตุลาคม</strong> หลัง non-root CIFS write ไม่ผ่าน การเปลี่ยนถูก commit ใน GitHub <strong><code>9c3b571</code> เวลา 10:21:54 น.</strong> และ mirror ไป Azure <strong><code>dd6c3aa</code> เวลา 10:31 น.</strong> ก่อน cutover สู่ pools ใหม่ ไม่มีคำสั่งให้ละทิ้ง DA_WORKSPACE ในบทสนทนาที่เกี่ยวข้อง นี่เป็น implementation deviation ไม่ใช่ข้อกำหนดของผู้ใช้</p>
 <p>การทดสอบแยกภายหลังใช้ share เดิมและ CIFS options <code>uid=10001,gid=10001,forceuid,forcegid</code> ทำให้ non-root UID/GID 10001 เขียนและอ่านกลับได้ โดยลบเฉพาะ probe file ของตนเองแล้ว ผลนี้แสดงว่าควรแก้ ownership mapping แทนการเปลี่ยน storage backend ในช่วง canary นั้น Production ยังไม่ได้ remount และผล canary ไม่ใช่การทดสอบ per-user ACL หรือ database locking ต่อมามีการคืน mount จริงและตรวจพฤติกรรมตามผลเพิ่มเติมด้านล่าง</p>
 <p>แนวทางแก้คือคืน DA_WORKSPACE เป็น <strong>mounted workspace จริง</strong> หลังเทียบไฟล์ใหม่บน local PVC กับไฟล์บน share และเก็บ conflict ทั้งสองเวอร์ชันไว้ ไม่ mount สำเนาเก่าทับจนทำให้งานใหม่หายจากมุมมอง Runtime state ที่ต้องใช้ local locking อาจอยู่บน storage ที่เหมาะสมได้ แต่ต้องรักษา central durable-history requirement ด้วยวิธีที่สอดคล้องและทดสอบ restore แล้ว การมี local workspace แล้วเสนอ backup ไป central ไม่ใช่สิ่งทดแทน mount เดิม</p>
+<h3>Internet On/Off, ชื่อโฟลเดอร์เดิม และ active session paths</h3>
+<p>การตรวจ mounts และ session API ซ้ำหลังคืน CIFS ยืนยันว่า Internet Off กับ Internet On ยังแยก workspace/state กัน ไม่ได้ใช้ chat history หรือ writable workspace ร่วมกัน และตัวเลือก Internet On ไม่ใช่ชื่อเดียวกับ legacy instance DSH2/DSH3</p>
+<table>
+<thead>
+<tr>
+<th>ตำแหน่ง</th>
+<th>Internet Off / Secure</th>
+<th>Internet On</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/workspace</code></td>
+<td>CIFS share เดิม, subpath <code>dsh</code>, claim <code>dsh-da-workspace-secure</code></td>
+<td>Local XFS/TopoLVM, claim <code>dsh-internet-staging</code></td>
+</tr>
+<tr>
+<td>Active sessions/history, attachments และ runtime state</td>
+<td><code>/state</code> บน local claim <code>dsh-secure-state</code></td>
+<td><code>/state</code> บน local claim <code>dsh-internet-state</code></td>
+</tr>
+<tr>
+<td>DSH_HOME</td>
+<td><code>/home/dsh/.dsh</code> resolve ไป <code>/state</code></td>
+<td>เช่นเดียวกัน แต่เป็น state คนละ volume</td>
+</tr>
+<tr>
+<td>Packages</td>
+<td>Approved cache แบบ read-only</td>
+<td>Incoming แยกสำหรับดาวน์โหลด</td>
+</tr>
+</tbody></table>
+<p>ใน raw engineering export ที่ผู้ใช้แนบ พบ USER_INPUT วันที่ 12 ตุลาคมระบุ UNC <code>\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation\dsh\dsh_storage\workspaces\Spark</code> โดยตรง ชื่อที่ยืนยันคือ <strong><code>dsh_storage</code></strong>; ไม่พบชื่อ <code>dsh_volume</code> ในเนื้อหา text ของ bundle ที่ตรวจ ยังมีโฟลเดอร์ <code>volume01</code> ใน workspace ด้วย จึงไม่ควรเปลี่ยนชื่อหรือย้ายข้อมูลโดยเดาชื่อจากความจำ</p>
+<p>Export เดียวกันมี retrieved prior user request, Turn 6078 ซึ่งระบุให้ DSH เข้าถึง CIFS เฉพาะโฟลเดอร์ <code>dsh</code> และ DSH2 ไม่เข้าถึง CIFS เลย ข้อนี้สอดคล้องกับ legacy manifest ที่ mount <code>subPath: dsh</code> ไม่ใช่เปิด root/parent ของ share ให้ runtime</p>
+<p>ระบบเดิมมี background copy ทุก 15 วินาทีและ shutdown/preStop copy จาก <code>/root/.dsh</code> ไป <code>/workspace/dsh_storage</code> ตาม legacy manifest ส่วน pools ใหม่ยังไม่มี continuous mirror นั้น การมี <code>/workspace/dsh_storage/sessions</code> อยู่บน CIFS จึงหมายถึงยังเก็บสำเนาเดิม ไม่ได้แปลว่า active sessions ล่าสุดกำลังเขียนที่นั่น ปัจจุบันแหล่ง active state คือ <code>/state</code> และ central archive ที่ตรวจแล้วเป็น point-in-time baseline เท่านั้น</p>
+<p><strong>พบ compatibility gap เพิ่มเติม:</strong> session API แสดง 80 records แต่ 43 records ยังเก็บ <code>cwd</code> เป็น <code>/root/...</code> ที่ non-root runtime เข้าถึงไม่ได้ อีก 37 records ชี้ไป <code>/workspace/...</code> ที่ตรวจว่าอ่าน/เข้า directory ได้ การแสดง history ครบไม่ใช่หลักฐานว่าทั้ง 80 sessions กลับมารัน tools ต่อได้ รายการเหล่านี้เป็น stored records ไม่ได้หมายถึงมี 43 sessions กำลังรันอยู่ และยังไม่ได้ทดสอบ tool resumption ทุก session</p>
+<p>ขั้นแก้ที่ต้องตรวจต่อคือทำ backed-up, explicit mapping ของ legacy cwd ไปยัง canonical CIFS workspace และทดสอบต่อ session ให้สำเร็จ โดยไม่เปิดสิทธิ์ root หรือแก้ข้อความในประวัติแบบ blanket replacement พร้อมคืน central history persistence ที่สอดคล้องกับ locking การตรวจรอบนี้ไม่ได้ย้ายหรือแก้ session records ดู <a href="#evidence-environment-session-storage-review-20261015-json">live storage และ raw-transcript review</a></p>
 <h3>ผลแก้ไขที่ deploy และตรวจจริง เวลา 21:32 น. ICT</h3>
 <p>Secure กลับมา mount <code>//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation</code> ผ่าน claim <code>dsh-da-workspace-secure</code>, subpath <code>dsh</code> ที่ <code>/workspace</code> แล้ว อ่าน <code>/proc/mounts</code> ได้ filesystem <code>cifs</code> และ process ยังเป็น UID 10001 ค่า mount ใช้ UID/GID mapping และ <code>file_mode=0770</code> เพื่อให้สคริปต์รันตรงได้เหมือน share เดิม; Git repositories ที่ตรวจทั้งสองแห่งตั้ง <code>core.filemode=false</code> อยู่แล้ว</p>
 <p>ก่อนเปลี่ยนได้หยุด writer แล้วเทียบ local workspace 2,651 ไฟล์ รอบแรกพบ 2,650 ไฟล์ตรงกันและคัดลอกใหม่ 1 ไฟล์ ไม่พบ conflict ส่วน central-only 29,064 ไฟล์เก็บไว้ทั้งหมด รอบก่อน cutover ตรวจซ้ำทั้ง 2,651 ไฟล์ตรงกัน ไม่มี content failure กลไก reconciliation เก็บ central version ที่ต่างไว้ก่อนแทนที่ และ unit tests ทดสอบกรณี conflict, destination-only files และ type collision แล้ว Local rollback PVC เดิมยังเก็บไว้</p>
@@ -311,7 +347,211 @@
 <li><a href="#evidence-storage-design-audit-20261015-json">Storage design audit</a>: curated raw messages, Git change และ CIFS canary; Production mounts ไม่เปลี่ยนในการ review นั้น</li>
 </ul>
 <p>HTML นี้ใช้รูปแบบ walkthrough เดิมและ diagram controls ที่ปรับจาก SMP EDA ได้แก่ zoom/reset/fullscreen, source copy และ SVG/PNG export โดยฝัง Mermaid 10.8.0 และ svg-pan-zoom 3.6.1 ไว้ในไฟล์ ไม่ต้องโหลด CDN เป้าหมายของ document QA คือให้เนื้อหาและ diagrams อ่านได้และเครื่องมือทำงาน ไม่ใช้ผล document QA แทน security acceptance ของ DSH ดู <a href="#evidence-html-verification-20261015-json">document QA record</a></p>
-<h2 id="evidence">หลักฐานที่ฝังในรายงาน</h2><p>Recorded test responses และ logs ตามเวลาที่ระบุ ไม่ใช่ live webpage หรือการทดสอบระบบใหม่เมื่อเปิดไฟล์นี้</p><details id="evidence-central-workspace-live-20261015-json"><summary>central-workspace-live-20261015.json</summary><pre>{
+<h2 id="evidence">หลักฐานที่ฝังในรายงาน</h2><p>Recorded test responses และ logs ตามเวลาที่ระบุ ไม่ใช่ live webpage หรือการทดสอบระบบใหม่เมื่อเปิดไฟล์นี้</p><details id="evidence-environment-session-storage-review-20261015-json"><summary>environment-session-storage-review-20261015.json</summary><pre>{
+  &quot;timeICT&quot;: &quot;2026-10-15T21:45:32.990225+07:00&quot;,
+  &quot;scope&quot;: &quot;Read-only review; no mounts, files, session records or accounts changed&quot;,
+  &quot;environments&quot;: [
+    {
+      &quot;deployment&quot;: &quot;dsh-secure&quot;,
+      &quot;available&quot;: 1,
+      &quot;mounts&quot;: [
+        {
+          &quot;path&quot;: &quot;/state&quot;,
+          &quot;subPath&quot;: null,
+          &quot;claim&quot;: &quot;dsh-secure-state&quot;
+        },
+        {
+          &quot;path&quot;: &quot;/workspace&quot;,
+          &quot;subPath&quot;: &quot;dsh&quot;,
+          &quot;claim&quot;: &quot;dsh-da-workspace-secure&quot;
+        },
+        {
+          &quot;path&quot;: &quot;/packages/approved&quot;,
+          &quot;subPath&quot;: null,
+          &quot;claim&quot;: &quot;dsh-package-approved&quot;
+        },
+        {
+          &quot;path&quot;: &quot;/runtime-tokens&quot;,
+          &quot;subPath&quot;: null,
+          &quot;claim&quot;: &quot;dsh-secure-token&quot;
+        }
+      ],
+      &quot;actualRuntime&quot;: {
+        &quot;home&quot;: &quot;/home/dsh&quot;,
+        &quot;dshHome&quot;: &quot;/home/dsh/.dsh&quot;,
+        &quot;dshHomeResolved&quot;: &quot;/state&quot;,
+        &quot;mounts&quot;: [
+          {
+            &quot;source&quot;: &quot;/dev/mapper/data-f0512ccb--f23d--4e41--9578--7bb17cad8ebd&quot;,
+            &quot;path&quot;: &quot;/state&quot;,
+            &quot;filesystem&quot;: &quot;xfs&quot;
+          },
+          {
+            &quot;source&quot;: &quot;//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation&quot;,
+            &quot;path&quot;: &quot;/workspace&quot;,
+            &quot;filesystem&quot;: &quot;cifs&quot;
+          }
+        ]
+      }
+    },
+    {
+      &quot;deployment&quot;: &quot;dsh-internet&quot;,
+      &quot;available&quot;: 1,
+      &quot;mounts&quot;: [
+        {
+          &quot;path&quot;: &quot;/state&quot;,
+          &quot;subPath&quot;: null,
+          &quot;claim&quot;: &quot;dsh-internet-state&quot;
+        },
+        {
+          &quot;path&quot;: &quot;/workspace&quot;,
+          &quot;subPath&quot;: null,
+          &quot;claim&quot;: &quot;dsh-internet-staging&quot;
+        },
+        {
+          &quot;path&quot;: &quot;/packages/incoming&quot;,
+          &quot;subPath&quot;: null,
+          &quot;claim&quot;: &quot;dsh-package-incoming&quot;
+        },
+        {
+          &quot;path&quot;: &quot;/runtime-tokens&quot;,
+          &quot;subPath&quot;: null,
+          &quot;claim&quot;: &quot;dsh-internet-token&quot;
+        }
+      ],
+      &quot;actualRuntime&quot;: {
+        &quot;home&quot;: &quot;/home/dsh&quot;,
+        &quot;dshHome&quot;: &quot;/home/dsh/.dsh&quot;,
+        &quot;dshHomeResolved&quot;: &quot;/state&quot;,
+        &quot;mounts&quot;: [
+          {
+            &quot;source&quot;: &quot;/dev/mapper/data-278484d5--112f--4c5e--887f--887ca3dd9b05&quot;,
+            &quot;path&quot;: &quot;/state&quot;,
+            &quot;filesystem&quot;: &quot;xfs&quot;
+          },
+          {
+            &quot;source&quot;: &quot;/dev/mapper/data-b54ccd54--667d--44b2--a4d5--bcbc19c66df0&quot;,
+            &quot;path&quot;: &quot;/workspace&quot;,
+            &quot;filesystem&quot;: &quot;xfs&quot;
+          }
+        ]
+      }
+    }
+  ],
+  &quot;originalDesignEvidence&quot;: {
+    &quot;bundlePath&quot;: &quot;C:\\Users\\skunpojt\\Downloads\\dsh_transcripts_bundle (1).zip&quot;,
+    &quot;bundleSHA256&quot;: &quot;374dd96b377dbc987f4d769c85f4b63d27fa7135e678565964f86bd540afac38&quot;,
+    &quot;entry&quot;: &quot;dsh_transcripts/1_ANTIGRAVITY_DSH_ENGINEERING_SESSION/transcript_full.jsonl&quot;,
+    &quot;rawLine&quot;: 24,
+    &quot;step&quot;: 23,
+    &quot;recordType&quot;: &quot;GENERIC&quot;,
+    &quot;recordDateUTC&quot;: &quot;2026-10-12T02:07:39Z&quot;,
+    &quot;provenance&quot;: &quot;Raw engineering export contains a retrieved prior user request labelled Turn 6078; not the original September session file&quot;,
+    &quot;quotedUserRequest&quot;: &quot;no, the design is that dsh could access cifs workspace on for the dsh folder and for dsh2 no access to cifs at all&quot;,
+    &quot;quotedOriginalTimeICT&quot;: &quot;2026-09-24T17:55:27+07:00&quot;
+  },
+  &quot;folderNameReview&quot;: {
+    &quot;exactDshVolumeHitsInProvidedBundle&quot;: 0,
+    &quot;verifiedLegacyFolder&quot;: &quot;dsh_storage&quot;,
+    &quot;confirmedUserSuppliedUNCAtEngineeringStep59&quot;: true
+  },
+  &quot;sessionMetadataReview&quot;: {
+    &quot;source&quot;: &quot;Actual internal /api/session/list response and filesystem access checks during this review&quot;,
+    &quot;listedRecords&quot;: 80,
+    &quot;recordsWithReadableWorkspacePath&quot;: 37,
+    &quot;recordsRetainingInaccessibleRootPaths&quot;: 43,
+    &quot;allSessionToolResumptionTested&quot;: false,
+    &quot;sessionBodiesExported&quot;: false,
+    &quot;pathChecks&quot;: [
+      {
+        &quot;group&quot;: &quot;workspace&quot;,
+        &quot;records&quot;: 8,
+        &quot;readable&quot;: true
+      },
+      {
+        &quot;group&quot;: &quot;legacy-root&quot;,
+        &quot;records&quot;: 1,
+        &quot;readable&quot;: false
+      },
+      {
+        &quot;group&quot;: &quot;legacy-root&quot;,
+        &quot;records&quot;: 1,
+        &quot;readable&quot;: false
+      },
+      {
+        &quot;group&quot;: &quot;legacy-root&quot;,
+        &quot;records&quot;: 2,
+        &quot;readable&quot;: false
+      },
+      {
+        &quot;group&quot;: &quot;legacy-root&quot;,
+        &quot;records&quot;: 1,
+        &quot;readable&quot;: false
+      },
+      {
+        &quot;group&quot;: &quot;legacy-root&quot;,
+        &quot;records&quot;: 7,
+        &quot;readable&quot;: false
+      },
+      {
+        &quot;group&quot;: &quot;legacy-root&quot;,
+        &quot;records&quot;: 3,
+        &quot;readable&quot;: false
+      },
+      {
+        &quot;group&quot;: &quot;workspace&quot;,
+        &quot;records&quot;: 11,
+        &quot;readable&quot;: true
+      },
+      {
+        &quot;group&quot;: &quot;legacy-root&quot;,
+        &quot;records&quot;: 22,
+        &quot;readable&quot;: false
+      },
+      {
+        &quot;group&quot;: &quot;workspace&quot;,
+        &quot;records&quot;: 4,
+        &quot;readable&quot;: true
+      },
+      {
+        &quot;group&quot;: &quot;workspace&quot;,
+        &quot;records&quot;: 5,
+        &quot;readable&quot;: true
+      },
+      {
+        &quot;group&quot;: &quot;workspace&quot;,
+        &quot;records&quot;: 9,
+        &quot;readable&quot;: true
+      },
+      {
+        &quot;group&quot;: &quot;legacy-root&quot;,
+        &quot;records&quot;: 6,
+        &quot;readable&quot;: false
+      }
+    ],
+    &quot;cwdPathGroups&quot;: {
+      &quot;/root or descendants&quot;: 43,
+      &quot;/workspace descendants&quot;: 37
+    },
+    &quot;exampleReadablePath&quot;: &quot;/workspace/dsh_storage/workspaces/Spark&quot;,
+    &quot;exampleInaccessiblePath&quot;: &quot;/root/Spark&quot;,
+    &quot;privatePathDetailsRetainedLocally&quot;: true
+  },
+  &quot;legacyStateMirror&quot;: {
+    &quot;source&quot;: &quot;k8s/deployment.yaml&quot;,
+    &quot;runtimeState&quot;: &quot;/root/.dsh&quot;,
+    &quot;centralMirror&quot;: &quot;/workspace/dsh_storage&quot;,
+    &quot;backgroundIntervalSeconds&quot;: 15,
+    &quot;preStopConfigured&quot;: true,
+    &quot;continuousMirrorInNewPools&quot;: false,
+    &quot;zeroLossGuaranteeEstablished&quot;: false
+  },
+  &quot;centralHistoryBaseline&quot;: {
+    &quot;path&quot;: &quot;//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation/dsh-storage-recovery/20261015142136/secure-state-history.tar.gz&quot;,
+    &quot;role&quot;: &quot;Point-in-time baseline only; not the active state directory or continuous mirror&quot;
+  }
+}
+</pre></details><details id="evidence-central-workspace-live-20261015-json"><summary>central-workspace-live-20261015.json</summary><pre>{
   &quot;phase&quot;: &quot;CENTRAL_RECONCILIATION_AND_RESTORE_OK&quot;,
   &quot;sourceFiles&quot;: 2651,
   &quot;unchanged&quot;: 2651,
@@ -1122,7 +1362,7 @@ environment routing and session stickiness tests passed
 routing checks completed
 per-user routing, spoof resistance, missing-runtime denial, registration denial and stickiness tests passed
 </pre></details><details id="evidence-html-verification-20261015-json"><summary>html-verification-20261015.json</summary><pre>{
-  &quot;time&quot;: &quot;2026-10-15T14:35:58.289Z&quot;,
+  &quot;time&quot;: &quot;2026-10-15T14:47:36.992Z&quot;,
   &quot;renderedDiagrams&quot;: 3,
   &quot;initialNodesUnclipped&quot;: true,
   &quot;externalResourceRequests&quot;: 0,

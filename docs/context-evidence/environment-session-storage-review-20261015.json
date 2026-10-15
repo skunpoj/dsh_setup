@@ -1,0 +1,204 @@
+{
+  "timeICT": "2026-10-15T21:45:32.990225+07:00",
+  "scope": "Read-only review; no mounts, files, session records or accounts changed",
+  "environments": [
+    {
+      "deployment": "dsh-secure",
+      "available": 1,
+      "mounts": [
+        {
+          "path": "/state",
+          "subPath": null,
+          "claim": "dsh-secure-state"
+        },
+        {
+          "path": "/workspace",
+          "subPath": "dsh",
+          "claim": "dsh-da-workspace-secure"
+        },
+        {
+          "path": "/packages/approved",
+          "subPath": null,
+          "claim": "dsh-package-approved"
+        },
+        {
+          "path": "/runtime-tokens",
+          "subPath": null,
+          "claim": "dsh-secure-token"
+        }
+      ],
+      "actualRuntime": {
+        "home": "/home/dsh",
+        "dshHome": "/home/dsh/.dsh",
+        "dshHomeResolved": "/state",
+        "mounts": [
+          {
+            "source": "/dev/mapper/data-f0512ccb--f23d--4e41--9578--7bb17cad8ebd",
+            "path": "/state",
+            "filesystem": "xfs"
+          },
+          {
+            "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+            "path": "/workspace",
+            "filesystem": "cifs"
+          }
+        ]
+      }
+    },
+    {
+      "deployment": "dsh-internet",
+      "available": 1,
+      "mounts": [
+        {
+          "path": "/state",
+          "subPath": null,
+          "claim": "dsh-internet-state"
+        },
+        {
+          "path": "/workspace",
+          "subPath": null,
+          "claim": "dsh-internet-staging"
+        },
+        {
+          "path": "/packages/incoming",
+          "subPath": null,
+          "claim": "dsh-package-incoming"
+        },
+        {
+          "path": "/runtime-tokens",
+          "subPath": null,
+          "claim": "dsh-internet-token"
+        }
+      ],
+      "actualRuntime": {
+        "home": "/home/dsh",
+        "dshHome": "/home/dsh/.dsh",
+        "dshHomeResolved": "/state",
+        "mounts": [
+          {
+            "source": "/dev/mapper/data-278484d5--112f--4c5e--887f--887ca3dd9b05",
+            "path": "/state",
+            "filesystem": "xfs"
+          },
+          {
+            "source": "/dev/mapper/data-b54ccd54--667d--44b2--a4d5--bcbc19c66df0",
+            "path": "/workspace",
+            "filesystem": "xfs"
+          }
+        ]
+      }
+    }
+  ],
+  "originalDesignEvidence": {
+    "bundlePath": "C:\\Users\\skunpojt\\Downloads\\dsh_transcripts_bundle (1).zip",
+    "bundleSHA256": "374dd96b377dbc987f4d769c85f4b63d27fa7135e678565964f86bd540afac38",
+    "entry": "dsh_transcripts/1_ANTIGRAVITY_DSH_ENGINEERING_SESSION/transcript_full.jsonl",
+    "rawLine": 24,
+    "step": 23,
+    "recordType": "GENERIC",
+    "recordDateUTC": "2026-10-12T02:07:39Z",
+    "provenance": "Raw engineering export contains a retrieved prior user request labelled Turn 6078; not the original September session file",
+    "quotedUserRequest": "no, the design is that dsh could access cifs workspace on for the dsh folder and for dsh2 no access to cifs at all",
+    "quotedOriginalTimeICT": "2026-09-24T17:55:27+07:00"
+  },
+  "folderNameReview": {
+    "exactDshVolumeHitsInProvidedBundle": 0,
+    "verifiedLegacyFolder": "dsh_storage",
+    "confirmedUserSuppliedUNCAtEngineeringStep59": true
+  },
+  "sessionMetadataReview": {
+    "source": "Actual internal /api/session/list response and filesystem access checks during this review",
+    "listedRecords": 80,
+    "recordsWithReadableWorkspacePath": 37,
+    "recordsRetainingInaccessibleRootPaths": 43,
+    "allSessionToolResumptionTested": false,
+    "sessionBodiesExported": false,
+    "pathChecks": [
+      {
+        "group": "workspace",
+        "records": 8,
+        "readable": true
+      },
+      {
+        "group": "legacy-root",
+        "records": 1,
+        "readable": false
+      },
+      {
+        "group": "legacy-root",
+        "records": 1,
+        "readable": false
+      },
+      {
+        "group": "legacy-root",
+        "records": 2,
+        "readable": false
+      },
+      {
+        "group": "legacy-root",
+        "records": 1,
+        "readable": false
+      },
+      {
+        "group": "legacy-root",
+        "records": 7,
+        "readable": false
+      },
+      {
+        "group": "legacy-root",
+        "records": 3,
+        "readable": false
+      },
+      {
+        "group": "workspace",
+        "records": 11,
+        "readable": true
+      },
+      {
+        "group": "legacy-root",
+        "records": 22,
+        "readable": false
+      },
+      {
+        "group": "workspace",
+        "records": 4,
+        "readable": true
+      },
+      {
+        "group": "workspace",
+        "records": 5,
+        "readable": true
+      },
+      {
+        "group": "workspace",
+        "records": 9,
+        "readable": true
+      },
+      {
+        "group": "legacy-root",
+        "records": 6,
+        "readable": false
+      }
+    ],
+    "cwdPathGroups": {
+      "/root or descendants": 43,
+      "/workspace descendants": 37
+    },
+    "exampleReadablePath": "/workspace/dsh_storage/workspaces/Spark",
+    "exampleInaccessiblePath": "/root/Spark",
+    "privatePathDetailsRetainedLocally": true
+  },
+  "legacyStateMirror": {
+    "source": "k8s/deployment.yaml",
+    "runtimeState": "/root/.dsh",
+    "centralMirror": "/workspace/dsh_storage",
+    "backgroundIntervalSeconds": 15,
+    "preStopConfigured": true,
+    "continuousMirrorInNewPools": false,
+    "zeroLossGuaranteeEstablished": false
+  },
+  "centralHistoryBaseline": {
+    "path": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation/dsh-storage-recovery/20261015142136/secure-state-history.tar.gz",
+    "role": "Point-in-time baseline only; not the active state directory or continuous mirror"
+  }
+}
