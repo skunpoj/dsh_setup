@@ -1,14 +1,14 @@
 FROM node:22-bookworm-slim
 
 ARG DSH_VERSION=0.2.0-rc.2
-ARG TTYD_VERSION=1.7.7
-
 RUN apt-get update \
  && apt-get install -y --no-install-recommends bash ca-certificates curl git jq openssl procps python3 python3-pip python3-venv socat \
  && npm install -g --ignore-scripts "@deepseek-ai/dsh@${DSH_VERSION}" \
- && curl -fsSL -o /usr/local/bin/ttyd "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.x86_64" \
- && chmod 0755 /usr/local/bin/ttyd \
  && rm -rf /var/lib/apt/lists/* /root/.npm
+
+COPY vendor/ttyd /usr/local/bin/ttyd
+RUN chmod 0755 /usr/local/bin/ttyd \
+ && echo "8a217c968aba172e0dbf3f34447218dc015bc4d5e59bf51db2f2cd12b7be4f55  /usr/local/bin/ttyd" | sha256sum -c -
 
 RUN groupadd --gid 10001 dsh \
  && useradd --uid 10001 --gid 10001 --create-home --home-dir /home/dsh dsh
