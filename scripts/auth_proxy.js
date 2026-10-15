@@ -4,7 +4,11 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 const PROXY_PORT = Number(process.env.PORT || 3080);
-const DSH_TARGET_PORT = Number(process.env.DSH_PORT || 3081);
+// Kubernetes may inject DSH_PORT=tcp://<service-ip>:3080 for the Service named
+// "dsh". Accept only an explicitly numeric port and otherwise use the internal
+// DSH web port, avoiding an invalid 127.0.0.1:NaN proxy target.
+const requestedDshPort = process.env.DSH_TARGET_PORT || process.env.DSH_PORT || '';
+const DSH_TARGET_PORT = /^\d+$/.test(requestedDshPort) ? Number(requestedDshPort) : 3081;
 const DSH_TARGET_HOST = process.env.DSH_HOST || '127.0.0.1';
 const USER_ROOT = process.env.WORKSPACE_ROOT || '/workspace/users';
 const USER_STORE_PATH = process.env.DSH_USER_STORE_PATH || `${USER_ROOT}/.user_auth.json`;

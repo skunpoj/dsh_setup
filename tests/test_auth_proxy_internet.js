@@ -55,7 +55,8 @@ async function waitReady(port) {
   const proxyPort = 39080;
   await listen(backend, backendPort);
   const proxy = spawn(process.execPath, [path.join(__dirname, '..', 'scripts', 'auth_proxy.js')], {
-    env: { ...process.env, PORT: String(proxyPort), DSH_PORT: String(backendPort), DSH_USER_STORE_PATH: users,
+    env: { ...process.env, PORT: String(proxyPort), DSH_TARGET_PORT: String(backendPort),
+      DSH_PORT: 'tcp://10.43.76.59:3080', DSH_USER_STORE_PATH: users,
       DSH_USER_SETTINGS_PATH: settings, WORKSPACE_ROOT: root, DSH_COOKIE_NAME: 'test_auth' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
