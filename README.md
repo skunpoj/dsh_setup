@@ -113,7 +113,7 @@ Prerequisites are Kubernetes access to namespace `llm`, the immutable DSH runtim
    kubectl apply -f k8s/dsh-package-promotion.yaml
    ```
 
-4. Route the public DSH ingress to service `dsh-environment-gateway` on port `3080`. Use `k8s/dsh-auth-migration.yaml` only during a controlled migration of approved legacy authentication/workspace data.
+4. Route the public DSH ingress to service `dsh-environment-gateway` on port `3080`. Use `k8s/dsh-auth-migration.yaml` only during a controlled migration of approved legacy authentication, workspace, and DSH session/history state.
 5. Wait for `dsh-secure`, `dsh-internet`, and `dsh-environment-gateway` to become Available. Verify login and logout, Secure-default selection, Internet selection, session pinning, terminal and application proxying, restart persistence, Secure egress denial, Internet egress, shared inference, and checksum-gated package promotion before scaling down the rollback deployment.
 
 Detailed policy, package-transfer, migration, rollback, and upstream-sync procedures are in [UPSTREAM_SYNC_AND_INTERNET_POLICY.md](docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md) and [OPERATIONS_AND_TROUBLESHOOTING_MANUAL.md](docs/OPERATIONS_AND_TROUBLESHOOTING_MANUAL.md).
