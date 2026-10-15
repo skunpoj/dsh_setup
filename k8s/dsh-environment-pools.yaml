@@ -114,6 +114,7 @@ spec:
     spec:
       securityContext:
         fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: dsh
           image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime:0.2.0-rc.2-env-routing
@@ -176,6 +177,7 @@ spec:
     spec:
       securityContext:
         fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: dsh
           image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime:0.2.0-rc.2-env-routing
