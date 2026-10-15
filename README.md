@@ -5,7 +5,6 @@
 [![Python](https://img.shields.io/badge/Python-3.12%20%2B%20Pip-3776AB?logo=python&logoColor=white)](https://python.org/)
 [![Terminal](https://img.shields.io/badge/Terminal-ttyd%201.7.7-blue)](https://github.com/tsl0922/ttyd)
 [![Default Model](https://img.shields.io/badge/Default%20Model-DeepSeek--V4.1--Flash%20(128K)-10B981)](https://github.com/deepseek-ai)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 Production-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with authenticated, session-sticky routing to two execution environments.
 
@@ -38,6 +37,58 @@ The deployment uses **one gateway plus separate Secure and Internet CPU/RAM exec
 - separate workspaces and state preserve the network and data boundary without duplicating the GPU model;
 - the approved package cache supports Internet-assisted dependency installation without giving Secure direct access to public repositories; and
 - session pinning makes the selected environment consistent for browser, terminal, tools, and application-proxy traffic.
+
+### Security architecture and trust boundaries
+
+The security boundary is the **execution environment**, not an individual browser control and not an individual DSH user. Public HTTPS traffic terminates at the cluster ingress and reaches only `dsh-environment-gateway`. The gateway authenticates the user, creates an `HttpOnly; SameSite=Lax` session cookie, records the selected environment, and routes all HTTP, WebSocket, terminal, and dynamic application traffic to the same backend for the lifetime of that login session. Secure is selected when the client omits or supplies an invalid environment value, so the routing decision fails to the restricted environment.
+
+| Boundary | Enforcement | Security effect |
+| --- | --- | --- |
+| Public client to gateway | Kubernetes Ingress, gateway authentication, session cookie, trusted-host handling | Unauthenticated requests do not reach either DSH execution pool |
+| Gateway to execution pool | Session-sticky backend selection plus `dsh-environment-pool-ingress` NetworkPolicy | Only the gateway can initiate connections to pool ports `1024-65535` |
+| Secure outbound traffic | Pod label `egress-mode: offline` plus `dsh-offline-egress` NetworkPolicy | Allows DNS and LiteLLM TCP `4000`; denies general Internet egress when the cluster CNI enforces NetworkPolicy |
+| Internet outbound traffic | Pod label `egress-mode: online` plus `dsh-online-egress` NetworkPolicy | Permits outbound traffic for explicitly selected Internet sessions |
+| Model access | LiteLLM API key from Kubernetes Secret and internal service URL | Both pools share inference without receiving a separate GPU deployment |
+| Dependency transfer | Separate incoming and approved PVCs, operator manifest, SHA-256 verification, suspended promotion Job | Internet can submit artifacts but cannot approve them or write the Secure-mounted cache |
+
+Secure/Internal is therefore **restricted-egress**, not air-gapped. It remains connected to cluster DNS, LiteLLM, the gateway through allowed inbound traffic, Kubernetes-provided storage, and other infrastructure needed to run the service. A true air gap would require a physically or administratively disconnected platform and an offline media-transfer process.
+
+### Data isolation and environment interaction
+
+The pools never mount the same writable workspace or DSH runtime state:
+
+| Data class | Secure / Internal | Internet | Shared? |
+| --- | --- | --- | --- |
+| Project workspace | `dsh-secure-workspace` at `/workspace` | `dsh-internet-staging` at `/workspace` | No |
+| Sessions, storages, and attachments | `dsh-secure-state` at `/state` | `dsh-internet-state` at `/state` | No |
+| DSH launch token | `dsh-secure-token` | `dsh-internet-token` | No; gateway mounts each token volume read-only |
+| Login identities and environment preference | Gateway-owned `dsh-auth-state` | Gateway-owned `dsh-auth-state` | Yes, at the gateway only |
+| Downloaded package candidates | Not mounted | `dsh-package-incoming` read/write | No |
+| Approved dependency cache | `dsh-package-approved` read-only | Not mounted | No direct sharing; the promotion Job is the only bridge |
+| LiteLLM/GPU inference | Internal LiteLLM service | Internal LiteLLM service | Yes |
+
+Selecting Internet does not expose the Secure workspace, history, attachments, credentials, or launch token to the Internet pod. Selecting Secure does not expose the Internet staging workspace. Moving a project or data set between environments is a separate, operator-approved copy operation; it is not performed automatically when a user logs out or selects another environment. Session history also remains with the environment in which it was created.
+
+Package transfer is deliberately one-way and mediated. The Internet pool writes candidates only to `incoming`. The promotion Job reads `incoming` and an operator-maintained approval manifest, rejects absolute paths, parent-path traversal, missing files, extra manifest fields, empty approvals, and SHA-256 mismatches, then writes approved files with mode `0444`. Secure mounts only that approved result and forces Python and npm to resolve in offline mode. Application data must never use this package path as a general file-transfer channel.
+
+### Permission model
+
+- **End user:** may authenticate, choose Secure or Internet for a new login session, and use DSH, terminal, tools, and proxied applications inside the selected environment. The user cannot change the environment of an existing authenticated session.
+- **Gateway:** may read and update the central login store and environment preference, read each pool's launch token, and proxy authenticated traffic. It does not mount either workspace or either DSH state volume.
+- **Secure and Internet runtimes:** may write only their own workspace, state, and token volumes. Secure can read the approved cache; Internet can write the incoming cache. Neither runtime mounts the other environment's data volumes.
+- **Package approver/operator:** reviews artifact origin and hashes, updates `dsh-package-approval`, and explicitly resumes the suspended promotion Job. Downloading a package does not grant approval.
+- **Kubernetes/platform administrator:** provisions Secrets and storage, pins the immutable image digest, applies NetworkPolicies, controls ingress, performs approved migrations, and retains rollback authority.
+- **Model service:** is shared infrastructure reached through LiteLLM. The runtime receives its LiteLLM credential from `dsh-runtime-secrets`; secret values are not stored in this repository.
+
+The current gateway uses a persistent local JSON credential store and in-memory login sessions. This is an application authentication mechanism, not corporate SSO, Kubernetes RBAC, or a hardware-backed identity boundary. Protect and back up the authentication PVC, restrict administrative access, rotate exposed credentials, and use an approved identity provider or a password-hashing migration before treating it as an enterprise identity authority.
+
+### Execution containment
+
+Both DSH pools and the package promotion Job run as Linux UID/GID `10001`, require `runAsNonRoot`, disable privilege escalation, and drop all Linux capabilities. Each DSH container is limited to 4 CPU and 8 GiB memory, with readiness and liveness probes preventing an unready process from receiving gateway traffic. Images are pinned by digest so a deployment cannot silently move to different bytes under the same tag.
+
+NetworkPolicy and volume mounts provide environment-level containment, but the DSH runtime remains an interactive development environment. Users can execute shell commands and code inside the selected pool. The current manifests do not set a read-only root filesystem, a dedicated seccomp profile, or one pod/PVC per human identity. Multiple authenticated users routed to the same environment share that environment's DSH process and mounted files, so this design **does not provide hostile-user isolation inside one pool**. Use dedicated per-user pods/PVCs, stronger runtime sandboxing, quotas, and corporate identity integration if users must be mutually untrusted.
+
+Network enforcement also depends on a Kubernetes CNI that implements NetworkPolicy. Validate the effective policies after every cluster or CNI change with an actual denied Secure egress request, an allowed LiteLLM request, an allowed Internet request, and a check that neither pod contains the other environment's mounts. A successful manifest apply alone is not proof of containment.
 
 ### Current Production deployment
 
@@ -143,8 +194,8 @@ The diagram below describes the earlier deployment retained only as rollback con
 ### 4. Enterprise Web Authentication & Session Gate
 - **No CLI Token Hassle**: Users authenticate via the Web Login Portal at `/login`.
 - **Self-Service Onboarding**:
-  - **Sign In**: Authenticates against salted SHA-256 credentials in `/workspace/users/.user_auth.json`.
-  - **Create Account**: Instantly provisions an isolated home workspace at `/workspace/users/<username>/`.
+  - **Sign In**: Authenticates through the gateway's persistent local credential store. See the security-boundary limitations above; the current store is not corporate SSO and should be migrated to approved password hashing or an enterprise identity provider.
+  - **Create Account**: Adds an identity to the gateway's persistent credential store. It does not provision a dedicated pod or isolated per-user workspace; authenticated users share the selected environment's execution boundary.
   - **Change Password**: Secure in-place password modification.
 - **Token Capture & Reverse Proxy Invariant**: Automatically intercepts the one-time DSH launch token on container boot, mints authority-bound session cookies, and injects credentials into downstream REST calls (e.g., `/api/directoryPicker/list`), eliminating HTTP 401/403 remote proxy issues.
 
