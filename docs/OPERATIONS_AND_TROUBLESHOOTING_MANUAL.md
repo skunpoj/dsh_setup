@@ -1,3 +1,5 @@
+> **Legacy manual notice — 15 October 2026:** the CIFS/rootfs diagrams and startup procedures below describe the legacy deployment, not the current Secure/Internet pools. They do not prove zero data loss or per-user isolation. Use [the current walkthrough](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) and [storage guide](MULTI_TENANT_STORAGE_AND_PERSISTENCE.md) as current authority.
+
 # DeepSeek Harness (DSH) Operations & Troubleshooting Manual
 
 > **Authoritative Enterprise Operations, Administration & User Manual**  
@@ -375,7 +377,7 @@ To safely restart DSH without data loss:
 kubectl rollout restart deployment/dsh -n llm
 kubectl rollout status deployment/dsh -n llm
 ```
-*The `preStop` hook automatically guarantees all unsaved chat turns are committed to CIFS storage before the old pod terminates.*
+*The `preStop` hook attempts a legacy CIFS flush; it is not a zero-loss guarantee and is absent from the new pools.*
 
 ### 6.2 Manual Data Synchronization Trigger
 To trigger an immediate forced sync from local memory/rootfs to CIFS storage:

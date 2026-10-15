@@ -26,7 +26,7 @@ The upstream interval changes thousands of files and includes Session v4 persist
 
 ## Synchronization procedure
 
-1. Record the deployed package version, running image digest, ConfigMap hash, and a backup of `/workspace/dsh_storage`.
+1. Record the deployed package version, running image digest, ConfigMap hash, and coherent backups of the current `/state` and `/workspace` volumes (legacy `/workspace/dsh_storage` separately).
 2. Fetch official upstream tags into a separate checkout. Never merge upstream source into this deployment repository.
 3. Compare the next published tag with the pinned baseline. Review Session format and upgrade guides first, followed by every package file currently modified by `configure_models.js`.
 4. Build a candidate image that already contains the selected DSH package and operating-system dependencies. Do not depend on network package installation during pod startup.
@@ -36,10 +36,10 @@ The upstream interval changes thousands of files and includes Session v4 persist
 
 ## Working-environment selection on the login page
 
-The enterprise login page provides `Secure / Internal` and `Internet`, with `Secure / Internal` selected initially. The wire values remain `off` and `on` for compatibility. On successful login the gateway:
+The enterprise login page provides `No Internet / Internal` and `Internet`, with `No Internet / Internal` selected initially. The wire values remain `off` and `on` for compatibility. On successful login the gateway:
 
 - validates the credential before accepting the selection;
-- stores the user's most recent selection in `/workspace/users/.user_settings.json` with mode `0600`;
+- stores the user's most recent selection in `/auth/.user_settings.json` in the environment gateway with mode `0600`;
 - binds the selection to the new in-memory authenticated session;
 - exposes the authenticated result at `GET /api/auth/session`; and
 - forwards `X-DSH-Internet-Access: off|on` and `X-DSH-User` to the DSH Web service.
@@ -54,7 +54,7 @@ The repository includes a prebuilt runtime image and two execution pools behind 
 - an online pool with the approved outbound policy; and
 - routing that binds each authenticated Session to exactly one pool for its lifetime;
 - separate RWO state volumes, so live DSH session files are never written concurrently by both pools;
-- the existing protected workspace mounted only by the Secure pool; and
+- a separate protected local workspace mounted only by the Secure pool; central DA_WORKSPACE persistence remains to be restored; and
 - a separate staging PVC mounted by the Internet pool.
 
 `Dockerfile` bakes the DSH package, Node, Python, terminal and operating-system dependencies into the image. `container/start-dsh.sh` starts without package installation, keeps each pool's state on its own PVC and publishes its process token to the gateway through the restricted routing-token directory. `k8s/dsh-environment-pools.yaml` and `k8s/dsh-environment-gateway.yaml` define the runtime.
