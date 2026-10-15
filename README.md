@@ -7,15 +7,65 @@
 [![Default Model](https://img.shields.io/badge/Default%20Model-DeepSeek--V4.1--Flash%20(128K)-10B981)](https://github.com/deepseek-ai)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kubernetes. It uses an authenticated gateway and two separate execution pools: **Secure / Internal** by default and **Internet** when explicitly selected for the login session. The pools have separate writable state and workspaces while sharing only the LiteLLM/GPU inference service and the operator-approved package promotion path.
+Production-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with authenticated, session-sticky routing to two execution environments.
 
-## Current Production deployment
+## Features, design decision, rationale, and setup
+
+### Available environments and features
+
+| Environment | Network access | Writable workspace and state | Intended use |
+| --- | --- | --- | --- |
+| **Secure / Internal (default)** | Restricted egress: cluster DNS and approved in-cluster services such as LiteLLM only | Dedicated Secure workspace, session storage, runtime state, and launch token | Work involving protected internal data |
+| **Internet** | General Internet egress enabled | Separate staging workspace, session storage, runtime state, and launch token | Downloading dependencies and work that explicitly requires Internet access |
+
+The login page selects the working environment. The authenticated session is pinned to that environment for HTTP, WebSocket, terminal, and proxied application traffic. Both environments use the same authentication gateway and shared LiteLLM/GPU inference service, while their writable data and runtime volumes remain separate. **Secure / Internal is a restricted-egress environment, not a strict air gap**, because it still communicates with approved internal cluster services.
+
+Dependencies cross the boundary through a controlled package workflow rather than a shared writable workspace:
+
+1. Internet downloads Python or npm artifacts into `/packages/incoming`.
+2. An operator supplies a manifest containing the expected SHA-256 hashes and runs the suspended promotion Job.
+3. The Job rejects unsafe paths, missing files, and hash mismatches before copying approved artifacts to `/packages/approved`.
+4. Secure mounts `/packages/approved` read-only and installs in offline mode. Internet cannot mount the approved cache or the Secure workspace.
+
+Other included features are the interactive web terminal, authenticated dynamic application proxy, persistent sessions and attachments, enterprise CA support, readiness-gated startup, and a DeepSeek-V4.1-Flash path aligned to a 131,072-token total context window with an 8,192-token output ceiling.
+
+### Design decision and reason
+
+The deployment uses **one gateway plus separate Secure and Internet CPU/RAM execution pools**, while keeping the expensive LiteLLM and four-GPU model service shared. This design was selected because:
+
+- a UI-only Internet switch cannot enforce network policy inside one shared pod;
+- mounting one writable workspace in both environments would let an Internet-capable process read protected data and could corrupt sessions through concurrent writers;
+- separate workspaces and state preserve the network and data boundary without duplicating the GPU model;
+- the approved package cache supports Internet-assisted dependency installation without giving Secure direct access to public repositories; and
+- session pinning makes the selected environment consistent for browser, terminal, tools, and application-proxy traffic.
+
+### Current Production deployment
 
 - Public DSH ingress routes through `dsh-environment-gateway`.
 - Secure and Internet pools run immutable image digest `sha256:d3a300605a87aa63ec4a2588f827658a132407ff17908ba49403fa7cca8d261a`, built by Azure build `62647` from GPU infrastructure commit `f55f439659aa6946b60b1189df90bc76062821d6`.
-- Secure egress permits cluster DNS and the in-cluster LiteLLM service only. Internet egress is enabled.
+- Secure egress permits cluster DNS and the in-cluster LiteLLM service only; Internet egress is enabled.
 - Authentication is shared at the gateway; pool state, session storage, workspace, launch token, and package directories are separate.
-- DeepSeek-V4.1-Flash, LiteLLM, and the DSH catalog are aligned to a 131,072-token total context window with an 8,192-token output ceiling.
+- DeepSeek-V4.1-Flash, LiteLLM, and the DSH catalog use the verified 131,072-token guardrail.
+
+### Setup method
+
+Prerequisites are Kubernetes access to namespace `llm`, the immutable DSH runtime image in the approved registry, the existing LiteLLM service, a compatible default StorageClass, and `dsh-runtime-secrets` provisioned through the approved secret-management process with key `litellm-api-key`. Do not place secret values in Git or shell history.
+
+1. Build and verify the immutable runtime image with `azure-pipelines.yml`. Pin its digest in `k8s/dsh-environment-pools.yaml` and `k8s/dsh-environment-gateway.yaml`.
+2. Review host names, service names, storage sizes, and the NetworkPolicy namespace selectors for the target cluster.
+3. Apply the execution pools, gateway, egress policies, and suspended package-promotion Job:
+
+   ```bash
+   kubectl apply -f k8s/dsh-environment-pools.yaml
+   kubectl apply -f k8s/dsh-environment-gateway.yaml
+   kubectl apply -f k8s/dsh-egress-policies.yaml
+   kubectl apply -f k8s/dsh-package-promotion.yaml
+   ```
+
+4. Route the public DSH ingress to service `dsh-environment-gateway` on port `3080`. Use `k8s/dsh-auth-migration.yaml` only during a controlled migration of approved legacy authentication/workspace data.
+5. Wait for `dsh-secure`, `dsh-internet`, and `dsh-environment-gateway` to become Available. Verify login and logout, Secure-default selection, Internet selection, session pinning, terminal and application proxying, restart persistence, Secure egress denial, Internet egress, shared inference, and checksum-gated package promotion before scaling down the rollback deployment.
+
+Detailed policy, package-transfer, migration, rollback, and upstream-sync procedures are in [UPSTREAM_SYNC_AND_INTERNET_POLICY.md](docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md) and [OPERATIONS_AND_TROUBLESHOOTING_MANUAL.md](docs/OPERATIONS_AND_TROUBLESHOOTING_MANUAL.md).
 
 ---
 
