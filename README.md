@@ -7,11 +7,21 @@
 [![Default Model](https://img.shields.io/badge/Default%20Model-DeepSeek--V4.1--Flash%20(128K)-10B981)](https://github.com/deepseek-ai)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kubernetes. Built on **Ubuntu 24.04 LTS (GLIBC)** with integrated multi-tenant session isolation, reverse-proxy authentication gate, dynamic application gateway, interactive web terminal, and in-cluster LLM integration.
+Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kubernetes. It uses an authenticated gateway and two separate execution pools: **Secure / Internal** by default and **Internet** when explicitly selected for the login session. The pools have separate writable state and workspaces while sharing only the LiteLLM/GPU inference service and the operator-approved package promotion path.
+
+## Current Production deployment
+
+- Public DSH ingress routes through `dsh-environment-gateway`.
+- Secure and Internet pools run immutable image digest `sha256:d3a300605a87aa63ec4a2588f827658a132407ff17908ba49403fa7cca8d261a`, built by Azure build `62647` from GPU infrastructure commit `f55f439659aa6946b60b1189df90bc76062821d6`.
+- Secure egress permits cluster DNS and the in-cluster LiteLLM service only. Internet egress is enabled.
+- Authentication is shared at the gateway; pool state, session storage, workspace, launch token, and package directories are separate.
+- DeepSeek-V4.1-Flash, LiteLLM, and the DSH catalog are aligned to a 131,072-token total context window with an 8,192-token output ceiling.
 
 ---
 
-## 🏛️ System Architecture
+## 🏛️ Legacy single-pod architecture
+
+The diagram below describes the earlier deployment retained only as rollback context. The current Production path is `Ingress -> authenticated environment gateway -> Secure or Internet pool -> shared LiteLLM -> shared GPU model`.
 
 ```
                                HTTPS / WSS Inbound Traffic
@@ -41,7 +51,7 @@ Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kuberne
 │   │  • Ubuntu 24.04 + Node 22 │ │    Terminal (ttyd)│ │  • Streamlit (8501)       │   │
 │   │  • Python 3.12 + Pip + venv││  • Port 7681      │ │  • FastAPI / Uvicorn (8000│   │
 │   │  • In-Cluster LLM Gateway │ │  • Full bash -l   │ │  • Flask / Gradio (5000)  │   │
-│   │  • DeepSeek-V4.1-Flash 1M│ │  • WebSocket stream││  • Next.js / React (3000) │   │
+│   │  • DeepSeek-V4.1-Flash 128K││  • WebSocket stream││  • Next.js / React (3000) │   │
 │   └───────────────────────────┘ └───────────────────┘ └───────────────────────────┘   │
 │                   │                       │                       │                    │
 │                   └───────────────────────┼───────────────────────┘                    │
@@ -67,7 +77,7 @@ Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kuberne
 - **Node.js 22 LTS**: Powered by official NodeSource Node.js 22 distribution.
 
 ### 2. Interactive Web Terminal (`ttyd`)
-- **Direct Web Terminal**: Integrated `ttyd` (xterm.js web terminal) bound to `127.0.0.1:7681`.
+- **Direct Web Terminal**: Integrated `ttyd` (xterm.js web terminal) on port 7681, reachable only through the authenticated gateway under the pool ingress NetworkPolicy.
 - **Full Shell Capabilities**: Spawns an interactive login bash shell (`bash -l`) with ANSI color, tab completion, nano/vim, and git.
 - **Zero-Trust Access**: Terminal port is strictly protected behind the enterprise authentication proxy.
 - **Access Routes**: Accessible via `https://<tenant>-terminal.example.com` or `https://<tenant>.example.com/proxy/terminal/`.
@@ -93,13 +103,14 @@ Production-grade, enterprise deployment of **DeepSeek Harness (DSH)** on Kuberne
 - **Default Model**: **DeepSeek-V4.1-Flash** (verified 128K gateway context window, 8,192 max output tokens).
 - **Standby Catalog**: Pre-registers `deepseek-flash`, `glm-5.3-flash`, and `qwen3.8-27b`.
 - **Token Clamping**: Automatically clamps requested `max_tokens` to model limits to prevent gateway overflow rejections.
-- **Effective Context**: The DSH profile, LiteLLM metadata and clamper, and active SGLang server are aligned to a 131,072-token total context window. Automatic compaction starts at 75% (about 786,432 tokens), with an 8,192-token output cap and a 256-token LiteLLM safety buffer.
+- **Effective Context**: The DSH profile, LiteLLM metadata and clamper, and active SGLang server are aligned to a 131,072-token total context window. Automatic compaction starts around 98,304 tokens, with an 8,192-token output cap and a 256-token LiteLLM safety buffer.
 - **Readiness-Gated Rollout**: Kubernetes publishes a DSH pod only after its internal engine listens on port 3081, preventing traffic from reaching the several-minute bootstrap phase.
 
-### 6. Multi-Tenant Workspaces & Storage Persistence
-- **Partitioned User Storage**: Each tenant works inside `/workspace/users/<username>/`.
-- **Symlink Layer**: Automatically maps `/workspace/dsh_storage/workspaces/<username>` to `/root/<username>` for transparent IDE compatibility.
-- **Background Sync Watcher**: A continuous background daemon synchronizes `/root/.dsh/.credentials.yaml`, active sessions, storages, attachments, and workspaces to the persistent volume every 15 seconds.
+### 6. Environment-isolated workspaces and persistent state
+- **Secure workspace**: Protected project data and migrated legacy history remain in the Secure pool PVC.
+- **Internet staging**: Internet sessions use a separate writable staging PVC and cannot mount the protected workspace.
+- **Controlled dependency transfer**: Internet downloads enter an incoming package area. Secure mounts only the separately promoted approved package cache as read-only.
+- **Security boundary**: The pools isolate the two network environments. This design does not claim cryptographic isolation between human accounts authenticated through the same gateway.
 
 ### 7. Enterprise Root CA & SSL Inspection Support
 - **Custom PKI Trust**: Automatically detects and registers custom enterprise CA certificates mounted into `/usr/local/share/ca-certificates/`.
