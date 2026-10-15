@@ -311,6 +311,13 @@ function setUserInternetMode(username, mode) {
   return saveUserSettings(settings);
 }
 
+function injectLogoutControl(html) {
+  if (typeof html !== 'string' || html.includes('id="dsh-enterprise-logout"')) return html;
+  const control = `<a id="dsh-enterprise-logout" href="/logout" aria-label="ออกจากระบบ (Logout)" title="ออกจากระบบ (Logout)" style="position:fixed;right:18px;top:14px;z-index:2147483647;display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(148,163,184,.42);border-radius:8px;background:rgba(15,23,42,.94);color:#f8fafc;font:600 13px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.28);backdrop-filter:blur(8px)"><span aria-hidden="true">&#x21AA;</span><span>ออกจากระบบ / Logout</span></a>`;
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}</body>`);
+  return html + control;
+}
+
 // Initialize user store if missing
 let USERS = loadUsers();
 if (!fs.existsSync(USER_STORE_PATH)) {
@@ -849,6 +856,9 @@ const server = http.createServer((req, res) => {
     proxyHeaders['host'] = clientHost;
     proxyHeaders['x-dsh-user'] = sessionUser;
     proxyHeaders['x-dsh-internet-access'] = internetMode;
+    // Request an uncompressed document so the authenticated UI can receive the
+    // enterprise logout control without modifying the upstream DSH package.
+    delete proxyHeaders['accept-encoding'];
 
     if (dshCookie) {
       const existingCookies = req.headers.cookie ? req.headers.cookie.split(';').map(c => c.trim()) : [];
@@ -867,13 +877,28 @@ const server = http.createServer((req, res) => {
     }, (proxyRes) => {
       // If upstream returns a redirect to / and we already passed a valid cookie, avoid client redirect storm
       const resHeaders = { ...proxyRes.headers };
-      if (resHeaders['content-type'] && resHeaders['content-type'].includes('text/html')) {
+      const isHtml = resHeaders['content-type'] && resHeaders['content-type'].includes('text/html');
+      if (isHtml) {
         resHeaders['cache-control'] = 'no-cache, no-store, must-revalidate';
         resHeaders['pragma'] = 'no-cache';
         resHeaders['expires'] = '0';
+        delete resHeaders['content-length'];
+        delete resHeaders['content-encoding'];
+        delete resHeaders['transfer-encoding'];
       }
-      res.writeHead(proxyRes.statusCode, resHeaders);
-      proxyRes.pipe(res);
+      if (!isHtml) {
+        res.writeHead(proxyRes.statusCode, resHeaders);
+        return proxyRes.pipe(res);
+      }
+
+      const chunks = [];
+      proxyRes.on('data', chunk => chunks.push(chunk));
+      proxyRes.on('end', () => {
+        const body = injectLogoutControl(Buffer.concat(chunks).toString('utf8'));
+        resHeaders['content-length'] = Buffer.byteLength(body);
+        res.writeHead(proxyRes.statusCode, resHeaders);
+        res.end(body);
+      });
     });
 
     proxyReq.on('error', (err) => {

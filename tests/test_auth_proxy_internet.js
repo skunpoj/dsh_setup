@@ -11,6 +11,10 @@ const settings = path.join(root, '.user_settings.json');
 fs.writeFileSync(users, JSON.stringify({ alice: 'secret1' }));
 
 const backend = http.createServer((req, res) => {
+  if (req.url === '/ui') {
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    return res.end('<!doctype html><html><body><main>DSH UI</main></body></html>');
+  }
   res.writeHead(200, { 'content-type': 'application/json' });
   res.end(JSON.stringify({
     user: req.headers['x-dsh-user'] || null,
@@ -78,6 +82,21 @@ async function waitReady(port) {
     assert.deepEqual(JSON.parse(fs.readFileSync(settings, 'utf8')).alice, { internet: 'on' });
     const forwarded = await request(proxyPort, 'GET', '/probe', '', onCookie);
     assert.deepEqual(JSON.parse(forwarded.body), { user: 'alice', internet: 'on' });
+
+    const ui = await request(proxyPort, 'GET', '/ui', '', onCookie);
+    assert.equal(ui.status, 200);
+    assert.match(ui.body, /id="dsh-enterprise-logout"/);
+    assert.match(ui.body, /href="\/logout"/);
+    assert.match(ui.body, /ออกจากระบบ \/ Logout/);
+    assert.equal((ui.body.match(/id="dsh-enterprise-logout"/g) || []).length, 1);
+
+    const logout = await request(proxyPort, 'GET', '/logout', '', onCookie);
+    assert.equal(logout.status, 302);
+    assert.equal(logout.headers.location, '/login');
+    assert.match(logout.headers['set-cookie'][0], /^test_auth=;/);
+    const afterLogout = await request(proxyPort, 'GET', '/api/auth/session', '', onCookie);
+    assert.equal(afterLogout.status, 200);
+    assert.match(afterLogout.body, /เข้าสู่ระบบ/);
     console.log('auth proxy internet policy tests passed');
   } finally {
     proxy.kill();
