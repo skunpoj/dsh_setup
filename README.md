@@ -55,6 +55,8 @@ Secure/Internal is therefore **restricted-egress**, not air-gapped. It remains c
 
 ### Data isolation and environment interaction
 
+The tested, source-only per-user extension and its controlled migration plan are documented in [PER_USER_ISOLATION.md](docs/PER_USER_ISOLATION.md). It generates a dedicated runtime and private volumes for each identity/environment pair and makes missing routes fail closed. It has not yet replaced the shared Production pools described below.
+
 The pools never mount the same writable workspace or DSH runtime state:
 
 | Data class | Secure / Internal | Internet | Shared? |

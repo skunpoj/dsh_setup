@@ -32,7 +32,29 @@ const ENVIRONMENT_TARGETS = {
   },
 };
 
-function getEnvironmentTarget(mode) {
+// Provisioned by an operator. No request header, URL, or form can choose a host.
+// Enabling isolation makes missing identities fail closed rather than share a pool.
+const USER_TARGETS = process.env.DSH_USER_TARGETS_FILE
+  ? JSON.parse(fs.readFileSync(process.env.DSH_USER_TARGETS_FILE, 'utf8')) : null;
+if (USER_TARGETS) {
+  for (const [user, targets] of Object.entries(USER_TARGETS)) {
+    if (!/^[a-z0-9_\-.]{3,30}$/.test(user)) throw new Error('Invalid provisioned identity');
+    for (const target of Object.values(targets)) {
+      if (!target || !/^[a-zA-Z0-9.-]+$/.test(target.host) ||
+          !Number.isInteger(target.port) || target.port < 1024 || target.port > 65535 ||
+          typeof target.tokenFile !== 'string' || !target.tokenFile.startsWith('/runtime-tokens/')) {
+        throw new Error('Invalid provisioned runtime target');
+      }
+    }
+  }
+}
+function getEnvironmentTarget(mode, user) {
+  if (USER_TARGETS) {
+    const environment = normalizeInternetMode(mode) === 'on' ? 'internet' : 'secure';
+    const targets = Object.prototype.hasOwnProperty.call(USER_TARGETS, user) ? USER_TARGETS[user] : null;
+    const target = targets && targets[environment];
+    return target ? { ...target, name: environment } : null;
+  }
   return ENVIRONMENT_TARGETS[normalizeInternetMode(mode)];
 }
 
@@ -680,6 +702,10 @@ const server = http.createServer((req, res) => {
 
       USERS = loadUsers();
       if (USERS[username] && USERS[username] === password) {
+        if (!getEnvironmentTarget(internet, username)) {
+          res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+          return res.end('No dedicated runtime provisioned for this identity and environment.');
+        }
         if (!setUserInternetMode(username, internet)) {
           res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
           return res.end(renderAuthPage({ tab: 'login', errorMsg: 'ไม่สามารถบันทึกนโยบาย Internet access ได้ กรุณาลองใหม่อีกครั้ง' }));
@@ -694,7 +720,7 @@ const server = http.createServer((req, res) => {
 
         console.log(`[AUTH-PROXY] Successful login for user: ${username}`);
         const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
-        const target = getEnvironmentTarget(internet);
+        const target = getEnvironmentTarget(internet, username);
         getOrMintDshCookie(clientHost, target, (err, dshCookie) => {
           const domainAttr = getCookieDomain();
           const cookieHeaders = [`${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${domainAttr}`];
@@ -718,6 +744,10 @@ const server = http.createServer((req, res) => {
 
   // Handle User Registration Form Submission
   if (req.method === 'POST' && parsedUrl.pathname === '/register') {
+    if (USER_TARGETS) {
+      res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+      return res.end('Self-registration is disabled for isolated pilot runtimes.');
+    }
     let body = '';
     req.on('data', chunk => { body += chunk; });
     req.on('end', () => {
@@ -853,7 +883,11 @@ const server = http.createServer((req, res) => {
   }
 
   const internetMode = normalizeInternetMode(activeSession && activeSession.internet);
-  const environmentTarget = getEnvironmentTarget(internetMode);
+  const environmentTarget = getEnvironmentTarget(internetMode, sessionUser);
+  if (!environmentTarget) {
+    res.writeHead(403);
+    return res.end('Dedicated runtime is not provisioned.');
+  }
 
   if (req.method === 'GET' && parsedUrl.pathname === '/api/auth/session') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -977,7 +1011,8 @@ server.on('upgrade', (req, socket, head) => {
   }
 
   const internetMode = normalizeInternetMode(activeSession && activeSession.internet);
-  const environmentTarget = getEnvironmentTarget(internetMode);
+  const environmentTarget = getEnvironmentTarget(internetMode, activeSession.user);
+  if (!environmentTarget) return socket.destroy();
 
   // Dynamic App Gateway for WebSockets (e.g. Streamlit, Vite HMR, Next.js); only reachable after login
   const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';

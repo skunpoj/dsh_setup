@@ -223,6 +223,8 @@ More critically, multiple authenticated users selecting the same environment sha
 
 ## Required actions before calling all three controls complete
 
+Implementation follow-up: [PER_USER_ISOLATION.md](PER_USER_ISOLATION.md) records the tested source extension for dedicated identity/environment routing and private runtime volumes. This is not deployed closure of the per-user control; migration and live cross-user negative tests remain required.
+
 1. Remove external model/provider routes from the Secure catalog and verify only approved internal endpoints are reachable.
 2. Provision a dedicated RDT pilot identity with read-only access to an approved, limited snapshot or database view.
 3. Mount or expose RDT source data read-only and provide a distinct writable results directory.

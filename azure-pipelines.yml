@@ -35,6 +35,7 @@ steps:
       docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image --check scripts/auth_proxy.js
       docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image tests/test_auth_proxy_internet.js
       docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image tests/test_environment_routing.js
+      docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image tests/test_user_isolation_routing.js
       ./tests/test_environment_manifests.ps1
     displayName: Verify gateway routing and deployment boundaries
 
