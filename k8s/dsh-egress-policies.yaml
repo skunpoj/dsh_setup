@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsh-offline-egress
+  namespace: llm
+spec:
+  podSelector:
+    matchLabels:
+      dsh.bot.or.th/egress-mode: offline
+  policyTypes:
+    - Egress
+  egress:
+    # Cluster DNS is required to resolve the internal LiteLLM Service.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Offline DSH may use the approved in-cluster model gateway only.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: llm
+          podSelector:
+            matchLabels:
+              app: litellm
+      ports:
+        - protocol: TCP
+          port: 4000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsh-online-egress
+  namespace: llm
+spec:
+  podSelector:
+    matchLabels:
+      dsh.bot.or.th/egress-mode: online
+  policyTypes:
+    - Egress
+  egress:
+    - {}

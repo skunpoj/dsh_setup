@@ -40,7 +40,7 @@ The enterprise login page provides `Off` and `On`, with `Off` selected when the 
 - exposes the authenticated result at `GET /api/auth/session`; and
 - forwards `X-DSH-Internet-Access: off|on` and `X-DSH-User` to the DSH Web service.
 
-This is a verified user-policy transport, not a complete egress firewall. The current DSH, terminal, and user applications share one pod network namespace, and the live namespace has no NetworkPolicy. A process in that pod can currently reach public sites regardless of the login selection. Do not describe `Off` as enforced internet isolation until the deployment separates offline and online execution into different pods or another kernel-enforced network boundary consumes the authenticated policy.
+This is a verified user-policy transport, not a complete egress firewall. The current DSH, terminal, and user applications share one pod network namespace. Calico and Kubernetes NetworkPolicy enforcement are available in the cluster, but the current Production DSH pods are deliberately not labelled into either egress pool yet. A process in those pods can therefore reach public sites regardless of the login selection. Do not describe `Off` as enforced internet isolation until the authenticated gateway routes the session to a separately labelled execution pool.
 
 ## Required enforcement architecture
 
@@ -51,3 +51,7 @@ Use two execution pools behind the authenticated gateway:
 - routing that binds each authenticated Session to exactly one pool for its lifetime.
 
 The DSH package and dependencies must be baked into an image so the offline pool can start without public package repositories. Session storage must be tested for concurrent access before both pools mount the same persistent data. Until those conditions are met, retain the login selection as policy metadata and do not deploy it as a security control.
+
+`k8s/dsh-egress-policies.yaml` defines the enforcement boundary. Pods labelled `dsh.bot.or.th/egress-mode=offline` may resolve cluster DNS and call LiteLLM on TCP 4000, while public egress is denied. Pods labelled `dsh.bot.or.th/egress-mode=online` retain egress. The policies do not select unlabeled Production pods.
+
+On 15 October 2026, `tests/test_egress_policies.ps1` was exercised against the live Calico cluster. The offline canary timed out when connecting to GitHub, returned HTTP 200 from LiteLLM liveliness, and the online canary returned HTTP 200 from GitHub. This proves policy enforcement; it does not prove that the login toggle routes a user to a pool.
