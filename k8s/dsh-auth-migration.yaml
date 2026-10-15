@@ -28,6 +28,7 @@ spec:
               (cd /source && tar --exclude=users --exclude=dsh_storage -cf - .) | (cd /workspace && tar -xf -)
               (cd /source/dsh_storage && tar -cf - .) | (cd /state && tar -xf -)
               chown -R 10001:10001 /auth /workspace /state
+              [ ! -f /state/.credentials.yaml ] || chmod 0600 /state/.credentials.yaml
               test -s /auth/.user_auth.json
               test -d /state/sessions
           securityContext:

@@ -28,6 +28,9 @@ ln -s /state "${DSH_HOME:-$HOME/.dsh}"
 if [ ! -f /state/settings.yaml ]; then
   cp -R --no-preserve=ownership,timestamps,mode /opt/dsh/seed/dsh-home/. /state/
 fi
+if [ -f /state/.credentials.yaml ]; then
+  chmod 0600 /state/.credentials.yaml
+fi
 
 ttyd -p 7681 -i 0.0.0.0 -W bash -l >/tmp/ttyd.log 2>&1 &
 socat TCP-LISTEN:3081,bind=0.0.0.0,reuseaddr,fork TCP:127.0.0.1:3080 >/tmp/dsh-bridge.log 2>&1 &
