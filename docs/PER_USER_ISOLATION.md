@@ -22,6 +22,8 @@ Runtime pods retain the existing restricted/Internet policy labels and gateway-o
 
 ## Rollout and evidence boundary
 
+RDT snapshot option: `--rdt-source-pvc APPROVED_SNAPSHOT_PVC --rdt-approval-ref OWNER_APPROVAL_REFERENCE` adds `/data/rdt` read-only to Secure runtimes only. Both options are required together. The PVC must already contain only the approved snapshot; the generator cannot determine data scope or grant database permissions. Public registration now defaults to disabled even before isolated routing is enabled.
+
 1. Confirm named pilot identities and provision their accounts administratively. Build an immutable runtime image containing the new gateway code.
 2. Generate manifests using `python scripts/generate_user_runtimes.py --users alice bob --image REGISTRY/IMAGE@sha256:DIGEST --output candidate.yaml` (requires PyYAML). These names are examples only.
 3. Review image digest, storage quotas/capacity and existing NetworkPolicies. The existing gateway Service, authentication PVC, approved package PVC and egress policies are prerequisites; the generator does not duplicate them.

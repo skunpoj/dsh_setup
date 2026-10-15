@@ -36,6 +36,9 @@ const ENVIRONMENT_TARGETS = {
 // Enabling isolation makes missing identities fail closed rather than share a pool.
 const USER_TARGETS = process.env.DSH_USER_TARGETS_FILE
   ? JSON.parse(fs.readFileSync(process.env.DSH_USER_TARGETS_FILE, 'utf8')) : null;
+// Pilot accounts are provisioned by an administrator. Isolated routing always
+// disables registration, including when a legacy opt-in variable is present.
+const ALLOW_REGISTRATION = !USER_TARGETS && process.env.DSH_ALLOW_REGISTRATION === 'true';
 if (USER_TARGETS) {
   for (const [user, targets] of Object.entries(USER_TARGETS)) {
     if (!/^[a-z0-9_\-.]{3,30}$/.test(user)) throw new Error('Invalid provisioned identity');
@@ -611,7 +614,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
 
     <div class="auth-tabs">
       <div id="tab-login" class="auth-tab ${tab === 'login' ? 'active' : ''}" onclick="switchTab('login')">เข้าสู่ระบบ</div>
-      <div id="tab-register" class="auth-tab ${tab === 'register' ? 'active' : ''}" onclick="switchTab('register')">สร้างบัญชีผู้ใช้ใหม่</div>
+      ${ALLOW_REGISTRATION ? `<div id="tab-register" class="auth-tab ${tab === 'register' ? 'active' : ''}" onclick="switchTab('register')">สร้างบัญชีผู้ใช้ใหม่</div>` : ''}
       <div id="tab-change" class="auth-tab ${tab === 'change' ? 'active' : ''}" onclick="switchTab('change')">เปลี่ยนรหัสผ่าน</div>
     </div>
 
@@ -641,7 +644,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       </form>
     </div>
 
-    <!-- 2. Form: สร้างบัญชีผู้ใช้ใหม่ -->
+    ${ALLOW_REGISTRATION ? `<!-- 2. Form: สร้างบัญชีผู้ใช้ใหม่ -->
     <div id="pane-register" class="tab-pane" style="display: ${tab === 'register' ? 'block' : 'none'};">
       <form method="POST" action="/register">
         <div class="form-group">
@@ -660,6 +663,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       </form>
     </div>
 
+    ` : ''}
     <!-- 3. Form: เปลี่ยนรหัสผ่าน -->
     <div id="pane-change" class="tab-pane" style="display: ${tab === 'change' ? 'block' : 'none'};">
       <form method="POST" action="/change-password">
@@ -744,9 +748,9 @@ const server = http.createServer((req, res) => {
 
   // Handle User Registration Form Submission
   if (req.method === 'POST' && parsedUrl.pathname === '/register') {
-    if (USER_TARGETS) {
+    if (!ALLOW_REGISTRATION) {
       res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
-      return res.end('Self-registration is disabled for isolated pilot runtimes.');
+      return res.end('Self-registration is disabled. Contact the pilot administrator.');
     }
     let body = '';
     req.on('data', chunk => { body += chunk; });

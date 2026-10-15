@@ -63,7 +63,7 @@ if (fs.existsSync(scFile)) {
     const injectedCatalog = `async function buildModelCatalog(ctx, defaultSelection) {
 	return {
 		default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
-		routableProviders: ["litellm-cluster", "deepseek-official"],
+		routableProviders: ["litellm-cluster"],
 		groups: [
 			{
 				id: "litellm-cluster",
@@ -91,24 +91,6 @@ if (fs.existsSync(scFile)) {
 						id: "qwen3.8-27b",
 						name: "Qwen3.8-27B (Cluster LiteLLM Standby)",
 						description: "Agile 27B dense reasoning model",
-						inputModalities: ["text"]
-					}
-				]
-			},
-			{
-				id: "deepseek-official",
-				name: "DeepSeek (Official)",
-				models: [
-					{
-						id: "deepseek-chat",
-						name: "DeepSeek Chat",
-						description: "Official DeepSeek Chat Model",
-						inputModalities: ["text"]
-					},
-					{
-						id: "deepseek-reasoner",
-						name: "DeepSeek Reasoner",
-						description: "Official DeepSeek Reasoner Model (R1)",
 						inputModalities: ["text"]
 					}
 				]
@@ -243,7 +225,7 @@ if (fs.existsSync(msFile)) {
 	store = (0, _deepseek_ai_dsh_client_store.createSnapshotStore)({
 		value: {
 			default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
-			routableProviders: ["litellm-cluster", "deepseek-official"],
+			routableProviders: ["litellm-cluster"],
 			groups: [
 				{
 					id: "litellm-cluster",
@@ -253,14 +235,6 @@ if (fs.existsSync(msFile)) {
 						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)", inputModalities: ["text", "image"] },
 						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", description: "Standby 4-GPU cluster model", inputModalities: ["text"] },
 						{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", description: "Agile 27B dense reasoning model", inputModalities: ["text"] }
-					]
-				},
-				{
-					id: "deepseek-official",
-					name: "DeepSeek (Official)",
-					models: [
-						{ id: "deepseek-chat", name: "DeepSeek Chat", description: "Official DeepSeek Chat Model", inputModalities: ["text"] },
-						{ id: "deepseek-reasoner", name: "DeepSeek Reasoner", description: "Official DeepSeek Reasoner Model (R1)", inputModalities: ["text"] }
 					]
 				}
 			],
@@ -327,7 +301,7 @@ if (fs.existsSync(msFile)) {
 				const projected = modelSelectionProjection(this.projected?.getSnapshot?.());
 				const catVal = catalog.value ?? {
 					default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
-					routableProviders: ["litellm-cluster", "deepseek-official"],
+					routableProviders: ["litellm-cluster"],
 					groups: [
 						{
 							id: "litellm-cluster",
@@ -337,14 +311,6 @@ if (fs.existsSync(msFile)) {
 								{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)", inputModalities: ["text", "image"] },
 								{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", description: "Standby 4-GPU cluster model", inputModalities: ["text"] },
 								{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", description: "Agile 27B dense reasoning model", inputModalities: ["text"] }
-							]
-						},
-						{
-							id: "deepseek-official",
-							name: "DeepSeek (Official)",
-							models: [
-								{ id: "deepseek-chat", name: "DeepSeek Chat", description: "Official DeepSeek Chat Model", inputModalities: ["text"] },
-								{ id: "deepseek-reasoner", name: "DeepSeek Reasoner", description: "Official DeepSeek Reasoner Model (R1)", inputModalities: ["text"] }
 							]
 						}
 					],

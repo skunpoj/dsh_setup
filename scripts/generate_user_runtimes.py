@@ -13,11 +13,15 @@ from pathlib import Path
 import yaml
 
 
-def generate(users, image):
+def generate(users, image, rdt_source_pvc=None, rdt_approval_ref=None):
     if not users or len(users) != len(set(users)):
         raise ValueError('Supply unique approved pilot identities')
     if not re.fullmatch(r'[^\s]+@sha256:[a-f0-9]{64}', image):
         raise ValueError('An immutable image digest is required')
+    if bool(rdt_source_pvc) != bool(rdt_approval_ref):
+        raise ValueError('RDT source requires both a dedicated approved snapshot PVC and owner approval reference')
+    if rdt_source_pvc and (len(rdt_source_pvc) > 253 or not re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?', rdt_source_pvc)):
+        raise ValueError('Invalid snapshot PVC name')
     root = Path(__file__).resolve().parents[1]
     templates = list(yaml.safe_load_all((root / 'k8s/dsh-environment-pools.yaml').read_text()))
     deployments = {d['metadata']['name']: d for d in templates if d['kind'] == 'Deployment'}
@@ -65,6 +69,14 @@ def generate(users, image):
                     pod['volumes'].append({'name': token_volume, 'persistentVolumeClaim': {'claimName': claim}})
                     container['volumeMounts'].append({'name': token_volume,
                         'mountPath': f'/runtime-tokens/{identity}/{environment}', 'readOnly': True})
+            # Only an explicitly approved, scope-limited snapshot belongs here.
+            # Never mount a production root or broad shared source as the snapshot.
+            if environment == 'secure' and rdt_source_pvc:
+                runtime['metadata'].setdefault('annotations', {})['dsh.bot.or.th/rdt-approval'] = rdt_approval_ref
+                runtime['spec']['volumes'].append({'name': 'rdt-source', 'persistentVolumeClaim': {
+                    'claimName': rdt_source_pvc, 'readOnly': True}})
+                runtime['spec']['containers'][0]['volumeMounts'].append({
+                    'name': 'rdt-source', 'mountPath': '/data/rdt', 'readOnly': True})
             documents.extend([deployment, {'apiVersion': 'v1', 'kind': 'Service',
                 'metadata': {'name': name, 'namespace': 'llm'},
                 'spec': {'selector': {'app': name}, 'ports': [{'name': 'web', 'port': 3081, 'targetPort': 'web'}]}}])
@@ -81,5 +93,7 @@ if __name__ == '__main__':
     parser.add_argument('--users', nargs='+', required=True)
     parser.add_argument('--image', required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--rdt-source-pvc', help='Dedicated approved read-only RDT snapshot PVC; secure runtimes only')
+    parser.add_argument('--rdt-approval-ref', help='Owner approval reference identifying snapshot scope and permitted users')
     args = parser.parse_args()
-    args.output.write_text(yaml.safe_dump_all(generate(args.users, args.image), sort_keys=False), encoding='utf-8')
+    args.output.write_text(yaml.safe_dump_all(generate(args.users, args.image, args.rdt_source_pvc, args.rdt_approval_ref), sort_keys=False), encoding='utf-8')

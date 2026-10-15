@@ -43,6 +43,25 @@ class IsolationManifests(unittest.TestCase):
         with self.assertRaises(ValueError):
             generator.generate(['alice'], 'registry/runtime:latest')
 
+    def test_approved_snapshot_is_secure_only_and_read_only(self):
+        image = 'registry/runtime@sha256:' + 'a' * 64
+        for source, approval in [('rdt-snapshot', None), (None, 'OWNER-TEST'), ('../source', 'OWNER-TEST')]:
+            with self.assertRaises(ValueError):
+                generator.generate(['alice'], image, source, approval)
+        docs = generator.generate(['alice', 'bob'], image, 'rdt-snapshot', 'OWNER-TEST')
+        for workload in (d for d in docs if d['kind'] == 'Deployment' and '-u-' in d['metadata']['name']):
+            template = workload['spec']['template']
+            volumes = [v for v in template['spec']['volumes'] if v['name'] == 'rdt-source']
+            mounts = [m for m in template['spec']['containers'][0]['volumeMounts'] if m['name'] == 'rdt-source']
+            if workload['metadata']['name'].endswith('-secure'):
+                self.assertTrue(volumes[0]['persistentVolumeClaim']['readOnly'])
+                self.assertTrue(mounts[0]['readOnly'])
+                self.assertEqual(mounts[0]['mountPath'], '/data/rdt')
+                self.assertEqual(template['metadata']['annotations']['dsh.bot.or.th/rdt-approval'], 'OWNER-TEST')
+            else:
+                self.assertFalse(volumes)
+                self.assertFalse(mounts)
+
 
 if __name__ == '__main__':
     unittest.main()

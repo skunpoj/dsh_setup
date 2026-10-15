@@ -56,6 +56,7 @@ async function waitReady(port) {
     env: {
       ...process.env,
       PORT: String(gatewayPort),
+      DSH_ALLOW_REGISTRATION: 'false',
       DSH_USER_STORE_PATH: users,
       DSH_USER_SETTINGS_PATH: path.join(root, '.user_settings.json'),
       WORKSPACE_ROOT: root,
@@ -70,6 +71,12 @@ async function waitReady(port) {
 
   try {
     await waitReady(gatewayPort);
+    const page = await request(gatewayPort, 'GET', '/login');
+    assert(!page.body.includes('id="tab-register"'));
+    assert(!page.body.includes('action="/register"'));
+    const registration = await request(gatewayPort, 'POST', '/register', 'username=mallory&password=secret1&confirm_password=secret1');
+    assert.equal(registration.status, 403);
+    assert(!JSON.parse(fs.readFileSync(users, 'utf8')).mallory);
     const offLogin = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=off');
     const offCookie = offLogin.headers['set-cookie'][0].split(';')[0];
     const offResult = JSON.parse((await request(gatewayPort, 'GET', '/probe', '', offCookie)).body);

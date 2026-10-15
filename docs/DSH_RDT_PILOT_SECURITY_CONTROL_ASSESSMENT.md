@@ -1,5 +1,7 @@
 # DSH RDT Pilot Security-Control Assessment
 
+**Later implementation update:** [Control-closure progress](RDT_CONTROL_CLOSURE_PROGRESS_20261015.md) records subsequent source hardening, local tests, current deployment readback and remaining owner inputs. The assessment below remains its original evidence snapshot; source tests are not deployed closure.
+
 **Assessment date:** 15 October 2026, 13:03 ICT  
 **Evidence boundary:** This is the 13:03 ICT assessment snapshot, retained with its observed image digest and test results. Later deployments or model-context changes do not constitute a fresh verification of these security controls. The detailed design below incorporates the README security architecture in this report; it is not a verbatim copy of the entire README.
 

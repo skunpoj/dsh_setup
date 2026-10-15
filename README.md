@@ -10,6 +10,8 @@ Production-grade deployment of **DeepSeek Harness (DSH)** on Kubernetes with aut
 
 ## Features, design decision, rationale, and setup
 
+RDT pilot acceptance is **not yet complete**. See the [current control-closure implementation and evidence](docs/RDT_CONTROL_CLOSURE_PROGRESS_20261015.md) for tested source changes, deployed boundaries and required owner inputs.
+
 ### Available environments and features
 
 | Environment | Network access | Writable workspace and state | Intended use |
