@@ -159,6 +159,11 @@ spec:
           volumeMounts:
             - { name: state, mountPath: /state }
             - { name: protected-workspace, mountPath: /workspace, subPath: dsh }
+            - { name: protected-workspace, mountPath: /state/sessions, subPath: dsh/dsh_storage/sessions }
+            - { name: protected-workspace, mountPath: /state/attachments, subPath: dsh/dsh_storage/attachments }
+            - { name: protected-workspace, mountPath: /state/storages, subPath: dsh/dsh_storage/storages }
+            - { name: protected-workspace, mountPath: /state/workspaces, subPath: dsh/dsh_storage/workspaces }
+            - { name: protected-workspace, mountPath: /state/logs, subPath: dsh/dsh_storage/logs }
             - { name: package-cache, mountPath: /packages/approved, readOnly: true }
             - { name: routing-tokens, mountPath: /runtime-tokens }
       volumes:

@@ -63,3 +63,7 @@ The user has been asked for the named pilot identities and approved RDT snapshot
 ## Rollback
 
 Retain existing shared runtime/state PVCs and the gateway manifest until private-runtime acceptance passes. A rollback must restore the saved gateway routing and image, not merge private histories into the old shared store. Reauthentication is expected after gateway replacement. The model scheduling/context configuration is outside this control-hardening change.
+
+## Current central-state correction — 15 October 2026
+
+This supersedes earlier local-only active-history statements above. Secure durable sessions, attachments, storage, workspaces and logs now mount directly from `dsh/dsh_storage` on CIFS; credentials/profiles remain local. Internet remains separate. 43 cwd headers were corrected with byte-identical conversation frames; all 80 histories have readable cwd paths. Restart, exact session-file hashes, actual terminal WebSocket execution and network probes passed within the [recorded scope](context-evidence/central-state-live-20261015.json). Use the [new operator procedure and rollback guidance](CENTRAL_STATE_RESTORATION_20261015.md). Per-user isolation and approved read-only RDT access remain open; no ownership or RDT scope was inferred.

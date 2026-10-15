@@ -1,0 +1,365 @@
+{
+  "phase": "CENTRAL_STATE_READY",
+  "sessionRecordsCorrected": 43,
+  "generationHeadersCorrected": 43,
+  "eventStreamsByteIdentical": 43,
+  "blanketHistoryReplacement": false,
+  "directories": [
+    {
+      "directory": "sessions",
+      "filesVerified": 87
+    },
+    {
+      "directory": "attachments",
+      "filesVerified": 0
+    },
+    {
+      "directory": "storages",
+      "filesVerified": 81
+    },
+    {
+      "directory": "workspaces",
+      "filesVerified": 28898
+    },
+    {
+      "directory": "logs",
+      "filesVerified": 12
+    }
+  ],
+  "activeDurableSubdirectories": [
+    "sessions",
+    "attachments",
+    "storages",
+    "workspaces",
+    "logs"
+  ],
+  "credentialsCopied": false,
+  "centralRecovery": "/workspace/.state-recovery-20261015150000",
+  "stoppedWriter": true,
+  "login_resume": {
+    "time": "2026-10-15T15:06:46.583Z",
+    "heldSessionResults": [
+      {
+        "environment": "off",
+        "status": 200,
+        "authenticatedUI": true
+      },
+      {
+        "environment": "on",
+        "status": 200,
+        "authenticatedUI": true
+      }
+    ]
+  },
+  "login_verify": {
+    "time": "2026-10-15T15:06:48.392Z",
+    "results": [
+      {
+        "environment": "off",
+        "loginStatus": 302,
+        "sessionEnvironment": "secure",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 80,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      },
+      {
+        "environment": "on",
+        "loginStatus": 302,
+        "sessionEnvironment": "internet",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 0,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      }
+    ]
+  },
+  "login_afterSecondRestart": {
+    "time": "2026-10-15T15:07:00.142Z",
+    "results": [
+      {
+        "environment": "off",
+        "loginStatus": 302,
+        "sessionEnvironment": "secure",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 80,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      },
+      {
+        "environment": "on",
+        "loginStatus": 302,
+        "sessionEnvironment": "internet",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 0,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      }
+    ]
+  },
+  "timeICT": "2026-10-15T22:17:54.742424+07:00",
+  "projectReconciliation": {
+    "sourceFiles": 28898,
+    "unchanged": 28898,
+    "copiedNew": 0,
+    "conflictsPreserved": 0,
+    "verifiedFiles": 28898,
+    "contentFailures": 0,
+    "destinationOnlyPreserved": 0,
+    "canonicalCentralProjectsAllReadBack": true,
+    "source": "preserved pre-migration central workspaces",
+    "localStateConflictsPreserved": true
+  },
+  "actualRuntime": {
+    "storedSessions": 80,
+    "readableCwdRecords": 80,
+    "legacyRootCwdRecords": 0,
+    "mounts": [
+      {
+        "source": "/dev/mapper/data-f0512ccb--f23d--4e41--9578--7bb17cad8ebd",
+        "path": "/state",
+        "filesystem": "xfs"
+      },
+      {
+        "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+        "path": "/workspace",
+        "filesystem": "cifs"
+      },
+      {
+        "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+        "path": "/state/sessions",
+        "filesystem": "cifs"
+      },
+      {
+        "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+        "path": "/state/attachments",
+        "filesystem": "cifs"
+      },
+      {
+        "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+        "path": "/state/storages",
+        "filesystem": "cifs"
+      },
+      {
+        "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+        "path": "/state/workspaces",
+        "filesystem": "cifs"
+      },
+      {
+        "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+        "path": "/state/logs",
+        "filesystem": "cifs"
+      }
+    ],
+    "uid": 10001,
+    "allHistoricalToolsTested": false
+  },
+  "restartPersistence": {
+    "sessionFilesByteIdenticalAcrossReplacement": 82,
+    "newMarkersVerifiedAfterRestart": 4,
+    "ownMarkersRemoved": true,
+    "oldPodUID": "17b283df-bfe0-4760-a8e2-50e362ae4c62",
+    "newPodUID": "a3c2018a-a6cb-4048-864b-770641d0b0cc"
+  },
+  "terminalWebSocket": {
+    "time": "2026-10-15T15:15:27.710Z",
+    "results": [
+      {
+        "environment": "secure",
+        "authenticatedTerminalWebSocket": true,
+        "executedSentinel": true,
+        "nonRootUid": 10001
+      },
+      {
+        "environment": "internet",
+        "authenticatedTerminalWebSocket": true,
+        "executedSentinel": true,
+        "nonRootUid": 10001
+      }
+    ]
+  },
+  "finalFreshLogin": {
+    "time": "2026-10-15T15:16:19.624Z",
+    "results": [
+      {
+        "environment": "off",
+        "loginStatus": 302,
+        "sessionEnvironment": "secure",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 80,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      },
+      {
+        "environment": "on",
+        "loginStatus": 302,
+        "sessionEnvironment": "internet",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 0,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      }
+    ]
+  },
+  "finalHeldLogin": {
+    "time": "2026-10-15T15:16:17.784Z",
+    "heldSessionResults": [
+      {
+        "environment": "off",
+        "status": 200,
+        "authenticatedUI": true
+      },
+      {
+        "environment": "on",
+        "status": 200,
+        "authenticatedUI": true
+      }
+    ]
+  },
+  "network": {
+    "secure": {
+      "internalInferenceExactSentinel": true,
+      "publicHTTPS": [
+        {
+          "target": "https://github.com",
+          "exitCode": 28,
+          "httpStatus": "000"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 28,
+          "httpStatus": "000"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 28,
+          "httpStatus": "000"
+        }
+      ]
+    },
+    "internet": {
+      "internalInferenceExactSentinel": true,
+      "publicHTTPS": [
+        {
+          "target": "https://github.com",
+          "exitCode": 0,
+          "httpStatus": "200"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 0,
+          "httpStatus": "200"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "httpStatus": "200"
+        }
+      ]
+    }
+  },
+  "temporaryAccountCleanup": {
+    "temporaryProbeRemoved": true,
+    "otherAccountsUnchanged": true
+  },
+  "cifsPersistenceCompatibility": {
+    "actualInstalledDSHCreateFlushReopen": true,
+    "independentWriterDeniedWhileHeld": true,
+    "independentWriterAcquiredAfterRelease": true
+  },
+  "remainingGaps": [
+    "Existing shared environment pools do not enforce per-user isolation",
+    "Approved read-only RDT source and source-write/out-of-scope negative tests not supplied",
+    "DNS/allowed-service relay paths and all pilot workers not exhaustively tested",
+    "All historical session tools not individually resumed/tested"
+  ],
+  "operatorExperience": [
+    "First V4 probe harness lacked required version/isSeeded/delegationDepth; corrected before storage acceptance",
+    "CIFS lock denial uses generic EACCES; verified independent writer acquires after release",
+    "Stopped local state held duplicate project copies; additional reconciliation verified all 28898 canonical central files unchanged; future procedure reconciles before swapping directories"
+  ],
+  "deployments": [
+    {
+      "name": "dsh-secure",
+      "available": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "pods": [
+        {
+          "name": "dsh-secure-589c4d8d6c-tc7cc",
+          "uid": "a3c2018a-a6cb-4048-864b-770641d0b0cc",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+          "restarts": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-internet",
+      "available": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "pods": [
+        {
+          "name": "dsh-internet-7d4dbf55df-psff9",
+          "uid": "bfe6f6dc-543d-48fe-ae3c-48aab9cd0458",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+          "restarts": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-environment-gateway",
+      "available": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "pods": [
+        {
+          "name": "dsh-environment-gateway-64ddf56599-chr79",
+          "uid": "5ef70d32-682c-4ce9-af2b-8f7b4edfb6d2",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+          "restarts": 0
+        }
+      ]
+    },
+    {
+      "name": "vllm-deepseek-v4-1-flash",
+      "available": 1,
+      "image": "lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+      "pods": [
+        {
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+          "restarts": 0
+        }
+      ]
+    }
+  ]
+}

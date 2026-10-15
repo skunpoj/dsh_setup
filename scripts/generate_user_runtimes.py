@@ -61,9 +61,16 @@ def generate(users, image, rdt_source_pvc=None, rdt_approval_ref=None):
                 if environment == 'secure' and volume['name'] == 'protected-workspace':
                     if old != 'dsh-da-workspace-secure':
                         raise ValueError('Secure must preserve its central workspace claim')
-                    mount = next(m for m in runtime['spec']['containers'][0]['volumeMounts']
-                                 if m['name'] == 'protected-workspace')
-                    mount['subPath'] = f'dsh/private/{identity}/secure'
+                    for mount in runtime['spec']['containers'][0]['volumeMounts']:
+                        if mount['name'] != 'protected-workspace':
+                            continue
+                        if mount['mountPath'] == '/workspace':
+                            mount['subPath'] = f'dsh/private/{identity}/secure'
+                        else:
+                            directory = mount['mountPath'].removeprefix('/state/')
+                            if directory not in {'sessions', 'attachments', 'storages', 'workspaces', 'logs'}:
+                                raise ValueError('Unexpected central state mount')
+                            mount['subPath'] = f'dsh/private/{identity}/state/{directory}'
                     # This shared PVC is bounded by a different bind-mount per
                     # identity; the main container never mounts its root.
                     continue

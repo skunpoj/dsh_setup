@@ -2,7 +2,7 @@
 
 **สถานะตามหลักฐานวันที่ 15 ตุลาคม 2569: ควบคุมได้บางส่วน ยังไม่ครบเงื่อนไขปิดทั้ง 3 ความเสี่ยง**
 
-รายงานนี้สังเคราะห์หลักฐาน runtime rollout เวลา 20:39 น. ICT ผลตรวจย้อนหลังจาก raw transcript และผลทดสอบ CIFS ที่บันทึกภายหลังในวันเดียวกัน ผลเพิ่มเติมเวลา 21:32 น. ICT เป็นการคืน mount CIFS และทดสอบ Production จริงตาม record ที่แนบ ส่วนการเรียบเรียงรายงานความเสี่ยงก่อนหน้านี้ไม่ได้เป็นการทดสอบ Production รอบใหม่ ข้อความว่า “ใช้งานจริง” จึงอ้างถึง snapshot ที่ระบุไว้ ไม่ใช่สถานะที่ตรวจใหม่ทุกครั้งเมื่อเปิด HTML
+รายงานนี้รวมหลักฐาน runtime rollout, การคืน CIFS workspace และ durable histories ไปยัง mounted central storage พร้อมผลทดสอบและข้อจำกัดตาม record ที่แนบ ข้อความว่าใช้งานจริงอ้างถึง snapshot ของการตรวจนั้น ไม่ใช่การตรวจระบบใหม่อัตโนมัติทุกครั้งที่เปิด HTML; เก็บรายงานก่อนเปลี่ยน central state ใน archive แล้ว
 
 ## 1 เป้าหมายและข้อสรุปสำหรับผู้พิจารณา
 
@@ -10,7 +10,7 @@
 
 **เป้าหมายคือจำกัดความเสียหายที่อาจเกิดขึ้นให้อยู่ในขอบเขตที่ยอมรับได้สำหรับ pilot นี้** โดยควบคุมสามเรื่องต่อเนื่องกัน: ไม่ให้ข้อมูลออกภายนอก ไม่ให้แก้ไขหรือเข้าถึงข้อมูลเกินขอบเขต และไม่ให้ผลลัพธ์เปิดเผยแก่ผู้ไม่มีสิทธิ์ การผ่านเรื่องใดเรื่องหนึ่งไม่ทดแทนอีกสองเรื่อง เช่น ปิด Internet แล้วก็ยังลบข้อมูลภายในได้ หากสิทธิ์ของแหล่งข้อมูลยังกว้างเกินไป
 
-ปัจจุบันมี gateway สำหรับยืนยันตัวตน มี No Internet / Internal เป็นค่าเริ่มต้น และมี Internet environment แยกสำหรับเตรียม dependencies มีการทดสอบว่า Secure ติดต่อ public HTTPS ที่เลือกไม่ได้ แต่เรียกโมเดลภายในได้ อย่างไรก็ดี ผู้ใช้ใน environment เดียวกันยังใช้ process และ volumes ร่วมกัน ยังไม่มีหลักฐานการใช้ RDT snapshot/view แบบจำกัดสิทธิ์จริง ส่วน Secure workspace คืน mount DA_WORKSPACE แล้วตามผลตรวจเพิ่มเติมเวลา 21:32 น. ICT แต่ per-user isolation และ continuous central-state synchronization ยังไม่ครบ จึงยังสรุปว่าปิดความเสี่ยงครบไม่ได้
+ปัจจุบันมี gateway สำหรับยืนยันตัวตน มี No Internet / Internal เป็นค่าเริ่มต้น และมี Internet environment แยกสำหรับเตรียม dependencies มีการทดสอบว่า Secure ติดต่อ public HTTPS ที่เลือกไม่ได้ แต่เรียกโมเดลภายในได้ อย่างไรก็ดี ผู้ใช้ใน environment เดียวกันยังใช้ process และ volumes ร่วมกัน ยังไม่มีหลักฐานการใช้ RDT snapshot/view แบบจำกัดสิทธิ์จริง ส่วน Secure workspace คืน mount DA_WORKSPACE แล้วตามผลตรวจเพิ่มเติมเวลา 21:32 น. ICT และคืน durable history เป็น direct CIFS mounts แล้ว แต่ per-user isolation และ approved read-only RDT access ยังไม่ครบ จึงยังสรุปว่าปิดความเสี่ยงครบไม่ได้
 
 | ความเสี่ยง | สิ่งที่ต้องบังคับ | ข้อสรุปตามหลักฐาน |
 |---|---|---|
@@ -30,7 +30,8 @@ flowchart TB
  G --> S[No Internet - shared pool]
  G --> I[Internet staging]
  S --> SW[DA_WORKSPACE - CIFS]
- S --> SS[Local active state]
+ S --> SS[Central durable history on CIFS]
+ S --> LC[Local credentials and profiles]
  I --> IW[Separate files and history]
  S --> L[Internal LiteLLM]
  I --> L
@@ -39,7 +40,7 @@ flowchart TB
  S -. direct HTTPS denied .-> W
  S --> D[DNS - review pending]
  classDef gap fill:#713f12,stroke:#fbbf24,color:#fff;
- class S,D,SS gap;
+ class S,D gap;
 ```
 
 ต้องจัดทำรายการ runtime ที่อยู่ใน pilot ให้ครบ ไม่ใช่ตรวจเฉพาะหน้าเว็บ DSH: รวม Harness, shell/subprocesses, workers ที่ประมวลผลข้อมูล, report server และ services ที่รับ prompt หรือผลลัพธ์ด้วย DSH2/DSH3 เดิมมี configuration ต่างจาก pools ใหม่ จึงห้ามถือว่าได้รับการคุ้มครองเหมือนกันโดยไม่ตรวจแต่ละตัว
@@ -86,7 +87,7 @@ Generated code อาจอ่านไฟล์ที่ไม่เกี่�
 
 ### สิ่งที่ยืนยันแล้วและสิ่งที่ยังขาด
 
-มีการอ่านกลับ security settings ของ runtime และมี source tests สำหรับ generator ที่รองรับ read-only snapshot แต่ยังไม่มีผลทดสอบกับแหล่ง RDT จริงที่ยืนยันว่าอ่านนอก scope หรือเขียน source ไม่ได้ Generator ถูกแก้ให้ Secure workspace ใช้ claim ของ DA_WORKSPACE และ subpath แยกตาม identity แล้ว; state/history ยังใช้ private local PVCs แต่ per-user deployment และ central history synchronization ยังไม่ได้เปิดใช้งานครบ
+มีการอ่านกลับ security settings ของ runtime และมี source tests สำหรับ generator ที่รองรับ read-only snapshot แต่ยังไม่มีผลทดสอบกับแหล่ง RDT จริงที่ยืนยันว่าอ่านนอก scope หรือเขียน source ไม่ได้ Generator ถูกแก้ให้ Secure workspace ใช้ claim ของ DA_WORKSPACE และ subpath แยกตาม identity แล้ว; durable state ใช้ central subpaths แยกตาม identity ใน generator แล้ว แต่ per-user deployment ยังไม่ได้เปิดใช้งาน
 
 การทดสอบ CIFS แบบแยกพิสูจน์ว่า UID/GID `10001` เขียนและอ่านกลับบน DA_WORKSPACE ได้เมื่อกำหนด ownership mapping ให้ถูกต้อง **ผลนี้พิสูจน์ writable workspace เท่านั้น ไม่ได้พิสูจน์ว่า RDT source เป็น read-only หรือว่าผู้ใช้แต่ละคนถูกแยกแล้ว**
 
@@ -162,54 +163,36 @@ Operator ตรวจที่มา เวอร์ชัน ผลตรวจ
 
 Hash ที่ตรงหมายถึง artifact ตรงกับสิ่งที่อนุมัติ ไม่ได้แปลว่า package ปลอดภัยในตัวเอง และ package install scripts ยังเป็นโค้ดที่ต้องถูกจำกัดด้วยสิทธิ์และเครือข่ายเช่นเดิม Internet ไม่ได้เข้าไปติดตั้งหรือแก้ไฟล์ใน Secure โดยตรง สำหรับ private runtimes ต้องเลือก Incoming PVC ของผู้ใช้ที่ถูกต้อง; promotion job แบบ shared เดิมไม่ควรถูกถือว่าเชื่อมต่อ private Incoming ทุกตัวโดยอัตโนมัติ
 
-## 8 DA_WORKSPACE ต้องกลับมาตรงกับข้อกำหนดเดิม
+## 8 DA_WORKSPACE และ active histories กลับสู่ central storage
 
-Workspace เดิมใช้ `//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation` โดย mount subdirectory `dsh` ที่ `/workspace` ผ่าน `da-workspace-pvc-new` การแยก Internet/No Internet ไม่ได้กำหนดว่าต้องทิ้ง central storage และข้อเสนอที่ผู้ใช้อนุมัติยังระบุให้เก็บ durable history centrally
+ข้อกำหนดเดิมคือให้ DSH mount DA_WORKSPACE เฉพาะโฟลเดอร์ `dsh` และให้ environment ที่ใช้ Internet ไม่เห็น protected share การเปลี่ยนไปใช้ local workspace หลังพบ CIFS permission error เป็นการตัดสินใจของ implementation ไม่ใช่คำสั่งให้ยกเลิก central storage ผลทดสอบ UID/GID mapping ยืนยันว่ารันแบบ non-root บน share เดิมได้ จึงคืน mounted workspace จริงแล้ว ไม่ใช้ backup แทนข้อกำหนดนั้น
 
-การตรวจ raw transcript พบว่าผู้ช่วยเลือกเปลี่ยน protected workspace เป็น local volume เวลา **09:29:33 น. ICT วันที่ 15 ตุลาคม** หลัง non-root CIFS write ไม่ผ่าน การเปลี่ยนถูก commit ใน GitHub **`9c3b571` เวลา 10:21:54 น.** และ mirror ไป Azure **`dd6c3aa` เวลา 10:31 น.** ก่อน cutover สู่ pools ใหม่ ไม่มีคำสั่งให้ละทิ้ง DA_WORKSPACE ในบทสนทนาที่เกี่ยวข้อง นี่เป็น implementation deviation ไม่ใช่ข้อกำหนดของผู้ใช้
+ชื่อที่ยืนยันจาก raw USER_INPUT และ UNC ใน engineering export คือ **dsh_storage** ไม่ใช่ dsh_volume เส้นทางคือ `\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation\dsh\dsh_storage` ส่วน DSH2/DSH3 เดิมกับตัวเลือก Internet On ของ pools ใหม่เป็นคนละแนวคิด ต้องไม่ใช้ชื่อแทนกัน
 
-การทดสอบแยกภายหลังใช้ share เดิมและ CIFS options `uid=10001,gid=10001,forceuid,forcegid` ทำให้ non-root UID/GID 10001 เขียนและอ่านกลับได้ โดยลบเฉพาะ probe file ของตนเองแล้ว ผลนี้แสดงว่าควรแก้ ownership mapping แทนการเปลี่ยน storage backend ในช่วง canary นั้น Production ยังไม่ได้ remount และผล canary ไม่ใช่การทดสอบ per-user ACL หรือ database locking ต่อมามีการคืน mount จริงและตรวจพฤติกรรมตามผลเพิ่มเติมด้านล่าง
-
-แนวทางแก้คือคืน DA_WORKSPACE เป็น **mounted workspace จริง** หลังเทียบไฟล์ใหม่บน local PVC กับไฟล์บน share และเก็บ conflict ทั้งสองเวอร์ชันไว้ ไม่ mount สำเนาเก่าทับจนทำให้งานใหม่หายจากมุมมอง Runtime state ที่ต้องใช้ local locking อาจอยู่บน storage ที่เหมาะสมได้ แต่ต้องรักษา central durable-history requirement ด้วยวิธีที่สอดคล้องและทดสอบ restore แล้ว การมี local workspace แล้วเสนอ backup ไป central ไม่ใช่สิ่งทดแทน mount เดิม
-
-### Internet On/Off, ชื่อโฟลเดอร์เดิม และ active session paths
-
-การตรวจ mounts และ session API ซ้ำหลังคืน CIFS ยืนยันว่า Internet Off กับ Internet On ยังแยก workspace/state กัน ไม่ได้ใช้ chat history หรือ writable workspace ร่วมกัน และตัวเลือก Internet On ไม่ใช่ชื่อเดียวกับ legacy instance DSH2/DSH3
-
-| ตำแหน่ง | Internet Off / Secure | Internet On |
+| ข้อมูล | No Internet / Secure | Internet |
 |---|---|---|
-| `/workspace` | CIFS share เดิม, subpath `dsh`, claim `dsh-da-workspace-secure` | Local XFS/TopoLVM, claim `dsh-internet-staging` |
-| Active sessions/history, attachments และ runtime state | `/state` บน local claim `dsh-secure-state` | `/state` บน local claim `dsh-internet-state` |
-| DSH_HOME | `/home/dsh/.dsh` resolve ไป `/state` | เช่นเดียวกัน แต่เป็น state คนละ volume |
-| Packages | Approved cache แบบ read-only | Incoming แยกสำหรับดาวน์โหลด |
+| Workspace `/workspace` | CIFS share เดิม, subpath `dsh` | Local staging แยก |
+| Sessions, attachments, storages, workspaces และ logs ใต้ `/state` | Direct CIFS submounts ที่ `dsh/dsh_storage/<directory>` | Local state แยก |
+| Credentials และ web profiles | Local state เดิม; ไม่คัดลอก top-level credentials ไป CIFS | Local state ของ Internet |
+| Packages | Approved cache แบบ read-only | Incoming สำหรับดาวน์โหลดและตรวจ |
 
-ใน raw engineering export ที่ผู้ใช้แนบ พบ USER_INPUT วันที่ 12 ตุลาคมระบุ UNC `\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation\dsh\dsh_storage\workspaces\Spark` โดยตรง ชื่อที่ยืนยันคือ **`dsh_storage`**; ไม่พบชื่อ `dsh_volume` ในเนื้อหา text ของ bundle ที่ตรวจ ยังมีโฟลเดอร์ `volume01` ใน workspace ด้วย จึงไม่ควรเปลี่ยนชื่อหรือย้ายข้อมูลโดยเดาชื่อจากความจำ
+การ mount durable directories โดยตรงทำให้ข้อมูลใหม่เขียนที่ central storage จริง จึงไม่ต้องอาศัย background copy ทุก 15 วินาทีแบบเดิม แต่ยังต้องมี single writer และทดสอบ filesystem behavior ระบบยังไม่ใช่ air gap และการมี share ไม่ใช่ backup หรือการรับรอง zero data loss จากความเสียหายของ storage server
 
-Export เดียวกันมี retrieved prior user request, Turn 6078 ซึ่งระบุให้ DSH เข้าถึง CIFS เฉพาะโฟลเดอร์ `dsh` และ DSH2 ไม่เข้าถึง CIFS เลย ข้อนี้สอดคล้องกับ legacy manifest ที่ mount `subPath: dsh` ไม่ใช่เปิด root/parent ของ share ให้ runtime
+ก่อนเปลี่ยน mounts หยุด Secure writer คัดลอก state ปัจจุบันและตรวจ hash ทุกไฟล์ เก็บ central directories เดิมใน recovery แยกต่างหาก และตรวจ canonical central project files เทียบกับสำเนาใน local state เพื่อไม่ให้สำเนาเก่าบังงานบน share เดิม Internet และ GPU model ไม่ถูก restart โดย storage rollout นี้
 
-ระบบเดิมมี background copy ทุก 15 วินาทีและ shutdown/preStop copy จาก `/root/.dsh` ไป `/workspace/dsh_storage` ตาม legacy manifest ส่วน pools ใหม่ยังไม่มี continuous mirror นั้น การมี `/workspace/dsh_storage/sessions` อยู่บน CIFS จึงหมายถึงยังเก็บสำเนาเดิม ไม่ได้แปลว่า active sessions ล่าสุดกำลังเขียนที่นั่น ปัจจุบันแหล่ง active state คือ `/state` และ central archive ที่ตรวจแล้วเป็น point-in-time baseline เท่านั้น
+### Legacy session paths และวิธีรักษาประวัติ
 
-**พบ compatibility gap เพิ่มเติม:** session API แสดง 80 records แต่ 43 records ยังเก็บ `cwd` เป็น `/root/...` ที่ non-root runtime เข้าถึงไม่ได้ อีก 37 records ชี้ไป `/workspace/...` ที่ตรวจว่าอ่าน/เข้า directory ได้ การแสดง history ครบไม่ใช่หลักฐานว่าทั้ง 80 sessions กลับมารัน tools ต่อได้ รายการเหล่านี้เป็น stored records ไม่ได้หมายถึงมี 43 sessions กำลังรันอยู่ และยังไม่ได้ทดสอบ tool resumption ทุก session
+ผลตรวจเดิมพบ 43 จาก 80 stored records มี `cwd` ใต้ `/root` ที่ UID 10001 เข้าถึงไม่ได้ การแก้ใช้ explicit mapping ไปโฟลเดอร์โครงการที่มีอยู่จริงบน CIFS และแก้เฉพาะ header ของ session ไม่แทนที่ข้อความในบทสนทนา เก็บ original generation files ไว้และตรวจ SHA-256 ว่า compressed event frames หลัง header ไม่เปลี่ยนแม้แต่ byte เดียว Session ID และ header fields อื่นต้องคงเดิม กรณีไม่มี mapping, target ไม่อยู่จริง หรือเกิด destination collision ต้องหยุดก่อนแก้
 
-ขั้นแก้ที่ต้องตรวจต่อคือทำ backed-up, explicit mapping ของ legacy cwd ไปยัง canonical CIFS workspace และทดสอบต่อ session ให้สำเร็จ โดยไม่เปิดสิทธิ์ root หรือแก้ข้อความในประวัติแบบ blanket replacement พร้อมคืน central history persistence ที่สอดคล้องกับ locking การตรวจรอบนี้ไม่ได้ย้ายหรือแก้ session records ดู [live storage และ raw-transcript review](context-evidence/environment-session-storage-review-20261015.json)
+ทดสอบกับ actual installed DSH persistence backend บน CIFS แล้ว: create/flush/reopen สำเร็จ, process ที่สองถูกปฏิเสธ writer lease ขณะ process แรกถือ lock และรับ lease ได้หลังปล่อย lock การทดสอบ harness ช่วงแรกขาด required V4 header fields และจัดประเภท `EACCES` ไม่ถูก จึงไม่ถือผลช่วงนั้นเป็น acceptance; เก็บบทเรียนและแก้ test ให้ตรวจทั้ง denial และ release
 
-### ผลแก้ไขที่ deploy และตรวจจริง เวลา 21:32 น. ICT
+ผลตรวจล่าสุดยืนยัน 80 histories และ 80 cwd ที่เข้าถึงได้, 82 session files คง hash เดิมหลัง restart, login/logout และ terminal WebSocket execution ผ่านทั้งสอง environments ผลหลัง rolloutอ่านจาก [live central-state evidence](context-evidence/central-state-live-20261015.json) ซึ่งแยก counts, mounts, corrected cwd, login/logout และ restart checks การแสดง history ครบหรือเข้า cwd ได้ไม่ใช่การรับรองว่า tools ทุกชนิดในทุก historical session ถูกทดสอบแล้ว ดู [ขั้นตอน การรักษาสำเนา และ rollback](CENTRAL_STATE_RESTORATION_20261015.md)
 
-Secure กลับมา mount `//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation` ผ่าน claim `dsh-da-workspace-secure`, subpath `dsh` ที่ `/workspace` แล้ว อ่าน `/proc/mounts` ได้ filesystem `cifs` และ process ยังเป็น UID 10001 ค่า mount ใช้ UID/GID mapping และ `file_mode=0770` เพื่อให้สคริปต์รันตรงได้เหมือน share เดิม; Git repositories ที่ตรวจทั้งสองแห่งตั้ง `core.filemode=false` อยู่แล้ว
-
-ก่อนเปลี่ยนได้หยุด writer แล้วเทียบ local workspace 2,651 ไฟล์ รอบแรกพบ 2,650 ไฟล์ตรงกันและคัดลอกใหม่ 1 ไฟล์ ไม่พบ conflict ส่วน central-only 29,064 ไฟล์เก็บไว้ทั้งหมด รอบก่อน cutover ตรวจซ้ำทั้ง 2,651 ไฟล์ตรงกัน ไม่มี content failure กลไก reconciliation เก็บ central version ที่ต่างไว้ก่อนแทนที่ และ unit tests ทดสอบกรณี conflict, destination-only files และ type collision แล้ว Local rollback PVC เดิมยังเก็บไว้
-
-ตรวจ actual persistence ด้วยการเขียนจาก runtime แล้วอ่านจากอีก pod บน claim เดียวกัน และเขียนกลับจาก peer ให้ runtime อ่านได้ หลัง restart Secure อีกครั้ง markers ทั้งสองยังอยู่ และอ่านไฟล์จริงผ่าน runtime ซ้ำครบ 2,651 ไฟล์ตาม hash manifest ไม่พบ mismatch Login session เดิมและ fresh login/logout ผ่าน Secure list API ยังแสดง 80 histories Internal inference ให้ exact sentinel ที่คาดไว้ และ public HTTPS probe ยังล้มเหลวตาม policy เดิม จากนั้นลบเฉพาะ markers และ temporary test account
-
-รอบแรกตัวตรวจ archive ใช้ `extractall(filter=...)` ที่ Python ใน image ไม่รองรับ จึง rollback mount กลับ local อัตโนมัติ และยืนยันว่า held login ยังใช้ได้ แก้เป็น portable extractor ที่ตรวจ path/type และอ่านเนื้อหากลับทุกไฟล์ แล้วตรวจ restore จาก central history archive ผ่าน 29,067 ไฟล์ ก่อน retry cutover สำเร็จ นี่เป็นการตรวจ extracted state bytes ไม่ใช่การ boot DSH จาก restored state ทั้งชุด
-
-**ขอบเขตที่ยังเหลือ:** `/state` ที่กำลังใช้งานยังอยู่ local PVC เดิม จึงไม่ได้ย้ายฐานข้อมูลที่กำลังทำงานไปใช้ CIFS locks มี coherent central history baseline ที่สร้างขณะหยุด writer และตรวจ restore แล้ว แต่ยังไม่มี continuous state sync การคืน workspace mount จึงแก้แล้ว ส่วนการเก็บ history ที่เกิดใหม่อย่างต่อเนื่องบน central ยังไม่ปิด ไม่อ้าง zero data loss หรือ full disaster recovery Archive ไม่รวม top-level `/state/.credentials.yaml` แต่ยังอาจมี sensitive user content จึงต้องรักษาสิทธิ์ของพื้นที่ recovery
-
-ดู [หลักฐาน actual mount, login, peer readback, restart และข้อจำกัด](context-evidence/central-workspace-live-20261015.json) Image ยังคง digest เดิมจาก build 62702; การเปลี่ยนครั้งนี้เป็น volume mapping และ operator workflow ไม่ใช่ runtime package upgrade
-
-อ่าน [การตรวจ raw transcript และ Git แบบละเอียด](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) และ [ผล CIFS canary](context-evidence/storage-design-audit-20261015.json) การคืน mount นี้ไม่ใช่การอนุญาตให้ Internet เห็น RDT หรือให้ทุกผู้ใช้เห็นทั้ง share
+การแก้ storage นี้ไม่ได้ย้าย shared histories ให้แต่ละ user และไม่ได้เพิ่มสิทธิ์ RDT ใหม่ Per-user cutover ต้องมี ownership ที่ตรวจได้ พร้อมเลิก broad legacy access ที่มองเห็น private trees; read-only RDT ต้องมีแหล่งข้อมูลและ identity ที่อนุมัติพร้อม negative tests แยกต่างหาก
 
 ## 9 หลักฐานการ rollout และสิ่งที่ผลทดสอบยืนยันได้
+
+ตาราง runtime image rollout ด้านล่างเป็น snapshot เวลา 20:39 น. ก่อน central-state rollout ล่าสุด ผล terminal WebSocket execution, direct CIFS state mounts และ cwd correction ที่ทดสอบเพิ่มอยู่ในหัวข้อ 8 และ live central-state evidence ไม่ใช้ข้อจำกัดของ snapshot เก่ามาแทนสถานะล่าสุด
 
 ผลตรวจวันที่ 15 ตุลาคม เวลา **20:39 น. ICT** ระบุว่า gateway, Secure และ Internet ใช้ build **62702** จาก Azure image-source commit **`3fa74b72eaad7d7dd1e0986dd07a176f45ab2153`** และ immutable image **`sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1`** ทั้งสาม Ready และมี container restarts เป็นศูนย์ ณ snapshot นั้น Commit ที่แก้รายงานหรือ operator scripts ภายหลังเป็นคนละสิ่งกับ source commit ของ image นี้
 
@@ -241,7 +224,7 @@ Rollback specifications อยู่ใน `C:/Users/skunpojt/rollback-runtime-h
 | บังคับ read-only source | Data/database/storage owner | อ่านใน scope ได้; source writes และ out-of-scope reads ถูกปฏิเสธ; output writes สำเร็จ; source content ไม่เปลี่ยน |
 | ปิด leakage paths ให้ครบ | Infrastructure/security owner | outbound tests จากทุก RDT worker; ตรวจ DNS/relay/IPv6/proxy และ effective fallback; internal services ยังทำงานได้ |
 | ปิด publisher/export ที่ไม่จำเป็น | Application/security owner | inventory jobs/plugins/credentials; ไม่มี automatic publishing/export ที่ไม่ได้อนุญาต; anonymous และ unauthorized user อ่านผลไม่ได้ |
-| ยืนยัน persistence และ recovery | Platform/storage owner | coherent central history persistence, copied-state restore, restart/rollback checks และขอบเขต recovery ที่วัดได้ |
+| Central persistence ผ่านแล้ว; storage-server recovery ยังแยกต่างหาก | Platform/storage owner | direct CIFS mounts; 80 histories/80 cwd; 82 session hashes และ new writes ผ่าน restart; server-side ACL, independent backup/DR และ full restored-runtime boot ยังไม่ถือว่าปิด |
 | รับความเสี่ยงคงเหลือของ pilot | Pilot owner/assessor | ทบทวนหลักฐานและข้อจำกัด รวมถึงการใช้งาน browser โดยผู้มีสิทธิ์ แยกจากการ commit/deploy |
 
 การปิดความเสี่ยงควรผูกผลทดสอบกับ runtime, policy, identity, dataset scope และ image ที่ใช้จริง ผลผ่านจาก canary หรือ source tests ต้องคงป้ายกำกับนั้นไว้จนทดสอบ deployment จริงแล้ว การยืนยันโดย owner/assessor เป็นคนละขั้นตอนกับการเตรียม code หรือเอกสารเสร็จ

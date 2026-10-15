@@ -53,6 +53,19 @@ class IsolationManifests(unittest.TestCase):
         with self.assertRaises(ValueError):
             generator.generate(['alice'], 'registry/runtime:latest')
 
+    def test_all_central_state_mounts_are_identity_scoped(self):
+        docs = generator.generate(['alice', 'bob'], 'registry/runtime@sha256:'+'a'*64)
+        scoped=[]
+        for d in docs:
+            if d['kind']!='Deployment' or not d['metadata']['name'].endswith('-secure'):continue
+            mounts=[m for m in d['spec']['template']['spec']['containers'][0]['volumeMounts'] if m['name']=='protected-workspace']
+            self.assertEqual(len(mounts),6)
+            values={m['subPath'] for m in mounts}
+            self.assertEqual(len(values),6)
+            self.assertTrue(all('/private/' in x and 'dsh_storage' not in x for x in values))
+            scoped.append(values)
+        self.assertTrue(scoped[0].isdisjoint(scoped[1]))
+
     def test_approved_snapshot_is_secure_only_and_read_only(self):
         image = 'registry/runtime@sha256:' + 'a' * 64
         for source, approval in [('rdt-snapshot', None), (None, 'OWNER-TEST'), ('../source', 'OWNER-TEST')]:

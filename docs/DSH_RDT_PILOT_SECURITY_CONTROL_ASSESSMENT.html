@@ -1,12 +1,12 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH RDT Pilot — การควบคุมความเสี่ยงและแนวทางดำเนินงาน</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-</style></head><body><main><h1>DSH RDT Pilot — การควบคุมความเสี่ยงและแนวทางดำเนินงาน</h1><div class="status"><strong>สถานะ: ควบคุมได้บางส่วน ยังไม่ปิดครบทั้ง 3 ความเสี่ยง</strong> แยก implementation ที่ deploy แล้ว ผลทดสอบที่บันทึกไว้ และ target design ออกจากกัน การเรียบเรียงเอกสารไม่ใช่การรับรองหรืออนุมัติให้ใช้ข้อมูลเพิ่มเติม</div><nav aria-label="สารบัญ"><a href="#section-1">1 เป้าหมายและข้อสรุปสำหรับผู้พิจารณา</a><a href="#section-2">2 ระบบที่มีอยู่และขอบเขตที่ต้องคุม</a><a href="#section-3">3 ความเสี่ยงที่ 1 ป้องกันข้อมูลรั่วไหลภายนอก</a><a href="#section-4">4 ความเสี่ยงที่ 2 ป้องกันความเสียหายและการเข้าถึงเกินขอบเขต</a><a href="#section-5">5 ความเสี่ยงที่ 3 เก็บผลลัพธ์ให้อยู่ในขอบเขตผู้มีสิทธิ์</a><a href="#section-6">6 ภาพเป้าหมายและลำดับการทำงานของ pilot</a><a href="#section-7">7 ใช้ Internet เตรียม packages โดยไม่เปิดข้อมูล RDT</a><a href="#section-8">8 DA_WORKSPACE ต้องกลับมาตรงกับข้อกำหนดเดิม</a><a href="#section-9">9 หลักฐานการ rollout และสิ่งที่ผลทดสอบยืนยันได้</a><a href="#section-10">10 แผนปิดความเสี่ยงและหลักฐานที่ต้องส่งมอบ</a><a href="#section-11">11 การดูแล upstream และข้อจำกัดของ shared inference</a><a href="#section-12">12 การอ่านหลักฐานและการตรวจเอกสารนี้</a><a href="#evidence">หลักฐานที่ฝังในรายงาน</a></nav>
+</style></head><body><main><h1>DSH RDT Pilot — การควบคุมความเสี่ยงและแนวทางดำเนินงาน</h1><div class="status"><strong>สถานะ: ควบคุมได้บางส่วน ยังไม่ปิดครบทั้ง 3 ความเสี่ยง</strong> แยก implementation ที่ deploy แล้ว ผลทดสอบที่บันทึกไว้ และ target design ออกจากกัน การเรียบเรียงเอกสารไม่ใช่การรับรองหรืออนุมัติให้ใช้ข้อมูลเพิ่มเติม</div><nav aria-label="สารบัญ"><a href="#section-1">1 เป้าหมายและข้อสรุปสำหรับผู้พิจารณา</a><a href="#section-2">2 ระบบที่มีอยู่และขอบเขตที่ต้องคุม</a><a href="#section-3">3 ความเสี่ยงที่ 1 ป้องกันข้อมูลรั่วไหลภายนอก</a><a href="#section-4">4 ความเสี่ยงที่ 2 ป้องกันความเสียหายและการเข้าถึงเกินขอบเขต</a><a href="#section-5">5 ความเสี่ยงที่ 3 เก็บผลลัพธ์ให้อยู่ในขอบเขตผู้มีสิทธิ์</a><a href="#section-6">6 ภาพเป้าหมายและลำดับการทำงานของ pilot</a><a href="#section-7">7 ใช้ Internet เตรียม packages โดยไม่เปิดข้อมูล RDT</a><a href="#section-8">8 DA_WORKSPACE และ active histories กลับสู่ central storage</a><a href="#section-9">9 หลักฐานการ rollout และสิ่งที่ผลทดสอบยืนยันได้</a><a href="#section-10">10 แผนปิดความเสี่ยงและหลักฐานที่ต้องส่งมอบ</a><a href="#section-11">11 การดูแล upstream และข้อจำกัดของ shared inference</a><a href="#section-12">12 การอ่านหลักฐานและการตรวจเอกสารนี้</a><a href="#evidence">หลักฐานที่ฝังในรายงาน</a></nav>
 <p><strong>สถานะตามหลักฐานวันที่ 15 ตุลาคม 2569: ควบคุมได้บางส่วน ยังไม่ครบเงื่อนไขปิดทั้ง 3 ความเสี่ยง</strong></p>
-<p>รายงานนี้สังเคราะห์หลักฐาน runtime rollout เวลา 20:39 น. ICT ผลตรวจย้อนหลังจาก raw transcript และผลทดสอบ CIFS ที่บันทึกภายหลังในวันเดียวกัน ผลเพิ่มเติมเวลา 21:32 น. ICT เป็นการคืน mount CIFS และทดสอบ Production จริงตาม record ที่แนบ ส่วนการเรียบเรียงรายงานความเสี่ยงก่อนหน้านี้ไม่ได้เป็นการทดสอบ Production รอบใหม่ ข้อความว่า “ใช้งานจริง” จึงอ้างถึง snapshot ที่ระบุไว้ ไม่ใช่สถานะที่ตรวจใหม่ทุกครั้งเมื่อเปิด HTML</p>
+<p>รายงานนี้รวมหลักฐาน runtime rollout, การคืน CIFS workspace และ durable histories ไปยัง mounted central storage พร้อมผลทดสอบและข้อจำกัดตาม record ที่แนบ ข้อความว่าใช้งานจริงอ้างถึง snapshot ของการตรวจนั้น ไม่ใช่การตรวจระบบใหม่อัตโนมัติทุกครั้งที่เปิด HTML; เก็บรายงานก่อนเปลี่ยน central state ใน archive แล้ว</p>
 <h2 id="section-1">1 เป้าหมายและข้อสรุปสำหรับผู้พิจารณา</h2>
 <p>การทดลองใช้ DSH กับ RDT ต้องเริ่มจากสมมติฐานว่า Harness, เครื่องมือที่เรียกใช้ และโค้ดที่ AI สร้างขึ้นอาจทำงานผิดพลาดหรือใช้สิทธิ์เกินความจำเป็นได้ จึงต้องจำกัดสิ่งที่ระบบเข้าถึงและผลกระทบที่เกิดขึ้นด้วยการควบคุมภายนอกตัว AI ไม่อาศัยเพียงคำสั่งใน prompt หรือความสามารถของโมเดลในการปฏิเสธงาน</p>
 <p><strong>เป้าหมายคือจำกัดความเสียหายที่อาจเกิดขึ้นให้อยู่ในขอบเขตที่ยอมรับได้สำหรับ pilot นี้</strong> โดยควบคุมสามเรื่องต่อเนื่องกัน: ไม่ให้ข้อมูลออกภายนอก ไม่ให้แก้ไขหรือเข้าถึงข้อมูลเกินขอบเขต และไม่ให้ผลลัพธ์เปิดเผยแก่ผู้ไม่มีสิทธิ์ การผ่านเรื่องใดเรื่องหนึ่งไม่ทดแทนอีกสองเรื่อง เช่น ปิด Internet แล้วก็ยังลบข้อมูลภายในได้ หากสิทธิ์ของแหล่งข้อมูลยังกว้างเกินไป</p>
-<p>ปัจจุบันมี gateway สำหรับยืนยันตัวตน มี No Internet / Internal เป็นค่าเริ่มต้น และมี Internet environment แยกสำหรับเตรียม dependencies มีการทดสอบว่า Secure ติดต่อ public HTTPS ที่เลือกไม่ได้ แต่เรียกโมเดลภายในได้ อย่างไรก็ดี ผู้ใช้ใน environment เดียวกันยังใช้ process และ volumes ร่วมกัน ยังไม่มีหลักฐานการใช้ RDT snapshot/view แบบจำกัดสิทธิ์จริง ส่วน Secure workspace คืน mount DA_WORKSPACE แล้วตามผลตรวจเพิ่มเติมเวลา 21:32 น. ICT แต่ per-user isolation และ continuous central-state synchronization ยังไม่ครบ จึงยังสรุปว่าปิดความเสี่ยงครบไม่ได้</p>
+<p>ปัจจุบันมี gateway สำหรับยืนยันตัวตน มี No Internet / Internal เป็นค่าเริ่มต้น และมี Internet environment แยกสำหรับเตรียม dependencies มีการทดสอบว่า Secure ติดต่อ public HTTPS ที่เลือกไม่ได้ แต่เรียกโมเดลภายในได้ อย่างไรก็ดี ผู้ใช้ใน environment เดียวกันยังใช้ process และ volumes ร่วมกัน ยังไม่มีหลักฐานการใช้ RDT snapshot/view แบบจำกัดสิทธิ์จริง ส่วน Secure workspace คืน mount DA_WORKSPACE แล้วตามผลตรวจเพิ่มเติมเวลา 21:32 น. ICT และคืน durable history เป็น direct CIFS mounts แล้ว แต่ per-user isolation และ approved read-only RDT access ยังไม่ครบ จึงยังสรุปว่าปิดความเสี่ยงครบไม่ได้</p>
 <table>
 <thead>
 <tr>
@@ -47,7 +47,8 @@
  G --&gt; S[No Internet - shared pool]
  G --&gt; I[Internet staging]
  S --&gt; SW[DA_WORKSPACE - CIFS]
- S --&gt; SS[Local active state]
+ S --&gt; SS[Central durable history on CIFS]
+ S --&gt; LC[Local credentials and profiles]
  I --&gt; IW[Separate files and history]
  S --&gt; L[Internal LiteLLM]
  I --&gt; L
@@ -56,13 +57,14 @@
  S -. direct HTTPS denied .-&gt; W
  S --&gt; D[DNS - review pending]
  classDef gap fill:#713f12,stroke:#fbbf24,color:#fff;
- class S,D,SS gap;
+ class S,D gap;
 ">flowchart TB
  U[Browser user] --&gt; G[Login gateway]
  G --&gt; S[No Internet - shared pool]
  G --&gt; I[Internet staging]
  S --&gt; SW[DA_WORKSPACE - CIFS]
- S --&gt; SS[Local active state]
+ S --&gt; SS[Central durable history on CIFS]
+ S --&gt; LC[Local credentials and profiles]
  I --&gt; IW[Separate files and history]
  S --&gt; L[Internal LiteLLM]
  I --&gt; L
@@ -71,7 +73,7 @@
  S -. direct HTTPS denied .-&gt; W
  S --&gt; D[DNS - review pending]
  classDef gap fill:#713f12,stroke:#fbbf24,color:#fff;
- class S,D,SS gap;
+ class S,D gap;
 </div></div></section>
 <p>ต้องจัดทำรายการ runtime ที่อยู่ใน pilot ให้ครบ ไม่ใช่ตรวจเฉพาะหน้าเว็บ DSH: รวม Harness, shell/subprocesses, workers ที่ประมวลผลข้อมูล, report server และ services ที่รับ prompt หรือผลลัพธ์ด้วย DSH2/DSH3 เดิมมี configuration ต่างจาก pools ใหม่ จึงห้ามถือว่าได้รับการคุ้มครองเหมือนกันโดยไม่ตรวจแต่ละตัว</p>
 <h2 id="section-3">3 ความเสี่ยงที่ 1 ป้องกันข้อมูลรั่วไหลภายนอก</h2>
@@ -95,7 +97,7 @@
 <p>พื้นที่ผลลัพธ์ใช้ working folder แยกจาก source และเขียนได้เฉพาะขอบเขตของผู้ใช้ เช่น subdirectory ที่กำหนดบน mounted DA_WORKSPACE โดยไม่เปิดทั้ง share ให้ runtime ทุกตัว Source อาจอ่านได้หลายผู้ใช้ตามสิทธิ์ แต่ output และ chat state ต้องไม่ถูกแชร์เพียงเพราะอยู่บน storage server เดียวกัน CPU, memory และ storage limits ช่วยจำกัดงานที่ใช้ทรัพยากรเกินจำเป็น แต่ไม่ได้ป้องกันการทำลายทุกอย่างภายในพื้นที่ที่อนุญาตให้เขียน</p>
 <p>การคืน DA_WORKSPACE mount เป็นการแก้ storage regression เดิม ไม่ใช่การขอสิทธิ์เข้าถึง RDT เพิ่ม จึงต้องไม่เอาการระบุ dataset ใหม่หรือการแจก histories ให้แต่ละบัญชีมาเป็นเงื่อนไขที่สร้างขึ้นแทนงาน remount ส่วนการมอบสิทธิ์ RDT จริงและการกระจาย shared histories เป็นอีกขั้นตอนหนึ่งที่ต้องมีขอบเขตชัดเจน</p>
 <h3>สิ่งที่ยืนยันแล้วและสิ่งที่ยังขาด</h3>
-<p>มีการอ่านกลับ security settings ของ runtime และมี source tests สำหรับ generator ที่รองรับ read-only snapshot แต่ยังไม่มีผลทดสอบกับแหล่ง RDT จริงที่ยืนยันว่าอ่านนอก scope หรือเขียน source ไม่ได้ Generator ถูกแก้ให้ Secure workspace ใช้ claim ของ DA_WORKSPACE และ subpath แยกตาม identity แล้ว; state/history ยังใช้ private local PVCs แต่ per-user deployment และ central history synchronization ยังไม่ได้เปิดใช้งานครบ</p>
+<p>มีการอ่านกลับ security settings ของ runtime และมี source tests สำหรับ generator ที่รองรับ read-only snapshot แต่ยังไม่มีผลทดสอบกับแหล่ง RDT จริงที่ยืนยันว่าอ่านนอก scope หรือเขียน source ไม่ได้ Generator ถูกแก้ให้ Secure workspace ใช้ claim ของ DA_WORKSPACE และ subpath แยกตาม identity แล้ว; durable state ใช้ central subpaths แยกตาม identity ใน generator แล้ว แต่ per-user deployment ยังไม่ได้เปิดใช้งาน</p>
 <p>การทดสอบ CIFS แบบแยกพิสูจน์ว่า UID/GID <code>10001</code> เขียนและอ่านกลับบน DA_WORKSPACE ได้เมื่อกำหนด ownership mapping ให้ถูกต้อง <strong>ผลนี้พิสูจน์ writable workspace เท่านั้น ไม่ได้พิสูจน์ว่า RDT source เป็น read-only หรือว่าผู้ใช้แต่ละคนถูกแยกแล้ว</strong></p>
 <p>ก่อนปิดข้อนี้ ต้องใช้ตัวอย่างข้อมูลใน scope จริงทดสอบว่าอ่านได้ สร้างผลลัพธ์ใน working folder ได้ แต่เขียน/ลบ/เปลี่ยนชื่อ source ไม่ได้ และอ่านไฟล์ ตาราง แถว หรือคอลัมน์นอก scope ไม่ได้ ให้รวมการลอง path traversal, symlink และการใช้ tool/terminal/API ที่ผู้ใช้มีจริง พร้อมตรวจว่าข้อมูลต้นทางไม่ถูกเปลี่ยนหลังการทดสอบ การทดสอบเชิงลบควรเริ่มจาก snapshot/view ที่ไม่กระทบธุรกรรมจริง</p>
 <p><strong>สถานะ: มี runtime hardening แล้ว แต่ยังไม่ปิดข้อนี้จนกว่าจะผ่าน source-access negative tests กับขอบเขต RDT ที่ใช้จริง</strong></p>
@@ -181,56 +183,47 @@
 </div></div></section>
 <p>Operator ตรวจที่มา เวอร์ชัน ผลตรวจความปลอดภัยและ license ตามกระบวนการองค์กร จากนั้นอนุมัติชื่อไฟล์และ SHA-256 ที่แน่นอน Promotion job ปฏิเสธ path ที่ไม่ปลอดภัย ไฟล์ที่ขาด หรือ hash ไม่ตรง แล้วจึงนำ artifact ไป Approved cache ที่ Secure mount แบบ read-only ฝั่ง Secure ใช้ Python no-index/find-links และ npm offline เพื่อไม่ย้อนกลับไปดาวน์โหลดจาก public registry</p>
 <p>Hash ที่ตรงหมายถึง artifact ตรงกับสิ่งที่อนุมัติ ไม่ได้แปลว่า package ปลอดภัยในตัวเอง และ package install scripts ยังเป็นโค้ดที่ต้องถูกจำกัดด้วยสิทธิ์และเครือข่ายเช่นเดิม Internet ไม่ได้เข้าไปติดตั้งหรือแก้ไฟล์ใน Secure โดยตรง สำหรับ private runtimes ต้องเลือก Incoming PVC ของผู้ใช้ที่ถูกต้อง; promotion job แบบ shared เดิมไม่ควรถูกถือว่าเชื่อมต่อ private Incoming ทุกตัวโดยอัตโนมัติ</p>
-<h2 id="section-8">8 DA_WORKSPACE ต้องกลับมาตรงกับข้อกำหนดเดิม</h2>
-<p>Workspace เดิมใช้ <code>//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation</code> โดย mount subdirectory <code>dsh</code> ที่ <code>/workspace</code> ผ่าน <code>da-workspace-pvc-new</code> การแยก Internet/No Internet ไม่ได้กำหนดว่าต้องทิ้ง central storage และข้อเสนอที่ผู้ใช้อนุมัติยังระบุให้เก็บ durable history centrally</p>
-<p>การตรวจ raw transcript พบว่าผู้ช่วยเลือกเปลี่ยน protected workspace เป็น local volume เวลา <strong>09:29:33 น. ICT วันที่ 15 ตุลาคม</strong> หลัง non-root CIFS write ไม่ผ่าน การเปลี่ยนถูก commit ใน GitHub <strong><code>9c3b571</code> เวลา 10:21:54 น.</strong> และ mirror ไป Azure <strong><code>dd6c3aa</code> เวลา 10:31 น.</strong> ก่อน cutover สู่ pools ใหม่ ไม่มีคำสั่งให้ละทิ้ง DA_WORKSPACE ในบทสนทนาที่เกี่ยวข้อง นี่เป็น implementation deviation ไม่ใช่ข้อกำหนดของผู้ใช้</p>
-<p>การทดสอบแยกภายหลังใช้ share เดิมและ CIFS options <code>uid=10001,gid=10001,forceuid,forcegid</code> ทำให้ non-root UID/GID 10001 เขียนและอ่านกลับได้ โดยลบเฉพาะ probe file ของตนเองแล้ว ผลนี้แสดงว่าควรแก้ ownership mapping แทนการเปลี่ยน storage backend ในช่วง canary นั้น Production ยังไม่ได้ remount และผล canary ไม่ใช่การทดสอบ per-user ACL หรือ database locking ต่อมามีการคืน mount จริงและตรวจพฤติกรรมตามผลเพิ่มเติมด้านล่าง</p>
-<p>แนวทางแก้คือคืน DA_WORKSPACE เป็น <strong>mounted workspace จริง</strong> หลังเทียบไฟล์ใหม่บน local PVC กับไฟล์บน share และเก็บ conflict ทั้งสองเวอร์ชันไว้ ไม่ mount สำเนาเก่าทับจนทำให้งานใหม่หายจากมุมมอง Runtime state ที่ต้องใช้ local locking อาจอยู่บน storage ที่เหมาะสมได้ แต่ต้องรักษา central durable-history requirement ด้วยวิธีที่สอดคล้องและทดสอบ restore แล้ว การมี local workspace แล้วเสนอ backup ไป central ไม่ใช่สิ่งทดแทน mount เดิม</p>
-<h3>Internet On/Off, ชื่อโฟลเดอร์เดิม และ active session paths</h3>
-<p>การตรวจ mounts และ session API ซ้ำหลังคืน CIFS ยืนยันว่า Internet Off กับ Internet On ยังแยก workspace/state กัน ไม่ได้ใช้ chat history หรือ writable workspace ร่วมกัน และตัวเลือก Internet On ไม่ใช่ชื่อเดียวกับ legacy instance DSH2/DSH3</p>
+<h2 id="section-8">8 DA_WORKSPACE และ active histories กลับสู่ central storage</h2>
+<p>ข้อกำหนดเดิมคือให้ DSH mount DA_WORKSPACE เฉพาะโฟลเดอร์ <code>dsh</code> และให้ environment ที่ใช้ Internet ไม่เห็น protected share การเปลี่ยนไปใช้ local workspace หลังพบ CIFS permission error เป็นการตัดสินใจของ implementation ไม่ใช่คำสั่งให้ยกเลิก central storage ผลทดสอบ UID/GID mapping ยืนยันว่ารันแบบ non-root บน share เดิมได้ จึงคืน mounted workspace จริงแล้ว ไม่ใช้ backup แทนข้อกำหนดนั้น</p>
+<p>ชื่อที่ยืนยันจาก raw USER_INPUT และ UNC ใน engineering export คือ <strong>dsh_storage</strong> ไม่ใช่ dsh_volume เส้นทางคือ <code>\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation\dsh\dsh_storage</code> ส่วน DSH2/DSH3 เดิมกับตัวเลือก Internet On ของ pools ใหม่เป็นคนละแนวคิด ต้องไม่ใช้ชื่อแทนกัน</p>
 <table>
 <thead>
 <tr>
-<th>ตำแหน่ง</th>
-<th>Internet Off / Secure</th>
-<th>Internet On</th>
+<th>ข้อมูล</th>
+<th>No Internet / Secure</th>
+<th>Internet</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><code>/workspace</code></td>
-<td>CIFS share เดิม, subpath <code>dsh</code>, claim <code>dsh-da-workspace-secure</code></td>
-<td>Local XFS/TopoLVM, claim <code>dsh-internet-staging</code></td>
+<td>Workspace <code>/workspace</code></td>
+<td>CIFS share เดิม, subpath <code>dsh</code></td>
+<td>Local staging แยก</td>
 </tr>
 <tr>
-<td>Active sessions/history, attachments และ runtime state</td>
-<td><code>/state</code> บน local claim <code>dsh-secure-state</code></td>
-<td><code>/state</code> บน local claim <code>dsh-internet-state</code></td>
+<td>Sessions, attachments, storages, workspaces และ logs ใต้ <code>/state</code></td>
+<td>Direct CIFS submounts ที่ <code>dsh/dsh_storage/&lt;directory&gt;</code></td>
+<td>Local state แยก</td>
 </tr>
 <tr>
-<td>DSH_HOME</td>
-<td><code>/home/dsh/.dsh</code> resolve ไป <code>/state</code></td>
-<td>เช่นเดียวกัน แต่เป็น state คนละ volume</td>
+<td>Credentials และ web profiles</td>
+<td>Local state เดิม; ไม่คัดลอก top-level credentials ไป CIFS</td>
+<td>Local state ของ Internet</td>
 </tr>
 <tr>
 <td>Packages</td>
 <td>Approved cache แบบ read-only</td>
-<td>Incoming แยกสำหรับดาวน์โหลด</td>
+<td>Incoming สำหรับดาวน์โหลดและตรวจ</td>
 </tr>
 </tbody></table>
-<p>ใน raw engineering export ที่ผู้ใช้แนบ พบ USER_INPUT วันที่ 12 ตุลาคมระบุ UNC <code>\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation\dsh\dsh_storage\workspaces\Spark</code> โดยตรง ชื่อที่ยืนยันคือ <strong><code>dsh_storage</code></strong>; ไม่พบชื่อ <code>dsh_volume</code> ในเนื้อหา text ของ bundle ที่ตรวจ ยังมีโฟลเดอร์ <code>volume01</code> ใน workspace ด้วย จึงไม่ควรเปลี่ยนชื่อหรือย้ายข้อมูลโดยเดาชื่อจากความจำ</p>
-<p>Export เดียวกันมี retrieved prior user request, Turn 6078 ซึ่งระบุให้ DSH เข้าถึง CIFS เฉพาะโฟลเดอร์ <code>dsh</code> และ DSH2 ไม่เข้าถึง CIFS เลย ข้อนี้สอดคล้องกับ legacy manifest ที่ mount <code>subPath: dsh</code> ไม่ใช่เปิด root/parent ของ share ให้ runtime</p>
-<p>ระบบเดิมมี background copy ทุก 15 วินาทีและ shutdown/preStop copy จาก <code>/root/.dsh</code> ไป <code>/workspace/dsh_storage</code> ตาม legacy manifest ส่วน pools ใหม่ยังไม่มี continuous mirror นั้น การมี <code>/workspace/dsh_storage/sessions</code> อยู่บน CIFS จึงหมายถึงยังเก็บสำเนาเดิม ไม่ได้แปลว่า active sessions ล่าสุดกำลังเขียนที่นั่น ปัจจุบันแหล่ง active state คือ <code>/state</code> และ central archive ที่ตรวจแล้วเป็น point-in-time baseline เท่านั้น</p>
-<p><strong>พบ compatibility gap เพิ่มเติม:</strong> session API แสดง 80 records แต่ 43 records ยังเก็บ <code>cwd</code> เป็น <code>/root/...</code> ที่ non-root runtime เข้าถึงไม่ได้ อีก 37 records ชี้ไป <code>/workspace/...</code> ที่ตรวจว่าอ่าน/เข้า directory ได้ การแสดง history ครบไม่ใช่หลักฐานว่าทั้ง 80 sessions กลับมารัน tools ต่อได้ รายการเหล่านี้เป็น stored records ไม่ได้หมายถึงมี 43 sessions กำลังรันอยู่ และยังไม่ได้ทดสอบ tool resumption ทุก session</p>
-<p>ขั้นแก้ที่ต้องตรวจต่อคือทำ backed-up, explicit mapping ของ legacy cwd ไปยัง canonical CIFS workspace และทดสอบต่อ session ให้สำเร็จ โดยไม่เปิดสิทธิ์ root หรือแก้ข้อความในประวัติแบบ blanket replacement พร้อมคืน central history persistence ที่สอดคล้องกับ locking การตรวจรอบนี้ไม่ได้ย้ายหรือแก้ session records ดู <a href="#evidence-environment-session-storage-review-20261015-json">live storage และ raw-transcript review</a></p>
-<h3>ผลแก้ไขที่ deploy และตรวจจริง เวลา 21:32 น. ICT</h3>
-<p>Secure กลับมา mount <code>//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation</code> ผ่าน claim <code>dsh-da-workspace-secure</code>, subpath <code>dsh</code> ที่ <code>/workspace</code> แล้ว อ่าน <code>/proc/mounts</code> ได้ filesystem <code>cifs</code> และ process ยังเป็น UID 10001 ค่า mount ใช้ UID/GID mapping และ <code>file_mode=0770</code> เพื่อให้สคริปต์รันตรงได้เหมือน share เดิม; Git repositories ที่ตรวจทั้งสองแห่งตั้ง <code>core.filemode=false</code> อยู่แล้ว</p>
-<p>ก่อนเปลี่ยนได้หยุด writer แล้วเทียบ local workspace 2,651 ไฟล์ รอบแรกพบ 2,650 ไฟล์ตรงกันและคัดลอกใหม่ 1 ไฟล์ ไม่พบ conflict ส่วน central-only 29,064 ไฟล์เก็บไว้ทั้งหมด รอบก่อน cutover ตรวจซ้ำทั้ง 2,651 ไฟล์ตรงกัน ไม่มี content failure กลไก reconciliation เก็บ central version ที่ต่างไว้ก่อนแทนที่ และ unit tests ทดสอบกรณี conflict, destination-only files และ type collision แล้ว Local rollback PVC เดิมยังเก็บไว้</p>
-<p>ตรวจ actual persistence ด้วยการเขียนจาก runtime แล้วอ่านจากอีก pod บน claim เดียวกัน และเขียนกลับจาก peer ให้ runtime อ่านได้ หลัง restart Secure อีกครั้ง markers ทั้งสองยังอยู่ และอ่านไฟล์จริงผ่าน runtime ซ้ำครบ 2,651 ไฟล์ตาม hash manifest ไม่พบ mismatch Login session เดิมและ fresh login/logout ผ่าน Secure list API ยังแสดง 80 histories Internal inference ให้ exact sentinel ที่คาดไว้ และ public HTTPS probe ยังล้มเหลวตาม policy เดิม จากนั้นลบเฉพาะ markers และ temporary test account</p>
-<p>รอบแรกตัวตรวจ archive ใช้ <code>extractall(filter=...)</code> ที่ Python ใน image ไม่รองรับ จึง rollback mount กลับ local อัตโนมัติ และยืนยันว่า held login ยังใช้ได้ แก้เป็น portable extractor ที่ตรวจ path/type และอ่านเนื้อหากลับทุกไฟล์ แล้วตรวจ restore จาก central history archive ผ่าน 29,067 ไฟล์ ก่อน retry cutover สำเร็จ นี่เป็นการตรวจ extracted state bytes ไม่ใช่การ boot DSH จาก restored state ทั้งชุด</p>
-<p><strong>ขอบเขตที่ยังเหลือ:</strong> <code>/state</code> ที่กำลังใช้งานยังอยู่ local PVC เดิม จึงไม่ได้ย้ายฐานข้อมูลที่กำลังทำงานไปใช้ CIFS locks มี coherent central history baseline ที่สร้างขณะหยุด writer และตรวจ restore แล้ว แต่ยังไม่มี continuous state sync การคืน workspace mount จึงแก้แล้ว ส่วนการเก็บ history ที่เกิดใหม่อย่างต่อเนื่องบน central ยังไม่ปิด ไม่อ้าง zero data loss หรือ full disaster recovery Archive ไม่รวม top-level <code>/state/.credentials.yaml</code> แต่ยังอาจมี sensitive user content จึงต้องรักษาสิทธิ์ของพื้นที่ recovery</p>
-<p>ดู <a href="#evidence-central-workspace-live-20261015-json">หลักฐาน actual mount, login, peer readback, restart และข้อจำกัด</a> Image ยังคง digest เดิมจาก build 62702; การเปลี่ยนครั้งนี้เป็น volume mapping และ operator workflow ไม่ใช่ runtime package upgrade</p>
-<p>อ่าน <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DA_WORKSPACE_DESIGN_REVIEW_20261015.md">การตรวจ raw transcript และ Git แบบละเอียด</a> และ <a href="#evidence-storage-design-audit-20261015-json">ผล CIFS canary</a> การคืน mount นี้ไม่ใช่การอนุญาตให้ Internet เห็น RDT หรือให้ทุกผู้ใช้เห็นทั้ง share</p>
+<p>การ mount durable directories โดยตรงทำให้ข้อมูลใหม่เขียนที่ central storage จริง จึงไม่ต้องอาศัย background copy ทุก 15 วินาทีแบบเดิม แต่ยังต้องมี single writer และทดสอบ filesystem behavior ระบบยังไม่ใช่ air gap และการมี share ไม่ใช่ backup หรือการรับรอง zero data loss จากความเสียหายของ storage server</p>
+<p>ก่อนเปลี่ยน mounts หยุด Secure writer คัดลอก state ปัจจุบันและตรวจ hash ทุกไฟล์ เก็บ central directories เดิมใน recovery แยกต่างหาก และตรวจ canonical central project files เทียบกับสำเนาใน local state เพื่อไม่ให้สำเนาเก่าบังงานบน share เดิม Internet และ GPU model ไม่ถูก restart โดย storage rollout นี้</p>
+<h3>Legacy session paths และวิธีรักษาประวัติ</h3>
+<p>ผลตรวจเดิมพบ 43 จาก 80 stored records มี <code>cwd</code> ใต้ <code>/root</code> ที่ UID 10001 เข้าถึงไม่ได้ การแก้ใช้ explicit mapping ไปโฟลเดอร์โครงการที่มีอยู่จริงบน CIFS และแก้เฉพาะ header ของ session ไม่แทนที่ข้อความในบทสนทนา เก็บ original generation files ไว้และตรวจ SHA-256 ว่า compressed event frames หลัง header ไม่เปลี่ยนแม้แต่ byte เดียว Session ID และ header fields อื่นต้องคงเดิม กรณีไม่มี mapping, target ไม่อยู่จริง หรือเกิด destination collision ต้องหยุดก่อนแก้</p>
+<p>ทดสอบกับ actual installed DSH persistence backend บน CIFS แล้ว: create/flush/reopen สำเร็จ, process ที่สองถูกปฏิเสธ writer lease ขณะ process แรกถือ lock และรับ lease ได้หลังปล่อย lock การทดสอบ harness ช่วงแรกขาด required V4 header fields และจัดประเภท <code>EACCES</code> ไม่ถูก จึงไม่ถือผลช่วงนั้นเป็น acceptance; เก็บบทเรียนและแก้ test ให้ตรวจทั้ง denial และ release</p>
+<p>ผลตรวจล่าสุดยืนยัน 80 histories และ 80 cwd ที่เข้าถึงได้, 82 session files คง hash เดิมหลัง restart, login/logout และ terminal WebSocket execution ผ่านทั้งสอง environments ผลหลัง rolloutอ่านจาก <a href="#evidence-central-state-live-20261015-json">live central-state evidence</a> ซึ่งแยก counts, mounts, corrected cwd, login/logout และ restart checks การแสดง history ครบหรือเข้า cwd ได้ไม่ใช่การรับรองว่า tools ทุกชนิดในทุก historical session ถูกทดสอบแล้ว ดู <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CENTRAL_STATE_RESTORATION_20261015.md">ขั้นตอน การรักษาสำเนา และ rollback</a></p>
+<p>การแก้ storage นี้ไม่ได้ย้าย shared histories ให้แต่ละ user และไม่ได้เพิ่มสิทธิ์ RDT ใหม่ Per-user cutover ต้องมี ownership ที่ตรวจได้ พร้อมเลิก broad legacy access ที่มองเห็น private trees; read-only RDT ต้องมีแหล่งข้อมูลและ identity ที่อนุมัติพร้อม negative tests แยกต่างหาก</p>
 <h2 id="section-9">9 หลักฐานการ rollout และสิ่งที่ผลทดสอบยืนยันได้</h2>
+<p>ตาราง runtime image rollout ด้านล่างเป็น snapshot เวลา 20:39 น. ก่อน central-state rollout ล่าสุด ผล terminal WebSocket execution, direct CIFS state mounts และ cwd correction ที่ทดสอบเพิ่มอยู่ในหัวข้อ 8 และ live central-state evidence ไม่ใช้ข้อจำกัดของ snapshot เก่ามาแทนสถานะล่าสุด</p>
 <p>ผลตรวจวันที่ 15 ตุลาคม เวลา <strong>20:39 น. ICT</strong> ระบุว่า gateway, Secure และ Internet ใช้ build <strong>62702</strong> จาก Azure image-source commit <strong><code>3fa74b72eaad7d7dd1e0986dd07a176f45ab2153</code></strong> และ immutable image <strong><code>sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1</code></strong> ทั้งสาม Ready และมี container restarts เป็นศูนย์ ณ snapshot นั้น Commit ที่แก้รายงานหรือ operator scripts ภายหลังเป็นคนละสิ่งกับ source commit ของ image นี้</p>
 <table>
 <thead>
@@ -320,9 +313,9 @@
 <td>inventory jobs/plugins/credentials; ไม่มี automatic publishing/export ที่ไม่ได้อนุญาต; anonymous และ unauthorized user อ่านผลไม่ได้</td>
 </tr>
 <tr>
-<td>ยืนยัน persistence และ recovery</td>
+<td>Central persistence ผ่านแล้ว; storage-server recovery ยังแยกต่างหาก</td>
 <td>Platform/storage owner</td>
-<td>coherent central history persistence, copied-state restore, restart/rollback checks และขอบเขต recovery ที่วัดได้</td>
+<td>direct CIFS mounts; 80 histories/80 cwd; 82 session hashes และ new writes ผ่าน restart; server-side ACL, independent backup/DR และ full restored-runtime boot ยังไม่ถือว่าปิด</td>
 </tr>
 <tr>
 <td>รับความเสี่ยงคงเหลือของ pilot</td>
@@ -347,7 +340,372 @@
 <li><a href="#evidence-storage-design-audit-20261015-json">Storage design audit</a>: curated raw messages, Git change และ CIFS canary; Production mounts ไม่เปลี่ยนในการ review นั้น</li>
 </ul>
 <p>HTML นี้ใช้รูปแบบ walkthrough เดิมและ diagram controls ที่ปรับจาก SMP EDA ได้แก่ zoom/reset/fullscreen, source copy และ SVG/PNG export โดยฝัง Mermaid 10.8.0 และ svg-pan-zoom 3.6.1 ไว้ในไฟล์ ไม่ต้องโหลด CDN เป้าหมายของ document QA คือให้เนื้อหาและ diagrams อ่านได้และเครื่องมือทำงาน ไม่ใช้ผล document QA แทน security acceptance ของ DSH ดู <a href="#evidence-html-verification-20261015-json">document QA record</a></p>
-<h2 id="evidence">หลักฐานที่ฝังในรายงาน</h2><p>Recorded test responses และ logs ตามเวลาที่ระบุ ไม่ใช่ live webpage หรือการทดสอบระบบใหม่เมื่อเปิดไฟล์นี้</p><details id="evidence-environment-session-storage-review-20261015-json"><summary>environment-session-storage-review-20261015.json</summary><pre>{
+<h2 id="evidence">หลักฐานที่ฝังในรายงาน</h2><p>Recorded test responses และ logs ตามเวลาที่ระบุ ไม่ใช่ live webpage หรือการทดสอบระบบใหม่เมื่อเปิดไฟล์นี้</p><details id="evidence-central-state-live-20261015-json"><summary>central-state-live-20261015.json</summary><pre>{
+  &quot;phase&quot;: &quot;CENTRAL_STATE_READY&quot;,
+  &quot;sessionRecordsCorrected&quot;: 43,
+  &quot;generationHeadersCorrected&quot;: 43,
+  &quot;eventStreamsByteIdentical&quot;: 43,
+  &quot;blanketHistoryReplacement&quot;: false,
+  &quot;directories&quot;: [
+    {
+      &quot;directory&quot;: &quot;sessions&quot;,
+      &quot;filesVerified&quot;: 87
+    },
+    {
+      &quot;directory&quot;: &quot;attachments&quot;,
+      &quot;filesVerified&quot;: 0
+    },
+    {
+      &quot;directory&quot;: &quot;storages&quot;,
+      &quot;filesVerified&quot;: 81
+    },
+    {
+      &quot;directory&quot;: &quot;workspaces&quot;,
+      &quot;filesVerified&quot;: 28898
+    },
+    {
+      &quot;directory&quot;: &quot;logs&quot;,
+      &quot;filesVerified&quot;: 12
+    }
+  ],
+  &quot;activeDurableSubdirectories&quot;: [
+    &quot;sessions&quot;,
+    &quot;attachments&quot;,
+    &quot;storages&quot;,
+    &quot;workspaces&quot;,
+    &quot;logs&quot;
+  ],
+  &quot;credentialsCopied&quot;: false,
+  &quot;centralRecovery&quot;: &quot;/workspace/.state-recovery-20261015150000&quot;,
+  &quot;stoppedWriter&quot;: true,
+  &quot;login_resume&quot;: {
+    &quot;time&quot;: &quot;2026-10-15T15:06:46.583Z&quot;,
+    &quot;heldSessionResults&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;status&quot;: 200,
+        &quot;authenticatedUI&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;status&quot;: 200,
+        &quot;authenticatedUI&quot;: true
+      }
+    ]
+  },
+  &quot;login_verify&quot;: {
+    &quot;time&quot;: &quot;2026-10-15T15:06:48.392Z&quot;,
+    &quot;results&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;secure&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 80,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;internet&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 0,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      }
+    ]
+  },
+  &quot;login_afterSecondRestart&quot;: {
+    &quot;time&quot;: &quot;2026-10-15T15:07:00.142Z&quot;,
+    &quot;results&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;secure&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 80,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;internet&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 0,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      }
+    ]
+  },
+  &quot;timeICT&quot;: &quot;2026-10-15T22:17:54.742424+07:00&quot;,
+  &quot;projectReconciliation&quot;: {
+    &quot;sourceFiles&quot;: 28898,
+    &quot;unchanged&quot;: 28898,
+    &quot;copiedNew&quot;: 0,
+    &quot;conflictsPreserved&quot;: 0,
+    &quot;verifiedFiles&quot;: 28898,
+    &quot;contentFailures&quot;: 0,
+    &quot;destinationOnlyPreserved&quot;: 0,
+    &quot;canonicalCentralProjectsAllReadBack&quot;: true,
+    &quot;source&quot;: &quot;preserved pre-migration central workspaces&quot;,
+    &quot;localStateConflictsPreserved&quot;: true
+  },
+  &quot;actualRuntime&quot;: {
+    &quot;storedSessions&quot;: 80,
+    &quot;readableCwdRecords&quot;: 80,
+    &quot;legacyRootCwdRecords&quot;: 0,
+    &quot;mounts&quot;: [
+      {
+        &quot;source&quot;: &quot;/dev/mapper/data-f0512ccb--f23d--4e41--9578--7bb17cad8ebd&quot;,
+        &quot;path&quot;: &quot;/state&quot;,
+        &quot;filesystem&quot;: &quot;xfs&quot;
+      },
+      {
+        &quot;source&quot;: &quot;//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation&quot;,
+        &quot;path&quot;: &quot;/workspace&quot;,
+        &quot;filesystem&quot;: &quot;cifs&quot;
+      },
+      {
+        &quot;source&quot;: &quot;//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation&quot;,
+        &quot;path&quot;: &quot;/state/sessions&quot;,
+        &quot;filesystem&quot;: &quot;cifs&quot;
+      },
+      {
+        &quot;source&quot;: &quot;//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation&quot;,
+        &quot;path&quot;: &quot;/state/attachments&quot;,
+        &quot;filesystem&quot;: &quot;cifs&quot;
+      },
+      {
+        &quot;source&quot;: &quot;//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation&quot;,
+        &quot;path&quot;: &quot;/state/storages&quot;,
+        &quot;filesystem&quot;: &quot;cifs&quot;
+      },
+      {
+        &quot;source&quot;: &quot;//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation&quot;,
+        &quot;path&quot;: &quot;/state/workspaces&quot;,
+        &quot;filesystem&quot;: &quot;cifs&quot;
+      },
+      {
+        &quot;source&quot;: &quot;//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation&quot;,
+        &quot;path&quot;: &quot;/state/logs&quot;,
+        &quot;filesystem&quot;: &quot;cifs&quot;
+      }
+    ],
+    &quot;uid&quot;: 10001,
+    &quot;allHistoricalToolsTested&quot;: false
+  },
+  &quot;restartPersistence&quot;: {
+    &quot;sessionFilesByteIdenticalAcrossReplacement&quot;: 82,
+    &quot;newMarkersVerifiedAfterRestart&quot;: 4,
+    &quot;ownMarkersRemoved&quot;: true,
+    &quot;oldPodUID&quot;: &quot;17b283df-bfe0-4760-a8e2-50e362ae4c62&quot;,
+    &quot;newPodUID&quot;: &quot;a3c2018a-a6cb-4048-864b-770641d0b0cc&quot;
+  },
+  &quot;terminalWebSocket&quot;: {
+    &quot;time&quot;: &quot;2026-10-15T15:15:27.710Z&quot;,
+    &quot;results&quot;: [
+      {
+        &quot;environment&quot;: &quot;secure&quot;,
+        &quot;authenticatedTerminalWebSocket&quot;: true,
+        &quot;executedSentinel&quot;: true,
+        &quot;nonRootUid&quot;: 10001
+      },
+      {
+        &quot;environment&quot;: &quot;internet&quot;,
+        &quot;authenticatedTerminalWebSocket&quot;: true,
+        &quot;executedSentinel&quot;: true,
+        &quot;nonRootUid&quot;: 10001
+      }
+    ]
+  },
+  &quot;finalFreshLogin&quot;: {
+    &quot;time&quot;: &quot;2026-10-15T15:16:19.624Z&quot;,
+    &quot;results&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;secure&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 80,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;internet&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 0,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      }
+    ]
+  },
+  &quot;finalHeldLogin&quot;: {
+    &quot;time&quot;: &quot;2026-10-15T15:16:17.784Z&quot;,
+    &quot;heldSessionResults&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;status&quot;: 200,
+        &quot;authenticatedUI&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;status&quot;: 200,
+        &quot;authenticatedUI&quot;: true
+      }
+    ]
+  },
+  &quot;network&quot;: {
+    &quot;secure&quot;: {
+      &quot;internalInferenceExactSentinel&quot;: true,
+      &quot;publicHTTPS&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;httpStatus&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;httpStatus&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;httpStatus&quot;: &quot;000&quot;
+        }
+      ]
+    },
+    &quot;internet&quot;: {
+      &quot;internalInferenceExactSentinel&quot;: true,
+      &quot;publicHTTPS&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;httpStatus&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;httpStatus&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;httpStatus&quot;: &quot;200&quot;
+        }
+      ]
+    }
+  },
+  &quot;temporaryAccountCleanup&quot;: {
+    &quot;temporaryProbeRemoved&quot;: true,
+    &quot;otherAccountsUnchanged&quot;: true
+  },
+  &quot;cifsPersistenceCompatibility&quot;: {
+    &quot;actualInstalledDSHCreateFlushReopen&quot;: true,
+    &quot;independentWriterDeniedWhileHeld&quot;: true,
+    &quot;independentWriterAcquiredAfterRelease&quot;: true
+  },
+  &quot;remainingGaps&quot;: [
+    &quot;Existing shared environment pools do not enforce per-user isolation&quot;,
+    &quot;Approved read-only RDT source and source-write/out-of-scope negative tests not supplied&quot;,
+    &quot;DNS/allowed-service relay paths and all pilot workers not exhaustively tested&quot;,
+    &quot;All historical session tools not individually resumed/tested&quot;
+  ],
+  &quot;operatorExperience&quot;: [
+    &quot;First V4 probe harness lacked required version/isSeeded/delegationDepth; corrected before storage acceptance&quot;,
+    &quot;CIFS lock denial uses generic EACCES; verified independent writer acquires after release&quot;,
+    &quot;Stopped local state held duplicate project copies; additional reconciliation verified all 28898 canonical central files unchanged; future procedure reconciles before swapping directories&quot;
+  ],
+  &quot;deployments&quot;: [
+    {
+      &quot;name&quot;: &quot;dsh-secure&quot;,
+      &quot;available&quot;: 1,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;pods&quot;: [
+        {
+          &quot;name&quot;: &quot;dsh-secure-589c4d8d6c-tc7cc&quot;,
+          &quot;uid&quot;: &quot;a3c2018a-a6cb-4048-864b-770641d0b0cc&quot;,
+          &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+          &quot;restarts&quot;: 0
+        }
+      ]
+    },
+    {
+      &quot;name&quot;: &quot;dsh-internet&quot;,
+      &quot;available&quot;: 1,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;pods&quot;: [
+        {
+          &quot;name&quot;: &quot;dsh-internet-7d4dbf55df-psff9&quot;,
+          &quot;uid&quot;: &quot;bfe6f6dc-543d-48fe-ae3c-48aab9cd0458&quot;,
+          &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+          &quot;restarts&quot;: 0
+        }
+      ]
+    },
+    {
+      &quot;name&quot;: &quot;dsh-environment-gateway&quot;,
+      &quot;available&quot;: 1,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;pods&quot;: [
+        {
+          &quot;name&quot;: &quot;dsh-environment-gateway-64ddf56599-chr79&quot;,
+          &quot;uid&quot;: &quot;5ef70d32-682c-4ce9-af2b-8f7b4edfb6d2&quot;,
+          &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+          &quot;restarts&quot;: 0
+        }
+      ]
+    },
+    {
+      &quot;name&quot;: &quot;vllm-deepseek-v4-1-flash&quot;,
+      &quot;available&quot;: 1,
+      &quot;image&quot;: &quot;lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860&quot;,
+      &quot;pods&quot;: [
+        {
+          &quot;name&quot;: &quot;vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl&quot;,
+          &quot;uid&quot;: &quot;70de8543-f205-438b-9c1f-53577a2eab72&quot;,
+          &quot;imageID&quot;: &quot;docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860&quot;,
+          &quot;restarts&quot;: 0
+        }
+      ]
+    }
+  ]
+}
+</pre></details><details id="evidence-environment-session-storage-review-20261015-json"><summary>environment-session-storage-review-20261015.json</summary><pre>{
   &quot;timeICT&quot;: &quot;2026-10-15T21:45:32.990225+07:00&quot;,
   &quot;scope&quot;: &quot;Read-only review; no mounts, files, session records or accounts changed&quot;,
   &quot;environments&quot;: [
@@ -1362,7 +1720,7 @@ environment routing and session stickiness tests passed
 routing checks completed
 per-user routing, spoof resistance, missing-runtime denial, registration denial and stickiness tests passed
 </pre></details><details id="evidence-html-verification-20261015-json"><summary>html-verification-20261015.json</summary><pre>{
-  &quot;time&quot;: &quot;2026-10-15T14:47:36.992Z&quot;,
+  &quot;time&quot;: &quot;2026-10-15T15:19:21.814Z&quot;,
   &quot;renderedDiagrams&quot;: 3,
   &quot;initialNodesUnclipped&quot;: true,
   &quot;externalResourceRequests&quot;: 0,
@@ -1373,7 +1731,7 @@ per-user routing, spoof resistance, missing-runtime denial, registration denial 
   &quot;svgExport&quot;: true,
   &quot;pngExport&quot;: true,
   &quot;pageErrors&quot;: [],
-  &quot;pngWidth&quot;: 3188,
+  &quot;pngWidth&quot;: 4121,
   &quot;pngHeight&quot;: 1012
 }</pre></details><p class="meta">Built from tracked Markdown. Diagram controls adapted from SMP EDA ARCHITECTURE_AND_DATAFLOW.html; local Mermaid 10.8.0 / svg-pan-zoom 3.6.1. No CDN required.</p></main>
 <script>(function(BL,Z0){typeof exports=="object"&&typeof module<"u"?module.exports=Z0():typeof define=="function"&&define.amd?define(Z0):(BL=typeof globalThis<"u"?globalThis:BL||self,BL.mermaid=Z0())})(this,function(){var mVt,vVt;"use strict";function BL(i){for(var a=[],f=1;f<arguments.length;f++)a[f-1]=arguments[f];var g=Array.from(typeof i=="string"?[i]:i);g[g.length-1]=g[g.length-1].replace(/\r?\n([\t ]*)$/,"");var w=g.reduce(function(E,S){var _=S.match(/\n([\t ]+|(?!\s).)/g);return _?E.concat(_.map(function(M){var F,R;return(R=(F=M.match(/[\t ]/g))===null||F===void 0?void 0:F.length)!==null&&R!==void 0?R:0})):E},[]);if(w.length){var v=new RegExp(`
