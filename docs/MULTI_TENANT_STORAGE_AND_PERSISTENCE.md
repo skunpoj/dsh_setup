@@ -16,3 +16,8 @@ The old guide's automatic CIFS flush, zero-loss and multi-tenant-isolation claim
 6. Keep Internet staging unable to read protected source/results or approve its own dependencies.
 
 This is the correction design, not a deployed synchronization claim. See the [security/architecture walkthrough](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) for actual status, lineage and responsibilities.
+
+
+## Runtime rollout verified — 15 October 2026, 20:39 ICT
+
+Build 62702 is deployed in gateway, Secure and Internet. Read the [actual rollout procedure, restart/persistence results and rollback limitations](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md#safe-runtime-rollout--actual-deployed-result) and [live evidence](context-evidence/runtime-rollout-live-20261015.json). Secure retained 80 listed histories and 2,732 checked files; Internet retained controlled markers. Coherent local snapshot PVCs were retained; no central DA_WORKSPACE synchronization or full restore was established. Use Recreate and actual application health probes; do not run two state writers or co-mount live state in a verifier pod. The GPU configuration was not changed by this rollout.

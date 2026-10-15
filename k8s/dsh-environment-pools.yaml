@@ -121,7 +121,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: dsh
-          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:d3a300605a87aa63ec4a2588f827658a132407ff17908ba49403fa7cca8d261a
+          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true
@@ -195,7 +195,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: dsh
-          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:d3a300605a87aa63ec4a2588f827658a132407ff17908ba49403fa7cca8d261a
+          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true

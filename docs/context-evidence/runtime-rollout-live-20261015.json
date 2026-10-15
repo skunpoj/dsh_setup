@@ -1,0 +1,388 @@
+{
+  "timeICT": "2026-10-15T20:39:05.087772+07:00",
+  "buildId": 62702,
+  "imageSourceCommit": "3fa74b72eaad7d7dd1e0986dd07a176f45ab2153",
+  "imageDigest": "sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+  "deployments": [
+    {
+      "name": "dsh-environment-gateway",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "sourceCommit": "3fa74b72eaad7d7dd1e0986dd07a176f45ab2153",
+      "available": 1,
+      "strategy": "Recreate",
+      "automountServiceAccountToken": false,
+      "podSecurity": {},
+      "containerSecurity": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "startupProbe": null,
+      "readinessProbe": {
+        "failureThreshold": 3,
+        "httpGet": {
+          "path": "/login",
+          "port": "http",
+          "scheme": "HTTP"
+        },
+        "periodSeconds": 5,
+        "successThreshold": 1,
+        "timeoutSeconds": 1
+      }
+    },
+    {
+      "name": "dsh-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "sourceCommit": "3fa74b72eaad7d7dd1e0986dd07a176f45ab2153",
+      "available": 1,
+      "strategy": "Recreate",
+      "automountServiceAccountToken": false,
+      "podSecurity": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurity": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "startupProbe": {
+        "exec": {
+          "command": [
+            "node",
+            "/opt/dsh/scripts/runtime_health.js"
+          ]
+        },
+        "failureThreshold": 120,
+        "periodSeconds": 5,
+        "successThreshold": 1,
+        "timeoutSeconds": 3
+      },
+      "readinessProbe": {
+        "exec": {
+          "command": [
+            "node",
+            "/opt/dsh/scripts/runtime_health.js"
+          ]
+        },
+        "failureThreshold": 6,
+        "periodSeconds": 5,
+        "successThreshold": 1,
+        "timeoutSeconds": 3
+      }
+    },
+    {
+      "name": "dsh-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "sourceCommit": "3fa74b72eaad7d7dd1e0986dd07a176f45ab2153",
+      "available": 1,
+      "strategy": "Recreate",
+      "automountServiceAccountToken": false,
+      "podSecurity": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurity": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "startupProbe": {
+        "exec": {
+          "command": [
+            "node",
+            "/opt/dsh/scripts/runtime_health.js"
+          ]
+        },
+        "failureThreshold": 120,
+        "periodSeconds": 5,
+        "successThreshold": 1,
+        "timeoutSeconds": 3
+      },
+      "readinessProbe": {
+        "exec": {
+          "command": [
+            "node",
+            "/opt/dsh/scripts/runtime_health.js"
+          ]
+        },
+        "failureThreshold": 6,
+        "periodSeconds": 5,
+        "successThreshold": 1,
+        "timeoutSeconds": 3
+      }
+    }
+  ],
+  "pods": [
+    {
+      "name": "dsh-environment-gateway-64ddf56599-chr79",
+      "containers": [
+        {
+          "ready": true,
+          "restarts": 0,
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1"
+        }
+      ]
+    },
+    {
+      "name": "dsh-internet-7d4dbf55df-psff9",
+      "containers": [
+        {
+          "ready": true,
+          "restarts": 0,
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1"
+        }
+      ]
+    },
+    {
+      "name": "dsh-secure-67b6c6dc4-hv9mx",
+      "containers": [
+        {
+          "ready": true,
+          "restarts": 0,
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1"
+        }
+      ]
+    },
+    {
+      "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+      "containers": [
+        {
+          "ready": true,
+          "restarts": 0,
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+        }
+      ]
+    }
+  ],
+  "freshLogin": {
+    "time": "2026-10-15T13:35:47.117Z",
+    "results": [
+      {
+        "environment": "off",
+        "loginStatus": 302,
+        "sessionEnvironment": "secure",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 80,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      },
+      {
+        "environment": "on",
+        "loginStatus": 302,
+        "sessionEnvironment": "internet",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 0,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      }
+    ]
+  },
+  "heldSessions": {
+    "time": "2026-10-15T13:35:45.567Z",
+    "heldSessionResults": [
+      {
+        "environment": "off",
+        "status": 200,
+        "authenticatedUI": true
+      },
+      {
+        "environment": "on",
+        "status": 200,
+        "authenticatedUI": true
+      }
+    ]
+  },
+  "testAccountCleanup": {
+    "temporaryProbeRemoved": true,
+    "otherAccountsUnchanged": true
+  },
+  "testMarkerCleanup": {
+    "syntheticMarkersRemoved": [
+      "/workspace",
+      "/state"
+    ]
+  },
+  "persistence": {
+    "secure": {
+      "deployment": "dsh-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "snapshotPVC": "dsh-snapshot-secure-20261015132020",
+      "archiveContentComparison": true,
+      "applicationHealth": true,
+      "strategy": "Recreate",
+      "centralBackup": false,
+      "persistence": {
+        "regularFilesChecked": 2732,
+        "originalBytesChecked": 6632175696,
+        "contentFailures": 0,
+        "appendOnlyGrowth": 0,
+        "filesByRoot": {
+          "workspace": 2648,
+          "state": 84
+        },
+        "excludes": "lock files, derived state indexes, symlinks and hardlink aliases"
+      },
+      "verificationMethod": "archive hash inventory compared inside existing runtime mounts; no co-mount of live state"
+    },
+    "internet": {
+      "time": "2026-10-15T13:34:43.194755+00:00",
+      "deployment": "dsh-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "snapshotPVC": "dsh-snapshot-internet-20261015133411",
+      "archiveContentComparison": true,
+      "applicationHealth": true,
+      "strategy": "Recreate",
+      "centralBackup": false,
+      "persistence": {
+        "regularFilesChecked": 2,
+        "originalBytesChecked": 176,
+        "contentFailures": 0,
+        "appendOnlyGrowth": 0,
+        "filesByRoot": {
+          "workspace": 1,
+          "state": 1
+        },
+        "excludes": "lock files, derived state indexes, symlinks and hardlink aliases"
+      }
+    }
+  },
+  "secureChecks": {
+    "model": {
+      "expectedSentinel": true,
+      "finishReason": "stop"
+    },
+    "publicProbes": [
+      {
+        "url": "https://github.com",
+        "exitCode": 28,
+        "httpStatus": "000"
+      },
+      {
+        "url": "https://pypi.org",
+        "exitCode": 28,
+        "httpStatus": "000"
+      },
+      {
+        "url": "https://registry.npmjs.org",
+        "exitCode": 28,
+        "httpStatus": "000"
+      }
+    ],
+    "effectiveContextLines": [
+      "contextWindow: 131072",
+      "contextWindow: 131072",
+      "contextWindow: 128000",
+      "contextWindow: 64000",
+      "contextWindow: 128000",
+      "thresholdRatio: 0.75"
+    ],
+    "combinedProbeSeconds": 12.346,
+    "catalog": {
+      "status": 200,
+      "ok": true,
+      "default": {
+        "provider": "litellm-cluster",
+        "model": "deepseek-v4.1-flash"
+      },
+      "routableProviders": [
+        "litellm-cluster"
+      ],
+      "groups": [
+        "litellm-cluster"
+      ]
+    }
+  },
+  "internetChecks": {
+    "model": {
+      "expectedSentinel": true,
+      "finishReason": "stop"
+    },
+    "publicProbes": [
+      {
+        "url": "https://github.com",
+        "exitCode": 0,
+        "httpStatus": "200"
+      },
+      {
+        "url": "https://pypi.org",
+        "exitCode": 0,
+        "httpStatus": "200"
+      },
+      {
+        "url": "https://registry.npmjs.org",
+        "exitCode": 0,
+        "httpStatus": "200"
+      }
+    ],
+    "effectiveContextLines": [
+      "contextWindow: 131072",
+      "contextWindow: 131072",
+      "contextWindow: 128000",
+      "contextWindow: 64000",
+      "contextWindow: 128000",
+      "thresholdRatio: 0.75"
+    ],
+    "combinedProbeSeconds": 2.504,
+    "catalog": {
+      "status": 200,
+      "ok": true,
+      "default": {
+        "provider": "litellm-cluster",
+        "model": "deepseek-v4.1-flash"
+      },
+      "routableProviders": [
+        "litellm-cluster"
+      ],
+      "groups": [
+        "litellm-cluster"
+      ]
+    }
+  },
+  "rollback": {
+    "applicationRegressionDetected": false,
+    "imageRollbackNeeded": false,
+    "manifestsDirectory": "C:\\Users\\skunpojt\\rollback-runtime-hardening-20261015",
+    "snapshotsAreLocalNotCentral": true,
+    "fullDisasterRecoveryRestoreTested": false
+  },
+  "verificationExperience": [
+    "First and second post-restart worker attempts failed at read-only CSI mount setup.",
+    "A subsequent worker encountered a read-only mount/SELinux relabel error. No byte mismatch was reported by those workers.",
+    "Verification was moved to an archive-only worker and the existing runtime mounts; final content comparison passed."
+  ]
+}

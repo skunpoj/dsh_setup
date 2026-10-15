@@ -1,5 +1,7 @@
 # RDT pilot control closure: implementation and evidence
 
+> Historical 18:10 ICT snapshot. The execution-pool rollout has since completed; see the [20:39 live rollout assessment](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md#safe-runtime-rollout--actual-deployed-result) and [recorded results](context-evidence/runtime-rollout-live-20261015.json). Other security gaps remain open.
+
 Updated 15 October 2026, 18:10 ICT. This supplements the original 13:03 assessment; it does not replace historical observations with later source tests.
 
 ## Current decision

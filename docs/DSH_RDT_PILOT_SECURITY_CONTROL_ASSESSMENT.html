@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH RDT Pilot — Security and Architecture Walkthrough</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-</style></head><body><main><h1>DSH RDT Pilot — Security, Architecture and Operational Walkthrough</h1><div class="status"><strong>Current decision: partially satisfied.</strong> Read deployed, tested-source and target-design labels separately. No new access approval or security sign-off is asserted.</div><nav aria-label="Contents"><a href="#section-1">Executive summary / สรุปสำหรับผู้พิจารณา</a><a href="#section-2">Current status — deployed versus prepared</a><a href="#section-3">Architecture 1 — live deployment</a><a href="#section-4">Architecture 2 — target user and data boundaries</a><a href="#section-5">Architecture 3 — approved dependency transfer</a><a href="#section-6">Three controls — mechanism, evidence and closure</a><a href="#section-7">DA_WORKSPACE — what changed and correction design</a><a href="#section-8">Walkthrough — login to a contained result</a><a href="#section-9">Model speed, responsiveness and context</a><a href="#section-10">Official upstream comparison</a><a href="#section-11">Closure plan and accountable owners</a><a href="#section-12">Diagram renderer and evidence boundary</a><a href="#evidence">Embedded evidence</a></nav>
-<p><strong>Evidence date: 15 October 2026, ICT. Decision: partially satisfied; not all gaps are closed.</strong></p>
+</style></head><body><main><h1>DSH RDT Pilot — Security, Architecture and Operational Walkthrough</h1><div class="status"><strong>Current decision: partially satisfied.</strong> Read deployed, tested-source and target-design labels separately. No new access approval or security sign-off is asserted.</div><nav aria-label="Contents"><a href="#section-1">Executive summary / สรุปสำหรับผู้พิจารณา</a><a href="#section-2">Current status — deployed versus prepared</a><a href="#section-3">Architecture 1 — live deployment</a><a href="#section-4">Architecture 2 — target user and data boundaries</a><a href="#section-5">Architecture 3 — approved dependency transfer</a><a href="#section-6">Three controls — mechanism, evidence and closure</a><a href="#section-7">Safe runtime rollout — actual deployed result</a><a href="#section-8">DA_WORKSPACE — what changed and correction design</a><a href="#section-9">Walkthrough — login to a contained result</a><a href="#section-10">Model speed, responsiveness and context</a><a href="#section-11">Official upstream comparison</a><a href="#section-12">Closure plan and accountable owners</a><a href="#section-13">Diagram renderer and evidence boundary</a><a href="#evidence">Embedded evidence</a></nav>
+<p><strong>Live evidence: 15 October 2026, 20:39 ICT. Runtime rollout completed; RDT security controls remain partially satisfied.</strong></p>
 <p>This revision reconciles the live implementation, original design intent, deployment evidence and official upstream. The original <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/archive/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT_1303.md">13:03 assessment</a> and original Desktop HTML are preserved.</p>
 <h2 id="section-1">Executive summary / สรุปสำหรับผู้พิจารณา</h2>
 <p>DSH has an authenticated gateway and two execution environments. <strong>No Internet / Internal is the default</strong>, with restricted outbound access. Internet is separate staging for dependency preparation. Their writable files, histories, attachments and launch tokens are separated by environment. LiteLLM and the four-H100 model are shared. This constrains consequences of generated code; it does not establish that generated code is safe.</p>
@@ -43,8 +43,13 @@
 </tr>
 <tr>
 <td>Internal-only catalog</td>
-<td>Candidate image tested</td>
-<td>Current execution pools still use the older installed catalog</td>
+<td>Live in both pools; actual catalog API inspected</td>
+<td>Only <code>litellm-cluster</code> is routable; default DeepSeek V4.1 Flash</td>
+</tr>
+<tr>
+<td>Runtime restart and persistence</td>
+<td>Live rollout passed</td>
+<td>Fresh/held login, logout, 80 Secure histories and content comparison verified</td>
 </tr>
 <tr>
 <td>DA_WORKSPACE</td>
@@ -196,7 +201,7 @@
 <td>Prevent external leakage</td>
 <td>Offline NetworkPolicy; internal model route; separate Internet storage</td>
 <td>Secure public probes fail; internal LiteLLM works</td>
-<td>Update active catalogs; audit DNS, shared inference egress/fallback and every in-scope worker</td>
+<td>Active catalog now internal-only; audit DNS, shared inference egress/fallback and every in-scope worker</td>
 </tr>
 <tr>
 <td>Prevent damage/excessive access</td>
@@ -216,11 +221,82 @@
 <li><a href="#evidence-rdt-gateway-live-20261015-json">Live gateway responses</a>: registration 403, form/tab absent, default No Internet, unchanged account store, anonymous report/proxy/session requests return login content. This is not a cross-user authorization test.</li>
 <li><a href="#evidence-rdt-egress-recheck-20261015-json">18:00 outbound probes</a>: Secure GitHub/PyPI/npm/public-IP requests failed; LiteLLM returned the expected liveness body. Internet GitHub/PyPI/npm returned 200. The Internet public-IP probe also failed, so that comparator is inconclusive.</li>
 <li><a href="#evidence-rdt-candidate-cluster-check-62696-log">Candidate cluster log</a>: catalog, routing, spoof resistance, registration denial and stickiness tests passed with test backends. Not a live RDT user-isolation test.</li>
-<li>Build 62696 used Azure source <code>dadbab701f2547e11696c027606ef5580414f1de</code>. Verified image: <code>sha256:396fb2e862ad15731b6a49ac16efd7e15fa8e065379fe196a0c62cb21d031719</code>.</li>
-<li>Gateway runs that digest. Secure/Internet execution pools still use <code>sha256:0505beb62188a32a63366735cead3a2e87c11e4963f6a10f6ec957b758345cbc</code>; this was rechecked for this revision. A pushed image is not proof those pools changed.</li>
+<li>Build 62696 and the older pool images describe the pre-rollout state only. The current image/source and actual post-restart tests are recorded below and in the <a href="#evidence-runtime-rollout-live-20261015-json">20:39 live readback</a>.</li>
 <li>No CronJobs were listed in namespace <code>llm</code> during the check. That does not rule out in-process schedulers, user scripts or other namespaces. Legacy DSH2/DSH3 must be explicitly scoped; they do not automatically inherit new-pool restrictions.</li>
 </ul>
-<h2 id="section-7">DA_WORKSPACE — what changed and correction design</h2>
+<h2 id="section-7">Safe runtime rollout — actual deployed result</h2>
+<p>Build <strong>62702</strong>, Azure image source <strong><code>3fa74b72eaad7d7dd1e0986dd07a176f45ab2153</code></strong>, produced the immutable runtime <strong><code>sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1</code></strong>. Gateway, Secure and Internet all run that digest; running image IDs, source annotations and actual behavior were read back. All three were Ready with zero container restarts at the 20:39 ICT snapshot. The shared GPU server was unchanged by this rollout. Subsequent documentation/admin-script commits are distinct from the image&#39;s source commit.</p>
+<h3>What changed and why</h3>
+<ul>
+<li>The gateway cached a backend authentication cookie without detecting a changed launch token. A reproduced backend restart returned 401 with the old code. The cache now fingerprints the current launch token and remints stale cookies; held login sessions passed after both real runtime replacements.</li>
+<li>Gateway session and logout cookies now default to Secure. The login page no longer loads Google Fonts from the Internet.</li>
+<li>Pool startup/readiness/liveness probes call the actual application on port 3080, rather than only checking the early-opening forwarding port. Startup allows ten minutes; readiness checks every five seconds; liveness checks every fifteen seconds.</li>
+<li>Pool strategy is Recreate with a 120-second termination grace period, avoiding simultaneous DSH writers on one state volume. Service-account token mounting is disabled; runtime seccomp is RuntimeDefault. This deliberately creates a short per-environment interruption rather than promising zero downtime.</li>
+<li>Both active server catalogs expose only the internal LiteLLM provider. No upstream DSH package upgrade was performed.</li>
+</ul>
+<h3>Restart and behavior evidence</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Secure / No Internet</th>
+<th>Internet</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Fresh login and authenticated UI</td>
+<td>302 then actual UI 200; logout button present</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Existing login held across backend restart</td>
+<td>Authenticated UI 200</td>
+<td>Authenticated UI 200</td>
+</tr>
+<tr>
+<td>Logout and replay of old cookie</td>
+<td>Login form returned; session invalidated</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Actual session-list API</td>
+<td>80 saved histories listed after restart</td>
+<td>0 histories before and after; no real history corpus to validate</td>
+</tr>
+<tr>
+<td>Content retained after replacement</td>
+<td>2,732 regular files / 6,632,175,696 original bytes; zero failures</td>
+<td>2 controlled workspace/state markers / 176 bytes; zero failures</td>
+</tr>
+<tr>
+<td>Internal inference</td>
+<td>Exact <code>RUNTIME_ROLLOUT_OK</code>, normal stop</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Public GitHub, PyPI and npm HTTPS</td>
+<td>All timed out, HTTP 000</td>
+<td>All returned HTTP 200</td>
+</tr>
+<tr>
+<td>Terminal route</td>
+<td>Actual terminal HTTP page rendered</td>
+<td>Same; interactive commands/WebSocket not retested</td>
+</tr>
+<tr>
+<td>Live catalog API</td>
+<td>Only <code>litellm-cluster</code>; DeepSeek default</td>
+<td>Same</td>
+</tr>
+</tbody></table>
+<p>Secure&#39;s file count comprises 2,648 workspace and 84 state regular files. The post-restart state comparison covers sessions/attachments, excluding locks, derived indexes, symlinks and hardlink aliases. Stopped-state tar comparison separately checked the coherent archives against the stopped source. No append-only growth was observed. These checks establish restart persistence of the checked content, not a complete disaster-recovery restore.</p>
+<p>The temporary random-password test account was removed, other accounts were checked unchanged, held test sessions were logged out, and only the controlled Internet markers were removed. No real passwords or user content are published in the evidence.</p>
+<h3>Rollback preparation and operational experience</h3>
+<p>Each writer was stopped before archive creation and source comparison. Secure&#39;s snapshot ran approximately 20:20–20:25 ICT; Internet&#39;s stop/archive/restart completed approximately 20:34:11–20:34:43 ICT. Original deployment specifications remain in <code>C:/Users/skunpojt/rollback-runtime-hardening-20261015</code>. Coherent archive PVCs are <code>dsh-snapshot-secure-20261015132020</code> and <code>dsh-snapshot-internet-20261015133411</code>.</p>
+<p>Initial post-restart comparison workers failed at CSI read-only mount setup and SELinux relabeling; they did not report a content mismatch. Verification was corrected to use an archive-only worker to derive hashes and compare them inside the runtime&#39;s existing mounts. No second verifier pod mounts live state. Trusted archive workers use ordinary mounts because the local CSI driver&#39;s mount handling failed with read-only requests; their fixed maintenance code reads source/archive data only. This is different from an enforced read-only RDT source mount.</p>
+<p>No application regression was detected in the exercised checks, so no application-image rollback was invoked. The rollout helper restores the original deployment specification on failure and verifies a responding application; it does not overwrite current data from an archive. Mocked failure-path tests verify exact specification restoration after snapshot failure and refusal to overwrite an existing rollback point. Intentional live rollback and full archive restoration were not exercised. <strong>These snapshots are local to the single node, not DA_WORKSPACE or a central backup.</strong> Preserve them until a separately verified recovery copy exists.</p>
+<p>Reproducible operator tools: <code>scripts/rollout_runtime_hardening.py</code>, <code>scripts/verify_runtime_persistence.py</code> and <code>scripts/runtime_rollout_probe.js</code>. They are administrator-run maintenance tools, not user-facing features. The probe creates a temporary account only for the test and requires cleanup. Do not run account provisioning concurrently with this maintenance probe. Review the target, immutable digest, state ownership and rollback directory before any repeat rollout. Do not rerun a disruptive rollout simply to recheck status.</p>
+<h2 id="section-8">DA_WORKSPACE — what changed and correction design</h2>
 <table>
 <thead>
 <tr>
@@ -246,8 +322,8 @@
 </tr>
 </tbody></table>
 <p>The implementation solved ownership/isolation by changing the storage backend but failed to preserve central persistence. Earlier README statements about automatic CIFS flush and zero data loss do not describe the new pools and are withdrawn. Local PVCs persist ordinary pod replacement; they do not themselves establish central backup or node-loss recovery.</p>
-<p><strong>Correction:</strong> inventory and reconcile newer local files against the legacy share; preserve both copies and a conflict manifest. Keep live databases/locks on suitable local persistent storage. Restore controlled DA_WORKSPACE persistence using dedicated credentials, per-user/environment ACLs, coherent database backups or quiesced state snapshots, versioned destinations and a tested restore. Do not blindly remount the old share or copy changing SQLite/LevelDB files as a backup. No storage cutover or data deletion was performed for this report revision.</p>
-<h2 id="section-8">Walkthrough — login to a contained result</h2>
+<p><strong>Correction:</strong> inventory and reconcile newer local files against the legacy share; preserve both copies and a conflict manifest. Keep live databases/locks on suitable local persistent storage. Restore controlled DA_WORKSPACE persistence using dedicated credentials, per-user/environment ACLs, coherent database backups or quiesced state snapshots, versioned destinations and a tested restore. Do not blindly remount the old share or copy changing SQLite/LevelDB files as a backup. This runtime rollout retained the existing PVCs and created local coherent archives; no central-storage cutover or user-data deletion was performed.</p>
+<h2 id="section-9">Walkthrough — login to a contained result</h2>
 <ol>
 <li><strong>Authenticate:</strong> default No Internet; registration closed. Approved pilot membership still needs owner-confirmed provisioning.</li>
 <li><strong>Route:</strong> login sticks to one environment. Target design selects a private backend from authenticated identity, never client-supplied host headers/URLs.</li>
@@ -258,11 +334,11 @@
 <li><strong>Persist:</strong> retain private state, test restart and restore, and restore a controlled central persistence path before claiming DA_WORKSPACE durability.</li>
 <li><strong>Switch:</strong> logout/new environment-bound login; do not copy protected files, history or credentials automatically into Internet.</li>
 </ol>
-<h2 id="section-9">Model speed, responsiveness and context</h2>
+<h2 id="section-10">Model speed, responsiveness and context</h2>
 <p>An earlier 1,000,015-input-token backend request passed with memory fraction 0.90, prefill chunk 1,024 and maximum prefill 2,048. An earlier 0.92 profile failed around 262K with CUDA OOM: KV slots alone omit temporary workspace requirements.</p>
 <p>The newer scheduler interleaves prefill/decode and reserves bounded capacity for small requests. During controlled approximately 133K long requests, fresh short requests completed in 0.59–1.04 seconds and cached 24K sessions in 0.86–1.47 seconds, before the long request finished. Baseline short requests waited about 32–34 seconds; long completion changed from about 36 to 39–40 seconds. These are synthetic observations, not sustained tokens/sec or a latency SLA.</p>
 <p>DSH/LiteLLM remain at 131,072 total tokens, an 8,192 output ceiling and compaction near 98,304. End-to-end 1M requires aligned profiles/admission/compaction and actual streaming/tool/mixed-load tests on the revised scheduler. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CONTEXT_OPTIMIZATION_20261015.md">trial matrix</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/SCHEDULING_FAIRNESS_20261015.md">scheduling evidence</a>.</p>
-<h2 id="section-10">Official upstream comparison</h2>
+<h2 id="section-11">Official upstream comparison</h2>
 <p>Fresh official Git inspection: master <code>571902028a75c64c1d767f4ae5fd099485f0ddf0</code>; newer inspected tag <code>dsh-v0.2.1-alpha.3</code> at <code>2fbf4359b82fb94c03dcce0b831660d87f12ea5c</code>. Our installed package remains <code>0.2.0-rc.2</code>. This is a source/document comparison, not an upstream upgrade or full feature test.</p>
 <table>
 <thead>
@@ -344,7 +420,7 @@
 </ul>
 <h3>Upgrade gate</h3>
 <p>Pin the next release/image; inventory every patched module and expected source/hash. Restore copied state into an isolated candidate. Inspect effective profiles/credential precedence and test auth, Host/Origin denial, WebSockets, terminal, tools, existing sessions, attachments, compaction, egress, user boundaries, restart and restore. Fail loudly on changed patch targets. Preserve the old image/state and test rollback. Do not automatically merge upstream into Production.</p>
-<h2 id="section-11">Closure plan and accountable owners</h2>
+<h2 id="section-12">Closure plan and accountable owners</h2>
 <table>
 <thead>
 <tr>
@@ -384,9 +460,9 @@
 <td>Reconciliation, ACLs, coherent snapshot and successful restore</td>
 </tr>
 <tr>
-<td>Overlay/catalog upgrade</td>
+<td>Future overlay/upstream upgrade</td>
 <td>Application operator</td>
-<td>Installed content and affected behavior match selected source/digest</td>
+<td>Repeat installed-content and affected-behavior tests; current internal-only catalog rollout is verified</td>
 </tr>
 <tr>
 <td>Residual-risk acceptance</td>
@@ -395,11 +471,398 @@
 </tr>
 </tbody></table>
 <p><strong>Pending owner inputs remain the approved pilot usernames and exact RDT source/view</strong>, with history ownership resolved before migration. Technical work can proceed independently, but these permissions and business decisions cannot be invented. All three controls remain partially satisfied until deployed acceptance tests pass.</p>
-<h2 id="section-12">Diagram renderer and evidence boundary</h2>
+<h2 id="section-13">Diagram renderer and evidence boundary</h2>
 <p>The HTML embeds Mermaid 10.8.0 and svg-pan-zoom 3.6.1, reusing SMP EDA&#39;s diagram controls: zoom, reset, fullscreen, SVG/PNG export and source copy. It requires no CDN connection. Export coordinates are reset on a cloned SVG so zooming does not crop the saved diagram. Target diagrams are design illustrations, not deployment screenshots. The original HTML and Markdown are preserved.</p>
 <h3>Verification of this document</h3>
 <p>The generated HTML was tested in headless Microsoft Edge: three diagrams rendered, no external resource requests or page errors occurred, and zoom/reset/fullscreen/source-copy/SVG/PNG export passed. Rendered screenshots were visually inspected. These checks verify the document controls, not every deployed DSH feature. See <a href="#evidence-html-verification-20261015-json">document QA record</a>.</p>
-<h2 id="evidence">Embedded evidence records</h2><p>Recorded test responses and logs; these are not live webpage screenshots or a new test on opening this file.</p><details id="evidence-rdt-gateway-live-20261015-json"><summary>rdt-gateway-live-20261015.json</summary><pre>{&quot;time&quot;:&quot;2026-10-15T11:07:52.988Z&quot;,&quot;registrationStatus&quot;:403,&quot;registrationTabAbsent&quot;:true,&quot;registrationFormAbsent&quot;:true,&quot;noInternetDefault&quot;:true,&quot;storeUnchanged&quot;:true,&quot;anonymous&quot;:[{&quot;path&quot;:&quot;/proxy/8000/report&quot;,&quot;status&quot;:200,&quot;loginPage&quot;:true},{&quot;path&quot;:&quot;/api/sessions&quot;,&quot;status&quot;:200,&quot;loginPage&quot;:true},{&quot;path&quot;:&quot;/report.html&quot;,&quot;status&quot;:200,&quot;loginPage&quot;:true}]}
+<h2 id="evidence">Embedded evidence records</h2><p>Recorded test responses and logs; these are not live webpage screenshots or a new test on opening this file.</p><details id="evidence-runtime-rollout-live-20261015-json"><summary>runtime-rollout-live-20261015.json</summary><pre>{
+  &quot;timeICT&quot;: &quot;2026-10-15T20:39:05.087772+07:00&quot;,
+  &quot;buildId&quot;: 62702,
+  &quot;imageSourceCommit&quot;: &quot;3fa74b72eaad7d7dd1e0986dd07a176f45ab2153&quot;,
+  &quot;imageDigest&quot;: &quot;sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+  &quot;deployments&quot;: [
+    {
+      &quot;name&quot;: &quot;dsh-environment-gateway&quot;,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;sourceCommit&quot;: &quot;3fa74b72eaad7d7dd1e0986dd07a176f45ab2153&quot;,
+      &quot;available&quot;: 1,
+      &quot;strategy&quot;: &quot;Recreate&quot;,
+      &quot;automountServiceAccountToken&quot;: false,
+      &quot;podSecurity&quot;: {},
+      &quot;containerSecurity&quot;: {
+        &quot;allowPrivilegeEscalation&quot;: false,
+        &quot;capabilities&quot;: {
+          &quot;drop&quot;: [
+            &quot;ALL&quot;
+          ]
+        },
+        &quot;runAsGroup&quot;: 10001,
+        &quot;runAsNonRoot&quot;: true,
+        &quot;runAsUser&quot;: 10001
+      },
+      &quot;startupProbe&quot;: null,
+      &quot;readinessProbe&quot;: {
+        &quot;failureThreshold&quot;: 3,
+        &quot;httpGet&quot;: {
+          &quot;path&quot;: &quot;/login&quot;,
+          &quot;port&quot;: &quot;http&quot;,
+          &quot;scheme&quot;: &quot;HTTP&quot;
+        },
+        &quot;periodSeconds&quot;: 5,
+        &quot;successThreshold&quot;: 1,
+        &quot;timeoutSeconds&quot;: 1
+      }
+    },
+    {
+      &quot;name&quot;: &quot;dsh-secure&quot;,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;sourceCommit&quot;: &quot;3fa74b72eaad7d7dd1e0986dd07a176f45ab2153&quot;,
+      &quot;available&quot;: 1,
+      &quot;strategy&quot;: &quot;Recreate&quot;,
+      &quot;automountServiceAccountToken&quot;: false,
+      &quot;podSecurity&quot;: {
+        &quot;fsGroup&quot;: 10001,
+        &quot;fsGroupChangePolicy&quot;: &quot;OnRootMismatch&quot;,
+        &quot;seccompProfile&quot;: {
+          &quot;type&quot;: &quot;RuntimeDefault&quot;
+        }
+      },
+      &quot;containerSecurity&quot;: {
+        &quot;allowPrivilegeEscalation&quot;: false,
+        &quot;capabilities&quot;: {
+          &quot;drop&quot;: [
+            &quot;ALL&quot;
+          ]
+        },
+        &quot;runAsGroup&quot;: 10001,
+        &quot;runAsNonRoot&quot;: true,
+        &quot;runAsUser&quot;: 10001
+      },
+      &quot;startupProbe&quot;: {
+        &quot;exec&quot;: {
+          &quot;command&quot;: [
+            &quot;node&quot;,
+            &quot;/opt/dsh/scripts/runtime_health.js&quot;
+          ]
+        },
+        &quot;failureThreshold&quot;: 120,
+        &quot;periodSeconds&quot;: 5,
+        &quot;successThreshold&quot;: 1,
+        &quot;timeoutSeconds&quot;: 3
+      },
+      &quot;readinessProbe&quot;: {
+        &quot;exec&quot;: {
+          &quot;command&quot;: [
+            &quot;node&quot;,
+            &quot;/opt/dsh/scripts/runtime_health.js&quot;
+          ]
+        },
+        &quot;failureThreshold&quot;: 6,
+        &quot;periodSeconds&quot;: 5,
+        &quot;successThreshold&quot;: 1,
+        &quot;timeoutSeconds&quot;: 3
+      }
+    },
+    {
+      &quot;name&quot;: &quot;dsh-internet&quot;,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;sourceCommit&quot;: &quot;3fa74b72eaad7d7dd1e0986dd07a176f45ab2153&quot;,
+      &quot;available&quot;: 1,
+      &quot;strategy&quot;: &quot;Recreate&quot;,
+      &quot;automountServiceAccountToken&quot;: false,
+      &quot;podSecurity&quot;: {
+        &quot;fsGroup&quot;: 10001,
+        &quot;fsGroupChangePolicy&quot;: &quot;OnRootMismatch&quot;,
+        &quot;seccompProfile&quot;: {
+          &quot;type&quot;: &quot;RuntimeDefault&quot;
+        }
+      },
+      &quot;containerSecurity&quot;: {
+        &quot;allowPrivilegeEscalation&quot;: false,
+        &quot;capabilities&quot;: {
+          &quot;drop&quot;: [
+            &quot;ALL&quot;
+          ]
+        },
+        &quot;runAsGroup&quot;: 10001,
+        &quot;runAsNonRoot&quot;: true,
+        &quot;runAsUser&quot;: 10001
+      },
+      &quot;startupProbe&quot;: {
+        &quot;exec&quot;: {
+          &quot;command&quot;: [
+            &quot;node&quot;,
+            &quot;/opt/dsh/scripts/runtime_health.js&quot;
+          ]
+        },
+        &quot;failureThreshold&quot;: 120,
+        &quot;periodSeconds&quot;: 5,
+        &quot;successThreshold&quot;: 1,
+        &quot;timeoutSeconds&quot;: 3
+      },
+      &quot;readinessProbe&quot;: {
+        &quot;exec&quot;: {
+          &quot;command&quot;: [
+            &quot;node&quot;,
+            &quot;/opt/dsh/scripts/runtime_health.js&quot;
+          ]
+        },
+        &quot;failureThreshold&quot;: 6,
+        &quot;periodSeconds&quot;: 5,
+        &quot;successThreshold&quot;: 1,
+        &quot;timeoutSeconds&quot;: 3
+      }
+    }
+  ],
+  &quot;pods&quot;: [
+    {
+      &quot;name&quot;: &quot;dsh-environment-gateway-64ddf56599-chr79&quot;,
+      &quot;containers&quot;: [
+        {
+          &quot;ready&quot;: true,
+          &quot;restarts&quot;: 0,
+          &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;
+        }
+      ]
+    },
+    {
+      &quot;name&quot;: &quot;dsh-internet-7d4dbf55df-psff9&quot;,
+      &quot;containers&quot;: [
+        {
+          &quot;ready&quot;: true,
+          &quot;restarts&quot;: 0,
+          &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;
+        }
+      ]
+    },
+    {
+      &quot;name&quot;: &quot;dsh-secure-67b6c6dc4-hv9mx&quot;,
+      &quot;containers&quot;: [
+        {
+          &quot;ready&quot;: true,
+          &quot;restarts&quot;: 0,
+          &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;
+        }
+      ]
+    },
+    {
+      &quot;name&quot;: &quot;vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl&quot;,
+      &quot;containers&quot;: [
+        {
+          &quot;ready&quot;: true,
+          &quot;restarts&quot;: 0,
+          &quot;imageID&quot;: &quot;docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860&quot;
+        }
+      ]
+    }
+  ],
+  &quot;freshLogin&quot;: {
+    &quot;time&quot;: &quot;2026-10-15T13:35:47.117Z&quot;,
+    &quot;results&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;secure&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 80,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;internet&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 0,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      }
+    ]
+  },
+  &quot;heldSessions&quot;: {
+    &quot;time&quot;: &quot;2026-10-15T13:35:45.567Z&quot;,
+    &quot;heldSessionResults&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;status&quot;: 200,
+        &quot;authenticatedUI&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;status&quot;: 200,
+        &quot;authenticatedUI&quot;: true
+      }
+    ]
+  },
+  &quot;testAccountCleanup&quot;: {
+    &quot;temporaryProbeRemoved&quot;: true,
+    &quot;otherAccountsUnchanged&quot;: true
+  },
+  &quot;testMarkerCleanup&quot;: {
+    &quot;syntheticMarkersRemoved&quot;: [
+      &quot;/workspace&quot;,
+      &quot;/state&quot;
+    ]
+  },
+  &quot;persistence&quot;: {
+    &quot;secure&quot;: {
+      &quot;deployment&quot;: &quot;dsh-secure&quot;,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;snapshotPVC&quot;: &quot;dsh-snapshot-secure-20261015132020&quot;,
+      &quot;archiveContentComparison&quot;: true,
+      &quot;applicationHealth&quot;: true,
+      &quot;strategy&quot;: &quot;Recreate&quot;,
+      &quot;centralBackup&quot;: false,
+      &quot;persistence&quot;: {
+        &quot;regularFilesChecked&quot;: 2732,
+        &quot;originalBytesChecked&quot;: 6632175696,
+        &quot;contentFailures&quot;: 0,
+        &quot;appendOnlyGrowth&quot;: 0,
+        &quot;filesByRoot&quot;: {
+          &quot;workspace&quot;: 2648,
+          &quot;state&quot;: 84
+        },
+        &quot;excludes&quot;: &quot;lock files, derived state indexes, symlinks and hardlink aliases&quot;
+      },
+      &quot;verificationMethod&quot;: &quot;archive hash inventory compared inside existing runtime mounts; no co-mount of live state&quot;
+    },
+    &quot;internet&quot;: {
+      &quot;time&quot;: &quot;2026-10-15T13:34:43.194755+00:00&quot;,
+      &quot;deployment&quot;: &quot;dsh-internet&quot;,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;snapshotPVC&quot;: &quot;dsh-snapshot-internet-20261015133411&quot;,
+      &quot;archiveContentComparison&quot;: true,
+      &quot;applicationHealth&quot;: true,
+      &quot;strategy&quot;: &quot;Recreate&quot;,
+      &quot;centralBackup&quot;: false,
+      &quot;persistence&quot;: {
+        &quot;regularFilesChecked&quot;: 2,
+        &quot;originalBytesChecked&quot;: 176,
+        &quot;contentFailures&quot;: 0,
+        &quot;appendOnlyGrowth&quot;: 0,
+        &quot;filesByRoot&quot;: {
+          &quot;workspace&quot;: 1,
+          &quot;state&quot;: 1
+        },
+        &quot;excludes&quot;: &quot;lock files, derived state indexes, symlinks and hardlink aliases&quot;
+      }
+    }
+  },
+  &quot;secureChecks&quot;: {
+    &quot;model&quot;: {
+      &quot;expectedSentinel&quot;: true,
+      &quot;finishReason&quot;: &quot;stop&quot;
+    },
+    &quot;publicProbes&quot;: [
+      {
+        &quot;url&quot;: &quot;https://github.com&quot;,
+        &quot;exitCode&quot;: 28,
+        &quot;httpStatus&quot;: &quot;000&quot;
+      },
+      {
+        &quot;url&quot;: &quot;https://pypi.org&quot;,
+        &quot;exitCode&quot;: 28,
+        &quot;httpStatus&quot;: &quot;000&quot;
+      },
+      {
+        &quot;url&quot;: &quot;https://registry.npmjs.org&quot;,
+        &quot;exitCode&quot;: 28,
+        &quot;httpStatus&quot;: &quot;000&quot;
+      }
+    ],
+    &quot;effectiveContextLines&quot;: [
+      &quot;contextWindow: 131072&quot;,
+      &quot;contextWindow: 131072&quot;,
+      &quot;contextWindow: 128000&quot;,
+      &quot;contextWindow: 64000&quot;,
+      &quot;contextWindow: 128000&quot;,
+      &quot;thresholdRatio: 0.75&quot;
+    ],
+    &quot;combinedProbeSeconds&quot;: 12.346,
+    &quot;catalog&quot;: {
+      &quot;status&quot;: 200,
+      &quot;ok&quot;: true,
+      &quot;default&quot;: {
+        &quot;provider&quot;: &quot;litellm-cluster&quot;,
+        &quot;model&quot;: &quot;deepseek-v4.1-flash&quot;
+      },
+      &quot;routableProviders&quot;: [
+        &quot;litellm-cluster&quot;
+      ],
+      &quot;groups&quot;: [
+        &quot;litellm-cluster&quot;
+      ]
+    }
+  },
+  &quot;internetChecks&quot;: {
+    &quot;model&quot;: {
+      &quot;expectedSentinel&quot;: true,
+      &quot;finishReason&quot;: &quot;stop&quot;
+    },
+    &quot;publicProbes&quot;: [
+      {
+        &quot;url&quot;: &quot;https://github.com&quot;,
+        &quot;exitCode&quot;: 0,
+        &quot;httpStatus&quot;: &quot;200&quot;
+      },
+      {
+        &quot;url&quot;: &quot;https://pypi.org&quot;,
+        &quot;exitCode&quot;: 0,
+        &quot;httpStatus&quot;: &quot;200&quot;
+      },
+      {
+        &quot;url&quot;: &quot;https://registry.npmjs.org&quot;,
+        &quot;exitCode&quot;: 0,
+        &quot;httpStatus&quot;: &quot;200&quot;
+      }
+    ],
+    &quot;effectiveContextLines&quot;: [
+      &quot;contextWindow: 131072&quot;,
+      &quot;contextWindow: 131072&quot;,
+      &quot;contextWindow: 128000&quot;,
+      &quot;contextWindow: 64000&quot;,
+      &quot;contextWindow: 128000&quot;,
+      &quot;thresholdRatio: 0.75&quot;
+    ],
+    &quot;combinedProbeSeconds&quot;: 2.504,
+    &quot;catalog&quot;: {
+      &quot;status&quot;: 200,
+      &quot;ok&quot;: true,
+      &quot;default&quot;: {
+        &quot;provider&quot;: &quot;litellm-cluster&quot;,
+        &quot;model&quot;: &quot;deepseek-v4.1-flash&quot;
+      },
+      &quot;routableProviders&quot;: [
+        &quot;litellm-cluster&quot;
+      ],
+      &quot;groups&quot;: [
+        &quot;litellm-cluster&quot;
+      ]
+    }
+  },
+  &quot;rollback&quot;: {
+    &quot;applicationRegressionDetected&quot;: false,
+    &quot;imageRollbackNeeded&quot;: false,
+    &quot;manifestsDirectory&quot;: &quot;C:\\Users\\skunpojt\\rollback-runtime-hardening-20261015&quot;,
+    &quot;snapshotsAreLocalNotCentral&quot;: true,
+    &quot;fullDisasterRecoveryRestoreTested&quot;: false
+  },
+  &quot;verificationExperience&quot;: [
+    &quot;First and second post-restart worker attempts failed at read-only CSI mount setup.&quot;,
+    &quot;A subsequent worker encountered a read-only mount/SELinux relabel error. No byte mismatch was reported by those workers.&quot;,
+    &quot;Verification was moved to an archive-only worker and the existing runtime mounts; final content comparison passed.&quot;
+  ]
+}</pre></details><details id="evidence-rdt-gateway-live-20261015-json"><summary>rdt-gateway-live-20261015.json</summary><pre>{&quot;time&quot;:&quot;2026-10-15T11:07:52.988Z&quot;,&quot;registrationStatus&quot;:403,&quot;registrationTabAbsent&quot;:true,&quot;registrationFormAbsent&quot;:true,&quot;noInternetDefault&quot;:true,&quot;storeUnchanged&quot;:true,&quot;anonymous&quot;:[{&quot;path&quot;:&quot;/proxy/8000/report&quot;,&quot;status&quot;:200,&quot;loginPage&quot;:true},{&quot;path&quot;:&quot;/api/sessions&quot;,&quot;status&quot;:200,&quot;loginPage&quot;:true},{&quot;path&quot;:&quot;/report.html&quot;,&quot;status&quot;:200,&quot;loginPage&quot;:true}]}
 </pre></details><details id="evidence-rdt-egress-recheck-20261015-json"><summary>rdt-egress-recheck-20261015.json</summary><pre>{
   &quot;secure&quot;: [
     {
@@ -467,7 +930,7 @@ environment routing and session stickiness tests passed
 routing checks completed
 per-user routing, spoof resistance, missing-runtime denial, registration denial and stickiness tests passed
 </pre></details><details id="evidence-html-verification-20261015-json"><summary>html-verification-20261015.json</summary><pre>{
-  &quot;time&quot;: &quot;2026-10-15T11:34:19.406Z&quot;,
+  &quot;time&quot;: &quot;2026-10-15T13:43:14.020Z&quot;,
   &quot;renderedDiagrams&quot;: 3,
   &quot;externalResourceRequests&quot;: 0,
   &quot;zoom&quot;: true,

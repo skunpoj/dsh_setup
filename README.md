@@ -11,6 +11,7 @@ Start with the [interactive security/architecture walkthrough](docs/DSH_RDT_PILO
 | No Internet / Internal default | Constrain generated code without relying on prompts | Live restricted-egress pool; not an air gap |
 | Internet environment | Prepare dependencies without mounting protected data | Live separate staging/workspace/history |
 | Authenticated session routing | Keep HTTP, WebSocket, terminal and applications in the chosen environment | Live environment routing; per-user routing only prepared |
+| Safe runtime replacement | Keep state single-writer; detect backend-token rotation and actual application health | Build 62702 live in gateway and both pools; restart/login/content tests passed |
 | Registration closed | Administrative account provisioning for a named pilot | Deployed and actual denial tested; approved pilot membership still pending |
 | Approved package transfer | Supply offline libraries without sharing writable protected workspaces | Incoming, operator review, hash-checked promotion, read-only approved cache |
 | Dedicated user runtime | Isolate execution, workspace, history and attachments | Generator and routing source tests pass; not deployed |
@@ -91,4 +92,8 @@ Prefer supported configuration/plugins; fail on changed patch targets. Candidate
 
 ## Evidence and closure
 
-[Latest implementation evidence](docs/RDT_CONTROL_CLOSURE_PROGRESS_20261015.md) distinguishes local tests, candidate image tests and deployed behavior. The live gateway is image `396fb2e8…`; execution pools remain `0505beb6…` at the report's readback. Registration is closed; full named-user, data-access and central-persistence closure is pending. Owner approval and assessor sign-off are separate from code completion.
+At **20:39 ICT, 15 October 2026**, gateway, Secure and Internet all run build **62702**, image `sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1`, built from Azure source `3fa74b72eaad7d7dd1e0986dd07a176f45ab2153`. Fresh login/logout, held sessions across backend restarts, actual catalog API and internal inference passed in both pools. Secure retained 80 listed histories and 2,732 checked regular files with zero content failures; Internet retained two controlled markers (its real history list was empty). [Live readback and test results](docs/context-evidence/runtime-rollout-live-20261015.json) and the [rollout walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md#safe-runtime-rollout--actual-deployed-result) record exact scope and failed verification attempts.
+
+Pools now use actual application startup/readiness/liveness checks and Recreate to prevent concurrent state writers. Gateway cookie caching detects rotated backend launch tokens; cookies default Secure. No tested application regression required rollback. Original deployment specs and coherent local archive PVCs remain available; full archive restore and intentional rollback were not exercised. Terminal HTTP pages passed, but interactive terminal/WebSocket behavior was not retested. New documentation/operator-script commits are not the image-source commit.
+
+Registration is closed and active catalogs are internal-only. Named-user isolation, approved RDT access and central DA_WORKSPACE persistence remain pending. The local snapshots do not protect against node loss. Owner approval and assessor sign-off remain separate from code completion.

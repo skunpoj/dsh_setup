@@ -15,7 +15,7 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: gateway
-          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:396fb2e862ad15731b6a49ac16efd7e15fa8e065379fe196a0c62cb21d031719
+          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1
           command: [node, /opt/dsh/scripts/auth_proxy.js]
           securityContext:
             runAsNonRoot: true

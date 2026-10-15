@@ -79,7 +79,9 @@ def generate(users, image, rdt_source_pvc=None, rdt_approval_ref=None):
                     'name': 'rdt-source', 'mountPath': '/data/rdt', 'readOnly': True})
             documents.extend([deployment, {'apiVersion': 'v1', 'kind': 'Service',
                 'metadata': {'name': name, 'namespace': 'llm'},
-                'spec': {'selector': {'app': name}, 'ports': [{'name': 'web', 'port': 3081, 'targetPort': 'web'}]}}])
+                'spec': {'clusterIP': 'None', 'selector': {'app': name}, 'ports': [
+                    {'name': 'web', 'port': 3081, 'targetPort': 'web'},
+                    {'name': 'terminal', 'port': 7681, 'targetPort': 'terminal'}]}}])
             routes[user][environment] = {'host': f'{name}.llm.svc.cluster.local', 'port': 3081,
                 'tokenFile': f'/runtime-tokens/{identity}/{environment}/{environment}'}
     documents.extend([{'apiVersion': 'v1', 'kind': 'ConfigMap',

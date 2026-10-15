@@ -1,6 +1,6 @@
 # DSH RDT Pilot — Security, Architecture and Operational Walkthrough
 
-**Evidence date: 15 October 2026, ICT. Decision: partially satisfied; not all gaps are closed.**
+**Live evidence: 15 October 2026, 20:39 ICT. Runtime rollout completed; RDT security controls remain partially satisfied.**
 
 This revision reconciles the live implementation, original design intent, deployment evidence and official upstream. The original [13:03 assessment](archive/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT_1303.md) and original Desktop HTML are preserved.
 
@@ -21,7 +21,8 @@ The live gateway now disables self-registration. A rejected registration left th
 | Registration | Live disabled; POST 403 | Existing accounts are not automatically an approved pilot allow-list |
 | User isolation | Tested source, not deployed | Users in the same pool are not strongly isolated |
 | RDT snapshot | Generator supports read-only `/data/rdt` | Approved scope and actual access tests remain pending |
-| Internal-only catalog | Candidate image tested | Current execution pools still use the older installed catalog |
+| Internal-only catalog | Live in both pools; actual catalog API inspected | Only `litellm-cluster` is routable; default DeepSeek V4.1 Flash |
+| Runtime restart and persistence | Live rollout passed | Fresh/held login, logout, 80 Secure histories and content comparison verified |
 | DA_WORKSPACE | Legacy mount retained; new pools use local PVCs | No ongoing central synchronization configured |
 | Model backend | Configured ceiling 1,048,576 tokens | Earlier million-token test passed; new mixed scheduler has not repeated near-1M testing |
 | DSH and LiteLLM | 131,072 total tokens | End-to-end DSH 1M is not enabled |
@@ -102,7 +103,7 @@ Internet cannot directly install into Secure or write its workspace. Python uses
 
 | Control | Mechanism and location | Evidence | Remaining work |
 |---|---|---|---|
-| Prevent external leakage | Offline NetworkPolicy; internal model route; separate Internet storage | Secure public probes fail; internal LiteLLM works | Update active catalogs; audit DNS, shared inference egress/fallback and every in-scope worker |
+| Prevent external leakage | Offline NetworkPolicy; internal model route; separate Internet storage | Secure public probes fail; internal LiteLLM works | Active catalog now internal-only; audit DNS, shared inference egress/fallback and every in-scope worker |
 | Prevent damage/excessive access | UID/GID 10001; no privilege escalation; dropped capabilities; read-only scoped source | Runtime settings read back; snapshot manifest tests pass | Approved source/view and identity; actual source-write and out-of-scope-read denial; successful result writes |
 | Keep results contained | Authenticated routes; private user runtimes/state; no automatic export | Live anonymous routes return login; registration denied without store change | Deploy named-user routing; cross-user file/report/history/attachment denial; inventory publishers and export credentials |
 
@@ -111,9 +112,48 @@ Internet cannot directly install into Secure or write its workspace. Python uses
 - [Live gateway responses](context-evidence/rdt-gateway-live-20261015.json): registration 403, form/tab absent, default No Internet, unchanged account store, anonymous report/proxy/session requests return login content. This is not a cross-user authorization test.
 - [18:00 outbound probes](context-evidence/rdt-egress-recheck-20261015.json): Secure GitHub/PyPI/npm/public-IP requests failed; LiteLLM returned the expected liveness body. Internet GitHub/PyPI/npm returned 200. The Internet public-IP probe also failed, so that comparator is inconclusive.
 - [Candidate cluster log](context-evidence/rdt-candidate-cluster-check-62696.log): catalog, routing, spoof resistance, registration denial and stickiness tests passed with test backends. Not a live RDT user-isolation test.
-- Build 62696 used Azure source `dadbab701f2547e11696c027606ef5580414f1de`. Verified image: `sha256:396fb2e862ad15731b6a49ac16efd7e15fa8e065379fe196a0c62cb21d031719`.
-- Gateway runs that digest. Secure/Internet execution pools still use `sha256:0505beb62188a32a63366735cead3a2e87c11e4963f6a10f6ec957b758345cbc`; this was rechecked for this revision. A pushed image is not proof those pools changed.
+- Build 62696 and the older pool images describe the pre-rollout state only. The current image/source and actual post-restart tests are recorded below and in the [20:39 live readback](context-evidence/runtime-rollout-live-20261015.json).
 - No CronJobs were listed in namespace `llm` during the check. That does not rule out in-process schedulers, user scripts or other namespaces. Legacy DSH2/DSH3 must be explicitly scoped; they do not automatically inherit new-pool restrictions.
+
+## Safe runtime rollout — actual deployed result
+
+Build **62702**, Azure image source **`3fa74b72eaad7d7dd1e0986dd07a176f45ab2153`**, produced the immutable runtime **`sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1`**. Gateway, Secure and Internet all run that digest; running image IDs, source annotations and actual behavior were read back. All three were Ready with zero container restarts at the 20:39 ICT snapshot. The shared GPU server was unchanged by this rollout. Subsequent documentation/admin-script commits are distinct from the image's source commit.
+
+### What changed and why
+
+- The gateway cached a backend authentication cookie without detecting a changed launch token. A reproduced backend restart returned 401 with the old code. The cache now fingerprints the current launch token and remints stale cookies; held login sessions passed after both real runtime replacements.
+- Gateway session and logout cookies now default to Secure. The login page no longer loads Google Fonts from the Internet.
+- Pool startup/readiness/liveness probes call the actual application on port 3080, rather than only checking the early-opening forwarding port. Startup allows ten minutes; readiness checks every five seconds; liveness checks every fifteen seconds.
+- Pool strategy is Recreate with a 120-second termination grace period, avoiding simultaneous DSH writers on one state volume. Service-account token mounting is disabled; runtime seccomp is RuntimeDefault. This deliberately creates a short per-environment interruption rather than promising zero downtime.
+- Both active server catalogs expose only the internal LiteLLM provider. No upstream DSH package upgrade was performed.
+
+### Restart and behavior evidence
+
+| Check | Secure / No Internet | Internet |
+|---|---|---|
+| Fresh login and authenticated UI | 302 then actual UI 200; logout button present | Same |
+| Existing login held across backend restart | Authenticated UI 200 | Authenticated UI 200 |
+| Logout and replay of old cookie | Login form returned; session invalidated | Same |
+| Actual session-list API | 80 saved histories listed after restart | 0 histories before and after; no real history corpus to validate |
+| Content retained after replacement | 2,732 regular files / 6,632,175,696 original bytes; zero failures | 2 controlled workspace/state markers / 176 bytes; zero failures |
+| Internal inference | Exact `RUNTIME_ROLLOUT_OK`, normal stop | Same |
+| Public GitHub, PyPI and npm HTTPS | All timed out, HTTP 000 | All returned HTTP 200 |
+| Terminal route | Actual terminal HTTP page rendered | Same; interactive commands/WebSocket not retested |
+| Live catalog API | Only `litellm-cluster`; DeepSeek default | Same |
+
+Secure's file count comprises 2,648 workspace and 84 state regular files. The post-restart state comparison covers sessions/attachments, excluding locks, derived indexes, symlinks and hardlink aliases. Stopped-state tar comparison separately checked the coherent archives against the stopped source. No append-only growth was observed. These checks establish restart persistence of the checked content, not a complete disaster-recovery restore.
+
+The temporary random-password test account was removed, other accounts were checked unchanged, held test sessions were logged out, and only the controlled Internet markers were removed. No real passwords or user content are published in the evidence.
+
+### Rollback preparation and operational experience
+
+Each writer was stopped before archive creation and source comparison. Secure's snapshot ran approximately 20:20–20:25 ICT; Internet's stop/archive/restart completed approximately 20:34:11–20:34:43 ICT. Original deployment specifications remain in `C:/Users/skunpojt/rollback-runtime-hardening-20261015`. Coherent archive PVCs are `dsh-snapshot-secure-20261015132020` and `dsh-snapshot-internet-20261015133411`.
+
+Initial post-restart comparison workers failed at CSI read-only mount setup and SELinux relabeling; they did not report a content mismatch. Verification was corrected to use an archive-only worker to derive hashes and compare them inside the runtime's existing mounts. No second verifier pod mounts live state. Trusted archive workers use ordinary mounts because the local CSI driver's mount handling failed with read-only requests; their fixed maintenance code reads source/archive data only. This is different from an enforced read-only RDT source mount.
+
+No application regression was detected in the exercised checks, so no application-image rollback was invoked. The rollout helper restores the original deployment specification on failure and verifies a responding application; it does not overwrite current data from an archive. Mocked failure-path tests verify exact specification restoration after snapshot failure and refusal to overwrite an existing rollback point. Intentional live rollback and full archive restoration were not exercised. **These snapshots are local to the single node, not DA_WORKSPACE or a central backup.** Preserve them until a separately verified recovery copy exists.
+
+Reproducible operator tools: `scripts/rollout_runtime_hardening.py`, `scripts/verify_runtime_persistence.py` and `scripts/runtime_rollout_probe.js`. They are administrator-run maintenance tools, not user-facing features. The probe creates a temporary account only for the test and requires cleanup. Do not run account provisioning concurrently with this maintenance probe. Review the target, immutable digest, state ownership and rollback directory before any repeat rollout. Do not rerun a disruptive rollout simply to recheck status.
 
 ## DA_WORKSPACE — what changed and correction design
 
@@ -126,7 +166,7 @@ Internet cannot directly install into Secure or write its workspace. Python uses
 
 The implementation solved ownership/isolation by changing the storage backend but failed to preserve central persistence. Earlier README statements about automatic CIFS flush and zero data loss do not describe the new pools and are withdrawn. Local PVCs persist ordinary pod replacement; they do not themselves establish central backup or node-loss recovery.
 
-**Correction:** inventory and reconcile newer local files against the legacy share; preserve both copies and a conflict manifest. Keep live databases/locks on suitable local persistent storage. Restore controlled DA_WORKSPACE persistence using dedicated credentials, per-user/environment ACLs, coherent database backups or quiesced state snapshots, versioned destinations and a tested restore. Do not blindly remount the old share or copy changing SQLite/LevelDB files as a backup. No storage cutover or data deletion was performed for this report revision.
+**Correction:** inventory and reconcile newer local files against the legacy share; preserve both copies and a conflict manifest. Keep live databases/locks on suitable local persistent storage. Restore controlled DA_WORKSPACE persistence using dedicated credentials, per-user/environment ACLs, coherent database backups or quiesced state snapshots, versioned destinations and a tested restore. Do not blindly remount the old share or copy changing SQLite/LevelDB files as a backup. This runtime rollout retained the existing PVCs and created local coherent archives; no central-storage cutover or user-data deletion was performed.
 
 ## Walkthrough — login to a contained result
 
@@ -196,7 +236,7 @@ Pin the next release/image; inventory every patched module and expected source/h
 | Read-only source/result separation | Data/platform owner | Source-write and out-of-scope-read attempts fail; result writes succeed |
 | Network/export completion | Platform/security owner | DNS/relay/fallback/export tests for all pilot workers |
 | Central persistence restoration | Storage/platform owner | Reconciliation, ACLs, coherent snapshot and successful restore |
-| Overlay/catalog upgrade | Application operator | Installed content and affected behavior match selected source/digest |
+| Future overlay/upstream upgrade | Application operator | Repeat installed-content and affected-behavior tests; current internal-only catalog rollout is verified |
 | Residual-risk acceptance | Assessor/owner | Evidence review distinct from code completion |
 
 **Pending owner inputs remain the approved pilot usernames and exact RDT source/view**, with history ownership resolved before migration. Technical work can proceed independently, but these permissions and business decisions cannot be invented. All three controls remain partially satisfied until deployed acceptance tests pass.

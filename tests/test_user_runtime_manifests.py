@@ -27,6 +27,9 @@ class IsolationManifests(unittest.TestCase):
                     self.assertNotIn(claim, private_claims)
                     private_claims.add(claim)
             self.assertEqual(services[workload['metadata']['name']]['spec']['selector'], workload['spec']['selector']['matchLabels'])
+            self.assertEqual(services[workload['metadata']['name']]['spec']['clusterIP'], 'None')
+            self.assertEqual({p['port'] for p in services[workload['metadata']['name']]['spec']['ports']}, {3081, 7681})
+            self.assertEqual(workload['spec']['strategy']['type'], 'Recreate')
         config = next(d for d in docs if d['kind'] == 'ConfigMap')
         routes = json.loads(config['data']['users.json'])
         endpoints = [t['host'] for targets in routes.values() for t in targets.values()]
