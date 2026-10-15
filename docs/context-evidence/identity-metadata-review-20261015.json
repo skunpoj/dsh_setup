@@ -1,0 +1,8 @@
+{
+  "records": 80,
+  "generationFiles": 82,
+  "ownershipFieldsPresent": [],
+  "accountCount": 9,
+  "scope": "Read-only gateway account-name inventory and session-header field inspection; no account, access, mount or history changes",
+  "reviewTimeICT": "2026-10-15T22:25:16.365040+07:00"
+}

@@ -2,7 +2,7 @@
 
 DSH provides an authenticated gateway, separate **No Internet / Internal (default)** and **Internet** environments, internal LiteLLM and a shared four-H100 model. The three RDT pilot controls remain partially satisfied: the storage regression is corrected, but existing shared pools do not establish per-user isolation or approved read-only RDT access.
 
-Start with the [interactive security and architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html), its [Markdown source](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md), and the [central-state restoration procedure](docs/CENTRAL_STATE_RESTORATION_20261015.md). The standalone HTML embeds the README and evidence, with SMP EDA-style diagram zoom, fullscreen, source copy and SVG/PNG export.
+Start with the English [interactive security and architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html), its [Markdown source](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md), and the [central-state restoration procedure](docs/CENTRAL_STATE_RESTORATION_20261015.md). The standalone HTML embeds the README and evidence, with SMP EDA-style diagram zoom, fullscreen, source copy and SVG/PNG export.
 
 ## Features, design decisions and current deployment
 
@@ -79,3 +79,7 @@ This repository maintains deployment/authentication/configuration overlays, not 
 Rebase overlays onto a candidate pinned release, fail closed on changed patch targets, and test auth/Host/Origin, HTTP/WebSocket terminal, sessions, attachments, tools, network isolation, restart and restore before switching. Keep the installed image and coherent old state available for rollback. See [upstream procedure](docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md).
 
 The same reviewed DSH tree is mirrored under `GPU_server/deployment/vllm/dsh-environments`; GPU model and scheduling sources remain in GPU_server. Historical reports stay dated and preserved. Source completion, live behavior, scan results and owner/assessor acceptance are separate claims.
+
+## Unknown legacy ownership: safe next step
+
+A read-only review found 9 gateway accounts and 80 unique histories in 82 generation files; session headers contain no authenticated ownership field. Preserve legacy records together without broadening access. Validate isolation with two disposable identities and synthetic data; give confirmed future private users fresh histories. Assign old records only after verified ownership or an explicit shared-access decision. Keep new pilot RDT access unconfigured until a limited source and identity are identified. This is a proposed staged path, not a completed user cutover or an access change. Account names are kept in a private local CSV, not published here. See the English report, section 10.

@@ -16,6 +16,11 @@ try {
  await page.goto(pathToFileURL(path.join(root,'docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html')).href);
  await page.waitForFunction(()=>window.__reportReady || window.__reportErrors?.length,{timeout:60000});
  assert.deepEqual(await page.evaluate(()=>window.__reportErrors),[]);
+ assert.equal(await page.locator('html').getAttribute('lang'),'en');
+ const narrative=await page.locator('main').evaluate(main=>{const copy=main.cloneNode(true);copy.querySelectorAll('details[id^="evidence-"]').forEach(node=>node.remove());return copy.textContent;});
+ assert(!/[\u0e00-\u0e7f]/.test(narrative),'Report narrative and embedded README must be English; original evidence is excluded');
+ assert(await page.locator('#embedded-readme').count()===1);
+
  await page.waitForTimeout(1200);
  assert.equal(await page.locator('.mermaid-container svg').count(),3);
  assert.equal(await page.locator('script[src]').count(),0);
@@ -47,6 +52,6 @@ try {
  await page.locator('.mermaid-wrapper').first().screenshot({path:path.join(out,'report-architecture.png')});
  for (let i=1;i<3;i++) await page.locator('.mermaid-wrapper').nth(i).screenshot({path:path.join(out,`report-architecture-${i+1}.png`)});
  assert.deepEqual(errors,[]);
- const record={time:new Date().toISOString(),renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
+ const record={time:new Date().toISOString(),englishNarrative:true,readmeEmbedded:true,renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
  fs.writeFileSync(path.join(out,'html-verification.json'),JSON.stringify(record,null,2));console.log(JSON.stringify(record));
 }finally{await browser.close();}
