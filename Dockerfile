@@ -16,6 +16,7 @@ RUN groupadd --gid 10001 dsh \
 ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh
 
 COPY scripts/ /opt/dsh/scripts/
+COPY tests/ /opt/dsh/tests/
 COPY container/ /opt/dsh/container/
 RUN node /opt/dsh/scripts/configure_models.js \
  && mkdir -p /opt/dsh/seed \

@@ -32,11 +32,11 @@ steps:
 
   - powershell: |
       $image = "dsoreg-sm1-p1.bot.or.th/$(imageRepository):$(imageTag)"
-      docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image --check scripts/auth_proxy.js
-      docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image tests/test_auth_proxy_internet.js
-      docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image tests/test_environment_routing.js
-      docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image tests/test_user_isolation_routing.js
-      docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image tests/test_internal_model_catalog.js
+      docker run --rm --entrypoint node -w /opt/dsh $image --check scripts/auth_proxy.js
+      docker run --rm --entrypoint node -w /opt/dsh $image tests/test_auth_proxy_internet.js
+      docker run --rm --entrypoint node -w /opt/dsh $image tests/test_environment_routing.js
+      docker run --rm --entrypoint node -w /opt/dsh $image tests/test_user_isolation_routing.js
+      docker run --rm --entrypoint node -w /opt/dsh $image tests/test_internal_model_catalog.js
       ./tests/test_environment_manifests.ps1
     displayName: Verify gateway routing and deployment boundaries
 
