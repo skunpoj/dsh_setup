@@ -1,27 +1,46 @@
-# Current DSH storage and persistence
+# DSH storage and persistence — verified 15 October 2026, 21:32 ICT
 
-The Secure and Internet execution pools use separate local TopoLVM PVCs. Secure mounts `dsh-secure-workspace` at `/workspace` and `dsh-secure-state` at `/state`. DSH_HOME points to `/state`. Internet uses its own staging and state PVCs. These volumes survive ordinary pod replacement; they do not establish central backup or node-loss recovery.
+## Actual mounts
 
-The SMB claim `da-workspace-pvc-new` points to `//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation`. The legacy main DSH configuration mounts its `dsh` subdirectory but that deployment is scaled to zero. The new pools do not mount the share. Migration was one-time; no ongoing central synchronization is configured.
+| Data | Live location | Scope |
+|---|---|---|
+| Secure workspace | CIFS `//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation`, claim `dsh-da-workspace-secure`, subpath `dsh`, mounted at `/workspace` | Actual central workspace restored; writes go directly to the share |
+| Active Secure state | Local TopoLVM claim `dsh-secure-state`, mounted at `/state`; DSH_HOME resolves here | Existing histories and runtime locking preserved |
+| Internet workspace/state | Separate original staging/state PVCs | Does not mount protected DA_WORKSPACE |
+| Central history baseline | `dsh-storage-recovery/20261015142136/secure-state-history.tar.gz` on the share | Coherent stopped-writer baseline; 29,067 extracted files verified |
+| Local rollback workspace | Original `dsh-secure-workspace` PVC retained | Not deleted or overwritten during reconciliation |
 
-The old guide's automatic CIFS flush, zero-loss and multi-tenant-isolation claims must not be applied to the current pools. Preserve it as [historical documentation](archive/STORAGE_GUIDE_LEGACY_20261015.md).
+CIFS maps UID/GID 10001 with `uid`, `gid`, `forceuid`, `forcegid`, `dir_mode=0770`, `file_mode=0770`, `vers=3.0`. Non-root direct script execution passed. Both inspected Git repositories already use `core.filemode=false`. Forced CIFS modes do not provide per-file POSIX permission semantics; the active provider credential file remains on local state with its original protection.
 
-## Original design and correction
+## What was corrected
 
-The [raw-transcript audit](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) confirms that the local-workspace replacement was an implementation deviation. The correction is to restore the actual DA_WORKSPACE workspace mount, not redefine the requirement as a central backup of local files. The same share passed a non-root CIFS write/readback canary with explicit UID/GID 10001 mapping; Production has not been remounted.
+The [raw transcript/Git review](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) identified the assistant's unrequested replacement of DA_WORKSPACE with local workspace storage. The correction restores the actual mount, rather than substituting backups for it. It does not grant new RDT permissions or redistribute histories between accounts.
 
-## Correction and acceptance
+Secure was stopped before reconciliation. Of 2,651 local files, the first pass found 2,650 unchanged and copied one new file. No conflicts occurred; all 29,064 central-only files were retained. Before cutover, a second pass verified all 2,651 local files matched centrally. The reconciliation code preserves an old central version before replacing a differing file, rejects unsafe paths/types, and never deletes destination-only files. Source tests exercise conflicts and collision rejection.
 
-1. Inventory both local and central copies; identify newer files, duplicates and conflicts without deletion.
-2. Establish approved ownership, per-user/environment share ACLs and dedicated storage credentials.
-3. Restore the actual mounted workspace only after conflict-preserving reconciliation. Keep active databases and locks on storage with suitable locking semantics while retaining central history persistence. Prevent multiple active writers to a state directory.
-4. Use coherent database backup/checkpoint or quiesced snapshots; version the destination and verify hashes/content. Do not simply copy a live database directory.
-5. Test restore into an isolated runtime, including session history and attachments; record recovery limits and failures.
-6. Keep Internet staging unable to read protected source/results or approve its own dependencies.
+The first history restore check used a Python API unsupported by the image and triggered automatic rollback to local mounts. A portable path/type-checked extractor replaced it; the existing central archive was restored into `dsh-cifs-reconcile-20261015142136-restore` and 29,067 files read back successfully. The final cutover reused that verified coherent baseline rather than claiming it represented later state changes.
 
-This is the correction design, not a deployed synchronization claim. See the [security/architecture walkthrough](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) for actual status, lineage and responsibilities.
+## Actual post-cutover tests
 
+- `/proc/mounts` reports CIFS at `/workspace`; runtime UID remains 10001.
+- A runtime-written marker was read from an independent pod; that pod wrote a reply read by the runtime.
+- A second Secure restart retained both marker contents and the central mount; all 2,651 original files were then read back through the actual runtime and matched the manifest.
+- Fresh login/logout and held sessions passed; Secure's actual list API still returned 80 histories.
+- Internal inference returned the exact expected sentinel; representative public HTTPS still failed.
+- Temporary account and own test markers were removed; the original volumes and central-only files remain.
 
-## Runtime rollout verified — 15 October 2026, 20:39 ICT
+[Recorded live evidence](context-evidence/central-workspace-live-20261015.json) binds these checks to the mounted claim and unchanged runtime digest. The GPU/inference deployment and Internet runtime were not restarted by this correction.
 
-Build 62702 is deployed in gateway, Secure and Internet. Read the [actual rollout procedure, restart/persistence results and rollback limitations](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md#safe-runtime-rollout--actual-deployed-result) and [live evidence](context-evidence/runtime-rollout-live-20261015.json). Secure retained 80 listed histories and 2,732 checked files; Internet retained controlled markers. Coherent local snapshot PVCs were retained; no central DA_WORKSPACE synchronization or full restore was established. Use Recreate and actual application health probes; do not run two state writers or co-mount live state in a verifier pod. The GPU configuration was not changed by this rollout.
+## Remaining persistence and security limits
+
+The workspace is now mounted centrally. Active state remains local, with a separately verified central point-in-time baseline. **There is no continuous state synchronization**, no promise of zero loss of new state after node failure, and no full restored-runtime boot test. Do not describe the baseline as current live history replication.
+
+The central archive excludes top-level `/state/.credentials.yaml`, but histories/storages may still contain sensitive user content. Recovery folders require reviewed server-side access controls and retention. The main runtime mounts only `dsh`; it does not mount the recovery folder. This does not establish all Windows/share-user ACLs.
+
+Per-user runtime source now uses distinct central workspace subpaths, but private runtime cutover, pilot identity approval, read-only RDT source access and cross-user acceptance remain separate work. Never expose the entire share to each runtime or to Internet staging.
+
+## Operator procedure
+
+Use `k8s/dsh-da-workspace.yaml` for the reviewed claim. Keep legacy PVs and local rollback PVCs. `scripts/restore_central_workspace.py` stops Secure, reconciles and verifies content, applies the bounded mount, then checks actual held/fresh gateway sessions. It restores the original deployment specification on failure and preserves both data locations. Always use a fresh rollback directory and reviewed targets.
+
+Do not rerun the historical migration job to revert this mapping. Before any later rollback, account for new writes already committed to CIFS; restoring a local mount must not hide them without a recorded reconciliation. Preserve source and central recovery material until independently verified recovery is available. Use the [security walkthrough](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) for the three pilot controls and evidence limits.

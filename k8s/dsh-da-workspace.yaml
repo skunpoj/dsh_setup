@@ -1,0 +1,42 @@
+# Mounted central workspace; legacy PVs and local rollback PVCs are retained.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dsh-da-workspace-secure-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ''
+  mountOptions:
+  - dir_mode=0770
+  - file_mode=0770
+  - vers=3.0
+  - uid=10001
+  - gid=10001
+  - forceuid
+  - forcegid
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation#dsh-secure-nonroot#
+    volumeAttributes:
+      source: //bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation
+    nodeStageSecretRef:
+      name: cifs-smb-secret
+      namespace: llm
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-da-workspace-secure
+  namespace: llm
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: ''
+  volumeName: dsh-da-workspace-secure-pv
+  resources:
+    requests:
+      storage: 10Gi

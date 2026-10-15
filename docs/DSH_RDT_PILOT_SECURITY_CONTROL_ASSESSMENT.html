@@ -2,11 +2,11 @@
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
 </style></head><body><main><h1>DSH RDT Pilot — การควบคุมความเสี่ยงและแนวทางดำเนินงาน</h1><div class="status"><strong>สถานะ: ควบคุมได้บางส่วน ยังไม่ปิดครบทั้ง 3 ความเสี่ยง</strong> แยก implementation ที่ deploy แล้ว ผลทดสอบที่บันทึกไว้ และ target design ออกจากกัน การเรียบเรียงเอกสารไม่ใช่การรับรองหรืออนุมัติให้ใช้ข้อมูลเพิ่มเติม</div><nav aria-label="สารบัญ"><a href="#section-1">1 เป้าหมายและข้อสรุปสำหรับผู้พิจารณา</a><a href="#section-2">2 ระบบที่มีอยู่และขอบเขตที่ต้องคุม</a><a href="#section-3">3 ความเสี่ยงที่ 1 ป้องกันข้อมูลรั่วไหลภายนอก</a><a href="#section-4">4 ความเสี่ยงที่ 2 ป้องกันความเสียหายและการเข้าถึงเกินขอบเขต</a><a href="#section-5">5 ความเสี่ยงที่ 3 เก็บผลลัพธ์ให้อยู่ในขอบเขตผู้มีสิทธิ์</a><a href="#section-6">6 ภาพเป้าหมายและลำดับการทำงานของ pilot</a><a href="#section-7">7 ใช้ Internet เตรียม packages โดยไม่เปิดข้อมูล RDT</a><a href="#section-8">8 DA_WORKSPACE ต้องกลับมาตรงกับข้อกำหนดเดิม</a><a href="#section-9">9 หลักฐานการ rollout และสิ่งที่ผลทดสอบยืนยันได้</a><a href="#section-10">10 แผนปิดความเสี่ยงและหลักฐานที่ต้องส่งมอบ</a><a href="#section-11">11 การดูแล upstream และข้อจำกัดของ shared inference</a><a href="#section-12">12 การอ่านหลักฐานและการตรวจเอกสารนี้</a><a href="#evidence">หลักฐานที่ฝังในรายงาน</a></nav>
 <p><strong>สถานะตามหลักฐานวันที่ 15 ตุลาคม 2569: ควบคุมได้บางส่วน ยังไม่ครบเงื่อนไขปิดทั้ง 3 ความเสี่ยง</strong></p>
-<p>รายงานนี้สังเคราะห์หลักฐาน runtime rollout เวลา 20:39 น. ICT ผลตรวจย้อนหลังจาก raw transcript และผลทดสอบ CIFS ที่บันทึกภายหลังในวันเดียวกัน การเรียบเรียงครั้งนี้ไม่ได้เป็นการทดสอบ Production รอบใหม่ ข้อความว่า “ใช้งานจริง” จึงอ้างถึง snapshot ที่ระบุไว้ ไม่ใช่สถานะที่ตรวจใหม่ทุกครั้งเมื่อเปิด HTML</p>
+<p>รายงานนี้สังเคราะห์หลักฐาน runtime rollout เวลา 20:39 น. ICT ผลตรวจย้อนหลังจาก raw transcript และผลทดสอบ CIFS ที่บันทึกภายหลังในวันเดียวกัน ผลเพิ่มเติมเวลา 21:32 น. ICT เป็นการคืน mount CIFS และทดสอบ Production จริงตาม record ที่แนบ ส่วนการเรียบเรียงรายงานความเสี่ยงก่อนหน้านี้ไม่ได้เป็นการทดสอบ Production รอบใหม่ ข้อความว่า “ใช้งานจริง” จึงอ้างถึง snapshot ที่ระบุไว้ ไม่ใช่สถานะที่ตรวจใหม่ทุกครั้งเมื่อเปิด HTML</p>
 <h2 id="section-1">1 เป้าหมายและข้อสรุปสำหรับผู้พิจารณา</h2>
 <p>การทดลองใช้ DSH กับ RDT ต้องเริ่มจากสมมติฐานว่า Harness, เครื่องมือที่เรียกใช้ และโค้ดที่ AI สร้างขึ้นอาจทำงานผิดพลาดหรือใช้สิทธิ์เกินความจำเป็นได้ จึงต้องจำกัดสิ่งที่ระบบเข้าถึงและผลกระทบที่เกิดขึ้นด้วยการควบคุมภายนอกตัว AI ไม่อาศัยเพียงคำสั่งใน prompt หรือความสามารถของโมเดลในการปฏิเสธงาน</p>
 <p><strong>เป้าหมายคือจำกัดความเสียหายที่อาจเกิดขึ้นให้อยู่ในขอบเขตที่ยอมรับได้สำหรับ pilot นี้</strong> โดยควบคุมสามเรื่องต่อเนื่องกัน: ไม่ให้ข้อมูลออกภายนอก ไม่ให้แก้ไขหรือเข้าถึงข้อมูลเกินขอบเขต และไม่ให้ผลลัพธ์เปิดเผยแก่ผู้ไม่มีสิทธิ์ การผ่านเรื่องใดเรื่องหนึ่งไม่ทดแทนอีกสองเรื่อง เช่น ปิด Internet แล้วก็ยังลบข้อมูลภายในได้ หากสิทธิ์ของแหล่งข้อมูลยังกว้างเกินไป</p>
-<p>ปัจจุบันมี gateway สำหรับยืนยันตัวตน มี No Internet / Internal เป็นค่าเริ่มต้น และมี Internet environment แยกสำหรับเตรียม dependencies มีการทดสอบว่า Secure ติดต่อ public HTTPS ที่เลือกไม่ได้ แต่เรียกโมเดลภายในได้ อย่างไรก็ดี ผู้ใช้ใน environment เดียวกันยังใช้ process และ volumes ร่วมกัน ยังไม่มีหลักฐานการใช้ RDT snapshot/view แบบจำกัดสิทธิ์จริง และ workspace ของ pools ใหม่ยังไม่ได้ mount กลับไปที่ DA_WORKSPACE จึงยังสรุปว่าปิดความเสี่ยงครบไม่ได้</p>
+<p>ปัจจุบันมี gateway สำหรับยืนยันตัวตน มี No Internet / Internal เป็นค่าเริ่มต้น และมี Internet environment แยกสำหรับเตรียม dependencies มีการทดสอบว่า Secure ติดต่อ public HTTPS ที่เลือกไม่ได้ แต่เรียกโมเดลภายในได้ อย่างไรก็ดี ผู้ใช้ใน environment เดียวกันยังใช้ process และ volumes ร่วมกัน ยังไม่มีหลักฐานการใช้ RDT snapshot/view แบบจำกัดสิทธิ์จริง ส่วน Secure workspace คืน mount DA_WORKSPACE แล้วตามผลตรวจเพิ่มเติมเวลา 21:32 น. ICT แต่ per-user isolation และ continuous central-state synchronization ยังไม่ครบ จึงยังสรุปว่าปิดความเสี่ยงครบไม่ได้</p>
 <table>
 <thead>
 <tr>
@@ -43,35 +43,35 @@
   <button onclick="exportMermaid(this,'png')">Save PNG</button>
   <button onclick="exportMermaid(this,'copy')">Copy code</button>
   </div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart TB
- U[Browser user] --&gt; G[Authenticated login gateway]
- G --&gt; S[No Internet - default shared pool]
- G --&gt; I[Internet - dependency staging pool]
- S --&gt; SW[Local Secure workspace and state]
- I --&gt; IW[Separate Internet files and history]
+ U[Browser user] --&gt; G[Login gateway]
+ G --&gt; S[No Internet - shared pool]
+ G --&gt; I[Internet staging]
+ S --&gt; SW[DA_WORKSPACE - CIFS]
+ S --&gt; SS[Local active state]
+ I --&gt; IW[Separate files and history]
  S --&gt; L[Internal LiteLLM]
  I --&gt; L
  L --&gt; M[Shared GPU model server]
  I --&gt; W[Public package registries]
  S -. direct HTTPS denied .-&gt; W
- S --&gt; D[Cluster DNS - forwarding review pending]
- OLD[Legacy DSH - zero replicas] --&gt; DA[DA_WORKSPACE - not mounted by new pools]
+ S --&gt; D[DNS - review pending]
  classDef gap fill:#713f12,stroke:#fbbf24,color:#fff;
- class S,D,DA gap;
+ class S,D,SS gap;
 ">flowchart TB
- U[Browser user] --&gt; G[Authenticated login gateway]
- G --&gt; S[No Internet - default shared pool]
- G --&gt; I[Internet - dependency staging pool]
- S --&gt; SW[Local Secure workspace and state]
- I --&gt; IW[Separate Internet files and history]
+ U[Browser user] --&gt; G[Login gateway]
+ G --&gt; S[No Internet - shared pool]
+ G --&gt; I[Internet staging]
+ S --&gt; SW[DA_WORKSPACE - CIFS]
+ S --&gt; SS[Local active state]
+ I --&gt; IW[Separate files and history]
  S --&gt; L[Internal LiteLLM]
  I --&gt; L
  L --&gt; M[Shared GPU model server]
  I --&gt; W[Public package registries]
  S -. direct HTTPS denied .-&gt; W
- S --&gt; D[Cluster DNS - forwarding review pending]
- OLD[Legacy DSH - zero replicas] --&gt; DA[DA_WORKSPACE - not mounted by new pools]
+ S --&gt; D[DNS - review pending]
  classDef gap fill:#713f12,stroke:#fbbf24,color:#fff;
- class S,D,DA gap;
+ class S,D,SS gap;
 </div></div></section>
 <p>ต้องจัดทำรายการ runtime ที่อยู่ใน pilot ให้ครบ ไม่ใช่ตรวจเฉพาะหน้าเว็บ DSH: รวม Harness, shell/subprocesses, workers ที่ประมวลผลข้อมูล, report server และ services ที่รับ prompt หรือผลลัพธ์ด้วย DSH2/DSH3 เดิมมี configuration ต่างจาก pools ใหม่ จึงห้ามถือว่าได้รับการคุ้มครองเหมือนกันโดยไม่ตรวจแต่ละตัว</p>
 <h2 id="section-3">3 ความเสี่ยงที่ 1 ป้องกันข้อมูลรั่วไหลภายนอก</h2>
@@ -95,7 +95,7 @@
 <p>พื้นที่ผลลัพธ์ใช้ working folder แยกจาก source และเขียนได้เฉพาะขอบเขตของผู้ใช้ เช่น subdirectory ที่กำหนดบน mounted DA_WORKSPACE โดยไม่เปิดทั้ง share ให้ runtime ทุกตัว Source อาจอ่านได้หลายผู้ใช้ตามสิทธิ์ แต่ output และ chat state ต้องไม่ถูกแชร์เพียงเพราะอยู่บน storage server เดียวกัน CPU, memory และ storage limits ช่วยจำกัดงานที่ใช้ทรัพยากรเกินจำเป็น แต่ไม่ได้ป้องกันการทำลายทุกอย่างภายในพื้นที่ที่อนุญาตให้เขียน</p>
 <p>การคืน DA_WORKSPACE mount เป็นการแก้ storage regression เดิม ไม่ใช่การขอสิทธิ์เข้าถึง RDT เพิ่ม จึงต้องไม่เอาการระบุ dataset ใหม่หรือการแจก histories ให้แต่ละบัญชีมาเป็นเงื่อนไขที่สร้างขึ้นแทนงาน remount ส่วนการมอบสิทธิ์ RDT จริงและการกระจาย shared histories เป็นอีกขั้นตอนหนึ่งที่ต้องมีขอบเขตชัดเจน</p>
 <h3>สิ่งที่ยืนยันแล้วและสิ่งที่ยังขาด</h3>
-<p>มีการอ่านกลับ security settings ของ runtime และมี source tests สำหรับ generator ที่รองรับ read-only snapshot แต่ยังไม่มีผลทดสอบกับแหล่ง RDT จริงที่ยืนยันว่าอ่านนอก scope หรือเขียน source ไม่ได้ Generator ปัจจุบันยังจัดสรร local workspace PVCs จึงยังไม่ใช่ implementation ที่ครบตามข้อกำหนด mounted DA_WORKSPACE</p>
+<p>มีการอ่านกลับ security settings ของ runtime และมี source tests สำหรับ generator ที่รองรับ read-only snapshot แต่ยังไม่มีผลทดสอบกับแหล่ง RDT จริงที่ยืนยันว่าอ่านนอก scope หรือเขียน source ไม่ได้ Generator ถูกแก้ให้ Secure workspace ใช้ claim ของ DA_WORKSPACE และ subpath แยกตาม identity แล้ว; state/history ยังใช้ private local PVCs แต่ per-user deployment และ central history synchronization ยังไม่ได้เปิดใช้งานครบ</p>
 <p>การทดสอบ CIFS แบบแยกพิสูจน์ว่า UID/GID <code>10001</code> เขียนและอ่านกลับบน DA_WORKSPACE ได้เมื่อกำหนด ownership mapping ให้ถูกต้อง <strong>ผลนี้พิสูจน์ writable workspace เท่านั้น ไม่ได้พิสูจน์ว่า RDT source เป็น read-only หรือว่าผู้ใช้แต่ละคนถูกแยกแล้ว</strong></p>
 <p>ก่อนปิดข้อนี้ ต้องใช้ตัวอย่างข้อมูลใน scope จริงทดสอบว่าอ่านได้ สร้างผลลัพธ์ใน working folder ได้ แต่เขียน/ลบ/เปลี่ยนชื่อ source ไม่ได้ และอ่านไฟล์ ตาราง แถว หรือคอลัมน์นอก scope ไม่ได้ ให้รวมการลอง path traversal, symlink และการใช้ tool/terminal/API ที่ผู้ใช้มีจริง พร้อมตรวจว่าข้อมูลต้นทางไม่ถูกเปลี่ยนหลังการทดสอบ การทดสอบเชิงลบควรเริ่มจาก snapshot/view ที่ไม่กระทบธุรกรรมจริง</p>
 <p><strong>สถานะ: มี runtime hardening แล้ว แต่ยังไม่ปิดข้อนี้จนกว่าจะผ่าน source-access negative tests กับขอบเขต RDT ที่ใช้จริง</strong></p>
@@ -184,8 +184,15 @@
 <h2 id="section-8">8 DA_WORKSPACE ต้องกลับมาตรงกับข้อกำหนดเดิม</h2>
 <p>Workspace เดิมใช้ <code>//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation</code> โดย mount subdirectory <code>dsh</code> ที่ <code>/workspace</code> ผ่าน <code>da-workspace-pvc-new</code> การแยก Internet/No Internet ไม่ได้กำหนดว่าต้องทิ้ง central storage และข้อเสนอที่ผู้ใช้อนุมัติยังระบุให้เก็บ durable history centrally</p>
 <p>การตรวจ raw transcript พบว่าผู้ช่วยเลือกเปลี่ยน protected workspace เป็น local volume เวลา <strong>09:29:33 น. ICT วันที่ 15 ตุลาคม</strong> หลัง non-root CIFS write ไม่ผ่าน การเปลี่ยนถูก commit ใน GitHub <strong><code>9c3b571</code> เวลา 10:21:54 น.</strong> และ mirror ไป Azure <strong><code>dd6c3aa</code> เวลา 10:31 น.</strong> ก่อน cutover สู่ pools ใหม่ ไม่มีคำสั่งให้ละทิ้ง DA_WORKSPACE ในบทสนทนาที่เกี่ยวข้อง นี่เป็น implementation deviation ไม่ใช่ข้อกำหนดของผู้ใช้</p>
-<p>การทดสอบแยกภายหลังใช้ share เดิมและ CIFS options <code>uid=10001,gid=10001,forceuid,forcegid</code> ทำให้ non-root UID/GID 10001 เขียนและอ่านกลับได้ โดยลบเฉพาะ probe file ของตนเองแล้ว ผลนี้แสดงว่าควรแก้ ownership mapping แทนการเปลี่ยน storage backend อย่างไรก็ตาม <strong>Production ยังไม่ได้ remount</strong> และผลนี้ไม่ใช่การทดสอบ per-user ACL หรือ database locking</p>
+<p>การทดสอบแยกภายหลังใช้ share เดิมและ CIFS options <code>uid=10001,gid=10001,forceuid,forcegid</code> ทำให้ non-root UID/GID 10001 เขียนและอ่านกลับได้ โดยลบเฉพาะ probe file ของตนเองแล้ว ผลนี้แสดงว่าควรแก้ ownership mapping แทนการเปลี่ยน storage backend ในช่วง canary นั้น Production ยังไม่ได้ remount และผล canary ไม่ใช่การทดสอบ per-user ACL หรือ database locking ต่อมามีการคืน mount จริงและตรวจพฤติกรรมตามผลเพิ่มเติมด้านล่าง</p>
 <p>แนวทางแก้คือคืน DA_WORKSPACE เป็น <strong>mounted workspace จริง</strong> หลังเทียบไฟล์ใหม่บน local PVC กับไฟล์บน share และเก็บ conflict ทั้งสองเวอร์ชันไว้ ไม่ mount สำเนาเก่าทับจนทำให้งานใหม่หายจากมุมมอง Runtime state ที่ต้องใช้ local locking อาจอยู่บน storage ที่เหมาะสมได้ แต่ต้องรักษา central durable-history requirement ด้วยวิธีที่สอดคล้องและทดสอบ restore แล้ว การมี local workspace แล้วเสนอ backup ไป central ไม่ใช่สิ่งทดแทน mount เดิม</p>
+<h3>ผลแก้ไขที่ deploy และตรวจจริง เวลา 21:32 น. ICT</h3>
+<p>Secure กลับมา mount <code>//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation</code> ผ่าน claim <code>dsh-da-workspace-secure</code>, subpath <code>dsh</code> ที่ <code>/workspace</code> แล้ว อ่าน <code>/proc/mounts</code> ได้ filesystem <code>cifs</code> และ process ยังเป็น UID 10001 ค่า mount ใช้ UID/GID mapping และ <code>file_mode=0770</code> เพื่อให้สคริปต์รันตรงได้เหมือน share เดิม; Git repositories ที่ตรวจทั้งสองแห่งตั้ง <code>core.filemode=false</code> อยู่แล้ว</p>
+<p>ก่อนเปลี่ยนได้หยุด writer แล้วเทียบ local workspace 2,651 ไฟล์ รอบแรกพบ 2,650 ไฟล์ตรงกันและคัดลอกใหม่ 1 ไฟล์ ไม่พบ conflict ส่วน central-only 29,064 ไฟล์เก็บไว้ทั้งหมด รอบก่อน cutover ตรวจซ้ำทั้ง 2,651 ไฟล์ตรงกัน ไม่มี content failure กลไก reconciliation เก็บ central version ที่ต่างไว้ก่อนแทนที่ และ unit tests ทดสอบกรณี conflict, destination-only files และ type collision แล้ว Local rollback PVC เดิมยังเก็บไว้</p>
+<p>ตรวจ actual persistence ด้วยการเขียนจาก runtime แล้วอ่านจากอีก pod บน claim เดียวกัน และเขียนกลับจาก peer ให้ runtime อ่านได้ หลัง restart Secure อีกครั้ง markers ทั้งสองยังอยู่ และอ่านไฟล์จริงผ่าน runtime ซ้ำครบ 2,651 ไฟล์ตาม hash manifest ไม่พบ mismatch Login session เดิมและ fresh login/logout ผ่าน Secure list API ยังแสดง 80 histories Internal inference ให้ exact sentinel ที่คาดไว้ และ public HTTPS probe ยังล้มเหลวตาม policy เดิม จากนั้นลบเฉพาะ markers และ temporary test account</p>
+<p>รอบแรกตัวตรวจ archive ใช้ <code>extractall(filter=...)</code> ที่ Python ใน image ไม่รองรับ จึง rollback mount กลับ local อัตโนมัติ และยืนยันว่า held login ยังใช้ได้ แก้เป็น portable extractor ที่ตรวจ path/type และอ่านเนื้อหากลับทุกไฟล์ แล้วตรวจ restore จาก central history archive ผ่าน 29,067 ไฟล์ ก่อน retry cutover สำเร็จ นี่เป็นการตรวจ extracted state bytes ไม่ใช่การ boot DSH จาก restored state ทั้งชุด</p>
+<p><strong>ขอบเขตที่ยังเหลือ:</strong> <code>/state</code> ที่กำลังใช้งานยังอยู่ local PVC เดิม จึงไม่ได้ย้ายฐานข้อมูลที่กำลังทำงานไปใช้ CIFS locks มี coherent central history baseline ที่สร้างขณะหยุด writer และตรวจ restore แล้ว แต่ยังไม่มี continuous state sync การคืน workspace mount จึงแก้แล้ว ส่วนการเก็บ history ที่เกิดใหม่อย่างต่อเนื่องบน central ยังไม่ปิด ไม่อ้าง zero data loss หรือ full disaster recovery Archive ไม่รวม top-level <code>/state/.credentials.yaml</code> แต่ยังอาจมี sensitive user content จึงต้องรักษาสิทธิ์ของพื้นที่ recovery</p>
+<p>ดู <a href="#evidence-central-workspace-live-20261015-json">หลักฐาน actual mount, login, peer readback, restart และข้อจำกัด</a> Image ยังคง digest เดิมจาก build 62702; การเปลี่ยนครั้งนี้เป็น volume mapping และ operator workflow ไม่ใช่ runtime package upgrade</p>
 <p>อ่าน <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DA_WORKSPACE_DESIGN_REVIEW_20261015.md">การตรวจ raw transcript และ Git แบบละเอียด</a> และ <a href="#evidence-storage-design-audit-20261015-json">ผล CIFS canary</a> การคืน mount นี้ไม่ใช่การอนุญาตให้ Internet เห็น RDT หรือให้ทุกผู้ใช้เห็นทั้ง share</p>
 <h2 id="section-9">9 หลักฐานการ rollout และสิ่งที่ผลทดสอบยืนยันได้</h2>
 <p>ผลตรวจวันที่ 15 ตุลาคม เวลา <strong>20:39 น. ICT</strong> ระบุว่า gateway, Secure และ Internet ใช้ build <strong>62702</strong> จาก Azure image-source commit <strong><code>3fa74b72eaad7d7dd1e0986dd07a176f45ab2153</code></strong> และ immutable image <strong><code>sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1</code></strong> ทั้งสาม Ready และมี container restarts เป็นศูนย์ ณ snapshot นั้น Commit ที่แก้รายงานหรือ operator scripts ภายหลังเป็นคนละสิ่งกับ source commit ของ image นี้</p>
@@ -247,9 +254,9 @@
 </tr>
 </thead>
 <tbody><tr>
-<td>คืน mounted DA_WORKSPACE</td>
+<td>คืน mounted DA_WORKSPACE — ผ่านแล้วตามหลักฐาน 21:32</td>
 <td>Platform/storage operator</td>
-<td>file reconciliation และ conflict record; actual CIFS mount; read/write ของ working folder; restart และ content checks</td>
+<td>เทียบ 2,651 ไฟล์; actual CIFS mount; two-way peer readback; restart/login ผ่าน; local rollback PVC ยังอยู่</td>
 </tr>
 <tr>
 <td>กำหนด named pilot และ RDT scope</td>
@@ -300,10 +307,278 @@
 <li><a href="#evidence-rdt-egress-recheck-20261015-json">Outbound probes ก่อน rollout</a>: direct connectivity tests ตามปลายทางที่ระบุ ไม่ใช่ทุก leakage path</li>
 <li><a href="#evidence-rdt-candidate-cluster-check-62696-log">Candidate cluster tests</a>: source/candidate routing tests ไม่ใช่ deployed cross-user RDT acceptance</li>
 <li><a href="#evidence-runtime-rollout-live-20261015-json">Runtime rollout evidence</a>: image/source readback, login, history/content, inference, catalog, egress และข้อจำกัดของ rollback</li>
+<li><a href="#evidence-central-workspace-live-20261015-json">Live mounted-workspace correction</a>: actual CIFS mount, reconciliation, successful retry after automatic rollback, peer readback, login/history และ state-sync limitations</li>
 <li><a href="#evidence-storage-design-audit-20261015-json">Storage design audit</a>: curated raw messages, Git change และ CIFS canary; Production mounts ไม่เปลี่ยนในการ review นั้น</li>
 </ul>
 <p>HTML นี้ใช้รูปแบบ walkthrough เดิมและ diagram controls ที่ปรับจาก SMP EDA ได้แก่ zoom/reset/fullscreen, source copy และ SVG/PNG export โดยฝัง Mermaid 10.8.0 และ svg-pan-zoom 3.6.1 ไว้ในไฟล์ ไม่ต้องโหลด CDN เป้าหมายของ document QA คือให้เนื้อหาและ diagrams อ่านได้และเครื่องมือทำงาน ไม่ใช้ผล document QA แทน security acceptance ของ DSH ดู <a href="#evidence-html-verification-20261015-json">document QA record</a></p>
-<h2 id="evidence">หลักฐานที่ฝังในรายงาน</h2><p>Recorded test responses และ logs ตามเวลาที่ระบุ ไม่ใช่ live webpage หรือการทดสอบระบบใหม่เมื่อเปิดไฟล์นี้</p><details id="evidence-storage-design-audit-20261015-json"><summary>storage-design-audit-20261015.json</summary><pre>{
+<h2 id="evidence">หลักฐานที่ฝังในรายงาน</h2><p>Recorded test responses และ logs ตามเวลาที่ระบุ ไม่ใช่ live webpage หรือการทดสอบระบบใหม่เมื่อเปิดไฟล์นี้</p><details id="evidence-central-workspace-live-20261015-json"><summary>central-workspace-live-20261015.json</summary><pre>{
+  &quot;phase&quot;: &quot;CENTRAL_RECONCILIATION_AND_RESTORE_OK&quot;,
+  &quot;sourceFiles&quot;: 2651,
+  &quot;unchanged&quot;: 2651,
+  &quot;copiedNew&quot;: 0,
+  &quot;conflictsPreserved&quot;: 0,
+  &quot;verifiedFiles&quot;: 2651,
+  &quot;contentFailures&quot;: 0,
+  &quot;destinationOnlyPreserved&quot;: 29064,
+  &quot;restoredStateFilesChecked&quot;: 29067,
+  &quot;stateArchiveSHA256&quot;: &quot;77996ec09a739a6d4583fa8d5a56b63bbd539316e77dec64e9c0b9780ef1730a&quot;,
+  &quot;centralStateArchive&quot;: &quot;/central/dsh-storage-recovery/20261015142136/secure-state-history.tar.gz&quot;,
+  &quot;historyIsEarlierCoherentBaseline&quot;: true,
+  &quot;rollbackLocalWorkspacePreserved&quot;: true,
+  &quot;productionMountRestored&quot;: true,
+  &quot;centralClaim&quot;: &quot;dsh-da-workspace-secure&quot;,
+  &quot;imageUnchanged&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+  &quot;centralRecoveryDirectory&quot;: &quot;/central/dsh-storage-recovery/20261015142940&quot;,
+  &quot;timeUTC&quot;: &quot;2026-10-15T14:31:08.589900+00:00&quot;,
+  &quot;runtimeMount&quot;: {
+    &quot;uid&quot;: 10001,
+    &quot;mounted&quot;: [
+      {
+        &quot;source&quot;: &quot;//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation&quot;,
+        &quot;filesystem&quot;: &quot;cifs&quot;
+      }
+    ],
+    &quot;runtimeWrite&quot;: true
+  },
+  &quot;peerReadback&quot;: {
+    &quot;runtimeWritePeerRead&quot;: true,
+    &quot;peerWrite&quot;: true
+  },
+  &quot;restartPersistence&quot;: {
+    &quot;oldPod&quot;: &quot;dsh-secure-65478bc9d-fmk4p&quot;,
+    &quot;newPod&quot;: &quot;dsh-secure-79687dcf94-vls4v&quot;,
+    &quot;runtimeAndPeerMarkersSurvivedRestart&quot;: true
+  },
+  &quot;loginAfterRestart_resume&quot;: {
+    &quot;time&quot;: &quot;2026-10-15T14:32:04.945Z&quot;,
+    &quot;heldSessionResults&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;status&quot;: 200,
+        &quot;authenticatedUI&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;status&quot;: 200,
+        &quot;authenticatedUI&quot;: true
+      }
+    ]
+  },
+  &quot;loginAfterRestart_verify&quot;: {
+    &quot;time&quot;: &quot;2026-10-15T14:32:06.642Z&quot;,
+    &quot;results&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;secure&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 80,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;internet&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 0,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      }
+    ]
+  },
+  &quot;networkAndInference&quot;: {
+    &quot;internalInferenceExactSentinel&quot;: true,
+    &quot;publicHTTPSExitCode&quot;: 28,
+    &quot;publicHTTPSStatus&quot;: &quot;000&quot;
+  },
+  &quot;testAccountCleanup&quot;: {
+    &quot;temporaryProbeRemoved&quot;: true,
+    &quot;otherAccountsUnchanged&quot;: true
+  },
+  &quot;markerCleanup&quot;: {
+    &quot;onlyOwnMarkersRemoved&quot;: true
+  },
+  &quot;timeICT&quot;: &quot;2026-10-15T21:32:17.272190+07:00&quot;,
+  &quot;providerCredentialFileExcluded&quot;: true,
+  &quot;archiveMayContainSensitiveUserHistory&quot;: true,
+  &quot;initialAttempt&quot;: {
+    &quot;failedCheck&quot;: &quot;Installed Python did not support extractall(filter=...)&quot;,
+    &quot;automaticRollbackToLocalCompleted&quot;: true,
+    &quot;heldLoginAfterRollbackPassed&quot;: true,
+    &quot;portableExtractorReplacedUnsupportedAPI&quot;: true
+  },
+  &quot;centralHistoryPersistence&quot;: {
+    &quot;snapshotPath&quot;: &quot;/central/dsh-storage-recovery/20261015142136/secure-state-history.tar.gz&quot;,
+    &quot;snapshotTakenWithWriterStopped&quot;: true,
+    &quot;copiedStateRestoreVerified&quot;: true,
+    &quot;restoredRuntimeBootTested&quot;: false,
+    &quot;continuousStateSynchronizationConfigured&quot;: false,
+    &quot;activeStateStillLocal&quot;: true
+  },
+  &quot;deployments&quot;: [
+    {
+      &quot;name&quot;: &quot;dsh-secure&quot;,
+      &quot;available&quot;: 1,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;volumes&quot;: [
+        {
+          &quot;name&quot;: &quot;state&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-secure-state&quot;
+          }
+        },
+        {
+          &quot;name&quot;: &quot;protected-workspace&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-da-workspace-secure&quot;
+          }
+        },
+        {
+          &quot;name&quot;: &quot;routing-tokens&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-secure-token&quot;
+          }
+        },
+        {
+          &quot;name&quot;: &quot;package-cache&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-package-approved&quot;
+          }
+        }
+      ],
+      &quot;mounts&quot;: [
+        {
+          &quot;mountPath&quot;: &quot;/state&quot;,
+          &quot;name&quot;: &quot;state&quot;
+        },
+        {
+          &quot;mountPath&quot;: &quot;/workspace&quot;,
+          &quot;name&quot;: &quot;protected-workspace&quot;,
+          &quot;subPath&quot;: &quot;dsh&quot;
+        },
+        {
+          &quot;mountPath&quot;: &quot;/packages/approved&quot;,
+          &quot;name&quot;: &quot;package-cache&quot;,
+          &quot;readOnly&quot;: true
+        },
+        {
+          &quot;mountPath&quot;: &quot;/runtime-tokens&quot;,
+          &quot;name&quot;: &quot;routing-tokens&quot;
+        }
+      ]
+    },
+    {
+      &quot;name&quot;: &quot;dsh-internet&quot;,
+      &quot;available&quot;: 1,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;volumes&quot;: [
+        {
+          &quot;name&quot;: &quot;state&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-internet-state&quot;
+          }
+        },
+        {
+          &quot;name&quot;: &quot;staging&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-internet-staging&quot;
+          }
+        },
+        {
+          &quot;name&quot;: &quot;routing-tokens&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-internet-token&quot;
+          }
+        },
+        {
+          &quot;name&quot;: &quot;package-incoming&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-package-incoming&quot;
+          }
+        }
+      ],
+      &quot;mounts&quot;: [
+        {
+          &quot;mountPath&quot;: &quot;/state&quot;,
+          &quot;name&quot;: &quot;state&quot;
+        },
+        {
+          &quot;mountPath&quot;: &quot;/workspace&quot;,
+          &quot;name&quot;: &quot;staging&quot;
+        },
+        {
+          &quot;mountPath&quot;: &quot;/packages/incoming&quot;,
+          &quot;name&quot;: &quot;package-incoming&quot;
+        },
+        {
+          &quot;mountPath&quot;: &quot;/runtime-tokens&quot;,
+          &quot;name&quot;: &quot;routing-tokens&quot;
+        }
+      ]
+    },
+    {
+      &quot;name&quot;: &quot;dsh-environment-gateway&quot;,
+      &quot;available&quot;: 1,
+      &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+      &quot;volumes&quot;: [
+        {
+          &quot;name&quot;: &quot;auth&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-auth-state&quot;
+          }
+        },
+        {
+          &quot;name&quot;: &quot;secure-token&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-secure-token&quot;
+          }
+        },
+        {
+          &quot;name&quot;: &quot;internet-token&quot;,
+          &quot;persistentVolumeClaim&quot;: {
+            &quot;claimName&quot;: &quot;dsh-internet-token&quot;
+          }
+        }
+      ],
+      &quot;mounts&quot;: [
+        {
+          &quot;mountPath&quot;: &quot;/auth&quot;,
+          &quot;name&quot;: &quot;auth&quot;
+        },
+        {
+          &quot;mountPath&quot;: &quot;/runtime-tokens/secure&quot;,
+          &quot;name&quot;: &quot;secure-token&quot;,
+          &quot;readOnly&quot;: true
+        },
+        {
+          &quot;mountPath&quot;: &quot;/runtime-tokens/internet&quot;,
+          &quot;name&quot;: &quot;internet-token&quot;,
+          &quot;readOnly&quot;: true
+        }
+      ]
+    }
+  ],
+  &quot;allocatedScratchPVC&quot;: &quot;dsh-cifs-reconcile-20261015142940-restore&quot;,
+  &quot;verifiedHistoryRestorePVC&quot;: &quot;dsh-cifs-reconcile-20261015142136-restore&quot;,
+  &quot;secondAttemptScratchUnusedForRestore&quot;: true,
+  &quot;runtimeContentAfterRestart&quot;: {
+    &quot;regularFilesReadBackFromActualRuntime&quot;: 2651,
+    &quot;contentFailures&quot;: 0,
+    &quot;timeICT&quot;: &quot;2026-10-15T21:37:50.937658+07:00&quot;
+  }
+}
+</pre></details><details id="evidence-storage-design-audit-20261015-json"><summary>storage-design-audit-20261015.json</summary><pre>{
   &quot;reviewTimeICT&quot;: &quot;2026-10-15T21:04:21.855169+07:00&quot;,
   &quot;rawTranscript&quot;: &quot;C:\\Users\\skunpojt\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T08-23-58-01a09336-d34b-7441-bbff-eb7f65cbcbbe.jsonl&quot;,
   &quot;selectedMessages&quot;: [
@@ -847,7 +1122,7 @@ environment routing and session stickiness tests passed
 routing checks completed
 per-user routing, spoof resistance, missing-runtime denial, registration denial and stickiness tests passed
 </pre></details><details id="evidence-html-verification-20261015-json"><summary>html-verification-20261015.json</summary><pre>{
-  &quot;time&quot;: &quot;2026-10-15T14:14:32.448Z&quot;,
+  &quot;time&quot;: &quot;2026-10-15T14:35:58.289Z&quot;,
   &quot;renderedDiagrams&quot;: 3,
   &quot;initialNodesUnclipped&quot;: true,
   &quot;externalResourceRequests&quot;: 0,
@@ -858,7 +1133,7 @@ per-user routing, spoof resistance, missing-runtime denial, registration denial 
   &quot;svgExport&quot;: true,
   &quot;pngExport&quot;: true,
   &quot;pageErrors&quot;: [],
-  &quot;pngWidth&quot;: 3540,
+  &quot;pngWidth&quot;: 3188,
   &quot;pngHeight&quot;: 1012
 }</pre></details><p class="meta">Built from tracked Markdown. Diagram controls adapted from SMP EDA ARCHITECTURE_AND_DATAFLOW.html; local Mermaid 10.8.0 / svg-pan-zoom 3.6.1. No CDN required.</p></main>
 <script>(function(BL,Z0){typeof exports=="object"&&typeof module<"u"?module.exports=Z0():typeof define=="function"&&define.amd?define(Z0):(BL=typeof globalThis<"u"?globalThis:BL||self,BL.mermaid=Z0())})(this,function(){var mVt,vVt;"use strict";function BL(i){for(var a=[],f=1;f<arguments.length;f++)a[f-1]=arguments[f];var g=Array.from(typeof i=="string"?[i]:i);g[g.length-1]=g[g.length-1].replace(/\r?\n([\t ]*)$/,"");var w=g.reduce(function(E,S){var _=S.match(/\n([\t ]+|(?!\s).)/g);return _?E.concat(_.map(function(M){var F,R;return(R=(F=M.match(/[\t ]/g))===null||F===void 0?void 0:F.length)!==null&&R!==void 0?R:0})):E},[]);if(w.length){var v=new RegExp(`

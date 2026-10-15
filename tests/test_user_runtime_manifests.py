@@ -14,6 +14,7 @@ class IsolationManifests(unittest.TestCase):
         workloads = [d for d in docs if d['kind'] == 'Deployment' and d['metadata']['name'] != 'dsh-environment-gateway']
         self.assertEqual(len(workloads), 4)
         private_claims = set()
+        central_subpaths = set()
         services = {d['metadata']['name']: d for d in docs if d['kind'] == 'Service'}
         for workload in workloads:
             pod = workload['spec']['template']['spec']
@@ -23,6 +24,12 @@ class IsolationManifests(unittest.TestCase):
                 if claim == 'dsh-package-approved':
                     mount = next(m for m in pod['containers'][0]['volumeMounts'] if m['name'] == volume['name'])
                     self.assertTrue(mount['readOnly'])
+                elif claim == 'dsh-da-workspace-secure':
+                    self.assertTrue(workload['metadata']['name'].endswith('-secure'))
+                    mount = next(m for m in pod['containers'][0]['volumeMounts'] if m['name'] == volume['name'])
+                    self.assertTrue(mount['subPath'].startswith('dsh/private/'))
+                    self.assertNotIn(mount['subPath'], central_subpaths)
+                    central_subpaths.add(mount['subPath'])
                 else:
                     self.assertNotIn(claim, private_claims)
                     private_claims.add(claim)

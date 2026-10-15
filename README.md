@@ -20,7 +20,7 @@ The walkthrough is structured around preventing external leakage, preventing sou
 | Approved package transfer | Supply offline libraries without sharing writable protected workspaces | Incoming, operator review, hash-checked promotion, read-only approved cache |
 | Dedicated user runtime | Isolate execution, workspace, history and attachments | Generator and routing source tests pass; not deployed |
 | Read-only RDT source | Prevent source modification and broad data access | Approved snapshot support prepared; dataset/account and negative tests pending |
-| Central persistence | Preserve durable data independently of runtime | Current local PVCs have no ongoing DA_WORKSPACE synchronization; correction required |
+| Central workspace | Preserve the original mounted-share design | Secure `/workspace` restored to CIFS; two-way peer and restart tests passed. Active `/state` remains local with a verified central baseline; continuous sync remains pending |
 | Shared GPU service | Conserve the existing single-node four-GPU resources | Backend ceiling 1M; DSH/LiteLLM still 128K |
 | Interactive scheduling | Keep short requests responsive during long prefill | Controlled 133K mixed-load tests passed; near-1M mixed load not revalidated |
 
@@ -31,7 +31,7 @@ flowchart TB
  User[Authenticated user] --> Gateway[Environment gateway]
  Gateway --> Secure[No Internet - default]
  Gateway --> Internet[Internet staging]
- Secure --> Private[Secure workspace and state PVCs]
+ Secure --> Private[Secure workspace on CIFS]
  Internet --> Staging[Separate Internet workspace and state]
  Internet --> Incoming[Incoming packages]
  Incoming --> Review[Operator approval and hash validation]
@@ -40,7 +40,8 @@ flowchart TB
  Secure --> LiteLLM[Internal LiteLLM]
  Internet --> LiteLLM
  LiteLLM --> GPU[Shared four-H100 model]
- Private -. controlled central persistence - pending .-> DA[DA_WORKSPACE]
+ Private --> DA[Mounted DA_WORKSPACE]
+ Secure --> State[Local active state - verified central baseline]
 ```
 
 The gateway authenticates and pins a login to an execution environment. Runtime NetworkPolicies enforce egress; choosing a radio button alone does not enforce it. Secure is allowed cluster DNS and internal LiteLLM. Internet has public access and does not mount protected source/workspace/history. DNS forwarding and indirect inference-service paths still require leakage acceptance checks.
@@ -53,11 +54,11 @@ No Internet is restricted egress, not a strict air gap. Browser/gateway, cluster
 
 ## Storage — original mounted-share requirement
 
-The [raw-transcript and Git audit](docs/DA_WORKSPACE_DESIGN_REVIEW_20261015.md) confirms that replacing DA_WORKSPACE with a node-local workspace was an assistant implementation deviation, not a user instruction. At 09:29 ICT the assistant chose the replacement; GitHub `9c3b571` recorded it at 10:21. The approved proposal still said “Store durable history centrally.” An isolated test now proves that UID/GID 10001 can write/read back on the same CIFS share when ownership is explicitly mapped. **Production has not yet been remounted.**
+The [raw-transcript and Git audit](docs/DA_WORKSPACE_DESIGN_REVIEW_20261015.md) confirms that replacing DA_WORKSPACE with a node-local workspace was an assistant implementation deviation, not a user instruction. At 09:29 ICT the assistant chose the replacement; GitHub `9c3b571` recorded it at 10:21. The approved proposal still said “Store durable history centrally.” An isolated test now proves that UID/GID 10001 can write/read back on the same CIFS share when ownership is explicitly mapped. **Production was remounted successfully and verified at 21:32 ICT.** See the [live correction record](docs/context-evidence/central-workspace-live-20261015.json).
 
 Restoring the existing DA_WORKSPACE mount is distinct from granting new RDT access or assigning shared histories to private users. A local workspace plus a central-backup proposal does not satisfy the original mounted-workspace requirement.
 
-Current Secure `/workspace` and `/state` use separate local TopoLVM PVCs. Internet has its own staging/state PVCs. The legacy main deployment retains `da-workspace-pvc-new` but is scaled to zero. A one-time migration copied data from DA_WORKSPACE; **new-pool writes are not automatically synchronized back**.
+Secure `/workspace` now directly mounts DA_WORKSPACE through `dsh-da-workspace-secure`, subpath `dsh`. `/state` remains on the original local TopoLVM PVC. Internet retains separate local staging/state and does not mount the protected share. The old local workspace and legacy PV remain available for rollback. Workspace writes now land directly on CIFS; active-state writes do not automatically sync centrally.
 
 Earlier claims about automatic CIFS shutdown flush, zero data loss and complete user isolation were not accurate for these new pools. The original documentation is preserved in [the legacy README](docs/archive/README_BEFORE_RECONCILIATION_20261015.md). The original CIFS workaround should not have silently changed central persistence policy.
 
@@ -82,7 +83,7 @@ Hash matching proves integrity against the approved manifest, not package safety
 6. Test candidate login/logout, fixed user routing, anonymous/cross-user denial, terminal, WebSocket, tools, attachments, restart/persistence, source denial, egress and approved package installation before ingress cutover.
 7. Read back deployed image, effective profiles and actual affected behavior. Preserve rollback and record remaining limitations.
 
-The current private-runtime generator still allocates local workspace PVCs. It must be adapted to bounded DA_WORKSPACE subpath mounts before a Production storage cutover; its current source tests do not establish compliance with the restored mount requirement.
+The private-runtime generator now preserves the central workspace claim with distinct `dsh/private/<identity-hash>/secure` subpaths instead of silently allocating local workspaces. Pre-create and review those directories administratively before deploying private runtimes. Source tests pass; Production still uses the shared environment pools, not private per-user runtimes.
 
 The existing main `dsh`, `dsh-user2` and `dsh3` are legacy workloads with different storage/network configurations. They must be explicitly included or excluded from pilot scope; do not assume the new policies protect them.
 
@@ -102,8 +103,13 @@ Prefer supported configuration/plugins; fail on changed patch targets. Candidate
 
 ## Evidence and closure
 
-At **20:39 ICT, 15 October 2026**, gateway, Secure and Internet all run build **62702**, image `sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1`, built from Azure source `3fa74b72eaad7d7dd1e0986dd07a176f45ab2153`. Fresh login/logout, held sessions across backend restarts, actual catalog API and internal inference passed in both pools. Secure retained 80 listed histories and 2,732 checked regular files with zero content failures; Internet retained two controlled markers (its real history list was empty). [Live readback and test results](docs/context-evidence/runtime-rollout-live-20261015.json) and the [rollout walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md#safe-runtime-rollout--actual-deployed-result) record exact scope and failed verification attempts.
+At **20:39 ICT, 15 October 2026**, gateway, Secure and Internet all run build **62702**, image `sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1`, built from Azure source `3fa74b72eaad7d7dd1e0986dd07a176f45ab2153`. Fresh login/logout, held sessions across backend restarts, actual catalog API and internal inference passed in both pools. Secure retained 80 listed histories and 2,732 checked regular files with zero content failures; Internet retained two controlled markers (its real history list was empty). [Live readback and test results](docs/context-evidence/runtime-rollout-live-20261015.json) and the [rollout walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md) record exact scope and failed verification attempts.
 
 Pools now use actual application startup/readiness/liveness checks and Recreate to prevent concurrent state writers. Gateway cookie caching detects rotated backend launch tokens; cookies default Secure. No tested application regression required rollback. Original deployment specs and coherent local archive PVCs remain available; full archive restore and intentional rollback were not exercised. Terminal HTTP pages passed, but interactive terminal/WebSocket behavior was not retested. New documentation/operator-script commits are not the image-source commit.
 
-Registration is closed and active catalogs are internal-only. Named-user isolation, approved RDT access and central DA_WORKSPACE persistence remain pending. The local snapshots do not protect against node loss. Owner approval and assessor sign-off remain separate from code completion.
+Registration is closed and active catalogs are internal-only. Named-user isolation, approved RDT access and continuous central history/state synchronization remain pending; the actual DA_WORKSPACE workspace mount is restored. The local snapshots do not protect against node loss. Owner approval and assessor sign-off remain separate from code completion.
+
+
+## Central workspace correction verified — 15 October 2026, 21:32 ICT
+
+Both mount directions were tested through an independent peer pod, followed by a real Secure restart and fresh/held login/logout checks. Secure still lists 80 histories. Reconciliation verified all 2,651 local workspace files and retained central-only content. A coherent history baseline was restored into scratch storage and 29,067 extracted files checked. The first validator failed on an unsupported Python API and triggered an actual mount rollback; the portable validator and retry passed. This is not a full restored-runtime boot or continuous history-sync claim. See [live evidence](docs/context-evidence/central-workspace-live-20261015.json).

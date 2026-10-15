@@ -1,0 +1,267 @@
+{
+  "phase": "CENTRAL_RECONCILIATION_AND_RESTORE_OK",
+  "sourceFiles": 2651,
+  "unchanged": 2651,
+  "copiedNew": 0,
+  "conflictsPreserved": 0,
+  "verifiedFiles": 2651,
+  "contentFailures": 0,
+  "destinationOnlyPreserved": 29064,
+  "restoredStateFilesChecked": 29067,
+  "stateArchiveSHA256": "77996ec09a739a6d4583fa8d5a56b63bbd539316e77dec64e9c0b9780ef1730a",
+  "centralStateArchive": "/central/dsh-storage-recovery/20261015142136/secure-state-history.tar.gz",
+  "historyIsEarlierCoherentBaseline": true,
+  "rollbackLocalWorkspacePreserved": true,
+  "productionMountRestored": true,
+  "centralClaim": "dsh-da-workspace-secure",
+  "imageUnchanged": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+  "centralRecoveryDirectory": "/central/dsh-storage-recovery/20261015142940",
+  "timeUTC": "2026-10-15T14:31:08.589900+00:00",
+  "runtimeMount": {
+    "uid": 10001,
+    "mounted": [
+      {
+        "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+        "filesystem": "cifs"
+      }
+    ],
+    "runtimeWrite": true
+  },
+  "peerReadback": {
+    "runtimeWritePeerRead": true,
+    "peerWrite": true
+  },
+  "restartPersistence": {
+    "oldPod": "dsh-secure-65478bc9d-fmk4p",
+    "newPod": "dsh-secure-79687dcf94-vls4v",
+    "runtimeAndPeerMarkersSurvivedRestart": true
+  },
+  "loginAfterRestart_resume": {
+    "time": "2026-10-15T14:32:04.945Z",
+    "heldSessionResults": [
+      {
+        "environment": "off",
+        "status": 200,
+        "authenticatedUI": true
+      },
+      {
+        "environment": "on",
+        "status": 200,
+        "authenticatedUI": true
+      }
+    ]
+  },
+  "loginAfterRestart_verify": {
+    "time": "2026-10-15T14:32:06.642Z",
+    "results": [
+      {
+        "environment": "off",
+        "loginStatus": 302,
+        "sessionEnvironment": "secure",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 80,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      },
+      {
+        "environment": "on",
+        "loginStatus": 302,
+        "sessionEnvironment": "internet",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 0,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      }
+    ]
+  },
+  "networkAndInference": {
+    "internalInferenceExactSentinel": true,
+    "publicHTTPSExitCode": 28,
+    "publicHTTPSStatus": "000"
+  },
+  "testAccountCleanup": {
+    "temporaryProbeRemoved": true,
+    "otherAccountsUnchanged": true
+  },
+  "markerCleanup": {
+    "onlyOwnMarkersRemoved": true
+  },
+  "timeICT": "2026-10-15T21:32:17.272190+07:00",
+  "providerCredentialFileExcluded": true,
+  "archiveMayContainSensitiveUserHistory": true,
+  "initialAttempt": {
+    "failedCheck": "Installed Python did not support extractall(filter=...)",
+    "automaticRollbackToLocalCompleted": true,
+    "heldLoginAfterRollbackPassed": true,
+    "portableExtractorReplacedUnsupportedAPI": true
+  },
+  "centralHistoryPersistence": {
+    "snapshotPath": "/central/dsh-storage-recovery/20261015142136/secure-state-history.tar.gz",
+    "snapshotTakenWithWriterStopped": true,
+    "copiedStateRestoreVerified": true,
+    "restoredRuntimeBootTested": false,
+    "continuousStateSynchronizationConfigured": false,
+    "activeStateStillLocal": true
+  },
+  "deployments": [
+    {
+      "name": "dsh-secure",
+      "available": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "volumes": [
+        {
+          "name": "state",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-secure-state"
+          }
+        },
+        {
+          "name": "protected-workspace",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-da-workspace-secure"
+          }
+        },
+        {
+          "name": "routing-tokens",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-secure-token"
+          }
+        },
+        {
+          "name": "package-cache",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-package-approved"
+          }
+        }
+      ],
+      "mounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        }
+      ]
+    },
+    {
+      "name": "dsh-internet",
+      "available": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "volumes": [
+        {
+          "name": "state",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-internet-state"
+          }
+        },
+        {
+          "name": "staging",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-internet-staging"
+          }
+        },
+        {
+          "name": "routing-tokens",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-internet-token"
+          }
+        },
+        {
+          "name": "package-incoming",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-package-incoming"
+          }
+        }
+      ],
+      "mounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        }
+      ]
+    },
+    {
+      "name": "dsh-environment-gateway",
+      "available": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "volumes": [
+        {
+          "name": "auth",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-auth-state"
+          }
+        },
+        {
+          "name": "secure-token",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-secure-token"
+          }
+        },
+        {
+          "name": "internet-token",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-internet-token"
+          }
+        }
+      ],
+      "mounts": [
+        {
+          "mountPath": "/auth",
+          "name": "auth"
+        },
+        {
+          "mountPath": "/runtime-tokens/secure",
+          "name": "secure-token",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens/internet",
+          "name": "internet-token",
+          "readOnly": true
+        }
+      ]
+    }
+  ],
+  "allocatedScratchPVC": "dsh-cifs-reconcile-20261015142940-restore",
+  "verifiedHistoryRestorePVC": "dsh-cifs-reconcile-20261015142136-restore",
+  "secondAttemptScratchUnusedForRestore": true,
+  "runtimeContentAfterRestart": {
+    "regularFilesReadBackFromActualRuntime": 2651,
+    "contentFailures": 0,
+    "timeICT": "2026-10-15T21:37:50.937658+07:00"
+  }
+}

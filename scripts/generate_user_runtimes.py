@@ -57,7 +57,16 @@ def generate(users, image, rdt_source_pvc=None, rdt_approval_ref=None):
             for volume in runtime['spec']['volumes']:
                 old = volume['persistentVolumeClaim']['claimName']
                 if old == 'dsh-package-approved':
-                    continue  # The only shared data volume; mounted read-only.
+                    continue  # Shared approved artifacts; mounted read-only.
+                if environment == 'secure' and volume['name'] == 'protected-workspace':
+                    if old != 'dsh-da-workspace-secure':
+                        raise ValueError('Secure must preserve its central workspace claim')
+                    mount = next(m for m in runtime['spec']['containers'][0]['volumeMounts']
+                                 if m['name'] == 'protected-workspace')
+                    mount['subPath'] = f'dsh/private/{identity}/secure'
+                    # This shared PVC is bounded by a different bind-mount per
+                    # identity; the main container never mounts its root.
+                    continue
                 claim = f'{name}-{volume["name"]}'
                 volume['persistentVolumeClaim']['claimName'] = claim
                 size = '100Mi' if volume['name'] == 'routing-tokens' else '5Gi'

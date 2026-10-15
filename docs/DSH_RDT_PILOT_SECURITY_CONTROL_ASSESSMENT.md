@@ -2,7 +2,7 @@
 
 **สถานะตามหลักฐานวันที่ 15 ตุลาคม 2569: ควบคุมได้บางส่วน ยังไม่ครบเงื่อนไขปิดทั้ง 3 ความเสี่ยง**
 
-รายงานนี้สังเคราะห์หลักฐาน runtime rollout เวลา 20:39 น. ICT ผลตรวจย้อนหลังจาก raw transcript และผลทดสอบ CIFS ที่บันทึกภายหลังในวันเดียวกัน การเรียบเรียงครั้งนี้ไม่ได้เป็นการทดสอบ Production รอบใหม่ ข้อความว่า “ใช้งานจริง” จึงอ้างถึง snapshot ที่ระบุไว้ ไม่ใช่สถานะที่ตรวจใหม่ทุกครั้งเมื่อเปิด HTML
+รายงานนี้สังเคราะห์หลักฐาน runtime rollout เวลา 20:39 น. ICT ผลตรวจย้อนหลังจาก raw transcript และผลทดสอบ CIFS ที่บันทึกภายหลังในวันเดียวกัน ผลเพิ่มเติมเวลา 21:32 น. ICT เป็นการคืน mount CIFS และทดสอบ Production จริงตาม record ที่แนบ ส่วนการเรียบเรียงรายงานความเสี่ยงก่อนหน้านี้ไม่ได้เป็นการทดสอบ Production รอบใหม่ ข้อความว่า “ใช้งานจริง” จึงอ้างถึง snapshot ที่ระบุไว้ ไม่ใช่สถานะที่ตรวจใหม่ทุกครั้งเมื่อเปิด HTML
 
 ## 1 เป้าหมายและข้อสรุปสำหรับผู้พิจารณา
 
@@ -10,7 +10,7 @@
 
 **เป้าหมายคือจำกัดความเสียหายที่อาจเกิดขึ้นให้อยู่ในขอบเขตที่ยอมรับได้สำหรับ pilot นี้** โดยควบคุมสามเรื่องต่อเนื่องกัน: ไม่ให้ข้อมูลออกภายนอก ไม่ให้แก้ไขหรือเข้าถึงข้อมูลเกินขอบเขต และไม่ให้ผลลัพธ์เปิดเผยแก่ผู้ไม่มีสิทธิ์ การผ่านเรื่องใดเรื่องหนึ่งไม่ทดแทนอีกสองเรื่อง เช่น ปิด Internet แล้วก็ยังลบข้อมูลภายในได้ หากสิทธิ์ของแหล่งข้อมูลยังกว้างเกินไป
 
-ปัจจุบันมี gateway สำหรับยืนยันตัวตน มี No Internet / Internal เป็นค่าเริ่มต้น และมี Internet environment แยกสำหรับเตรียม dependencies มีการทดสอบว่า Secure ติดต่อ public HTTPS ที่เลือกไม่ได้ แต่เรียกโมเดลภายในได้ อย่างไรก็ดี ผู้ใช้ใน environment เดียวกันยังใช้ process และ volumes ร่วมกัน ยังไม่มีหลักฐานการใช้ RDT snapshot/view แบบจำกัดสิทธิ์จริง และ workspace ของ pools ใหม่ยังไม่ได้ mount กลับไปที่ DA_WORKSPACE จึงยังสรุปว่าปิดความเสี่ยงครบไม่ได้
+ปัจจุบันมี gateway สำหรับยืนยันตัวตน มี No Internet / Internal เป็นค่าเริ่มต้น และมี Internet environment แยกสำหรับเตรียม dependencies มีการทดสอบว่า Secure ติดต่อ public HTTPS ที่เลือกไม่ได้ แต่เรียกโมเดลภายในได้ อย่างไรก็ดี ผู้ใช้ใน environment เดียวกันยังใช้ process และ volumes ร่วมกัน ยังไม่มีหลักฐานการใช้ RDT snapshot/view แบบจำกัดสิทธิ์จริง ส่วน Secure workspace คืน mount DA_WORKSPACE แล้วตามผลตรวจเพิ่มเติมเวลา 21:32 น. ICT แต่ per-user isolation และ continuous central-state synchronization ยังไม่ครบ จึงยังสรุปว่าปิดความเสี่ยงครบไม่ได้
 
 | ความเสี่ยง | สิ่งที่ต้องบังคับ | ข้อสรุปตามหลักฐาน |
 |---|---|---|
@@ -26,20 +26,20 @@ Diagram นี้แสดง **shared pools ตามหลักฐานท�
 
 ```mermaid
 flowchart TB
- U[Browser user] --> G[Authenticated login gateway]
- G --> S[No Internet - default shared pool]
- G --> I[Internet - dependency staging pool]
- S --> SW[Local Secure workspace and state]
- I --> IW[Separate Internet files and history]
+ U[Browser user] --> G[Login gateway]
+ G --> S[No Internet - shared pool]
+ G --> I[Internet staging]
+ S --> SW[DA_WORKSPACE - CIFS]
+ S --> SS[Local active state]
+ I --> IW[Separate files and history]
  S --> L[Internal LiteLLM]
  I --> L
  L --> M[Shared GPU model server]
  I --> W[Public package registries]
  S -. direct HTTPS denied .-> W
- S --> D[Cluster DNS - forwarding review pending]
- OLD[Legacy DSH - zero replicas] --> DA[DA_WORKSPACE - not mounted by new pools]
+ S --> D[DNS - review pending]
  classDef gap fill:#713f12,stroke:#fbbf24,color:#fff;
- class S,D,DA gap;
+ class S,D,SS gap;
 ```
 
 ต้องจัดทำรายการ runtime ที่อยู่ใน pilot ให้ครบ ไม่ใช่ตรวจเฉพาะหน้าเว็บ DSH: รวม Harness, shell/subprocesses, workers ที่ประมวลผลข้อมูล, report server และ services ที่รับ prompt หรือผลลัพธ์ด้วย DSH2/DSH3 เดิมมี configuration ต่างจาก pools ใหม่ จึงห้ามถือว่าได้รับการคุ้มครองเหมือนกันโดยไม่ตรวจแต่ละตัว
@@ -86,7 +86,7 @@ Generated code อาจอ่านไฟล์ที่ไม่เกี่�
 
 ### สิ่งที่ยืนยันแล้วและสิ่งที่ยังขาด
 
-มีการอ่านกลับ security settings ของ runtime และมี source tests สำหรับ generator ที่รองรับ read-only snapshot แต่ยังไม่มีผลทดสอบกับแหล่ง RDT จริงที่ยืนยันว่าอ่านนอก scope หรือเขียน source ไม่ได้ Generator ปัจจุบันยังจัดสรร local workspace PVCs จึงยังไม่ใช่ implementation ที่ครบตามข้อกำหนด mounted DA_WORKSPACE
+มีการอ่านกลับ security settings ของ runtime และมี source tests สำหรับ generator ที่รองรับ read-only snapshot แต่ยังไม่มีผลทดสอบกับแหล่ง RDT จริงที่ยืนยันว่าอ่านนอก scope หรือเขียน source ไม่ได้ Generator ถูกแก้ให้ Secure workspace ใช้ claim ของ DA_WORKSPACE และ subpath แยกตาม identity แล้ว; state/history ยังใช้ private local PVCs แต่ per-user deployment และ central history synchronization ยังไม่ได้เปิดใช้งานครบ
 
 การทดสอบ CIFS แบบแยกพิสูจน์ว่า UID/GID `10001` เขียนและอ่านกลับบน DA_WORKSPACE ได้เมื่อกำหนด ownership mapping ให้ถูกต้อง **ผลนี้พิสูจน์ writable workspace เท่านั้น ไม่ได้พิสูจน์ว่า RDT source เป็น read-only หรือว่าผู้ใช้แต่ละคนถูกแยกแล้ว**
 
@@ -168,9 +168,23 @@ Workspace เดิมใช้ `//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstati
 
 การตรวจ raw transcript พบว่าผู้ช่วยเลือกเปลี่ยน protected workspace เป็น local volume เวลา **09:29:33 น. ICT วันที่ 15 ตุลาคม** หลัง non-root CIFS write ไม่ผ่าน การเปลี่ยนถูก commit ใน GitHub **`9c3b571` เวลา 10:21:54 น.** และ mirror ไป Azure **`dd6c3aa` เวลา 10:31 น.** ก่อน cutover สู่ pools ใหม่ ไม่มีคำสั่งให้ละทิ้ง DA_WORKSPACE ในบทสนทนาที่เกี่ยวข้อง นี่เป็น implementation deviation ไม่ใช่ข้อกำหนดของผู้ใช้
 
-การทดสอบแยกภายหลังใช้ share เดิมและ CIFS options `uid=10001,gid=10001,forceuid,forcegid` ทำให้ non-root UID/GID 10001 เขียนและอ่านกลับได้ โดยลบเฉพาะ probe file ของตนเองแล้ว ผลนี้แสดงว่าควรแก้ ownership mapping แทนการเปลี่ยน storage backend อย่างไรก็ตาม **Production ยังไม่ได้ remount** และผลนี้ไม่ใช่การทดสอบ per-user ACL หรือ database locking
+การทดสอบแยกภายหลังใช้ share เดิมและ CIFS options `uid=10001,gid=10001,forceuid,forcegid` ทำให้ non-root UID/GID 10001 เขียนและอ่านกลับได้ โดยลบเฉพาะ probe file ของตนเองแล้ว ผลนี้แสดงว่าควรแก้ ownership mapping แทนการเปลี่ยน storage backend ในช่วง canary นั้น Production ยังไม่ได้ remount และผล canary ไม่ใช่การทดสอบ per-user ACL หรือ database locking ต่อมามีการคืน mount จริงและตรวจพฤติกรรมตามผลเพิ่มเติมด้านล่าง
 
 แนวทางแก้คือคืน DA_WORKSPACE เป็น **mounted workspace จริง** หลังเทียบไฟล์ใหม่บน local PVC กับไฟล์บน share และเก็บ conflict ทั้งสองเวอร์ชันไว้ ไม่ mount สำเนาเก่าทับจนทำให้งานใหม่หายจากมุมมอง Runtime state ที่ต้องใช้ local locking อาจอยู่บน storage ที่เหมาะสมได้ แต่ต้องรักษา central durable-history requirement ด้วยวิธีที่สอดคล้องและทดสอบ restore แล้ว การมี local workspace แล้วเสนอ backup ไป central ไม่ใช่สิ่งทดแทน mount เดิม
+
+### ผลแก้ไขที่ deploy และตรวจจริง เวลา 21:32 น. ICT
+
+Secure กลับมา mount `//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation` ผ่าน claim `dsh-da-workspace-secure`, subpath `dsh` ที่ `/workspace` แล้ว อ่าน `/proc/mounts` ได้ filesystem `cifs` และ process ยังเป็น UID 10001 ค่า mount ใช้ UID/GID mapping และ `file_mode=0770` เพื่อให้สคริปต์รันตรงได้เหมือน share เดิม; Git repositories ที่ตรวจทั้งสองแห่งตั้ง `core.filemode=false` อยู่แล้ว
+
+ก่อนเปลี่ยนได้หยุด writer แล้วเทียบ local workspace 2,651 ไฟล์ รอบแรกพบ 2,650 ไฟล์ตรงกันและคัดลอกใหม่ 1 ไฟล์ ไม่พบ conflict ส่วน central-only 29,064 ไฟล์เก็บไว้ทั้งหมด รอบก่อน cutover ตรวจซ้ำทั้ง 2,651 ไฟล์ตรงกัน ไม่มี content failure กลไก reconciliation เก็บ central version ที่ต่างไว้ก่อนแทนที่ และ unit tests ทดสอบกรณี conflict, destination-only files และ type collision แล้ว Local rollback PVC เดิมยังเก็บไว้
+
+ตรวจ actual persistence ด้วยการเขียนจาก runtime แล้วอ่านจากอีก pod บน claim เดียวกัน และเขียนกลับจาก peer ให้ runtime อ่านได้ หลัง restart Secure อีกครั้ง markers ทั้งสองยังอยู่ และอ่านไฟล์จริงผ่าน runtime ซ้ำครบ 2,651 ไฟล์ตาม hash manifest ไม่พบ mismatch Login session เดิมและ fresh login/logout ผ่าน Secure list API ยังแสดง 80 histories Internal inference ให้ exact sentinel ที่คาดไว้ และ public HTTPS probe ยังล้มเหลวตาม policy เดิม จากนั้นลบเฉพาะ markers และ temporary test account
+
+รอบแรกตัวตรวจ archive ใช้ `extractall(filter=...)` ที่ Python ใน image ไม่รองรับ จึง rollback mount กลับ local อัตโนมัติ และยืนยันว่า held login ยังใช้ได้ แก้เป็น portable extractor ที่ตรวจ path/type และอ่านเนื้อหากลับทุกไฟล์ แล้วตรวจ restore จาก central history archive ผ่าน 29,067 ไฟล์ ก่อน retry cutover สำเร็จ นี่เป็นการตรวจ extracted state bytes ไม่ใช่การ boot DSH จาก restored state ทั้งชุด
+
+**ขอบเขตที่ยังเหลือ:** `/state` ที่กำลังใช้งานยังอยู่ local PVC เดิม จึงไม่ได้ย้ายฐานข้อมูลที่กำลังทำงานไปใช้ CIFS locks มี coherent central history baseline ที่สร้างขณะหยุด writer และตรวจ restore แล้ว แต่ยังไม่มี continuous state sync การคืน workspace mount จึงแก้แล้ว ส่วนการเก็บ history ที่เกิดใหม่อย่างต่อเนื่องบน central ยังไม่ปิด ไม่อ้าง zero data loss หรือ full disaster recovery Archive ไม่รวม top-level `/state/.credentials.yaml` แต่ยังอาจมี sensitive user content จึงต้องรักษาสิทธิ์ของพื้นที่ recovery
+
+ดู [หลักฐาน actual mount, login, peer readback, restart และข้อจำกัด](context-evidence/central-workspace-live-20261015.json) Image ยังคง digest เดิมจาก build 62702; การเปลี่ยนครั้งนี้เป็น volume mapping และ operator workflow ไม่ใช่ runtime package upgrade
 
 อ่าน [การตรวจ raw transcript และ Git แบบละเอียด](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) และ [ผล CIFS canary](context-evidence/storage-design-audit-20261015.json) การคืน mount นี้ไม่ใช่การอนุญาตให้ Internet เห็น RDT หรือให้ทุกผู้ใช้เห็นทั้ง share
 
@@ -200,7 +214,7 @@ Rollback specifications อยู่ใน `C:/Users/skunpojt/rollback-runtime-h
 
 | งานที่ต้องทำ | ผู้รับผิดชอบหลัก | หลักฐานก่อนถือว่าปิด |
 |---|---|---|
-| คืน mounted DA_WORKSPACE | Platform/storage operator | file reconciliation และ conflict record; actual CIFS mount; read/write ของ working folder; restart และ content checks |
+| คืน mounted DA_WORKSPACE — ผ่านแล้วตามหลักฐาน 21:32 | Platform/storage operator | เทียบ 2,651 ไฟล์; actual CIFS mount; two-way peer readback; restart/login ผ่าน; local rollback PVC ยังอยู่ |
 | กำหนด named pilot และ RDT scope | Pilot/data owner | รายชื่อบุคคลที่ได้รับอนุญาต และ snapshot/view/fields/rows ที่อ่านได้; ไม่อนุมานจากรายชื่อบัญชีเดิม |
 | Deploy private user runtimes | Platform/application operator | fixed identity routing, private mounts/state/tokens; A-to-B file/report/history/terminal/API denial |
 | บังคับ read-only source | Data/database/storage owner | อ่านใน scope ได้; source writes และ out-of-scope reads ถูกปฏิเสธ; output writes สำเร็จ; source content ไม่เปลี่ยน |
@@ -229,6 +243,7 @@ Upstream มีความสามารถด้าน workspace, tools, plug
 - [Outbound probes ก่อน rollout](context-evidence/rdt-egress-recheck-20261015.json): direct connectivity tests ตามปลายทางที่ระบุ ไม่ใช่ทุก leakage path
 - [Candidate cluster tests](context-evidence/rdt-candidate-cluster-check-62696.log): source/candidate routing tests ไม่ใช่ deployed cross-user RDT acceptance
 - [Runtime rollout evidence](context-evidence/runtime-rollout-live-20261015.json): image/source readback, login, history/content, inference, catalog, egress และข้อจำกัดของ rollback
+- [Live mounted-workspace correction](context-evidence/central-workspace-live-20261015.json): actual CIFS mount, reconciliation, successful retry after automatic rollback, peer readback, login/history และ state-sync limitations
 - [Storage design audit](context-evidence/storage-design-audit-20261015.json): curated raw messages, Git change และ CIFS canary; Production mounts ไม่เปลี่ยนในการ review นั้น
 
 HTML นี้ใช้รูปแบบ walkthrough เดิมและ diagram controls ที่ปรับจาก SMP EDA ได้แก่ zoom/reset/fullscreen, source copy และ SVG/PNG export โดยฝัง Mermaid 10.8.0 และ svg-pan-zoom 3.6.1 ไว้ในไฟล์ ไม่ต้องโหลด CDN เป้าหมายของ document QA คือให้เนื้อหาและ diagrams อ่านได้และเครื่องมือทำงาน ไม่ใช้ผล document QA แทน security acceptance ของ DSH ดู [document QA record](context-evidence/html-verification-20261015.json)

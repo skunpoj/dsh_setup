@@ -20,7 +20,7 @@ foreach ($required in @(
     'claimName: dsh-secure-state',
     'claimName: dsh-internet-state',
     'claimName: dsh-internet-staging',
-    'claimName: dsh-secure-workspace',
+    'claimName: dsh-da-workspace-secure',
     'claimName: dsh-package-incoming',
     'claimName: dsh-package-approved',
     'claimName: dsh-secure-token',
@@ -33,7 +33,7 @@ if (($pools | Select-String -Pattern 'clusterIP: None' -AllMatches).Matches.Coun
 }
 
 $internetDocument = @($pools -split '(?m)^---\s*$' | Where-Object { $_ -match 'kind: Deployment' -and $_ -match 'name: dsh-internet' })[0]
-if ($internetDocument -match 'protected-workspace|claimName: dsh-secure-workspace') {
+if ($internetDocument -match 'protected-workspace|claimName: dsh-da-workspace-secure') {
     throw 'Internet pool must not mount the protected workspace.'
 }
 if ($internetDocument -notmatch 'claimName: dsh-internet-token' -or $internetDocument -match 'claimName: dsh-secure-token') {
@@ -43,6 +43,9 @@ if ($internetDocument -notmatch 'claimName: dsh-package-incoming' -or $internetD
     throw 'Internet pool must mount incoming packages and must not mount approved packages.'
 }
 $secureDocument = @($pools -split '(?m)^---\s*$' | Where-Object { $_ -match 'kind: Deployment' -and $_ -match 'name: dsh-secure' })[0]
+if ($secureDocument -notmatch 'claimName: dsh-da-workspace-secure' -or $secureDocument -notmatch 'mountPath: /workspace, subPath: dsh') {
+    throw 'Secure must retain the actual mounted DA_WORKSPACE subpath.'
+}
 if ($secureDocument -notmatch 'claimName: dsh-package-approved' -or $secureDocument -match 'claimName: dsh-package-incoming') {
     throw 'Secure pool must mount only the approved package cache read-only.'
 }

@@ -80,4 +80,9 @@ This proves non-root access is achievable on this share. It does not prove deplo
 5. Preserve the original central-history intent while accommodating local runtime locks. Verify coherent central persistence and restart/restore; do not reinstate unsupported zero-loss claims or assume copying live database files is coherent.
 6. Treat read-only RDT authorization separately from the workspace's writable output area. A read/write workspace mount is not proof of read-only source access.
 
-**Current status:** Production still uses the previously verified local workspace/state volumes. The mounted-share correction has passed an isolated non-root test but has not been cut over. No account routing or history ownership was changed during this review.
+**Status at the original review:** Production still used the previously verified local workspace/state volumes. The mounted-share correction has passed an isolated non-root test but has not been cut over. No account routing or history ownership was changed during this review.
+
+
+## Production correction completed — 15 October 2026, 21:32 ICT
+
+Secure now mounts the same share through the non-root `dsh-da-workspace-secure` claim at `/workspace`, subpath `dsh`. All 2,651 local workspace files were verified against central content before cutover, and central-only files retained. Two-way peer readback and another runtime restart passed; fresh/held login/logout worked and 80 histories remained listed. The first archive-validator failure triggered automatic rollback; the portable validator and retry passed. The active `/state` remains local, with a coherent central baseline whose 29,067 extracted files were checked; continuous state synchronization is not configured. [Live correction record](context-evidence/central-workspace-live-20261015.json).

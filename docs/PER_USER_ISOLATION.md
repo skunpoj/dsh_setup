@@ -14,7 +14,7 @@ A strict air gap removes live network paths to external networks. Internal servi
 
 ## User isolation extension
 
-Each approved identity receives one Secure runtime and one Internet runtime. Each runtime has its own pod, Service, workspace PVC, state/history PVC, launch-token PVC and, for Internet, incoming-package PVC. Only approved packages are shared read-only across Secure runtimes. Internal LiteLLM/GPU inference and gateway identity administration remain shared services.
+Each approved identity receives one Secure runtime and one Internet runtime. Each runtime has its own pod, Service, state/history PVC, launch-token PVC and, for Internet, staging/incoming-package PVCs. Secure workspaces use distinct bind-mounted subpaths of the central DA_WORKSPACE claim. Only approved packages are shared read-only across Secure runtimes. Internal LiteLLM/GPU inference and gateway identity administration remain shared services.
 
 `scripts/generate_user_runtimes.py` generates reviewable manifests and an administrator-owned routing ConfigMap. It does not apply them, create identities, or copy data. `DSH_USER_TARGETS_FILE` activates identity-specific routing in the gateway. The authenticated identity and environment select a fixed Service and token file. Request parameters cannot supply a backend. Missing identity/environment mappings fail closed, and self-registration is denied while this mode is active. Existing HTTP, WebSocket, terminal and application proxy paths use that same target.
 
@@ -22,7 +22,7 @@ Runtime pods retain the existing restricted/Internet policy labels and gateway-o
 
 ## Preserve the existing central storage requirement
 
-The current generator allocates local workspace PVCs and therefore does not yet implement the corrected mounted-DA_WORKSPACE design. Do not deploy it as a complete storage solution. The [raw-transcript review](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) confirms that abandoning the share was not requested. Private runtimes must use bounded environment/user subpaths on the mounted central workspace, retain non-root operation and central durable history, and keep Internet from protected paths. The non-root CIFS ownership mapping has passed an isolated live test. Restoring the existing mount is separate from redistributing historical data or granting new RDT access.
+The generator now retains `dsh-da-workspace-secure` and assigns `dsh/private/<identity-hash>/secure` as the workspace subpath. It does not redistribute existing shared files/history. Administratively pre-create and verify those central directories before applying private runtimes; their main containers must never mount the share root. The actual shared Secure workspace was remounted and restart-tested at 21:32 ICT; per-user runtimes themselves remain undeployed. See [actual correction evidence](context-evidence/central-workspace-live-20261015.json).
 
 ## Rollout and evidence boundary
 

@@ -158,14 +158,14 @@ spec:
             limits: { cpu: "4", memory: 8Gi }
           volumeMounts:
             - { name: state, mountPath: /state }
-            - { name: protected-workspace, mountPath: /workspace }
+            - { name: protected-workspace, mountPath: /workspace, subPath: dsh }
             - { name: package-cache, mountPath: /packages/approved, readOnly: true }
             - { name: routing-tokens, mountPath: /runtime-tokens }
       volumes:
         - name: state
           persistentVolumeClaim: { claimName: dsh-secure-state }
         - name: protected-workspace
-          persistentVolumeClaim: { claimName: dsh-secure-workspace }
+          persistentVolumeClaim: { claimName: dsh-da-workspace-secure }
         - name: routing-tokens
           persistentVolumeClaim: { claimName: dsh-secure-token }
         - name: package-cache
