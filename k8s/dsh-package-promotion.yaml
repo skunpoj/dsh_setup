@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dsh-package-approval
+  namespace: llm
+data:
+  # An operator replaces this file with reviewed SHA-256 rows before resuming
+  # the suspended Job: <sha256><two spaces><relative incoming path>
+  manifest.sha256: |
+    # Example only; an empty approval intentionally fails closed.
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dsh-promote-approved-packages
+  namespace: llm
+spec:
+  suspend: true
+  backoffLimit: 0
+  template:
+    metadata:
+      labels: { app: dsh-package-promotion }
+    spec:
+      restartPolicy: Never
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: promote
+          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime:0.2.0-rc.2-env-routing
+          command: [/opt/dsh/container/promote-packages.sh]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+          env:
+            - { name: APPROVAL_MANIFEST, value: /approval/manifest.sha256 }
+          volumeMounts:
+            - { name: approval, mountPath: /approval, readOnly: true }
+            - { name: incoming, mountPath: /packages/incoming, readOnly: true }
+            - { name: approved, mountPath: /packages/approved }
+      volumes:
+        - name: approval
+          configMap: { name: dsh-package-approval }
+        - name: incoming
+          persistentVolumeClaim: { claimName: dsh-package-incoming }
+        - name: approved
+          persistentVolumeClaim: { claimName: dsh-package-approved }

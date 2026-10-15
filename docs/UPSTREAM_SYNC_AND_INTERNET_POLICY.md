@@ -55,7 +55,20 @@ The repository includes a prebuilt runtime image and two execution pools behind 
 
 `Dockerfile` bakes the DSH package, Node, Python, terminal and operating-system dependencies into the image. `container/start-dsh.sh` starts without package installation, keeps each pool's state on its own PVC and publishes its process token to the gateway through the restricted routing-token directory. `k8s/dsh-environment-pools.yaml` and `k8s/dsh-environment-gateway.yaml` define the runtime.
 
-The two pools deliberately do not multi-write the same session directory. Identity and login settings are central at the gateway, but active session state belongs to the chosen environment. Moving data to the Internet environment requires an approved copy into its staging PVC. This prevents an Internet-capable process from reading the protected workspace and avoids file-lock and history corruption from concurrent writers.
+The two pools deliberately do not multi-write the same session directory. Identity and login settings are central at the gateway, but active session state belongs to the chosen environment. Authentication, the Secure workspace, incoming packages, approved packages, each environment's runtime state, Internet staging and each launch token use separate local RWO volumes. This avoids the root-only ownership behavior verified on the legacy CIFS share and prevents one environment from mounting another environment's workspace, token or package area. The suspended `dsh-migrate-secure-state` job copies existing accounts and project files from the legacy share during controlled cutover while excluding legacy runtime/session directories. Moving project data to the Internet environment requires an approved copy into its staging PVC. This prevents an Internet-capable process from reading the protected workspace and avoids file-lock and history corruption from concurrent writers.
+
+## Offline dependency acquisition
+
+The Internet environment supplies dependencies to Secure without receiving the protected workspace:
+
+1. In Internet, `prepare-offline-deps python requirements.txt` downloads Python wheels and source distributions to `/packages/incoming/python`. `prepare-offline-deps npm <project-directory>` populates `/packages/incoming/npm-cache` from a locked Node project without running package lifecycle scripts.
+2. An operator reviews the package names, source and security results and writes exact SHA-256 plus relative-path rows to the `dsh-package-approval` ConfigMap.
+3. The suspended `dsh-promote-approved-packages` Job is resumed for that approval. It rejects empty manifests, absolute or parent paths, missing artifacts and hash mismatches, then copies verified files read-only into `/packages/approved`.
+4. Secure mounts only `/packages/approved` read-only. Python has `PIP_NO_INDEX=1` and resolves through `/packages/approved/python`; npm has offline mode enabled and resolves through `/packages/approved/npm-cache`.
+
+Internet never mounts the approved directory or protected workspace. Secure never mounts incoming and cannot reach public package repositories. This allows Internet-assisted installation while keeping the security boundary and preventing uncontrolled multi-writer access.
+
+The package-transfer volumes were verified on the live one-node cluster with UID/GID `10001`: Internet's incoming volume accepted a write, Secure's read-only approved mount rejected a write, and the promotion script copied a test artifact only after its SHA-256 matched, setting the promoted file mode to `0444`.
 
 Deployment remains gated on building and pushing the referenced image, creating `dsh-runtime-secrets`, backing up the current workspace, and exercising the isolated manifests with restored test data. Existing Production workloads remain the rollback route until the new gateway passes login, history, prompt, tool, terminal, restart and egress tests.
 

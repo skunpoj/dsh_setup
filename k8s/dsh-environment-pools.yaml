@@ -1,13 +1,79 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: dsh-auth-state
+  namespace: llm
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-secure-workspace
+  namespace: llm
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-package-incoming
+  namespace: llm
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-package-approved
+  namespace: llm
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-secure-token
+  namespace: llm
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-internet-token
+  namespace: llm
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: dsh-secure-state
   namespace: llm
 spec:
   accessModes: [ReadWriteOnce]
   resources:
     requests:
-      storage: 20Gi
+      storage: 5Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -18,7 +84,7 @@ spec:
   accessModes: [ReadWriteOnce]
   resources:
     requests:
-      storage: 20Gi
+      storage: 5Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -29,7 +95,7 @@ spec:
   accessModes: [ReadWriteOnce]
   resources:
     requests:
-      storage: 20Gi
+      storage: 10Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -80,15 +146,18 @@ spec:
             limits: { cpu: "4", memory: 8Gi }
           volumeMounts:
             - { name: state, mountPath: /state }
-            - { name: protected-workspace, mountPath: /workspace, subPath: dsh }
-            - { name: routing-tokens, mountPath: /runtime-tokens, subPath: dsh-routing/tokens/secure }
+            - { name: protected-workspace, mountPath: /workspace }
+            - { name: package-cache, mountPath: /packages/approved, readOnly: true }
+            - { name: routing-tokens, mountPath: /runtime-tokens }
       volumes:
         - name: state
           persistentVolumeClaim: { claimName: dsh-secure-state }
         - name: protected-workspace
-          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+          persistentVolumeClaim: { claimName: dsh-secure-workspace }
         - name: routing-tokens
-          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+          persistentVolumeClaim: { claimName: dsh-secure-token }
+        - name: package-cache
+          persistentVolumeClaim: { claimName: dsh-package-approved }
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -140,14 +209,17 @@ spec:
           volumeMounts:
             - { name: state, mountPath: /state }
             - { name: staging, mountPath: /workspace }
-            - { name: routing-tokens, mountPath: /runtime-tokens, subPath: dsh-routing/tokens/internet }
+            - { name: package-incoming, mountPath: /packages/incoming }
+            - { name: routing-tokens, mountPath: /runtime-tokens }
       volumes:
         - name: state
           persistentVolumeClaim: { claimName: dsh-internet-state }
         - name: staging
           persistentVolumeClaim: { claimName: dsh-internet-staging }
         - name: routing-tokens
-          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+          persistentVolumeClaim: { claimName: dsh-internet-token }
+        - name: package-incoming
+          persistentVolumeClaim: { claimName: dsh-package-incoming }
 ---
 apiVersion: v1
 kind: Service

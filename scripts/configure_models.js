@@ -1,4 +1,5 @@
 const fs = require("fs");
+const dshHome = process.env.DSH_HOME || `${process.env.HOME || "/root"}/.dsh`;
 
 const dshPkgDir = [
   "/usr/local/lib/node_modules/@deepseek-ai/dsh",
@@ -382,7 +383,7 @@ if (fs.existsSync(msFile)) {
 
 // 6. Write valid settings.yaml into persistent storage directory
 try {
-  fs.mkdirSync("/root/.dsh", { recursive: true });
+  fs.mkdirSync(dshHome, { recursive: true });
   const validYaml = `version: 1
 agent-default-model:
   provider: litellm-cluster
@@ -431,8 +432,8 @@ llm-pi-ai:
           input:
             - text
 `;
-  fs.writeFileSync("/root/.dsh/settings.yaml", validYaml, "utf8");
-  console.log("[CONFIG] Populated /root/.dsh/settings.yaml with DeepSeek-V4.1-Flash default");
+  fs.writeFileSync(`${dshHome}/settings.yaml`, validYaml, "utf8");
+  console.log(`[CONFIG] Populated ${dshHome}/settings.yaml with DeepSeek-V4.1-Flash default`);
 } catch(e) {
   console.error(e);
 }
@@ -500,8 +501,8 @@ When you build, develop, or run web applications, APIs, dashboards, or preview s
 - Web terminal authentication is unified with the DSH Enterprise login session.
 `;
 
-  fs.mkdirSync("/root/.dsh", { recursive: true });
-  fs.writeFileSync("/root/.dsh/AGENTS.md", agentsMdContent, "utf8");
+  fs.mkdirSync(dshHome, { recursive: true });
+  fs.writeFileSync(`${dshHome}/AGENTS.md`, agentsMdContent, "utf8");
   if (fs.existsSync("/workspace")) {
     fs.writeFileSync("/workspace/AGENTS.md", agentsMdContent, "utf8");
   }
@@ -627,7 +628,7 @@ if (fs.existsSync(alFile)) {
 
 // 12. Enforce Web Profile cordis.patch.yml with Compaction and Verified 128K Context Window
 try {
-  const profileDir = "/root/.dsh/profiles/web";
+  const profileDir = `${dshHome}/profiles/web`;
   fs.mkdirSync(profileDir, { recursive: true });
   const patchYmlPath = `${profileDir}/cordis.patch.yml`;
   const cordisContent = `# Enterprise Cordis Profile Configuration for DSH Web UI

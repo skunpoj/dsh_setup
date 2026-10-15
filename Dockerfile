@@ -10,9 +10,20 @@ RUN apt-get update \
  && chmod 0755 /usr/local/bin/ttyd \
  && rm -rf /var/lib/apt/lists/* /root/.npm
 
+RUN groupadd --gid 10001 dsh \
+ && useradd --uid 10001 --gid 10001 --create-home --home-dir /home/dsh dsh
+
+ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh
+
 COPY scripts/ /opt/dsh/scripts/
-COPY container/start-dsh.sh /usr/local/bin/start-dsh
-RUN chmod 0755 /usr/local/bin/start-dsh
+COPY container/ /opt/dsh/container/
+RUN node /opt/dsh/scripts/configure_models.js \
+ && mkdir -p /opt/dsh/seed \
+ && cp -a /home/dsh/.dsh /opt/dsh/seed/dsh-home \
+ && install -m 0755 /opt/dsh/container/start-dsh.sh /usr/local/bin/start-dsh \
+ && install -m 0755 /opt/dsh/container/prepare-offline-deps.sh /usr/local/bin/prepare-offline-deps \
+ && chmod 0755 /opt/dsh/container/promote-packages.sh \
+ && chown -R 10001:10001 /home/dsh /opt/dsh/seed/dsh-home
 
 EXPOSE 3081 7681
 ENTRYPOINT ["/usr/local/bin/start-dsh"]

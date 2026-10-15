@@ -42,16 +42,16 @@ spec:
             requests: { cpu: 100m, memory: 128Mi }
             limits: { cpu: "1", memory: 512Mi }
           volumeMounts:
-            - { name: auth, mountPath: /auth, subPath: dsh/users }
-            - { name: secure-token, mountPath: /runtime-tokens/secure, subPath: dsh-routing/tokens/secure, readOnly: true }
-            - { name: internet-token, mountPath: /runtime-tokens/internet, subPath: dsh-routing/tokens/internet, readOnly: true }
+            - { name: auth, mountPath: /auth }
+            - { name: secure-token, mountPath: /runtime-tokens/secure, readOnly: true }
+            - { name: internet-token, mountPath: /runtime-tokens/internet, readOnly: true }
       volumes:
         - name: auth
-          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+          persistentVolumeClaim: { claimName: dsh-auth-state }
         - name: secure-token
-          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+          persistentVolumeClaim: { claimName: dsh-secure-token }
         - name: internet-token
-          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+          persistentVolumeClaim: { claimName: dsh-internet-token }
 ---
 apiVersion: v1
 kind: Service

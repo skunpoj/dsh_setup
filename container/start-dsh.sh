@@ -9,11 +9,25 @@ case "$DSH_ENVIRONMENT" in
   *) echo "invalid DSH_ENVIRONMENT=$DSH_ENVIRONMENT" >&2; exit 64 ;;
 esac
 
-mkdir -p /state/sessions /state/storages /state/attachments /workspace /runtime-tokens
-rm -rf /root/.dsh
-ln -s /state /root/.dsh
+if [ "$DSH_ENVIRONMENT" = secure ]; then
+  # Secure sessions resolve dependencies only from artifacts that an operator
+  # has hash-approved and promoted from the Internet pool.
+  export PIP_NO_INDEX=1
+  export PIP_FIND_LINKS=/packages/approved/python
+  export npm_config_offline=true
+  export npm_config_cache=/packages/approved/npm-cache
+else
+  # Internet sessions may download packages, but can write only to incoming.
+  # They never mount the approved cache or the protected workspace.
+  export npm_config_cache=/packages/incoming/npm-cache
+fi
 
-node /opt/dsh/scripts/configure_models.js
+mkdir -p /state/sessions /state/storages /state/attachments /workspace /runtime-tokens
+rm -rf "${DSH_HOME:-$HOME/.dsh}"
+ln -s /state "${DSH_HOME:-$HOME/.dsh}"
+if [ ! -f /state/settings.yaml ]; then
+  cp -a /opt/dsh/seed/dsh-home/. /state/
+fi
 
 ttyd -p 7681 -i 0.0.0.0 -W bash -l >/tmp/ttyd.log 2>&1 &
 
