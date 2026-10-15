@@ -47,13 +47,17 @@ Runtime containers run as UID/GID 10001, disable privilege escalation and drop c
 
 No Internet is restricted egress, not a strict air gap. Browser/gateway, cluster DNS, storage and inference remain connected. An internal hostname alone does not prove a destination cannot relay externally.
 
-## Storage — important correction
+## Storage — original mounted-share requirement
+
+The [raw-transcript and Git audit](docs/DA_WORKSPACE_DESIGN_REVIEW_20261015.md) confirms that replacing DA_WORKSPACE with a node-local workspace was an assistant implementation deviation, not a user instruction. At 09:29 ICT the assistant chose the replacement; GitHub `9c3b571` recorded it at 10:21. The approved proposal still said “Store durable history centrally.” An isolated test now proves that UID/GID 10001 can write/read back on the same CIFS share when ownership is explicitly mapped. **Production has not yet been remounted.**
+
+Restoring the existing DA_WORKSPACE mount is distinct from granting new RDT access or assigning shared histories to private users. A local workspace plus a central-backup proposal does not satisfy the original mounted-workspace requirement.
 
 Current Secure `/workspace` and `/state` use separate local TopoLVM PVCs. Internet has its own staging/state PVCs. The legacy main deployment retains `da-workspace-pvc-new` but is scaled to zero. A one-time migration copied data from DA_WORKSPACE; **new-pool writes are not automatically synchronized back**.
 
 Earlier claims about automatic CIFS shutdown flush, zero data loss and complete user isolation were not accurate for these new pools. The original documentation is preserved in [the legacy README](docs/archive/README_BEFORE_RECONCILIATION_20261015.md). The original CIFS workaround should not have silently changed central persistence policy.
 
-Restore central persistence through a controlled reconciliation and ACL-aware design: preserve both old and new files, identify conflicts, keep live database locks on suitable storage, create coherent/versioned state backups and test restore. Do not blindly remount the old share or treat a copy of changing database files as a coherent backup. See [current storage guide](docs/MULTI_TENANT_STORAGE_AND_PERSISTENCE.md).
+Restore DA_WORKSPACE as the actual mounted workspace after reconciling newer local files with the share and preserving conflicts and rollback PVCs. Keep non-root execution using the tested CIFS ownership mapping; maintain environment/per-user subpath boundaries. Preserve central history while using suitable local runtime locking where necessary. Do not replace the mount requirement with backups or treat a copy of changing database files as a coherent backup. See [current storage guide](docs/MULTI_TENANT_STORAGE_AND_PERSISTENCE.md).
 
 ## Dependency workflow
 
@@ -73,6 +77,8 @@ Hash matching proves integrity against the approved manifest, not package safety
 5. Establish file/history ownership and save rollback before migration. Never clone shared histories into every user. Do not run two DSH writers against one state directory during image replacement.
 6. Test candidate login/logout, fixed user routing, anonymous/cross-user denial, terminal, WebSocket, tools, attachments, restart/persistence, source denial, egress and approved package installation before ingress cutover.
 7. Read back deployed image, effective profiles and actual affected behavior. Preserve rollback and record remaining limitations.
+
+The current private-runtime generator still allocates local workspace PVCs. It must be adapted to bounded DA_WORKSPACE subpath mounts before a Production storage cutover; its current source tests do not establish compliance with the restored mount requirement.
 
 The existing main `dsh`, `dsh-user2` and `dsh3` are legacy workloads with different storage/network configurations. They must be explicitly included or excluded from pilot scope; do not assume the new policies protect them.
 

@@ -6,11 +6,15 @@ The SMB claim `da-workspace-pvc-new` points to `//bot.or.th/cfs/FILESERV/DA_WORK
 
 The old guide's automatic CIFS flush, zero-loss and multi-tenant-isolation claims must not be applied to the current pools. Preserve it as [historical documentation](archive/STORAGE_GUIDE_LEGACY_20261015.md).
 
+## Original design and correction
+
+The [raw-transcript audit](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) confirms that the local-workspace replacement was an implementation deviation. The correction is to restore the actual DA_WORKSPACE workspace mount, not redefine the requirement as a central backup of local files. The same share passed a non-root CIFS write/readback canary with explicit UID/GID 10001 mapping; Production has not been remounted.
+
 ## Correction and acceptance
 
 1. Inventory both local and central copies; identify newer files, duplicates and conflicts without deletion.
 2. Establish approved ownership, per-user/environment share ACLs and dedicated storage credentials.
-3. Keep active databases and locks on storage with suitable locking semantics. Prevent multiple active writers to a state directory.
+3. Restore the actual mounted workspace only after conflict-preserving reconciliation. Keep active databases and locks on storage with suitable locking semantics while retaining central history persistence. Prevent multiple active writers to a state directory.
 4. Use coherent database backup/checkpoint or quiesced snapshots; version the destination and verify hashes/content. Do not simply copy a live database directory.
 5. Test restore into an isolated runtime, including session history and attachments; record recovery limits and failures.
 6. Keep Internet staging unable to read protected source/results or approve its own dependencies.

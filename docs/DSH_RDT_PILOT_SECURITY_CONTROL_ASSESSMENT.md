@@ -76,8 +76,8 @@ flowchart TB
  A --> L[Shared internal model service]
  B --> L
  O --> L
- AV -. controlled persistence - proposed .-> DA[DA_WORKSPACE - per-user ACLs and coherent snapshots]
- BV -. controlled persistence - proposed .-> DA
+ AV -. direct workspace mount - proposed .-> DA[Mounted DA_WORKSPACE - per-user subpaths and central history]
+ BV -. direct workspace mount - proposed .-> DA
 ```
 
 Dedicated pods add process and mount boundaries but still share the node kernel. Generated runtimes disable service-account token mounting, run non-root, drop capabilities, disable privilege escalation, and retain network-policy labels. Tests must prove the actual CNI/storage behavior. A username directory inside a shared shell-capable process is insufficient.
@@ -155,7 +155,11 @@ No application regression was detected in the exercised checks, so no applicatio
 
 Reproducible operator tools: `scripts/rollout_runtime_hardening.py`, `scripts/verify_runtime_persistence.py` and `scripts/runtime_rollout_probe.js`. They are administrator-run maintenance tools, not user-facing features. The probe creates a temporary account only for the test and requires cleanup. Do not run account provisioning concurrently with this maintenance probe. Review the target, immutable digest, state ownership and rollback directory before any repeat rollout. Do not rerun a disruptive rollout simply to recheck status.
 
-## DA_WORKSPACE — what changed and correction design
+## DA_WORKSPACE — original requirement and implementation deviation
+
+The [raw-transcript and Git review](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) identifies the exact deviation: at **09:29:33 ICT**, the assistant chose to move the protected CIFS workspace to a local volume. GitHub commit **`9c3b571` at 10:21:54** recorded the replacement; Azure **`dd6c3aa` at 10:31** mirrored it. The relevant user-approved proposal still included **“Store durable history centrally.”** No instruction to abandon DA_WORKSPACE was found in that conversation. This was an assistant implementation decision, not a required consequence of environment isolation.
+
+A separate canary has now mounted the same share with CIFS `uid=10001,gid=10001,forceuid,forcegid`; a non-root process wrote and read back its own probe successfully and removed it. This corrects the earlier inference that local storage was necessary. Production mounts remain unchanged. See [raw records and actual canary result](context-evidence/storage-design-audit-20261015.json).
 
 | Time, ICT | Change |
 |---|---|
@@ -166,7 +170,7 @@ Reproducible operator tools: `scripts/rollout_runtime_hardening.py`, `scripts/ve
 
 The implementation solved ownership/isolation by changing the storage backend but failed to preserve central persistence. Earlier README statements about automatic CIFS flush and zero data loss do not describe the new pools and are withdrawn. Local PVCs persist ordinary pod replacement; they do not themselves establish central backup or node-loss recovery.
 
-**Correction:** inventory and reconcile newer local files against the legacy share; preserve both copies and a conflict manifest. Keep live databases/locks on suitable local persistent storage. Restore controlled DA_WORKSPACE persistence using dedicated credentials, per-user/environment ACLs, coherent database backups or quiesced state snapshots, versioned destinations and a tested restore. Do not blindly remount the old share or copy changing SQLite/LevelDB files as a backup. This runtime rollout retained the existing PVCs and created local coherent archives; no central-storage cutover or user-data deletion was performed.
+**Correction:** restore DA_WORKSPACE as the mounted workspace. First inventory and reconcile newer local files against the share, preserving both conflict versions and rollback PVCs so a remount cannot hide recent work. Use the tested CIFS ownership mapping and retain non-root execution. Isolate environment/user mounts by scoped subpaths. Retain central durable history while placing active database locks on suitable storage as needed. Coherent snapshots support that design; they do not substitute for the mounted workspace. Do not copy changing SQLite/LevelDB files and call that a coherent backup. Restoring the existing mount does not require inventing a new RDT dataset approval or assigning all histories to one account. This runtime rollout retained the existing PVCs and created local coherent archives; no central-storage cutover or user-data deletion was performed.
 
 ## Walkthrough — login to a contained result
 

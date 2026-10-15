@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH RDT Pilot — Security and Architecture Walkthrough</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-</style></head><body><main><h1>DSH RDT Pilot — Security, Architecture and Operational Walkthrough</h1><div class="status"><strong>Current decision: partially satisfied.</strong> Read deployed, tested-source and target-design labels separately. No new access approval or security sign-off is asserted.</div><nav aria-label="Contents"><a href="#section-1">Executive summary / สรุปสำหรับผู้พิจารณา</a><a href="#section-2">Current status — deployed versus prepared</a><a href="#section-3">Architecture 1 — live deployment</a><a href="#section-4">Architecture 2 — target user and data boundaries</a><a href="#section-5">Architecture 3 — approved dependency transfer</a><a href="#section-6">Three controls — mechanism, evidence and closure</a><a href="#section-7">Safe runtime rollout — actual deployed result</a><a href="#section-8">DA_WORKSPACE — what changed and correction design</a><a href="#section-9">Walkthrough — login to a contained result</a><a href="#section-10">Model speed, responsiveness and context</a><a href="#section-11">Official upstream comparison</a><a href="#section-12">Closure plan and accountable owners</a><a href="#section-13">Diagram renderer and evidence boundary</a><a href="#evidence">Embedded evidence</a></nav>
+</style></head><body><main><h1>DSH RDT Pilot — Security, Architecture and Operational Walkthrough</h1><div class="status"><strong>Current decision: partially satisfied.</strong> Read deployed, tested-source and target-design labels separately. No new access approval or security sign-off is asserted.</div><nav aria-label="Contents"><a href="#section-1">Executive summary / สรุปสำหรับผู้พิจารณา</a><a href="#section-2">Current status — deployed versus prepared</a><a href="#section-3">Architecture 1 — live deployment</a><a href="#section-4">Architecture 2 — target user and data boundaries</a><a href="#section-5">Architecture 3 — approved dependency transfer</a><a href="#section-6">Three controls — mechanism, evidence and closure</a><a href="#section-7">Safe runtime rollout — actual deployed result</a><a href="#section-8">DA_WORKSPACE — original requirement and implementation deviation</a><a href="#section-9">Walkthrough — login to a contained result</a><a href="#section-10">Model speed, responsiveness and context</a><a href="#section-11">Official upstream comparison</a><a href="#section-12">Closure plan and accountable owners</a><a href="#section-13">Diagram renderer and evidence boundary</a><a href="#evidence">Embedded evidence</a></nav>
 <p><strong>Live evidence: 15 October 2026, 20:39 ICT. Runtime rollout completed; RDT security controls remain partially satisfied.</strong></p>
 <p>This revision reconciles the live implementation, original design intent, deployment evidence and official upstream. The original <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/archive/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT_1303.md">13:03 assessment</a> and original Desktop HTML are preserved.</p>
 <h2 id="section-1">Executive summary / สรุปสำหรับผู้พิจารณา</h2>
@@ -138,8 +138,8 @@
  A --&gt; L[Shared internal model service]
  B --&gt; L
  O --&gt; L
- AV -. controlled persistence - proposed .-&gt; DA[DA_WORKSPACE - per-user ACLs and coherent snapshots]
- BV -. controlled persistence - proposed .-&gt; DA
+ AV -. direct workspace mount - proposed .-&gt; DA[Mounted DA_WORKSPACE - per-user subpaths and central history]
+ BV -. direct workspace mount - proposed .-&gt; DA
 ">flowchart TB
  U[Approved identity and selected environment] --&gt; G[Fixed authenticated routing - unknown users denied]
  G --&gt; A[User A Secure pod]
@@ -155,8 +155,8 @@
  A --&gt; L[Shared internal model service]
  B --&gt; L
  O --&gt; L
- AV -. controlled persistence - proposed .-&gt; DA[DA_WORKSPACE - per-user ACLs and coherent snapshots]
- BV -. controlled persistence - proposed .-&gt; DA
+ AV -. direct workspace mount - proposed .-&gt; DA[Mounted DA_WORKSPACE - per-user subpaths and central history]
+ BV -. direct workspace mount - proposed .-&gt; DA
 </div></div></section>
 <p>Dedicated pods add process and mount boundaries but still share the node kernel. Generated runtimes disable service-account token mounting, run non-root, drop capabilities, disable privilege escalation, and retain network-policy labels. Tests must prove the actual CNI/storage behavior. A username directory inside a shared shell-capable process is insufficient.</p>
 <p><code>scripts/generate_user_runtimes.py</code> requires named users and an immutable digest. Paired <code>--rdt-source-pvc</code> and <code>--rdt-approval-ref</code> options mount a pre-existing approved snapshot read-only at <code>/data/rdt</code>, Secure only. They do not create RDT data, approve scope, or grant database authorization. A database view requires a separately restricted account. Keep results separate from source, and establish ownership before migrating shared histories.</p>
@@ -296,7 +296,9 @@
 <p>Initial post-restart comparison workers failed at CSI read-only mount setup and SELinux relabeling; they did not report a content mismatch. Verification was corrected to use an archive-only worker to derive hashes and compare them inside the runtime&#39;s existing mounts. No second verifier pod mounts live state. Trusted archive workers use ordinary mounts because the local CSI driver&#39;s mount handling failed with read-only requests; their fixed maintenance code reads source/archive data only. This is different from an enforced read-only RDT source mount.</p>
 <p>No application regression was detected in the exercised checks, so no application-image rollback was invoked. The rollout helper restores the original deployment specification on failure and verifies a responding application; it does not overwrite current data from an archive. Mocked failure-path tests verify exact specification restoration after snapshot failure and refusal to overwrite an existing rollback point. Intentional live rollback and full archive restoration were not exercised. <strong>These snapshots are local to the single node, not DA_WORKSPACE or a central backup.</strong> Preserve them until a separately verified recovery copy exists.</p>
 <p>Reproducible operator tools: <code>scripts/rollout_runtime_hardening.py</code>, <code>scripts/verify_runtime_persistence.py</code> and <code>scripts/runtime_rollout_probe.js</code>. They are administrator-run maintenance tools, not user-facing features. The probe creates a temporary account only for the test and requires cleanup. Do not run account provisioning concurrently with this maintenance probe. Review the target, immutable digest, state ownership and rollback directory before any repeat rollout. Do not rerun a disruptive rollout simply to recheck status.</p>
-<h2 id="section-8">DA_WORKSPACE — what changed and correction design</h2>
+<h2 id="section-8">DA_WORKSPACE — original requirement and implementation deviation</h2>
+<p>The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DA_WORKSPACE_DESIGN_REVIEW_20261015.md">raw-transcript and Git review</a> identifies the exact deviation: at <strong>09:29:33 ICT</strong>, the assistant chose to move the protected CIFS workspace to a local volume. GitHub commit <strong><code>9c3b571</code> at 10:21:54</strong> recorded the replacement; Azure <strong><code>dd6c3aa</code> at 10:31</strong> mirrored it. The relevant user-approved proposal still included <strong>“Store durable history centrally.”</strong> No instruction to abandon DA_WORKSPACE was found in that conversation. This was an assistant implementation decision, not a required consequence of environment isolation.</p>
+<p>A separate canary has now mounted the same share with CIFS <code>uid=10001,gid=10001,forceuid,forcegid</code>; a non-root process wrote and read back its own probe successfully and removed it. This corrects the earlier inference that local storage was necessary. Production mounts remain unchanged. See <a href="#evidence-storage-design-audit-20261015-json">raw records and actual canary result</a>.</p>
 <table>
 <thead>
 <tr>
@@ -322,7 +324,7 @@
 </tr>
 </tbody></table>
 <p>The implementation solved ownership/isolation by changing the storage backend but failed to preserve central persistence. Earlier README statements about automatic CIFS flush and zero data loss do not describe the new pools and are withdrawn. Local PVCs persist ordinary pod replacement; they do not themselves establish central backup or node-loss recovery.</p>
-<p><strong>Correction:</strong> inventory and reconcile newer local files against the legacy share; preserve both copies and a conflict manifest. Keep live databases/locks on suitable local persistent storage. Restore controlled DA_WORKSPACE persistence using dedicated credentials, per-user/environment ACLs, coherent database backups or quiesced state snapshots, versioned destinations and a tested restore. Do not blindly remount the old share or copy changing SQLite/LevelDB files as a backup. This runtime rollout retained the existing PVCs and created local coherent archives; no central-storage cutover or user-data deletion was performed.</p>
+<p><strong>Correction:</strong> restore DA_WORKSPACE as the mounted workspace. First inventory and reconcile newer local files against the share, preserving both conflict versions and rollback PVCs so a remount cannot hide recent work. Use the tested CIFS ownership mapping and retain non-root execution. Isolate environment/user mounts by scoped subpaths. Retain central durable history while placing active database locks on suitable storage as needed. Coherent snapshots support that design; they do not substitute for the mounted workspace. Do not copy changing SQLite/LevelDB files and call that a coherent backup. Restoring the existing mount does not require inventing a new RDT dataset approval or assigning all histories to one account. This runtime rollout retained the existing PVCs and created local coherent archives; no central-storage cutover or user-data deletion was performed.</p>
 <h2 id="section-9">Walkthrough — login to a contained result</h2>
 <ol>
 <li><strong>Authenticate:</strong> default No Internet; registration closed. Approved pilot membership still needs owner-confirmed provisioning.</li>
@@ -475,7 +477,96 @@
 <p>The HTML embeds Mermaid 10.8.0 and svg-pan-zoom 3.6.1, reusing SMP EDA&#39;s diagram controls: zoom, reset, fullscreen, SVG/PNG export and source copy. It requires no CDN connection. Export coordinates are reset on a cloned SVG so zooming does not crop the saved diagram. Target diagrams are design illustrations, not deployment screenshots. The original HTML and Markdown are preserved.</p>
 <h3>Verification of this document</h3>
 <p>The generated HTML was tested in headless Microsoft Edge: three diagrams rendered, no external resource requests or page errors occurred, and zoom/reset/fullscreen/source-copy/SVG/PNG export passed. Rendered screenshots were visually inspected. These checks verify the document controls, not every deployed DSH feature. See <a href="#evidence-html-verification-20261015-json">document QA record</a>.</p>
-<h2 id="evidence">Embedded evidence records</h2><p>Recorded test responses and logs; these are not live webpage screenshots or a new test on opening this file.</p><details id="evidence-runtime-rollout-live-20261015-json"><summary>runtime-rollout-live-20261015.json</summary><pre>{
+<h2 id="evidence">Embedded evidence records</h2><p>Recorded test responses and logs; these are not live webpage screenshots or a new test on opening this file.</p><details id="evidence-storage-design-audit-20261015-json"><summary>storage-design-audit-20261015.json</summary><pre>{
+  &quot;reviewTimeICT&quot;: &quot;2026-10-15T21:04:21.855169+07:00&quot;,
+  &quot;rawTranscript&quot;: &quot;C:\\Users\\skunpojt\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T08-23-58-01a09336-d34b-7441-bbff-eb7f65cbcbbe.jsonl&quot;,
+  &quot;selectedMessages&quot;: [
+    {
+      &quot;rawLine&quot;: 13105,
+      &quot;timeUTC&quot;: &quot;2026-10-15T02:02:21.948Z&quot;,
+      &quot;timeICT&quot;: &quot;2026-10-15T09:02:21.948000+07:00&quot;,
+      &quot;role&quot;: &quot;user&quot;,
+      &quot;text&quot;: &quot;for internet toggle to isolate env it could be an env selection instead of a toggle internet onoff where the no internet env is the same evrything (storage and data and session and history? can they share the same and multi read write?) and difference only for a seperate comptute and network? is this design better or more efficient aand optimized?\n&quot;
+    },
+    {
+      &quot;rawLine&quot;: 13377,
+      &quot;timeUTC&quot;: &quot;2026-10-15T02:19:53.984Z&quot;,
+      &quot;timeICT&quot;: &quot;2026-10-15T09:19:53.984000+07:00&quot;,
+      &quot;role&quot;: &quot;user&quot;,
+      &quot;text&quot;: &quot;Selected proposal: The optimized design is:\n\nKeep a small warm offline pool and online pool, rather than creating a new pod for every request.\nRoute each login/session to exactly one pool.\nKeep that session pinned to the selected environment.\nStore durable history centrally.\nPermit only one active writer for each session or workspace.\nUse an approved staging folder to move files between environments.\nRequire a new session, or an explicit controlled handover, when switching environments.\nKeep LiteLLM and the four-GPU model shared, so no additional GPU copy is required.\nThis provides concurrent use: offline and online users can work simultaneously, and multiple short model requests can still run concurrently. The additional cost is mainly lightweight CPU/RAM pods and storage—not another GPU model.\nI recommend renaming the UI control from Internet Off/On to Working environment: Secure/Internal or Internet, because selecting it routes the user to a different protected execution environment rather than merely changing a browser preference.\nUser response: so implement. the sharing work space was because we need the internet env to install required library for the no internet env&quot;
+    },
+    {
+      &quot;rawLine&quot;: 13477,
+      &quot;timeUTC&quot;: &quot;2026-10-15T02:23:00.012Z&quot;,
+      &quot;timeICT&quot;: &quot;2026-10-15T09:23:00.012000+07:00&quot;,
+      &quot;role&quot;: &quot;assistant&quot;,
+      &quot;text&quot;: &quot;The shared CIFS volume ignored the ownership change and kept the directories as `root:root`. I’m testing the future non-root identity against the exact subpath now; if it cannot write, I’ll adjust the storage boundary rather than leaving a manifest that only looks secure.&quot;
+    },
+    {
+      &quot;rawLine&quot;: 13536,
+      &quot;timeUTC&quot;: &quot;2026-10-15T02:26:02.504Z&quot;,
+      &quot;timeICT&quot;: &quot;2026-10-15T09:26:02.504000+07:00&quot;,
+      &quot;role&quot;: &quot;assistant&quot;,
+      &quot;text&quot;: &quot;The exact CIFS write test failed for non-root, so I replaced the shared folders with separate local Kubernetes volumes for authentication, package intake, approved packages and each pool token. This prevents cross-environment reads and supports non-root ownership. I’m now verifying that design against the live storage driver before committing it.&quot;
+    },
+    {
+      &quot;rawLine&quot;: 13594,
+      &quot;timeUTC&quot;: &quot;2026-10-15T02:29:33.114Z&quot;,
+      &quot;timeICT&quot;: &quot;2026-10-15T09:29:33.114000+07:00&quot;,
+      &quot;role&quot;: &quot;assistant&quot;,
+      &quot;text&quot;: &quot;A second live boundary check matters: the protected CIFS workspace is also root-owned, so a non-root Secure pod could not write it. I’m moving the future Secure workspace to its own local volume and adding a suspended migration job that copies existing projects and authentication data during controlled rollout. This keeps the current Production data untouched until cutover.&quot;
+    },
+    {
+      &quot;rawLine&quot;: 15241,
+      &quot;timeUTC&quot;: &quot;2026-10-15T04:18:22.772Z&quot;,
+      &quot;timeICT&quot;: &quot;2026-10-15T11:18:22.772000+07:00&quot;,
+      &quot;role&quot;: &quot;assistant&quot;,
+      &quot;text&quot;: &quot;A migration gap was found before cutover: project files were copied exactly, but the legacy 3.5 GB DSH session/history store was excluded, leaving the Secure candidate empty. I will not switch ingress in that state. I’m updating the migration to copy the session store into Secure state, then I’ll verify its counts and sizes and retest persistence.&quot;
+    },
+    {
+      &quot;rawLine&quot;: 15555,
+      &quot;timeUTC&quot;: &quot;2026-10-15T04:44:15.149Z&quot;,
+      &quot;timeICT&quot;: &quot;2026-10-15T11:44:15.149000+07:00&quot;,
+      &quot;role&quot;: &quot;assistant&quot;,
+      &quot;text&quot;: &quot;The public endpoint is now verified after cutover: TLS login loaded, Secure is the default, registration and password change worked, the old password was rejected, both environment choices pinned to the correct backend, both backends rendered DSH, and logout cleared the session. The temporary test account was removed. The old main `dsh` deployment is scaled to zero for rollback; DSH2 and DSH3 were not changed.\n\nI’m continuing with the remaining safety item: read back the live LiteLLM and model limits, then apply the already tested 128K guardrail with the saved rollback if the live objects match the prepared configuration.&quot;
+    }
+  ],
+  &quot;sourceChange&quot;: {
+    &quot;github&quot;: &quot;9c3b571eba2a47da40ccfc9a4203594a6e8e4e35&quot;,
+    &quot;githubTimeICT&quot;: &quot;2026-10-15T10:21:54+07:00&quot;,
+    &quot;azure&quot;: &quot;dd6c3aae710c458f234cc48a58dfdc4d8d0a4b32&quot;,
+    &quot;azureTimeICT&quot;: &quot;2026-10-15T10:31:00+07:00&quot;,
+    &quot;beforeClaim&quot;: &quot;da-workspace-pvc-new&quot;,
+    &quot;beforeMount&quot;: &quot;/workspace (subPath dsh)&quot;,
+    &quot;afterClaim&quot;: &quot;dsh-secure-workspace&quot;
+  },
+  &quot;authorizationFinding&quot;: &quot;Relevant raw instructions approved central durable history and environment separation; no instruction to replace DA_WORKSPACE with node-local storage was found.&quot;,
+  &quot;canary&quot;: {
+    &quot;job&quot;: &quot;dsh-da-workspace-nonroot-canary&quot;,
+    &quot;uid&quot;: 10001,
+    &quot;gid&quot;: 10001,
+    &quot;rootUID&quot;: 10001,
+    &quot;rootGID&quot;: 10001,
+    &quot;filesystem&quot;: &quot;cifs&quot;,
+    &quot;writeReadback&quot;: true,
+    &quot;sha256&quot;: &quot;23074ee77375ca27d2d94b969834e80898487eb6f1fd92a575089b9f659dc95d&quot;,
+    &quot;ownProbeRemoved&quot;: true,
+    &quot;mountOptions&quot;: [
+      &quot;dir_mode=0770&quot;,
+      &quot;file_mode=0660&quot;,
+      &quot;vers=3.0&quot;,
+      &quot;uid=10001&quot;,
+      &quot;gid=10001&quot;,
+      &quot;forceuid&quot;,
+      &quot;forcegid&quot;
+    ],
+    &quot;productionMountChanged&quot;: false,
+    &quot;testJobsRemoved&quot;: true,
+    &quot;testPVCPreserved&quot;: true
+  },
+  &quot;currentProduction&quot;: &quot;Secure and Internet retain their previous local PVCs; no account cutover, real-data copy, central-backup substitution or production remount was performed in this review.&quot;
+}
+</pre></details><details id="evidence-runtime-rollout-live-20261015-json"><summary>runtime-rollout-live-20261015.json</summary><pre>{
   &quot;timeICT&quot;: &quot;2026-10-15T20:39:05.087772+07:00&quot;,
   &quot;buildId&quot;: 62702,
   &quot;imageSourceCommit&quot;: &quot;3fa74b72eaad7d7dd1e0986dd07a176f45ab2153&quot;,
@@ -930,7 +1021,7 @@ environment routing and session stickiness tests passed
 routing checks completed
 per-user routing, spoof resistance, missing-runtime denial, registration denial and stickiness tests passed
 </pre></details><details id="evidence-html-verification-20261015-json"><summary>html-verification-20261015.json</summary><pre>{
-  &quot;time&quot;: &quot;2026-10-15T13:43:14.020Z&quot;,
+  &quot;time&quot;: &quot;2026-10-15T14:06:26.792Z&quot;,
   &quot;renderedDiagrams&quot;: 3,
   &quot;externalResourceRequests&quot;: 0,
   &quot;zoom&quot;: true,

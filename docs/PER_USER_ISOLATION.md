@@ -20,6 +20,10 @@ Each approved identity receives one Secure runtime and one Internet runtime. Eac
 
 Runtime pods retain the existing restricted/Internet policy labels and gateway-only ingress rule, run non-root with dropped capabilities, use RuntimeDefault seccomp, and do not receive Kubernetes service-account credentials. Incoming package approval must explicitly select the requesting user's incoming PVC. The existing shared promotion job must not be assumed to consume these new private incoming PVCs automatically.
 
+## Preserve the existing central storage requirement
+
+The current generator allocates local workspace PVCs and therefore does not yet implement the corrected mounted-DA_WORKSPACE design. Do not deploy it as a complete storage solution. The [raw-transcript review](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) confirms that abandoning the share was not requested. Private runtimes must use bounded environment/user subpaths on the mounted central workspace, retain non-root operation and central durable history, and keep Internet from protected paths. The non-root CIFS ownership mapping has passed an isolated live test. Restoring the existing mount is separate from redistributing historical data or granting new RDT access.
+
 ## Rollout and evidence boundary
 
 RDT snapshot option: `--rdt-source-pvc APPROVED_SNAPSHOT_PVC --rdt-approval-ref OWNER_APPROVAL_REFERENCE` adds `/data/rdt` read-only to Secure runtimes only. Both options are required together. The PVC must already contain only the approved snapshot; the generator cannot determine data scope or grant database permissions. Public registration now defaults to disabled even before isolated routing is enabled.
