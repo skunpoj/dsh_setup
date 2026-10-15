@@ -1,254 +1,234 @@
-# DSH RDT Pilot — Security, Architecture and Operational Walkthrough
+# DSH RDT Pilot — การควบคุมความเสี่ยงและแนวทางดำเนินงาน
 
-**Live evidence: 15 October 2026, 20:39 ICT. Runtime rollout completed; RDT security controls remain partially satisfied.**
+**สถานะตามหลักฐานวันที่ 15 ตุลาคม 2569: ควบคุมได้บางส่วน ยังไม่ครบเงื่อนไขปิดทั้ง 3 ความเสี่ยง**
 
-This revision reconciles the live implementation, original design intent, deployment evidence and official upstream. The original [13:03 assessment](archive/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT_1303.md) and original Desktop HTML are preserved.
+รายงานนี้สังเคราะห์หลักฐาน runtime rollout เวลา 20:39 น. ICT ผลตรวจย้อนหลังจาก raw transcript และผลทดสอบ CIFS ที่บันทึกภายหลังในวันเดียวกัน การเรียบเรียงครั้งนี้ไม่ได้เป็นการทดสอบ Production รอบใหม่ ข้อความว่า “ใช้งานจริง” จึงอ้างถึง snapshot ที่ระบุไว้ ไม่ใช่สถานะที่ตรวจใหม่ทุกครั้งเมื่อเปิด HTML
 
-## Executive summary / สรุปสำหรับผู้พิจารณา
+## 1 เป้าหมายและข้อสรุปสำหรับผู้พิจารณา
 
-DSH has an authenticated gateway and two execution environments. **No Internet / Internal is the default**, with restricted outbound access. Internet is separate staging for dependency preparation. Their writable files, histories, attachments and launch tokens are separated by environment. LiteLLM and the four-H100 model are shared. This constrains consequences of generated code; it does not establish that generated code is safe.
+การทดลองใช้ DSH กับ RDT ต้องเริ่มจากสมมติฐานว่า Harness, เครื่องมือที่เรียกใช้ และโค้ดที่ AI สร้างขึ้นอาจทำงานผิดพลาดหรือใช้สิทธิ์เกินความจำเป็นได้ จึงต้องจำกัดสิ่งที่ระบบเข้าถึงและผลกระทบที่เกิดขึ้นด้วยการควบคุมภายนอกตัว AI ไม่อาศัยเพียงคำสั่งใน prompt หรือความสามารถของโมเดลในการปฏิเสธงาน
 
-The live gateway now disables self-registration. A rejected registration left the account store unchanged. Anonymous report, proxy and session requests returned the actual login form. Secure public probes failed while internal LiteLLM remained accessible. These observations prove specific protections, not complete leakage prevention.
+**เป้าหมายคือจำกัดความเสียหายที่อาจเกิดขึ้นให้อยู่ในขอบเขตที่ยอมรับได้สำหรับ pilot นี้** โดยควบคุมสามเรื่องต่อเนื่องกัน: ไม่ให้ข้อมูลออกภายนอก ไม่ให้แก้ไขหรือเข้าถึงข้อมูลเกินขอบเขต และไม่ให้ผลลัพธ์เปิดเผยแก่ผู้ไม่มีสิทธิ์ การผ่านเรื่องใดเรื่องหนึ่งไม่ทดแทนอีกสองเรื่อง เช่น ปิด Internet แล้วก็ยังลบข้อมูลภายในได้ หากสิทธิ์ของแหล่งข้อมูลยังกว้างเกินไป
 
-**Material gaps remain:** users within each pool share its process and volumes; an approved read-only RDT source/identity has not been established; new work is not synchronized to DA_WORKSPACE; and DNS/relay/export paths require further assessment. Dedicated per-user manifests and approved read-only snapshot mounts pass source tests but are not deployed. Approved pilot identities, RDT scope and ownership of legacy histories cannot be inferred.
+ปัจจุบันมี gateway สำหรับยืนยันตัวตน มี No Internet / Internal เป็นค่าเริ่มต้น และมี Internet environment แยกสำหรับเตรียม dependencies มีการทดสอบว่า Secure ติดต่อ public HTTPS ที่เลือกไม่ได้ แต่เรียกโมเดลภายในได้ อย่างไรก็ดี ผู้ใช้ใน environment เดียวกันยังใช้ process และ volumes ร่วมกัน ยังไม่มีหลักฐานการใช้ RDT snapshot/view แบบจำกัดสิทธิ์จริง และ workspace ของ pools ใหม่ยังไม่ได้ mount กลับไปที่ DA_WORKSPACE จึงยังสรุปว่าปิดความเสี่ยงครบไม่ได้
 
-## Current status — deployed versus prepared
-
-| Capability | Status | Practical implication |
+| ความเสี่ยง | สิ่งที่ต้องบังคับ | ข้อสรุปตามหลักฐาน |
 |---|---|---|
-| Default environment | Live No Internet / Internal | Restricted egress, not a strict air gap |
-| Environment separation | Live separate workspace/state PVCs | Internet does not mount Secure's protected workspace or history |
-| Registration | Live disabled; POST 403 | Existing accounts are not automatically an approved pilot allow-list |
-| User isolation | Tested source, not deployed | Users in the same pool are not strongly isolated |
-| RDT snapshot | Generator supports read-only `/data/rdt` | Approved scope and actual access tests remain pending |
-| Internal-only catalog | Live in both pools; actual catalog API inspected | Only `litellm-cluster` is routable; default DeepSeek V4.1 Flash |
-| Runtime restart and persistence | Live rollout passed | Fresh/held login, logout, 80 Secure histories and content comparison verified |
-| DA_WORKSPACE | Legacy mount retained; new pools use local PVCs | No ongoing central synchronization configured |
-| Model backend | Configured ceiling 1,048,576 tokens | Earlier million-token test passed; new mixed scheduler has not repeated near-1M testing |
-| DSH and LiteLLM | 131,072 total tokens | End-to-end DSH 1M is not enabled |
+| 1 ข้อมูลรั่วไหลภายนอก | ปิด outbound ของทุก runtime ที่แตะ RDT อนุญาตเฉพาะ internal services ที่จำเป็น และไม่มี external fallback | มีหลักฐาน direct HTTPS ถูกบล็อกใน Secure; DNS, relay, fallback และ workers อื่นยังตรวจไม่ครบ |
+| 2 ข้อมูลเสียหายหรือเข้าถึงเกินสิทธิ์ | non-admin identity, แหล่ง RDT ที่จำกัดขอบเขตและ read-only, พื้นที่เขียนผลแยกต่างหาก | runtime ลดสิทธิ์แล้ว; ยังไม่ผ่าน negative tests กับแหล่ง RDT จริง |
+| 3 ผลลัพธ์เปิดเผยภายใน | named pilot users, authentication และ authorization ครอบคลุมไฟล์ รายงาน sessions และ tools | login/logout และ anonymous denial ผ่าน; ยังไม่พิสูจน์ cross-user isolation ใน Production |
 
-## Architecture 1 — live deployment
+## 2 ระบบที่มีอยู่และขอบเขตที่ต้องคุม
 
-This depicts current shared pools. Amber nodes identify material boundaries still requiring work.
+ผู้ใช้เข้า gateway แล้วเลือก execution environment ซึ่งผูกกับ login session นั้น งาน shell, terminal และโค้ดที่สร้างขึ้นทำงานใน runtime ที่ถูกเลือก ส่วนการเรียกโมเดลใช้ LiteLLM และ GPU server ร่วมกัน การแชร์ inference ไม่จำเป็นต้องแชร์ workspace หรือ chat history และไม่ได้ทำให้สิทธิ์การเข้าถึงไฟล์แยกจากกันโดยอัตโนมัติ
+
+Diagram นี้แสดง **shared pools ตามหลักฐานที่ใช้งานจริง** ไม่ใช่ภาพที่อ้างว่ามี per-user isolation แล้ว เส้นประไปยัง public services หมายถึงการเชื่อมต่อโดยตรงที่ถูกปฏิเสธในการทดสอบ จุดสีเหลืองยังมีข้อจำกัดต้องปิดเพิ่มเติม
 
 ```mermaid
 flowchart TB
- U[Browser user] --> G[Login gateway]
- G --> S[Secure - default - shared pool]
- G --> I[Internet - shared pool]
- S --> SW[Secure workspace PVC]
- S --> SS[Secure state PVC]
- I --> IV[Internet workspace and state]
- S --> L[LiteLLM - 128K user cap]
+ U[Browser user] --> G[Authenticated login gateway]
+ G --> S[No Internet - default shared pool]
+ G --> I[Internet - dependency staging pool]
+ S --> SW[Local Secure workspace and state]
+ I --> IW[Separate Internet files and history]
+ S --> L[Internal LiteLLM]
  I --> L
- L --> M[Four-H100 model - 1M ceiling]
- I --> WWW[Public package registries]
- S -. direct public egress denied .-> WWW
- S --> DNS[DNS - forwarding review]
- OLD[Legacy DSH - zero replicas] --> DA[DA_WORKSPACE - no sync]
+ L --> M[Shared GPU model server]
+ I --> W[Public package registries]
+ S -. direct HTTPS denied .-> W
+ S --> D[Cluster DNS - forwarding review pending]
+ OLD[Legacy DSH - zero replicas] --> DA[DA_WORKSPACE - not mounted by new pools]
  classDef gap fill:#713f12,stroke:#fbbf24,color:#fff;
- class S,I,DNS,DA gap;
+ class S,D,DA gap;
 ```
 
-### Design intention and why two environments
+ต้องจัดทำรายการ runtime ที่อยู่ใน pilot ให้ครบ ไม่ใช่ตรวจเฉพาะหน้าเว็บ DSH: รวม Harness, shell/subprocesses, workers ที่ประมวลผลข้อมูล, report server และ services ที่รับ prompt หรือผลลัพธ์ด้วย DSH2/DSH3 เดิมมี configuration ต่างจาก pools ใหม่ จึงห้ามถือว่าได้รับการคุ้มครองเหมือนกันโดยไม่ตรวจแต่ละตัว
 
-The original purpose was for Internet to obtain libraries for No Internet without receiving protected data. Separating compute/network and dependency transfer does not require abandoning central durable storage. A session stays in its chosen environment. Switching requires logout/new login, with no automatic transfer of protected data or history.
+## 3 ความเสี่ยงที่ 1 ป้องกันข้อมูลรั่วไหลภายนอก
 
-A strict air gap has no live path crossing its disconnected boundary. Our runtime still communicates with the gateway, DNS, inference and storage. **Restricted egress** is the accurate term. DNS forwarding and allowed shared-service fallback can provide indirect paths, so a failed public HTTPS request alone does not close leakage risk.
+### ความเสี่ยงเกิดที่ไหน
 
-## Architecture 2 — target user and data boundaries
+แม้ผู้ใช้ไม่กด export โค้ดที่สร้างขึ้นอาจส่งข้อมูลออกด้วย HTTP, package tools, plugins หรือ subprocess ได้ การเลือก “No Internet” บนหน้า login จึงต้องทำให้ request ถูกส่งไปยัง runtime ที่ถูกจำกัดเครือข่ายจริง และข้อจำกัดนั้นต้องติดตามไปถึง execution workers ทุกตัวที่รับข้อมูล RDT
 
-**Target only: these private runtimes and central persistence are not deployed.** GPU sharing does not require file/history sharing.
+### ใช้อะไร บังคับตรงไหน และลดความเสี่ยงอย่างไร
+
+ใช้ **Kubernetes NetworkPolicy ที่บังคับจริงผ่าน CNI** กับ Secure runtimes โดยเริ่มจากไม่อนุญาต outbound แล้วเปิดเฉพาะปลายทางและ port ที่จำเป็น ใน configuration ที่บันทึกไว้ `dsh-offline-egress` อนุญาต cluster DNS ที่ TCP/UDP 53 และ LiteLLM ภายในที่ TCP 4000 ส่วน ingress ของ pools รับจาก authenticated gateway ตาม policy ที่กำหนด จึงไม่ใช่เพียงซ่อนปุ่มหรือบอก AI ว่าห้ามใช้ Internet
+
+อย่างไรก็ตาม DNS ที่ forward ออกภายนอกอาจเป็นช่องส่งข้อมูล และ internal service ที่อนุญาตอาจทำหน้าที่ relay ต่อได้ จึงต้องทบทวนทั้งเส้นทาง ไม่ใช่เห็นชื่อปลายทางเป็น internal แล้วถือว่าปลอดภัย LiteLLM และ services ที่รับข้อมูลต้องตรวจ effective provider configuration, credentials ที่มีผลจริง, fallback และ egress ของตนเอง พร้อมปิด external fallback สำหรับ RDT โดยไม่พิมพ์ค่า secrets ลงรายงาน
+
+Catalog ของ DSH ทั้งสอง pools แสดงเฉพาะ `litellm-cluster` แล้ว ช่วยลดการเลือก provider ภายนอกจากหน้าระบบ แต่ **catalog ไม่ใช่ firewall และไม่ใช่หลักฐานว่า LiteLLM ไม่มี external fallback** การปิดเส้นทางต้องตรวจและบังคับที่ service ปลายทางด้วย
+
+Internet environment มีไว้ดาวน์โหลด dependencies จึงตั้งใจให้ติดต่อภายนอกได้ แต่ต้องไม่ mount แหล่ง RDT, protected workspace, chat history, attachments หรือ credentials ของ Secure และต้องไม่รับ prompt/log ที่มี RDT มาใช้เตรียม packages ขอบเขตนี้สำคัญมาก: outbound ต้องถูกปฏิเสธจากทุก environment ที่ประมวลผล RDT ส่วน Internet staging ที่ไม่มี RDT ต้องผ่านการทดสอบว่าเข้าถึง protected data ไม่ได้ ไม่ใช่ทดสอบว่า Internet staging ออก Internet ไม่ได้
+
+### สิ่งที่ยืนยันแล้วและสิ่งที่ยังขาด
+
+ในผล rollout ที่บันทึกไว้ Secure ติดต่อ GitHub, PyPI และ npm registry ไม่สำเร็จ โดย timeout และได้ HTTP `000`; Internet ติดต่อทั้งสามปลายทางได้ HTTP `200` ขณะเดียวกันทั้งสอง pools เรียก internal inference และได้ข้อความทดสอบที่คาดไว้ ผลนี้สนับสนุนว่ามี direct-egress separation จริงสำหรับเส้นทางที่ทดสอบ แต่ยังไม่ครอบคลุม DNS tunnelling, proxy/relay, IPv6, ทุก worker หรือ fallback ทุกเส้นทาง
+
+ก่อนปิดข้อนี้ต้องทดสอบจาก **ภายในแต่ละ runtime ที่อยู่ในขอบเขต RDT** ทั้ง HTTP/HTTPS, direct IP, proxy environment, DNS และเส้นทางที่ workers ใช้จริง ให้ public outbound ที่ไม่จำเป็นล้มเหลว ขณะที่ inference และ internal services ที่อนุญาตยังทำงานได้ จากนั้นให้ infrastructure owner ยืนยัน policy selectors, allowed destinations, CNI enforcement และผลทดสอบ โดยการลงนามรับรองนี้แยกจากการที่โค้ดหรือ pipeline ผ่าน
+
+**สถานะ: ปิดได้บางส่วน ยังไม่ครบเงื่อนไขป้องกัน external leakage ทั้งเส้นทาง**
+
+## 4 ความเสี่ยงที่ 2 ป้องกันความเสียหายและการเข้าถึงเกินขอบเขต
+
+### ความเสี่ยงเกิดที่ไหน
+
+Generated code อาจอ่านไฟล์ที่ไม่เกี่ยวข้อง แก้ไขข้อมูลต้นทาง ลบข้อมูล หรือใช้ credentials ที่พบใน runtime ต่อไปยังระบบอื่นได้ การปิด Internet ไม่ป้องกันเหตุเหล่านี้ และการรันด้วย non-root เพียงอย่างเดียวก็ไม่เพียงพอ หากบัญชีฐานข้อมูลหรือ mount ที่มอบให้ยังมีสิทธิ์กว้าง
+
+### ใช้อะไร บังคับตรงไหน และลดความเสี่ยงอย่างไร
+
+แยก **execution identity**, **data-access identity** และ **พื้นที่ผลลัพธ์** ออกจากกัน Runtime ใช้ non-root UID/GID `10001`, ไม่อนุญาต privilege escalation, drop capabilities, ใช้ RuntimeDefault seccomp และไม่ mount Kubernetes service-account token ข้อจำกัดนี้ลดสิทธิ์ต่อ container/cluster แต่ UID เดียวกันในหลาย pods ไม่ใช่หลักฐานว่าเป็นบัญชีบุคคลที่แยกกัน และไม่ทดแทนสิทธิ์ของแหล่ง RDT
+
+หากอ่าน RDT จากไฟล์ ให้ใช้ snapshot ที่มีเฉพาะขอบเขตที่อนุมัติ และ mount แบบ read-only ที่ `/data/rdt` โดย runtime ต้องไม่เห็น production root หรือ source credentials ที่ใช้เขียนได้ หากอ่านจากฐานข้อมูล ให้ใช้ dedicated non-admin account ที่อ่านได้เฉพาะ view/rows/columns ที่กำหนด และไม่มีสิทธิ์ UPDATE, DELETE, DDL หรือเข้าถึงแหล่งอื่น การห้ามเขียนต้องบังคับจาก filesystem/storage หรือ database permissions ไม่ใช่ตรวจเพียงว่า prompt บอกให้อ่านอย่างเดียว
+
+พื้นที่ผลลัพธ์ใช้ working folder แยกจาก source และเขียนได้เฉพาะขอบเขตของผู้ใช้ เช่น subdirectory ที่กำหนดบน mounted DA_WORKSPACE โดยไม่เปิดทั้ง share ให้ runtime ทุกตัว Source อาจอ่านได้หลายผู้ใช้ตามสิทธิ์ แต่ output และ chat state ต้องไม่ถูกแชร์เพียงเพราะอยู่บน storage server เดียวกัน CPU, memory และ storage limits ช่วยจำกัดงานที่ใช้ทรัพยากรเกินจำเป็น แต่ไม่ได้ป้องกันการทำลายทุกอย่างภายในพื้นที่ที่อนุญาตให้เขียน
+
+การคืน DA_WORKSPACE mount เป็นการแก้ storage regression เดิม ไม่ใช่การขอสิทธิ์เข้าถึง RDT เพิ่ม จึงต้องไม่เอาการระบุ dataset ใหม่หรือการแจก histories ให้แต่ละบัญชีมาเป็นเงื่อนไขที่สร้างขึ้นแทนงาน remount ส่วนการมอบสิทธิ์ RDT จริงและการกระจาย shared histories เป็นอีกขั้นตอนหนึ่งที่ต้องมีขอบเขตชัดเจน
+
+### สิ่งที่ยืนยันแล้วและสิ่งที่ยังขาด
+
+มีการอ่านกลับ security settings ของ runtime และมี source tests สำหรับ generator ที่รองรับ read-only snapshot แต่ยังไม่มีผลทดสอบกับแหล่ง RDT จริงที่ยืนยันว่าอ่านนอก scope หรือเขียน source ไม่ได้ Generator ปัจจุบันยังจัดสรร local workspace PVCs จึงยังไม่ใช่ implementation ที่ครบตามข้อกำหนด mounted DA_WORKSPACE
+
+การทดสอบ CIFS แบบแยกพิสูจน์ว่า UID/GID `10001` เขียนและอ่านกลับบน DA_WORKSPACE ได้เมื่อกำหนด ownership mapping ให้ถูกต้อง **ผลนี้พิสูจน์ writable workspace เท่านั้น ไม่ได้พิสูจน์ว่า RDT source เป็น read-only หรือว่าผู้ใช้แต่ละคนถูกแยกแล้ว**
+
+ก่อนปิดข้อนี้ ต้องใช้ตัวอย่างข้อมูลใน scope จริงทดสอบว่าอ่านได้ สร้างผลลัพธ์ใน working folder ได้ แต่เขียน/ลบ/เปลี่ยนชื่อ source ไม่ได้ และอ่านไฟล์ ตาราง แถว หรือคอลัมน์นอก scope ไม่ได้ ให้รวมการลอง path traversal, symlink และการใช้ tool/terminal/API ที่ผู้ใช้มีจริง พร้อมตรวจว่าข้อมูลต้นทางไม่ถูกเปลี่ยนหลังการทดสอบ การทดสอบเชิงลบควรเริ่มจาก snapshot/view ที่ไม่กระทบธุรกรรมจริง
+
+**สถานะ: มี runtime hardening แล้ว แต่ยังไม่ปิดข้อนี้จนกว่าจะผ่าน source-access negative tests กับขอบเขต RDT ที่ใช้จริง**
+
+## 5 ความเสี่ยงที่ 3 เก็บผลลัพธ์ให้อยู่ในขอบเขตผู้มีสิทธิ์
+
+### ความเสี่ยงเกิดที่ไหน
+
+รายงาน HTML, temporary files, logs, attachments และ chat history อาจมีข้อมูล RDT แม้ไฟล์ต้นทางจะ read-only ก็ตาม ผู้ใช้ที่ล็อกอินสำเร็จไม่ควรเปิดผลของผู้อื่นได้ และ URL รายงานไม่ควรกลายเป็นช่องทางข้าม authentication หรือเปิดเผยข้อมูลผ่าน application port อื่น
+
+### ใช้อะไร บังคับตรงไหน และลดความเสี่ยงอย่างไร
+
+เริ่มจาก **named pilot users ที่ได้รับอนุญาตเท่านั้น** ปิด self-registration และทบทวนรายชื่อบัญชีให้ตรงกับ pilot การมีบัญชีอยู่เดิมไม่ได้แปลว่าได้รับอนุญาตให้ใช้ RDT และบัญชีที่หลายคนใช้ร่วมกันไม่สามารถให้ accountability ระดับบุคคลได้เหมือน named identity
+
+ให้ gateway ยืนยันตัวตนและเลือก backend จาก identity ที่ server ตรวจแล้ว ไม่รับชื่อปลายทางจาก URL หรือ header ที่ผู้ใช้ส่งมา ทุกช่องทางต้องใช้สิทธิ์ชุดเดียวกัน ทั้งหน้า report, file download, session API, attachments, terminal, WebSocket และ dynamic application ports พร้อมมี logout และ session invalidation ที่ทดสอบได้ Cookies ที่ใช้กับ HTTPS ต้องมี Secure และไม่เปิดช่องทางใหม่ที่หลุดการตรวจของ gateway
+
+การแยกผู้ใช้ต้องลงไปถึง execution boundary: หนึ่ง identity/environment ต่อ private runtime พร้อม workspace, state/history และ launch token ของตนเอง Runtime ต้องไม่ mount volume หรือ central subpath ของผู้ใช้อื่น ส่วน inference และ approved package cache อาจแชร์ได้ตามขอบเขตที่ควบคุมไว้ การสร้าง `/workspace/users/<name>` ใน process เดียวที่มี shell access เป็นเพียงการจัดโฟลเดอร์ ไม่ใช่ security boundary
+
+สำหรับการเผยแพร่ ให้ปิด automatic public publishing, tunnel, webhook และ external export ที่ไม่จำเป็น รวมถึงสำรวจ background jobs และ credentials ที่สามารถส่งออกได้ ต้องดูเนื้อหา logs/temporary files และกำหนดสิทธิ์กับ retention ให้เหมาะสม รายงานที่เสิร์ฟให้ผู้มีสิทธิ์ผ่าน browser ยังอาจถูกคัดลอกหรือถ่ายภาพได้ จึงต้องกำหนดข้อปฏิบัติของ pilot และใช้มาตรการองค์กรเพิ่มเติมหากจำเป็น ไม่อ้างว่า NetworkPolicy ป้องกันการนำออกโดยผู้มีสิทธิ์ได้ทุกกรณี
+
+### สิ่งที่ยืนยันแล้วและสิ่งที่ยังขาด
+
+ผลทดสอบที่บันทึกไว้ยืนยันว่า anonymous requests ไปยัง report/proxy/session routes ได้เนื้อหา login form และ registration ถูกปฏิเสธโดย account store ไม่เปลี่ยน Fresh login, logout และการใช้ cookie เดิมหลัง logout ผ่านการตรวจเนื้อหาจริงแล้ว อย่างไรก็ดี shared pools ยังไม่แยกผู้ใช้ระดับ process/storage และยังไม่มีผล A-to-B authorization test ครบทุกช่องทางใน Production
+
+ก่อนปิดข้อนี้ ให้ทดสอบอย่างน้อยด้วยผู้ใช้ A, ผู้ใช้ B และผู้ไม่มี session: A เปิดของตนเองได้ แต่เปิดไฟล์ รายงาน history และ attachments ของ B ไม่ได้ รวมถึงการเดา URL/ID, เปลี่ยน header, ใช้ terminal และ WebSocket ต้องตรวจ response body ว่าไม่ส่งข้อมูลกลับมา เพราะ HTTP `200` ที่เป็น login form ไม่ใช่การเปิดรายงานสำเร็จ หลัง logout cookie เดิมต้องใช้ต่อไม่ได้ และหลัง restart ต้องยังได้ ownership และสิทธิ์เดิม
+
+**สถานะ: authentication ผ่านตามขอบเขตที่ทดสอบ แต่ authorization ระหว่างผู้ใช้และการปิด export paths ยังไม่ครบ**
+
+## 6 ภาพเป้าหมายและลำดับการทำงานของ pilot
+
+Diagram นี้เป็น **target design ที่ยังไม่ได้ deploy ครบ** แสดงการแยก source, working folder และ identity โดยยังคง DA_WORKSPACE เป็น mounted workspace และใช้ inference ร่วมกันได้
 
 ```mermaid
 flowchart TB
- U[Approved identity and selected environment] --> G[Fixed authenticated routing - unknown users denied]
- G --> A[User A Secure pod]
- G --> B[User B Secure pod]
- G --> O[User A Internet pod]
- A --> AV[User A workspace and state]
- B --> BV[User B workspace and state]
- O --> OV[Separate Internet files and history]
- R[Approved RDT snapshot or view - restricted identity] -->|read only| A
+ U[Named pilot identity] --> G[Authenticated fixed routing]
+ G --> A[Private user A Secure runtime]
+ G --> B[Private user B Secure runtime]
+ R[Limited RDT snapshot or view] -->|read only| A
  R -->|read only| B
- A --> AR[User A writable results]
- B --> BR[User B writable results]
- A --> L[Shared internal model service]
+ A --> AV[Private A workspace and state]
+ B --> BV[Private B workspace and state]
+ AV --> DA[Mounted DA_WORKSPACE - separate subpaths]
+ BV --> DA
+ A --> L[Internal inference - no external fallback]
  B --> L
- O --> L
- AV -. direct workspace mount - proposed .-> DA[Mounted DA_WORKSPACE - per-user subpaths and central history]
- BV -. direct workspace mount - proposed .-> DA
+ G --> I[Separate Internet staging - no RDT mounts]
 ```
 
-Dedicated pods add process and mount boundaries but still share the node kernel. Generated runtimes disable service-account token mounting, run non-root, drop capabilities, disable privilege escalation, and retain network-policy labels. Tests must prove the actual CNI/storage behavior. A username directory inside a shared shell-capable process is insufficient.
+การใช้งานเริ่มจาก named user ล็อกอินเข้า No Internet ระบบผูก identity กับ runtime ที่กำหนดไว้ Runtime อ่านได้เฉพาะ RDT snapshot/view และเขียนผลใน working folder ของตน ส่ง prompt ไปยัง inference ภายในที่ไม่มี external fallback แล้วให้ผู้มีสิทธิ์เปิดรายงานผ่าน gateway เดิม ผลลัพธ์และ histories ยังคงอยู่ในพื้นที่ที่มี ownership เดิมหลัง restart โดยไม่มีการย้ายข้อมูลไป Internet environment อัตโนมัติ
 
-`scripts/generate_user_runtimes.py` requires named users and an immutable digest. Paired `--rdt-source-pvc` and `--rdt-approval-ref` options mount a pre-existing approved snapshot read-only at `/data/rdt`, Secure only. They do not create RDT data, approve scope, or grant database authorization. A database view requires a separately restricted account. Keep results separate from source, and establish ownership before migrating shared histories.
+การเปลี่ยน environment ต้อง logout และเริ่ม login session ใหม่ ไม่ใช่สลับ network สิทธิ์ของ process ที่กำลังประมวลผล RDT อยู่ การเปลี่ยนนี้ไม่ควรคัดลอก workspace, histories, attachments หรือ secrets ตามไปด้วย การจัดเก็บบน central server เดียวกันทำได้เมื่อใช้ mount/subpath และสิทธิ์ที่แยกขอบเขตจริง ไม่ใช่ให้ทุก runtime เห็น root ของ share
 
-## Architecture 3 — approved dependency transfer
+## 7 ใช้ Internet เตรียม packages โดยไม่เปิดข้อมูล RDT
+
+Internet environment มีหน้าที่เตรียม dependencies ให้ No Internet จึงต้องเป็นช่องทางรับ package artifacts ไม่ใช่ช่องทางเปิด protected workspace ไปยัง Internet ผู้ใช้หรือ operator จัดเตรียมรายการ dependencies โดยไม่นำ RDT, chat history หรือ secrets ติดไปด้วย แล้วดาวน์โหลดลง Incoming ที่แยกต่างหาก
 
 ```mermaid
 flowchart TB
- P[Public registries] --> O[Internet downloads candidate artifacts]
- O --> IN[Incoming package storage]
- IN --> R[Operator review - source, security and hashes]
- R --> J[Controlled promotion - verify approved artifacts]
- J --> C[Approved cache - read-only in Secure]
- C --> S[Secure offline installation]
- S --> W[Protected analysis workspace]
+ P[Public package registries] --> I[Internet staging - no protected data]
+ I --> IN[Incoming candidate artifacts]
+ IN --> R[Operator reviews provenance and security]
+ R --> H[Approval manifest with exact hashes]
+ H --> J[Controlled promotion verifies artifacts]
+ J --> C[Approved package cache]
+ C -->|read only| S[No Internet runtime]
+ S --> O[Offline install into permitted working area]
 ```
 
-Internet cannot directly install into Secure or write its workspace. Python uses no-index plus the approved wheel directory; npm uses its offline cache. Hash matching proves integrity against the approval manifest, not package safety. Operator review and controlled promotion are therefore separate steps.
+Operator ตรวจที่มา เวอร์ชัน ผลตรวจความปลอดภัยและ license ตามกระบวนการองค์กร จากนั้นอนุมัติชื่อไฟล์และ SHA-256 ที่แน่นอน Promotion job ปฏิเสธ path ที่ไม่ปลอดภัย ไฟล์ที่ขาด หรือ hash ไม่ตรง แล้วจึงนำ artifact ไป Approved cache ที่ Secure mount แบบ read-only ฝั่ง Secure ใช้ Python no-index/find-links และ npm offline เพื่อไม่ย้อนกลับไปดาวน์โหลดจาก public registry
 
-## Three controls — mechanism, evidence and closure
+Hash ที่ตรงหมายถึง artifact ตรงกับสิ่งที่อนุมัติ ไม่ได้แปลว่า package ปลอดภัยในตัวเอง และ package install scripts ยังเป็นโค้ดที่ต้องถูกจำกัดด้วยสิทธิ์และเครือข่ายเช่นเดิม Internet ไม่ได้เข้าไปติดตั้งหรือแก้ไฟล์ใน Secure โดยตรง สำหรับ private runtimes ต้องเลือก Incoming PVC ของผู้ใช้ที่ถูกต้อง; promotion job แบบ shared เดิมไม่ควรถูกถือว่าเชื่อมต่อ private Incoming ทุกตัวโดยอัตโนมัติ
 
-| Control | Mechanism and location | Evidence | Remaining work |
-|---|---|---|---|
-| Prevent external leakage | Offline NetworkPolicy; internal model route; separate Internet storage | Secure public probes fail; internal LiteLLM works | Active catalog now internal-only; audit DNS, shared inference egress/fallback and every in-scope worker |
-| Prevent damage/excessive access | UID/GID 10001; no privilege escalation; dropped capabilities; read-only scoped source | Runtime settings read back; snapshot manifest tests pass | Approved source/view and identity; actual source-write and out-of-scope-read denial; successful result writes |
-| Keep results contained | Authenticated routes; private user runtimes/state; no automatic export | Live anonymous routes return login; registration denied without store change | Deploy named-user routing; cross-user file/report/history/attachment denial; inventory publishers and export credentials |
+## 8 DA_WORKSPACE ต้องกลับมาตรงกับข้อกำหนดเดิม
 
-### Evidence and limits
+Workspace เดิมใช้ `//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation` โดย mount subdirectory `dsh` ที่ `/workspace` ผ่าน `da-workspace-pvc-new` การแยก Internet/No Internet ไม่ได้กำหนดว่าต้องทิ้ง central storage และข้อเสนอที่ผู้ใช้อนุมัติยังระบุให้เก็บ durable history centrally
 
-- [Live gateway responses](context-evidence/rdt-gateway-live-20261015.json): registration 403, form/tab absent, default No Internet, unchanged account store, anonymous report/proxy/session requests return login content. This is not a cross-user authorization test.
-- [18:00 outbound probes](context-evidence/rdt-egress-recheck-20261015.json): Secure GitHub/PyPI/npm/public-IP requests failed; LiteLLM returned the expected liveness body. Internet GitHub/PyPI/npm returned 200. The Internet public-IP probe also failed, so that comparator is inconclusive.
-- [Candidate cluster log](context-evidence/rdt-candidate-cluster-check-62696.log): catalog, routing, spoof resistance, registration denial and stickiness tests passed with test backends. Not a live RDT user-isolation test.
-- Build 62696 and the older pool images describe the pre-rollout state only. The current image/source and actual post-restart tests are recorded below and in the [20:39 live readback](context-evidence/runtime-rollout-live-20261015.json).
-- No CronJobs were listed in namespace `llm` during the check. That does not rule out in-process schedulers, user scripts or other namespaces. Legacy DSH2/DSH3 must be explicitly scoped; they do not automatically inherit new-pool restrictions.
+การตรวจ raw transcript พบว่าผู้ช่วยเลือกเปลี่ยน protected workspace เป็น local volume เวลา **09:29:33 น. ICT วันที่ 15 ตุลาคม** หลัง non-root CIFS write ไม่ผ่าน การเปลี่ยนถูก commit ใน GitHub **`9c3b571` เวลา 10:21:54 น.** และ mirror ไป Azure **`dd6c3aa` เวลา 10:31 น.** ก่อน cutover สู่ pools ใหม่ ไม่มีคำสั่งให้ละทิ้ง DA_WORKSPACE ในบทสนทนาที่เกี่ยวข้อง นี่เป็น implementation deviation ไม่ใช่ข้อกำหนดของผู้ใช้
 
-## Safe runtime rollout — actual deployed result
+การทดสอบแยกภายหลังใช้ share เดิมและ CIFS options `uid=10001,gid=10001,forceuid,forcegid` ทำให้ non-root UID/GID 10001 เขียนและอ่านกลับได้ โดยลบเฉพาะ probe file ของตนเองแล้ว ผลนี้แสดงว่าควรแก้ ownership mapping แทนการเปลี่ยน storage backend อย่างไรก็ตาม **Production ยังไม่ได้ remount** และผลนี้ไม่ใช่การทดสอบ per-user ACL หรือ database locking
 
-Build **62702**, Azure image source **`3fa74b72eaad7d7dd1e0986dd07a176f45ab2153`**, produced the immutable runtime **`sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1`**. Gateway, Secure and Internet all run that digest; running image IDs, source annotations and actual behavior were read back. All three were Ready with zero container restarts at the 20:39 ICT snapshot. The shared GPU server was unchanged by this rollout. Subsequent documentation/admin-script commits are distinct from the image's source commit.
+แนวทางแก้คือคืน DA_WORKSPACE เป็น **mounted workspace จริง** หลังเทียบไฟล์ใหม่บน local PVC กับไฟล์บน share และเก็บ conflict ทั้งสองเวอร์ชันไว้ ไม่ mount สำเนาเก่าทับจนทำให้งานใหม่หายจากมุมมอง Runtime state ที่ต้องใช้ local locking อาจอยู่บน storage ที่เหมาะสมได้ แต่ต้องรักษา central durable-history requirement ด้วยวิธีที่สอดคล้องและทดสอบ restore แล้ว การมี local workspace แล้วเสนอ backup ไป central ไม่ใช่สิ่งทดแทน mount เดิม
 
-### What changed and why
+อ่าน [การตรวจ raw transcript และ Git แบบละเอียด](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) และ [ผล CIFS canary](context-evidence/storage-design-audit-20261015.json) การคืน mount นี้ไม่ใช่การอนุญาตให้ Internet เห็น RDT หรือให้ทุกผู้ใช้เห็นทั้ง share
 
-- The gateway cached a backend authentication cookie without detecting a changed launch token. A reproduced backend restart returned 401 with the old code. The cache now fingerprints the current launch token and remints stale cookies; held login sessions passed after both real runtime replacements.
-- Gateway session and logout cookies now default to Secure. The login page no longer loads Google Fonts from the Internet.
-- Pool startup/readiness/liveness probes call the actual application on port 3080, rather than only checking the early-opening forwarding port. Startup allows ten minutes; readiness checks every five seconds; liveness checks every fifteen seconds.
-- Pool strategy is Recreate with a 120-second termination grace period, avoiding simultaneous DSH writers on one state volume. Service-account token mounting is disabled; runtime seccomp is RuntimeDefault. This deliberately creates a short per-environment interruption rather than promising zero downtime.
-- Both active server catalogs expose only the internal LiteLLM provider. No upstream DSH package upgrade was performed.
+## 9 หลักฐานการ rollout และสิ่งที่ผลทดสอบยืนยันได้
 
-### Restart and behavior evidence
+ผลตรวจวันที่ 15 ตุลาคม เวลา **20:39 น. ICT** ระบุว่า gateway, Secure และ Internet ใช้ build **62702** จาก Azure image-source commit **`3fa74b72eaad7d7dd1e0986dd07a176f45ab2153`** และ immutable image **`sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1`** ทั้งสาม Ready และมี container restarts เป็นศูนย์ ณ snapshot นั้น Commit ที่แก้รายงานหรือ operator scripts ภายหลังเป็นคนละสิ่งกับ source commit ของ image นี้
 
-| Check | Secure / No Internet | Internet |
+| พฤติกรรมที่ตรวจ | ผลที่บันทึกไว้ | ขอบเขตของข้อสรุป |
 |---|---|---|
-| Fresh login and authenticated UI | 302 then actual UI 200; logout button present | Same |
-| Existing login held across backend restart | Authenticated UI 200 | Authenticated UI 200 |
-| Logout and replay of old cookie | Login form returned; session invalidated | Same |
-| Actual session-list API | 80 saved histories listed after restart | 0 histories before and after; no real history corpus to validate |
-| Content retained after replacement | 2,732 regular files / 6,632,175,696 original bytes; zero failures | 2 controlled workspace/state markers / 176 bytes; zero failures |
-| Internal inference | Exact `RUNTIME_ROLLOUT_OK`, normal stop | Same |
-| Public GitHub, PyPI and npm HTTPS | All timed out, HTTP 000 | All returned HTTP 200 |
-| Terminal route | Actual terminal HTTP page rendered | Same; interactive commands/WebSocket not retested |
-| Live catalog API | Only `litellm-cluster`; DeepSeek default | Same |
+| Fresh login และ logout ทั้งสอง environment | login 302 ตามด้วย UI จริง 200; logout ทำให้ cookie เดิมเข้าไม่ได้ | ยืนยัน authentication flow ที่ทดสอบ ไม่ใช่ cross-user authorization |
+| Login session เดิมหลัง backend restart | ได้ authenticated UI 200 ทั้งสอง environment | ตรวจการ refresh backend cookie เมื่อ launch token เปลี่ยน |
+| Secure history และ workspace/state | list API แสดง 80 histories; เทียบ 2,732 regular files รวม 6,632,175,696 original bytes ไม่พบ content failure | ตรวจเนื้อหาที่อยู่ในขอบเขต comparison; state เน้น sessions/attachments ไม่รวม locks, derived indexes และ symlink/hardlink aliases |
+| Internet persistence | เก็บ synthetic markers 2 ไฟล์ / 176 bytes ได้; real history list เป็น 0 ก่อนและหลัง | ไม่ใช่หลักฐานการเก็บ real history corpus ของ Internet |
+| Internal inference และ catalog | ได้ exact sentinel `RUNTIME_ROLLOUT_OK`; provider ที่ route ได้มีเพียง `litellm-cluster` | ยังไม่พิสูจน์ทุก tool หรือ fallback ของ downstream services |
+| Terminal route | โหลดหน้า terminal ผ่าน HTTP ได้ | ไม่ได้ทดสอบ interactive commands และ WebSocket ใหม่ครบถ้วน |
+| Direct public HTTPS | Secure timeout, Internet HTTP 200 ที่สามปลายทาง | เป็น representative probes ไม่ใช่การพิสูจน์ทุก leakage path |
 
-Secure's file count comprises 2,648 workspace and 84 state regular files. The post-restart state comparison covers sessions/attachments, excluding locks, derived indexes, symlinks and hardlink aliases. Stopped-state tar comparison separately checked the coherent archives against the stopped source. No append-only growth was observed. These checks establish restart persistence of the checked content, not a complete disaster-recovery restore.
+Pools ใช้ Recreate เพื่อไม่ให้มี state writers สองตัวพร้อมกัน และ startup/readiness/liveness ตรวจ application จริงบน port 3080 แทนการตรวจเพียง forwarding port การ rollout เก็บ coherent archives ขณะหยุด writer และตรวจ login/content หลังเริ่มใหม่ ไม่พบ application regression ใน checks ที่ทำ จึงไม่ได้ invoke image rollback
 
-The temporary random-password test account was removed, other accounts were checked unchanged, held test sessions were logged out, and only the controlled Internet markers were removed. No real passwords or user content are published in the evidence.
+Initial verification workers เคยไม่ผ่านขั้น CSI read-only mount/SELinux relabel ไม่ใช่พบ byte mismatch จึงแก้เป็นให้ archive-only worker สร้าง hash inventory แล้วเปรียบเทียบภายใน mounts ของ runtime เดิม ไม่ co-mount live state ใน verifier pod อื่น Mock tests ตรวจ recovery path ของ helper แล้ว แต่ intentional live rollback และ full archive restore ยังไม่ได้ทดสอบ
 
-### Rollback preparation and operational experience
+Rollback specifications อยู่ใน `C:/Users/skunpojt/rollback-runtime-hardening-20261015` และมี local snapshot PVCs เก็บไว้ ทั้งหมดนี้ยังไม่ใช่ central backup หรือ node-loss recovery ชุดหลักฐานนี้ยืนยัน restart persistence และ operational checks ตามที่บันทึก ไม่ใช่การรับรองว่า features ทั้งหมดหรือ controls ทั้งสามปิดครบแล้ว ดู [ผล rollout ที่อ่านกลับจริง](context-evidence/runtime-rollout-live-20261015.json)
 
-Each writer was stopped before archive creation and source comparison. Secure's snapshot ran approximately 20:20–20:25 ICT; Internet's stop/archive/restart completed approximately 20:34:11–20:34:43 ICT. Original deployment specifications remain in `C:/Users/skunpojt/rollback-runtime-hardening-20261015`. Coherent archive PVCs are `dsh-snapshot-secure-20261015132020` and `dsh-snapshot-internet-20261015133411`.
+## 10 แผนปิดความเสี่ยงและหลักฐานที่ต้องส่งมอบ
 
-Initial post-restart comparison workers failed at CSI read-only mount setup and SELinux relabeling; they did not report a content mismatch. Verification was corrected to use an archive-only worker to derive hashes and compare them inside the runtime's existing mounts. No second verifier pod mounts live state. Trusted archive workers use ordinary mounts because the local CSI driver's mount handling failed with read-only requests; their fixed maintenance code reads source/archive data only. This is different from an enforced read-only RDT source mount.
+ดำเนินงานเป็นลำดับจากคงข้อมูลเดิมให้ครบ ไปสู่แยกสิทธิ์ และทดสอบปฏิเสธการเข้าถึงจริง เก็บ rollback ทุกครั้งที่เปลี่ยน routing, mounts หรือ state ไม่ใช้เพียง readiness, HTTP status หรือ pipeline badge ตัดสินว่าปลอดภัยแล้ว
 
-No application regression was detected in the exercised checks, so no application-image rollback was invoked. The rollout helper restores the original deployment specification on failure and verifies a responding application; it does not overwrite current data from an archive. Mocked failure-path tests verify exact specification restoration after snapshot failure and refusal to overwrite an existing rollback point. Intentional live rollback and full archive restoration were not exercised. **These snapshots are local to the single node, not DA_WORKSPACE or a central backup.** Preserve them until a separately verified recovery copy exists.
-
-Reproducible operator tools: `scripts/rollout_runtime_hardening.py`, `scripts/verify_runtime_persistence.py` and `scripts/runtime_rollout_probe.js`. They are administrator-run maintenance tools, not user-facing features. The probe creates a temporary account only for the test and requires cleanup. Do not run account provisioning concurrently with this maintenance probe. Review the target, immutable digest, state ownership and rollback directory before any repeat rollout. Do not rerun a disruptive rollout simply to recheck status.
-
-## DA_WORKSPACE — original requirement and implementation deviation
-
-The [raw-transcript and Git review](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) identifies the exact deviation: at **09:29:33 ICT**, the assistant chose to move the protected CIFS workspace to a local volume. GitHub commit **`9c3b571` at 10:21:54** recorded the replacement; Azure **`dd6c3aa` at 10:31** mirrored it. The relevant user-approved proposal still included **“Store durable history centrally.”** No instruction to abandon DA_WORKSPACE was found in that conversation. This was an assistant implementation decision, not a required consequence of environment isolation.
-
-A separate canary has now mounted the same share with CIFS `uid=10001,gid=10001,forceuid,forcegid`; a non-root process wrote and read back its own probe successfully and removed it. This corrects the earlier inference that local storage was necessary. Production mounts remain unchanged. See [raw records and actual canary result](context-evidence/storage-design-audit-20261015.json).
-
-| Time, ICT | Change |
-|---|---|
-| 15 October 09:09 — `e73a69f` | Initial Secure pool still mounted DA_WORKSPACE |
-| 10:21 — `9c3b571` | Recorded non-root CIFS ownership/write failures led to replacing its share with local PVCs |
-| 11:18 — `107e876` | Added the omitted history copy into `/state` |
-| 11:30:53 | One-time migration completed; no continuing central sync was established |
-
-The implementation solved ownership/isolation by changing the storage backend but failed to preserve central persistence. Earlier README statements about automatic CIFS flush and zero data loss do not describe the new pools and are withdrawn. Local PVCs persist ordinary pod replacement; they do not themselves establish central backup or node-loss recovery.
-
-**Correction:** restore DA_WORKSPACE as the mounted workspace. First inventory and reconcile newer local files against the share, preserving both conflict versions and rollback PVCs so a remount cannot hide recent work. Use the tested CIFS ownership mapping and retain non-root execution. Isolate environment/user mounts by scoped subpaths. Retain central durable history while placing active database locks on suitable storage as needed. Coherent snapshots support that design; they do not substitute for the mounted workspace. Do not copy changing SQLite/LevelDB files and call that a coherent backup. Restoring the existing mount does not require inventing a new RDT dataset approval or assigning all histories to one account. This runtime rollout retained the existing PVCs and created local coherent archives; no central-storage cutover or user-data deletion was performed.
-
-## Walkthrough — login to a contained result
-
-1. **Authenticate:** default No Internet; registration closed. Approved pilot membership still needs owner-confirmed provisioning.
-2. **Route:** login sticks to one environment. Target design selects a private backend from authenticated identity, never client-supplied host headers/URLs.
-3. **Execute:** tools/generated code run in the selected runtime. Network, privilege and data ACLs constrain it; prompts are not containment.
-4. **Access data:** read only the approved source; write results separately. The present shared pools do not yet satisfy this RDT-specific rule.
-5. **Infer:** call internal LiteLLM then the shared GPU model. DSH currently has a 128K budget.
-6. **Present:** serve reports through authenticated routes. Test HTTP, WebSocket, terminal, file access and authenticated cross-user denial.
-7. **Persist:** retain private state, test restart and restore, and restore a controlled central persistence path before claiming DA_WORKSPACE durability.
-8. **Switch:** logout/new environment-bound login; do not copy protected files, history or credentials automatically into Internet.
-
-## Model speed, responsiveness and context
-
-An earlier 1,000,015-input-token backend request passed with memory fraction 0.90, prefill chunk 1,024 and maximum prefill 2,048. An earlier 0.92 profile failed around 262K with CUDA OOM: KV slots alone omit temporary workspace requirements.
-
-The newer scheduler interleaves prefill/decode and reserves bounded capacity for small requests. During controlled approximately 133K long requests, fresh short requests completed in 0.59–1.04 seconds and cached 24K sessions in 0.86–1.47 seconds, before the long request finished. Baseline short requests waited about 32–34 seconds; long completion changed from about 36 to 39–40 seconds. These are synthetic observations, not sustained tokens/sec or a latency SLA.
-
-DSH/LiteLLM remain at 131,072 total tokens, an 8,192 output ceiling and compaction near 98,304. End-to-end 1M requires aligned profiles/admission/compaction and actual streaming/tool/mixed-load tests on the revised scheduler. See [trial matrix](CONTEXT_OPTIMIZATION_20261015.md) and [scheduling evidence](SCHEDULING_FAIRNESS_20261015.md).
-
-## Official upstream comparison
-
-Fresh official Git inspection: master `571902028a75c64c1d767f4ae5fd099485f0ddf0`; newer inspected tag `dsh-v0.2.1-alpha.3` at `2fbf4359b82fb94c03dcce0b831660d87f12ea5c`. Our installed package remains `0.2.0-rc.2`. This is a source/document comparison, not an upstream upgrade or full feature test.
-
-| Feature/concern | Official evidence | Enterprise implementation and impact |
+| งานที่ต้องทำ | ผู้รับผิดชอบหลัก | หลักฐานก่อนถือว่าปิด |
 |---|---|---|
-| Extensibility | Cordis plugins and ordered profiles/patches | Gateway and package overlays; prefer supported extensions over fragile text replacement |
-| Web tasks | Workspaces, file read/edit, commands, plans and delegation | Core behavior inherited; not every feature was freshly retested |
-| Model setup | Editable providers and custom compatible endpoints | Pilot catalogs restrict selection to internal LiteLLM; retain infrastructure enforcement |
-| Public access | Launch token, signed cookie, trusted authority and reverse-proxy guidance | Additional username login, environment routing and logout; not corporate SSO |
-| Host/origin trust | Official host fence admits configured authorities | Legacy overlay makes `isLoopbackHostname` always true; needs dedicated origin/Host review, not automatic carry-forward |
-| Public URL | Supported `--public-url` | Prefer it over hardcoded URL prompt patches after compatibility testing |
-| Credential priority | Newer stored credentials precede environment fallback | Inspect names/presence without exposing values; mounted credentials can change request identity |
-| Session persistence | Released Session V4 record identifies rc.2 | Test old sessions/attachments and rollback against a copied state snapshot |
-| Missing images | Our patch substitutes a 1x1 placeholder for certain missing objects | Avoids a failure but does not restore original evidence; label missing content and review patch retirement |
-| Network/data isolation | Safety guidance calls for least privilege and separate execution environments | Kubernetes policies, RDT ACLs and private volumes are deployment responsibilities |
-| Durable storage | Harness home/session state are product data | Central DA_WORKSPACE persistence and restore are our operational responsibilities |
+| คืน mounted DA_WORKSPACE | Platform/storage operator | file reconciliation และ conflict record; actual CIFS mount; read/write ของ working folder; restart และ content checks |
+| กำหนด named pilot และ RDT scope | Pilot/data owner | รายชื่อบุคคลที่ได้รับอนุญาต และ snapshot/view/fields/rows ที่อ่านได้; ไม่อนุมานจากรายชื่อบัญชีเดิม |
+| Deploy private user runtimes | Platform/application operator | fixed identity routing, private mounts/state/tokens; A-to-B file/report/history/terminal/API denial |
+| บังคับ read-only source | Data/database/storage owner | อ่านใน scope ได้; source writes และ out-of-scope reads ถูกปฏิเสธ; output writes สำเร็จ; source content ไม่เปลี่ยน |
+| ปิด leakage paths ให้ครบ | Infrastructure/security owner | outbound tests จากทุก RDT worker; ตรวจ DNS/relay/IPv6/proxy และ effective fallback; internal services ยังทำงานได้ |
+| ปิด publisher/export ที่ไม่จำเป็น | Application/security owner | inventory jobs/plugins/credentials; ไม่มี automatic publishing/export ที่ไม่ได้อนุญาต; anonymous และ unauthorized user อ่านผลไม่ได้ |
+| ยืนยัน persistence และ recovery | Platform/storage owner | coherent central history persistence, copied-state restore, restart/rollback checks และขอบเขต recovery ที่วัดได้ |
+| รับความเสี่ยงคงเหลือของ pilot | Pilot owner/assessor | ทบทวนหลักฐานและข้อจำกัด รวมถึงการใช้งาน browser โดยผู้มีสิทธิ์ แยกจากการ commit/deploy |
 
-The localhost-helper override is a client-side compatibility patch. Its presence does not by itself prove that the server-side Host fence is disabled or that an exploit exists; the candidate Host/Origin tests must establish actual behavior.
+การปิดความเสี่ยงควรผูกผลทดสอบกับ runtime, policy, identity, dataset scope และ image ที่ใช้จริง ผลผ่านจาก canary หรือ source tests ต้องคงป้ายกำกับนั้นไว้จนทดสอบ deployment จริงแล้ว การยืนยันโดย owner/assessor เป็นคนละขั้นตอนกับการเตรียม code หรือเอกสารเสร็จ
 
-Official DSH is developer-preview software. Its safety notice identifies risks from generated commands, plugins and accessible data/credentials, recommends least privilege and separate execution environments, and does not establish the harness as a sole security boundary. Our objective remains an acceptable, bounded pilot.
+## 11 การดูแล upstream และข้อจำกัดของ shared inference
 
-### Sources inspected
+DSH ที่ติดตั้งตามหลักฐานยังเป็น `0.2.0-rc.2` Repository นี้เพิ่ม authentication, routing, deployment และ configuration overlays ไม่ได้เป็น source fork ที่ sync กับ official upstream ทุกไฟล์ การเปรียบเทียบเดิมตรวจ official master `571902028a75c64c1d767f4ae5fd099485f0ddf0` และ tag `dsh-v0.2.1-alpha.3`; การเรียบเรียงนี้ไม่ได้ตรวจ upstream ใหม่หรือ upgrade package
 
-All links are pinned to the inspected official commit:
+Upstream มีความสามารถด้าน workspace, tools, plugins, remote access, providers และ session persistence แต่ network/data isolation และ central storage เป็นความรับผิดชอบของ deployment ต้องทบทวน compatibility patches เช่น localhost helper override และ missing-image placeholder เป็นรายตัว ไม่อ้างว่า patch หนึ่งตัวพิสูจน์ว่า server Host fence ใช้งานไม่ได้ หรือว่า placeholder กู้หลักฐานภาพเดิมกลับมาแล้ว
 
-- [README](https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/README.md)
-- [Architecture and plugin composition](https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/docs/architecture.md)
-- [Web tasks](https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/docs/user/guide/index.md)
-- [Providers](https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/docs/user/guide/providers.md)
-- [Public deployment](https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/docs/user/guide/public-deployments.md)
-- [Credential migration](https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/docs/upgrade-guide/v0.2.1-alpha.2/stored-credentials-precedence/guide.md)
-- [Session format](https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/docs/session-format-status.md)
-- [Safety](https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/SAFETY.md)
+ก่อน upgrade ให้ pin source/image ตรวจ patch targets กับ credential precedence และทดสอบบน copied state ทั้ง login, Host/Origin, sessions/attachments, tools, WebSocket, egress, data/user boundaries, restart และ restore เก็บ image/state เดิมไว้ และไม่ auto-merge upstream สู่ Production ดู [upstream synchronization procedure](UPSTREAM_SYNC_AND_INTERNET_POLICY.md), [official deployment guide ที่ pin ไว้](https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/docs/user/guide/public-deployments.md) และ [official safety guidance ที่ pin ไว้](https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/SAFETY.md)
 
-### Upgrade gate
+ด้าน context ต้องแยก backend ceiling 1,048,576 tokens ออกจาก DSH/LiteLLM user limit 131,072 total tokens, output ceiling 8,192 และ compaction ใกล้ 98,304 ผล backend 1M เดิมและ mixed-load test ประมาณ 133K ไม่ใช่ผล end-to-end DSH 1M รอบใหม่ และไม่ใช่การรับรอง latency SLA ดู [ประวัติ context trials](CONTEXT_OPTIMIZATION_20261015.md) และ [scheduling evidence](SCHEDULING_FAIRNESS_20261015.md)
 
-Pin the next release/image; inventory every patched module and expected source/hash. Restore copied state into an isolated candidate. Inspect effective profiles/credential precedence and test auth, Host/Origin denial, WebSockets, terminal, tools, existing sessions, attachments, compaction, egress, user boundaries, restart and restore. Fail loudly on changed patch targets. Preserve the old image/state and test rollback. Do not automatically merge upstream into Production.
+## 12 การอ่านหลักฐานและการตรวจเอกสารนี้
 
-## Closure plan and accountable owners
+หลักฐานที่แนบเป็น recorded responses/logs ตามเวลาที่ระบุ ไม่ใช่ live webpage หรือการทดสอบใหม่เมื่อเปิดไฟล์ HTML ไม่มีการแสดง passwords, tokens หรือเนื้อหา RDT ในรายงาน การปฏิเสธ request หนึ่งครั้งไม่ยืนยันว่า guardrail ทุกชั้นทำงานหรือไม่มีข้อมูลออกนอกระบบ ต้องอ้าง execution/network evidence ให้ตรงกับข้อสรุป
 
-| Action | Owner | Required proof |
-|---|---|---|
-| Pilot users and exact RDT scope | Data owner | Approved identities, snapshot/view, permitted fields/rows, retention and outputs |
-| Legacy ownership mapping | Owner/operator | No indiscriminate history copying to every identity |
-| Deploy private runtimes | Platform operator | A cannot access B through files, reports, history, attachments, API, terminal or WebSocket |
-| Read-only source/result separation | Data/platform owner | Source-write and out-of-scope-read attempts fail; result writes succeed |
-| Network/export completion | Platform/security owner | DNS/relay/fallback/export tests for all pilot workers |
-| Central persistence restoration | Storage/platform owner | Reconciliation, ACLs, coherent snapshot and successful restore |
-| Future overlay/upstream upgrade | Application operator | Repeat installed-content and affected-behavior tests; current internal-only catalog rollout is verified |
-| Residual-risk acceptance | Assessor/owner | Evidence review distinct from code completion |
+- [Gateway authentication evidence](context-evidence/rdt-gateway-live-20261015.json): registration denial และ anonymous route behavior ตาม snapshot เดิม
+- [Outbound probes ก่อน rollout](context-evidence/rdt-egress-recheck-20261015.json): direct connectivity tests ตามปลายทางที่ระบุ ไม่ใช่ทุก leakage path
+- [Candidate cluster tests](context-evidence/rdt-candidate-cluster-check-62696.log): source/candidate routing tests ไม่ใช่ deployed cross-user RDT acceptance
+- [Runtime rollout evidence](context-evidence/runtime-rollout-live-20261015.json): image/source readback, login, history/content, inference, catalog, egress และข้อจำกัดของ rollback
+- [Storage design audit](context-evidence/storage-design-audit-20261015.json): curated raw messages, Git change และ CIFS canary; Production mounts ไม่เปลี่ยนในการ review นั้น
 
-**Pending owner inputs remain the approved pilot usernames and exact RDT source/view**, with history ownership resolved before migration. Technical work can proceed independently, but these permissions and business decisions cannot be invented. All three controls remain partially satisfied until deployed acceptance tests pass.
-
-## Diagram renderer and evidence boundary
-
-The HTML embeds Mermaid 10.8.0 and svg-pan-zoom 3.6.1, reusing SMP EDA's diagram controls: zoom, reset, fullscreen, SVG/PNG export and source copy. It requires no CDN connection. Export coordinates are reset on a cloned SVG so zooming does not crop the saved diagram. Target diagrams are design illustrations, not deployment screenshots. The original HTML and Markdown are preserved.
-
-### Verification of this document
-
-The generated HTML was tested in headless Microsoft Edge: three diagrams rendered, no external resource requests or page errors occurred, and zoom/reset/fullscreen/source-copy/SVG/PNG export passed. Rendered screenshots were visually inspected. These checks verify the document controls, not every deployed DSH feature. See [document QA record](context-evidence/html-verification-20261015.json).
+HTML นี้ใช้รูปแบบ walkthrough เดิมและ diagram controls ที่ปรับจาก SMP EDA ได้แก่ zoom/reset/fullscreen, source copy และ SVG/PNG export โดยฝัง Mermaid 10.8.0 และ svg-pan-zoom 3.6.1 ไว้ในไฟล์ ไม่ต้องโหลด CDN เป้าหมายของ document QA คือให้เนื้อหาและ diagrams อ่านได้และเครื่องมือทำงาน ไม่ใช้ผล document QA แทน security acceptance ของ DSH ดู [document QA record](context-evidence/html-verification-20261015.json)

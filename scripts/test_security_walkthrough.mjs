@@ -35,10 +35,18 @@ try {
  const svg=fs.readFileSync(path.join(out,downloads[0]),'utf8');assert(svg.includes('<svg'));assert(!/<g[^>]*class="svg-pan-zoom_viewport"[^>]*transform=/.test(svg));
  const png=fs.readFileSync(path.join(out,downloads[1]));assert.equal(png.subarray(1,4).toString(),'PNG');
  await page.goto(pathToFileURL(path.join(root,'docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html')).href);await page.waitForFunction(()=>window.__reportReady);await page.waitForTimeout(900);
+ const clippedNodes = await page.locator('.mermaid-container').evaluateAll(containers => containers.flatMap((container, diagram) => {
+  const frame=container.getBoundingClientRect();
+  return Array.from(container.querySelectorAll('g.node')).filter(node => {
+   const box=node.getBoundingClientRect();
+   return box.left<frame.left-2 || box.right>frame.right+2 || box.top<frame.top-2 || box.bottom>frame.bottom+2;
+  }).map(node=>({diagram:diagram+1,label:node.textContent}));
+ }));
+ assert.deepEqual(clippedNodes,[], 'Initial diagram view must show every node');
  await page.screenshot({path:path.join(out,'report-overview.png')});
  await page.locator('.mermaid-wrapper').first().screenshot({path:path.join(out,'report-architecture.png')});
  for (let i=1;i<3;i++) await page.locator('.mermaid-wrapper').nth(i).screenshot({path:path.join(out,`report-architecture-${i+1}.png`)});
  assert.deepEqual(errors,[]);
- const record={time:new Date().toISOString(),renderedDiagrams:3,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
+ const record={time:new Date().toISOString(),renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
  fs.writeFileSync(path.join(out,'html-verification.json'),JSON.stringify(record,null,2));console.log(JSON.stringify(record));
 }finally{await browser.close();}

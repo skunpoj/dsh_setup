@@ -1,6 +1,7 @@
 {
-  "time": "2026-10-15T14:06:26.792Z",
+  "time": "2026-10-15T14:14:32.448Z",
   "renderedDiagrams": 3,
+  "initialNodesUnclipped": true,
   "externalResourceRequests": 0,
   "zoom": true,
   "reset": true,
@@ -9,6 +10,6 @@
   "svgExport": true,
   "pngExport": true,
   "pageErrors": [],
-  "pngWidth": 3538,
+  "pngWidth": 3540,
   "pngHeight": 1012
 }

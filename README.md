@@ -4,6 +4,10 @@ DSH combines a username-authenticated gateway, No Internet and Internet executio
 
 Start with the [interactive security/architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) or its [Markdown source](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md). The HTML is self-contained and includes SMP EDA-style diagrams with zoom, fullscreen, source copy and SVG/PNG export.
 
+## Three pilot controls and how to close them
+
+The walkthrough is structured around preventing external leakage, preventing source damage or excessive access, and containing reports/history within named-user permissions. Each control explains the threat, infrastructure/data/application enforcement, recorded behavior, remaining gaps and the evidence required before closure. It retains the original mounted-DA_WORKSPACE requirement and distinguishes it from read-only RDT access. This is a synthesis of dated evidence, not a new Production acceptance test.
+
 ## Features, design decisions and actual status
 
 | Feature | Design reason | Status |
