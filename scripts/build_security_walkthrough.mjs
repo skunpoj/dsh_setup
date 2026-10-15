@@ -39,4 +39,5 @@ mermaid.initialize({startOnLoad:false,theme:'dark',securityLevel:'strict',flowch
 (async()=>{try{await mermaid.run({querySelector:'.mermaid'});initMermaidPanZoom();window.__reportReady=true;}catch(error){window.__reportErrors.push(error.message);console.error(error);}})();
 </script></body></html>`;
 const target=path.join(root,'docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html');
-fs.writeFileSync(target,result); console.log(JSON.stringify({target,diagrams:diagram,sections:toc.length,bytes:Buffer.byteLength(result)}));
+const normalized=result.replace(/\r\n/g,'\n');
+fs.writeFileSync(target,normalized); console.log(JSON.stringify({target,diagrams:diagram,sections:toc.length,bytes:Buffer.byteLength(normalized)}));
