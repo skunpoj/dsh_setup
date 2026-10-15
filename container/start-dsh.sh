@@ -26,16 +26,15 @@ mkdir -p /state/sessions /state/storages /state/attachments /workspace /runtime-
 rm -rf "${DSH_HOME:-$HOME/.dsh}"
 ln -s /state "${DSH_HOME:-$HOME/.dsh}"
 if [ ! -f /state/settings.yaml ]; then
-  cp -a /opt/dsh/seed/dsh-home/. /state/
+  cp -R --no-preserve=ownership,timestamps,mode /opt/dsh/seed/dsh-home/. /state/
 fi
 
 ttyd -p 7681 -i 0.0.0.0 -W bash -l >/tmp/ttyd.log 2>&1 &
 
-pod_ip="$(hostname -i | awk '{print $1}')"
 fifo=/tmp/dsh-fifo
 rm -f "$fifo"
 mkfifo "$fifo"
-dsh web --host "$pod_ip" --port 3081 --no-open --trusted-host "$DSH_TRUSTED_HOST" >"$fifo" 2>&1 &
+dsh web --host 0.0.0.0 --port 3081 --no-open --trusted-host "$DSH_TRUSTED_HOST" >"$fifo" 2>&1 &
 dsh_pid=$!
 
 while IFS= read -r line; do
