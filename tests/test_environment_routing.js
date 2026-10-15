@@ -77,6 +77,12 @@ async function waitReady(port) {
     const registration = await request(gatewayPort, 'POST', '/register', 'username=mallory&password=secret1&confirm_password=secret1');
     assert.equal(registration.status, 403);
     assert(!JSON.parse(fs.readFileSync(users, 'utf8')).mallory);
+    for (const protectedPath of ['/proxy/8000/report', '/api/sessions', '/report.html']) {
+      const anonymous = await request(gatewayPort, 'GET', protectedPath);
+      assert.equal(anonymous.status, 200); // Gateway's login page, not backend content.
+      assert(anonymous.body.includes('id="pane-login"'));
+      assert(!anonymous.body.includes('secure-pool'));
+    }
     const offLogin = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=off');
     const offCookie = offLogin.headers['set-cookie'][0].split(';')[0];
     const offResult = JSON.parse((await request(gatewayPort, 'GET', '/probe', '', offCookie)).body);

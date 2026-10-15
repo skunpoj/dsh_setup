@@ -1,10 +1,10 @@
 # RDT pilot control closure: implementation and evidence
 
-Updated 15 October 2026, 17:58 ICT. This supplements the original 13:03 assessment; it does not replace historical observations with later source tests.
+Updated 15 October 2026, 18:10 ICT. This supplements the original 13:03 assessment; it does not replace historical observations with later source tests.
 
 ## Current decision
 
-The three controls remain partially satisfied. Source hardening is implemented and tested, but a new runtime image, per-user cutover, approved data scope and deployed negative tests are still required. No RDT access, ownership or pilot membership has been inferred from existing shared account stores.
+The three controls remain partially satisfied. Source hardening is implemented and tested, an immutable image has passed CI and cluster smoke tests, and registration hardening has been deployed to the gateway. Execution-pool image updates, per-user cutover, approved data scope and deployed cross-user/source-access negative tests are still required. No RDT access, ownership or pilot membership has been inferred from existing shared account stores.
 
 ## Changes completed in source
 
@@ -23,6 +23,24 @@ The three controls remain partially satisfied. Source hardening is implemented a
 | Generated manifest tests | Three tests passed: unique private claims/routes; invalid provisioning rejection; approved snapshot Secure-only/read-only | Manifest inspection, not actual source-write denial |
 | Live runtime readback | Shared Secure and Internet pools still use digest `0505beb62188a32a63366735cead3a2e87c11e4963f6a10f6ec957b758345cbc`; gateway uses `53c9f8222d48084175bb8e18abcfb8b953eea646539880bd3643b639572f1129` | Existing deployment, not new source |
 | Live policy and container specification | Offline allows cluster DNS and LiteLLM port 4000; UID/GID 10001, no privilege escalation, ALL capabilities dropped | Configuration readback; not fresh outbound test |
+| Fresh 18:00 ICT outbound probes | Secure GitHub/PyPI/npm/public-IP requests failed; internal LiteLLM returned its expected liveness body. Internet GitHub/PyPI/npm returned 200 | Public-IP Internet comparison also failed, so that pair is not independent proof of denial. DNS and relay paths remain separate checks |
+| Anonymous report, proxied report and session API requests | Local gateway returned actual login-page content, with no test-backend content | Local HTTP boundary test; not a live cross-user report test |
+
+Fresh outbound response records are retained in [rdt-egress-recheck-20261015.json](context-evidence/rdt-egress-recheck-20261015.json). No CronJobs were listed in namespace `llm`; this does not exclude in-process jobs, user scripts or publishers in other namespaces.
+
+## Build verification experience
+
+- Build 62692 stopped before push because Docker's daemon could not see the agent-side test bind mount. Tests are now packaged in the image and run from `/opt/dsh`.
+- Build 62694 passed the executed catalog and routing tests but stopped at an overbroad string check: upstream's provider-ordering helper still mentions `deepseek-official`. That string alone does not create a selectable provider or external route. The built-image check now targets provider IDs and routable-provider declarations instead of sorting comparisons.
+- Build 62696 succeeded for Azure revision `dadbab701f2547e11696c027606ef5580414f1de`. Its pushed image is `dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:396fb2e862ad15731b6a49ac16efd7e15fa8e065379fe196a0c62cb21d031719`. Catalog, routing, registration-denial and isolated-routing tests passed inside that image. A temporary cluster pod ran the same tests successfully. No failed candidate was deployed by these build steps.
+
+## Live gateway change and actual behavior
+
+The gateway now runs the verified `396fb2e8…` image. Kubernetes service-account credential automount is disabled. The replacement used Recreate to avoid overlapping gateway instances with independent session maps and writers to the account/settings store. Existing users may need to sign in again; execution pools and model configuration were not restarted or altered by this gateway change.
+
+The [live response record](context-evidence/rdt-gateway-live-20261015.json) confirms: registration POST returns 403; registration tab and form are absent; No Internet is checked by default; the credential store is byte-for-byte unchanged after the denied registration; anonymous report/proxy/session requests return the actual login form. Those requests do not test authenticated cross-user authorization. Running image ID matches the pushed digest and the replacement pod reports zero restarts.
+
+Rollback gateway manifest: `C:\Users\skunpojt\rollback-pilot-hardening-20261015\gateway.yaml`. Execution pools still use `0505beb6…`, so their installed catalogs have not yet received the new image. The gateway change does not establish per-user isolation or approved RDT access.
 
 ## Required deployment and acceptance sequence
 

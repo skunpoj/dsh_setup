@@ -1,0 +1,4 @@
+Generated server/client catalogs expose only internal LiteLLM; default inference retained.
+environment routing and session stickiness tests passed
+routing checks completed
+per-user routing, spoof resistance, missing-runtime denial, registration denial and stickiness tests passed

@@ -1,0 +1,62 @@
+{
+  "secure": [
+    {
+      "url": "https://github.com",
+      "error": "URLError",
+      "elapsed_seconds": 3.06
+    },
+    {
+      "url": "https://pypi.org",
+      "error": "URLError",
+      "elapsed_seconds": 12.03
+    },
+    {
+      "url": "https://registry.npmjs.org",
+      "error": "URLError",
+      "elapsed_seconds": 36.08
+    },
+    {
+      "url": "https://1.1.1.1",
+      "error": "URLError",
+      "elapsed_seconds": 3.02
+    },
+    {
+      "url": "http://litellm.llm.svc.cluster.local:4000/health/liveliness",
+      "status": 200,
+      "body": "\"I'm alive!\"",
+      "elapsed_seconds": 0.0
+    }
+  ],
+  "internet": [
+    {
+      "url": "https://github.com",
+      "status": 200,
+      "body": "(not retained)",
+      "elapsed_seconds": 0.39
+    },
+    {
+      "url": "https://pypi.org",
+      "status": 200,
+      "body": "(not retained)",
+      "elapsed_seconds": 0.42
+    },
+    {
+      "url": "https://registry.npmjs.org",
+      "status": 200,
+      "body": "(not retained)",
+      "elapsed_seconds": 0.37
+    },
+    {
+      "url": "https://1.1.1.1",
+      "error": "URLError",
+      "elapsed_seconds": 0.06
+    },
+    {
+      "url": "http://litellm.llm.svc.cluster.local:4000/health/liveliness",
+      "status": 200,
+      "body": "\"I'm alive!\"",
+      "elapsed_seconds": 0.0
+    }
+  ],
+  "time": "2026-10-15T18:00:41.2288875+07:00"
+}

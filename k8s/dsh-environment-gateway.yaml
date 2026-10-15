@@ -5,15 +5,17 @@ metadata:
   namespace: llm
 spec:
   replicas: 1
+  strategy: { type: Recreate }
   selector:
     matchLabels: { app: dsh-environment-gateway }
   template:
     metadata:
       labels: { app: dsh-environment-gateway }
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: gateway
-          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:53c9f8222d48084175bb8e18abcfb8b953eea646539880bd3643b639572f1129
+          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:396fb2e862ad15731b6a49ac16efd7e15fa8e065379fe196a0c62cb21d031719
           command: [node, /opt/dsh/scripts/auth_proxy.js]
           securityContext:
             runAsNonRoot: true
