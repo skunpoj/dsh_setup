@@ -30,9 +30,9 @@ The upstream interval changes thousands of files and includes Session v4 persist
 6. Restore a copy of Production data into an isolated candidate environment. Verify login, existing Session reads, new prompts, compaction, attachments, model calls, tools, terminal, dynamic application proxy, and orderly restart persistence.
 7. Deploy with a rollback image and the preserved ConfigMap. Read back the running image digest and mounted scripts, then repeat the affected behavior tests.
 
-## Internet selection on the login page
+## Working-environment selection on the login page
 
-The enterprise login page provides `Off` and `On`, with `Off` selected when the form is first displayed. On successful login the gateway:
+The enterprise login page provides `Secure / Internal` and `Internet`, with `Secure / Internal` selected initially. The wire values remain `off` and `on` for compatibility. On successful login the gateway:
 
 - validates the credential before accepting the selection;
 - stores the user's most recent selection in `/workspace/users/.user_settings.json` with mode `0600`;
@@ -40,17 +40,24 @@ The enterprise login page provides `Off` and `On`, with `Off` selected when the 
 - exposes the authenticated result at `GET /api/auth/session`; and
 - forwards `X-DSH-Internet-Access: off|on` and `X-DSH-User` to the DSH Web service.
 
-This is a verified user-policy transport, not a complete egress firewall. The current DSH, terminal, and user applications share one pod network namespace. Calico and Kubernetes NetworkPolicy enforcement are available in the cluster, but the current Production DSH pods are deliberately not labelled into either egress pool yet. A process in those pods can therefore reach public sites regardless of the login selection. Do not describe `Off` as enforced internet isolation until the authenticated gateway routes the session to a separately labelled execution pool.
+`scripts/auth_proxy.js` now supports session-sticky routing to two backend targets. The selected environment is fixed in the authenticated session and is used for HTTP, WebSocket and application-proxy traffic. The compatibility response field `internet` is retained and `GET /api/auth/session` also reports `environment: secure|internet`.
 
-## Required enforcement architecture
+## Implemented deployment architecture
 
-Use two execution pools behind the authenticated gateway:
+The repository includes a prebuilt runtime image and two execution pools behind a standalone authenticated gateway:
 
 - an offline pool with default-deny egress and explicit DNS plus in-cluster LiteLLM access;
 - an online pool with the approved outbound policy; and
-- routing that binds each authenticated Session to exactly one pool for its lifetime.
+- routing that binds each authenticated Session to exactly one pool for its lifetime;
+- separate RWO state volumes, so live DSH session files are never written concurrently by both pools;
+- the existing protected workspace mounted only by the Secure pool; and
+- a separate staging PVC mounted by the Internet pool.
 
-The DSH package and dependencies must be baked into an image so the offline pool can start without public package repositories. Session storage must be tested for concurrent access before both pools mount the same persistent data. Until those conditions are met, retain the login selection as policy metadata and do not deploy it as a security control.
+`Dockerfile` bakes the DSH package, Node, Python, terminal and operating-system dependencies into the image. `container/start-dsh.sh` starts without package installation, keeps each pool's state on its own PVC and publishes its process token to the gateway through the restricted routing-token directory. `k8s/dsh-environment-pools.yaml` and `k8s/dsh-environment-gateway.yaml` define the runtime.
+
+The two pools deliberately do not multi-write the same session directory. Identity and login settings are central at the gateway, but active session state belongs to the chosen environment. Moving data to the Internet environment requires an approved copy into its staging PVC. This prevents an Internet-capable process from reading the protected workspace and avoids file-lock and history corruption from concurrent writers.
+
+Deployment remains gated on building and pushing the referenced image, creating `dsh-runtime-secrets`, backing up the current workspace, and exercising the isolated manifests with restored test data. Existing Production workloads remain the rollback route until the new gateway passes login, history, prompt, tool, terminal, restart and egress tests.
 
 `k8s/dsh-egress-policies.yaml` defines the enforcement boundary. Pods labelled `dsh.bot.or.th/egress-mode=offline` may resolve cluster DNS and call LiteLLM on TCP 4000, while public egress is denied. Pods labelled `dsh.bot.or.th/egress-mode=online` retain egress. The policies do not select unlabeled Production pods.
 

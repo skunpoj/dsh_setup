@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsh-environment-gateway
+  namespace: llm
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: dsh-environment-gateway }
+  template:
+    metadata:
+      labels: { app: dsh-environment-gateway }
+    spec:
+      containers:
+        - name: gateway
+          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime:0.2.0-rc.2-env-routing
+          command: [node, /opt/dsh/scripts/auth_proxy.js]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+          env:
+            - { name: PORT, value: "3080" }
+            - { name: WORKSPACE_ROOT, value: /auth }
+            - { name: DSH_USER_STORE_PATH, value: /auth/.user_auth.json }
+            - { name: DSH_USER_SETTINGS_PATH, value: /auth/.user_settings.json }
+            - { name: DSH_OFFLINE_HOST, value: dsh-secure.llm.svc.cluster.local }
+            - { name: DSH_OFFLINE_PORT, value: "3081" }
+            - { name: DSH_OFFLINE_TOKEN_FILE, value: /runtime-tokens/secure/secure }
+            - { name: DSH_ONLINE_HOST, value: dsh-internet.llm.svc.cluster.local }
+            - { name: DSH_ONLINE_PORT, value: "3081" }
+            - { name: DSH_ONLINE_TOKEN_FILE, value: /runtime-tokens/internet/internet }
+            - { name: DSH_TRUSTED_HOST, value: dsh.aiportal.bot.or.th }
+          ports:
+            - { name: http, containerPort: 3080 }
+          readinessProbe:
+            httpGet: { path: /login, port: http }
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: "1", memory: 512Mi }
+          volumeMounts:
+            - { name: auth, mountPath: /auth, subPath: dsh/users }
+            - { name: secure-token, mountPath: /runtime-tokens/secure, subPath: dsh-routing/tokens/secure, readOnly: true }
+            - { name: internet-token, mountPath: /runtime-tokens/internet, subPath: dsh-routing/tokens/internet, readOnly: true }
+      volumes:
+        - name: auth
+          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+        - name: secure-token
+          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+        - name: internet-token
+          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: dsh-environment-gateway, namespace: llm }
+spec:
+  selector: { app: dsh-environment-gateway }
+  ports:
+    - { name: http, port: 3080, targetPort: http }

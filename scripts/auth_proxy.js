@@ -15,6 +15,27 @@ const USER_STORE_PATH = process.env.DSH_USER_STORE_PATH || `${USER_ROOT}/.user_a
 const USER_SETTINGS_PATH = process.env.DSH_USER_SETTINGS_PATH || `${USER_ROOT}/.user_settings.json`;
 const COOKIE_NAME = process.env.DSH_COOKIE_NAME || 'dsh_auth';
 
+// A gateway can route an authenticated session to a dedicated execution pool.
+// When these variables are absent the proxy keeps its original single-pod behaviour.
+const ENVIRONMENT_TARGETS = {
+  off: {
+    name: 'secure',
+    host: process.env.DSH_OFFLINE_HOST || DSH_TARGET_HOST,
+    port: Number(process.env.DSH_OFFLINE_PORT || DSH_TARGET_PORT),
+    tokenFile: process.env.DSH_OFFLINE_TOKEN_FILE || '/tmp/dsh_token.txt',
+  },
+  on: {
+    name: 'internet',
+    host: process.env.DSH_ONLINE_HOST || DSH_TARGET_HOST,
+    port: Number(process.env.DSH_ONLINE_PORT || DSH_TARGET_PORT),
+    tokenFile: process.env.DSH_ONLINE_TOKEN_FILE || '/tmp/dsh_token.txt',
+  },
+};
+
+function getEnvironmentTarget(mode) {
+  return ENVIRONMENT_TARGETS[normalizeInternetMode(mode)];
+}
+
 // The session cookie is shared with the app subdomains (dsh-<port>.<parent>) through its Domain
 // attribute. The domain comes from configuration, never from the request's Host header, and
 // defaults to the parent of DSH_TRUSTED_HOST (dsh.example.com -> .example.com); a host with
@@ -111,7 +132,7 @@ function parseAppTarget(inHost, reqUrl) {
   return { port, targetPath };
 }
 
-function forwardToLocalApp(targetPort, targetPath, req, res) {
+function forwardToLocalApp(targetPort, targetPath, req, res, targetHost = '127.0.0.1') {
   const proxyHeaders = { ...req.headers };
   proxyHeaders['host'] = `127.0.0.1:${targetPort}`;
   proxyHeaders['x-forwarded-host'] = req.headers.host;
@@ -124,7 +145,7 @@ function forwardToLocalApp(targetPort, targetPath, req, res) {
   proxyHeaders['x-forwarded-proto'] = req.headers['x-forwarded-proto'] || 'https';
 
   const proxyReq = http.request({
-    host: '127.0.0.1',
+    host: targetHost,
     port: targetPort,
     path: targetPath,
     method: req.method,
@@ -178,7 +199,7 @@ function forwardToLocalApp(targetPort, targetPath, req, res) {
   req.pipe(proxyReq);
 }
 
-function forwardWebSocketToLocalApp(targetPort, targetPath, req, socket, head) {
+function forwardWebSocketToLocalApp(targetPort, targetPath, req, socket, head, targetHost = '127.0.0.1') {
   const rawHeaders = req.rawHeaders;
   let upgradeReqText = `${req.method} ${targetPath} HTTP/${req.httpVersion}\r\n`;
   for (let i = 0; i < rawHeaders.length; i += 2) {
@@ -196,7 +217,7 @@ function forwardWebSocketToLocalApp(targetPort, targetPath, req, socket, head) {
   upgradeReqText += `\r\n`;
 
   const net = require('net');
-  const targetSocket = net.connect(targetPort, '127.0.0.1', () => {
+  const targetSocket = net.connect(targetPort, targetHost, () => {
     targetSocket.write(upgradeReqText);
     if (head && head.length > 0) {
       targetSocket.write(head);
@@ -211,18 +232,19 @@ function forwardWebSocketToLocalApp(targetPort, targetPath, req, socket, head) {
   });
 }
 
-function getOrMintDshCookie(clientHost, callback) {
-  const existing = cachedDshAuthCookies.get(clientHost);
+function getOrMintDshCookie(clientHost, target, callback) {
+  const cacheKey = `${target.name}|${target.host}|${target.port}|${clientHost}`;
+  const existing = cachedDshAuthCookies.get(cacheKey);
   if (existing) {
     return callback(null, existing);
   }
-  const token = getDshToken();
+  const token = getDshToken(target.tokenFile);
   if (!token) {
     return callback(new Error("No DSH launch token available"));
   }
   const authReq = http.request({
-    host: DSH_TARGET_HOST,
-    port: DSH_TARGET_PORT,
+    host: target.host,
+    port: target.port,
     path: `/?token=${encodeURIComponent(token)}`,
     method: "GET",
     headers: { "host": clientHost }
@@ -233,7 +255,7 @@ function getOrMintDshCookie(clientHost, callback) {
       for (const sc of setCookies) {
         if (sc.startsWith("dsh-auth-")) {
           mintedCookie = sc.split(";")[0];
-          cachedDshAuthCookies.set(clientHost, mintedCookie);
+          cachedDshAuthCookies.set(cacheKey, mintedCookie);
           console.log(`[AUTH-PROXY] Successfully minted and cached upstream DSH cookie for authority ${clientHost}`);
           break;
         }
@@ -328,10 +350,10 @@ if (!fs.existsSync(USER_STORE_PATH)) {
   saveUsers(USERS);
 }
 
-function getDshToken() {
+function getDshToken(tokenFile = '/tmp/dsh_token.txt') {
   try {
-    if (fs.existsSync('/tmp/dsh_token.txt')) {
-      return fs.readFileSync('/tmp/dsh_token.txt', 'utf8').trim();
+    if (fs.existsSync(tokenFile)) {
+      return fs.readFileSync(tokenFile, 'utf8').trim();
     }
   } catch (e) {}
   return '';
@@ -586,12 +608,12 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
           <input type="password" id="login_password" name="password" class="form-control" placeholder="ระบุรหัสผ่านเพื่อเข้าใช้งาน" required>
         </div>
         <div class="form-group">
-          <span class="form-label">Internet access</span>
-          <div class="radio-group" role="radiogroup" aria-label="Internet access">
-            <label class="radio-option"><input type="radio" name="internet" value="off" checked> Off (Default)</label>
-            <label class="radio-option"><input type="radio" name="internet" value="on"> On</label>
+          <span class="form-label">Working environment</span>
+          <div class="radio-group" role="radiogroup" aria-label="Working environment">
+            <label class="radio-option"><input type="radio" name="internet" value="off" checked> Secure / Internal (Default)</label>
+            <label class="radio-option"><input type="radio" name="internet" value="on"> Internet</label>
           </div>
-          <div class="form-help">The selected policy is attached to this authenticated session and retained as the user's next-login preference.</div>
+          <div class="form-help">The environment is fixed for this login session. Secure/Internal can use protected data; Internet uses a separate approved staging workspace.</div>
         </div>
         <button type="submit" class="btn-submit">เข้าสู่ระบบ (Sign In)</button>
       </form>
@@ -672,7 +694,8 @@ const server = http.createServer((req, res) => {
 
         console.log(`[AUTH-PROXY] Successful login for user: ${username}`);
         const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
-        getOrMintDshCookie(clientHost, (err, dshCookie) => {
+        const target = getEnvironmentTarget(internet);
+        getOrMintDshCookie(clientHost, target, (err, dshCookie) => {
           const domainAttr = getCookieDomain();
           const cookieHeaders = [`${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${domainAttr}`];
           if (dshCookie) {
@@ -830,10 +853,11 @@ const server = http.createServer((req, res) => {
   }
 
   const internetMode = normalizeInternetMode(activeSession && activeSession.internet);
+  const environmentTarget = getEnvironmentTarget(internetMode);
 
   if (req.method === 'GET' && parsedUrl.pathname === '/api/auth/session') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-    return res.end(JSON.stringify({ user: sessionUser, internet: internetMode }));
+    return res.end(JSON.stringify({ user: sessionUser, internet: internetMode, environment: environmentTarget.name }));
   }
 
   // Convenient Terminal Shortcuts (/terminal, /term)
@@ -846,7 +870,7 @@ const server = http.createServer((req, res) => {
   const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
   const appTarget = parseAppTarget(incomingHost, req.url);
   if (appTarget && appTarget.port) {
-    return forwardToLocalApp(appTarget.port, appTarget.targetPath, req, res);
+    return forwardToLocalApp(appTarget.port, appTarget.targetPath, req, res, environmentTarget.host);
   }
 
   // If authenticated, proxy request to DSH internal port 3081
@@ -873,8 +897,8 @@ const server = http.createServer((req, res) => {
     }
 
     const proxyReq = http.request({
-      host: DSH_TARGET_HOST,
-      port: DSH_TARGET_PORT,
+      host: environmentTarget.host,
+      port: environmentTarget.port,
       path: req.url,
       method: req.method,
       headers: proxyHeaders
@@ -915,7 +939,7 @@ const server = http.createServer((req, res) => {
   }
 
   const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
-  getOrMintDshCookie(clientHost, (err, dshCookie) => {
+  getOrMintDshCookie(clientHost, environmentTarget, (err, dshCookie) => {
     forwardToDsh(dshCookie);
   });
 });
@@ -923,6 +947,7 @@ const server = http.createServer((req, res) => {
 // Handle WebSocket Upgrades
 server.on('upgrade', (req, socket, head) => {
   let authenticated = false;
+  let activeSession = null;
   const cookieHeader = req.headers.cookie;
   if (cookieHeader) {
     const cookies = cookieHeader.split(';').map(c => c.trim());
@@ -931,6 +956,7 @@ server.on('upgrade', (req, socket, head) => {
         const sid = c.substring(`${COOKIE_NAME}=`.length);
         if (SESSIONS.has(sid)) {
           authenticated = true;
+          activeSession = SESSIONS.get(sid);
           break;
         }
       }
@@ -938,6 +964,7 @@ server.on('upgrade', (req, socket, head) => {
         const sid = c.substring('dsh_auth='.length);
         if (SESSIONS.has(sid)) {
           authenticated = true;
+          activeSession = SESSIONS.get(sid);
           break;
         }
       }
@@ -949,15 +976,18 @@ server.on('upgrade', (req, socket, head) => {
     return;
   }
 
+  const internetMode = normalizeInternetMode(activeSession && activeSession.internet);
+  const environmentTarget = getEnvironmentTarget(internetMode);
+
   // Dynamic App Gateway for WebSockets (e.g. Streamlit, Vite HMR, Next.js); only reachable after login
   const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
   const appTarget = parseAppTarget(incomingHost, req.url);
   if (appTarget && appTarget.port) {
-    return forwardWebSocketToLocalApp(appTarget.port, appTarget.targetPath, req, socket, head);
+    return forwardWebSocketToLocalApp(appTarget.port, appTarget.targetPath, req, socket, head, environmentTarget.host);
   }
 
   const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
-  getOrMintDshCookie(clientHost, (err, dshCookie) => {
+  getOrMintDshCookie(clientHost, environmentTarget, (err, dshCookie) => {
     // Reconstruct HTTP upgrade request buffer to guarantee dsh-auth cookie is included
     const rawHeaders = req.rawHeaders;
     let hasDshAuthInCookie = false;
@@ -989,7 +1019,7 @@ server.on('upgrade', (req, socket, head) => {
     upgradeReqText += `\r\n`;
 
     const net = require('net');
-    const targetSocket = net.connect(DSH_TARGET_PORT, DSH_TARGET_HOST, () => {
+    const targetSocket = net.connect(environmentTarget.port, environmentTarget.host, () => {
       targetSocket.write(upgradeReqText);
       if (head && head.length > 0) {
         targetSocket.write(head);
@@ -1005,5 +1035,5 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 server.listen(PROXY_PORT, '0.0.0.0', () => {
-  console.log(`[AUTH-PROXY] Enterprise DSH Auth Gate running on port ${PROXY_PORT} -> forwarding to ${DSH_TARGET_HOST}:${DSH_TARGET_PORT}`);
+  console.log(`[AUTH-PROXY] Enterprise DSH Auth Gate running on port ${PROXY_PORT}; secure=${ENVIRONMENT_TARGETS.off.host}:${ENVIRONMENT_TARGETS.off.port}; internet=${ENVIRONMENT_TARGETS.on.host}:${ENVIRONMENT_TARGETS.on.port}`);
 });

@@ -1,0 +1,53 @@
+trigger:
+  branches:
+    include: [main]
+
+variables:
+  imageRepository: da-gpu-server/dsh-runtime
+  imageTag: 0.2.0-rc.2-env-routing-$(Build.BuildId)
+
+pool:
+  name: Default
+
+steps:
+  - checkout: self
+    clean: true
+
+  - task: Docker@2
+    displayName: Sign in to Harbor
+    inputs:
+      command: login
+      containerRegistry: harbor-service-connection
+
+  - task: Docker@2
+    displayName: Build immutable DSH runtime candidate
+    inputs:
+      command: build
+      containerRegistry: harbor-service-connection
+      repository: $(imageRepository)
+      dockerfile: Dockerfile
+      buildContext: .
+      tags: |
+        $(imageTag)
+
+  - powershell: |
+      $image = "dsoreg-sm1-p1.bot.or.th/$(imageRepository):$(imageTag)"
+      docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image --check scripts/auth_proxy.js
+      docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image tests/test_auth_proxy_internet.js
+      docker run --rm --entrypoint node -v "$(Build.SourcesDirectory):/verify:ro" -w /verify $image tests/test_environment_routing.js
+      ./tests/test_environment_manifests.ps1
+    displayName: Verify gateway routing and deployment boundaries
+
+  - task: Docker@2
+    displayName: Push verified immutable DSH runtime
+    inputs:
+      command: push
+      containerRegistry: harbor-service-connection
+      repository: $(imageRepository)
+      tags: |
+        $(imageTag)
+
+  - powershell: |
+      Write-Host "##vso[task.setvariable variable=candidateImage;isOutput=true]dsoreg-sm1-p1.bot.or.th/$(imageRepository):$(imageTag)"
+    name: publishMetadata
+    displayName: Publish immutable candidate reference

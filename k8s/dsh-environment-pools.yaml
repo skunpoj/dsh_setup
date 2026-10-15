@@ -1,0 +1,170 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-secure-state
+  namespace: llm
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-internet-state
+  namespace: llm
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-internet-staging
+  namespace: llm
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsh-secure
+  namespace: llm
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: dsh-secure }
+  template:
+    metadata:
+      labels:
+        app: dsh-secure
+        dsh.bot.or.th/egress-mode: offline
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: dsh
+          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime:0.2.0-rc.2-env-routing
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+          env:
+            - { name: DSH_ENVIRONMENT, value: secure }
+            - { name: DSH_TRUSTED_HOST, value: dsh.aiportal.bot.or.th }
+            - { name: DEEPSEEK_BASE_URL, value: "http://litellm.llm.svc.cluster.local:4000/v1" }
+            - name: DEEPSEEK_API_KEY
+              valueFrom: { secretKeyRef: { name: dsh-runtime-secrets, key: litellm-api-key } }
+          ports:
+            - { name: web, containerPort: 3081 }
+            - { name: terminal, containerPort: 7681 }
+          readinessProbe:
+            tcpSocket: { port: web }
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket: { port: web }
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests: { cpu: "1", memory: 2Gi }
+            limits: { cpu: "4", memory: 8Gi }
+          volumeMounts:
+            - { name: state, mountPath: /state }
+            - { name: protected-workspace, mountPath: /workspace, subPath: dsh }
+            - { name: routing-tokens, mountPath: /runtime-tokens, subPath: dsh-routing/tokens/secure }
+      volumes:
+        - name: state
+          persistentVolumeClaim: { claimName: dsh-secure-state }
+        - name: protected-workspace
+          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+        - name: routing-tokens
+          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsh-internet
+  namespace: llm
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: dsh-internet }
+  template:
+    metadata:
+      labels:
+        app: dsh-internet
+        dsh.bot.or.th/egress-mode: online
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: dsh
+          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime:0.2.0-rc.2-env-routing
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+          env:
+            - { name: DSH_ENVIRONMENT, value: internet }
+            - { name: DSH_TRUSTED_HOST, value: dsh.aiportal.bot.or.th }
+            - { name: DEEPSEEK_BASE_URL, value: "http://litellm.llm.svc.cluster.local:4000/v1" }
+            - name: DEEPSEEK_API_KEY
+              valueFrom: { secretKeyRef: { name: dsh-runtime-secrets, key: litellm-api-key } }
+          ports:
+            - { name: web, containerPort: 3081 }
+            - { name: terminal, containerPort: 7681 }
+          readinessProbe:
+            tcpSocket: { port: web }
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket: { port: web }
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests: { cpu: "1", memory: 2Gi }
+            limits: { cpu: "4", memory: 8Gi }
+          volumeMounts:
+            - { name: state, mountPath: /state }
+            - { name: staging, mountPath: /workspace }
+            - { name: routing-tokens, mountPath: /runtime-tokens, subPath: dsh-routing/tokens/internet }
+      volumes:
+        - name: state
+          persistentVolumeClaim: { claimName: dsh-internet-state }
+        - name: staging
+          persistentVolumeClaim: { claimName: dsh-internet-staging }
+        - name: routing-tokens
+          persistentVolumeClaim: { claimName: da-workspace-pvc-new }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: dsh-secure, namespace: llm }
+spec:
+  clusterIP: None
+  selector: { app: dsh-secure }
+  ports:
+    - { name: web, port: 3081, targetPort: web }
+    - { name: terminal, port: 7681, targetPort: terminal }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: dsh-internet, namespace: llm }
+spec:
+  clusterIP: None
+  selector: { app: dsh-internet }
+  ports:
+    - { name: web, port: 3081, targetPort: web }
+    - { name: terminal, port: 7681, targetPort: terminal }

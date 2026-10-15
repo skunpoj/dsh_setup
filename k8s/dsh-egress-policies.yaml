@@ -48,3 +48,28 @@ spec:
     - Egress
   egress:
     - {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsh-environment-pool-ingress
+  namespace: llm
+spec:
+  podSelector:
+    matchExpressions:
+      - key: dsh.bot.or.th/egress-mode
+        operator: In
+        values: [offline, online]
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: dsh-environment-gateway
+      ports:
+        # The authenticated gateway supports user applications on dynamic
+        # high ports. Only the gateway may reach this range.
+        - protocol: TCP
+          port: 1024
+          endPort: 65535
