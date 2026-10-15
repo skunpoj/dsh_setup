@@ -25,6 +25,7 @@ spec:
             capabilities: { drop: [ALL] }
           env:
             - { name: DSH_ALLOW_REGISTRATION, value: "false" }
+            - { name: DSH_COOKIE_SECURE, value: "true" }
             - { name: PORT, value: "3080" }
             - { name: WORKSPACE_ROOT, value: /auth }
             - { name: DSH_USER_STORE_PATH, value: /auth/.user_auth.json }

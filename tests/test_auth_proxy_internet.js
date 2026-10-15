@@ -74,6 +74,7 @@ async function waitReady(port) {
 
     const offLogin = await request(proxyPort, 'POST', '/login', 'username=alice&password=secret1');
     assert.equal(offLogin.status, 302);
+    assert.match(offLogin.headers['set-cookie'][0], /; Secure(?:;|$)/);
     const offCookie = offLogin.headers['set-cookie'][0].split(';')[0];
     assert.deepEqual(JSON.parse(fs.readFileSync(settings, 'utf8')).alice, { internet: 'off' });
     const offSession = await request(proxyPort, 'GET', '/api/auth/session', '', offCookie);
@@ -97,6 +98,7 @@ async function waitReady(port) {
     assert.equal(logout.status, 302);
     assert.equal(logout.headers.location, '/login');
     assert.match(logout.headers['set-cookie'][0], /^test_auth=;/);
+    assert.match(logout.headers['set-cookie'][0], /; Secure(?:;|$)/);
     const afterLogout = await request(proxyPort, 'GET', '/api/auth/session', '', onCookie);
     assert.equal(afterLogout.status, 200);
     assert.match(afterLogout.body, /เข้าสู่ระบบ/);

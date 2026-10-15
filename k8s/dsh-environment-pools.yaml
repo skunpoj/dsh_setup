@@ -104,6 +104,7 @@ metadata:
   namespace: llm
 spec:
   replicas: 1
+  strategy: { type: Recreate }
   selector:
     matchLabels: { app: dsh-secure }
   template:
@@ -112,7 +113,10 @@ spec:
         app: dsh-secure
         dsh.bot.or.th/egress-mode: offline
     spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
       securityContext:
+        seccompProfile: { type: RuntimeDefault }
         fsGroup: 10001
         fsGroupChangePolicy: OnRootMismatch
       containers:
@@ -134,12 +138,19 @@ spec:
           ports:
             - { name: web, containerPort: 3081 }
             - { name: terminal, containerPort: 7681 }
+          startupProbe:
+            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 120
           readinessProbe:
-            tcpSocket: { port: web }
+            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
+            timeoutSeconds: 3
             periodSeconds: 5
             failureThreshold: 6
           livenessProbe:
-            tcpSocket: { port: web }
+            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
+            timeoutSeconds: 3
             initialDelaySeconds: 30
             periodSeconds: 15
           resources:
@@ -167,6 +178,7 @@ metadata:
   namespace: llm
 spec:
   replicas: 1
+  strategy: { type: Recreate }
   selector:
     matchLabels: { app: dsh-internet }
   template:
@@ -175,7 +187,10 @@ spec:
         app: dsh-internet
         dsh.bot.or.th/egress-mode: online
     spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
       securityContext:
+        seccompProfile: { type: RuntimeDefault }
         fsGroup: 10001
         fsGroupChangePolicy: OnRootMismatch
       containers:
@@ -197,12 +212,19 @@ spec:
           ports:
             - { name: web, containerPort: 3081 }
             - { name: terminal, containerPort: 7681 }
+          startupProbe:
+            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 120
           readinessProbe:
-            tcpSocket: { port: web }
+            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
+            timeoutSeconds: 3
             periodSeconds: 5
             failureThreshold: 6
           livenessProbe:
-            tcpSocket: { port: web }
+            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
+            timeoutSeconds: 3
             initialDelaySeconds: 30
             periodSeconds: 15
           resources:

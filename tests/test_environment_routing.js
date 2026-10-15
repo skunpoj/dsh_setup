@@ -8,9 +8,22 @@ const { spawn } = require('child_process');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-route-'));
 const users = path.join(root, '.user_auth.json');
 fs.writeFileSync(users, JSON.stringify({ alice: 'secret1' }));
+const secureToken = path.join(root, 'secure-token');
+const internetToken = path.join(root, 'internet-token');
+fs.writeFileSync(secureToken, 'secure-first');
+fs.writeFileSync(internetToken, 'internet-first');
 
 function backend(name) {
   return http.createServer((req, res) => {
+    const token = fs.readFileSync(name === 'secure-pool' ? secureToken : internetToken, 'utf8');
+    if (req.url.startsWith('/?token=')) {
+      assert.equal(new URL(req.url, 'http://backend').searchParams.get('token'), token);
+      res.writeHead(302, { 'set-cookie': `dsh-auth-${name}=${token}; Path=/; HttpOnly`, location: '/ui' });
+      return res.end();
+    }
+    if (req.url === '/cookie-probe' && !(req.headers.cookie || '').includes(`dsh-auth-${name}=${token}`)) {
+      res.writeHead(401); return res.end('stale backend cookie');
+    }
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ backend: name, environment: req.headers['x-dsh-internet-access'] }));
   });
@@ -52,11 +65,13 @@ async function waitReady(port) {
   const gatewayPort = 39180;
   await listen(secure, securePort);
   await listen(internet, internetPort);
-  const gateway = spawn(process.execPath, [path.join(__dirname, '..', 'scripts', 'auth_proxy.js')], {
+  const gateway = spawn(process.execPath, [process.env.DSH_TEST_GATEWAY || path.join(__dirname, '..', 'scripts', 'auth_proxy.js')], {
     env: {
       ...process.env,
       PORT: String(gatewayPort),
       DSH_ALLOW_REGISTRATION: 'false',
+      DSH_OFFLINE_TOKEN_FILE: secureToken,
+      DSH_ONLINE_TOKEN_FILE: internetToken,
       DSH_USER_STORE_PATH: users,
       DSH_USER_SETTINGS_PATH: path.join(root, '.user_settings.json'),
       WORKSPACE_ROOT: root,
@@ -95,6 +110,11 @@ async function waitReady(port) {
 
     const sticky = JSON.parse((await request(gatewayPort, 'GET', '/probe', '', offCookie)).body);
     assert.equal(sticky.backend, 'secure-pool');
+    assert.equal((await request(gatewayPort, 'GET', '/cookie-probe', '', offCookie)).status, 200);
+    fs.writeFileSync(secureToken, 'secure-second'); // Simulate backend restart.
+    const afterRestart = await request(gatewayPort, 'GET', '/cookie-probe', '', offCookie);
+    assert.equal(afterRestart.status, 200, 'Gateway must remint after backend token rotation');
+    assert.equal(JSON.parse(afterRestart.body).backend, 'secure-pool');
     console.log('environment routing and session stickiness tests passed');
   } finally {
     gateway.kill();

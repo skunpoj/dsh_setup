@@ -14,6 +14,7 @@ const USER_ROOT = process.env.WORKSPACE_ROOT || '/workspace/users';
 const USER_STORE_PATH = process.env.DSH_USER_STORE_PATH || `${USER_ROOT}/.user_auth.json`;
 const USER_SETTINGS_PATH = process.env.DSH_USER_SETTINGS_PATH || `${USER_ROOT}/.user_settings.json`;
 const COOKIE_NAME = process.env.DSH_COOKIE_NAME || 'dsh_auth';
+const COOKIE_TRANSPORT = process.env.DSH_COOKIE_SECURE === 'false' ? '' : '; Secure';
 
 // A gateway can route an authenticated session to a dedicated execution pool.
 // When these variables are absent the proxy keeps its original single-pod behaviour.
@@ -259,14 +260,15 @@ function forwardWebSocketToLocalApp(targetPort, targetPath, req, socket, head, t
 
 function getOrMintDshCookie(clientHost, target, callback) {
   const cacheKey = `${target.name}|${target.host}|${target.port}|${clientHost}`;
-  const existing = cachedDshAuthCookies.get(cacheKey);
-  if (existing) {
-    return callback(null, existing);
-  }
   const token = getDshToken(target.tokenFile);
   if (!token) {
+    cachedDshAuthCookies.delete(cacheKey);
     return callback(new Error("No DSH launch token available"));
   }
+  const fingerprint = crypto.createHash('sha256').update(token).digest('hex');
+  const existing = cachedDshAuthCookies.get(cacheKey);
+  if (existing?.fingerprint === fingerprint) return callback(null, existing.cookie);
+  cachedDshAuthCookies.delete(cacheKey);
   const authReq = http.request({
     host: target.host,
     port: target.port,
@@ -280,7 +282,7 @@ function getOrMintDshCookie(clientHost, target, callback) {
       for (const sc of setCookies) {
         if (sc.startsWith("dsh-auth-")) {
           mintedCookie = sc.split(";")[0];
-          cachedDshAuthCookies.set(cacheKey, mintedCookie);
+          cachedDshAuthCookies.set(cacheKey, { fingerprint, cookie: mintedCookie });
           console.log(`[AUTH-PROXY] Successfully minted and cached upstream DSH cookie for authority ${clientHost}`);
           break;
         }
@@ -391,7 +393,6 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login · DeepSeek Harness (DSH) — Enterprise AI Platform</title>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary-navy: #0F4C81;
@@ -727,9 +728,9 @@ const server = http.createServer((req, res) => {
         const target = getEnvironmentTarget(internet, username);
         getOrMintDshCookie(clientHost, target, (err, dshCookie) => {
           const domainAttr = getCookieDomain();
-          const cookieHeaders = [`${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${domainAttr}`];
+          const cookieHeaders = [`${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${domainAttr}${COOKIE_TRANSPORT}`];
           if (dshCookie) {
-            cookieHeaders.push(`${dshCookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+            cookieHeaders.push(`${dshCookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${COOKIE_TRANSPORT}`);
           }
           res.writeHead(302, {
             'Set-Cookie': cookieHeaders,
@@ -845,7 +846,7 @@ const server = http.createServer((req, res) => {
     }
     const domainAttr = getCookieDomain();
     res.writeHead(302, {
-      'Set-Cookie': `${COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${domainAttr}`,
+      'Set-Cookie': `${COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${domainAttr}${COOKIE_TRANSPORT}`,
       'Location': '/login'
     });
     return res.end();
