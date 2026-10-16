@@ -84,9 +84,14 @@ def main():
         if x['model_name'] in ['deepseek-v4.1-flash', 'deepseek-flash']]
     for model in config['model_list']:
         model.setdefault('model_info', {})['max_input_tokens'] = 1048576
-    config['litellm_settings']['callbacks'] = ['long_context_callbacks.proxy_handler_instance']
+        model['litellm_params']['api_base'] = 'http://127.0.0.1:4001/v1'
+    config['litellm_settings']['callbacks'] = ['gateway_output_guard.proxy_handler_instance']
     apply({'apiVersion': 'v1', 'kind': 'ConfigMap', 'metadata': {'name': name},
         'data': {'config.yaml': yaml.safe_dump(config),
+                 'custom_callbacks.py': cm['data']['custom_callbacks.py'],
+                 'gateway_output_guard.py': (ROOT/'scripts/gateway_output_guard.py').read_text(),
+                 'context_forwarder.py': (ROOT/'scripts/context_forwarder.py').read_text(),
+                 'context_envelope.py': (ROOT/'scripts/context_envelope.py').read_text(),
                  'long_context_callbacks.py': (ROOT/'scripts/long_context_callbacks.py').read_text()}})
     original = json.loads(kube('get', 'deploy', 'litellm', '-o', 'json'))
     spec = copy.deepcopy(original['spec']['template']['spec'])
@@ -98,6 +103,16 @@ def main():
     for field in ['startupProbe', 'readinessProbe', 'livenessProbe']:
         container.pop(field, None)
     container['env'].append({'name': 'PYTHONPATH', 'value': '/etc/litellm'})
+    spec['containers'].append({'name': 'context-forwarder', 'image': container['image'],
+        'command': ['python', '-m', 'uvicorn', 'context_forwarder:app', '--app-dir', '/etc/litellm',
+                    '--host', '127.0.0.1', '--port', '4001'],
+        'env': [{'name': 'PYTHONPATH', 'value': '/etc/litellm'}, {'name': 'HOME', 'value': '/tmp'},
+                {'name': 'DSH_CAPTURE_SYNTHETIC_ENVELOPE', 'value': '1'}],
+        'securityContext': {'runAsUser': 10001, 'runAsGroup': 10001, 'runAsNonRoot': True,
+            'allowPrivilegeEscalation': False, 'capabilities': {'drop': ['ALL']}},
+        'volumeMounts': [{'name': 'config', 'mountPath': '/etc/litellm', 'readOnly': True}],
+        'resources': {'requests': {'cpu': '250m', 'memory': '256Mi'},
+                      'limits': {'cpu': '2', 'memory': '2Gi'}}})
     apply({'apiVersion': 'networking.k8s.io/v1', 'kind': 'NetworkPolicy', 'metadata': {'name': name},
         'spec': {'podSelector': {'matchLabels': {'app': name}}, 'policyTypes': ['Ingress'],
         'ingress': [{'from': [{'podSelector': {'matchLabels': {'app': 'dsh-1m-canary'}}}],

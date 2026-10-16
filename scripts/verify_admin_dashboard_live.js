@@ -18,7 +18,7 @@ const request=(method,path,body='',cookie='',extra={})=>new Promise((resolve,rej
   const page=await request('GET','/admin','',adminCookie);assert.equal(page.status,200);assert(page.text.includes('DSH Admin overview'));
   const api=await request('GET','/api/admin/summary','',adminCookie);assert.equal(api.status,200);const summary=JSON.parse(api.text);
   const saved=JSON.parse(fs.readFileSync('/admin-status/summary.json','utf8'));
-  assert.equal(summary.snapshot.observedAt,saved.observedAt);assert.equal(summary.snapshot.model.userContext,131072);
+  assert.equal(summary.snapshot.observedAt,saved.observedAt);assert.equal(summary.snapshot.model.userContext,saved.model.userContext);
   assert.equal(summary.snapshot.environments.length,4);assert.equal(summary.privateUserRouting,false);
   assert.equal(api.headers['cache-control'],'no-store');
   assert.equal((await request('GET','/api/admin/summary','',userCookie,{'x-dsh-user':admin,'x-dsh-role':'admin'})).status,403);

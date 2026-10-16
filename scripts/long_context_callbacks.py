@@ -24,17 +24,27 @@ MODELS = {'deepseek-v4.1-flash', 'deepseek-flash'}
 TOKENIZER = os.environ.get('DSH_TOKENIZER_URL',
     'http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1/tokenize')
 WARM_STEP = 2048
+CACHE_PROBE_SECONDS = 2
 
 
-def count_request(data):
+class CacheProbeMiss(TimeoutError):
+    """The bounded cache probe was cold and its own request was aborted."""
+
+
+def count_request(data, final_envelope=False):
     allowed = ('messages', 'tools', 'tool_choice', 'reasoning_effort',
                'continue_final_message', 'chat_template_kwargs')
-    payload = {k: data[k] for k in allowed if k in data}
+    payload = dict(data) if final_envelope else {k: data[k] for k in allowed if k in data}
+    if final_envelope:
+        # Tokenization has no streaming transport. Preserve every conditioning
+        # field from the final wire payload, excluding only SSE output controls.
+        payload['stream'] = False
+        payload.pop('stream_options', None)
     payload['model'] = 'deepseek-v4.1-flash'
     req = urllib.request.Request(TOKENIZER, data=json.dumps(payload).encode(),
         headers={'Content-Type': 'application/json'})
     try:
-        with urllib.request.urlopen(req, timeout=120) as response:
+        with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(req, timeout=120) as response:
             result = json.load(response)
     except urllib.error.HTTPError as error:
         # Debug only validation locations/types, never the rejected input.
@@ -58,13 +68,31 @@ def count_request(data):
     return result
 
 
-def warm_prefix(ids):
+def warm_prefix(ids, timeout=15):
+    rid = 'dsh-warm-'+uuid.uuid4().hex
+    base = TOKENIZER.removesuffix('/v1/tokenize')
     request = urllib.request.Request(TOKENIZER.removesuffix('/v1/tokenize')+'/generate',
-        data=json.dumps({'input_ids': ids,
+        data=json.dumps({'input_ids': ids, 'rid': rid,
             'sampling_params': {'max_new_tokens': 1, 'temperature': 0}}).encode(),
         headers={'Content-Type': 'application/json'})
-    with urllib.request.urlopen(request, timeout=120) as response:
-        result = json.load(response)
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    try:
+        with opener.open(request, timeout=timeout) as response:
+            result = json.load(response)
+    except BaseException as error:
+        aborted = False
+        try:
+            abort = urllib.request.Request(base+'/abort_request',
+                data=json.dumps({'rid': rid}).encode(), headers={'Content-Type': 'application/json'})
+            with opener.open(abort, timeout=5) as reply:
+                aborted = reply.status == 200
+        except Exception:
+            pass
+        if isinstance(error, TimeoutError):
+            if aborted:
+                raise CacheProbeMiss('Cold prefix probe cancelled') from error
+            raise RuntimeError('Warm request cancellation not acknowledged; stop escalation') from error
+        raise
     return result['meta_info']
 
 
@@ -84,6 +112,18 @@ class LongContextGuard(CustomLogger):
         previous = 0
         steps = 0
         start = time.monotonic()
+        if CACHE_PROBE_SECONDS:
+            try:
+                meta = await asyncio.to_thread(warm_prefix, ids, CACHE_PROBE_SECONDS)
+            except CacheProbeMiss:
+                pass
+            else:
+                if meta.get('prompt_tokens') != len(ids):
+                    raise RuntimeError('Unexpected cache-probe token usage')
+                return {'steps': 1, 'tokens': len(ids), 'mode': 'bounded-cache-probe',
+                    'cachedTokens': meta.get('cached_tokens'),
+                    'seconds': round(time.monotonic()-start, 3),
+                    'probeSeconds': CACHE_PROBE_SECONDS}
         for end in range(WARM_STEP, len(ids)+WARM_STEP, WARM_STEP):
             end = min(end, len(ids))
             meta = await asyncio.to_thread(warm_prefix, ids[:end])
@@ -94,7 +134,8 @@ class LongContextGuard(CustomLogger):
             steps += 1
             await asyncio.sleep(.05)
         return {'steps': steps, 'tokens': len(ids),
-                'seconds': round(time.monotonic()-start, 3), 'stepTokens': WARM_STEP}
+                'seconds': round(time.monotonic()-start, 3), 'stepTokens': WARM_STEP,
+                'mode': 'chunked-prefix-warming', 'probeSeconds': CACHE_PROBE_SECONDS}
 
     async def acquire(self, key):
         os.makedirs('/tmp/dsh-long-admission', mode=0o700, exist_ok=True)
@@ -129,7 +170,9 @@ class LongContextGuard(CustomLogger):
             return data
         model = str(data.get('model', '')).removeprefix('openai/')
         if model not in MODELS:
-            return data
+            # Preserve the existing limits on unrelated production routes.
+            from custom_callbacks import proxy_handler_instance as legacy
+            return await legacy.async_pre_call_hook(user_api_key_dict, cache, data, call_type)
         if not isinstance(data.get('messages'), list) or not data['messages']:
             raise HTTPException(400, 'This route requires Chat Completions messages.')
         if 'input' in data or 'max_output_tokens' in data:

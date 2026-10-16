@@ -64,9 +64,23 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(Rejected):
             await self.request(input='unrecognized')
 
+    async def test_unrelated_model_retains_the_existing_guard(self):
+        calls = []
+        class Legacy:
+            async def async_pre_call_hook(self, user, cache, data, call_type):
+                calls.append(data['model'])
+                return {**data, 'max_tokens': 8192}
+        legacy = types.ModuleType('custom_callbacks')
+        legacy.proxy_handler_instance = Legacy()
+        with patch.dict(sys.modules, {'custom_callbacks': legacy}):
+            result = await self.request(model='unrelated-model', max_tokens=65536)
+        self.assertEqual(calls, ['unrelated-model'])
+        self.assertEqual(result['max_tokens'], 8192)
+
     async def test_warming_yields_between_bounded_prefix_extensions(self):
         guard = self.scope['LongContextGuard']()
         self.scope['WARM_STEP'] = 1024
+        self.scope['CACHE_PROBE_SECONDS'] = 0
         lengths = []
         def warm(ids):
             previous = lengths[-1] if lengths else 0
@@ -80,6 +94,7 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
     async def test_cache_loss_stops_warming_without_monolithic_fallback(self):
         guard = self.scope['LongContextGuard']()
         self.scope['WARM_STEP'] = 1024
+        self.scope['CACHE_PROBE_SECONDS'] = 0
         lengths = []
         def warm(ids):
             lengths.append(len(ids))
@@ -88,6 +103,17 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(RuntimeError, 'evicted'):
             await guard.warm([0]*8000)
         self.assertEqual(lengths, [1024, 2048])
+
+    async def test_hot_prefix_uses_one_bounded_probe_instead_of_rewarming(self):
+        guard = self.scope['LongContextGuard']()
+        calls = []
+        def warm(ids, timeout):
+            calls.append((len(ids), timeout))
+            return {'cached_tokens': len(ids), 'prompt_tokens': len(ids)}
+        self.scope['warm_prefix'] = warm
+        result = await guard.warm([0]*2500)
+        self.assertEqual(calls, [(2500, 2)])
+        self.assertEqual(result['mode'], 'bounded-cache-probe')
 
     @unittest.skipIf(os.name == 'nt', 'POSIX process-shared lease')
     async def test_warmup_failure_releases_admission(self):

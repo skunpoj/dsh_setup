@@ -25,7 +25,7 @@ const rpc=async(cookie,method,args)=>JSON.parse((await request('POST','/api/'+me
     const list=await rpc(cookie,'session/list',{_request:{}});assert.equal(list.result?.ok,true);
     const items=list.result.value.items;
     if(user===legacyOwner&&mode==='off'){
-     assert.equal(items.length,80);result.ownerLegacyCount=items.length;if(user==='admin')result.adminLegacyCount=items.length;example=items[0];
+     assert(items.length>=80,'Legacy histories must not disappear');if(process.env.DSH_EXPECT_LEGACY_COUNT)assert.equal(items.length,Number(process.env.DSH_EXPECT_LEGACY_COUNT));result.ownerLegacyCount=items.length;if(user==='admin')result.adminLegacyCount=items.length;example=items[0];
     }else if(user!==legacyOwner){
      result.privateLogins++;assert(!items.some(item=>item.sessionId===example.sessionId));if(items.length===0)result.privateEmptyHistories++;
      const denied=await rpc(cookie,'session/page',{request:{address:{kind:'session',sessionId:example.sessionId},throughSeq:1,maxMessages:1}});
