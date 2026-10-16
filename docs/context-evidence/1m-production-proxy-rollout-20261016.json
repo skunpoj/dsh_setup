@@ -1,0 +1,16 @@
+{
+  "configMap": "litellm-1m-bba10690b718",
+  "image": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+  "context": 1048576,
+  "output": 8192,
+  "sha256": "bba10690b718b616259ca92a39c4fb2198a8e5918e2b2f74e0ad2be235eac68e",
+  "loopbackOnly": true,
+  "productionCaptureEnabled": false,
+  "deployed": true,
+  "actualInference": {
+    "exact": true,
+    "seconds": 1.469,
+    "endpointOverrideRejected": true
+  },
+  "note": "Actual inference and endpoint-override rejection passed; DSH profile rollout is separate."
+}

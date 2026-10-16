@@ -1,116 +1,84 @@
-# End-to-end 1M rollout: implementation and actual acceptance
+# End-to-end DSH 1M — Rollout and Engineering Experience
 
-## Why the previous request was incomplete
+## Requirement and correction
 
-The model server was configured for 1,048,576 tokens, but the production
-LiteLLM callback and DSH web profiles remained at 131,072. Earlier backend
-tests did not finish the requested product rollout. The 128K stress test is
-valid for that route; it does not establish DSH 1M operation.
+The requirement was usable 1M context through DSH, LiteLLM and DeepSeek-V4.1-Flash on the existing single four-H100 node. Earlier backend-only success left DSH/LiteLLM at 128K and did not finish that requirement. The previous candidate checkpoint is retained in [its historical file](ONE_M_CANDIDATE_CHECKPOINT_20261016.md); it is not the current status.
 
-## Candidate implementation
+All 20 main private runtimes have now been upgraded to the qualified image and scoped transport, with 1,048,576 context and 8,192 output in both aliases. Actual imageIDs, numerical profiles, inference origins and owner/admin compositions were checked. The final cold request passed at 1,007,689 input tokens without retries, followed by a real tool continuation above one million tokens. The earlier successful runs and failures remain documented as engineering history; they are not presented as the final acceptance.
 
-`DSH 1M canary → LiteLLM 1M canary → existing four-H100 SGLang server`
+## Final acceptance
 
-The canaries have no real user workspace/history mounts and are not selected
-by the production Services. The existing inference-only Secret reference is
-used inside Kubernetes. Credentials are not exported. NetworkPolicies deny
-unsolicited ingress and restrict the DSH candidate to its inference candidate.
+The final managed-transport cold test completed with **1,007,689 input + 8 output tokens in 1,170.08 seconds**, exact persisted response, **zero retries and unchanged model pod/restart count**. A same-session real write/read continuation passed at **1,008,103 input tokens in 20.16 seconds**, with actual file content/hash checked and marker removed. This qualifies the recorded application workflow, not only a backend API call.
 
-The candidate guard calls the running backend's `/v1/tokenize` endpoint with
-messages, tools and template options. It requires the returned 1M model limit,
-counts the actual envelope, normalizes output-limit aliases, caps output at
-8,192 and keeps 256 tokens in reserve. Counting failure rejects dispatch.
-This is not a character estimate. Unsupported request shapes fail explicitly.
+The cold run logged **1,460 recovering allocator mapping warnings**. Their minimum reported free memory was **9.75 MiB**, against a 20 MiB mapping attempt. Checked fatal exception signatures remained zero and requests continued. A late actual admin DSH reply after warnings took 6.03s. Memory remains tightly constrained; this is not arbitrary large-concurrency or full-output acceptance. Preserve that limitation alongside the passing result.
 
-One request above 128K is admitted at a time. A process-shared lease is held
-until response/stream completion, cancellation or failure. Short requests do
-not acquire that lease. The waiting deadline is 300 seconds; exhaustion
-returns a retryable 429. This policy requires one gateway replica; it is not a
-distributed admission controller. It does not guarantee latency for cold
-DSH requests whose tool/system prefix itself needs chunked prefill.
+[Final cold summary](context-evidence/final-managed-1m-acceptance-summary-20261016.json) · [Actual near-1M tools](context-evidence/final-managed-1m-tool-continuation-20261016.json) · [Running image/config provenance](context-evidence/final-managed-1m-runtime-provenance-20261016.json).
 
-The candidate web profile declares 1,048,576 context and 8,192 output.
-Automatic compaction is configured at ratio 0.875, with 65,536 headroom and an
-8,192 summary budget. The normal calculated threshold is 917,504 estimated
-tokens. Actual manual/automatic compaction and persisted replies must still
-be tested; configured values alone do not establish those behaviors.
+## What failed and what changed
 
-## Failed trial preserved
+| Experiment | Actual observation | Resulting decision |
+|---|---|---|
+| Older 0.92 allocation / roughly 262K | CUDA OOM despite apparent cache capacity | KV slots alone omit temporary attention workspace; retain 0.90 and small prefill chunks |
+| Current V2, 512K | Scheduler assertion `self.chunked_req is None`; shared model restarted | V3 enforces one chunk owner; do not describe this as an OOM |
+| V3 uninterrupted 512K | 512,047 input passed in 378.31s, but real DSH short call waited 368.72s | Tiny API probes do not establish DSH responsiveness; prepare long prefixes incrementally |
+| Early pre-call warming, 500K | Warmup completed but final chat had zero cached tokens and repeated full prefill | Move counting/warming to the final outgoing envelope; stop and preserve failed trial |
+| Final-envelope comparison | Tokenizer materialized `strict:false` in 26 tools and `continue_final_message:false`; chat did not | Normalize these defaults on both paths, preserving explicit values |
+| Exact-ID proof | Raw counts 7,689 vs 7,561 differed; normalized IDs matched SHA256 `b254121d0c687c74ecc44384dcbb57e11af6735ffffe31ae51b2012f55ab9f6f` and reused 7,680 cached tokens | Verify all IDs, not just equal counts or a successful request |
+| Normalized DSH 257K | 257,684 input passed in 108.26s; follow-up 257,738 input passed in 2.04s | Bounded cache probe supports fast continuation |
+| Actual DSH near 1M | 1,007,688 input passed after 1,132.09s and three automatic timeout retries | Context acceptance succeeded; transport retries require separate correction/testing |
 
-The first current-scheduler candidate test returned the required response for
-256,046 input tokens in 113.638 seconds. Three short replies completed during
-the request in 0.477–1.094 seconds. The subsequent 512K stage failed and the
-shared model process restarted at 13:07:43 UTC. The test stopped before 1M.
+The V3 scheduler guards the *single chunked-prefill owner*, not all concurrency. Complete fitting short prefills remain admissible. It rejects changed upstream source hashes. The current scheduler file readback is `f87e90c04cf01f2a5cbf4921a0fd57b9b21bb65acfe5fceeceadecf076ad448e`.
 
-The failure was a scheduler assertion, not an observed CUDA OOM. The pinned
-`PrefillAdder.add_one_req` accepts `has_chunked_req` but could nevertheless
-create another chunked request from V2's reserved interactive budget. The
-scheduler then asserted `self.chunked_req is None` while a long prompt still
-owned that slot. The raw failure and completed measurements are preserved in
-[the stopped trial](context-evidence/current-1m-canary-20261016.json).
+## Transport and restart findings
 
-The V3 guard defers the second chunked branch through upstream cleanup. A
-complete short prefill that fits the available budget is still admitted.
-Actual pinned-method branch execution reproduced the original second-owner
-decision and verified deferred long, admitted short, initial long admission,
-and refusal when the pinned source hash changes. These are isolated admission
-tests, not GPU or end-to-end acceptance.
+The first successful actual DSH runs retried at the five-minute boundary. A delayed synthetic endpoint reproduced it despite one-hour DSH/provider settings. Installed Undici source supplies 300-second header/body defaults; a scoped dispatcher override makes the managed internal inference origin's waits one hour while preserving other origins and caller cancellation. The actual delayed-response retest returned the expected persisted answer after 316.59 seconds with zero retries. It consumed no GPU inference and is labelled as transport evidence.
 
-[Branch test](context-evidence/chunk-owner-unit-20261016.json) ·
-[mounted source hash](context-evidence/chunk-owner-mounted-20261016.json) ·
-[Linux guard lifecycle tests](context-evidence/long-context-guard-linux-unit-20261016.json)
+The first profile-backup init also needed repeat-start handling. It now verifies an existing rollback copy rather than refusing or overwriting it. All 20 runtime replacements loaded the qualified transport source and preserved 40 workspace/attachment markers. Rollback retains this independent startup repair while removing the optional transport overlay. Actual session files and central mounts remain unchanged.
 
-## Rollback and acceptance gates
+Completed synthetic candidates were removed after a new test pod hit CPU admission limits on the single node. Only named disposable pods were deleted; no user runtime, model or data volume was removed. The final managed canary was then admitted normally.
 
-### Current V3 and cache results
+## Final request path
 
-After the guard was installed, the ordinary production route returned the
-exact sequence in 3.683 seconds. The isolated DSH agent also completed a real
-authenticated request, persisted its exact assistant reply, reported 7,561
-input tokens including its normal system/tools, and declared the composed
-1,048,576 context. This small request does not establish large-context use.
+DSH authenticates normally and sends its model request to LiteLLM. Existing inference-only keys remain inside their runtimes. Canonical DeepSeek requests pass through an output-alias guard and a loopback-only proxy. Other model routes retain their previous configuration.
 
-The uninterrupted V3 trial then completed **512,047 input tokens in 378.306
-seconds**, with three tiny API probes in 0.617–0.899 seconds and no model
-restart. However, a real DSH request with 7,560 input tokens waited **368.715
-seconds**. A scheduler lane for <=512 uncached tokens does not by itself keep
-cold DSH requests interactive. This failed product-responsiveness condition
-is retained explicitly, rather than hidden by the successful tiny probes.
+The loopback proxy normalizes backend defaults, calls the running SGLang tokenizer with messages/tool schemas/template options, and requires valid token IDs and a 1M model limit. Counting errors fail closed. It caps output at 8,192 and reserves 256 tokens. Unsupported shapes do not silently bypass counting; multimodal requests above 128K are rejected. Backend endpoints and request IDs are managed, not chosen by user text.
 
-An additional synthetic prefix-cache test reused 8,192 tokens in the next
-16,384-token call, then reused 16,384 in the 24,611-token call. A final Chat
-Completions call using that same prompt returned exactly `CACHE_WARM_OK` in
-0.286 seconds. This establishes cache feasibility, not full 1M acceptance.
+Requests above 128K acquire one process-shared lease. A two-second probe checks cached context. A cold miss is aborted by its owned request ID; the prefix is then extended in 2,048-token steps with yields between them. Reuse is checked after each extension. Temporary one-token completions are discarded and never executed or persisted as model answers. Cache loss, timeout or failed handoff stops the request rather than repeating a blocking monolithic prefill. Ordinary requests do not acquire the long lease.
 
-The revised candidate therefore warms the original tokenized prompt through
-completed **2,048-token extensions**, discarding each intermediate one-token
-output and yielding between calls. The final unmodified chat request reuses
-the computed prefix. No intermediate text is executed as a tool or inserted
-into history. Cache reuse is checked after every step; loss stops the warmup
-without a monolithic retry. One outstanding small step may finish after
-client cancellation; the remaining loop stops. Warming consumes additional
-internal model calls and is separate from user-visible output throughput.
+The final request uses the same conditioning envelope whose IDs were prepared. Streaming handoff has a first-content deadline; cleanup closes connections, aborts only owned work and releases the lease. For non-streaming clients, the same guarded internal stream is assembled into JSON. The actual 140,018-token non-streaming test returned the exact answer in 44.99 seconds.
 
-In the first warmed-256K run, a real cold DSH request completed in **4.052
-seconds** while the longer candidate remained active. Completion of the long
-run, larger warmed inputs, compaction and deployment are still pending at
-this source checkpoint. The new image source declares 1M; production users
-continue on the previous image and 128K policy until acceptance passes.
+One gateway replica owns admission. Scaling replicas requires distributed ownership; independent locks would not enforce a shared long-request limit. The measured pool is 1,179,648 slots, so two full 1M contexts are not promised. The backend cap remains 16 for ordinary traffic.
 
-[V3 512K trial](context-evidence/current-1m-v3-512k-20261016.json) ·
-[DSH wait during that trial](context-evidence/dsh-1m-agent-during-512k-20261016.json) ·
-[prefix-cache feasibility](context-evidence/prefix-warming-feasibility-20261016.json) ·
-[DSH reply during warmed work](context-evidence/dsh-agent-during-warmed-256k-20261016.json)
+## Acceptance and preserved data
 
-The pre-change model Deployment and original scheduler ConfigMap are retained
-privately in `outputs/rollback-chunk-guard-20261016`. The original ConfigMap
-has not been overwritten. No user histories or workspace files are migrated.
-The production DSH/LiteLLM 128K route remains unchanged while candidates are
-qualified. The model arguments remain 1M, memory 0.90, running cap 16,
-prefill chunk 1,024, maximum prefill 2,048 and decode interval four.
+The runtime image from Azure build 62773 is `dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3`. Its startup and policy files match source checkpoint `e796655` / Azure `c20b310`. Later proxy/docs sources do not imply that a different runtime image is deployed.
 
-Acceptance requires an actual ordinary inference response after recovery,
-progressive current-profile large requests, persisted DSH assistant replies
-with returned token usage, tool execution, compaction, short-request latency
-during long work, and post-test recovery/absence of new model errors.
-Do not label the candidate as deployed end-to-end 1M until those gates pass.
+The initial proxy/runtime checkpoint was GitHub `81717b4` / Azure `b5bcb3d`. The managed transport/restart repair is `621ae55` / `5f4d76f`; final probe/marker sources are `e3867bb` / `4f61bdd`. Immutable configuration and live source hashes bind the running proxy independently of the runtime-image build. The controlled rollout requires Recreate and one writer, preserves all volumes/mounts and backs up the original profile within each user's private PVC. Rollback restores that profile before the old image; existing user content is not overwritten.
+
+Post-restart checks verified all mapped private login/logout paths, 16 denials of owner histories to other users, non-admin dashboard denial and visible fixed-schema audit. `thanatcc` still lists 80 histories; all 87 files captured immediately before this upgrade remained byte-identical. A workspace marker survived and was removed. Owner/admin actual terminal WebSockets executed as UID 10001 in both environments. No account ownership or DA_WORKSPACE path changed.
+
+Automatic compaction uses ratio 0.875 and the plugin's pressure budget, normally 917,504 estimated tokens, with 65,536 headroom and 8,192 summary output. A disposable lower-threshold fixture exercised the actual automatic path: summary persisted, the verification code survived, recall succeeded and the end record had no error. This does not establish every historical session's recovery or a near-1M summary's fidelity.
+
+## Performance interpretation
+
+During the first near-1M run, two real DSH short calls finished in 4.03/6.04s. During the production follow-up, two finished in 4.03/4.04s. Concurrent API output during long work was 16.01 aggregate tokens/sec at two requests and 27.10 at four. Exact output matched and the model did not restart. These are bounded samples and output slows under long load.
+
+The final managed mixed sample was slower: two actual DSH calls took 6.04/8.04s, and aggregate API output was 8.98 tokens/sec at two requests and 15.51 at four. The owned long test remained active before and after. These results are included alongside the earlier faster sample; throughput varies with long-prefill work.
+
+The older 105-response stress test belongs to the 128K product baseline. Its 16-request throughput must not be represented as 16 concurrent 1M capability. Cold prefill latency, output decode rate, aggregate throughput and short-answer latency measure different things; a tiny eight-token long-context answer is not a useful sustained decode benchmark.
+
+## Evidence and reproduction
+
+- [Current DSH near-1M record](context-evidence/dsh-final-wire-near-1m-20261016.json)
+- [Tokenizer IDs and cache proof](context-evidence/tool-default-exact-ids-and-cache-20261016.json)
+- [Failed 500K trial](context-evidence/dsh-warmed-500k-20261016.json)
+- [Real write/read tool acceptance](context-evidence/final-wire-tool-acceptance-20261016.json)
+- [Non-streaming and endpoint rejection](context-evidence/final-wire-api-acceptance-20261016.json)
+- [Automatic compaction fixture](context-evidence/dsh-automatic-compaction-fixture-20261016.json)
+- [Production mixed traffic](context-evidence/production-1m-mixed-concurrency-20261016.json)
+- [Owner/admin composed profiles](context-evidence/1m-composed-owner-admin-profiles-20261016.json)
+- [Private access after rollout](context-evidence/1m-private-login-history-access-20261016.json)
+- [Legacy persistence](context-evidence/1m-runtime-legacy-persistence-20261016.json)
+- [Image content/source readback](context-evidence/runtime-1m-image-content-20261016.json)
+
+Run probes only in the named disposable test pods, with fresh output filenames and stopped escalation on actual failures. A stress probe consumes the shared service. The detailed setup, rollback procedure, limits and current final results are in [the LLM guide](LLM_SETUP_AND_TEST_RESULTS.html). Prior failures are preserved; configuration, local tests, actual deployment and full user-facing behavior remain distinct evidence categories.

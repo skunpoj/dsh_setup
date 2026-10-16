@@ -1,0 +1,68 @@
+{
+  "sessionId": "session-0cfa2529-f345-4390-923c-30537e00dfb9",
+  "inputTarget": 0,
+  "inputSha256": "e2e8940910daadc0111dd6416ecb9b38579996d1044190d5174deb8e0d07f469",
+  "inputBytes": 239,
+  "expected": "DSH_TOOL_CONTEXT_OK",
+  "inputSpecification": {
+    "nonce": "af0d46b0889d4f2b96c375c1beb46e9a",
+    "filler": " a b c d",
+    "repeats": 0,
+    "suffix": "\nReply exactly DSH_TOOL_CONTEXT_OK. Do not use tools."
+  },
+  "startUTC": "2026-10-16T13:39:17.473655+00:00",
+  "catalogModels": [
+    {
+      "id": "deepseek-v4.1-flash",
+      "name": "DeepSeek-V4.1-Flash (1M CED MoE)",
+      "description": "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)",
+      "inputModalities": [
+        "text",
+        "image"
+      ]
+    },
+    {
+      "id": "deepseek-flash",
+      "name": "DeepSeek-Flash (V4.1-Flash Alias)",
+      "description": "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
+      "inputModalities": [
+        "text",
+        "image"
+      ]
+    }
+  ],
+  "events": [],
+  "projection": {
+    "contextPressure": {
+      "contextWindow": 1048576
+    },
+    "sessionStats": {
+      "turns": 0,
+      "steps": 0,
+      "llmMs": 0,
+      "toolMs": 0,
+      "ttftMs": 0,
+      "ttftSteps": 0,
+      "decodeMs": 0,
+      "decodeTokens": 0
+    },
+    "tokenUsage": {
+      "uncachedInputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "modelSelection": {
+      "lastUsed": {
+        "provider": "litellm-cluster",
+        "model": "deepseek-v4.1-flash"
+      },
+      "next": {
+        "provider": "litellm-cluster",
+        "model": "deepseek-v4.1-flash"
+      }
+    }
+  },
+  "elapsedSeconds": 120.2294,
+  "finished": false
+}

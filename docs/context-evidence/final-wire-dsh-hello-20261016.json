@@ -1,0 +1,476 @@
+{
+  "sessionId": "session-8b5a1593-c43c-45eb-b74f-8dddf9545a1a",
+  "inputTarget": 0,
+  "inputSha256": "125be4b114a071cafe76cc1d522a6607202534eef719e10424c15113d65e7ff6",
+  "inputBytes": 113,
+  "expected": "DSH_LONG_CONTEXT_OK",
+  "inputSpecification": {
+    "nonce": "92c8cd027e3e4f5587510565fd07c079",
+    "filler": " a b c d",
+    "repeats": 0,
+    "suffix": "\nReply exactly DSH_LONG_CONTEXT_OK. Do not use tools."
+  },
+  "startUTC": "2026-10-16T13:47:56.335420+00:00",
+  "catalogModels": [
+    {
+      "id": "deepseek-v4.1-flash",
+      "name": "DeepSeek-V4.1-Flash (Verified 128K CED MoE)",
+      "description": "Primary in-cluster model with a verified 128K context window (Vision + Tool-Use)",
+      "inputModalities": [
+        "text",
+        "image"
+      ]
+    },
+    {
+      "id": "deepseek-flash",
+      "name": "DeepSeek-Flash (V4.1-Flash Alias)",
+      "description": "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
+      "inputModalities": [
+        "text",
+        "image"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "type": "assistant/attempt",
+      "seq": 14,
+      "time": 1792158480855,
+      "data": {
+        "turn": 1,
+        "step": 1,
+        "stream": [
+          {
+            "type": "chunk",
+            "time": 1792158480852,
+            "chunk": {
+              "type": "usage",
+              "usage": {
+                "inputTokens": 0,
+                "outputTokens": 0,
+                "totalTokens": 0
+              }
+            }
+          },
+          {
+            "type": "chunk",
+            "time": 1792158480854,
+            "chunk": {
+              "type": "finish",
+              "reason": {
+                "kind": "error",
+                "failure": {
+                  "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+                  "code": "SERVER"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "llm/retry",
+      "seq": 15,
+      "time": 1792158480856,
+      "data": {
+        "retryId": "b65fa382-94e0-4952-9591-3d760013e617",
+        "turn": 1,
+        "step": 1,
+        "provider": "litellm-cluster",
+        "mode": "normal",
+        "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+        "retry": 1,
+        "maxRetries": 5,
+        "delayMs": 473.55121835779363,
+        "failure": {
+          "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+          "code": "SERVER"
+        }
+      }
+    },
+    {
+      "type": "llm/retry-started",
+      "seq": 16,
+      "time": 1792158481329,
+      "data": {
+        "retryId": "b65fa382-94e0-4952-9591-3d760013e617",
+        "turn": 1,
+        "step": 1,
+        "retry": 1
+      }
+    },
+    {
+      "type": "assistant/attempt",
+      "seq": 17,
+      "time": 1792158486225,
+      "data": {
+        "turn": 1,
+        "step": 1,
+        "stream": [
+          {
+            "type": "chunk",
+            "time": 1792158486223,
+            "chunk": {
+              "type": "usage",
+              "usage": {
+                "inputTokens": 0,
+                "outputTokens": 0,
+                "totalTokens": 0
+              }
+            }
+          },
+          {
+            "type": "chunk",
+            "time": 1792158486224,
+            "chunk": {
+              "type": "finish",
+              "reason": {
+                "kind": "error",
+                "failure": {
+                  "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+                  "code": "SERVER"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "llm/retry",
+      "seq": 18,
+      "time": 1792158486225,
+      "data": {
+        "retryId": "b65fa382-94e0-4952-9591-3d760013e617",
+        "turn": 1,
+        "step": 1,
+        "provider": "litellm-cluster",
+        "mode": "normal",
+        "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+        "retry": 2,
+        "maxRetries": 5,
+        "delayMs": 1008.4400744992938,
+        "failure": {
+          "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+          "code": "SERVER"
+        }
+      }
+    },
+    {
+      "type": "llm/retry-started",
+      "seq": 19,
+      "time": 1792158487233,
+      "data": {
+        "retryId": "b65fa382-94e0-4952-9591-3d760013e617",
+        "turn": 1,
+        "step": 1,
+        "retry": 2
+      }
+    },
+    {
+      "type": "assistant/attempt",
+      "seq": 20,
+      "time": 1792158492191,
+      "data": {
+        "turn": 1,
+        "step": 1,
+        "stream": [
+          {
+            "type": "chunk",
+            "time": 1792158492190,
+            "chunk": {
+              "type": "usage",
+              "usage": {
+                "inputTokens": 0,
+                "outputTokens": 0,
+                "totalTokens": 0
+              }
+            }
+          },
+          {
+            "type": "chunk",
+            "time": 1792158492191,
+            "chunk": {
+              "type": "finish",
+              "reason": {
+                "kind": "error",
+                "failure": {
+                  "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+                  "code": "SERVER"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "llm/retry",
+      "seq": 21,
+      "time": 1792158492192,
+      "data": {
+        "retryId": "b65fa382-94e0-4952-9591-3d760013e617",
+        "turn": 1,
+        "step": 1,
+        "provider": "litellm-cluster",
+        "mode": "normal",
+        "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+        "retry": 3,
+        "maxRetries": 5,
+        "delayMs": 2049.953205424024,
+        "failure": {
+          "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+          "code": "SERVER"
+        }
+      }
+    },
+    {
+      "type": "llm/retry-started",
+      "seq": 22,
+      "time": 1792158494241,
+      "data": {
+        "retryId": "b65fa382-94e0-4952-9591-3d760013e617",
+        "turn": 1,
+        "step": 1,
+        "retry": 3
+      }
+    },
+    {
+      "type": "assistant/attempt",
+      "seq": 23,
+      "time": 1792158499269,
+      "data": {
+        "turn": 1,
+        "step": 1,
+        "stream": [
+          {
+            "type": "chunk",
+            "time": 1792158499268,
+            "chunk": {
+              "type": "usage",
+              "usage": {
+                "inputTokens": 0,
+                "outputTokens": 0,
+                "totalTokens": 0
+              }
+            }
+          },
+          {
+            "type": "chunk",
+            "time": 1792158499269,
+            "chunk": {
+              "type": "finish",
+              "reason": {
+                "kind": "error",
+                "failure": {
+                  "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+                  "code": "SERVER"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "llm/retry",
+      "seq": 24,
+      "time": 1792158499270,
+      "data": {
+        "retryId": "b65fa382-94e0-4952-9591-3d760013e617",
+        "turn": 1,
+        "step": 1,
+        "provider": "litellm-cluster",
+        "mode": "normal",
+        "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+        "retry": 4,
+        "maxRetries": 5,
+        "delayMs": 4171.219440998525,
+        "failure": {
+          "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+          "code": "SERVER"
+        }
+      }
+    },
+    {
+      "type": "llm/retry-started",
+      "seq": 25,
+      "time": 1792158503441,
+      "data": {
+        "retryId": "b65fa382-94e0-4952-9591-3d760013e617",
+        "turn": 1,
+        "step": 1,
+        "retry": 4
+      }
+    },
+    {
+      "type": "assistant/attempt",
+      "seq": 26,
+      "time": 1792158508287,
+      "data": {
+        "turn": 1,
+        "step": 1,
+        "stream": [
+          {
+            "type": "chunk",
+            "time": 1792158508286,
+            "chunk": {
+              "type": "usage",
+              "usage": {
+                "inputTokens": 0,
+                "outputTokens": 0,
+                "totalTokens": 0
+              }
+            }
+          },
+          {
+            "type": "chunk",
+            "time": 1792158508286,
+            "chunk": {
+              "type": "finish",
+              "reason": {
+                "kind": "error",
+                "failure": {
+                  "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+                  "code": "SERVER"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "llm/retry",
+      "seq": 27,
+      "time": 1792158508288,
+      "data": {
+        "retryId": "b65fa382-94e0-4952-9591-3d760013e617",
+        "turn": 1,
+        "step": 1,
+        "provider": "litellm-cluster",
+        "mode": "normal",
+        "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+        "retry": 5,
+        "maxRetries": 5,
+        "delayMs": 7936.3789335697165,
+        "failure": {
+          "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+          "code": "SERVER"
+        }
+      }
+    },
+    {
+      "type": "llm/retry-started",
+      "seq": 28,
+      "time": 1792158516224,
+      "data": {
+        "retryId": "b65fa382-94e0-4952-9591-3d760013e617",
+        "turn": 1,
+        "step": 1,
+        "retry": 5
+      }
+    },
+    {
+      "type": "assistant/attempt",
+      "seq": 29,
+      "time": 1792158520575,
+      "data": {
+        "turn": 1,
+        "step": 1,
+        "stream": [
+          {
+            "type": "chunk",
+            "time": 1792158520574,
+            "chunk": {
+              "type": "usage",
+              "usage": {
+                "inputTokens": 0,
+                "outputTokens": 0,
+                "totalTokens": 0
+              }
+            }
+          },
+          {
+            "type": "chunk",
+            "time": 1792158520574,
+            "chunk": {
+              "type": "finish",
+              "reason": {
+                "kind": "error",
+                "failure": {
+                  "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+                  "code": "SERVER"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "step/end",
+      "seq": 30,
+      "time": 1792158520576,
+      "data": {
+        "turn": 1,
+        "step": 1
+      }
+    },
+    {
+      "type": "turn/end",
+      "seq": 31,
+      "time": 1792158520576,
+      "data": {
+        "turn": 1,
+        "reason": {
+          "kind": "error",
+          "error": {
+            "message": "503: {\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Final-wire token budgeting unavailable; not dispatched.'}. Received Model Group=deepseek-v4.1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"503\"}",
+            "code": "SERVER"
+          }
+        }
+      }
+    }
+  ],
+  "projection": {
+    "contextPressure": {
+      "pressureTokens": 0,
+      "projectedTokens": 0,
+      "contextWindow": 1048576
+    },
+    "sessionStats": {
+      "turns": 1,
+      "steps": 1,
+      "llmMs": 0,
+      "toolMs": 0,
+      "ttftMs": 0,
+      "ttftSteps": 0,
+      "decodeMs": 0,
+      "decodeTokens": 0
+    },
+    "tokenUsage": {
+      "uncachedInputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "modelSelection": {
+      "lastUsed": {
+        "provider": "litellm-cluster",
+        "model": "deepseek-v4.1-flash"
+      },
+      "next": {
+        "provider": "litellm-cluster",
+        "model": "deepseek-v4.1-flash"
+      }
+    }
+  },
+  "elapsedSeconds": 46.1624,
+  "finished": true,
+  "assistantText": "",
+  "expectedTextPresent": false,
+  "persistedPromptMatches": false,
+  "lastUsage": null
+}

@@ -1,0 +1,11 @@
+{
+  "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+  "sourceCommit": "e7966557685336e24b2c0fbab1caeaf59075fe5a",
+  "filesMatchCommittedBytes": true,
+  "sha256": {
+    "scripts/configure_models.js": "4b12e036e92ee52701fdad51fdbc95f15a5a116bb89b7541baf497cefa9fe183",
+    "scripts/configure_runtime_context.js": "3742c603bcdc0ac9546bcd19c218676724b614e2849cb90d47227814bafba847",
+    "container/start-dsh.sh": "a34f6f6bfbac6f4a3cfa0c68700e8a47135553016d39fbd2d9f3eb7b664eb1fc"
+  },
+  "privateEphemeralState": true
+}

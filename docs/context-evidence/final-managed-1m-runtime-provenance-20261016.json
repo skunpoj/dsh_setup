@@ -1,0 +1,73 @@
+{
+  "observedAtUTC": "2026-10-16T15:04:27.624255+00:00",
+  "productionProxyConfigMap": "litellm-1m-bba10690b718",
+  "immutable": true,
+  "canonicalRoutes": [
+    {
+      "name": "deepseek-v4.1-flash",
+      "api_base": "http://127.0.0.1:4001/v1",
+      "timeout": 3600,
+      "stream_timeout": 3600,
+      "model_info": {
+        "supports_vision": true,
+        "supports_function_calling": true,
+        "supports_tool_choice": true,
+        "max_input_tokens": 1048576,
+        "max_output_tokens": 8192
+      }
+    },
+    {
+      "name": "deepseek-flash",
+      "api_base": "http://127.0.0.1:4001/v1",
+      "timeout": 3600,
+      "stream_timeout": 3600,
+      "model_info": {
+        "supports_vision": true,
+        "supports_function_calling": true,
+        "supports_tool_choice": true,
+        "max_input_tokens": 1048576,
+        "max_output_tokens": 8192
+      }
+    }
+  ],
+  "sourceHashes": {
+    "context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
+    "context_forwarder.py": "cec22210d419e75e74e326c73cde4c7e380a10b217a0eefa375334987d482b71",
+    "custom_callbacks.py": "bb197c01ffa825643815fc4af4fdeb8ebdb4e194c42ed23759c53f3a66e042df",
+    "gateway_output_guard.py": "2ea627b6166fc28d5f2eadf24aa4710d30942642c9302315a807ab5f44567b6b",
+    "long_context_callbacks.py": "af3108c4340a53d7656c2749958aea19bbeeab145ff2d8958e87222708b67563"
+  },
+  "productionCaptureDisabled": true,
+  "canary": {
+    "uid": "61e97c0d-76f8-405c-b35f-c8892269881a",
+    "images": [
+      {
+        "name": "dsh",
+        "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+        "restartCount": 0
+      }
+    ]
+  },
+  "testServiceSelectsActualProductionPods": [
+    "litellm-5db64784fd-cnp49"
+  ],
+  "productionPods": [
+    {
+      "uid": "d1b38a00-27a4-4b55-8a7a-1d6903932e4a",
+      "name": "litellm-5db64784fd-cnp49",
+      "images": [
+        {
+          "name": "context-forwarder",
+          "imageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f"
+        },
+        {
+          "name": "litellm",
+          "imageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f"
+        }
+      ]
+    }
+  ],
+  "managedTransportConfigMap": "dsh-managed-transport-c471f1fc5bc9",
+  "managedTransportImmutable": true,
+  "managedTransportSHA256": "c471f1fc5bc99f022872cb0ad9b714b45abc5686567b53a00118521aada004ac"
+}

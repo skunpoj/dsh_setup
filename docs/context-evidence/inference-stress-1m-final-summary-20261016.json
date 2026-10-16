@@ -1,0 +1,86 @@
+{
+  "status": "passed",
+  "exactReplies": 105,
+  "burst": [
+    {
+      "concurrency": 1,
+      "verified": 3,
+      "ttftP95": 0.1278,
+      "completionP95": 3.6842,
+      "effectiveOutputMin": 31.841,
+      "effectiveOutputMax": 32.3,
+      "aggregateMin": 31.827,
+      "aggregateMax": 32.29
+    },
+    {
+      "concurrency": 2,
+      "verified": 6,
+      "ttftP95": 0.3551,
+      "completionP95": 3.6223,
+      "effectiveOutputMin": 31.585,
+      "effectiveOutputMax": 34.302,
+      "aggregateMin": 55.91,
+      "aggregateMax": 65.702
+    },
+    {
+      "concurrency": 4,
+      "verified": 12,
+      "ttftP95": 0.3723,
+      "completionP95": 3.8836,
+      "effectiveOutputMin": 29.527,
+      "effectiveOutputMax": 32.152,
+      "aggregateMin": 92.378,
+      "aggregateMax": 113.582
+    },
+    {
+      "concurrency": 8,
+      "verified": 24,
+      "ttftP95": 0.9116,
+      "completionP95": 5.1322,
+      "effectiveOutputMin": 21.469,
+      "effectiveOutputMax": 25.921,
+      "aggregateMin": 167.84,
+      "aggregateMax": 177.703
+    },
+    {
+      "concurrency": 16,
+      "verified": 48,
+      "ttftP95": 2.1428,
+      "completionP95": 7.6554,
+      "effectiveOutputMin": 12.681,
+      "effectiveOutputMax": 18.219,
+      "aggregateMin": 208.88,
+      "aggregateMax": 240.245
+    }
+  ],
+  "mixed": [
+    {
+      "actualInput": 24044,
+      "longSeconds": 5.2749,
+      "shortMin": 0.476,
+      "shortMax": 0.5465,
+      "allOverlapped": true
+    },
+    {
+      "actualInput": 96049,
+      "longSeconds": 26.3227,
+      "shortMin": 0.4723,
+      "shortMax": 0.5171,
+      "allOverlapped": true
+    },
+    {
+      "actualInput": 120048,
+      "longSeconds": 35.9121,
+      "shortMin": 0.4859,
+      "shortMax": 0.6407,
+      "allOverlapped": true
+    }
+  ],
+  "modelUnchanged": true,
+  "checkedErrors": {
+    "CUDA out of memory": 0,
+    "OutOfMemoryError": 0,
+    "illegal memory access": 0,
+    "Scheduler exception": 0
+  }
+}

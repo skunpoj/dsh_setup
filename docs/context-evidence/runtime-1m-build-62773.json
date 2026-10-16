@@ -1,0 +1,21 @@
+{
+  "buildId": 62773,
+  "status": "completed",
+  "result": "succeeded",
+  "sourceVersion": "c20b31078b84604a6d1c19bfbdd59be166ff27ae",
+  "finishTime": "2026-10-16T13:32:45.5178753Z",
+  "verifiedLogLines": [
+    "docker inspect --format='local_id={{.Id}}' \"$image\"",
+    "docker inspect --format='pushed={{index .RepoDigests 0}} id={{.Id}}' \"$image\"",
+    "docker inspect --format=''local_id={{.Id}}'' \"$image\"",
+    "docker inspect --format=''pushed={{index .RepoDigests 0}} id={{.Id}}'' \"$image\"",
+    "2026-10-16T13:32:37.1818111Z #13 1.469 {\"installedVersion\":\"0.2.0-rc.2\",\"actualModulesChecked\":3,\"syntax\":true,\"webComposition\":true,\"scope\":\"Installed package checks; no inference, user history or Production access\"}",
+    "2026-10-16T13:32:39.4459515Z Generated server/client catalogs expose only internal LiteLLM; default inference retained.",
+    "2026-10-16T13:32:42.5647304Z local_id=sha256:2cb186e9bb4e75b3ef9e4de231c802e341845c320a7fb9d5404de7c74e61d450",
+    "2026-10-16T13:32:43.7655111Z pushed=dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3 id=sha256:2cb186e9bb4e75b3ef9e4de231c802e341845c320a7fb9d5404de7c74e61d450",
+    "2026-10-16T13:32:37.1818154Z #13 1.469 {\"installedVersion\":\"0.2.0-rc.2\",\"actualModulesChecked\":3,\"syntax\":true,\"webComposition\":true,\"scope\":\"Installed package checks; no inference, user history or Production access\"}",
+    "2026-10-16T13:32:39.4459656Z Generated server/client catalogs expose only internal LiteLLM; default inference retained.",
+    "2026-10-16T13:32:42.5647334Z local_id=sha256:2cb186e9bb4e75b3ef9e4de231c802e341845c320a7fb9d5404de7c74e61d450",
+    "2026-10-16T13:32:43.7655140Z pushed=dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3 id=sha256:2cb186e9bb4e75b3ef9e4de231c802e341845c320a7fb9d5404de7c74e61d450"
+  ]
+}

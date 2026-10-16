@@ -1,0 +1,473 @@
+{
+  "longRunningBefore": true,
+  "longRunningAfter": true,
+  "concurrency": 2,
+  "rows": [
+    {
+      "index": 1,
+      "exitCode": 0,
+      "result": {
+        "sessionId": "session-d774ba8b-e815-4d2a-845e-ec287a547ea2",
+        "inputTarget": 0,
+        "inputSha256": "90906903d9f9ce3cacf0e78ae6b9116db9bd5e720853f7a323d57a7e97921aef",
+        "inputBytes": 113,
+        "expected": "DSH_LONG_CONTEXT_OK",
+        "inputSpecification": {
+          "nonce": "47bda8fd524142bc84355d6afe0a45b6",
+          "filler": " a b c d",
+          "repeats": 0,
+          "suffix": "\nReply exactly DSH_LONG_CONTEXT_OK. Do not use tools."
+        },
+        "startUTC": "2026-10-16T14:10:24.275294+00:00",
+        "catalogModels": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "name": "DeepSeek-V4.1-Flash (Verified 128K CED MoE)",
+            "description": "Primary in-cluster model with a verified 128K context window (Vision + Tool-Use)",
+            "inputModalities": [
+              "text",
+              "image"
+            ]
+          },
+          {
+            "id": "deepseek-flash",
+            "name": "DeepSeek-Flash (V4.1-Flash Alias)",
+            "description": "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
+            "inputModalities": [
+              "text",
+              "image"
+            ]
+          }
+        ],
+        "afterSeq": 3,
+        "events": [
+          {
+            "type": "assistant/message",
+            "seq": 14,
+            "time": 1792159826332,
+            "data": {
+              "turn": 1,
+              "step": 1,
+              "message": {
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "DSH_LONG_CONTEXT_OK"
+                  }
+                ],
+                "source": {
+                  "kind": "model",
+                  "provider": "litellm-cluster",
+                  "model": "deepseek-v4.1-flash",
+                  "replayState": {
+                    "response": {
+                      "kind": "pi-ai",
+                      "version": 2,
+                      "api": "openai-completions",
+                      "provider": "litellm-cluster",
+                      "model": "deepseek-v4.1-flash",
+                      "responseId": "dsh-final-4b5bd84fb040432c8ef556cb74423360",
+                      "stopReason": "stop"
+                    },
+                    "blocks": [
+                      {
+                        "type": "text"
+                      }
+                    ]
+                  }
+                },
+                "id": "6c8c6999-6dbb-4b2d-a872-bebe2d14b518"
+              },
+              "usage": {
+                "inputTokens": 7688,
+                "outputTokens": 8,
+                "totalTokens": 7696
+              },
+              "stream": [
+                {
+                  "type": "chunk",
+                  "time": 1792159825975,
+                  "chunk": {
+                    "type": "block-start",
+                    "index": 0,
+                    "blockType": "text"
+                  }
+                },
+                {
+                  "type": "text-chunks",
+                  "time0": 1792159825975,
+                  "index": 0,
+                  "dt": [
+                    0,
+                    24,
+                    31,
+                    226,
+                    11,
+                    30
+                  ],
+                  "texts": [
+                    "DS",
+                    "H",
+                    "_L",
+                    "ONG",
+                    "_CONT",
+                    "EXT",
+                    "_OK"
+                  ]
+                },
+                {
+                  "type": "chunk",
+                  "time": 1792159826331,
+                  "chunk": {
+                    "type": "block-end",
+                    "index": 0,
+                    "block": {
+                      "type": "text",
+                      "text": "DSH_LONG_CONTEXT_OK"
+                    }
+                  }
+                },
+                {
+                  "type": "chunk",
+                  "time": 1792159826331,
+                  "chunk": {
+                    "type": "usage",
+                    "usage": {
+                      "inputTokens": 7688,
+                      "outputTokens": 8,
+                      "totalTokens": 7696
+                    }
+                  }
+                },
+                {
+                  "type": "chunk",
+                  "time": 1792159826332,
+                  "chunk": {
+                    "type": "finish",
+                    "reason": {
+                      "kind": "stop"
+                    },
+                    "replayState": {
+                      "response": {
+                        "kind": "pi-ai",
+                        "version": 2,
+                        "api": "openai-completions",
+                        "provider": "litellm-cluster",
+                        "model": "deepseek-v4.1-flash",
+                        "responseId": "dsh-final-4b5bd84fb040432c8ef556cb74423360",
+                        "stopReason": "stop"
+                      },
+                      "blocks": [
+                        {
+                          "type": "text"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "surfaceOp": "append"
+          },
+          {
+            "type": "step/end",
+            "seq": 15,
+            "time": 1792159826332,
+            "data": {
+              "turn": 1,
+              "step": 1
+            }
+          },
+          {
+            "type": "turn/end",
+            "seq": 16,
+            "time": 1792159826333,
+            "data": {
+              "turn": 1,
+              "reason": {
+                "kind": "completed"
+              }
+            }
+          }
+        ],
+        "projection": {
+          "contextPressure": {
+            "pressureTokens": 7688,
+            "projectedTokens": 7701,
+            "contextWindow": 1048576
+          },
+          "sessionStats": {
+            "turns": 1,
+            "steps": 1,
+            "llmMs": 2028,
+            "toolMs": 0,
+            "ttftMs": 1671,
+            "ttftSteps": 1,
+            "decodeMs": 357,
+            "decodeTokens": 8
+          },
+          "tokenUsage": {
+            "uncachedInputTokens": 7688,
+            "outputTokens": 8,
+            "cacheReadTokens": 0,
+            "cacheWriteTokens": 0
+          },
+          "modelSelection": {
+            "lastUsed": {
+              "provider": "litellm-cluster",
+              "model": "deepseek-v4.1-flash"
+            },
+            "next": {
+              "provider": "litellm-cluster",
+              "model": "deepseek-v4.1-flash"
+            }
+          }
+        },
+        "elapsedSeconds": 4.0315,
+        "finished": true,
+        "assistantText": "DSH_LONG_CONTEXT_OK",
+        "expectedTextPresent": true,
+        "persistedPromptMatches": true,
+        "lastUsage": {
+          "inputTokens": 7688,
+          "outputTokens": 8,
+          "totalTokens": 7696
+        }
+      }
+    },
+    {
+      "index": 2,
+      "exitCode": 0,
+      "result": {
+        "sessionId": "session-c42cac69-2a42-476c-a4ba-8bafcc43e1a3",
+        "inputTarget": 0,
+        "inputSha256": "f5e0df17e59115c0119a6a38fc2d60f577c3116035b9c2eb2c3f59e4cf8d655e",
+        "inputBytes": 113,
+        "expected": "DSH_LONG_CONTEXT_OK",
+        "inputSpecification": {
+          "nonce": "aef53958444e40e6ad8be59e880d2887",
+          "filler": " a b c d",
+          "repeats": 0,
+          "suffix": "\nReply exactly DSH_LONG_CONTEXT_OK. Do not use tools."
+        },
+        "startUTC": "2026-10-16T14:10:24.341148+00:00",
+        "catalogModels": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "name": "DeepSeek-V4.1-Flash (Verified 128K CED MoE)",
+            "description": "Primary in-cluster model with a verified 128K context window (Vision + Tool-Use)",
+            "inputModalities": [
+              "text",
+              "image"
+            ]
+          },
+          {
+            "id": "deepseek-flash",
+            "name": "DeepSeek-Flash (V4.1-Flash Alias)",
+            "description": "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
+            "inputModalities": [
+              "text",
+              "image"
+            ]
+          }
+        ],
+        "afterSeq": 3,
+        "events": [
+          {
+            "type": "assistant/message",
+            "seq": 14,
+            "time": 1792159828732,
+            "data": {
+              "turn": 1,
+              "step": 1,
+              "message": {
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "DSH_LONG_CONTEXT_OK"
+                  }
+                ],
+                "source": {
+                  "kind": "model",
+                  "provider": "litellm-cluster",
+                  "model": "deepseek-v4.1-flash",
+                  "replayState": {
+                    "response": {
+                      "kind": "pi-ai",
+                      "version": 2,
+                      "api": "openai-completions",
+                      "provider": "litellm-cluster",
+                      "model": "deepseek-v4.1-flash",
+                      "responseId": "dsh-final-90f7cd30f2414c4892af63940cb126c6",
+                      "stopReason": "stop"
+                    },
+                    "blocks": [
+                      {
+                        "type": "text"
+                      }
+                    ]
+                  }
+                },
+                "id": "e102b036-0718-4ba9-ad3a-cf7ab4e4db1a"
+              },
+              "usage": {
+                "inputTokens": 7687,
+                "outputTokens": 8,
+                "totalTokens": 7695
+              },
+              "stream": [
+                {
+                  "type": "chunk",
+                  "time": 1792159827073,
+                  "chunk": {
+                    "type": "block-start",
+                    "index": 0,
+                    "blockType": "text"
+                  }
+                },
+                {
+                  "type": "text-chunks",
+                  "time0": 1792159827073,
+                  "index": 0,
+                  "dt": [
+                    0,
+                    26,
+                    30,
+                    1429,
+                    112,
+                    29
+                  ],
+                  "texts": [
+                    "DS",
+                    "H",
+                    "_L",
+                    "ONG",
+                    "_CONT",
+                    "EXT",
+                    "_OK"
+                  ]
+                },
+                {
+                  "type": "chunk",
+                  "time": 1792159828732,
+                  "chunk": {
+                    "type": "block-end",
+                    "index": 0,
+                    "block": {
+                      "type": "text",
+                      "text": "DSH_LONG_CONTEXT_OK"
+                    }
+                  }
+                },
+                {
+                  "type": "chunk",
+                  "time": 1792159828732,
+                  "chunk": {
+                    "type": "usage",
+                    "usage": {
+                      "inputTokens": 7687,
+                      "outputTokens": 8,
+                      "totalTokens": 7695
+                    }
+                  }
+                },
+                {
+                  "type": "chunk",
+                  "time": 1792159828732,
+                  "chunk": {
+                    "type": "finish",
+                    "reason": {
+                      "kind": "stop"
+                    },
+                    "replayState": {
+                      "response": {
+                        "kind": "pi-ai",
+                        "version": 2,
+                        "api": "openai-completions",
+                        "provider": "litellm-cluster",
+                        "model": "deepseek-v4.1-flash",
+                        "responseId": "dsh-final-90f7cd30f2414c4892af63940cb126c6",
+                        "stopReason": "stop"
+                      },
+                      "blocks": [
+                        {
+                          "type": "text"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "surfaceOp": "append"
+          },
+          {
+            "type": "step/end",
+            "seq": 15,
+            "time": 1792159828733,
+            "data": {
+              "turn": 1,
+              "step": 1
+            }
+          },
+          {
+            "type": "turn/end",
+            "seq": 16,
+            "time": 1792159828733,
+            "data": {
+              "turn": 1,
+              "reason": {
+                "kind": "completed"
+              }
+            }
+          }
+        ],
+        "projection": {
+          "contextPressure": {
+            "pressureTokens": 7687,
+            "projectedTokens": 7700,
+            "contextWindow": 1048576
+          },
+          "sessionStats": {
+            "turns": 1,
+            "steps": 1,
+            "llmMs": 4347,
+            "toolMs": 0,
+            "ttftMs": 2688,
+            "ttftSteps": 1,
+            "decodeMs": 1659,
+            "decodeTokens": 8
+          },
+          "tokenUsage": {
+            "uncachedInputTokens": 7687,
+            "outputTokens": 8,
+            "cacheReadTokens": 0,
+            "cacheWriteTokens": 0
+          },
+          "modelSelection": {
+            "lastUsed": {
+              "provider": "litellm-cluster",
+              "model": "deepseek-v4.1-flash"
+            },
+            "next": {
+              "provider": "litellm-cluster",
+              "model": "deepseek-v4.1-flash"
+            }
+          }
+        },
+        "elapsedSeconds": 6.0363,
+        "finished": true,
+        "assistantText": "DSH_LONG_CONTEXT_OK",
+        "expectedTextPresent": true,
+        "persistedPromptMatches": true,
+        "lastUsage": {
+          "inputTokens": 7687,
+          "outputTokens": 8,
+          "totalTokens": 7695
+        }
+      }
+    }
+  ]
+}

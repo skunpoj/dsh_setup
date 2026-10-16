@@ -1,331 +1,211 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shared LLM — Setup and Verified Test Results</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-</style></head><body><main><h1>Shared LLM — Setup and Verified Test Results</h1>
-<p><strong>Extensive live review, 16 October:</strong> DSH does not currently have end-to-end 1M access through LiteLLM. The SGLang backend is configured for 1,048,576 tokens. All 20 main runtime web-profile files declare 131,072 context and 8,192 output for the DeepSeek aliases. Boot-free composition of the legacy owner&#39;s and private admin&#39;s web profiles confirms those values. The legacy home-level 1M entry refers to an older GLM configuration; it does not establish a 1M DeepSeek web route. The mounted LiteLLM callback uses 131,072/8,192/256, with coverage limitations detailed below. No model, gateway or DSH server was restarted or reconfigured during this investigation.</p>
-<p><strong>Correction:</strong> automatic compaction is not simply 75% of 128K. The installed plugin subtracts output reservation and headroom too. Its normal calculated threshold is <strong>57,344 estimated tokens</strong>, not 98,304. This is a code/configuration calculation, not a fresh successful compaction of a real historical session.</p>
-<h2>Results that users can rely on</h2>
-<p>These are recorded tests, not a new benchmark performed by opening this guide. Rates include queue, prefill and network time; they are not sustained decode throughput or an SLA.</p>
+</style></head><body><main><h1>Shared LLM — 1M Setup, Performance and Operational Limits</h1>
+<h2>Current answer</h2>
+<p>The main DSH → LiteLLM → SGLang route now uses <strong>1,048,576 total tokens</strong> for both DeepSeek aliases. All 20 main runtime profiles, imageIDs, inference origins and scoped transport hooks were checked after rollout. The final actual cold DSH request returned the correct persisted answer with <strong>1,007,689 input + 8 output tokens in 1,170.08 seconds</strong>, <strong>zero retries</strong> and <strong>no model restart</strong>.</p>
+<p>A follow-up in that same conversation executed real write/read tools and returned the correct persisted answer with <strong>1,008,103 input + 8 output tokens in 20.16 seconds</strong>. Actual file content/hash and removal of the test marker were verified. These tests used synthetic data and the qualified runtime against the actual Production inference route. Legacy DSH2/DSH3 are separate installations and are not included in this upgrade.</p>
+<p>The earlier 128K statements described an incomplete deployment: the backend had been raised while DSH/LiteLLM guardrails remained lower. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LLM_128K_BASELINE_BEFORE_1M_20261016.md">earlier review</a> and failed/intermediate trials are retained. Initial near-1M successes took about 19 minutes and required three automatic timeout retries. The final scoped Node transport correction removed those retries in both the delayed fixture and the real cold test.</p>
+<p><strong>Memory remains tight:</strong> the final cold run recorded <strong>1,460 recovering allocator mapping warnings</strong>, with a minimum warning-reported free memory of <strong>9.75 MiB</strong> while attempting a 20 MiB mapping. No checked fatal exception or model restart occurred; ordinary DSH inference still returned correctly after warnings appeared. This passing test does not establish comfortable memory headroom, unrestricted long concurrency or a service-level guarantee. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-managed-1m-acceptance-summary-20261016.json">Final cold acceptance and warning summary</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-managed-1m-tool-continuation-20261016.json">near-1M tool continuation</a>.</p>
+<h2>Architecture and limits</h2>
+<p><code>Authenticated user → private DSH → authenticated internal LiteLLM :4000 → loopback context guard :4001 → SGLang :8000 → shared four H100 GPUs</code></p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Deployed policy</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DSH runtime</td>
+<td><code>0.2.0-rc.2</code>; image digest <code>87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3</code></td>
+</tr>
+<tr>
+<td>DSH DeepSeek aliases</td>
+<td>1,048,576 total context; maximum output 8,192</td>
+</tr>
+<tr>
+<td>DSH transport</td>
+<td>Provider timeout and stream-idle settings 3,600,000 ms; effective transport acceptance tested separately</td>
+</tr>
+<tr>
+<td>LiteLLM</td>
+<td>Pinned digest <code>4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f</code>; existing inference keys and Secret references preserved</td>
+</tr>
+<tr>
+<td>Final request budget</td>
+<td>Exact backend tokenizer includes messages, tools and template options; input + output + 256 reserve must fit 1,048,576</td>
+</tr>
+<tr>
+<td>Long-request admission</td>
+<td>One request above 128K at a time in one gateway replica; wait up to 300 seconds, then retryable 429</td>
+</tr>
+<tr>
+<td>Ordinary requests</td>
+<td>Bypass the long-request lease and remain concurrent; queueing and slower output remain possible</td>
+</tr>
+<tr>
+<td>SGLang</td>
+<td>Image digest <code>4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860</code>; model snapshot <code>dba1be0a40aa45a94ad051997016db3960a90277</code></td>
+</tr>
+<tr>
+<td>Backend scheduling</td>
+<td>Context 1M, static memory 0.90, running cap 16, chunk 1,024, maximum prefill 2,048, decode interval four, V2 fairness + V3 single-chunk-owner guard</td>
+</tr>
+<tr>
+<td>Measured cache pool</td>
+<td>1,179,648 token slots; one near-1M request plus smaller work, not two complete 1M contexts</td>
+</tr>
+<tr>
+<td>Automatic compaction</td>
+<td>Ratio 0.875, headroom 65,536, summary output 8,192; normal trigger 917,504 estimated tokens</td>
+</tr>
+</tbody></table>
+<p>One million is <strong>total request capacity</strong>, not one million input plus unlimited output. With the full 8,192 output allowance, counted input must not exceed 1,040,128 after the proxy reserve. A smaller output reservation permits larger input. Near-1M text requests with DSH tool schemas and an actual write/read tool continuation are qualified for the recorded cases. Image requests above 128K are explicitly rejected because token-only prefix warming cannot reproduce image embeddings. Near-1M vision, full 8,192-token generation at near-1M input, and every possible plugin/tool result are not established.</p>
+<h2>Keeping ordinary requests responsive</h2>
+<p>Small prefill chunks avoid the temporary attention-memory failure seen in the older 262K experiment. V3 also prevents two requests from owning the scheduler&#39;s single chunk slot, which caused the first V2 512K assertion.</p>
+<p>That was insufficient for actual DSH: its roughly 7.5K system/tool prefix exceeds V2&#39;s interactive lane. A real short DSH request waited 368.7 seconds during uninterrupted 512K prefill while tiny API probes were fast. The final proxy prepares long prefixes in 2,048-token extensions and yields between them. Intermediate one-token outputs are discarded; they never become tool actions or conversation messages. Cache reuse is checked, and loss stops preparation instead of falling back to one blocking prefill.</p>
+<p>A bounded two-second cache probe can reuse a continuing conversation&#39;s prefix immediately. On a cold miss, the proxy aborts its own probe and prepares incrementally. Each request has its own ID; cleanup aborts only owned work and releases the admission lease. The guard listens only on loopback; production request-body capture is disabled.</p>
+<h2>Actual tests</h2>
 <table>
 <thead>
 <tr>
 <th>Test</th>
 <th>Observed result</th>
-<th>What it establishes</th>
+<th>Scope</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>Short exact replies, 16 October</td>
-<td>0.223–0.233 seconds</td>
-<td>Basic internal inference returned the required text</td>
+<td>DSH 257,684 input tokens</td>
+<td>Exact answer, 108.26 seconds, persisted prompt matched</td>
+<td>Actual agent with tool schemas</td>
 </tr>
 <tr>
-<td>Two simultaneous 119-token replies</td>
-<td>3.381–3.385 seconds; 35.16–35.20 effective output tokens/sec each</td>
-<td>Two ordinary requests ran concurrently</td>
+<td>Follow-up in that 257K conversation</td>
+<td>257,738 input, exact answer, 2.04 seconds</td>
+<td>Hot-prefix reuse, not cold throughput</td>
 </tr>
 <tr>
-<td>Short replies during fresh 24,044-token input</td>
-<td>0.440–0.588 seconds; larger request completed in 4.956 seconds</td>
-<td>All three short replies completed while larger work was still active</td>
+<td>Final cold DSH near 1M</td>
+<td>1,007,689 input + 8 output, 1,170.08 seconds, exact/persisted, zero retries, no model restart</td>
+<td>Recovering GPU allocation warnings recorded</td>
 </tr>
 <tr>
-<td>Near-1M historical backend test</td>
-<td>1,000,015 input + 10 output tokens; exact <code>LONG_1M_RETEST_OK</code></td>
-<td>That earlier backend profile completed one near-1M request</td>
+<td>Tool follow-up in the same near-1M conversation</td>
+<td>1,008,103 input + 8 output; 20.16s; real write/read and file verification/removal</td>
+<td>Zero retries; same model pod</td>
 </tr>
 <tr>
-<td>Current DSH end-to-end 1M / two simultaneous 1M requests</td>
-<td>Not established</td>
-<td>The backend test does not qualify those product behaviors</td>
+<td>Two ordinary DSH calls during near 1M</td>
+<td>4.03 / 6.04 seconds, exact and persisted</td>
+<td>Actual DSH calls, not tiny API-only probes</td>
 </tr>
 <tr>
-<td>Fresh review: two simultaneous replies</td>
-<td>3.377–3.381 seconds; 35.19–35.24 effective output tokens/sec each</td>
-<td>Both returned the exact requested 1–40 sequence</td>
+<td>Tool execution</td>
+<td>Canary 8.04s; actual private admin after transport rollout 38.12s during near-1M load; file content/hash checked and marker removed</td>
+<td>Real tool calls; synthetic files only</td>
 </tr>
 <tr>
-<td>Fresh review: short replies during 24,048-token input</td>
-<td>0.446–0.591 seconds; larger request 4.948 seconds</td>
-<td>Three exact short answers finished before the larger answer</td>
+<td>Non-streaming proxy</td>
+<td>140,018 input + 4 output, exact answer, 44.99 seconds</td>
+<td>Internal stream assembled into JSON</td>
+</tr>
+<tr>
+<td>Endpoint override</td>
+<td>HTTP 401; LiteLLM authentication rejected client <code>api_base</code></td>
+<td>Observed rejection; not misattributed to custom hook</td>
+</tr>
+<tr>
+<td>Automatic compaction</td>
+<td>Persisted summary, retained verification code and correct recall</td>
+<td>Disposable 1M profile with lowered 0.02 trigger; production trigger unchanged</td>
+</tr>
+<tr>
+<td>Rollout regression checks</td>
+<td>Composed owner/admin policies, private login/history denials, non-root terminal WebSockets, original file hashes</td>
+<td>Main deployment; excludes legacy DSH2/DSH3</td>
 </tr>
 </tbody></table>
-<p>The earlier 16 October measurements are in <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/performance-private-live-20261016.json">the exact response/timing record</a>; the fresh review is in <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/llm-review-performance-20261016.json">the new response/timing record</a>. Fresh isolated short replies took 0.230–0.246 seconds. The historical million-token result is <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-1m-response-chunk1024.json">recorded separately</a>. None is a substitute for application-level task correctness.</p>
-<h2>Live stress retest — 16 October 2026</h2>
-<p><strong>Passed: 105/105 synthetic responses across 18 stages</strong>, from 19:37:31 to 19:41:27 ICT. The test used the real internal LiteLLM streaming route from Secure, its existing inference credential, temperature zero and fresh nonce prefixes. It changed no settings, created no DSH histories and read no business data. This is an inference-route test, not a DSH browser/agent or compaction test.</p>
-<h3>Concurrent bursts</h3>
-<p>Each concurrency level ran three times. Every response had to contain the requested complete 1–40 sequence after whitespace normalization. Actual completion counts varied from 80 to 119 tokens because formatting varied; rates use returned token usage rather than an assumed 119 tokens. TTFT means time to first streamed content or reasoning event. Percentiles are nearest-rank values from these small samples, not service-level guarantees.</p>
+<p>During the production-route near-1M follow-up, two ordinary DSH calls returned in <strong>4.03 / 4.04 seconds</strong>. Two concurrent API replies produced <strong>16.01 aggregate output tokens/sec</strong> in 14.86 seconds; four produced <strong>27.10 aggregate tokens/sec</strong> in 17.56 seconds. All outputs matched and model pod/restart state stayed unchanged. Long-load output was slower: responsiveness for a brief answer does not mean unchanged sustained output speed.</p>
+<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-final-wire-near-1m-20261016.json">near 1M</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-final-wire-250k-continuation-20261016.json">hot continuation</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-wire-tool-acceptance-20261016.json">tools</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-wire-api-acceptance-20261016.json">non-streaming/rejection</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-automatic-compaction-fixture-20261016.json">compaction fixture</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/production-1m-mixed-concurrency-20261016.json">production mixed traffic</a>.</p>
+<p>The later <strong>final managed-transport run</strong> measured two ordinary DSH replies at <strong>6.04 / 8.04 seconds</strong>, with the long test still active before and after. Its two-request API burst produced <strong>8.98 aggregate output tokens/sec</strong> in 22.15 seconds; four produced <strong>15.51 aggregate tokens/sec</strong> in 25.65 seconds. This is slower than the earlier mixed sample above. Different prefill progress and load can change the rate; no fixed latency or output-speed guarantee follows from either sample. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-managed-mixed-1m-20261016.json">Final managed mixed-load record</a>.</p>
+<h3>Fresh stress test on the deployed 1M proxy</h3>
+<p><strong>105/105 exact replies passed across 18 stages.</strong> These bursts use short requests; a 1M ceiling does not make every request a 1M workload. Times include queue, prefill and networking. Percentiles come from small samples and are not an SLA.</p>
 <table>
 <thead>
 <tr>
 <th>Concurrent requests</th>
-<th>Responses verified</th>
+<th>Replies verified</th>
 <th>TTFT p95, seconds</th>
 <th>Completion p95, seconds</th>
 <th>Effective output tokens/sec per request</th>
-<th>Aggregate output tokens/sec across rounds</th>
+<th>Aggregate output tokens/sec</th>
 </tr>
 </thead>
 <tbody><tr>
 <td>1</td>
-<td>3/3</td>
-<td>0.131</td>
-<td>3.694</td>
-<td>32.1–32.3</td>
-<td>32.1–32.3</td>
+<td>3</td>
+<td>0.128</td>
+<td>3.684</td>
+<td>31.84–32.30</td>
+<td>31.83–32.29</td>
 </tr>
 <tr>
 <td>2</td>
-<td>6/6</td>
-<td>0.320</td>
-<td>3.700</td>
-<td>32.2–34.5</td>
-<td>53.8–66.1</td>
+<td>6</td>
+<td>0.355</td>
+<td>3.622</td>
+<td>31.59–34.30</td>
+<td>55.91–65.70</td>
 </tr>
 <tr>
 <td>4</td>
-<td>12/12</td>
-<td>0.356</td>
-<td>3.827</td>
-<td>29.8–32.4</td>
-<td>105.3–124.3</td>
+<td>12</td>
+<td>0.372</td>
+<td>3.884</td>
+<td>29.53–32.15</td>
+<td>92.38–113.58</td>
 </tr>
 <tr>
 <td>8</td>
-<td>24/24</td>
-<td>0.856</td>
-<td>5.145</td>
-<td>21.5–26.8</td>
-<td>168.0–179.9</td>
+<td>24</td>
+<td>0.912</td>
+<td>5.132</td>
+<td>21.47–25.92</td>
+<td>167.84–177.70</td>
 </tr>
 <tr>
 <td>16</td>
-<td>48/48</td>
-<td>1.966</td>
-<td>7.460</td>
-<td>13.1–18.6</td>
-<td>214.5–229.4</td>
+<td>48</td>
+<td>2.143</td>
+<td>7.655</td>
+<td>12.68–18.22</td>
+<td>208.88–240.25</td>
 </tr>
 </tbody></table>
-<p>More concurrency increased aggregate throughput while each request became slower. Sixteen is a tested burst level for these short outputs, not a promise of sixteen large contexts or sustained-load capacity. Rates include queue, prefill and network time; they are not isolated steady-state decode speed.</p>
-<h3>Short replies during larger uncached input</h3>
-<p>One larger synthetic request ran alongside three sequential short probes. Returned usage verified each input size; all nine short probes returned the expected sentinel before their larger request completed.</p>
-<table>
-<thead>
-<tr>
-<th>Actual larger input tokens</th>
-<th>Larger completion, seconds</th>
-<th>Short completion range, seconds</th>
-<th>Short TTFT range, seconds</th>
-<th>Shorts finished before larger response</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>24,043</td>
-<td>5.223</td>
-<td>0.476–0.486</td>
-<td>0.159–0.169</td>
-<td>3/3</td>
-</tr>
-<tr>
-<td>96,046</td>
-<td>26.041</td>
-<td>0.475–0.495</td>
-<td>0.155–0.178</td>
-<td>3/3</td>
-</tr>
-<tr>
-<td>120,048</td>
-<td>35.528</td>
-<td>0.475–0.545</td>
-<td>0.157–0.229</td>
-<td>3/3</td>
-</tr>
-</tbody></table>
-<p>The sampler observed <strong>16 running requests and a queue peak of 12</strong>. Queueing is therefore not absent, despite the responsive short mixed-load probes. Forty-four GPU/queue samples completed without monitor errors. Minimum sampled free GPU memory was 4,592–4,594 MiB per GPU; sampled GPU utilization reached 100%. These samples do not establish the exact transient memory peak.</p>
-<p>The model pod identity and zero restart count stayed unchanged. The test interval contained no matches for the checked CUDA OOM, OutOfMemoryError, illegal-memory-access or scheduler-exception signatures. A separate post-test request returned exactly <code>STRESS_HEALTH_OK</code> in <strong>0.256 seconds</strong>. Running model/LiteLLM imageIDs and start times were read back; both retained zero restarts, with the existing model arguments.</p>
-<h3>Stop conditions, reproduction and limits</h3>
-<p>The probe requires idle admission metrics before each stage. It stops escalation on inference errors, incorrect output, changed model pod/image/restart state, burst completion over 15 seconds, larger completion over 40 seconds, or short mixed replies over five seconds or without observed overlap. Completed/stopped stages are saved rather than overwritten. An independent readback validated all response content, finish reasons, returned token counts and model error-signature counts.</p>
-<pre><code class="language-powershell">python scripts/stress_live_inference.py --output stress-new-run.json
+<p>Fresh mixed requests used 24,044, 96,049 and 120,048 input tokens. All nine short probes completed before their larger request. At 120,048 input, the larger answer took <strong>35.91 seconds</strong> and short replies took <strong>0.486–0.641 seconds</strong>. Model identity/restart counts stayed unchanged; checked CUDA OOM, illegal-memory and scheduler-exception signature counts were zero. These are bounded samples, not sustained saturation or 16 simultaneous near-1M acceptance.</p>
+<p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-1m-final-route-20261016.json">Full actual responses/samples</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-1m-final-summary-20261016.json">recalculated tables</a>. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LLM_128K_BASELINE_BEFORE_1M_20261016.md">older 128K baseline</a> is retained separately.</p>
+<h2>Five-minute timeout investigation and fix</h2>
+<p>The first near-1M successes required automatic retries at approximately 300 seconds despite the DSH provider&#39;s one-hour settings. A delayed synthetic endpoint reproduced that boundary. The installed Undici client source defaults header/body waits to 300 seconds when no explicit transport timeout is supplied. SDK/provider timeouts alone did not establish the effective HTTP deadline.</p>
+<p>A small Node dispatcher override now supplies one-hour header/body waits <strong>only for the operator-managed internal inference origin</strong>. Other origins, abort signals and dispatch behavior are unchanged. The live runtime uses a read-only, content-addressed ConfigMap; the future image startup script includes the same hook. The controlled <strong>315-second delayed-response retest passed in 316.59 seconds with zero retries</strong>, through actual DSH and LiteLLM, without using the model. This is transport evidence, not a fake inference benchmark. The final actual cold near-1M test also completed with zero retries; its warnings and timing are recorded above.</p>
+<p>The rollout also corrected a restart hazard in the profile-backup initializer: it now verifies and reuses the retained original backup on later starts instead of refusing an existing directory or overwriting the rollback copy. Actual replacement of all 20 runtimes checked the loaded hook hash and preserved <strong>40 workspace/attachment markers</strong>. No data mount, permission or owner mapping was replaced.</p>
+<p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-five-minute-transport-before-fix-20261016.json">Before-fix transport observation</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-five-minute-transport-managed-fixture-20261016.json">315-second acceptance</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/1m-managed-transport-rollout-20261016.json">20-runtime transport/persistence rollout</a>.</p>
+<h2>Compaction</h2>
+<pre><code class="language-text">threshold = floor(min(context × ratio, context − reserved output − headroom))
+          = min(1048576 × 0.875, 1048576 − 8192 − 65536)
+          = 917504 estimated tokens
 </code></pre>
-<p>This deliberately loads the shared service; run it when idle. It is a bounded burst/mixed-load stress test, not a destructive OOM or prolonged saturation exercise. It did <strong>not</strong> test arbitrary tool schemas, images, complete DSH tasks, compaction, current near-1M operation or two concurrent 1M requests. The backend remains configured for 1,048,576; testing stayed within the existing 131,072-token LiteLLM budget. No limit was raised for this run.</p>
-<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-20261016-live.json">complete request/sampling record</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-summary-20261016.json">independently recalculated tables and executed probe hash</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-postcheck-20261016.json">post-test sentinel, imageIDs and arguments</a>. Raw logs are linked supporting material, not embedded in the main risk narrative.</p>
-<p>The <a href="https://github.com/skunpoj/dsh_setup/actions/runs/38903739213">candidate CI run for the saved stress-probe sources</a> also passed. Its downloaded artifact content confirmed the build, actual startup/auth/catalog checks, all 35 Linux Python cases and the admin browser checks. These isolated candidate tests made no inference call and are separate from the live stress results above. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-source-ci-20261016.json">Artifact readback</a>.</p>
-<h2>Current service layout and limits</h2>
-<p><code>Private DSH runtime → internal LiteLLM :4000 → SGLang :8000 → shared four-H100 model</code></p>
-<p>The Kubernetes deployment is named <code>vllm-deepseek-v4-1-flash</code> for compatibility, but its process runs <strong>SGLang</strong>. The Service remains <code>vllm-deepseek-v4-flash</code>.</p>
-<table>
-<thead>
-<tr>
-<th>Layer</th>
-<th>Configuration</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Model</td>
-<td>DeepSeek-V4.1-Flash, tensor parallelism 4</td>
-</tr>
-<tr>
-<td>SGLang image</td>
-<td><code>lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860</code></td>
-</tr>
-<tr>
-<td>Model snapshot</td>
-<td><code>dba1be0a40aa45a94ad051997016db3960a90277</code></td>
-</tr>
-<tr>
-<td>Backend context ceiling</td>
-<td>1,048,576 total tokens</td>
-</tr>
-<tr>
-<td>GPU static memory fraction</td>
-<td>0.90</td>
-</tr>
-<tr>
-<td>Running-request ceiling</td>
-<td>16; not a guarantee of 16 maximum-length requests</td>
-</tr>
-<tr>
-<td>Chunk / maximum prefill</td>
-<td>1,024 / 2,048 tokens</td>
-</tr>
-<tr>
-<td>Scheduling</td>
-<td>V2 overlay; mixed prefill/decode; decode interval 4</td>
-</tr>
-<tr>
-<td>DSH / LiteLLM user budget</td>
-<td>131,072 total; output ceiling 8,192; proxy reserve 256</td>
-</tr>
-<tr>
-<td>DSH compaction</td>
-<td>Auto enabled; ratio 0.75, default headroom 65,536; normal calculated pressure threshold 57,344 estimated tokens with 8,192 reserved output</td>
-</tr>
-<tr>
-<td>DSH runtime</td>
-<td><code>0.2.0-rc.2</code>, independently verified from the running package</td>
-</tr>
-</tbody></table>
-<p>The source model manifest and live deployment matched this pinned SGLang image during this review. LiteLLM&#39;s live spec still uses <code>main-latest</code>; record its actual running digest and pin a qualified digest before reproducing or upgrading it. A mutable tag alone is not a reproducible installation. The actual resolved LiteLLM image at this review was <code>ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f</code>; retain that recorded digest as the installed baseline and qualify it before any upgrade. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/llm-setup-readback-20261016.json">Readback record</a>.</p>
-<h2>Investigation findings and remaining work</h2>
-<p>The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/llm-extensive-review-20261016.json">sanitized live investigation record</a> includes all 20 main runtime profile reads, two composed web profiles, installed compaction-code hashes, isolated callback cases, live scheduler hash and actual imageIDs. DSH2/DSH3 were not included in this main-runtime profile qualification.</p>
-<h3>Compaction policy and configuration precedence</h3>
-<p>DSH layers bundle defaults, the web profile, the home patch and command-line overlays. Finding a value in one file is therefore insufficient. The supported boot-free configuration dump was inspected for the owner and admin profiles; the launcher rewrites its existing empty profile root but starts no server or session. Both composed DeepSeek routes remain 131,072/8,192. The other 18 main runtime web-profile files match the same configuration hash, but their complete compositions were not individually dumped.</p>
-<p>The installed <code>resolveCompactSpec</code> function was extracted and executed without creating or changing a session. Its formula is:</p>
-<pre><code class="language-text">threshold = floor(min(context × thresholdRatio,
-                      context − reserved output − headroom))
-normal case = min(131072 × 0.75, 131072 − 8192 − 65536)
-            = 57344 estimated tokens
-</code></pre>
-<p>With a 4,096 output reservation the threshold becomes 61,440. A session&#39;s explicit request reservation can change it. Default retained-tail ratio is 0.16 and the summarizer&#39;s configured-default output allowance is 65,536, which is larger than the gateway&#39;s 8,192 ceiling. Clamping can therefore shorten the requested summary budget; this investigation did not establish summary failure or successful compaction of every stored session. Automatic pressure checks occur between agent steps. Oversized single tool results or attachments can still require pruning or overflow recovery. A manual <code>/compact</code> may have no useful compactable range and is not a guaranteed repair.</p>
-<h3>Gateway guard coverage</h3>
-<p>The mounted callback is referenced by the live configuration and its isolated ordinary-message case clamps 65,536 requested output tokens to 8,192. Its numeric constants match the repository. Its text does not match: the live overflow message incorrectly says <strong>“1M context budget”</strong>, while the repository says <strong>“verified 128K”</strong>. This is real source/live drift, not a changed numeric capacity.</p>
-<p>The installed callback was loaded into a separate Python process inside the gateway image. Synthetic cases confirmed:</p>
-<table>
-<thead>
-<tr>
-<th>Case</th>
-<th>Observed callback behavior</th>
-<th>Consequence and evidence limit</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Ordinary Chat Completions messages</td>
-<td>Counts messages and clamps <code>max_tokens</code></td>
-<td>Demonstrates this callback path, not an exact backend-token guarantee</td>
-</tr>
-<tr>
-<td>Messages plus function/tool definitions</td>
-<td>Counter receives <code>messages</code> and <code>model</code> only</td>
-<td>Tool-schema tokens are omitted from this preflight calculation</td>
-</tr>
-<tr>
-<td>Responses-shaped <code>input</code> / <code>max_output_tokens</code></td>
-<td>Returns unchanged without counting</td>
-<td>This callback alone does not constrain that shape; live endpoint normalization/availability was not bypass-tested</td>
-</tr>
-<tr>
-<td><code>max_completion_tokens</code> supplied</td>
-<td>Adds clamped <code>max_tokens</code> but leaves the other field</td>
-<td>Precedence/rejection by later LiteLLM/provider processing still needs route-specific testing</td>
-</tr>
-<tr>
-<td>Token counter raises</td>
-<td>Code falls back to characters/3 plus message overhead</td>
-<td>An estimate, not a conservative bound for arbitrary Thai, structured, image or tool content</td>
-</tr>
-</tbody></table>
-<p>The installed counter successfully handled small Latin, Thai and JSON samples, but it was not compared with the backend&#39;s exact tokenizer across representative requests. Do not describe the 256-token reserve as proof that all tokenizer or omitted-payload differences fit inside it. The callback also does not scope its numeric ceiling by requested model; other aliases can have smaller advertised windows. This review establishes code coverage gaps, <strong>not a demonstrated exploit or a successful oversized request through the live API</strong>.</p>
-<h3>Scheduler, performance and evidence scope</h3>
-<p>The running model source contains the V2 reservation marker; its SHA-256 is recorded alongside the pinned image. The overlay prioritizes uncached tails of at most 512 tokens while preserving long-prefill progress. Concurrency 16 is an admission ceiling, not a promise of 16 near-1M sessions or a per-user latency guarantee. Long cold inputs, unavailable prefix reuse, full active slots and cache pressure can still queue.</p>
-<p>The fresh bounded test verified actual streaming output and overlap during 24K work. Retained V2 tests separately cover approximately 133K backend work with fresh small prompts and cached continuing sessions; see <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/SCHEDULING_FAIRNESS_20261015.md">the scheduling experiment and failures</a>. The historical near-1M success belongs to an earlier scheduler profile. Neither it nor the fresh 24K test qualifies current V2 near-1M fairness, two concurrent 1M requests, or end-to-end DSH 1M. Model and gateway pods still showed zero restarts at the configuration readback; that is supporting availability evidence, not test correctness by itself.</p>
-<h3>Installation safety and next changes</h3>
-<p>The legacy Azure <code>litellm/06-litellm.yaml</code> still contains an explicit master-key placeholder and mutable <code>main-latest</code> image. It must not overwrite a live Secret. Read the intended internal routing and existing Secret references, prepare a separate reviewed candidate, pin a qualified image digest, and compare persisted configuration before applying it. A server dry-run cannot prove that placeholder credentials are valid or that a callback import works at runtime.</p>
-<p>Prioritize a tested model-specific request envelope that includes tools and supported multimodal inputs, rejects unsupported shapes explicitly, normalizes output-limit aliases and fails closed when reliable counting is unavailable. Align DSH request, summary and compaction budgets with that envelope, then verify real manual/automatic compaction on disposable sessions. Preserve the current scheduler and 128K product budget until a controlled current-profile near-1M acceptance test covers tools, streaming, compaction, memory, concurrent short requests and recovery. This review made no such rollout and did not run another disruptive million-token stress test.</p>
-<h2>1 Prepare the platform</h2>
-<p>Use the authoritative Azure <code>GPU_server</code> repository. Relevant paths are under <code>deployment/vllm/</code>:</p>
-<table>
-<thead>
-<tr>
-<th>Component</th>
-<th>Source</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Model Deployment/Service and startup/readiness probes</td>
-<td><code>04-vllm-deepseek-v4-1-flash.yaml</code></td>
-</tr>
-<tr>
-<td>Scheduling overlay and expected source hash</td>
-<td><code>scheduler_fairness_patch.py</code>, <code>scheduler-fairness-configmap.yaml</code></td>
-</tr>
-<tr>
-<td>Existing gateway/database templates</td>
-<td><code>litellm/06-litellm.yaml</code>, <code>litellm/postgres.yaml</code></td>
-</tr>
-<tr>
-<td>Current 128K callback/config reference</td>
-<td><code>dsh-environments/scripts/litellm_custom_callbacks.py</code>, <code>dsh-environments/k8s/litellm-config.yaml</code></td>
-</tr>
-<tr>
-<td>Pinned DSH image and private-runtime routing</td>
-<td><code>dsh-environments/Dockerfile</code>, <code>dsh-environments/k8s/</code></td>
-</tr>
-</tbody></table>
-<p>Prerequisites: namespace <code>llm</code>, the existing four-GPU node and working device plugin, model weights on PVC <code>model-cache-2tb</code>, registry access, internal DNS, and approved server/database Secrets. The model weights are mounted at <code>/models</code>; verify <code>config.json</code> at the pinned snapshot before launch. Model loading is offline after staging the approved weights.</p>
-<pre><code class="language-powershell">kubectl -n llm get pvc model-cache-2tb
-kubectl get node dagpu-gn-p1
-kubectl -n llm get secret litellm-secret litellm-db-secret
-</code></pre>
-<p>Inspect Secret names/existence only; do not export values into logs or Git. Existing DSH runtime credentials must remain inference-only virtual keys, not the LiteLLM master key.</p>
-<h2>2 Save a rollback baseline and review the candidate</h2>
-<p>Save the current Deployment/Service specifications and imageIDs, plus coherent application-state recovery copies under the established procedure. Deployment specs contain Secret references; treat operational exports as private records. Record the scheduler ConfigMap and model digest together so rollback restores a compatible pair.</p>
-<pre><code class="language-powershell">kubectl -n llm get deployment vllm-deepseek-v4-1-flash -o json &gt; model-before.json
-kubectl -n llm get deployment litellm -o json &gt; gateway-before.json
-kubectl -n llm get pods -l app=vllm-deepseek-v4-1-flash -o jsonpath=&#39;{.items[*].status.containerStatuses[*].imageID}&#39;
-kubectl -n llm get pods -l app=litellm -o jsonpath=&#39;{.items[*].status.containerStatuses[*].imageID}&#39;
-</code></pre>
-<p>The model uses all four GPUs and a Recreate strategy. Replacing it interrupts inference on this single-node installation; schedule/drain the work before applying a model change. A startup probe prevents early traffic but does not provide a second model replica.</p>
-<h2>3 Install the matching scheduler and model</h2>
-<p>From the <code>GPU_server</code> checkout, review and server-validate the candidate pair:</p>
-<pre><code class="language-powershell">kubectl apply --dry-run=server -f deployment/vllm/scheduler-fairness-configmap.yaml
-kubectl apply --dry-run=server -f deployment/vllm/04-vllm-deepseek-v4-1-flash.yaml
-</code></pre>
-<p>During the controlled deployment, apply the reviewed scheduler ConfigMap and then the model manifest. Wait for startup/readiness, inspect initialization logs and read back the actual imageID and arguments. The scheduler patch refuses an unexpected upstream source hash; do not remove that check to force a new image to start. Readiness is followed by actual inference tests below.</p>
-<h2>4 Configure LiteLLM and client limits</h2>
-<p>Preserve the existing internal model aliases and database configuration. Set the DeepSeek aliases to the internal Service on port 8000, keep external fallback disabled and align the 128K metadata with <code>DynamicContextClamper</code>: total 131,072, output 8,192, reserve 256. Mount the callback alongside the configuration and ensure its import path resolves inside the gateway image.</p>
-<p>The older <code>litellm/06-litellm.yaml</code> contains a placeholder Secret and mutable image tag. <strong>Do not apply that entire file over an existing deployment.</strong> Prepare a reviewed Deployment/Service using the qualified image digest, existing Secret references, database connection and callback mount; validate it before cutover. This guide is an installation order and reference for this existing platform, not a claim that the legacy template is a complete current installer.</p>
-<p>Create per-user inference credentials through the established operator path. For example, from <code>dsh-environments</code>:</p>
-<pre><code class="language-powershell">python scripts/provision_inference_client.py --secret dsh-inference-example --evidence client-provision.json
-</code></pre>
-<p>This operation creates a restricted client credential in Kubernetes; the evidence contains metadata, not the key. Assign it only to its intended runtime. Confirm inference succeeds and management/key/model-creation APIs are denied.</p>
-<h2>5 Connect DSH and validate behavior</h2>
-<p>Build the pinned DSH package into the runtime image. Keep startup independent of public package installation. Route private users to internal LiteLLM with their own restricted credentials, retain the 128K catalog/compaction settings, and preserve workspace/history mounts during replacement.</p>
-<p>Run the bounded synthetic inference test from <code>dsh-environments</code>:</p>
-<pre><code class="language-powershell">python scripts/measure_live_responsiveness.py --output llm-acceptance.json
-</code></pre>
-<p>Inspect the actual returned strings, token usage, timings and whether short replies finished before longer work ended. Also test a real tool invocation, streaming, login, history, terminal and persistence through the affected DSH UI. Do not infer those behaviors from a direct model response. Near-1M tests require a separate controlled acceptance plan; they are not routine health checks.</p>
-<h2>6 Upgrade and recover without losing boundaries</h2>
-<p>Keep DSH upstream updates separate from SGLang/model/scheduler upgrades. The expanded upstream workflow checks npm channels, refuses changed patch targets and tests the actual installed candidate and a disposable web server before proposing a package-pin PR. It also tests routing, identity headers, the admin browser dashboard and rollback/manifests fixtures. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">publication and hosted-run status</a>; local tests alone do not establish an active schedule. It does not merge or deploy Production. Qualify copied-state migration, full browser/WebSocket/tool behavior, real compaction, private-user/network boundaries and restart/restore before release.</p>
-<p>The workflow is now active and <a href="https://github.com/skunpoj/dsh_setup/actions/runs/38900841456">its first hosted run passed</a>. Downloaded evidence confirmed the candidate image build, ten matching patch targets, actual web startup/authentication/catalog checks, 35 Linux Python cases and admin browser checks. That workflow makes no model call: the measured LLM inference results earlier in this guide remain separate recorded experiments. There was no version change, so no update PR or Production release occurred.</p>
-<p>On regression, restore the saved compatible Deployment/configuration pair and repeat exact inference plus DSH access/persistence tests. Do not replace newer workspace/history data with an older snapshot merely to roll back an image. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">maintenance procedure</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CONTEXT_OPTIMIZATION_20261015.md">existing context trial record</a> remain separate technical references.</p>
+<p>Checks happen between agent steps. Pressure is estimated, unlike the proxy&#39;s exact count. A large single input/tool result may reach the request guard before auto compaction; overflow is refused. The lowered-threshold fixture verified the real plugin&#39;s summary persistence and recall, not every historical session or complete detail preservation after a near-1M summary. Manual <code>/compact</code> requires a useful compactable range.</p>
+<h2>Setup and controlled rollout</h2>
+<ol>
+<li>Model/overlay source: Azure <code>GPU_server/deployment/vllm/</code>. DSH/proxy: its <code>dsh-environments/</code> mirror or GitHub <code>dsh_setup</code>. Retain pinned images, reviewed hashes and existing Secret references. Do not apply legacy LiteLLM placeholder Secrets or bootstrap shared-pool YAML over private Production.</li>
+<li>Build/test the runtime in Azure pipeline 1315. Build <strong>62773</strong>, source <code>c20b31078b84604a6d1c19bfbdd59be166ff27ae</code>, produced the deployed image. Image policy/startup files were compared with source. Later documentation builds do not change the live image automatically.</li>
+<li>Prepare isolated synthetic storage with <code>scripts/prepare_1m_canary.py</code>; qualify actual tokenizer IDs, streaming, tools, cache handoff, compaction and mixed traffic. Synthetic envelope capture must stay off in Production.</li>
+<li>Run <code>scripts/promote_1m_proxy.py</code> in plan mode, then <code>--apply</code> with passed actual near-1M acceptance and a fresh private rollback directory. It preserves auth/database references and unrelated routes, creates immutable configuration and adds the loopback guard. Test actual inference and rejected endpoint override after replacement.</li>
+<li>Run <code>scripts/promote_1m_runtimes.py</code> in plan mode, then <code>--apply</code> with another fresh private rollback directory. It selects existing main private runtimes, requires Recreate/single-writer behavior, preserves mounts and backs up the old profile <strong>inside each private PVC</strong> before changing it. Read back imageIDs, numerical policies and effective owner/admin compositions.</li>
+<li>For the pinned runtime used here, apply <code>scripts/rollout_managed_transport.py</code> with the passed delayed-response acceptance and a fresh private rollback directory. This adds the read-only internal-origin transport hook and repairs repeat-start backup handling. Future qualified images also preload the hook from their startup script; compare actual source hashes before changing overlays.</li>
+<li>Recheck login/logout, real terminal execution, peer-history denial, workspace markers and original session hashes; update the admin snapshot and English report from actual results. Never replace DA_WORKSPACE or reassign histories as part of a context upgrade.</li>
+</ol>
+<h2>Rollback and limits</h2>
+<p>Restore each old profile before starting its previous image; reverting only the image can leave an unsafe mismatched 1M profile. The controller prepares a restore init step and checks the retained backup hash. Restore the previous LiteLLM Deployment to recover its original immutable configuration. These CPU-side reversions do not require a GPU restart. Prior model/overlay snapshots remain available separately.</p>
+<p>Preserve newer workspace/history writes; rollback does not overwrite them with older data. User/environment routes, CIFS mounts and ownership are unchanged. Datalake authorization, remote Spark egress, legacy-instance migration and device/browser controls remain separate security boundaries. Raising context does not close those risks.</p>
 </main></body></html>

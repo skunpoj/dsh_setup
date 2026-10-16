@@ -1,0 +1,79 @@
+{
+  "plan": {
+    "kind": "burst",
+    "concurrency": 1
+  },
+  "wallSeconds": 2.5028,
+  "rows": [
+    {
+      "label": "burst-0",
+      "startMonotonic": 613139.965879402,
+      "endMonotonic": 613142.467577764,
+      "firstTokenSeconds": 0.1158,
+      "elapsedSeconds": 2.5017,
+      "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+      "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+      "exact": true,
+      "usage": {
+        "completion_tokens": 80,
+        "prompt_tokens": 51,
+        "total_tokens": 131,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "finishReason": "stop",
+      "contentEvents": 79,
+      "effectiveOutputTokensPerSecond": 31.978
+    }
+  ],
+  "allExact": true,
+  "aggregateOutputTokensPerSecond": 31.964,
+  "modelState": {
+    "metrics": {
+      "sglang:num_running_reqs": 0,
+      "sglang:num_queue_reqs": 0,
+      "sglang:token_usage": 0,
+      "sglang:full_token_usage": 0
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "usedMiB": 93120,
+        "freeMiB": 2200,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 1,
+        "usedMiB": 93120,
+        "freeMiB": 2200,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 2,
+        "usedMiB": 93120,
+        "freeMiB": 2200,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 3,
+        "usedMiB": 93120,
+        "freeMiB": 2200,
+        "utilizationPercent": 0
+      }
+    ],
+    "pods": [
+      {
+        "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+        "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "timeUTC": "2026-10-16T13:47:19.545731+00:00"
+  }
+}

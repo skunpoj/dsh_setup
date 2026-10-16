@@ -1,0 +1,21 @@
+{
+  "timeUTC": "2026-10-16T15:20:32.256042+00:00",
+  "snapshotConfigMap": "dsh-admin-status-fcd64748a2d5",
+  "runtimePoolsRestarted": false,
+  "modelRestarted": false,
+  "accessVerification": {
+    "timeUTC": "2026-10-16T15:21:14.501Z",
+    "legacyOwner": "thanatcc",
+    "ownerLegacyCount": 80,
+    "adminLegacyCount": 0,
+    "privateLogins": 16,
+    "privateEmptyHistories": 15,
+    "legacyPageDenials": 16,
+    "ordinaryAdminDenials": 16,
+    "excludedAccountDenials": 0,
+    "auditEventsVisible": true,
+    "adminSnapshotContentVerified": true
+  },
+  "mountedContentMatches": true,
+  "status": "passed"
+}

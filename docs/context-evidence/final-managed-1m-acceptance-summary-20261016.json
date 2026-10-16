@@ -1,0 +1,37 @@
+{
+  "startUTC": "2026-10-16T14:56:58.240639+00:00",
+  "finishUTC": "2026-10-16T15:16:37.411871+00:00",
+  "elapsedSeconds": 1170.082,
+  "usage": {
+    "inputTokens": 1007689,
+    "outputTokens": 8,
+    "totalTokens": 1007697
+  },
+  "exactReply": true,
+  "persistedPromptMatches": true,
+  "retryCount": 0,
+  "modelUnchanged": true,
+  "allocatorMappingWarningCount": 1460,
+  "warningMinimumFreeMiB": 9.75,
+  "fatalSignatureCounts": {
+    "CUDA out of memory": 0,
+    "OutOfMemoryError": 0,
+    "Scheduler exception": 0,
+    "illegal memory access": 0
+  },
+  "warningSamples": [
+    "[rank3]:[W1016 15:03:54.264778039 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 18612224, total: 99949674496).",
+    "[rank2]:[W1016 15:03:54.264921415 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 18612224, total: 99949674496).",
+    "[rank0]:[W1016 15:03:54.265225843 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 18612224, total: 99949674496).",
+    "[rank1]:[W1016 15:03:54.265341838 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 18612224, total: 99949674496).",
+    "[rank1]:[W1016 15:03:54.508857911 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 16515072, total: 99949674496).",
+    "[rank2]:[W1016 15:03:54.508854265 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 16515072, total: 99949674496).",
+    "[rank3]:[W1016 15:16:27.646343878 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 18612224, total: 99949674496).",
+    "[rank0]:[W1016 15:16:27.650361373 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 18612224, total: 99949674496).",
+    "[rank2]:[W1016 15:16:27.746667144 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 18612224, total: 99949674496).",
+    "[rank3]:[W1016 15:16:27.747379276 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 18612224, total: 99949674496).",
+    "[rank1]:[W1016 15:16:27.747383813 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 18612224, total: 99949674496).",
+    "[rank0]:[W1016 15:16:27.748809638 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 18612224, total: 99949674496)."
+  ],
+  "scope": "Recovering allocator warnings are distinct from fatal exceptions. No generous memory margin or arbitrary load guarantee is asserted."
+}

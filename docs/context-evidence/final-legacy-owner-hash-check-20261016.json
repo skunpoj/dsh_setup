@@ -1,0 +1,7 @@
+{
+  "beforeFiles": 87,
+  "afterFiles": 87,
+  "allPriorFileHashesUnchanged": true,
+  "aggregateSHA256": "a18bd4338d011d39b16051e75d85e8cb9e2e0b363940ad71b274b3af7ff0514f",
+  "scope": "Legacy owner session files after both runtime rollouts; no contents exported."
+}

@@ -1,0 +1,229 @@
+{
+  "sessionId": "session-7e480ec6-6f14-4277-8e40-4d7cc3b7b1d6",
+  "inputTarget": 0,
+  "inputSha256": "0a18926183f6e13fecd89bbe948ca9baaf75a2b60700516328f5b413bb8adc84",
+  "inputBytes": 113,
+  "expected": "DSH_LONG_CONTEXT_OK",
+  "inputSpecification": {
+    "nonce": "3cbd738d9d2f42819d63910e5d8c196e",
+    "filler": " a b c d",
+    "repeats": 0,
+    "suffix": "\nReply exactly DSH_LONG_CONTEXT_OK. Do not use tools."
+  },
+  "startUTC": "2026-10-16T14:03:43.099772+00:00",
+  "catalogModels": [
+    {
+      "id": "deepseek-v4.1-flash",
+      "name": "DeepSeek-V4.1-Flash (1M CED MoE)",
+      "description": "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)",
+      "inputModalities": [
+        "text",
+        "image"
+      ]
+    },
+    {
+      "id": "deepseek-flash",
+      "name": "DeepSeek-Flash (V4.1-Flash Alias)",
+      "description": "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
+      "inputModalities": [
+        "text",
+        "image"
+      ]
+    }
+  ],
+  "afterSeq": 16,
+  "events": [
+    {
+      "type": "assistant/message",
+      "seq": 22,
+      "time": 1792159424750,
+      "data": {
+        "turn": 2,
+        "step": 1,
+        "message": {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "DSH_LONG_CONTEXT_OK"
+            }
+          ],
+          "source": {
+            "kind": "model",
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "replayState": {
+              "response": {
+                "kind": "pi-ai",
+                "version": 2,
+                "api": "openai-completions",
+                "provider": "litellm-cluster",
+                "model": "deepseek-v4.1-flash",
+                "responseId": "dsh-final-f655c400dc9943c8890348909de88b5e",
+                "stopReason": "stop"
+              },
+              "blocks": [
+                {
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "id": "f9bd9e81-f34c-46a4-9adb-da2174f9c773"
+        },
+        "usage": {
+          "inputTokens": 257738,
+          "outputTokens": 8,
+          "totalTokens": 257746
+        },
+        "stream": [
+          {
+            "type": "chunk",
+            "time": 1792159424543,
+            "chunk": {
+              "type": "block-start",
+              "index": 0,
+              "blockType": "text"
+            }
+          },
+          {
+            "type": "text-chunks",
+            "time0": 1792159424543,
+            "index": 0,
+            "dt": [
+              0,
+              27,
+              30,
+              31,
+              31,
+              30
+            ],
+            "texts": [
+              "DS",
+              "H",
+              "_L",
+              "ONG",
+              "_CONT",
+              "EXT",
+              "_OK"
+            ]
+          },
+          {
+            "type": "chunk",
+            "time": 1792159424749,
+            "chunk": {
+              "type": "block-end",
+              "index": 0,
+              "block": {
+                "type": "text",
+                "text": "DSH_LONG_CONTEXT_OK"
+              }
+            }
+          },
+          {
+            "type": "chunk",
+            "time": 1792159424750,
+            "chunk": {
+              "type": "usage",
+              "usage": {
+                "inputTokens": 257738,
+                "outputTokens": 8,
+                "totalTokens": 257746
+              }
+            }
+          },
+          {
+            "type": "chunk",
+            "time": 1792159424750,
+            "chunk": {
+              "type": "finish",
+              "reason": {
+                "kind": "stop"
+              },
+              "replayState": {
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-completions",
+                  "provider": "litellm-cluster",
+                  "model": "deepseek-v4.1-flash",
+                  "responseId": "dsh-final-f655c400dc9943c8890348909de88b5e",
+                  "stopReason": "stop"
+                },
+                "blocks": [
+                  {
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "surfaceOp": "append"
+    },
+    {
+      "type": "step/end",
+      "seq": 23,
+      "time": 1792159424751,
+      "data": {
+        "turn": 2,
+        "step": 1
+      }
+    },
+    {
+      "type": "turn/end",
+      "seq": 24,
+      "time": 1792159424751,
+      "data": {
+        "turn": 2,
+        "reason": {
+          "kind": "completed"
+        }
+      }
+    }
+  ],
+  "projection": {
+    "contextPressure": {
+      "pressureTokens": 257738,
+      "projectedTokens": 257751,
+      "contextWindow": 1048576
+    },
+    "sessionStats": {
+      "turns": 2,
+      "steps": 2,
+      "llmMs": 109573,
+      "toolMs": 0,
+      "ttftMs": 109162,
+      "ttftSteps": 2,
+      "decodeMs": 411,
+      "decodeTokens": 16
+    },
+    "tokenUsage": {
+      "uncachedInputTokens": 515422,
+      "outputTokens": 16,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    "modelSelection": {
+      "lastUsed": {
+        "provider": "litellm-cluster",
+        "model": "deepseek-v4.1-flash"
+      },
+      "next": {
+        "provider": "litellm-cluster",
+        "model": "deepseek-v4.1-flash"
+      }
+    }
+  },
+  "elapsedSeconds": 2.0412,
+  "finished": true,
+  "assistantText": "DSH_LONG_CONTEXT_OK",
+  "expectedTextPresent": true,
+  "persistedPromptMatches": true,
+  "lastUsage": {
+    "inputTokens": 257738,
+    "outputTokens": 8,
+    "totalTokens": 257746
+  }
+}

@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 const modules = process.env.DSH_DOC_NODE_MODULES || 'C:/Users/skunpojt/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules';
 const { default: { chromium } } = await import(pathToFileURL(path.join(modules,'playwright/index.js')));
 const root=path.resolve(import.meta.dirname,'..');
+const acceptedInput=Number(JSON.parse(fs.readFileSync(path.join(root,'docs/context-evidence/final-managed-1m-acceptance-summary-20261016.json'),'utf8')).usage.inputTokens).toLocaleString('en-US');
 const out=path.resolve(process.env.DSH_DOC_QA_OUTPUT || 'C:/Users/skunpojt/outputs/dsh-report-review-20261015');
 fs.mkdirSync(out,{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
@@ -35,7 +36,7 @@ try {
  assert.equal(await page.locator('details[id^="evidence-"]').count(),0,'Raw evidence logs must remain separate');
  await page.locator('#embedded-llm-guide > summary').click();
  const guide=await page.locator('#embedded-llm-guide').innerText();
- assert(guide.includes('1,007,688')&&guide.includes('917,504')&&guide.includes('promote_1m_runtimes.py'));
+ assert(guide.includes(acceptedInput)&&guide.includes('917,504')&&guide.includes('promote_1m_runtimes.py'));
  await page.locator('#embedded-llm-guide > summary').click();
 
  await page.waitForTimeout(1200);
@@ -71,7 +72,7 @@ try {
  assert.deepEqual(errors,[]);
  const setupPage=await context.newPage();
  await setupPage.goto(pathToFileURL(path.join(root,'docs/LLM_SETUP_AND_TEST_RESULTS.html')).href);
- assert((await setupPage.locator('main').innerText()).includes('1,007,688'));
+ assert((await setupPage.locator('main').innerText()).includes(acceptedInput));
  assert((await setupPage.locator('h1').innerText()).includes('1M Setup, Performance and Operational Limits'));
  const record={time:new Date().toISOString(),riskCentredHeadings:mainHeadings,supportingMaterialInitiallyCollapsed:true,englishNarrative:true,readmeEmbedded:true,llmGuideEmbedded:true,standaloneLlmGuide:true,rawEvidenceEmbedded:false,renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
  fs.writeFileSync(path.join(out,'html-verification.json'),JSON.stringify(record,null,2));console.log(JSON.stringify(record));

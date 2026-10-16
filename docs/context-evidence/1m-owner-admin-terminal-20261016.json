@@ -1,0 +1,36 @@
+{
+  "thanatcc": {
+    "time": "2026-10-16T14:39:50.703Z",
+    "results": [
+      {
+        "environment": "secure",
+        "authenticatedTerminalWebSocket": true,
+        "executedSentinel": true,
+        "nonRootUid": 10001
+      },
+      {
+        "environment": "internet",
+        "authenticatedTerminalWebSocket": true,
+        "executedSentinel": true,
+        "nonRootUid": 10001
+      }
+    ]
+  },
+  "admin": {
+    "time": "2026-10-16T14:39:53.447Z",
+    "results": [
+      {
+        "environment": "secure",
+        "authenticatedTerminalWebSocket": true,
+        "executedSentinel": true,
+        "nonRootUid": 10001
+      },
+      {
+        "environment": "internet",
+        "authenticatedTerminalWebSocket": true,
+        "executedSentinel": true,
+        "nonRootUid": 10001
+      }
+    ]
+  }
+}

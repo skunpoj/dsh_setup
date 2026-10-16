@@ -1,0 +1,414 @@
+{
+  "scope": "Delayed synthetic endpoint; no model inference; initial fixture startup connection retries plus a 300s timeout",
+  "result": {
+    "sessionId": "session-89050422-dcd0-4758-880c-a8eb51dbb5bc",
+    "inputTarget": 0,
+    "inputSha256": "44c3e2bb83217a18a621d0191c75af175d65d565a9bef9c02f04b77a1c02ea7c",
+    "inputBytes": 113,
+    "expected": "DSH_LONG_CONTEXT_OK",
+    "inputSpecification": {
+      "nonce": "1f4561d89c884ecd9ae559b3d44de49a",
+      "filler": " a b c d",
+      "repeats": 0,
+      "suffix": "\nReply exactly DSH_LONG_CONTEXT_OK. Do not use tools."
+    },
+    "startUTC": "2026-10-16T14:40:55.906939+00:00",
+    "catalogModels": [
+      {
+        "id": "deepseek-v4.1-flash",
+        "name": "DeepSeek-V4.1-Flash (1M CED MoE)",
+        "description": "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)",
+        "inputModalities": [
+          "text",
+          "image"
+        ]
+      },
+      {
+        "id": "deepseek-flash",
+        "name": "DeepSeek-Flash (V4.1-Flash Alias)",
+        "description": "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
+        "inputModalities": [
+          "text",
+          "image"
+        ]
+      }
+    ],
+    "afterSeq": 3,
+    "events": [
+      {
+        "type": "assistant/attempt",
+        "seq": 14,
+        "time": 1792161656013,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792161656011,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 0,
+                  "outputTokens": 0,
+                  "totalTokens": 0
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792161656013,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "error",
+                  "failure": {
+                    "message": "Connection error.",
+                    "code": "TRANSPORT"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "llm/retry",
+        "seq": 15,
+        "time": 1792161656014,
+        "data": {
+          "retryId": "de267a41-b122-432a-bc37-2988c1541720",
+          "turn": 1,
+          "step": 1,
+          "provider": "litellm-cluster",
+          "mode": "normal",
+          "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+          "retry": 1,
+          "maxRetries": 5,
+          "delayMs": 488.05313660633215,
+          "failure": {
+            "message": "Connection error.",
+            "code": "TRANSPORT"
+          }
+        }
+      },
+      {
+        "type": "llm/retry-started",
+        "seq": 16,
+        "time": 1792161656503,
+        "data": {
+          "retryId": "de267a41-b122-432a-bc37-2988c1541720",
+          "turn": 1,
+          "step": 1,
+          "retry": 1
+        }
+      },
+      {
+        "type": "assistant/attempt",
+        "seq": 17,
+        "time": 1792161656513,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792161656511,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 0,
+                  "outputTokens": 0,
+                  "totalTokens": 0
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792161656512,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "error",
+                  "failure": {
+                    "message": "Connection error.",
+                    "code": "TRANSPORT"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "llm/retry",
+        "seq": 18,
+        "time": 1792161656513,
+        "data": {
+          "retryId": "de267a41-b122-432a-bc37-2988c1541720",
+          "turn": 1,
+          "step": 1,
+          "provider": "litellm-cluster",
+          "mode": "normal",
+          "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+          "retry": 2,
+          "maxRetries": 5,
+          "delayMs": 1028.8371095639036,
+          "failure": {
+            "message": "Connection error.",
+            "code": "TRANSPORT"
+          }
+        }
+      },
+      {
+        "type": "llm/retry-started",
+        "seq": 19,
+        "time": 1792161657542,
+        "data": {
+          "retryId": "de267a41-b122-432a-bc37-2988c1541720",
+          "turn": 1,
+          "step": 1,
+          "retry": 2
+        }
+      },
+      {
+        "type": "assistant/attempt",
+        "seq": 20,
+        "time": 1792161657548,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792161657548,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 0,
+                  "outputTokens": 0,
+                  "totalTokens": 0
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792161657548,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "error",
+                  "failure": {
+                    "message": "Connection error.",
+                    "code": "TRANSPORT"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "llm/retry",
+        "seq": 21,
+        "time": 1792161657549,
+        "data": {
+          "retryId": "de267a41-b122-432a-bc37-2988c1541720",
+          "turn": 1,
+          "step": 1,
+          "provider": "litellm-cluster",
+          "mode": "normal",
+          "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+          "retry": 3,
+          "maxRetries": 5,
+          "delayMs": 1906.8443714427376,
+          "failure": {
+            "message": "Connection error.",
+            "code": "TRANSPORT"
+          }
+        }
+      },
+      {
+        "type": "llm/retry-started",
+        "seq": 22,
+        "time": 1792161659454,
+        "data": {
+          "retryId": "de267a41-b122-432a-bc37-2988c1541720",
+          "turn": 1,
+          "step": 1,
+          "retry": 3
+        }
+      },
+      {
+        "type": "assistant/attempt",
+        "seq": 23,
+        "time": 1792161659460,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792161659459,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 0,
+                  "outputTokens": 0,
+                  "totalTokens": 0
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792161659460,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "error",
+                  "failure": {
+                    "message": "Connection error.",
+                    "code": "TRANSPORT"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "llm/retry",
+        "seq": 24,
+        "time": 1792161659460,
+        "data": {
+          "retryId": "de267a41-b122-432a-bc37-2988c1541720",
+          "turn": 1,
+          "step": 1,
+          "provider": "litellm-cluster",
+          "mode": "normal",
+          "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+          "retry": 4,
+          "maxRetries": 5,
+          "delayMs": 4382.218281639852,
+          "failure": {
+            "message": "Connection error.",
+            "code": "TRANSPORT"
+          }
+        }
+      },
+      {
+        "type": "llm/retry-started",
+        "seq": 25,
+        "time": 1792161663843,
+        "data": {
+          "retryId": "de267a41-b122-432a-bc37-2988c1541720",
+          "turn": 1,
+          "step": 1,
+          "retry": 4
+        }
+      },
+      {
+        "type": "assistant/attempt",
+        "seq": 26,
+        "time": 1792161964314,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792161964313,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 0,
+                  "outputTokens": 0,
+                  "totalTokens": 0
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792161964314,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "error",
+                  "failure": {
+                    "message": "Request timed out.",
+                    "code": "TIMEOUT"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "llm/retry",
+        "seq": 27,
+        "time": 1792161964315,
+        "data": {
+          "retryId": "de267a41-b122-432a-bc37-2988c1541720",
+          "turn": 1,
+          "step": 1,
+          "provider": "litellm-cluster",
+          "mode": "normal",
+          "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+          "retry": 5,
+          "maxRetries": 5,
+          "delayMs": 8717.758178485248,
+          "failure": {
+            "message": "Request timed out.",
+            "code": "TIMEOUT"
+          }
+        }
+      },
+      {
+        "type": "llm/retry-started",
+        "seq": 28,
+        "time": 1792161973033,
+        "data": {
+          "retryId": "de267a41-b122-432a-bc37-2988c1541720",
+          "turn": 1,
+          "step": 1,
+          "retry": 5
+        }
+      }
+    ],
+    "projection": {
+      "contextPressure": {
+        "pressureTokens": 0,
+        "projectedTokens": 0,
+        "contextWindow": 1048576
+      },
+      "sessionStats": {
+        "turns": 0,
+        "steps": 0,
+        "llmMs": 0,
+        "toolMs": 0,
+        "ttftMs": 0,
+        "ttftSteps": 0,
+        "decodeMs": 0,
+        "decodeTokens": 0
+      },
+      "tokenUsage": {
+        "uncachedInputTokens": 0,
+        "outputTokens": 0,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      },
+      "modelSelection": {
+        "lastUsed": {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash"
+        },
+        "next": {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash"
+        }
+      }
+    },
+    "elapsedSeconds": 318.5759
+  }
+}

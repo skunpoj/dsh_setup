@@ -1,0 +1,17 @@
+{
+  "exact": true,
+  "seconds": 0.2142154120374471,
+  "overrideRejected": true,
+  "nonStreaming": {
+    "exact": true,
+    "usage": {
+      "completion_tokens": 4,
+      "prompt_tokens": 140018,
+      "total_tokens": 140022,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "seconds": 44.99359846604057
+  }
+}

@@ -1,0 +1,745 @@
+{
+  "observedAtUTC": "2026-10-16T15:05:42.856557+00:00",
+  "runtimes": [
+    {
+      "runtime": "dsh-internet",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-secure",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-internet",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-secure",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-internet",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-secure",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "policy": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "declaredImage": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+      "managedTransport": "1",
+      "recreate": true
+    }
+  ]
+}

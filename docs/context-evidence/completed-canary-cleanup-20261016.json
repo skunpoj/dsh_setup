@@ -1,0 +1,81 @@
+{
+  "scope": "Completed synthetic-only candidates; no user/runtime/model deletion",
+  "pods": [
+    {
+      "name": "dsh-compaction-canary",
+      "uid": "30c0b428-f291-41bd-9a1a-6f3328d3115e",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-timeout-fixture",
+      "uid": "caf69350-e46c-45ab-8e01-ff5d06b1a5b8",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-timeout-managed-fixture",
+      "uid": "53634841-3bb7-4b0e-aebb-b52c5e326ddd",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "litellm-timeout-fixture",
+      "uid": "4d4d1f67-af48-4299-b69e-330f4b6b1f55",
+      "containers": [
+        {
+          "name": "context-forwarder",
+          "imageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+          "restartCount": 0
+        },
+        {
+          "name": "litellm",
+          "imageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "litellm-1m-canary",
+      "uid": "375551b4-575e-439e-b966-29727c640d99",
+      "containers": [
+        {
+          "name": "context-forwarder",
+          "imageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+          "restartCount": 0
+        },
+        {
+          "name": "litellm",
+          "imageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-1m-image-canary",
+      "uid": "d09f2930-59b8-437a-b77d-76b4e8778d79",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3",
+          "restartCount": 0
+        }
+      ]
+    }
+  ]
+}

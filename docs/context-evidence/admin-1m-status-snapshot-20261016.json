@@ -1,0 +1,53 @@
+{
+  "observedAt": "2026-10-16T15:18:26.410805+00:00",
+  "environments": [
+    {
+      "name": "No Internet: admin + 8 private users",
+      "ready": true,
+      "storage": "Dedicated per-user storage; thanatcc retains masked legacy owner paths. Admin uses private volumes.",
+      "network": "Earlier security probes, snapshot 2026-10-16T11:38:19.994122+00:00: 9 workers: public domains/IP/DNS denied; KDC/Livy/inference permitted"
+    },
+    {
+      "name": "Internet: admin + 8 private users",
+      "ready": true,
+      "storage": "Dedicated per-user storage; thanatcc retains masked legacy owner paths. Admin uses private volumes.",
+      "network": "Earlier security probes, snapshot 2026-10-16T11:38:19.994122+00:00: 9 workers: registries/inference pass; KDC/Livy/private service denied"
+    },
+    {
+      "name": "Legacy DSH2",
+      "ready": true,
+      "storage": "Legacy; excluded from private-pilot acceptance",
+      "network": "Earlier security probes, snapshot 2026-10-16T11:38:19.994122+00:00: Earlier root/Internet configuration; not covered by this release"
+    },
+    {
+      "name": "Legacy DSH3",
+      "ready": true,
+      "storage": "Legacy; excluded from private-pilot acceptance",
+      "network": "Earlier security probes, snapshot 2026-10-16T11:38:19.994122+00:00: Earlier root/Internet configuration; not covered by this release"
+    }
+  ],
+  "model": {
+    "backendContext": 1048576,
+    "userContext": 1048576,
+    "concurrencyCeiling": 16
+  },
+  "performance": [
+    "Final actual DSH cold request: 1,007,689 input + 8 output tokens; exact persisted reply; 1170.08s, zero retries and unchanged model pod.",
+    "Real write/read tool continuation in the same million-token history: 1,008,103 input tokens, 20.16s, actual file verified/removed and zero retries.",
+    "One >128K request admitted at a time; ordinary work remains parallel. Two ordinary DSH replies during final 1M work: 6.04/8.04s; late actual admin reply: 6.03s.",
+    "Fresh 105/105 stress replies passed; 16 ordinary requests: 208.88-240.25 aggregate output tokens/sec, completion p95 7.655s. Not 16 maximum contexts.",
+    "During long work: 2-request API burst 8.98 aggregate tokens/sec; 4-request burst 15.51. Output slows under near-1M work.",
+    "Configured output ceiling 8192; proxy reserve 256; automatic compaction around 917504 estimated tokens. Lowered-threshold actual summary/recall fixture passed.",
+    "315-second delayed transport fixture passed in 316.59s without retry. This fixture is not a GPU inference benchmark."
+  ],
+  "gaps": [
+    "Remote Spark driver/executor public TCP connectivity was retested and remains an accepted exposure; Livy is retained.",
+    "Existing AD/datalake permissions are preserved; no universal read-only policy or unspecified dataset authorization is asserted.",
+    "DSH2/DSH3 retain shared root runtimes; migration awaits explicit ownership for their 9 and 1 session files.",
+    "Authorized browser copying/downloads require endpoint controls if restricted; pod egress controls do not govern the user device.",
+    "Infrastructure administrators remain trusted; the DSH admin runtime itself no longer mounts the legacy data tree.",
+    "Final near-1M run recorded 1460 recovering allocator mapping warnings; minimum warning-reported free GPU memory 9.75 MiB. No fatal signature or model restart, but memory margin is thin.",
+    "Public-data system-account sandbox scope remains unverified; context qualification does not close datalake/remote-worker authorization gaps.",
+    "Near-1M vision, two full concurrent 1M requests and full 8192-token output at near-1M input are not qualified."
+  ]
+}

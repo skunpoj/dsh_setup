@@ -1,0 +1,225 @@
+{
+  "scope": "Delayed synthetic HTTP/SSE transport; no GPU/model inference",
+  "upstreamDelaySeconds": 315,
+  "litellmTimeoutSeconds": 3600,
+  "litellmStreamTimeoutSeconds": 3600,
+  "dshTimeoutMs": 3600000,
+  "retryCount": 0,
+  "result": {
+    "sessionId": "session-e7e10ec8-bad3-403e-9bb1-a7da078e2f97",
+    "inputTarget": 0,
+    "inputSha256": "53d4eb62215a9c8b5d4561e3793e0e5dd3a79d9238e37f27959f8df778f2b88d",
+    "inputBytes": 113,
+    "expected": "DSH_LONG_CONTEXT_OK",
+    "inputSpecification": {
+      "nonce": "4d830444f059489e9d4555e5dad28edf",
+      "filler": " a b c d",
+      "repeats": 0,
+      "suffix": "\nReply exactly DSH_LONG_CONTEXT_OK. Do not use tools."
+    },
+    "startUTC": "2026-10-16T14:49:30.883555+00:00",
+    "catalogModels": [
+      {
+        "id": "deepseek-v4.1-flash",
+        "name": "DeepSeek-V4.1-Flash (1M CED MoE)",
+        "description": "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)",
+        "inputModalities": [
+          "text",
+          "image"
+        ]
+      },
+      {
+        "id": "deepseek-flash",
+        "name": "DeepSeek-Flash (V4.1-Flash Alias)",
+        "description": "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
+        "inputModalities": [
+          "text",
+          "image"
+        ]
+      }
+    ],
+    "afterSeq": 3,
+    "events": [
+      {
+        "type": "assistant/message",
+        "seq": 14,
+        "time": 1792162486024,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "message": {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "DSH_LONG_CONTEXT_OK"
+              }
+            ],
+            "source": {
+              "kind": "model",
+              "provider": "litellm-cluster",
+              "model": "deepseek-v4.1-flash",
+              "replayState": {
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-completions",
+                  "provider": "litellm-cluster",
+                  "model": "deepseek-v4.1-flash",
+                  "responseId": "delayed-transport-fixture",
+                  "stopReason": "stop"
+                },
+                "blocks": [
+                  {
+                    "type": "text"
+                  }
+                ]
+              }
+            },
+            "id": "da3b18ae-f51e-44f4-a870-bc3f8e4a1e65"
+          },
+          "usage": {
+            "inputTokens": 1,
+            "outputTokens": 8,
+            "totalTokens": 9
+          },
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792162486022,
+              "chunk": {
+                "type": "block-start",
+                "index": 0,
+                "blockType": "text"
+              }
+            },
+            {
+              "type": "text-chunks",
+              "time0": 1792162486022,
+              "index": 0,
+              "dt": [],
+              "texts": [
+                "DSH_LONG_CONTEXT_OK"
+              ]
+            },
+            {
+              "type": "chunk",
+              "time": 1792162486023,
+              "chunk": {
+                "type": "block-end",
+                "index": 0,
+                "block": {
+                  "type": "text",
+                  "text": "DSH_LONG_CONTEXT_OK"
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792162486023,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 1,
+                  "outputTokens": 8,
+                  "totalTokens": 9
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792162486023,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "stop"
+                },
+                "replayState": {
+                  "response": {
+                    "kind": "pi-ai",
+                    "version": 2,
+                    "api": "openai-completions",
+                    "provider": "litellm-cluster",
+                    "model": "deepseek-v4.1-flash",
+                    "responseId": "delayed-transport-fixture",
+                    "stopReason": "stop"
+                  },
+                  "blocks": [
+                    {
+                      "type": "text"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "surfaceOp": "append"
+      },
+      {
+        "type": "step/end",
+        "seq": 15,
+        "time": 1792162486026,
+        "data": {
+          "turn": 1,
+          "step": 1
+        }
+      },
+      {
+        "type": "turn/end",
+        "seq": 16,
+        "time": 1792162486027,
+        "data": {
+          "turn": 1,
+          "reason": {
+            "kind": "completed"
+          }
+        }
+      }
+    ],
+    "projection": {
+      "contextPressure": {
+        "pressureTokens": 1,
+        "projectedTokens": 14,
+        "contextWindow": 1048576
+      },
+      "sessionStats": {
+        "turns": 1,
+        "steps": 1,
+        "llmMs": 315084,
+        "toolMs": 0,
+        "ttftMs": 315082,
+        "ttftSteps": 1,
+        "decodeMs": 2,
+        "decodeTokens": 8
+      },
+      "tokenUsage": {
+        "uncachedInputTokens": 1,
+        "outputTokens": 8,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      },
+      "modelSelection": {
+        "lastUsed": {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash"
+        },
+        "next": {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash"
+        }
+      }
+    },
+    "elapsedSeconds": 316.591,
+    "finished": true,
+    "assistantText": "DSH_LONG_CONTEXT_OK",
+    "expectedTextPresent": true,
+    "persistedPromptMatches": true,
+    "lastUsage": {
+      "inputTokens": 1,
+      "outputTokens": 8,
+      "totalTokens": 9
+    }
+  },
+  "managedNodeTransport": true
+}

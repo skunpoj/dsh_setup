@@ -1,0 +1,533 @@
+{
+  "before": {
+    "metrics": {
+      "sglang:num_running_reqs": 0,
+      "sglang:num_queue_reqs": 0,
+      "sglang:token_usage": 0,
+      "sglang:full_token_usage": 0
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "usedMiB": 94822,
+        "freeMiB": 498,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 1,
+        "usedMiB": 94822,
+        "freeMiB": 498,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 2,
+        "usedMiB": 94822,
+        "freeMiB": 498,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 3,
+        "usedMiB": 94822,
+        "freeMiB": 498,
+        "utilizationPercent": 0
+      }
+    ],
+    "pods": [
+      {
+        "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+        "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "timeUTC": "2026-10-16T14:32:06.734004+00:00"
+  },
+  "route": "Disposable DSH with production LiteLLM Service endpoints",
+  "result": {
+    "sessionId": "session-7608d900-b5d0-4552-8b9d-a945dde78c5c",
+    "inputTarget": 0,
+    "inputSha256": "c9491b46916c7b0cd62d4486e6f16dfb53721ee16e20a96c75b8d00d9ef040e8",
+    "inputBytes": 113,
+    "expected": "DSH_LONG_CONTEXT_OK",
+    "inputSpecification": {
+      "nonce": "adb6ffb9f2894a09a9c7dc9152a6eef8",
+      "filler": " a b c d",
+      "repeats": 0,
+      "suffix": "\nReply exactly DSH_LONG_CONTEXT_OK. Do not use tools."
+    },
+    "startUTC": "2026-10-16T14:32:08.416049+00:00",
+    "catalogModels": [
+      {
+        "id": "deepseek-v4.1-flash",
+        "name": "DeepSeek-V4.1-Flash (1M CED MoE)",
+        "description": "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)",
+        "inputModalities": [
+          "text",
+          "image"
+        ]
+      },
+      {
+        "id": "deepseek-flash",
+        "name": "DeepSeek-Flash (V4.1-Flash Alias)",
+        "description": "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
+        "inputModalities": [
+          "text",
+          "image"
+        ]
+      }
+    ],
+    "afterSeq": 25,
+    "events": [
+      {
+        "type": "assistant/attempt",
+        "seq": 31,
+        "time": 1792161428950,
+        "data": {
+          "turn": 2,
+          "step": 1,
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792161428949,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 0,
+                  "outputTokens": 0,
+                  "totalTokens": 0
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792161428950,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "error",
+                  "failure": {
+                    "message": "Request timed out.",
+                    "code": "TIMEOUT"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "llm/retry",
+        "seq": 32,
+        "time": 1792161428951,
+        "data": {
+          "retryId": "40536d82-a579-4651-9ae7-0bb2ec526add",
+          "turn": 2,
+          "step": 1,
+          "provider": "litellm-cluster",
+          "mode": "normal",
+          "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+          "retry": 1,
+          "maxRetries": 5,
+          "delayMs": 501.9733877535721,
+          "failure": {
+            "message": "Request timed out.",
+            "code": "TIMEOUT"
+          }
+        }
+      },
+      {
+        "type": "llm/retry-started",
+        "seq": 33,
+        "time": 1792161429452,
+        "data": {
+          "retryId": "40536d82-a579-4651-9ae7-0bb2ec526add",
+          "turn": 2,
+          "step": 1,
+          "retry": 1
+        }
+      },
+      {
+        "type": "assistant/attempt",
+        "seq": 34,
+        "time": 1792161729918,
+        "data": {
+          "turn": 2,
+          "step": 1,
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792161729917,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 0,
+                  "outputTokens": 0,
+                  "totalTokens": 0
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792161729917,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "error",
+                  "failure": {
+                    "message": "Request timed out.",
+                    "code": "TIMEOUT"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "llm/retry",
+        "seq": 35,
+        "time": 1792161729919,
+        "data": {
+          "retryId": "40536d82-a579-4651-9ae7-0bb2ec526add",
+          "turn": 2,
+          "step": 1,
+          "provider": "litellm-cluster",
+          "mode": "normal",
+          "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+          "retry": 2,
+          "maxRetries": 5,
+          "delayMs": 954.407434385184,
+          "failure": {
+            "message": "Request timed out.",
+            "code": "TIMEOUT"
+          }
+        }
+      },
+      {
+        "type": "llm/retry-started",
+        "seq": 36,
+        "time": 1792161730873,
+        "data": {
+          "retryId": "40536d82-a579-4651-9ae7-0bb2ec526add",
+          "turn": 2,
+          "step": 1,
+          "retry": 2
+        }
+      },
+      {
+        "type": "assistant/attempt",
+        "seq": 37,
+        "time": 1792162031350,
+        "data": {
+          "turn": 2,
+          "step": 1,
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792162031349,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 0,
+                  "outputTokens": 0,
+                  "totalTokens": 0
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792162031350,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "error",
+                  "failure": {
+                    "message": "Request timed out.",
+                    "code": "TIMEOUT"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "llm/retry",
+        "seq": 38,
+        "time": 1792162031351,
+        "data": {
+          "retryId": "40536d82-a579-4651-9ae7-0bb2ec526add",
+          "turn": 2,
+          "step": 1,
+          "provider": "litellm-cluster",
+          "mode": "normal",
+          "policyKey": "[\"normal\",5,[\"EMPTY_RESPONSE\",\"RATE_LIMIT\",\"SERVER\",\"TIMEOUT\",\"TRANSPORT\"],500,10000,0.1]",
+          "retry": 3,
+          "maxRetries": 5,
+          "delayMs": 1883.4977910828607,
+          "failure": {
+            "message": "Request timed out.",
+            "code": "TIMEOUT"
+          }
+        }
+      },
+      {
+        "type": "llm/retry-started",
+        "seq": 39,
+        "time": 1792162033234,
+        "data": {
+          "retryId": "40536d82-a579-4651-9ae7-0bb2ec526add",
+          "turn": 2,
+          "step": 1,
+          "retry": 3
+        }
+      },
+      {
+        "type": "assistant/message",
+        "seq": 40,
+        "time": 1792162264370,
+        "data": {
+          "turn": 2,
+          "step": 1,
+          "message": {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "DSH_LONG_CONTEXT_OK"
+              }
+            ],
+            "source": {
+              "kind": "model",
+              "provider": "litellm-cluster",
+              "model": "deepseek-v4.1-flash",
+              "replayState": {
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-completions",
+                  "provider": "litellm-cluster",
+                  "model": "deepseek-v4.1-flash",
+                  "responseId": "dsh-final-42a1a8ca56de404f91eb6d41d7f9d5c8",
+                  "stopReason": "stop"
+                },
+                "blocks": [
+                  {
+                    "type": "text"
+                  }
+                ]
+              }
+            },
+            "id": "43fa91c3-778a-4d04-baa6-d80a4ad1e560"
+          },
+          "usage": {
+            "inputTokens": 1007743,
+            "outputTokens": 8,
+            "totalTokens": 1007751
+          },
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792162263946,
+              "chunk": {
+                "type": "block-start",
+                "index": 0,
+                "blockType": "text"
+              }
+            },
+            {
+              "type": "text-chunks",
+              "time0": 1792162263946,
+              "index": 0,
+              "dt": [
+                0,
+                20,
+                30,
+                30,
+                30,
+                31
+              ],
+              "texts": [
+                "DS",
+                "H",
+                "_L",
+                "ONG",
+                "_CONT",
+                "EXT",
+                "_OK"
+              ]
+            },
+            {
+              "type": "chunk",
+              "time": 1792162264369,
+              "chunk": {
+                "type": "block-end",
+                "index": 0,
+                "block": {
+                  "type": "text",
+                  "text": "DSH_LONG_CONTEXT_OK"
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792162264370,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 1007743,
+                  "outputTokens": 8,
+                  "totalTokens": 1007751
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792162264370,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "stop"
+                },
+                "replayState": {
+                  "response": {
+                    "kind": "pi-ai",
+                    "version": 2,
+                    "api": "openai-completions",
+                    "provider": "litellm-cluster",
+                    "model": "deepseek-v4.1-flash",
+                    "responseId": "dsh-final-42a1a8ca56de404f91eb6d41d7f9d5c8",
+                    "stopReason": "stop"
+                  },
+                  "blocks": [
+                    {
+                      "type": "text"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "surfaceOp": "append"
+      },
+      {
+        "type": "step/end",
+        "seq": 41,
+        "time": 1792162264371,
+        "data": {
+          "turn": 2,
+          "step": 1
+        }
+      },
+      {
+        "type": "turn/end",
+        "seq": 42,
+        "time": 1792162264372,
+        "data": {
+          "turn": 2,
+          "reason": {
+            "kind": "completed"
+          }
+        }
+      }
+    ],
+    "projection": {
+      "contextPressure": {
+        "pressureTokens": 1007743,
+        "projectedTokens": 1007756,
+        "contextWindow": 1048576
+      },
+      "sessionStats": {
+        "turns": 2,
+        "steps": 2,
+        "llmMs": 2266216,
+        "toolMs": 0,
+        "ttftMs": 2265366,
+        "ttftSteps": 2,
+        "decodeMs": 850,
+        "decodeTokens": 16
+      },
+      "tokenUsage": {
+        "uncachedInputTokens": 2015431,
+        "outputTokens": 16,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      },
+      "modelSelection": {
+        "lastUsed": {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash"
+        },
+        "next": {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash"
+        }
+      }
+    },
+    "elapsedSeconds": 1137.9375,
+    "finished": true,
+    "assistantText": "DSH_LONG_CONTEXT_OK",
+    "expectedTextPresent": true,
+    "persistedPromptMatches": true,
+    "lastUsage": {
+      "inputTokens": 1007743,
+      "outputTokens": 8,
+      "totalTokens": 1007751
+    }
+  },
+  "exitCode": 0,
+  "after": {
+    "metrics": {
+      "sglang:num_running_reqs": 0,
+      "sglang:num_queue_reqs": 0,
+      "sglang:token_usage": 0,
+      "sglang:full_token_usage": 0
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "usedMiB": 95262,
+        "freeMiB": 58,
+        "utilizationPercent": 64
+      },
+      {
+        "index": 1,
+        "usedMiB": 95262,
+        "freeMiB": 58,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 2,
+        "usedMiB": 95262,
+        "freeMiB": 58,
+        "utilizationPercent": 100
+      },
+      {
+        "index": 3,
+        "usedMiB": 95262,
+        "freeMiB": 58,
+        "utilizationPercent": 0
+      }
+    ],
+    "pods": [
+      {
+        "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+        "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "timeUTC": "2026-10-16T14:51:10.545046+00:00"
+  },
+  "modelUnchanged": true,
+  "passed": true
+}

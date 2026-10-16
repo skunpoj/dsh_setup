@@ -1,0 +1,82 @@
+[
+  {
+    "runtime": "dsh-internet",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-secure",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-156540115183048a-internet",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-156540115183048a-secure",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-26ae784d194a5760-internet",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-26ae784d194a5760-secure",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-8205c7f83822ea35-internet",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-8205c7f83822ea35-secure",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-8c6976e5b5410415-internet",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-8c6976e5b5410415-secure",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-ae5deb822e0d7199-internet",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-ae5deb822e0d7199-secure",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+    "originMatchesScopedTransport": true
+  },
+  {
+    "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+    "originMatchesScopedTransport": true
+  }
+]

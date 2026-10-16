@@ -1,0 +1,949 @@
+{
+  "passed": true,
+  "before": {
+    "metrics": {
+      "sglang:num_running_reqs": 0,
+      "sglang:num_queue_reqs": 0,
+      "sglang:token_usage": 0,
+      "sglang:full_token_usage": 0
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "usedMiB": 95304,
+        "freeMiB": 16,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 1,
+        "usedMiB": 95304,
+        "freeMiB": 16,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 2,
+        "usedMiB": 95304,
+        "freeMiB": 16,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 3,
+        "usedMiB": 95304,
+        "freeMiB": 16,
+        "utilizationPercent": 0
+      }
+    ],
+    "pods": [
+      {
+        "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+        "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "timeUTC": "2026-10-16T15:17:43.698957+00:00"
+  },
+  "result": {
+    "sessionId": "session-5cb1cc0e-bcd9-4b67-bceb-7927573e1fc1",
+    "inputTarget": 0,
+    "inputSha256": "b2e27e896750095e85848376581affe45516bde8ac779898fe3b54e80b3e665b",
+    "inputBytes": 239,
+    "expected": "DSH_TOOL_CONTEXT_OK",
+    "inputSpecification": {
+      "nonce": "6db3f326013d406e9d5b25fe59480ade",
+      "filler": " a b c d",
+      "repeats": 0,
+      "suffix": "\nReply exactly DSH_TOOL_CONTEXT_OK. Do not use tools."
+    },
+    "startUTC": "2026-10-16T15:17:45.061901+00:00",
+    "catalogModels": [
+      {
+        "id": "deepseek-v4.1-flash",
+        "name": "DeepSeek-V4.1-Flash (1M CED MoE)",
+        "description": "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)",
+        "inputModalities": [
+          "text",
+          "image"
+        ]
+      },
+      {
+        "id": "deepseek-flash",
+        "name": "DeepSeek-Flash (V4.1-Flash Alias)",
+        "description": "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
+        "inputModalities": [
+          "text",
+          "image"
+        ]
+      }
+    ],
+    "afterSeq": 16,
+    "events": [
+      {
+        "type": "assistant/message",
+        "seq": 22,
+        "time": 1792163872757,
+        "data": {
+          "turn": 2,
+          "step": 1,
+          "message": {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "\n\n\n"
+              },
+              {
+                "type": "tool-call",
+                "id": "call_0991845371c645c397c9dc34",
+                "name": "write",
+                "arguments": "{\"file_path\":\"/workspace/dsh-context-proof-6db3f326013d406e9d5b25fe59480ade.txt\",\"content\":\"DSH_CONTEXT_TOOL_6db3f326013d406e9d5b25fe59480ade\"}"
+              }
+            ],
+            "source": {
+              "kind": "model",
+              "provider": "litellm-cluster",
+              "model": "deepseek-v4.1-flash",
+              "replayState": {
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-completions",
+                  "provider": "litellm-cluster",
+                  "model": "deepseek-v4.1-flash",
+                  "responseId": "dsh-final-0664cd63170c4e8aa1271fbae4dac410",
+                  "stopReason": "toolUse"
+                },
+                "blocks": [
+                  {
+                    "type": "text"
+                  },
+                  {
+                    "type": "tool-call"
+                  }
+                ]
+              }
+            },
+            "id": "ff3ae11e-9182-4f89-a57c-e33547457eb4"
+          },
+          "usage": {
+            "inputTokens": 1007782,
+            "outputTokens": 106,
+            "totalTokens": 1007888
+          },
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792163869349,
+              "chunk": {
+                "type": "block-start",
+                "index": 0,
+                "blockType": "text"
+              }
+            },
+            {
+              "type": "text-chunks",
+              "time0": 1792163869349,
+              "index": 0,
+              "dt": [],
+              "texts": [
+                "\n\n"
+              ]
+            },
+            {
+              "type": "chunk",
+              "time": 1792163869664,
+              "chunk": {
+                "type": "block-start",
+                "index": 1,
+                "blockType": "tool-call"
+              }
+            },
+            {
+              "type": "tool-call-chunks",
+              "time0": 1792163869664,
+              "index": 1,
+              "dt": [
+                426,
+                29,
+                29,
+                30,
+                32,
+                30,
+                30,
+                30,
+                30,
+                31,
+                30,
+                30,
+                31,
+                30,
+                30,
+                30,
+                61,
+                30,
+                31,
+                30,
+                31,
+                30,
+                31,
+                30,
+                30,
+                30,
+                61,
+                457,
+                30,
+                30,
+                30,
+                31,
+                29,
+                30,
+                31,
+                32,
+                29,
+                30,
+                30,
+                30,
+                31,
+                60,
+                31,
+                30,
+                31,
+                30,
+                30,
+                31,
+                30,
+                30,
+                92,
+                182
+              ],
+              "id": "call_0991845371c645c397c9dc34",
+              "name": "write",
+              "args": [
+                "",
+                "{",
+                "\"file_path\": \"/works",
+                "pac",
+                "e/d",
+                "sh",
+                "-con",
+                "tex",
+                "t-proof",
+                "-",
+                "6",
+                "db",
+                "3",
+                "f",
+                "326",
+                "013",
+                "d",
+                "406",
+                "e9",
+                "d",
+                "5",
+                "b",
+                "25",
+                "f",
+                "e594",
+                "80",
+                "ad",
+                "e.tx",
+                "t\"",
+                ", \"content\": \"DSH",
+                "_CONT",
+                "EXT",
+                "_TO",
+                "O",
+                "L_",
+                "6",
+                "db",
+                "3",
+                "f",
+                "326",
+                "013",
+                "d",
+                "406",
+                "e9",
+                "d",
+                "5",
+                "b",
+                "25",
+                "f",
+                "e594",
+                "80",
+                "ad",
+                "e\"}"
+              ]
+            },
+            {
+              "type": "text-chunks",
+              "time0": 1792163872394,
+              "index": 0,
+              "dt": [],
+              "texts": [
+                "\n"
+              ]
+            },
+            {
+              "type": "chunk",
+              "time": 1792163872756,
+              "chunk": {
+                "type": "block-end",
+                "index": 0,
+                "block": {
+                  "type": "text",
+                  "text": "\n\n\n"
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792163872756,
+              "chunk": {
+                "type": "block-end",
+                "index": 1,
+                "block": {
+                  "type": "tool-call",
+                  "id": "call_0991845371c645c397c9dc34",
+                  "name": "write",
+                  "arguments": "{\"file_path\":\"/workspace/dsh-context-proof-6db3f326013d406e9d5b25fe59480ade.txt\",\"content\":\"DSH_CONTEXT_TOOL_6db3f326013d406e9d5b25fe59480ade\"}"
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792163872756,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 1007782,
+                  "outputTokens": 106,
+                  "totalTokens": 1007888
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792163872756,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "tool-calls"
+                },
+                "replayState": {
+                  "response": {
+                    "kind": "pi-ai",
+                    "version": 2,
+                    "api": "openai-completions",
+                    "provider": "litellm-cluster",
+                    "model": "deepseek-v4.1-flash",
+                    "responseId": "dsh-final-0664cd63170c4e8aa1271fbae4dac410",
+                    "stopReason": "toolUse"
+                  },
+                  "blocks": [
+                    {
+                      "type": "text"
+                    },
+                    {
+                      "type": "tool-call"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "surfaceOp": "append"
+      },
+      {
+        "type": "tool/call",
+        "seq": 23,
+        "time": 1792163872758,
+        "data": {
+          "turn": 2,
+          "step": 1,
+          "callId": "call_0991845371c645c397c9dc34",
+          "name": "write",
+          "arguments": "{\"file_path\":\"/workspace/dsh-context-proof-6db3f326013d406e9d5b25fe59480ade.txt\",\"content\":\"DSH_CONTEXT_TOOL_6db3f326013d406e9d5b25fe59480ade\"}"
+        }
+      },
+      {
+        "type": "tool/result",
+        "seq": 24,
+        "time": 1792163872766,
+        "data": {
+          "turn": 2,
+          "step": 1,
+          "message": {
+            "role": "tool",
+            "source": {
+              "kind": "tool",
+              "callId": "call_0991845371c645c397c9dc34"
+            },
+            "toolCallId": "call_0991845371c645c397c9dc34",
+            "content": [
+              {
+                "type": "text",
+                "text": "<path>/workspace/dsh-context-proof-6db3f326013d406e9d5b25fe59480ade.txt</path>\n<type>file</type>\n<content>\nCreated file\n</content>"
+              }
+            ],
+            "isError": false,
+            "id": "58062b1c-5ffb-4a5a-b5fa-a3d0a8c984ad"
+          },
+          "meta": {
+            "operation": "create",
+            "diffs": []
+          }
+        },
+        "sourceEventSeqs": [
+          23
+        ],
+        "surfaceOp": "append"
+      },
+      {
+        "type": "step/end",
+        "seq": 25,
+        "time": 1792163872767,
+        "data": {
+          "turn": 2,
+          "step": 1
+        }
+      },
+      {
+        "type": "assistant/message",
+        "seq": 27,
+        "time": 1792163878796,
+        "data": {
+          "turn": 2,
+          "step": 2,
+          "message": {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "\n\n\n"
+              },
+              {
+                "type": "tool-call",
+                "id": "call_3fdf6136a27b488b8a9a0fec",
+                "name": "read",
+                "arguments": "{\"file_path\":\"/workspace/dsh-context-proof-6db3f326013d406e9d5b25fe59480ade.txt\"}"
+              }
+            ],
+            "source": {
+              "kind": "model",
+              "provider": "litellm-cluster",
+              "model": "deepseek-v4.1-flash",
+              "replayState": {
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-completions",
+                  "provider": "litellm-cluster",
+                  "model": "deepseek-v4.1-flash",
+                  "responseId": "dsh-final-13953272c8b14c508e6cdc17f4294359",
+                  "stopReason": "toolUse"
+                },
+                "blocks": [
+                  {
+                    "type": "text"
+                  },
+                  {
+                    "type": "tool-call"
+                  }
+                ]
+              }
+            },
+            "id": "34e342dc-c3a4-4d0d-bc10-26dc7cb61841"
+          },
+          "usage": {
+            "inputTokens": 1007945,
+            "outputTokens": 65,
+            "totalTokens": 1008010
+          },
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792163876638,
+              "chunk": {
+                "type": "block-start",
+                "index": 0,
+                "blockType": "text"
+              }
+            },
+            {
+              "type": "text-chunks",
+              "time0": 1792163876638,
+              "index": 0,
+              "dt": [],
+              "texts": [
+                "\n\n"
+              ]
+            },
+            {
+              "type": "chunk",
+              "time": 1792163876931,
+              "chunk": {
+                "type": "block-start",
+                "index": 1,
+                "blockType": "tool-call"
+              }
+            },
+            {
+              "type": "tool-call-chunks",
+              "time0": 1792163876931,
+              "index": 1,
+              "dt": [
+                425,
+                30,
+                30,
+                31,
+                33,
+                28,
+                30,
+                30,
+                30,
+                31,
+                30,
+                30,
+                31,
+                31,
+                30,
+                31,
+                61,
+                29,
+                31,
+                30,
+                30,
+                30,
+                31,
+                30,
+                30,
+                31,
+                62,
+                181
+              ],
+              "id": "call_3fdf6136a27b488b8a9a0fec",
+              "name": "read",
+              "args": [
+                "",
+                "{",
+                "\"file_path\": \"/works",
+                "pac",
+                "e/d",
+                "sh",
+                "-con",
+                "tex",
+                "t-proof",
+                "-",
+                "6",
+                "db",
+                "3",
+                "f",
+                "326",
+                "013",
+                "d",
+                "406",
+                "e9",
+                "d",
+                "5",
+                "b",
+                "25",
+                "f",
+                "e594",
+                "80",
+                "ad",
+                "e.tx",
+                "t\"}"
+              ]
+            },
+            {
+              "type": "text-chunks",
+              "time0": 1792163878418,
+              "index": 0,
+              "dt": [],
+              "texts": [
+                "\n"
+              ]
+            },
+            {
+              "type": "chunk",
+              "time": 1792163878795,
+              "chunk": {
+                "type": "block-end",
+                "index": 0,
+                "block": {
+                  "type": "text",
+                  "text": "\n\n\n"
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792163878796,
+              "chunk": {
+                "type": "block-end",
+                "index": 1,
+                "block": {
+                  "type": "tool-call",
+                  "id": "call_3fdf6136a27b488b8a9a0fec",
+                  "name": "read",
+                  "arguments": "{\"file_path\":\"/workspace/dsh-context-proof-6db3f326013d406e9d5b25fe59480ade.txt\"}"
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792163878796,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 1007945,
+                  "outputTokens": 65,
+                  "totalTokens": 1008010
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792163878796,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "tool-calls"
+                },
+                "replayState": {
+                  "response": {
+                    "kind": "pi-ai",
+                    "version": 2,
+                    "api": "openai-completions",
+                    "provider": "litellm-cluster",
+                    "model": "deepseek-v4.1-flash",
+                    "responseId": "dsh-final-13953272c8b14c508e6cdc17f4294359",
+                    "stopReason": "toolUse"
+                  },
+                  "blocks": [
+                    {
+                      "type": "text"
+                    },
+                    {
+                      "type": "tool-call"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "surfaceOp": "append"
+      },
+      {
+        "type": "tool/call",
+        "seq": 28,
+        "time": 1792163878797,
+        "data": {
+          "turn": 2,
+          "step": 2,
+          "callId": "call_3fdf6136a27b488b8a9a0fec",
+          "name": "read",
+          "arguments": "{\"file_path\":\"/workspace/dsh-context-proof-6db3f326013d406e9d5b25fe59480ade.txt\"}"
+        }
+      },
+      {
+        "type": "tool/result",
+        "seq": 29,
+        "time": 1792163878803,
+        "data": {
+          "turn": 2,
+          "step": 2,
+          "message": {
+            "role": "tool",
+            "source": {
+              "kind": "tool",
+              "callId": "call_3fdf6136a27b488b8a9a0fec"
+            },
+            "toolCallId": "call_3fdf6136a27b488b8a9a0fec",
+            "content": [
+              {
+                "type": "text",
+                "text": "<path>/workspace/dsh-context-proof-6db3f326013d406e9d5b25fe59480ade.txt</path>\n<type>file</type>\n<content>\n1: DSH_CONTEXT_TOOL_6db3f326013d406e9d5b25fe59480ade\n\n(End of file - total 1 lines)\n</content>"
+              }
+            ],
+            "isError": false,
+            "id": "35505798-1235-4657-a636-c41e50ee53f0"
+          },
+          "meta": {
+            "path": "/workspace/dsh-context-proof-6db3f326013d406e9d5b25fe59480ade.txt",
+            "offset": 1,
+            "lines": [
+              {
+                "number": 1,
+                "text": "DSH_CONTEXT_TOOL_6db3f326013d406e9d5b25fe59480ade"
+              }
+            ],
+            "totalLines": 1
+          }
+        },
+        "sourceEventSeqs": [
+          28
+        ],
+        "surfaceOp": "append"
+      },
+      {
+        "type": "step/end",
+        "seq": 30,
+        "time": 1792163878803,
+        "data": {
+          "turn": 2,
+          "step": 2
+        }
+      },
+      {
+        "type": "assistant/message",
+        "seq": 32,
+        "time": 1792163883933,
+        "data": {
+          "turn": 2,
+          "step": 3,
+          "message": {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "DSH_TOOL_CONTEXT_OK"
+              }
+            ],
+            "source": {
+              "kind": "model",
+              "provider": "litellm-cluster",
+              "model": "deepseek-v4.1-flash",
+              "replayState": {
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-completions",
+                  "provider": "litellm-cluster",
+                  "model": "deepseek-v4.1-flash",
+                  "responseId": "dsh-final-0e6a6ebb69d041c78e9b7f2b9cb83d1c",
+                  "stopReason": "stop"
+                },
+                "blocks": [
+                  {
+                    "type": "text"
+                  }
+                ]
+              }
+            },
+            "id": "222077ae-0d54-4e80-aebf-c70cc840e743"
+          },
+          "usage": {
+            "inputTokens": 1008103,
+            "outputTokens": 8,
+            "totalTokens": 1008111
+          },
+          "stream": [
+            {
+              "type": "chunk",
+              "time": 1792163883510,
+              "chunk": {
+                "type": "block-start",
+                "index": 0,
+                "blockType": "text"
+              }
+            },
+            {
+              "type": "text-chunks",
+              "time0": 1792163883511,
+              "index": 0,
+              "dt": [
+                0,
+                19,
+                30,
+                30,
+                30,
+                31
+              ],
+              "texts": [
+                "DS",
+                "H",
+                "_TO",
+                "OL",
+                "_CONT",
+                "EXT",
+                "_OK"
+              ]
+            },
+            {
+              "type": "chunk",
+              "time": 1792163883933,
+              "chunk": {
+                "type": "block-end",
+                "index": 0,
+                "block": {
+                  "type": "text",
+                  "text": "DSH_TOOL_CONTEXT_OK"
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792163883933,
+              "chunk": {
+                "type": "usage",
+                "usage": {
+                  "inputTokens": 1008103,
+                  "outputTokens": 8,
+                  "totalTokens": 1008111
+                }
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1792163883933,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "stop"
+                },
+                "replayState": {
+                  "response": {
+                    "kind": "pi-ai",
+                    "version": 2,
+                    "api": "openai-completions",
+                    "provider": "litellm-cluster",
+                    "model": "deepseek-v4.1-flash",
+                    "responseId": "dsh-final-0e6a6ebb69d041c78e9b7f2b9cb83d1c",
+                    "stopReason": "stop"
+                  },
+                  "blocks": [
+                    {
+                      "type": "text"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "surfaceOp": "append"
+      },
+      {
+        "type": "step/end",
+        "seq": 33,
+        "time": 1792163883934,
+        "data": {
+          "turn": 2,
+          "step": 3
+        }
+      },
+      {
+        "type": "turn/end",
+        "seq": 35,
+        "time": 1792163883938,
+        "data": {
+          "turn": 2,
+          "reason": {
+            "kind": "completed"
+          }
+        }
+      }
+    ],
+    "projection": {
+      "contextPressure": {
+        "pressureTokens": 1008103,
+        "projectedTokens": 1008116,
+        "contextWindow": 1048576
+      },
+      "sessionStats": {
+        "turns": 2,
+        "steps": 4,
+        "llmMs": 1188240,
+        "toolMs": 14,
+        "ttftMs": 1181845,
+        "ttftSteps": 4,
+        "decodeMs": 6395,
+        "decodeTokens": 187
+      },
+      "tokenUsage": {
+        "uncachedInputTokens": 4031519,
+        "outputTokens": 187,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      },
+      "modelSelection": {
+        "lastUsed": {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash"
+        },
+        "next": {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash"
+        }
+      }
+    },
+    "elapsedSeconds": 20.158,
+    "finished": true,
+    "assistantText": "DSH_TOOL_CONTEXT_OK",
+    "expectedTextPresent": true,
+    "persistedPromptMatches": true,
+    "lastUsage": {
+      "inputTokens": 1008103,
+      "outputTokens": 8,
+      "totalTokens": 1008111
+    },
+    "actualToolFileMatches": true,
+    "toolFileSha256": "bc75abcc03937094e5ac55e16ec7adb0dd6221500e47a0c033dc27d0026ba1eb",
+    "testFileRemoved": true
+  },
+  "after": {
+    "metrics": {
+      "sglang:num_running_reqs": 0,
+      "sglang:num_queue_reqs": 0,
+      "sglang:token_usage": 0,
+      "sglang:full_token_usage": 0
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "usedMiB": 94028,
+        "freeMiB": 1292,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 1,
+        "usedMiB": 94028,
+        "freeMiB": 1292,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 2,
+        "usedMiB": 94028,
+        "freeMiB": 1292,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 3,
+        "usedMiB": 94028,
+        "freeMiB": 1292,
+        "utilizationPercent": 0
+      }
+    ],
+    "pods": [
+      {
+        "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+        "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "timeUTC": "2026-10-16T15:18:08.178285+00:00"
+  },
+  "modelUnchanged": true
+}

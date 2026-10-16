@@ -1,0 +1,7 @@
+{
+  "archive": "1m-managed-synthetic-history-20261016.tar.gz",
+  "sha256": "953089f93f097f0d364d905aaa34a6bb8a6d97bee63ba747616e874829111ce7",
+  "sessionFiles": 2,
+  "sourceStableAndArchiveBytesVerified": true,
+  "scope": "Only owned synthetic canary sessions. Archive retained privately, not embedded or published."
+}

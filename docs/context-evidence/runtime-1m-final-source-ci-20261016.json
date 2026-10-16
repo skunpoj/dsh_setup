@@ -1,0 +1,93 @@
+{
+  "runId": 38921159438,
+  "sourceCommit": "e3867bba611932a2ce1837ee61ee9e1d657700ec",
+  "runURL": "https://github.com/skunpoj/dsh_setup/actions/runs/38921159438",
+  "artifactId": 12055000795,
+  "artifactExpiresAt": "2026-11-15T15:07:48Z",
+  "downloadedZipSHA256": "4993295f7ba2afb62753459f713b95157fce3adf26a83f891d65e0ec9b3523e6",
+  "candidateLocalImageId": "sha256:8b3b93b7a984db79305aa38a67ef6de72f5d9ce67e5a29da8a8bdb70cda89fca",
+  "registryImagePublished": false,
+  "records": {
+    "upstream.json": {
+      "checkedAtUTC": "2026-10-16T15:06:08.823396+00:00",
+      "officialRepository": "deepseek-ai/deepseek-harness",
+      "officialMaster": "1517a4dbca0a2789ff1d41ba439600f8547d23fa",
+      "npmChannels": {
+        "next": "0.2.0-rc.2",
+        "latest": "0.2.0-rc.2",
+        "alpha": "0.2.1-alpha.5"
+      },
+      "sourcePackagePin": "0.2.0-rc.2",
+      "candidateVersion": "0.2.0-rc.2",
+      "defaultChannelUpdateAvailable": false,
+      "candidateChangeRequired": false,
+      "candidateRegistryIntegrity": "sha512-EAJ3gPNcVt/uv8X19PMm9NkVhWgT7xXNMk0UKCVm+IQ5rpSQOcsMUa0HWlnYYVybKMsccjcRB21vVVsaXQ6IdA==",
+      "candidateSourceGitHead": null,
+      "candidateLicense": "MIT",
+      "productionChanged": false,
+      "automationPolicy": "Detect releases, test candidate, propose package-pin PR; no auto-merge or Production deployment"
+    },
+    "image.json": {
+      "imageId": "sha256:8b3b93b7a984db79305aa38a67ef6de72f5d9ce67e5a29da8a8bdb70cda89fca"
+    },
+    "installed-package.json": {
+      "installedVersion": "0.2.0-rc.2",
+      "actualModulesChecked": 3,
+      "syntax": true,
+      "webComposition": true,
+      "scope": "Installed package checks; no inference, user history or Production access"
+    },
+    "runtime-smoke.json": {
+      "actualWebStartup": true,
+      "sessionList": true,
+      "internalModelCatalog": true,
+      "anonymousRpcDenied": true,
+      "untrustedHostDenied": true,
+      "disposableState": true,
+      "inferenceRequested": false
+    },
+    "admin-dashboard.json": {
+      "passed": true,
+      "timeUTC": "2026-10-16T15:07:48.405Z",
+      "gatewayOverlaySHA256": "b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94",
+      "checks": [
+        "anonymous denied",
+        "ordinary user denied despite forged admin headers",
+        "admin access",
+        "read-only methods",
+        "secret projection",
+        "admin-only navigation",
+        "browser rendering",
+        "snapshot timestamps",
+        "DOM injection inert",
+        "missing snapshot unknown",
+        "logout revokes access",
+        "audit contains no passwords",
+        "audit schema constrained",
+        "full audit capacity denies new login and preserves archives"
+      ]
+    }
+  },
+  "linuxPythonTestsPassed": 62,
+  "linuxPackagePromotionTestsPassed": 5,
+  "reviewedTargetsMatched": 10,
+  "artifactEntries": [
+    "admin-dashboard.json",
+    "build.log",
+    "browser/admin-dashboard.png",
+    "image.json",
+    "installed-package.json",
+    "python-tests.log",
+    "package-promotion.log",
+    "runtime-smoke.json",
+    "test_auth_proxy_internet.log",
+    "test_environment_routing.log",
+    "test_internal_model_catalog.log",
+    "test_proxy_identity_headers.log",
+    "test_upstream_contract.log",
+    "test_user_isolation_routing.log",
+    "upstream.json"
+  ],
+  "proposalSkippedBecauseNoVersionChange": true,
+  "scope": "Downloaded artifact content verified; not a Production deployment, full browser/tool/compaction acceptance or proof of future PR creation permissions"
+}

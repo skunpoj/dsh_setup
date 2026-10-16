@@ -1,0 +1,83 @@
+{
+  "observedAt": "2026-10-16T14:39:48.104402+00:00",
+  "profiles": [
+    {
+      "runtime": "dsh-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "contextWindow": "1048576",
+          "maxTokens": "8192"
+        },
+        {
+          "id": "deepseek-flash",
+          "contextWindow": "1048576",
+          "maxTokens": "8192"
+        }
+      ],
+      "timeoutMs": "3600000",
+      "idleMs": "3600000",
+      "compaction": {
+        "auto": "true",
+        "thresholdRatio": "0.875",
+        "headroomTokens": "65536",
+        "maxTokens": "8192",
+        "modelPolicies": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": "0.875",
+            "headroomTokens": "65536",
+            "maxTokens": "8192"
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": "0.875",
+            "headroomTokens": "65536",
+            "maxTokens": "8192"
+          }
+        ]
+      }
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "contextWindow": "1048576",
+          "maxTokens": "8192"
+        },
+        {
+          "id": "deepseek-flash",
+          "contextWindow": "1048576",
+          "maxTokens": "8192"
+        }
+      ],
+      "timeoutMs": "3600000",
+      "idleMs": "3600000",
+      "compaction": {
+        "auto": "true",
+        "thresholdRatio": "0.875",
+        "headroomTokens": "65536",
+        "maxTokens": "8192",
+        "modelPolicies": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": "0.875",
+            "headroomTokens": "65536",
+            "maxTokens": "8192"
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": "0.875",
+            "headroomTokens": "65536",
+            "maxTokens": "8192"
+          }
+        ]
+      }
+    }
+  ]
+}

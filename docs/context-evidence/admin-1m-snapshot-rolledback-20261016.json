@@ -1,0 +1,9 @@
+{
+  "timeUTC": "2026-10-16T15:18:27.998610+00:00",
+  "snapshotConfigMap": "dsh-admin-status-c2ba9446b6c9",
+  "runtimePoolsRestarted": false,
+  "modelRestarted": false,
+  "status": "failed",
+  "error": "Command '['kubectl', '--request-timeout=30s', '-n', 'llm', 'exec', '-i', 'deploy/dsh-environment-gateway', '--', 'node', '-']' returned non-zero exit status 1.",
+  "originalSpecificationRestored": true
+}
