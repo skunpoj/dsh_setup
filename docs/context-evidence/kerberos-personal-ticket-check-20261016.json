@@ -1,0 +1,8 @@
+{
+  "observedAt": "2026-10-16T11:27:00.354014+00:00",
+  "credentialExported": false,
+  "ticketListingSucceeded": true,
+  "livyHTTPServiceTicketPresent": true,
+  "tgtPresent": true,
+  "limitation": "Ticket presence corroborates Kerberos availability; no dataset entitlement or service-account authentication is established."
+}

@@ -84,6 +84,10 @@ Evidence: [all-worker network tests](context-evidence/internal-network-live-2026
 
 ## 4 Control 2 — Kerberos and datalake authorization
 
+**Fresh authenticated retest, 16 October:** The existing personal Windows SSPI identity successfully created bounded synthetic Spark session 628. Livy owner and Spark execution-user hashes matched. Both driver and executor again reached `github.com:443` and `1.1.1.1:443`; public DNS `8.8.8.8:53` was blocked. The session was stopped and verified absent. No RDT was read or written. This confirms identity propagation and a failed remote egress boundary, not read-only dataset authorization. See the [fresh retest record](context-evidence/remote-spark-recheck-20261016.json).
+
+The user identified personal accounts or `da-agent-system-user` as the relevant identities. The latter was not authenticated in this retest, and the personal result is not attributed to it. Neither an account name nor successful authentication establishes read-only access: table/path-specific entitlements are required. No specific dataset target was supplied, so no dataset authorization or write-denial claim is made. Existing AD/datalake permissions remain the selected policy.
+
 ```mermaid
 flowchart TB
  D[Private No Internet runtime] --> KA[kinit with approved AD principal]
