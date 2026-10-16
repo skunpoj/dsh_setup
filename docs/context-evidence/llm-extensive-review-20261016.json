@@ -1,0 +1,1195 @@
+{
+  "observedAtUTC": "2026-10-16T12:14:53.400284+00:00",
+  "configurationChanged": false,
+  "profiles": [
+    {
+      "deployment": "dsh-internet",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-secure",
+      "profileExists": true,
+      "profileSha256": "02d1658165eb4397880c06d30ce967a6cd700228a48b9d25940a221e57c26e93",
+      "budgetFields": [
+        "contextWindow: 1048576"
+      ],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-120fc75e04cf8e5f-internet",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-120fc75e04cf8e5f-secure",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-156540115183048a-internet",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-156540115183048a-secure",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-26ae784d194a5760-internet",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-26ae784d194a5760-secure",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-8205c7f83822ea35-internet",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-8205c7f83822ea35-secure",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-8a2539e2b69d9daf-internet",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-8a2539e2b69d9daf-secure",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-8c6976e5b5410415-internet",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-8c6976e5b5410415-secure",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-ae5deb822e0d7199-internet",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-ae5deb822e0d7199-secure",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-ca8b22d0db83a22d-internet",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-ca8b22d0db83a22d-secure",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-d0b55cb0730a08ac-internet",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    },
+    {
+      "deployment": "dsh-u-d0b55cb0730a08ac-secure",
+      "profileExists": false,
+      "profileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "budgetFields": [],
+      "webProfileFiles": [
+        {
+          "path": "/state/profiles/web/cordis.yml",
+          "sha256": "c300dcf2ebc5f02062d6591268d29d3db6fe45e0cb138f5467276fe2ba06076e",
+          "allowlistedLines": []
+        },
+        {
+          "path": "/state/profiles/web/cordis.patch.yml",
+          "sha256": "a909f5e20e30ea04c3c87b65d8457bc1a44b726853bde7ef9f566b5cebf0c5e2",
+          "allowlistedLines": [
+            "- id: llm-pi-ai",
+            "          - id: deepseek-v4.1-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: deepseek-flash",
+            "            contextWindow: 131072",
+            "            maxTokens: 8192",
+            "          - id: glm-5.3-flash",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "          - id: glm-5.3-flash-awq",
+            "            contextWindow: 64000",
+            "            maxTokens: 4096",
+            "          - id: qwen3.8-flash-next",
+            "            contextWindow: 128000",
+            "            maxTokens: 4096",
+            "- id: compaction-basic",
+            "  disabled: false",
+            "    auto: true",
+            "    thresholdRatio: 0.75",
+            "- id: command-compact",
+            "  disabled: false",
+            "- id: tool-result-pruner",
+            "  disabled: false",
+            "- id: ui-settings-general"
+          ]
+        }
+      ],
+      "compactionSourceSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+      "compactionFormulaVerified": true
+    }
+  ],
+  "services": [
+    {
+      "deployment": "litellm",
+      "images": [
+        "ghcr.io/berriai/litellm:main-latest"
+      ],
+      "publicBudgetArgs": {},
+      "pods": [
+        {
+          "name": "litellm-fd8cbfc7-qn4dj",
+          "containers": [
+            {
+              "imageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+              "restarts": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "deployment": "vllm-deepseek-v4-1-flash",
+      "images": [
+        "lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+      ],
+      "publicBudgetArgs": {
+        "--mem-fraction-static": "0.90",
+        "--max-running-requests": "16",
+        "--chunked-prefill-size": "1024",
+        "--max-prefill-tokens": "2048",
+        "--context-length": "1048576",
+        "--enable-mixed-chunk": true,
+        "--prefill-decode-interval": "4"
+      },
+      "pods": [
+        {
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+              "restarts": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "callback": {
+    "callbackSha256": "c43b0c94bbb968aae569b65dc5522c9e2e1549d457b6b0a1c34dbac51194b845",
+    "limits": {
+      "MAX_CONTEXT_TOKENS": 131072,
+      "MAX_OUTPUT_TOKENS": 8192,
+      "SAFETY_BUFFER_TOKENS": 256
+    },
+    "callbackReferencedInConfig": true,
+    "isolatedSyntheticCases": [
+      {
+        "case": "ordinary",
+        "counterCalls": [
+          {
+            "keys": [
+              "messages",
+              "model"
+            ],
+            "model": "deepseek-flash"
+          }
+        ],
+        "maxTokens": 8192,
+        "maxCompletionTokens": null,
+        "maxOutputTokens": null
+      },
+      {
+        "case": "tool-schema",
+        "counterCalls": [
+          {
+            "keys": [
+              "messages",
+              "model"
+            ],
+            "model": "deepseek-flash"
+          }
+        ],
+        "maxTokens": 8192,
+        "maxCompletionTokens": null,
+        "maxOutputTokens": null
+      },
+      {
+        "case": "responses-shape",
+        "counterCalls": [],
+        "maxTokens": null,
+        "maxCompletionTokens": null,
+        "maxOutputTokens": 65536
+      },
+      {
+        "case": "max-completion-alias",
+        "counterCalls": [
+          {
+            "keys": [
+              "messages",
+              "model"
+            ],
+            "model": "deepseek-flash"
+          }
+        ],
+        "maxTokens": 8192,
+        "maxCompletionTokens": 65536,
+        "maxOutputTokens": null
+      }
+    ],
+    "installedCounterSamples": {
+      "latin": {
+        "tokens": 208
+      },
+      "thai": {
+        "tokens": 1007
+      },
+      "json": {
+        "tokens": 808
+      }
+    },
+    "scope": "Isolated callback object in installed gateway image; no inference and no production hook mutation",
+    "matchesRepositoryBytes": false,
+    "matchesRepositoryNormalizedText": false,
+    "liveErrorMentions1M": true
+  },
+  "composedWebProfiles": [
+    {
+      "deployment": "dsh-secure",
+      "selectedFields": [
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/0/contextWindow",
+          "value": "131072"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/0/maxTokens",
+          "value": "8192"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/1/contextWindow",
+          "value": "131072"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/1/maxTokens",
+          "value": "8192"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/2/contextWindow",
+          "value": "128000"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/2/maxTokens",
+          "value": "4096"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/3/contextWindow",
+          "value": "64000"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/3/maxTokens",
+          "value": "4096"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/4/contextWindow",
+          "value": "128000"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/4/maxTokens",
+          "value": "4096"
+        },
+        {
+          "path": "/61/compaction-basic/auto",
+          "value": "true"
+        },
+        {
+          "path": "/61/compaction-basic/thresholdRatio",
+          "value": "0.75"
+        }
+      ],
+      "note": "Boot-free config dump; launcher rewrites its existing empty root config, no server or history is started"
+    },
+    {
+      "deployment": "dsh-u-8c6976e5b5410415-secure",
+      "selectedFields": [
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/0/contextWindow",
+          "value": "131072"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/0/maxTokens",
+          "value": "8192"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/1/contextWindow",
+          "value": "131072"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/1/maxTokens",
+          "value": "8192"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/2/contextWindow",
+          "value": "128000"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/2/maxTokens",
+          "value": "4096"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/3/contextWindow",
+          "value": "64000"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/3/maxTokens",
+          "value": "4096"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/4/contextWindow",
+          "value": "128000"
+        },
+        {
+          "path": "/24/llm-pi-ai/providers/litellm-cluster/models/4/maxTokens",
+          "value": "4096"
+        },
+        {
+          "path": "/61/compaction-basic/auto",
+          "value": "true"
+        },
+        {
+          "path": "/61/compaction-basic/thresholdRatio",
+          "value": "0.75"
+        }
+      ],
+      "note": "Boot-free config dump; launcher rewrites its existing empty root config, no server or history is started"
+    }
+  ],
+  "compactionBudgetExecution": {
+    "scope": "Extracted installed pure budget function; no session compaction",
+    "defaultOutput": {
+      "target": {
+        "provider": "litellm-cluster",
+        "model": "deepseek-v4.1-flash"
+      },
+      "contextWindow": 131072,
+      "thresholdRatio": 0.75,
+      "thresholdTokens": 57344,
+      "retainTokens": 19660,
+      "maxTokens": 65536,
+      "compactionRetries": 1,
+      "maxOverflowRetries": 1
+    },
+    "smallerOutput": {
+      "target": {
+        "provider": "litellm-cluster",
+        "model": "deepseek-v4.1-flash"
+      },
+      "contextWindow": 131072,
+      "thresholdRatio": 0.75,
+      "thresholdTokens": 61440,
+      "retainTokens": 20316,
+      "maxTokens": 65536,
+      "compactionRetries": 1,
+      "maxOverflowRetries": 1
+    }
+  },
+  "liveScheduler": {
+    "sha256": "88e1b661a6ef83cc53de519e43ab25ec109f37f622cba3bd98a47dfd3c3c58ef",
+    "v2Marker": true
+  }
+}

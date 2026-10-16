@@ -1,6 +1,8 @@
 # Shared LLM — Setup and Verified Test Results
 
-**Live configuration clarification, 16 October:** DSH does not currently have end-to-end 1M access through LiteLLM. Fresh readback found the SGLang backend at 1,048,576 tokens, but LiteLLM’s loaded callback enforces 131,072 total tokens, 8,192 maximum output and a 256-token reserve. The legacy `dsh-secure` runtime still contains `contextWindow: 1048576` in `/state/cordis.patch.yml`; this is a configuration mismatch, not proof of usable 1M requests. The table below describes the intended product budget, not a fresh verification of every runtime profile. No runtime settings were changed in this clarification. Performance figures remain recorded samples, not a new benchmark.
+**Extensive live review, 16 October:** DSH does not currently have end-to-end 1M access through LiteLLM. The SGLang backend is configured for 1,048,576 tokens. All 20 main runtime web-profile files declare 131,072 context and 8,192 output for the DeepSeek aliases. Boot-free composition of the legacy owner's and private admin's web profiles confirms those values. The legacy home-level 1M entry refers to an older GLM configuration; it does not establish a 1M DeepSeek web route. The mounted LiteLLM callback uses 131,072/8,192/256, with coverage limitations detailed below. No model, gateway or DSH server was restarted or reconfigured during this investigation.
+
+**Correction:** automatic compaction is not simply 75% of 128K. The installed plugin subtracts output reservation and headroom too. Its normal calculated threshold is **57,344 estimated tokens**, not 98,304. This is a code/configuration calculation, not a fresh successful compaction of a real historical session.
 
 ## Results that users can rely on
 
@@ -13,8 +15,10 @@ These are recorded tests, not a new benchmark performed by opening this guide. R
 | Short replies during fresh 24,044-token input | 0.440–0.588 seconds; larger request completed in 4.956 seconds | All three short replies completed while larger work was still active |
 | Near-1M historical backend test | 1,000,015 input + 10 output tokens; exact `LONG_1M_RETEST_OK` | That earlier backend profile completed one near-1M request |
 | Current DSH end-to-end 1M / two simultaneous 1M requests | Not established | The backend test does not qualify those product behaviors |
+| Fresh review: two simultaneous replies | 3.377–3.381 seconds; 35.19–35.24 effective output tokens/sec each | Both returned the exact requested 1–40 sequence |
+| Fresh review: short replies during 24,048-token input | 0.446–0.591 seconds; larger request 4.948 seconds | Three exact short answers finished before the larger answer |
 
-The 16 October measurements are in [the exact response/timing record](context-evidence/performance-private-live-20261016.json). The historical result is [recorded separately](context-evidence/near-1m-response-chunk1024.json). Neither is a substitute for application-level task correctness.
+The earlier 16 October measurements are in [the exact response/timing record](context-evidence/performance-private-live-20261016.json); the fresh review is in [the new response/timing record](context-evidence/llm-review-performance-20261016.json). Fresh isolated short replies took 0.230–0.246 seconds. The historical million-token result is [recorded separately](context-evidence/near-1m-response-chunk1024.json). None is a substitute for application-level task correctness.
 
 ## Current service layout and limits
 
@@ -33,10 +37,57 @@ The Kubernetes deployment is named `vllm-deepseek-v4-1-flash` for compatibility,
 | Chunk / maximum prefill | 1,024 / 2,048 tokens |
 | Scheduling | V2 overlay; mixed prefill/decode; decode interval 4 |
 | DSH / LiteLLM user budget | 131,072 total; output ceiling 8,192; proxy reserve 256 |
-| DSH compaction | Configured at 75%, approximately 98,304 tokens; success is session-dependent |
+| DSH compaction | Auto enabled; ratio 0.75, default headroom 65,536; normal calculated pressure threshold 57,344 estimated tokens with 8,192 reserved output |
 | DSH runtime | `0.2.0-rc.2`, independently verified from the running package |
 
 The source model manifest and live deployment matched this pinned SGLang image during this review. LiteLLM's live spec still uses `main-latest`; record its actual running digest and pin a qualified digest before reproducing or upgrading it. A mutable tag alone is not a reproducible installation. The actual resolved LiteLLM image at this review was `ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f`; retain that recorded digest as the installed baseline and qualify it before any upgrade. [Readback record](context-evidence/llm-setup-readback-20261016.json).
+
+## Investigation findings and remaining work
+
+The [sanitized live investigation record](context-evidence/llm-extensive-review-20261016.json) includes all 20 main runtime profile reads, two composed web profiles, installed compaction-code hashes, isolated callback cases, live scheduler hash and actual imageIDs. DSH2/DSH3 were not included in this main-runtime profile qualification.
+
+### Compaction policy and configuration precedence
+
+DSH layers bundle defaults, the web profile, the home patch and command-line overlays. Finding a value in one file is therefore insufficient. The supported boot-free configuration dump was inspected for the owner and admin profiles; the launcher rewrites its existing empty profile root but starts no server or session. Both composed DeepSeek routes remain 131,072/8,192. The other 18 main runtime web-profile files match the same configuration hash, but their complete compositions were not individually dumped.
+
+The installed `resolveCompactSpec` function was extracted and executed without creating or changing a session. Its formula is:
+
+```text
+threshold = floor(min(context × thresholdRatio,
+                      context − reserved output − headroom))
+normal case = min(131072 × 0.75, 131072 − 8192 − 65536)
+            = 57344 estimated tokens
+```
+
+With a 4,096 output reservation the threshold becomes 61,440. A session's explicit request reservation can change it. Default retained-tail ratio is 0.16 and the summarizer's configured-default output allowance is 65,536, which is larger than the gateway's 8,192 ceiling. Clamping can therefore shorten the requested summary budget; this investigation did not establish summary failure or successful compaction of every stored session. Automatic pressure checks occur between agent steps. Oversized single tool results or attachments can still require pruning or overflow recovery. A manual `/compact` may have no useful compactable range and is not a guaranteed repair.
+
+### Gateway guard coverage
+
+The mounted callback is referenced by the live configuration and its isolated ordinary-message case clamps 65,536 requested output tokens to 8,192. Its numeric constants match the repository. Its text does not match: the live overflow message incorrectly says **“1M context budget”**, while the repository says **“verified 128K”**. This is real source/live drift, not a changed numeric capacity.
+
+The installed callback was loaded into a separate Python process inside the gateway image. Synthetic cases confirmed:
+
+| Case | Observed callback behavior | Consequence and evidence limit |
+|---|---|---|
+| Ordinary Chat Completions messages | Counts messages and clamps `max_tokens` | Demonstrates this callback path, not an exact backend-token guarantee |
+| Messages plus function/tool definitions | Counter receives `messages` and `model` only | Tool-schema tokens are omitted from this preflight calculation |
+| Responses-shaped `input` / `max_output_tokens` | Returns unchanged without counting | This callback alone does not constrain that shape; live endpoint normalization/availability was not bypass-tested |
+| `max_completion_tokens` supplied | Adds clamped `max_tokens` but leaves the other field | Precedence/rejection by later LiteLLM/provider processing still needs route-specific testing |
+| Token counter raises | Code falls back to characters/3 plus message overhead | An estimate, not a conservative bound for arbitrary Thai, structured, image or tool content |
+
+The installed counter successfully handled small Latin, Thai and JSON samples, but it was not compared with the backend's exact tokenizer across representative requests. Do not describe the 256-token reserve as proof that all tokenizer or omitted-payload differences fit inside it. The callback also does not scope its numeric ceiling by requested model; other aliases can have smaller advertised windows. This review establishes code coverage gaps, **not a demonstrated exploit or a successful oversized request through the live API**.
+
+### Scheduler, performance and evidence scope
+
+The running model source contains the V2 reservation marker; its SHA-256 is recorded alongside the pinned image. The overlay prioritizes uncached tails of at most 512 tokens while preserving long-prefill progress. Concurrency 16 is an admission ceiling, not a promise of 16 near-1M sessions or a per-user latency guarantee. Long cold inputs, unavailable prefix reuse, full active slots and cache pressure can still queue.
+
+The fresh bounded test verified actual streaming output and overlap during 24K work. Retained V2 tests separately cover approximately 133K backend work with fresh small prompts and cached continuing sessions; see [the scheduling experiment and failures](SCHEDULING_FAIRNESS_20261015.md). The historical near-1M success belongs to an earlier scheduler profile. Neither it nor the fresh 24K test qualifies current V2 near-1M fairness, two concurrent 1M requests, or end-to-end DSH 1M. Model and gateway pods still showed zero restarts at the configuration readback; that is supporting availability evidence, not test correctness by itself.
+
+### Installation safety and next changes
+
+The legacy Azure `litellm/06-litellm.yaml` still contains an explicit master-key placeholder and mutable `main-latest` image. It must not overwrite a live Secret. Read the intended internal routing and existing Secret references, prepare a separate reviewed candidate, pin a qualified image digest, and compare persisted configuration before applying it. A server dry-run cannot prove that placeholder credentials are valid or that a callback import works at runtime.
+
+Prioritize a tested model-specific request envelope that includes tools and supported multimodal inputs, rejects unsupported shapes explicitly, normalizes output-limit aliases and fails closed when reliable counting is unavailable. Align DSH request, summary and compaction budgets with that envelope, then verify real manual/automatic compaction on disposable sessions. Preserve the current scheduler and 128K product budget until a controlled current-profile near-1M acceptance test covers tools, streaming, compaction, memory, concurrent short requests and recovery. This review made no such rollout and did not run another disruptive million-token stress test.
 
 ## 1 Prepare the platform
 

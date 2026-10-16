@@ -277,7 +277,8 @@
 <p>The environment choice, data scope and named participants should be recorded for each pilot exercise. Infrastructure owners own network enforcement; data owners own entitlements; the DSH operator owns runtime/routing/persistence; endpoint owners own device restrictions; the pilot owner decides whether residual exposure is acceptable. An accepted exception must not be labelled a technical fix.</p>
 <p>The evidence linked here records specific checks on 16 October 2026. Opening or regenerating this HTML does not run new security tests or grant access to data. Detailed migration histories, raw logs, model trials and setup instructions are supporting material, not the main risk-control narrative.</p>
 <details id="embedded-llm-guide"><summary>LLM setup guide and verified test results</summary><h1>Shared LLM — Setup and Verified Test Results</h1>
-<p><strong>Live configuration clarification, 16 October:</strong> DSH does not currently have end-to-end 1M access through LiteLLM. Fresh readback found the SGLang backend at 1,048,576 tokens, but LiteLLM’s loaded callback enforces 131,072 total tokens, 8,192 maximum output and a 256-token reserve. The legacy <code>dsh-secure</code> runtime still contains <code>contextWindow: 1048576</code> in <code>/state/cordis.patch.yml</code>; this is a configuration mismatch, not proof of usable 1M requests. The table below describes the intended product budget, not a fresh verification of every runtime profile. No runtime settings were changed in this clarification. Performance figures remain recorded samples, not a new benchmark.</p>
+<p><strong>Extensive live review, 16 October:</strong> DSH does not currently have end-to-end 1M access through LiteLLM. The SGLang backend is configured for 1,048,576 tokens. All 20 main runtime web-profile files declare 131,072 context and 8,192 output for the DeepSeek aliases. Boot-free composition of the legacy owner&#39;s and private admin&#39;s web profiles confirms those values. The legacy home-level 1M entry refers to an older GLM configuration; it does not establish a 1M DeepSeek web route. The mounted LiteLLM callback uses 131,072/8,192/256, with coverage limitations detailed below. No model, gateway or DSH server was restarted or reconfigured during this investigation.</p>
+<p><strong>Correction:</strong> automatic compaction is not simply 75% of 128K. The installed plugin subtracts output reservation and headroom too. Its normal calculated threshold is <strong>57,344 estimated tokens</strong>, not 98,304. This is a code/configuration calculation, not a fresh successful compaction of a real historical session.</p>
 <h2>Results that users can rely on</h2>
 <p>These are recorded tests, not a new benchmark performed by opening this guide. Rates include queue, prefill and network time; they are not sustained decode throughput or an SLA.</p>
 <table>
@@ -313,8 +314,18 @@
 <td>Not established</td>
 <td>The backend test does not qualify those product behaviors</td>
 </tr>
+<tr>
+<td>Fresh review: two simultaneous replies</td>
+<td>3.377–3.381 seconds; 35.19–35.24 effective output tokens/sec each</td>
+<td>Both returned the exact requested 1–40 sequence</td>
+</tr>
+<tr>
+<td>Fresh review: short replies during 24,048-token input</td>
+<td>0.446–0.591 seconds; larger request 4.948 seconds</td>
+<td>Three exact short answers finished before the larger answer</td>
+</tr>
 </tbody></table>
-<p>The 16 October measurements are in <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/performance-private-live-20261016.json">the exact response/timing record</a>. The historical result is <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-1m-response-chunk1024.json">recorded separately</a>. Neither is a substitute for application-level task correctness.</p>
+<p>The earlier 16 October measurements are in <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/performance-private-live-20261016.json">the exact response/timing record</a>; the fresh review is in <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/llm-review-performance-20261016.json">the new response/timing record</a>. Fresh isolated short replies took 0.230–0.246 seconds. The historical million-token result is <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-1m-response-chunk1024.json">recorded separately</a>. None is a substitute for application-level task correctness.</p>
 <h2>Current service layout and limits</h2>
 <p><code>Private DSH runtime → internal LiteLLM :4000 → SGLang :8000 → shared four-H100 model</code></p>
 <p>The Kubernetes deployment is named <code>vllm-deepseek-v4-1-flash</code> for compatibility, but its process runs <strong>SGLang</strong>. The Service remains <code>vllm-deepseek-v4-flash</code>.</p>
@@ -363,7 +374,7 @@
 </tr>
 <tr>
 <td>DSH compaction</td>
-<td>Configured at 75%, approximately 98,304 tokens; success is session-dependent</td>
+<td>Auto enabled; ratio 0.75, default headroom 65,536; normal calculated pressure threshold 57,344 estimated tokens with 8,192 reserved output</td>
 </tr>
 <tr>
 <td>DSH runtime</td>
@@ -371,6 +382,61 @@
 </tr>
 </tbody></table>
 <p>The source model manifest and live deployment matched this pinned SGLang image during this review. LiteLLM&#39;s live spec still uses <code>main-latest</code>; record its actual running digest and pin a qualified digest before reproducing or upgrading it. A mutable tag alone is not a reproducible installation. The actual resolved LiteLLM image at this review was <code>ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f</code>; retain that recorded digest as the installed baseline and qualify it before any upgrade. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/llm-setup-readback-20261016.json">Readback record</a>.</p>
+<h2>Investigation findings and remaining work</h2>
+<p>The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/llm-extensive-review-20261016.json">sanitized live investigation record</a> includes all 20 main runtime profile reads, two composed web profiles, installed compaction-code hashes, isolated callback cases, live scheduler hash and actual imageIDs. DSH2/DSH3 were not included in this main-runtime profile qualification.</p>
+<h3>Compaction policy and configuration precedence</h3>
+<p>DSH layers bundle defaults, the web profile, the home patch and command-line overlays. Finding a value in one file is therefore insufficient. The supported boot-free configuration dump was inspected for the owner and admin profiles; the launcher rewrites its existing empty profile root but starts no server or session. Both composed DeepSeek routes remain 131,072/8,192. The other 18 main runtime web-profile files match the same configuration hash, but their complete compositions were not individually dumped.</p>
+<p>The installed <code>resolveCompactSpec</code> function was extracted and executed without creating or changing a session. Its formula is:</p>
+<pre><code class="language-text">threshold = floor(min(context × thresholdRatio,
+                      context − reserved output − headroom))
+normal case = min(131072 × 0.75, 131072 − 8192 − 65536)
+            = 57344 estimated tokens
+</code></pre>
+<p>With a 4,096 output reservation the threshold becomes 61,440. A session&#39;s explicit request reservation can change it. Default retained-tail ratio is 0.16 and the summarizer&#39;s configured-default output allowance is 65,536, which is larger than the gateway&#39;s 8,192 ceiling. Clamping can therefore shorten the requested summary budget; this investigation did not establish summary failure or successful compaction of every stored session. Automatic pressure checks occur between agent steps. Oversized single tool results or attachments can still require pruning or overflow recovery. A manual <code>/compact</code> may have no useful compactable range and is not a guaranteed repair.</p>
+<h3>Gateway guard coverage</h3>
+<p>The mounted callback is referenced by the live configuration and its isolated ordinary-message case clamps 65,536 requested output tokens to 8,192. Its numeric constants match the repository. Its text does not match: the live overflow message incorrectly says <strong>“1M context budget”</strong>, while the repository says <strong>“verified 128K”</strong>. This is real source/live drift, not a changed numeric capacity.</p>
+<p>The installed callback was loaded into a separate Python process inside the gateway image. Synthetic cases confirmed:</p>
+<table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Observed callback behavior</th>
+<th>Consequence and evidence limit</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Ordinary Chat Completions messages</td>
+<td>Counts messages and clamps <code>max_tokens</code></td>
+<td>Demonstrates this callback path, not an exact backend-token guarantee</td>
+</tr>
+<tr>
+<td>Messages plus function/tool definitions</td>
+<td>Counter receives <code>messages</code> and <code>model</code> only</td>
+<td>Tool-schema tokens are omitted from this preflight calculation</td>
+</tr>
+<tr>
+<td>Responses-shaped <code>input</code> / <code>max_output_tokens</code></td>
+<td>Returns unchanged without counting</td>
+<td>This callback alone does not constrain that shape; live endpoint normalization/availability was not bypass-tested</td>
+</tr>
+<tr>
+<td><code>max_completion_tokens</code> supplied</td>
+<td>Adds clamped <code>max_tokens</code> but leaves the other field</td>
+<td>Precedence/rejection by later LiteLLM/provider processing still needs route-specific testing</td>
+</tr>
+<tr>
+<td>Token counter raises</td>
+<td>Code falls back to characters/3 plus message overhead</td>
+<td>An estimate, not a conservative bound for arbitrary Thai, structured, image or tool content</td>
+</tr>
+</tbody></table>
+<p>The installed counter successfully handled small Latin, Thai and JSON samples, but it was not compared with the backend&#39;s exact tokenizer across representative requests. Do not describe the 256-token reserve as proof that all tokenizer or omitted-payload differences fit inside it. The callback also does not scope its numeric ceiling by requested model; other aliases can have smaller advertised windows. This review establishes code coverage gaps, <strong>not a demonstrated exploit or a successful oversized request through the live API</strong>.</p>
+<h3>Scheduler, performance and evidence scope</h3>
+<p>The running model source contains the V2 reservation marker; its SHA-256 is recorded alongside the pinned image. The overlay prioritizes uncached tails of at most 512 tokens while preserving long-prefill progress. Concurrency 16 is an admission ceiling, not a promise of 16 near-1M sessions or a per-user latency guarantee. Long cold inputs, unavailable prefix reuse, full active slots and cache pressure can still queue.</p>
+<p>The fresh bounded test verified actual streaming output and overlap during 24K work. Retained V2 tests separately cover approximately 133K backend work with fresh small prompts and cached continuing sessions; see <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/SCHEDULING_FAIRNESS_20261015.md">the scheduling experiment and failures</a>. The historical near-1M success belongs to an earlier scheduler profile. Neither it nor the fresh 24K test qualifies current V2 near-1M fairness, two concurrent 1M requests, or end-to-end DSH 1M. Model and gateway pods still showed zero restarts at the configuration readback; that is supporting availability evidence, not test correctness by itself.</p>
+<h3>Installation safety and next changes</h3>
+<p>The legacy Azure <code>litellm/06-litellm.yaml</code> still contains an explicit master-key placeholder and mutable <code>main-latest</code> image. It must not overwrite a live Secret. Read the intended internal routing and existing Secret references, prepare a separate reviewed candidate, pin a qualified image digest, and compare persisted configuration before applying it. A server dry-run cannot prove that placeholder credentials are valid or that a callback import works at runtime.</p>
+<p>Prioritize a tested model-specific request envelope that includes tools and supported multimodal inputs, rejects unsupported shapes explicitly, normalizes output-limit aliases and fails closed when reliable counting is unavailable. Align DSH request, summary and compaction budgets with that envelope, then verify real manual/automatic compaction on disposable sessions. Preserve the current scheduler and 128K product budget until a controlled current-profile near-1M acceptance test covers tools, streaming, compaction, memory, concurrent short requests and recovery. This review made no such rollout and did not run another disruptive million-token stress test.</p>
 <h2>1 Prepare the platform</h2>
 <p>Use the authoritative Azure <code>GPU_server</code> repository. Relevant paths are under <code>deployment/vllm/</code>:</p>
 <table>
@@ -552,7 +618,7 @@ kubectl apply --dry-run=server -f deployment/vllm/04-vllm-deepseek-v4-1-flash.ya
 <p>See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/private-routing-live-20261016.json">private Production routing</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/internal-network-live-20261016.json">all-worker network tests</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/kerberos-image-canary-62743.json">image canary</a> and the report&#39;s trial table. It records CPU oversubscription, credential replacement rollback/retry, split DNS, RKE2 discovery and the cache-mode verification rollback. Tests distinguish saved snapshots, source changes, built images and live behavior. No real AD authentication or RDT write probe was performed.</p>
 <h2>Context, speed and concurrency</h2>
 <p>Backend: context 1,048,576; memory fraction 0.90; running-request cap 16; prefill chunk 1,024; maximum prefill 2,048; mixed prefill/decode; decode interval four. The V2 overlay reserves up to 512 prefill tokens for short uncached tails while preserving long progress. It rejects an unexpected upstream scheduler source hash.</p>
-<p>DSH web profiles and LiteLLM retain 131,072 total tokens, 8,192 maximum output and a 256-token proxy reserve. Automatic compaction is configured at 75%, approximately 98,304 tokens. Compaction success for every historical session is not established.</p>
+<p>DSH web profiles declare 131,072 total tokens and 8,192 maximum output; LiteLLM&#39;s callback uses those limits with a 256-token reserve. The extensive 16 October review found that its counting omits tool definitions and does not cover every request shape, so this is not a universal exact-token guarantee. Automatic compaction uses both the 0.75 ratio and 65,536 headroom: its normal calculated threshold is 57,344 estimated tokens with 8,192 reserved output, not the previously stated 98,304. Real compaction success for every historical session is not established. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LLM_SETUP_AND_TEST_RESULTS.md#investigation-findings-and-remaining-work">live investigation and fresh performance results</a>.</p>
 <p>Recorded V2 mixed-load tests completed short requests in 0.59–1.47 seconds during approximately 133K input work. A later two-request short test verified exact output and about 34–35 output tokens/second per request including request elapsed time. These are bounded samples, not an SLA or sustained benchmark. The earlier successful near-1M test belongs to the prior scheduling profile; it is not fresh proof of end-to-end DSH 1M, two simultaneous 1M sessions or V2 near-1M fairness. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CONTEXT_OPTIMIZATION_20261015.md">trial history</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/SCHEDULING_FAIRNESS_20261015.md">scheduling evidence</a>.</p>
 <h2>Upstream synchronization and rollback</h2>
 <p>This repository maintains deployment/authentication/configuration overlays around the published DSH package, not an official-source fork. The fresh 16 October check confirmed running <code>0.2.0-rc.2</code> matches npm latest/next, while official master <code>86a402200d95fecef4529d969836f1fe13c6cb0d</code> and preview channel <code>0.2.1-alpha.4</code> are ahead. Daily candidate detection/testing/PR automation is prepared, but GitHub rejected workflow publication because the stored PAT lacks workflow permission. It is not active; Production deployment remains gated. Alpha selection is explicit. See the update policy for hosted-run permissions and release gates.</p>
