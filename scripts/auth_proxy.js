@@ -225,6 +225,22 @@ function forwardToLocalApp(targetPort, targetPath, req, res, targetHost = '127.0
   req.pipe(proxyReq);
 }
 
+function bindAuthenticatedProxyIdentity(req, user, internetMode) {
+  // Every carrier, including custom applications and raw WebSocket upgrades,
+  // receives identity from the authenticated session, never the client.
+  req.headers['x-dsh-user'] = user;
+  req.headers['x-dsh-internet-access'] = internetMode;
+  const raw = [];
+  for (let i = 0; i < req.rawHeaders.length; i += 2) {
+    const name = req.rawHeaders[i].toLowerCase();
+    if (name !== 'x-dsh-user' && name !== 'x-dsh-internet-access') {
+      raw.push(req.rawHeaders[i], req.rawHeaders[i + 1]);
+    }
+  }
+  raw.push('X-DSH-User', user, 'X-DSH-Internet-Access', internetMode);
+  req.rawHeaders = raw;
+}
+
 function forwardWebSocketToLocalApp(targetPort, targetPath, req, socket, head, targetHost = '127.0.0.1') {
   const rawHeaders = req.rawHeaders;
   let upgradeReqText = `${req.method} ${targetPath} HTTP/${req.httpVersion}\r\n`;
@@ -893,6 +909,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(403);
     return res.end('Dedicated runtime is not provisioned.');
   }
+  bindAuthenticatedProxyIdentity(req, sessionUser, internetMode);
 
   if (req.method === 'GET' && parsedUrl.pathname === '/api/auth/session') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -1018,6 +1035,7 @@ server.on('upgrade', (req, socket, head) => {
   const internetMode = normalizeInternetMode(activeSession && activeSession.internet);
   const environmentTarget = getEnvironmentTarget(internetMode, activeSession.user);
   if (!environmentTarget) return socket.destroy();
+  bindAuthenticatedProxyIdentity(req, activeSession.user, internetMode);
 
   // Dynamic App Gateway for WebSockets (e.g. Streamlit, Vite HMR, Next.js); only reachable after login
   const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';

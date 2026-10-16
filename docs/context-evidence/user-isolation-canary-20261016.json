@@ -1,0 +1,697 @@
+{
+  "namespace": "dsh-iso-20261016-131912",
+  "timeICT": "2026-10-16T13:19:12.459032+07:00",
+  "scope": "Disposable users and synthetic data only",
+  "productionRoutingChanged": false,
+  "legacyHistoriesMigrated": false,
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+  "syntheticUsers": [
+    "iso_alice",
+    "iso_bob"
+  ],
+  "legacyBaselineExpected": 80,
+  "candidateManifestsSHA256": "ff7f9a5a1b61fcaa1fe0d2cdeb226fd0d83e0102cccd51480ca8fb91545aa718",
+  "initialization": {
+    "syntheticSourceSeeded": true,
+    "productionTreeTouched": false
+  },
+  "fixtures": [
+    {
+      "identity": "adceb5ccb5d4fdea",
+      "environment": "secure",
+      "privateFixtureFiles": 5
+    },
+    {
+      "identity": "adceb5ccb5d4fdea",
+      "environment": "internet",
+      "privateFixtureFiles": 5
+    },
+    {
+      "identity": "6bebc6d6174e93c7",
+      "environment": "secure",
+      "privateFixtureFiles": 5
+    },
+    {
+      "identity": "6bebc6d6174e93c7",
+      "environment": "internet",
+      "privateFixtureFiles": 5
+    }
+  ],
+  "beforeRestart": {
+    "time": "2026-10-16T06:20:52.319Z",
+    "phase": "create",
+    "ownReports": 4,
+    "ownAttachmentFiles": 4,
+    "spoofedHeadersRejected": 4,
+    "ownSessionPages": 4,
+    "crossUserHistoryDenied": 4,
+    "crossEnvironmentHistoryDenied": 4,
+    "terminalCommands": 4,
+    "anonymousDenials": 4,
+    "websocketSpoofingDenied": 4,
+    "registrationDenied": true,
+    "sessionsCreated": 4
+  },
+  "workerTests": [
+    {
+      "environment": "secure",
+      "identity": "adceb5ccb5d4fdea",
+      "uid": 10001,
+      "noServiceAccountToken": true,
+      "legacyHistoryTreeAbsent": true,
+      "neighborWorkspaceAbsent": true,
+      "noEffectiveCapabilities": true,
+      "syntheticRows": 2,
+      "syntheticAmountTotal": 300,
+      "sourceWritesDenied": [
+        {
+          "operation": "append",
+          "errno": 30
+        },
+        {
+          "operation": "delete",
+          "errno": 30
+        },
+        {
+          "operation": "create",
+          "errno": 30
+        }
+      ],
+      "sourceHashUnchanged": true,
+      "outsideSourceAbsent": true,
+      "publicHTTPS": {
+        "exitCode": 28,
+        "status": "000"
+      },
+      "peerNetworkDenied": true
+    },
+    {
+      "environment": "internet",
+      "identity": "adceb5ccb5d4fdea",
+      "uid": 10001,
+      "noServiceAccountToken": true,
+      "legacyHistoryTreeAbsent": true,
+      "neighborWorkspaceAbsent": true,
+      "noEffectiveCapabilities": true,
+      "noRdtMount": true,
+      "publicHTTPS": {
+        "exitCode": 0,
+        "status": "200"
+      },
+      "peerNetworkDenied": true
+    },
+    {
+      "environment": "secure",
+      "identity": "6bebc6d6174e93c7",
+      "uid": 10001,
+      "noServiceAccountToken": true,
+      "legacyHistoryTreeAbsent": true,
+      "neighborWorkspaceAbsent": true,
+      "noEffectiveCapabilities": true,
+      "syntheticRows": 2,
+      "syntheticAmountTotal": 300,
+      "sourceWritesDenied": [
+        {
+          "operation": "append",
+          "errno": 30
+        },
+        {
+          "operation": "delete",
+          "errno": 30
+        },
+        {
+          "operation": "create",
+          "errno": 30
+        }
+      ],
+      "sourceHashUnchanged": true,
+      "outsideSourceAbsent": true,
+      "publicHTTPS": {
+        "exitCode": 28,
+        "status": "000"
+      },
+      "peerNetworkDenied": true
+    },
+    {
+      "environment": "internet",
+      "identity": "6bebc6d6174e93c7",
+      "uid": 10001,
+      "noServiceAccountToken": true,
+      "legacyHistoryTreeAbsent": true,
+      "neighborWorkspaceAbsent": true,
+      "noEffectiveCapabilities": true,
+      "noRdtMount": true,
+      "publicHTTPS": {
+        "exitCode": 0,
+        "status": "200"
+      },
+      "peerNetworkDenied": true
+    }
+  ],
+  "podUIDsBefore": {
+    "dsh-u-adceb5ccb5d4fdea-secure": "97c0253b-c9ea-4ae8-8536-79c933be3b3c",
+    "dsh-u-adceb5ccb5d4fdea-internet": "349e6d85-b6d9-4abc-8ea3-4caca51b3662",
+    "dsh-u-6bebc6d6174e93c7-secure": "6acab7c9-569b-4df8-affa-e8fbd5c76bd8",
+    "dsh-u-6bebc6d6174e93c7-internet": "8ecd61eb-2c8a-4507-86b0-007f03fd367d"
+  },
+  "podUIDsAfter": {
+    "dsh-u-adceb5ccb5d4fdea-secure": "b4c172ba-8e22-41aa-909b-738a522bb689",
+    "dsh-u-adceb5ccb5d4fdea-internet": "7d656d16-a45f-4043-9241-2fb9b13dd182",
+    "dsh-u-6bebc6d6174e93c7-secure": "b18b5bfe-a679-433c-b8bd-b2ec4013037c",
+    "dsh-u-6bebc6d6174e93c7-internet": "667f29e3-0787-4db3-b22e-30c52e227c93"
+  },
+  "afterRestart": {
+    "time": "2026-10-16T06:21:49.310Z",
+    "phase": "verify",
+    "ownReports": 4,
+    "ownAttachmentFiles": 4,
+    "spoofedHeadersRejected": 4,
+    "ownSessionPages": 4,
+    "crossUserHistoryDenied": 4,
+    "crossEnvironmentHistoryDenied": 4,
+    "terminalCommands": 4,
+    "anonymousDenials": 4,
+    "websocketSpoofingDenied": 4
+  },
+  "legacyAfter": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "legacyByteIdentical": true,
+  "status": "passed",
+  "cleanup": {
+    "candidateDeploymentsStopped": true,
+    "temporarySecretsRemoved": true,
+    "candidatePodsTerminated": true
+  },
+  "syntheticVolumesRetained": true,
+  "credentialValuesExported": false,
+  "liveConfigurationReadback": {
+    "namespace": "dsh-iso-20261016-131912",
+    "gatewayOverlaySHA256": "c9737befbe880f77e65b97cf4ec186883a26cb292267be55c18481253259c988",
+    "gatewayOverlayMatchesReviewedSource": true,
+    "sourceOverlayNotProductionDeployment": true,
+    "publicIngressCount": 0,
+    "workloads": [
+      {
+        "name": "dsh-environment-gateway",
+        "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+        "command": [
+          "node",
+          "/synthetic-tests/auth_proxy.js"
+        ],
+        "mounts": [
+          {
+            "mountPath": "/auth",
+            "name": "auth"
+          },
+          {
+            "mountPath": "/routing",
+            "name": "routing",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/runtime-tokens/adceb5ccb5d4fdea/secure",
+            "name": "token-adceb5ccb5d4fdea-secure",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/runtime-tokens/adceb5ccb5d4fdea/internet",
+            "name": "token-adceb5ccb5d4fdea-internet",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/runtime-tokens/6bebc6d6174e93c7/secure",
+            "name": "token-6bebc6d6174e93c7-secure",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/runtime-tokens/6bebc6d6174e93c7/internet",
+            "name": "token-6bebc6d6174e93c7-internet",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/synthetic-tests",
+            "name": "test-scripts",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/test-identities",
+            "name": "test-identities",
+            "readOnly": true
+          }
+        ],
+        "volumes": [
+          {
+            "name": "auth",
+            "persistentVolumeClaim": {
+              "claimName": "synthetic-auth"
+            }
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "dsh-user-routing"
+            },
+            "name": "routing"
+          },
+          {
+            "name": "token-adceb5ccb5d4fdea-secure",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-adceb5ccb5d4fdea-secure-routing-tokens"
+            }
+          },
+          {
+            "name": "token-adceb5ccb5d4fdea-internet",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-adceb5ccb5d4fdea-internet-routing-tokens"
+            }
+          },
+          {
+            "name": "token-6bebc6d6174e93c7-secure",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-6bebc6d6174e93c7-secure-routing-tokens"
+            }
+          },
+          {
+            "name": "token-6bebc6d6174e93c7-internet",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-6bebc6d6174e93c7-internet-routing-tokens"
+            }
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "canary-scripts"
+            },
+            "name": "test-scripts"
+          },
+          {
+            "name": "test-identities",
+            "secret": {
+              "defaultMode": 420,
+              "secretName": "synthetic-identities"
+            }
+          }
+        ],
+        "automountServiceAccountToken": false
+      },
+      {
+        "name": "dsh-u-6bebc6d6174e93c7-internet",
+        "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+        "command": [
+          "bash",
+          "-c",
+          "python3 /synthetic-tests/report_server.py & exec /usr/local/bin/start-dsh"
+        ],
+        "mounts": [
+          {
+            "mountPath": "/state",
+            "name": "state"
+          },
+          {
+            "mountPath": "/workspace",
+            "name": "staging"
+          },
+          {
+            "mountPath": "/packages/incoming",
+            "name": "package-incoming"
+          },
+          {
+            "mountPath": "/runtime-tokens",
+            "name": "routing-tokens"
+          },
+          {
+            "mountPath": "/synthetic-tests",
+            "name": "test-scripts",
+            "readOnly": true
+          }
+        ],
+        "volumes": [
+          {
+            "name": "state",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-6bebc6d6174e93c7-internet-state"
+            }
+          },
+          {
+            "name": "staging",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-6bebc6d6174e93c7-internet-staging"
+            }
+          },
+          {
+            "name": "routing-tokens",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-6bebc6d6174e93c7-internet-routing-tokens"
+            }
+          },
+          {
+            "name": "package-incoming",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-6bebc6d6174e93c7-internet-package-incoming"
+            }
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "canary-scripts"
+            },
+            "name": "test-scripts"
+          }
+        ],
+        "automountServiceAccountToken": false
+      },
+      {
+        "name": "dsh-u-6bebc6d6174e93c7-secure",
+        "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+        "command": [
+          "bash",
+          "-c",
+          "python3 /synthetic-tests/report_server.py & exec /usr/local/bin/start-dsh"
+        ],
+        "mounts": [
+          {
+            "mountPath": "/state",
+            "name": "state"
+          },
+          {
+            "mountPath": "/workspace",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/secure"
+          },
+          {
+            "mountPath": "/state/sessions",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/state/sessions"
+          },
+          {
+            "mountPath": "/state/attachments",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/state/attachments"
+          },
+          {
+            "mountPath": "/state/storages",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/state/storages"
+          },
+          {
+            "mountPath": "/state/workspaces",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/state/workspaces"
+          },
+          {
+            "mountPath": "/state/logs",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/state/logs"
+          },
+          {
+            "mountPath": "/packages/approved",
+            "name": "package-cache",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/runtime-tokens",
+            "name": "routing-tokens"
+          },
+          {
+            "mountPath": "/synthetic-tests",
+            "name": "test-scripts",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/data/rdt",
+            "name": "synthetic-source",
+            "readOnly": true,
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/source"
+          }
+        ],
+        "volumes": [
+          {
+            "name": "state",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-6bebc6d6174e93c7-secure-state"
+            }
+          },
+          {
+            "name": "protected-workspace",
+            "persistentVolumeClaim": {
+              "claimName": "synthetic-central"
+            }
+          },
+          {
+            "name": "routing-tokens",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-6bebc6d6174e93c7-secure-routing-tokens"
+            }
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "synthetic-approved-cache"
+            },
+            "name": "package-cache"
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "canary-scripts"
+            },
+            "name": "test-scripts"
+          },
+          {
+            "name": "synthetic-source",
+            "persistentVolumeClaim": {
+              "claimName": "synthetic-source",
+              "readOnly": true
+            }
+          }
+        ],
+        "automountServiceAccountToken": false
+      },
+      {
+        "name": "dsh-u-adceb5ccb5d4fdea-internet",
+        "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+        "command": [
+          "bash",
+          "-c",
+          "python3 /synthetic-tests/report_server.py & exec /usr/local/bin/start-dsh"
+        ],
+        "mounts": [
+          {
+            "mountPath": "/state",
+            "name": "state"
+          },
+          {
+            "mountPath": "/workspace",
+            "name": "staging"
+          },
+          {
+            "mountPath": "/packages/incoming",
+            "name": "package-incoming"
+          },
+          {
+            "mountPath": "/runtime-tokens",
+            "name": "routing-tokens"
+          },
+          {
+            "mountPath": "/synthetic-tests",
+            "name": "test-scripts",
+            "readOnly": true
+          }
+        ],
+        "volumes": [
+          {
+            "name": "state",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-adceb5ccb5d4fdea-internet-state"
+            }
+          },
+          {
+            "name": "staging",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-adceb5ccb5d4fdea-internet-staging"
+            }
+          },
+          {
+            "name": "routing-tokens",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-adceb5ccb5d4fdea-internet-routing-tokens"
+            }
+          },
+          {
+            "name": "package-incoming",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-adceb5ccb5d4fdea-internet-package-incoming"
+            }
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "canary-scripts"
+            },
+            "name": "test-scripts"
+          }
+        ],
+        "automountServiceAccountToken": false
+      },
+      {
+        "name": "dsh-u-adceb5ccb5d4fdea-secure",
+        "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+        "command": [
+          "bash",
+          "-c",
+          "python3 /synthetic-tests/report_server.py & exec /usr/local/bin/start-dsh"
+        ],
+        "mounts": [
+          {
+            "mountPath": "/state",
+            "name": "state"
+          },
+          {
+            "mountPath": "/workspace",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/secure"
+          },
+          {
+            "mountPath": "/state/sessions",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/state/sessions"
+          },
+          {
+            "mountPath": "/state/attachments",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/state/attachments"
+          },
+          {
+            "mountPath": "/state/storages",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/state/storages"
+          },
+          {
+            "mountPath": "/state/workspaces",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/state/workspaces"
+          },
+          {
+            "mountPath": "/state/logs",
+            "name": "protected-workspace",
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/state/logs"
+          },
+          {
+            "mountPath": "/packages/approved",
+            "name": "package-cache",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/runtime-tokens",
+            "name": "routing-tokens"
+          },
+          {
+            "mountPath": "/synthetic-tests",
+            "name": "test-scripts",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/data/rdt",
+            "name": "synthetic-source",
+            "readOnly": true,
+            "subPath": "dsh-isolation-tests/dsh-iso-20261016-131912/source"
+          }
+        ],
+        "volumes": [
+          {
+            "name": "state",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-adceb5ccb5d4fdea-secure-state"
+            }
+          },
+          {
+            "name": "protected-workspace",
+            "persistentVolumeClaim": {
+              "claimName": "synthetic-central"
+            }
+          },
+          {
+            "name": "routing-tokens",
+            "persistentVolumeClaim": {
+              "claimName": "dsh-u-adceb5ccb5d4fdea-secure-routing-tokens"
+            }
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "synthetic-approved-cache"
+            },
+            "name": "package-cache"
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "canary-scripts"
+            },
+            "name": "test-scripts"
+          },
+          {
+            "name": "synthetic-source",
+            "persistentVolumeClaim": {
+              "claimName": "synthetic-source",
+              "readOnly": true
+            }
+          }
+        ],
+        "automountServiceAccountToken": false
+      }
+    ],
+    "podImages": [
+      {
+        "name": "dsh-environment-gateway-849db7b7b-w6zjc",
+        "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+        "restarts": 0
+      },
+      {
+        "name": "dsh-u-6bebc6d6174e93c7-internet-78fffdc678-cxblg",
+        "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+        "restarts": 0
+      },
+      {
+        "name": "dsh-u-6bebc6d6174e93c7-secure-59c748f8d-fbwcr",
+        "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+        "restarts": 0
+      },
+      {
+        "name": "dsh-u-adceb5ccb5d4fdea-internet-69b89f57cd-g8xvv",
+        "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+        "restarts": 0
+      },
+      {
+        "name": "dsh-u-adceb5ccb5d4fdea-secure-69c6bb9689-267mh",
+        "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+        "restarts": 0
+      }
+    ]
+  },
+  "testLimitations": [
+    "Synthetic candidate only; existing shared Production pools were not cut over",
+    "Gateway source overlay tested on pinned runtime image; header correction is not yet deployed to the existing Production gateway",
+    "Attachment fixtures served through the authenticated custom application proxy; upstream attachment upload/processing not tested",
+    "Read-only synthetic CSV mount tested, not actual RDT permissions or database authorization",
+    "No model inference/context/throughput load test; shared inference credential and provider-side log isolation not assessed",
+    "DNS tunnelling, relay paths, adversarial sustained traffic, host breakout and storage-server ACLs not exhaustively tested",
+    "Synthetic PVCs and files retained; workloads stopped and temporary Kubernetes Secrets removed"
+  ],
+  "lessons": [
+    "Initial volume layout stalled; separate read-only source CSI identity and empty read-only cache fixture allowed candidates to start. No general CSI incompatibility claim is made.",
+    "First live probe found forwarded forged identity metadata on custom application routes; source correction binds both normalized and raw HTTP/WS headers to the authenticated session.",
+    "Old-source negative control reproduced mallory instead of authenticated alice; corrected default/custom HTTP and WS regression checks passed."
+  ],
+  "gatewayOverlaySHA256": "c9737befbe880f77e65b97cf4ec186883a26cb292267be55c18481253259c988",
+  "productionGatewaySourceSHA256": "18923bb41e0050dea25aba83d6b4acecbcd845af987bb4d7df7e34c25ced6133",
+  "productionGatewayMatchesCandidateCorrection": false
+}

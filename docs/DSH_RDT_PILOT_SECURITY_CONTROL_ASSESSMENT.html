@@ -1,12 +1,13 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH RDT Pilot — Security Controls, Architecture and Acceptance</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
 </style></head><body><main><h1>DSH RDT Pilot — Security Controls, Architecture and Acceptance</h1><div class="status"><strong>Status: partially satisfied; the three controls are not all closed.</strong> Deployed behavior, saved tests and target design are distinguished. This document does not authorize additional data access.</div><nav aria-label="Contents"><a href="#section-1">1 Executive assessment</a><a href="#section-2">2 Current architecture and execution boundary</a><a href="#section-3">3 Control 1 — Prevent external leakage</a><a href="#section-4">4 Control 2 — Prevent source damage and excessive access</a><a href="#section-5">5 Control 3 — Keep results within authorized users</a><a href="#section-6">6 Target architecture and pilot interaction</a><a href="#section-7">7 Dependency preparation without sharing protected workspaces</a><a href="#section-8">8 DA_WORKSPACE, active history and corrected storage</a><a href="#section-9">9 Deployment evidence and its limits</a><a href="#section-10">10 Proceeding when ownership and RDT scope are unknown</a><a href="#section-11">11 Upstream maintenance and shared inference</a><a href="#section-12">12 Evidence and document use</a><a href="#evidence">Embedded evidence</a></nav>
-<p><strong>Evidence status, 15 October 2026: partially satisfied. The three pilot controls are not all closed.</strong></p>
+<p><strong>Evidence status, 16 October 2026: synthetic per-user acceptance passed; existing Production controls remain partially satisfied.</strong></p>
+<p>Production baseline evidence is dated 15 October. A separate live canary on 16 October tested two disposable users and synthetic data, including restart persistence. It did not migrate real users, change Production routing or grant RDT access. All 80 legacy histories remained unchanged.</p>
 <p>The objective is to limit what can go wrong enough to make this specific pilot acceptable. It is not a claim that the Harness, its model or generated code is universally safe. This report separates deployed controls, recorded tests, remaining gaps and target architecture. Opening the HTML does not run a new security test. The previous Thai report is preserved separately.</p>
 <h2 id="section-1">1 Executive assessment</h2>
 <p>Assume the Harness, its tools and generated code can make mistakes or exceed the intended scope. Enforce boundaries through infrastructure, execution identities, storage/database permissions and authenticated routes. Prompt instructions alone are insufficient.</p>
 <p>Three controls must work together: prevent external leakage, prevent source damage or excessive access, and contain outputs within authorized users. Internet denial does not prevent deletion of writable internal data. Authentication does not isolate people sharing a process and filesystem.</p>
-<p>Separate No Internet and Internet environments are deployed. Secure&#39;s workspace and durable histories now use the original mounted CIFS storage; credentials and profiles remain local. Representative public HTTPS requests failed from Secure while internal inference worked. Existing users still share each environment runtime. Deployed per-user isolation and approved read-only RDT access remain unverified.</p>
+<p>Separate No Internet and Internet environments are deployed. Secure&#39;s workspace and durable histories now use the original mounted CIFS storage; credentials and profiles remain local. Representative public HTTPS requests failed from Secure while internal inference worked. Existing users still share each environment runtime. Per-user isolation and read-only source enforcement passed in a separate synthetic candidate. Existing Production has not been cut over, and approved real RDT access remains unverified.</p>
 <table>
 <thead>
 <tr>
@@ -23,12 +24,12 @@
 <tr>
 <td>2 Damage or excessive access</td>
 <td>Dedicated non-admin identity, limited read-only RDT snapshot/view and separate writable results</td>
-<td>Container hardening is implemented. Actual RDT source-write and out-of-scope-read denial remain untested.</td>
+<td>Container hardening is implemented. Synthetic source reads and six read-only write/create/delete denials passed; actual RDT scope and enforcement remain untested.</td>
 </tr>
 <tr>
 <td>3 Internal disclosure</td>
 <td>Named pilot users; authenticated and authorized report/file/session/tool access; no unapproved automatic publishing</td>
-<td>Login/logout and anonymous denial are tested. Shared pools do not establish cross-user isolation.</td>
+<td>Login/logout and anonymous denial are tested. Synthetic private runtimes passed cross-user and environment denial; Production pools remain shared.</td>
 </tr>
 </tbody></table>
 <h2 id="section-2">2 Current architecture and execution boundary</h2>
@@ -95,7 +96,7 @@
 <p>Restoring DA_WORKSPACE corrected a storage regression; it did not grant new RDT access. Dataset identification and history ownership were not prerequisites for restoring that mount. They are needed for the separate data-access and per-user cutover.</p>
 <p>The private-runtime generator supports an explicitly approved read-only snapshot and identity-specific central workspace/state paths. Source tests verify distinct paths for generated users. Production still uses shared environment pools. Non-root CIFS read/write tests prove workspace compatibility, not read-only RDT enforcement or cross-user isolation.</p>
 <p>Before closure, show approved scoped reads and result writes succeed while source writes/deletes/renames and out-of-scope reads fail. Include traversal, symlinks, tools, terminal and APIs; verify unchanged source content. Start with an approved test snapshot/view, not destructive Production probes.</p>
-<p><strong>Status: runtime hardening is implemented; scoped read-only RDT enforcement remains open.</strong></p>
+<p><strong>Status: hardening and synthetic read-only enforcement passed; actual scoped RDT acceptance remains open.</strong></p>
 <h2 id="section-5">5 Control 3 — Keep results within authorized users</h2>
 <p>Reports, attachments, logs, temporary files and histories can disclose information internally without Internet access. Controls must cover every route returning content, not only login.</p>
 <p>Use named pilot identities, administrative provisioning and authenticated report access. Bind identity to a dedicated runtime, workspace, history/attachments and launch token. Reject spoofed identity headers and requests without a valid session. Do not enable automatic publishing or external export without explicit authorization.</p>
@@ -104,7 +105,7 @@
 <p>Test user A, user B and an unauthenticated client. Inspect response content for guessed IDs/URLs, modified headers and direct backend routes. HTTP <code>200</code> containing login is not successful report access. Repeat ownership/access checks after logout and restart.</p>
 <p><strong>Status: authentication passed within the recorded scope; per-user authorization and export-path closure remain incomplete.</strong></p>
 <h2 id="section-6">6 Target architecture and pilot interaction</h2>
-<p>This diagram is a <strong>target not fully deployed</strong>. It separates source access, results and identity while retaining mounted DA_WORKSPACE and shared inference.</p>
+<p>This diagram is a <strong>target tested with two synthetic identities, not deployed for existing Production users</strong>. It separates source access, results and identity while retaining mounted DA_WORKSPACE and shared inference.</p>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 2</span><div class="mermaid-toolbar">
   <button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button>
   <button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button>
@@ -143,6 +144,7 @@
 <p>A named user enters No Internet and reaches a fixed private runtime. It reads only the approved snapshot/view, writes to its own working area and uses internal inference without external fallback. Authorized users open results through authenticated routes. Ownership must survive restart.</p>
 <p>Changing environments requires logout and a new login, not changing network permissions underneath a running RDT process. Do not automatically transfer projects, histories, attachments or secrets into Internet staging. Physical central storage can be shared while mount boundaries and server permissions isolate logical areas. Broad legacy mounts must not expose future private trees when claiming user isolation.</p>
 <h2 id="section-7">7 Dependency preparation without sharing protected workspaces</h2>
+<p>The 16 October isolation canary used an empty read-only cache fixture. It did not validate package download, promotion or offline installation.</p>
 <p>Internet staging prepares dependencies for No Internet. It is an artifact-preparation area, not a route into protected projects. Dependency lists must not include RDT, histories or secrets.</p>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 3</span><div class="mermaid-toolbar">
   <button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button>
@@ -214,6 +216,11 @@
 <p>Final checks listed <strong>80 histories with 80 readable working directories and no <code>/root</code> cwd records</strong>. All <strong>82 session files</strong> stayed byte-identical across another process replacement. Four new durable-directory markers survived and were removed. Login/logout, held sessions and actual terminal WebSocket execution passed in both environments. Temporary acceptance credentials were removed.</p>
 <p>This does not establish every historical session&#39;s tool resumption. See <a href="#evidence-central-state-live-20261015-json">live evidence</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CENTRAL_STATE_RESTORATION_20261015.md">migration procedure and experience</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/MULTI_TENANT_STORAGE_AND_PERSISTENCE.md">storage guide</a>. Reconcile newer central writes before reverting to an older local mount; retain both versions.</p>
 <h2 id="section-9">9 Deployment evidence and its limits</h2>
+<h3>New synthetic canary — 16 October</h3>
+<p>Two test users exercised four dedicated Secure/Internet runtimes. Before and after replacing all four processes, exact own reports, attachment-file fixtures and real DSH history pages remained readable; cross-user/environment history requests, anonymous reads and forged HTTP/WebSocket identity headers were denied. Actual terminal commands ran at UID 10001. Both Secure workers rejected append/delete/create on the synthetic source with EROFS; Internet had no source mount. Direct neighbor-runtime HTTP was denied. Secure GitHub probes timed out; Internet returned 200.</p>
+<p>The first attempt found client identity headers passing through custom forwarding. The corrected gateway canonicalizes both normalized and raw HTTP/WebSocket identity headers. A negative control reproduced the defect in the original source. The correction was verified through a ConfigMap overlay in the isolated canary, <strong>not installed in the existing Production gateway</strong>. Both test namespaces are stopped and temporary Kubernetes Secrets removed; synthetic audit volumes remain. No model load test occurred.</p>
+<p>Legacy preservation was verified across both attempts: 80 histories in 82 files retained aggregate SHA-256 <code>7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317</code>. No legacy histories were reassigned. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/USER_ISOLATION_SYNTHETIC_TEST_20261016.md">full test, failures and limits</a>. This is candidate acceptance, not closure of real-user/RDT Production gaps.</p>
+<h3>Earlier Production baseline — 15 October</h3>
 <p>Build <strong>62702</strong>, image-source revision <strong><code>3fa74b72eaad7d7dd1e0986dd07a176f45ab2153</code></strong>, produced the gateway/pool runtime image:</p>
 <p><code>sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1</code></p>
 <p>Subsequent operator/document commits do not imply a rebuilt application image. Storage changes were pushed as GitHub <code>0e504ea</code> and Azure <code>f948b04</code>. The live storage annotation was read back against the Azure commit and mounts matched the tracked manifest. This English rewrite is documentation work, not another runtime deployment.</p>
@@ -270,12 +277,12 @@
 <p>The practical staged approach is:</p>
 <ol>
 <li><strong>Preserve legacy records together.</strong> Keep the 80 histories and central projects intact. Do not clone them into every private account or broaden access. Keeping the current service available is an interim operational choice, not closure of its shared-pool risk.</li>
-<li><strong>Prepare isolation independently.</strong> Validate dedicated runtimes, workspace/state/tokens and A-to-B denial using two disposable identities and synthetic data. This tests the mechanism without assigning real histories or using RDT. Label this synthetic/candidate acceptance until deployed for approved users.</li>
+<li><strong>Synthetic isolation acceptance completed.</strong> Two disposable identities and four private runtimes passed positive access, A-to-B/environment denial and restart persistence. Six source mutations failed read-only. This validates the tested mechanism without assigning real histories or using RDT. Production cutover remains pending.</li>
 <li><strong>Start new private histories cleanly.</strong> Once a human identity is confirmed, provision an empty private environment. Leave legacy records in their current boundary. Migrate only verified ownership or an explicit recorded shared-access decision. Remove broad legacy access to private trees before cutover.</li>
 <li><strong>Default new pilot RDT access to none.</strong> Do not mount guessed sources or copy Production data. Test read-only enforcement with synthetic fixtures. A data/system owner can later identify the limited folder/snapshot/view and dedicated account.</li>
 <li><strong>Close against actual access tests.</strong> Verify scoped reads, rejected source writes/out-of-scope reads, private results, cross-user denial, every worker&#39;s outbound restrictions and absence of unapproved publishing. Separate infrastructure/data/pilot acceptance from code completion.</li>
 </ol>
-<p>This is the recommended next step. It does <strong>not</strong> mean legacy access has already been restricted, accounts disabled, private users cut over or RDT access granted.</p>
+<p>Synthetic acceptance is now complete. It does <strong>not</strong> mean legacy access has already been restricted, accounts disabled, private users cut over or RDT access granted.</p>
 <table>
 <thead>
 <tr>
@@ -296,7 +303,7 @@
 </tr>
 <tr>
 <td>Private runtimes</td>
-<td>Generator/routing source tested; pools still shared</td>
+<td>Live synthetic candidate passed; Production pools still shared</td>
 <td>Deployed fixed routing and A-to-B file/report/history/terminal/API denial</td>
 </tr>
 <tr>
@@ -329,6 +336,8 @@
 <h2 id="section-12">12 Evidence and document use</h2>
 <p>Embedded records are saved responses/logs at their stated times, not a live webpage or a new test when opened. Original evidence remains unchanged and may include Thai source text. Narrative, navigation and controls are English. Passwords, tokens and RDT content are not intentionally reproduced.</p>
 <ul>
+<li><a href="#evidence-user-isolation-canary-20261016-json">Synthetic isolation acceptance</a>: successful live candidate and configuration readback.</li>
+<li><a href="#evidence-user-isolation-canary-first-attempt-20261016-json">First attempt</a>: observed defect, correction and unchanged legacy fingerprints.</li>
 <li><a href="#evidence-identity-metadata-review-20261015-json">Identity metadata review</a>: counts and absent ownership fields; account names retained privately.</li>
 <li><a href="#evidence-central-state-live-20261015-json">Latest central-state evidence</a>: mounts, copied-state counts, cwd correction, hashes, restart, terminal and connectivity.</li>
 <li><a href="#evidence-environment-session-storage-review-20261015-json">Earlier storage review</a>: raw-source provenance and pre-correction inaccessible paths.</li>
@@ -390,12 +399,12 @@
 <tr>
 <td>Private user runtimes</td>
 <td>Prevent users sharing execution and state</td>
-<td>Generator/routing tested; existing shared pools have not been cut over</td>
+<td>Two-user live synthetic canary passed with restart persistence; existing Production pools have not been cut over</td>
 </tr>
 <tr>
 <td>Read-only RDT source</td>
 <td>Limit reads and prevent source modification</td>
-<td>Approved-snapshot support prepared; actual source scope, identity and negative tests remain required</td>
+<td>Synthetic read-only source and out-of-scope denial passed; actual RDT source scope, identity and acceptance remain required</td>
 </tr>
 <tr>
 <td>Shared inference</td>
@@ -408,6 +417,11 @@
 <td>Deployed V2; bounded 133K mixed-load tests passed, near-1M mixed load not revalidated</td>
 </tr>
 </tbody></table>
+<h2>Latest synthetic isolation acceptance — 16 October 2026</h2>
+<p>Two disposable users, each with Secure and Internet runtimes, passed real gateway/history/terminal tests before and after replacing all four runtime processes. Own reports, attachment-file fixtures and DSH histories persisted. Other user/environment histories, forged HTTP/WebSocket identities and anonymous reads were denied. Both Secure workers rejected source append/delete/create (six EROFS results); Internet had no source mount. Direct neighbor-runtime HTTP was denied. Secure GitHub requests timed out while Internet returned 200.</p>
+<p>All <strong>80 legacy histories in 82 generation files stayed byte-identical</strong>, aggregate SHA-256 <code>7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317</code>. Candidate workloads are stopped, temporary Kubernetes Secrets removed and synthetic audit volumes retained. No legacy histories were assigned or moved.</p>
+<p>The first run exposed a custom-proxy identity-header defect. The corrected HTTP/WebSocket binding passed a negative-control regression and the revised live canary. <strong>The source correction is candidate-tested, not deployed to the existing Production gateway.</strong> Existing shared Production pools remain shared; no actual RDT was used or authorized. Empty package-cache fixtures, synthetic attachment-file serving and bounded GitHub tests do not validate package installation, upstream uploads or every leakage path.</p>
+<p>See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/USER_ISOLATION_SYNTHETIC_TEST_20261016.md">complete test and experience record</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/user-isolation-canary-20261016.json">successful evidence</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/user-isolation-canary-first-attempt-20261016.json">first-attempt evidence</a>. Reproduction uses <code>scripts/run_isolation_canary.py</code> with a fresh isolated namespace. Resource validation refuses Production namespaces/claims and legacy subpaths.</p>
 <h2>Architecture and security boundary</h2>
 <pre><code class="language-mermaid">flowchart TB
  User[Authenticated user] --&gt; Gateway[Environment gateway]
@@ -477,7 +491,773 @@
 <p>The same reviewed DSH tree is mirrored under <code>GPU_server/deployment/vllm/dsh-environments</code>; GPU model and scheduling sources remain in GPU_server. Historical reports stay dated and preserved. Source completion, live behavior, scan results and owner/assessor acceptance are separate claims.</p>
 <h2>Unknown legacy ownership: safe next step</h2>
 <p>A read-only review found 9 gateway accounts and 80 unique histories in 82 generation files; session headers contain no authenticated ownership field. Preserve legacy records together without broadening access. Validate isolation with two disposable identities and synthetic data; give confirmed future private users fresh histories. Assign old records only after verified ownership or an explicit shared-access decision. Keep new pilot RDT access unconfigured until a limited source and identity are identified. This is a proposed staged path, not a completed user cutover or an access change. Account names are kept in a private local CSV, not published here. See the English report, section 10.</p>
-</details><h2 id="evidence">Embedded evidence</h2><p>Saved test responses and logs at their stated times. Opening this report does not perform a new system test. Original evidence is preserved unchanged.</p><details id="evidence-identity-metadata-review-20261015-json"><summary>identity-metadata-review-20261015.json</summary><pre>{
+</details><h2 id="evidence">Embedded evidence</h2><p>Saved test responses and logs at their stated times. Opening this report does not perform a new system test. Original evidence is preserved unchanged.</p><details id="evidence-user-isolation-canary-20261016-json"><summary>user-isolation-canary-20261016.json</summary><pre>{
+  &quot;namespace&quot;: &quot;dsh-iso-20261016-131912&quot;,
+  &quot;timeICT&quot;: &quot;2026-10-16T13:19:12.459032+07:00&quot;,
+  &quot;scope&quot;: &quot;Disposable users and synthetic data only&quot;,
+  &quot;productionRoutingChanged&quot;: false,
+  &quot;legacyHistoriesMigrated&quot;: false,
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+  &quot;syntheticUsers&quot;: [
+    &quot;iso_alice&quot;,
+    &quot;iso_bob&quot;
+  ],
+  &quot;legacyBaselineExpected&quot;: 80,
+  &quot;candidateManifestsSHA256&quot;: &quot;ff7f9a5a1b61fcaa1fe0d2cdeb226fd0d83e0102cccd51480ca8fb91545aa718&quot;,
+  &quot;initialization&quot;: {
+    &quot;syntheticSourceSeeded&quot;: true,
+    &quot;productionTreeTouched&quot;: false
+  },
+  &quot;fixtures&quot;: [
+    {
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    }
+  ],
+  &quot;beforeRestart&quot;: {
+    &quot;time&quot;: &quot;2026-10-16T06:20:52.319Z&quot;,
+    &quot;phase&quot;: &quot;create&quot;,
+    &quot;ownReports&quot;: 4,
+    &quot;ownAttachmentFiles&quot;: 4,
+    &quot;spoofedHeadersRejected&quot;: 4,
+    &quot;ownSessionPages&quot;: 4,
+    &quot;crossUserHistoryDenied&quot;: 4,
+    &quot;crossEnvironmentHistoryDenied&quot;: 4,
+    &quot;terminalCommands&quot;: 4,
+    &quot;anonymousDenials&quot;: 4,
+    &quot;websocketSpoofingDenied&quot;: 4,
+    &quot;registrationDenied&quot;: true,
+    &quot;sessionsCreated&quot;: 4
+  },
+  &quot;workerTests&quot;: [
+    {
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;syntheticRows&quot;: 2,
+      &quot;syntheticAmountTotal&quot;: 300,
+      &quot;sourceWritesDenied&quot;: [
+        {
+          &quot;operation&quot;: &quot;append&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;delete&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;create&quot;,
+          &quot;errno&quot;: 30
+        }
+      ],
+      &quot;sourceHashUnchanged&quot;: true,
+      &quot;outsideSourceAbsent&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 28,
+        &quot;status&quot;: &quot;000&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    },
+    {
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;noRdtMount&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 0,
+        &quot;status&quot;: &quot;200&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    },
+    {
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;syntheticRows&quot;: 2,
+      &quot;syntheticAmountTotal&quot;: 300,
+      &quot;sourceWritesDenied&quot;: [
+        {
+          &quot;operation&quot;: &quot;append&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;delete&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;create&quot;,
+          &quot;errno&quot;: 30
+        }
+      ],
+      &quot;sourceHashUnchanged&quot;: true,
+      &quot;outsideSourceAbsent&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 28,
+        &quot;status&quot;: &quot;000&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    },
+    {
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;noRdtMount&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 0,
+        &quot;status&quot;: &quot;200&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    }
+  ],
+  &quot;podUIDsBefore&quot;: {
+    &quot;dsh-u-adceb5ccb5d4fdea-secure&quot;: &quot;97c0253b-c9ea-4ae8-8536-79c933be3b3c&quot;,
+    &quot;dsh-u-adceb5ccb5d4fdea-internet&quot;: &quot;349e6d85-b6d9-4abc-8ea3-4caca51b3662&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-secure&quot;: &quot;6acab7c9-569b-4df8-affa-e8fbd5c76bd8&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-internet&quot;: &quot;8ecd61eb-2c8a-4507-86b0-007f03fd367d&quot;
+  },
+  &quot;podUIDsAfter&quot;: {
+    &quot;dsh-u-adceb5ccb5d4fdea-secure&quot;: &quot;b4c172ba-8e22-41aa-909b-738a522bb689&quot;,
+    &quot;dsh-u-adceb5ccb5d4fdea-internet&quot;: &quot;7d656d16-a45f-4043-9241-2fb9b13dd182&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-secure&quot;: &quot;b18b5bfe-a679-433c-b8bd-b2ec4013037c&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-internet&quot;: &quot;667f29e3-0787-4db3-b22e-30c52e227c93&quot;
+  },
+  &quot;afterRestart&quot;: {
+    &quot;time&quot;: &quot;2026-10-16T06:21:49.310Z&quot;,
+    &quot;phase&quot;: &quot;verify&quot;,
+    &quot;ownReports&quot;: 4,
+    &quot;ownAttachmentFiles&quot;: 4,
+    &quot;spoofedHeadersRejected&quot;: 4,
+    &quot;ownSessionPages&quot;: 4,
+    &quot;crossUserHistoryDenied&quot;: 4,
+    &quot;crossEnvironmentHistoryDenied&quot;: 4,
+    &quot;terminalCommands&quot;: 4,
+    &quot;anonymousDenials&quot;: 4,
+    &quot;websocketSpoofingDenied&quot;: 4
+  },
+  &quot;legacyAfter&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;legacyByteIdentical&quot;: true,
+  &quot;status&quot;: &quot;passed&quot;,
+  &quot;cleanup&quot;: {
+    &quot;candidateDeploymentsStopped&quot;: true,
+    &quot;temporarySecretsRemoved&quot;: true,
+    &quot;candidatePodsTerminated&quot;: true
+  },
+  &quot;syntheticVolumesRetained&quot;: true,
+  &quot;credentialValuesExported&quot;: false,
+  &quot;liveConfigurationReadback&quot;: {
+    &quot;namespace&quot;: &quot;dsh-iso-20261016-131912&quot;,
+    &quot;gatewayOverlaySHA256&quot;: &quot;c9737befbe880f77e65b97cf4ec186883a26cb292267be55c18481253259c988&quot;,
+    &quot;gatewayOverlayMatchesReviewedSource&quot;: true,
+    &quot;sourceOverlayNotProductionDeployment&quot;: true,
+    &quot;publicIngressCount&quot;: 0,
+    &quot;workloads&quot;: [
+      {
+        &quot;name&quot;: &quot;dsh-environment-gateway&quot;,
+        &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+        &quot;command&quot;: [
+          &quot;node&quot;,
+          &quot;/synthetic-tests/auth_proxy.js&quot;
+        ],
+        &quot;mounts&quot;: [
+          {
+            &quot;mountPath&quot;: &quot;/auth&quot;,
+            &quot;name&quot;: &quot;auth&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/routing&quot;,
+            &quot;name&quot;: &quot;routing&quot;,
+            &quot;readOnly&quot;: true
+          },
+          {
+            &quot;mountPath&quot;: &quot;/runtime-tokens/adceb5ccb5d4fdea/secure&quot;,
+            &quot;name&quot;: &quot;token-adceb5ccb5d4fdea-secure&quot;,
+            &quot;readOnly&quot;: true
+          },
+          {
+            &quot;mountPath&quot;: &quot;/runtime-tokens/adceb5ccb5d4fdea/internet&quot;,
+            &quot;name&quot;: &quot;token-adceb5ccb5d4fdea-internet&quot;,
+            &quot;readOnly&quot;: true
+          },
+          {
+            &quot;mountPath&quot;: &quot;/runtime-tokens/6bebc6d6174e93c7/secure&quot;,
+            &quot;name&quot;: &quot;token-6bebc6d6174e93c7-secure&quot;,
+            &quot;readOnly&quot;: true
+          },
+          {
+            &quot;mountPath&quot;: &quot;/runtime-tokens/6bebc6d6174e93c7/internet&quot;,
+            &quot;name&quot;: &quot;token-6bebc6d6174e93c7-internet&quot;,
+            &quot;readOnly&quot;: true
+          },
+          {
+            &quot;mountPath&quot;: &quot;/synthetic-tests&quot;,
+            &quot;name&quot;: &quot;test-scripts&quot;,
+            &quot;readOnly&quot;: true
+          },
+          {
+            &quot;mountPath&quot;: &quot;/test-identities&quot;,
+            &quot;name&quot;: &quot;test-identities&quot;,
+            &quot;readOnly&quot;: true
+          }
+        ],
+        &quot;volumes&quot;: [
+          {
+            &quot;name&quot;: &quot;auth&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;synthetic-auth&quot;
+            }
+          },
+          {
+            &quot;configMap&quot;: {
+              &quot;defaultMode&quot;: 420,
+              &quot;name&quot;: &quot;dsh-user-routing&quot;
+            },
+            &quot;name&quot;: &quot;routing&quot;
+          },
+          {
+            &quot;name&quot;: &quot;token-adceb5ccb5d4fdea-secure&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-adceb5ccb5d4fdea-secure-routing-tokens&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;token-adceb5ccb5d4fdea-internet&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-adceb5ccb5d4fdea-internet-routing-tokens&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;token-6bebc6d6174e93c7-secure&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-6bebc6d6174e93c7-secure-routing-tokens&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;token-6bebc6d6174e93c7-internet&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-6bebc6d6174e93c7-internet-routing-tokens&quot;
+            }
+          },
+          {
+            &quot;configMap&quot;: {
+              &quot;defaultMode&quot;: 420,
+              &quot;name&quot;: &quot;canary-scripts&quot;
+            },
+            &quot;name&quot;: &quot;test-scripts&quot;
+          },
+          {
+            &quot;name&quot;: &quot;test-identities&quot;,
+            &quot;secret&quot;: {
+              &quot;defaultMode&quot;: 420,
+              &quot;secretName&quot;: &quot;synthetic-identities&quot;
+            }
+          }
+        ],
+        &quot;automountServiceAccountToken&quot;: false
+      },
+      {
+        &quot;name&quot;: &quot;dsh-u-6bebc6d6174e93c7-internet&quot;,
+        &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+        &quot;command&quot;: [
+          &quot;bash&quot;,
+          &quot;-c&quot;,
+          &quot;python3 /synthetic-tests/report_server.py &amp; exec /usr/local/bin/start-dsh&quot;
+        ],
+        &quot;mounts&quot;: [
+          {
+            &quot;mountPath&quot;: &quot;/state&quot;,
+            &quot;name&quot;: &quot;state&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/workspace&quot;,
+            &quot;name&quot;: &quot;staging&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/packages/incoming&quot;,
+            &quot;name&quot;: &quot;package-incoming&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/runtime-tokens&quot;,
+            &quot;name&quot;: &quot;routing-tokens&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/synthetic-tests&quot;,
+            &quot;name&quot;: &quot;test-scripts&quot;,
+            &quot;readOnly&quot;: true
+          }
+        ],
+        &quot;volumes&quot;: [
+          {
+            &quot;name&quot;: &quot;state&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-6bebc6d6174e93c7-internet-state&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;staging&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-6bebc6d6174e93c7-internet-staging&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;routing-tokens&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-6bebc6d6174e93c7-internet-routing-tokens&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;package-incoming&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-6bebc6d6174e93c7-internet-package-incoming&quot;
+            }
+          },
+          {
+            &quot;configMap&quot;: {
+              &quot;defaultMode&quot;: 420,
+              &quot;name&quot;: &quot;canary-scripts&quot;
+            },
+            &quot;name&quot;: &quot;test-scripts&quot;
+          }
+        ],
+        &quot;automountServiceAccountToken&quot;: false
+      },
+      {
+        &quot;name&quot;: &quot;dsh-u-6bebc6d6174e93c7-secure&quot;,
+        &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+        &quot;command&quot;: [
+          &quot;bash&quot;,
+          &quot;-c&quot;,
+          &quot;python3 /synthetic-tests/report_server.py &amp; exec /usr/local/bin/start-dsh&quot;
+        ],
+        &quot;mounts&quot;: [
+          {
+            &quot;mountPath&quot;: &quot;/state&quot;,
+            &quot;name&quot;: &quot;state&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/workspace&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/secure&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/state/sessions&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/state/sessions&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/state/attachments&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/state/attachments&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/state/storages&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/state/storages&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/state/workspaces&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/state/workspaces&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/state/logs&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/6bebc6d6174e93c7/state/logs&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/packages/approved&quot;,
+            &quot;name&quot;: &quot;package-cache&quot;,
+            &quot;readOnly&quot;: true
+          },
+          {
+            &quot;mountPath&quot;: &quot;/runtime-tokens&quot;,
+            &quot;name&quot;: &quot;routing-tokens&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/synthetic-tests&quot;,
+            &quot;name&quot;: &quot;test-scripts&quot;,
+            &quot;readOnly&quot;: true
+          },
+          {
+            &quot;mountPath&quot;: &quot;/data/rdt&quot;,
+            &quot;name&quot;: &quot;synthetic-source&quot;,
+            &quot;readOnly&quot;: true,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/source&quot;
+          }
+        ],
+        &quot;volumes&quot;: [
+          {
+            &quot;name&quot;: &quot;state&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-6bebc6d6174e93c7-secure-state&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;synthetic-central&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;routing-tokens&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-6bebc6d6174e93c7-secure-routing-tokens&quot;
+            }
+          },
+          {
+            &quot;configMap&quot;: {
+              &quot;defaultMode&quot;: 420,
+              &quot;name&quot;: &quot;synthetic-approved-cache&quot;
+            },
+            &quot;name&quot;: &quot;package-cache&quot;
+          },
+          {
+            &quot;configMap&quot;: {
+              &quot;defaultMode&quot;: 420,
+              &quot;name&quot;: &quot;canary-scripts&quot;
+            },
+            &quot;name&quot;: &quot;test-scripts&quot;
+          },
+          {
+            &quot;name&quot;: &quot;synthetic-source&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;synthetic-source&quot;,
+              &quot;readOnly&quot;: true
+            }
+          }
+        ],
+        &quot;automountServiceAccountToken&quot;: false
+      },
+      {
+        &quot;name&quot;: &quot;dsh-u-adceb5ccb5d4fdea-internet&quot;,
+        &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+        &quot;command&quot;: [
+          &quot;bash&quot;,
+          &quot;-c&quot;,
+          &quot;python3 /synthetic-tests/report_server.py &amp; exec /usr/local/bin/start-dsh&quot;
+        ],
+        &quot;mounts&quot;: [
+          {
+            &quot;mountPath&quot;: &quot;/state&quot;,
+            &quot;name&quot;: &quot;state&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/workspace&quot;,
+            &quot;name&quot;: &quot;staging&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/packages/incoming&quot;,
+            &quot;name&quot;: &quot;package-incoming&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/runtime-tokens&quot;,
+            &quot;name&quot;: &quot;routing-tokens&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/synthetic-tests&quot;,
+            &quot;name&quot;: &quot;test-scripts&quot;,
+            &quot;readOnly&quot;: true
+          }
+        ],
+        &quot;volumes&quot;: [
+          {
+            &quot;name&quot;: &quot;state&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-adceb5ccb5d4fdea-internet-state&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;staging&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-adceb5ccb5d4fdea-internet-staging&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;routing-tokens&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-adceb5ccb5d4fdea-internet-routing-tokens&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;package-incoming&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-adceb5ccb5d4fdea-internet-package-incoming&quot;
+            }
+          },
+          {
+            &quot;configMap&quot;: {
+              &quot;defaultMode&quot;: 420,
+              &quot;name&quot;: &quot;canary-scripts&quot;
+            },
+            &quot;name&quot;: &quot;test-scripts&quot;
+          }
+        ],
+        &quot;automountServiceAccountToken&quot;: false
+      },
+      {
+        &quot;name&quot;: &quot;dsh-u-adceb5ccb5d4fdea-secure&quot;,
+        &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+        &quot;command&quot;: [
+          &quot;bash&quot;,
+          &quot;-c&quot;,
+          &quot;python3 /synthetic-tests/report_server.py &amp; exec /usr/local/bin/start-dsh&quot;
+        ],
+        &quot;mounts&quot;: [
+          {
+            &quot;mountPath&quot;: &quot;/state&quot;,
+            &quot;name&quot;: &quot;state&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/workspace&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/secure&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/state/sessions&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/state/sessions&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/state/attachments&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/state/attachments&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/state/storages&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/state/storages&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/state/workspaces&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/state/workspaces&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/state/logs&quot;,
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/private/adceb5ccb5d4fdea/state/logs&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/packages/approved&quot;,
+            &quot;name&quot;: &quot;package-cache&quot;,
+            &quot;readOnly&quot;: true
+          },
+          {
+            &quot;mountPath&quot;: &quot;/runtime-tokens&quot;,
+            &quot;name&quot;: &quot;routing-tokens&quot;
+          },
+          {
+            &quot;mountPath&quot;: &quot;/synthetic-tests&quot;,
+            &quot;name&quot;: &quot;test-scripts&quot;,
+            &quot;readOnly&quot;: true
+          },
+          {
+            &quot;mountPath&quot;: &quot;/data/rdt&quot;,
+            &quot;name&quot;: &quot;synthetic-source&quot;,
+            &quot;readOnly&quot;: true,
+            &quot;subPath&quot;: &quot;dsh-isolation-tests/dsh-iso-20261016-131912/source&quot;
+          }
+        ],
+        &quot;volumes&quot;: [
+          {
+            &quot;name&quot;: &quot;state&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-adceb5ccb5d4fdea-secure-state&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;protected-workspace&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;synthetic-central&quot;
+            }
+          },
+          {
+            &quot;name&quot;: &quot;routing-tokens&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;dsh-u-adceb5ccb5d4fdea-secure-routing-tokens&quot;
+            }
+          },
+          {
+            &quot;configMap&quot;: {
+              &quot;defaultMode&quot;: 420,
+              &quot;name&quot;: &quot;synthetic-approved-cache&quot;
+            },
+            &quot;name&quot;: &quot;package-cache&quot;
+          },
+          {
+            &quot;configMap&quot;: {
+              &quot;defaultMode&quot;: 420,
+              &quot;name&quot;: &quot;canary-scripts&quot;
+            },
+            &quot;name&quot;: &quot;test-scripts&quot;
+          },
+          {
+            &quot;name&quot;: &quot;synthetic-source&quot;,
+            &quot;persistentVolumeClaim&quot;: {
+              &quot;claimName&quot;: &quot;synthetic-source&quot;,
+              &quot;readOnly&quot;: true
+            }
+          }
+        ],
+        &quot;automountServiceAccountToken&quot;: false
+      }
+    ],
+    &quot;podImages&quot;: [
+      {
+        &quot;name&quot;: &quot;dsh-environment-gateway-849db7b7b-w6zjc&quot;,
+        &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+        &quot;restarts&quot;: 0
+      },
+      {
+        &quot;name&quot;: &quot;dsh-u-6bebc6d6174e93c7-internet-78fffdc678-cxblg&quot;,
+        &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+        &quot;restarts&quot;: 0
+      },
+      {
+        &quot;name&quot;: &quot;dsh-u-6bebc6d6174e93c7-secure-59c748f8d-fbwcr&quot;,
+        &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+        &quot;restarts&quot;: 0
+      },
+      {
+        &quot;name&quot;: &quot;dsh-u-adceb5ccb5d4fdea-internet-69b89f57cd-g8xvv&quot;,
+        &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+        &quot;restarts&quot;: 0
+      },
+      {
+        &quot;name&quot;: &quot;dsh-u-adceb5ccb5d4fdea-secure-69c6bb9689-267mh&quot;,
+        &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+        &quot;restarts&quot;: 0
+      }
+    ]
+  },
+  &quot;testLimitations&quot;: [
+    &quot;Synthetic candidate only; existing shared Production pools were not cut over&quot;,
+    &quot;Gateway source overlay tested on pinned runtime image; header correction is not yet deployed to the existing Production gateway&quot;,
+    &quot;Attachment fixtures served through the authenticated custom application proxy; upstream attachment upload/processing not tested&quot;,
+    &quot;Read-only synthetic CSV mount tested, not actual RDT permissions or database authorization&quot;,
+    &quot;No model inference/context/throughput load test; shared inference credential and provider-side log isolation not assessed&quot;,
+    &quot;DNS tunnelling, relay paths, adversarial sustained traffic, host breakout and storage-server ACLs not exhaustively tested&quot;,
+    &quot;Synthetic PVCs and files retained; workloads stopped and temporary Kubernetes Secrets removed&quot;
+  ],
+  &quot;lessons&quot;: [
+    &quot;Initial volume layout stalled; separate read-only source CSI identity and empty read-only cache fixture allowed candidates to start. No general CSI incompatibility claim is made.&quot;,
+    &quot;First live probe found forwarded forged identity metadata on custom application routes; source correction binds both normalized and raw HTTP/WS headers to the authenticated session.&quot;,
+    &quot;Old-source negative control reproduced mallory instead of authenticated alice; corrected default/custom HTTP and WS regression checks passed.&quot;
+  ],
+  &quot;gatewayOverlaySHA256&quot;: &quot;c9737befbe880f77e65b97cf4ec186883a26cb292267be55c18481253259c988&quot;,
+  &quot;productionGatewaySourceSHA256&quot;: &quot;18923bb41e0050dea25aba83d6b4acecbcd845af987bb4d7df7e34c25ced6133&quot;,
+  &quot;productionGatewayMatchesCandidateCorrection&quot;: false
+}
+</pre></details><details id="evidence-user-isolation-canary-first-attempt-20261016-json"><summary>user-isolation-canary-first-attempt-20261016.json</summary><pre>{
+  &quot;namespace&quot;: &quot;dsh-iso-20261016-130900&quot;,
+  &quot;timeICT&quot;: &quot;2026-10-16T13:09:00.835736+07:00&quot;,
+  &quot;scope&quot;: &quot;Disposable users and synthetic data only&quot;,
+  &quot;productionRoutingChanged&quot;: false,
+  &quot;legacyHistoriesMigrated&quot;: false,
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+  &quot;syntheticUsers&quot;: [
+    &quot;iso_alice&quot;,
+    &quot;iso_bob&quot;
+  ],
+  &quot;legacyBaselineExpected&quot;: 80,
+  &quot;candidateManifestsSHA256&quot;: &quot;ba7b89689a923a268c71e40fdf15dad2b47582cbdc23c0ec852f02e41b7662c7&quot;,
+  &quot;initialization&quot;: {
+    &quot;syntheticSourceSeeded&quot;: true,
+    &quot;productionTreeTouched&quot;: false
+  },
+  &quot;fixtures&quot;: [
+    {
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    }
+  ],
+  &quot;status&quot;: &quot;failed&quot;,
+  &quot;failure&quot;: &quot;Spoofed header changed user/environment\ncommand terminated with exit code 1&quot;,
+  &quot;cleanup&quot;: {
+    &quot;candidateDeploymentsStopped&quot;: true,
+    &quot;temporarySecretsRemoved&quot;: true,
+    &quot;candidatePodsTerminated&quot;: true
+  },
+  &quot;syntheticVolumesRetained&quot;: true,
+  &quot;credentialValuesExported&quot;: false,
+  &quot;legacyAfter&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;legacyByteIdentical&quot;: true,
+  &quot;setupAdjustments&quot;: [
+    &quot;Initial new read-only package cache replaced with a synthetic ConfigMap fixture; package installation is outside scope&quot;,
+    &quot;Read-only synthetic source moved to a distinct CSI PV/PVC identity from the writable private workspace&quot;
+  ],
+  &quot;baselineNegativeControl&quot;: {
+    &quot;oldSourceRejectedByNewIdentityTest&quot;: true,
+    &quot;observedForgedUser&quot;: &quot;mallory&quot;,
+    &quot;authenticatedUser&quot;: &quot;alice&quot;
+  }
+}
+</pre></details><details id="evidence-identity-metadata-review-20261015-json"><summary>identity-metadata-review-20261015.json</summary><pre>{
   &quot;records&quot;: 80,
   &quot;generationFiles&quot;: 82,
   &quot;ownershipFieldsPresent&quot;: [],
@@ -1865,7 +2645,7 @@ environment routing and session stickiness tests passed
 routing checks completed
 per-user routing, spoof resistance, missing-runtime denial, registration denial and stickiness tests passed
 </pre></details><details id="evidence-html-verification-20261015-json"><summary>html-verification-20261015.json</summary><pre>{
-  &quot;time&quot;: &quot;2026-10-15T15:30:13.675Z&quot;,
+  &quot;time&quot;: &quot;2026-10-16T06:28:08.753Z&quot;,
   &quot;englishNarrative&quot;: true,
   &quot;readmeEmbedded&quot;: true,
   &quot;renderedDiagrams&quot;: 3,

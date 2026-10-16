@@ -15,10 +15,20 @@ Start with the English [interactive security and architecture walkthrough](docs/
 | Central sessions, attachments and durable storage | Persist actual active content centrally rather than substitute a backup | Secure durable `/state` subdirectories bind directly to `dsh/dsh_storage`; local credentials/profiles remain separate |
 | Legacy working-directory compatibility | Resume from canonical accessible project folders | Explicit header-only mapping preserves original files and byte-identical conversation frames |
 | Approved package transfer | Provide offline dependencies without sharing writable workspaces | Separate Incoming, operator/hash review, promotion and read-only Approved cache |
-| Private user runtimes | Prevent users sharing execution and state | Generator/routing tested; existing shared pools have not been cut over |
-| Read-only RDT source | Limit reads and prevent source modification | Approved-snapshot support prepared; actual source scope, identity and negative tests remain required |
+| Private user runtimes | Prevent users sharing execution and state | Two-user live synthetic canary passed with restart persistence; existing Production pools have not been cut over |
+| Read-only RDT source | Limit reads and prevent source modification | Synthetic read-only source and out-of-scope denial passed; actual RDT source scope, identity and acceptance remain required |
 | Shared inference | Use the existing one-node four-GPU system efficiently | Backend ceiling 1M; DSH web/LiteLLM user guardrail 128K |
 | Interactive scheduling | Interleave short requests with long prefill | Deployed V2; bounded 133K mixed-load tests passed, near-1M mixed load not revalidated |
+
+## Latest synthetic isolation acceptance — 16 October 2026
+
+Two disposable users, each with Secure and Internet runtimes, passed real gateway/history/terminal tests before and after replacing all four runtime processes. Own reports, attachment-file fixtures and DSH histories persisted. Other user/environment histories, forged HTTP/WebSocket identities and anonymous reads were denied. Both Secure workers rejected source append/delete/create (six EROFS results); Internet had no source mount. Direct neighbor-runtime HTTP was denied. Secure GitHub requests timed out while Internet returned 200.
+
+All **80 legacy histories in 82 generation files stayed byte-identical**, aggregate SHA-256 `7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317`. Candidate workloads are stopped, temporary Kubernetes Secrets removed and synthetic audit volumes retained. No legacy histories were assigned or moved.
+
+The first run exposed a custom-proxy identity-header defect. The corrected HTTP/WebSocket binding passed a negative-control regression and the revised live canary. **The source correction is candidate-tested, not deployed to the existing Production gateway.** Existing shared Production pools remain shared; no actual RDT was used or authorized. Empty package-cache fixtures, synthetic attachment-file serving and bounded GitHub tests do not validate package installation, upstream uploads or every leakage path.
+
+See the [complete test and experience record](docs/USER_ISOLATION_SYNTHETIC_TEST_20261016.md), [successful evidence](docs/context-evidence/user-isolation-canary-20261016.json) and [first-attempt evidence](docs/context-evidence/user-isolation-canary-first-attempt-20261016.json). Reproduction uses `scripts/run_isolation_canary.py` with a fresh isolated namespace. Resource validation refuses Production namespaces/claims and legacy subpaths.
 
 ## Architecture and security boundary
 

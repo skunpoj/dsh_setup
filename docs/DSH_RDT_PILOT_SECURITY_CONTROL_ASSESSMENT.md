@@ -1,6 +1,8 @@
 # DSH RDT Pilot — Security Controls, Architecture and Acceptance
 
-**Evidence status, 15 October 2026: partially satisfied. The three pilot controls are not all closed.**
+**Evidence status, 16 October 2026: synthetic per-user acceptance passed; existing Production controls remain partially satisfied.**
+
+Production baseline evidence is dated 15 October. A separate live canary on 16 October tested two disposable users and synthetic data, including restart persistence. It did not migrate real users, change Production routing or grant RDT access. All 80 legacy histories remained unchanged.
 
 The objective is to limit what can go wrong enough to make this specific pilot acceptable. It is not a claim that the Harness, its model or generated code is universally safe. This report separates deployed controls, recorded tests, remaining gaps and target architecture. Opening the HTML does not run a new security test. The previous Thai report is preserved separately.
 
@@ -10,13 +12,13 @@ Assume the Harness, its tools and generated code can make mistakes or exceed the
 
 Three controls must work together: prevent external leakage, prevent source damage or excessive access, and contain outputs within authorized users. Internet denial does not prevent deletion of writable internal data. Authentication does not isolate people sharing a process and filesystem.
 
-Separate No Internet and Internet environments are deployed. Secure's workspace and durable histories now use the original mounted CIFS storage; credentials and profiles remain local. Representative public HTTPS requests failed from Secure while internal inference worked. Existing users still share each environment runtime. Deployed per-user isolation and approved read-only RDT access remain unverified.
+Separate No Internet and Internet environments are deployed. Secure's workspace and durable histories now use the original mounted CIFS storage; credentials and profiles remain local. Representative public HTTPS requests failed from Secure while internal inference worked. Existing users still share each environment runtime. Per-user isolation and read-only source enforcement passed in a separate synthetic candidate. Existing Production has not been cut over, and approved real RDT access remains unverified.
 
 | Risk | Required enforcement | Evidence-based conclusion |
 |---|---|---|
 | 1 External leakage | Block unnecessary outbound traffic from every RDT execution environment; permit necessary internal services; disable external fallback | Representative direct HTTPS separation passed. DNS, relays, IPv6 and every worker path are not exhaustively covered. |
-| 2 Damage or excessive access | Dedicated non-admin identity, limited read-only RDT snapshot/view and separate writable results | Container hardening is implemented. Actual RDT source-write and out-of-scope-read denial remain untested. |
-| 3 Internal disclosure | Named pilot users; authenticated and authorized report/file/session/tool access; no unapproved automatic publishing | Login/logout and anonymous denial are tested. Shared pools do not establish cross-user isolation. |
+| 2 Damage or excessive access | Dedicated non-admin identity, limited read-only RDT snapshot/view and separate writable results | Container hardening is implemented. Synthetic source reads and six read-only write/create/delete denials passed; actual RDT scope and enforcement remain untested. |
+| 3 Internal disclosure | Named pilot users; authenticated and authorized report/file/session/tool access; no unapproved automatic publishing | Login/logout and anonymous denial are tested. Synthetic private runtimes passed cross-user and environment denial; Production pools remain shared. |
 
 ## 2 Current architecture and execution boundary
 
@@ -83,7 +85,7 @@ The private-runtime generator supports an explicitly approved read-only snapshot
 
 Before closure, show approved scoped reads and result writes succeed while source writes/deletes/renames and out-of-scope reads fail. Include traversal, symlinks, tools, terminal and APIs; verify unchanged source content. Start with an approved test snapshot/view, not destructive Production probes.
 
-**Status: runtime hardening is implemented; scoped read-only RDT enforcement remains open.**
+**Status: hardening and synthetic read-only enforcement passed; actual scoped RDT acceptance remains open.**
 
 ## 5 Control 3 — Keep results within authorized users
 
@@ -101,7 +103,7 @@ Test user A, user B and an unauthenticated client. Inspect response content for 
 
 ## 6 Target architecture and pilot interaction
 
-This diagram is a **target not fully deployed**. It separates source access, results and identity while retaining mounted DA_WORKSPACE and shared inference.
+This diagram is a **target tested with two synthetic identities, not deployed for existing Production users**. It separates source access, results and identity while retaining mounted DA_WORKSPACE and shared inference.
 
 ```mermaid
 flowchart TB
@@ -124,6 +126,8 @@ A named user enters No Internet and reaches a fixed private runtime. It reads on
 Changing environments requires logout and a new login, not changing network permissions underneath a running RDT process. Do not automatically transfer projects, histories, attachments or secrets into Internet staging. Physical central storage can be shared while mount boundaries and server permissions isolate logical areas. Broad legacy mounts must not expose future private trees when claiming user isolation.
 
 ## 7 Dependency preparation without sharing protected workspaces
+
+The 16 October isolation canary used an empty read-only cache fixture. It did not validate package download, promotion or offline installation.
 
 Internet staging prepares dependencies for No Internet. It is an artifact-preparation area, not a route into protected projects. Dependency lists must not include RDT, histories or secrets.
 
@@ -174,6 +178,16 @@ This does not establish every historical session's tool resumption. See [live ev
 
 ## 9 Deployment evidence and its limits
 
+### New synthetic canary — 16 October
+
+Two test users exercised four dedicated Secure/Internet runtimes. Before and after replacing all four processes, exact own reports, attachment-file fixtures and real DSH history pages remained readable; cross-user/environment history requests, anonymous reads and forged HTTP/WebSocket identity headers were denied. Actual terminal commands ran at UID 10001. Both Secure workers rejected append/delete/create on the synthetic source with EROFS; Internet had no source mount. Direct neighbor-runtime HTTP was denied. Secure GitHub probes timed out; Internet returned 200.
+
+The first attempt found client identity headers passing through custom forwarding. The corrected gateway canonicalizes both normalized and raw HTTP/WebSocket identity headers. A negative control reproduced the defect in the original source. The correction was verified through a ConfigMap overlay in the isolated canary, **not installed in the existing Production gateway**. Both test namespaces are stopped and temporary Kubernetes Secrets removed; synthetic audit volumes remain. No model load test occurred.
+
+Legacy preservation was verified across both attempts: 80 histories in 82 files retained aggregate SHA-256 `7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317`. No legacy histories were reassigned. See the [full test, failures and limits](USER_ISOLATION_SYNTHETIC_TEST_20261016.md). This is candidate acceptance, not closure of real-user/RDT Production gaps.
+
+### Earlier Production baseline — 15 October
+
 Build **62702**, image-source revision **`3fa74b72eaad7d7dd1e0986dd07a176f45ab2153`**, produced the gateway/pool runtime image:
 
 `sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1`
@@ -205,18 +219,18 @@ A fresh read-only review found **9 gateway accounts**, **80 unique sessions** an
 The practical staged approach is:
 
 1. **Preserve legacy records together.** Keep the 80 histories and central projects intact. Do not clone them into every private account or broaden access. Keeping the current service available is an interim operational choice, not closure of its shared-pool risk.
-2. **Prepare isolation independently.** Validate dedicated runtimes, workspace/state/tokens and A-to-B denial using two disposable identities and synthetic data. This tests the mechanism without assigning real histories or using RDT. Label this synthetic/candidate acceptance until deployed for approved users.
+2. **Synthetic isolation acceptance completed.** Two disposable identities and four private runtimes passed positive access, A-to-B/environment denial and restart persistence. Six source mutations failed read-only. This validates the tested mechanism without assigning real histories or using RDT. Production cutover remains pending.
 3. **Start new private histories cleanly.** Once a human identity is confirmed, provision an empty private environment. Leave legacy records in their current boundary. Migrate only verified ownership or an explicit recorded shared-access decision. Remove broad legacy access to private trees before cutover.
 4. **Default new pilot RDT access to none.** Do not mount guessed sources or copy Production data. Test read-only enforcement with synthetic fixtures. A data/system owner can later identify the limited folder/snapshot/view and dedicated account.
 5. **Close against actual access tests.** Verify scoped reads, rejected source writes/out-of-scope reads, private results, cross-user denial, every worker's outbound restrictions and absence of unapproved publishing. Separate infrastructure/data/pilot acceptance from code completion.
 
-This is the recommended next step. It does **not** mean legacy access has already been restricted, accounts disabled, private users cut over or RDT access granted.
+Synthetic acceptance is now complete. It does **not** mean legacy access has already been restricted, accounts disabled, private users cut over or RDT access granted.
 
 | Work item | Current disposition | Closure evidence |
 |---|---|---|
 | Central workspace and histories | Deployed and tested | Direct mounts, content hashes, accessible paths and restart checks recorded |
 | Approved identities and ownership | Unknown; preserve legacy records | Confirm human identity and ownership/shared-access decisions |
-| Private runtimes | Generator/routing source tested; pools still shared | Deployed fixed routing and A-to-B file/report/history/terminal/API denial |
+| Private runtimes | Live synthetic candidate passed; Production pools still shared | Deployed fixed routing and A-to-B file/report/history/terminal/API denial |
 | Read-only RDT | Actual scope unidentified | Approved source/identity; permitted reads/results and rejected writes/out-of-scope reads |
 | Leakage paths | Representative direct tests passed | Every worker; DNS/relay/IPv6/proxy/fallback and infrastructure confirmation |
 | Publishing/export containment | Not fully closed | Job/plugin/credential inventory and unauthorized-access/export tests |
@@ -238,6 +252,8 @@ Bounded V2 tests completed short requests in 0.59–1.47 seconds during approxim
 
 Embedded records are saved responses/logs at their stated times, not a live webpage or a new test when opened. Original evidence remains unchanged and may include Thai source text. Narrative, navigation and controls are English. Passwords, tokens and RDT content are not intentionally reproduced.
 
+- [Synthetic isolation acceptance](context-evidence/user-isolation-canary-20261016.json): successful live candidate and configuration readback.
+- [First attempt](context-evidence/user-isolation-canary-first-attempt-20261016.json): observed defect, correction and unchanged legacy fingerprints.
 - [Identity metadata review](context-evidence/identity-metadata-review-20261015.json): counts and absent ownership fields; account names retained privately.
 - [Latest central-state evidence](context-evidence/central-state-live-20261015.json): mounts, copied-state counts, cwd correction, hashes, restart, terminal and connectivity.
 - [Earlier storage review](context-evidence/environment-session-storage-review-20261015.json): raw-source provenance and pre-correction inaccessible paths.

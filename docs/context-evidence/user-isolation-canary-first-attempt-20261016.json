@@ -1,0 +1,69 @@
+{
+  "namespace": "dsh-iso-20261016-130900",
+  "timeICT": "2026-10-16T13:09:00.835736+07:00",
+  "scope": "Disposable users and synthetic data only",
+  "productionRoutingChanged": false,
+  "legacyHistoriesMigrated": false,
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+  "syntheticUsers": [
+    "iso_alice",
+    "iso_bob"
+  ],
+  "legacyBaselineExpected": 80,
+  "candidateManifestsSHA256": "ba7b89689a923a268c71e40fdf15dad2b47582cbdc23c0ec852f02e41b7662c7",
+  "initialization": {
+    "syntheticSourceSeeded": true,
+    "productionTreeTouched": false
+  },
+  "fixtures": [
+    {
+      "identity": "adceb5ccb5d4fdea",
+      "environment": "secure",
+      "privateFixtureFiles": 5
+    },
+    {
+      "identity": "adceb5ccb5d4fdea",
+      "environment": "internet",
+      "privateFixtureFiles": 5
+    },
+    {
+      "identity": "6bebc6d6174e93c7",
+      "environment": "secure",
+      "privateFixtureFiles": 5
+    },
+    {
+      "identity": "6bebc6d6174e93c7",
+      "environment": "internet",
+      "privateFixtureFiles": 5
+    }
+  ],
+  "status": "failed",
+  "failure": "Spoofed header changed user/environment\ncommand terminated with exit code 1",
+  "cleanup": {
+    "candidateDeploymentsStopped": true,
+    "temporarySecretsRemoved": true,
+    "candidatePodsTerminated": true
+  },
+  "syntheticVolumesRetained": true,
+  "credentialValuesExported": false,
+  "legacyAfter": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "legacyByteIdentical": true,
+  "setupAdjustments": [
+    "Initial new read-only package cache replaced with a synthetic ConfigMap fixture; package installation is outside scope",
+    "Read-only synthetic source moved to a distinct CSI PV/PVC identity from the writable private workspace"
+  ],
+  "baselineNegativeControl": {
+    "oldSourceRejectedByNewIdentityTest": true,
+    "observedForgedUser": "mallory",
+    "authenticatedUser": "alice"
+  }
+}
