@@ -1,0 +1,133 @@
+{
+  "timeICT": "2026-10-17T00:21:14.197377+07:00",
+  "qualification": "passed for recorded bounded cases",
+  "contexts": [
+    {
+      "target": 256000,
+      "inputTokens": 263693,
+      "outputTokens": 8,
+      "seconds": 124.2834
+    },
+    {
+      "target": 512000,
+      "inputTokens": 519694,
+      "outputTokens": 8,
+      "seconds": 358.6494
+    },
+    {
+      "target": 1000000,
+      "inputTokens": 1007689,
+      "outputTokens": 8,
+      "seconds": 1173.9156
+    }
+  ],
+  "toolContinuation": {
+    "inputTokens": 1008103,
+    "seconds": 20.1578,
+    "fileVerifiedAndRemoved": true
+  },
+  "ordinaryDshDuring1m": {
+    "replies": 18,
+    "minimumSeconds": 4.0284,
+    "maximumSeconds": 12.0447
+  },
+  "postFixBursts": [
+    {
+      "concurrency": 1,
+      "exactReplies": 3,
+      "completionP95": 3.6821,
+      "ttftP95": 0.1258,
+      "aggregateMin": 31.852,
+      "aggregateMax": 32.305
+    },
+    {
+      "concurrency": 2,
+      "exactReplies": 6,
+      "completionP95": 3.6453,
+      "ttftP95": 0.3607,
+      "aggregateMin": 62.732,
+      "aggregateMax": 65.711
+    },
+    {
+      "concurrency": 4,
+      "exactReplies": 12,
+      "completionP95": 3.8666,
+      "ttftP95": 0.3931,
+      "aggregateMin": 112.94,
+      "aggregateMax": 113.349
+    },
+    {
+      "concurrency": 8,
+      "exactReplies": 24,
+      "completionP95": 5.1344,
+      "ttftP95": 0.9004,
+      "aggregateMin": 162.473,
+      "aggregateMax": 175.693
+    },
+    {
+      "concurrency": 16,
+      "exactReplies": 48,
+      "completionP95": 7.5653,
+      "ttftP95": 1.8673,
+      "aggregateMin": 220.338,
+      "aggregateMax": 232.306
+    }
+  ],
+  "postFixVerifiedReplies": 105,
+  "busyResponse": {
+    "httpStatus": 429,
+    "capacityBusy": true,
+    "retryAfter": null,
+    "overflow": false,
+    "seconds": 300.3603715080535
+  },
+  "afterLeaseRelease": {
+    "httpStatus": 200,
+    "exact": true,
+    "usage": {
+      "completion_tokens": 5,
+      "prompt_tokens": 140034,
+      "total_tokens": 140039,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "seconds": 45.013605636078864
+  },
+  "overflow": {
+    "httpStatus": 400,
+    "capacityBusy": false,
+    "retryAfter": null,
+    "overflow": true,
+    "seconds": 1.6175479190424085
+  },
+  "initialProgressiveControllerStatus": "stopped",
+  "initialControllerReason": "Disposable DSH probe failed: lient.py\", line 323, in begin\n    version, status, reason = self._read_status()\n                              ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.11/http/client.py\", line 284, in _read_status\n    line = str(self.fp.readline(_MAXLINE + 1), \"iso-8859-1\")\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.11/socket.py\", line 706, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\ncommand terminated with exit code 1\n",
+  "warningSummary": {
+    "scope": "Model logs since start of progressive current-image retest, including subsequent acceptance work",
+    "startUTC": "2026-10-16T16:36:15.775241+00:00",
+    "signatureCounts": {
+      "CUDA out of memory": 0,
+      "OutOfMemoryError": 0,
+      "illegal memory access": 0,
+      "Scheduler exception": 0,
+      "memory mapping failed with OOM": 1132
+    },
+    "minimumWarningReportedFreeMiB": 1.75
+  },
+  "configurationVerification": {
+    "mainRuntimeSpecificationsUnchanged": 20,
+    "proxyChangeOnlyTargetedRetryPolicyAndSingleWriterStrategy": true,
+    "contextSourceUnchanged": true,
+    "configMap": "litellm-admission-1449d03a3db7",
+    "policy": {
+      "deepseek-flash": {
+        "RateLimitErrorRetries": 0
+      },
+      "deepseek-v4.1-flash": {
+        "RateLimitErrorRetries": 0
+      }
+    }
+  },
+  "scope": "Synthetic main DSH current-image tests; Claude/TrueForge near-1M client acceptance, near-1M vision, sustained saturation and full 8192 output at near-1M input are not established"
+}

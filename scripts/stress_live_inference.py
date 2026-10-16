@@ -120,10 +120,12 @@ def summarize(stage):
 
 
 def main():
-    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--output',type=Path,required=True);args=ap.parse_args()
+    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--output',type=Path,required=True)
+    ap.add_argument('--mixed-only',action='store_true',help='Resume only unfinished bounded mixed-workload stages')
+    args=ap.parse_args()
     if args.output.exists():raise ValueError('Refuse to overwrite an earlier stress-test record')
     record={'startedAtUTC':datetime.now(timezone.utc).isoformat(),'scope':'Synthetic streaming LiteLLM calls from Secure; not DSH browser/agent, near-1M, sustained saturation or SLA acceptance',
-       'limits':{'burstConcurrency':[1,2,4,8,16],'roundsPerLevel':3,'mixedInputTargets':[24000,96000,120000],
+       'limits':{'burstConcurrency':[] if args.mixed_only else [1,2,4,8,16],'roundsPerLevel':0 if args.mixed_only else 3,'mixedInputTargets':[24000,96000,120000],
                  'burstMaxSeconds':15,'mixedShortMaxSeconds':5,'mixedLongMaxSeconds':40},
        'configurationChanged':False,'stages':[],'samples':[],'status':'running'}
     def save():args.output.write_text(json.dumps(record,indent=2),encoding='utf8')
@@ -134,7 +136,7 @@ def main():
     stop=threading.Event();thread=None
     try:
         before=snapshot();record['before']=before;save()
-        plans=[{'kind':'burst','concurrency':n,'round':r} for n in [1,2,4,8,16] for r in range(1,4)]
+        plans=[] if args.mixed_only else [{'kind':'burst','concurrency':n,'round':r} for n in [1,2,4,8,16] for r in range(1,4)]
         plans += [{'kind':'mixed','inputTarget':n} for n in [24000,96000,120000]]
         thread=threading.Thread(target=monitor,args=(stop,),daemon=True);thread.start()
         for plan in plans:

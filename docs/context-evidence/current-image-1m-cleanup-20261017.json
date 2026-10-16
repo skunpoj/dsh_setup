@@ -1,0 +1,57 @@
+{
+  "archiveSha256": "a000c2849f77755e01ba0bd350dcc320c1dd1c133ffa86d4a0fa0762ebe118fd",
+  "archivedSyntheticSessionFiles": 66,
+  "archiveReadbackVerified": true,
+  "persistentUserVolumesMounted": false,
+  "temporaryRuntimeRemoved": true,
+  "finalProductionInference": {
+    "exactInference": true
+  },
+  "modelAfter": {
+    "metrics": {
+      "sglang:num_running_reqs": 0,
+      "sglang:num_queue_reqs": 0,
+      "sglang:token_usage": 0.02,
+      "sglang:full_token_usage": 0.00021701388888888888
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "usedMiB": 95258,
+        "freeMiB": 62,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 1,
+        "usedMiB": 95258,
+        "freeMiB": 62,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 2,
+        "usedMiB": 95258,
+        "freeMiB": 62,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 3,
+        "usedMiB": 95258,
+        "freeMiB": 62,
+        "utilizationPercent": 0
+      }
+    ],
+    "pods": [
+      {
+        "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+        "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "timeUTC": "2026-10-16T17:21:13.759970+00:00"
+  }
+}

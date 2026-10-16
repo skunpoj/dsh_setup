@@ -16,6 +16,18 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def configure_admission_retries(config):
+    """Return bounded-admission 429s without Router's default two retries."""
+    names = sorted({r['model_name'] for r in config['model_list']
+                    if r.get('litellm_params', {}).get('api_base') == 'http://127.0.0.1:4001/v1'})
+    if names != ['deepseek-flash', 'deepseek-v4.1-flash']:
+        raise ValueError('Review changed guarded model groups before setting retry policy')
+    policies = config.setdefault('router_settings', {}).setdefault('model_group_retry_policy', {})
+    for name in names:
+        policies.setdefault(name, {})['RateLimitErrorRetries'] = 0
+    return names
+
+
 def kube(*args, data=None):
     p = subprocess.run(['kubectl', '-n', 'llm', '--request-timeout=30s', *args],
         input=json.dumps(data) if data is not None else None,
@@ -29,6 +41,8 @@ def candidate(original, data, image):
     if original['spec'].get('replicas') != 1:
         raise ValueError('One gateway replica is required for admission ownership')
     spec = copy.deepcopy(original['spec'])
+    # Merge patch must explicitly remove the old RollingUpdate configuration.
+    spec['strategy'] = {'type': 'Recreate', 'rollingUpdate': None}
     pod = spec['template']['spec']
     if len(pod['containers']) == 2 and pod['containers'][1]['name'] == 'context-forwarder':
         pod['containers'] = pod['containers'][:1]
@@ -51,6 +65,7 @@ def candidate(original, data, image):
         raise ValueError('Expected both canonical routes')
     config['litellm_settings']['callbacks'] = ['gateway_output_guard.proxy_handler_instance']
     config['litellm_settings']['use_chat_completions_url_for_anthropic_messages'] = True
+    configure_admission_retries(config)
     new_data = dict(data)
     new_data['config.yaml'] = yaml.safe_dump(config, sort_keys=False)
     for name in ['gateway_output_guard.py', 'context_forwarder.py',

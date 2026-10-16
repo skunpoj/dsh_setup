@@ -1,0 +1,935 @@
+{
+  "profiles": [
+    {
+      "runtime": "dsh-internet",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-internet",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-internet",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    }
+  ],
+  "proxy": {
+    "CONTEXT": 1048576,
+    "OUTPUT": 8192,
+    "RESERVE": 256,
+    "LONG_THRESHOLD": 131072,
+    "WARM_STEP": 2048,
+    "sourceHashes": {
+      "context_forwarder.py": "cec22210d419e75e74e326c73cde4c7e380a10b217a0eefa375334987d482b71",
+      "context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
+      "long_context_callbacks.py": "af3108c4340a53d7656c2749958aea19bbeeab145ff2d8958e87222708b67563"
+    }
+  },
+  "before": {
+    "metrics": {
+      "sglang:num_running_reqs": 0,
+      "sglang:num_queue_reqs": 0,
+      "sglang:token_usage": 0,
+      "sglang:full_token_usage": 0
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "usedMiB": 94032,
+        "freeMiB": 1288,
+        "utilizationPercent": 58
+      },
+      {
+        "index": 1,
+        "usedMiB": 94032,
+        "freeMiB": 1288,
+        "utilizationPercent": 39
+      },
+      {
+        "index": 2,
+        "usedMiB": 94032,
+        "freeMiB": 1288,
+        "utilizationPercent": 56
+      },
+      {
+        "index": 3,
+        "usedMiB": 94032,
+        "freeMiB": 1288,
+        "utilizationPercent": 59
+      }
+    ],
+    "pods": [
+      {
+        "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+        "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "timeUTC": "2026-10-16T16:33:25.119370+00:00"
+  },
+  "configurationChanged": false,
+  "backendServerReadback": {
+    "context_length": 1048576,
+    "mem_fraction_static": null,
+    "max_running_requests": 16,
+    "chunked_prefill_size": null,
+    "max_prefill_tokens": null,
+    "enable_mixed_chunk": null,
+    "num_continuous_decode_steps": null
+  },
+  "mountedProxyMatchesRepository": true,
+  "backendDeploymentArguments": {
+    "context-length": "1048576",
+    "mem-fraction-static": "0.90",
+    "max-running-requests": "16",
+    "chunked-prefill-size": "1024",
+    "max-prefill-tokens": "2048",
+    "num-continuous-decode-steps": null,
+    "enable-mixed-chunk": true
+  },
+  "currentRuntimeImages": [
+    {
+      "runtime": "dsh-current-1m-retest",
+      "uid": "51444957-de9c-48ed-b4e9-dbba52943175",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-internet",
+      "uid": "2c10a61e-ce88-4c22-9fad-86df9487c529",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-secure",
+      "uid": "130305b7-f389-4b80-bd56-ae54fb302989",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "uid": "4125f953-6d22-47b8-b866-7e694e45ca7a",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "uid": "6bf4e502-6cda-4c8c-b0b2-9db5ec154ccc",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-internet",
+      "uid": "6b621c61-ca38-4567-9882-a44c6562d833",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-secure",
+      "uid": "fb98fa2a-b660-4c5d-aabc-1a9c28aaa863",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "uid": "e8a0ccd0-2702-46ec-9712-17e63692b88c",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "uid": "f3d5d2bf-e017-43ef-a2bf-31371a1fafdd",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "uid": "082476fa-31a5-47d5-89ce-bd17485947de",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "uid": "016bf92c-86cd-4a5a-803e-32b6a1132eef",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "uid": "a2c3aceb-9717-44a6-8ae4-96b69cf4afee",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "uid": "61a87aae-2365-4cd0-9e44-2274250691a2",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-internet",
+      "uid": "88c6c890-4f6d-4c88-a9f5-048bf7187047",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-secure",
+      "uid": "9ca4a6aa-06d6-4b83-afc9-d60475070590",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "uid": "da11c4a8-b834-4244-95ce-f16c6608af7c",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "uid": "94ca6057-613d-434e-8f4b-bbe5c6cc1ad5",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "uid": "90a98727-dcc6-430e-b0d4-ad55f0111ff1",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "uid": "004f8c50-5c45-4376-8ce4-6f3b8056a575",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "uid": "430b8121-3752-428b-b445-32bb781e974f",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "uid": "cbc5f2f6-a9ef-43ba-a137-50b3eaa353a2",
+      "containers": [
+        {
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "restartCount": 0
+        }
+      ]
+    }
+  ]
+}

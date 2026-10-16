@@ -1,0 +1,38 @@
+{
+  "scope": "Isolated loopback fixture, no real key or GPU inference",
+  "passed": true,
+  "results": [
+    {
+      "modelGroup": "deepseek-v4.1-flash",
+      "policy": false,
+      "errorType": "RateLimitError",
+      "calls": 3,
+      "seconds": 4.991700732032768,
+      "defaultRetries": 2
+    },
+    {
+      "modelGroup": "deepseek-v4.1-flash",
+      "policy": true,
+      "errorType": "RateLimitError",
+      "calls": 1,
+      "seconds": 0.01405059196986258,
+      "defaultRetries": 2
+    },
+    {
+      "modelGroup": "deepseek-flash",
+      "policy": true,
+      "errorType": "RateLimitError",
+      "calls": 1,
+      "seconds": 0.012942795059643686,
+      "defaultRetries": 2
+    },
+    {
+      "modelGroup": "unrelated-fixture",
+      "policy": true,
+      "errorType": "RateLimitError",
+      "calls": 3,
+      "seconds": 4.456854257034138,
+      "defaultRetries": 2
+    }
+  ]
+}

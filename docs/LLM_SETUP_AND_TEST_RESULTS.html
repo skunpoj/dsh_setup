@@ -2,10 +2,107 @@
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
 </style></head><body><main><h1>Shared LLM — 1M Setup, Performance and Operational Limits</h1>
 <h2>Current answer</h2>
-<p>The main DSH → LiteLLM → SGLang route now uses <strong>1,048,576 total tokens</strong> for both DeepSeek aliases. All 20 main runtime profiles, imageIDs, inference origins and scoped transport hooks were checked after rollout. The final actual cold DSH request returned the correct persisted answer with <strong>1,007,689 input + 8 output tokens in 1,170.08 seconds</strong>, <strong>zero retries</strong> and <strong>no model restart</strong>.</p>
-<p>A follow-up in that same conversation executed real write/read tools and returned the correct persisted answer with <strong>1,008,103 input + 8 output tokens in 20.16 seconds</strong>. Actual file content/hash and removal of the test marker were verified. These tests used synthetic data and the qualified runtime against the actual Production inference route. Legacy DSH2/DSH3 are separate installations and are not included in this upgrade.</p>
+<p>The main <strong>DSH → LiteLLM → SGLang</strong> route supports <strong>1,048,576 total tokens</strong>, with an 8,192 output ceiling and a 256-token reserve. All 20 main DSH runtime profiles were read back, and the current managed-tools image was qualified using a temporary DSH runtime with isolated synthetic storage against the Production inference service.</p>
+<p>The latest cold DSH request used <strong>1,007,689 input + 8 output tokens</strong>, returned the exact persisted answer in <strong>1,173.92 seconds (19m34s)</strong>, while 18 ordinary DSH replies completed in pairs during the long run. After the gateway retry correction, a real write/read tool continuation used <strong>1,008,103 input tokens</strong> and passed in <strong>20.16 seconds</strong>. This qualifies the recorded main DSH cases, not the separate Claude Code or TrueForge clients.</p>
 <p>The earlier 128K statements described an incomplete deployment: the backend had been raised while DSH/LiteLLM guardrails remained lower. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LLM_128K_BASELINE_BEFORE_1M_20261016.md">earlier review</a> and failed/intermediate trials are retained. Initial near-1M successes took about 19 minutes and required three automatic timeout retries. The final scoped Node transport correction removed those retries in both the delayed fixture and the real cold test.</p>
-<p><strong>Memory remains tight:</strong> the final cold run recorded <strong>1,460 recovering allocator mapping warnings</strong>, with a minimum warning-reported free memory of <strong>9.75 MiB</strong> while attempting a 20 MiB mapping. No checked fatal exception or model restart occurred; ordinary DSH inference still returned correctly after warnings appeared. This passing test does not establish comfortable memory headroom, unrestricted long concurrency or a service-level guarantee. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-managed-1m-acceptance-summary-20261016.json">Final cold acceptance and warning summary</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-managed-1m-tool-continuation-20261016.json">near-1M tool continuation</a>.</p>
+<p><strong>Earlier qualification memory evidence:</strong> the preceding-image cold run recorded <strong>1,460 recovering allocator mapping warnings</strong>, with a minimum warning-reported free memory of <strong>9.75 MiB</strong> while attempting a 20 MiB mapping. No checked fatal exception or model restart occurred; ordinary DSH inference still returned correctly after warnings appeared. This passing test does not establish comfortable memory headroom, unrestricted long concurrency or a service-level guarantee. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-managed-1m-acceptance-summary-20261016.json">Final cold acceptance and warning summary</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-managed-1m-tool-continuation-20261016.json">near-1M tool continuation</a>.</p>
+<h2>Current-image reacceptance — 16–17 October 2026 ICT</h2>
+<p>Runtime image: <code>595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6</code>. Existing user histories and workspaces were not used for the capacity tests. The temporary runtime used empty volumes and the same current image, internal inference service and transport configuration.</p>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Actual result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Progressive DSH context</td>
+<td>263,693 input + 8 output; exact persisted reply; 124.28s</td>
+</tr>
+<tr>
+<td>Progressive DSH context</td>
+<td>519,694 input + 8 output; exact persisted reply; 358.65s</td>
+</tr>
+<tr>
+<td>Progressive DSH context</td>
+<td>1,007,689 input + 8 output; exact persisted reply; 1173.92s</td>
+</tr>
+<tr>
+<td>Near-1M tool continuation after gateway fix</td>
+<td>1,008,103 input; 20.16s; real file write/read, content check and marker removal</td>
+</tr>
+<tr>
+<td>Ordinary DSH during the cold 1M run</td>
+<td>18 exact persisted replies in nine pairs while long work remained active; 4.03–12.04s including polling overhead</td>
+</tr>
+<tr>
+<td>Busy long-request response after fix</td>
+<td>Actual authenticated HTTP 429 after 300.36s under a simulated occupied admission lease; ordinary DSH replies continued</td>
+</tr>
+<tr>
+<td>Lease release</td>
+<td>A subsequent long API request succeeded at 140,034 input tokens</td>
+</tr>
+<tr>
+<td>Oversized input</td>
+<td>HTTP 400 in 1.62s</td>
+</tr>
+</tbody></table>
+<p>The initial real 1M run exposed a separate queueing defect: the internal guard returned 429 after 300 seconds, but LiteLLM&#39;s default Router retried rate-limit responses twice and the waiting test client timed out. The original stopped controller record is retained. The 1M response itself was exact and persisted; the queue failure was not reclassified as a pass.</p>
+<p>The correction sets <code>RateLimitErrorRetries: 0</code> only for <code>deepseek-v4.1-flash</code> and <code>deepseek-flash</code>. Other error policies and unrelated model groups retain their previous behavior. An installed-Router loopback fixture observed three attempts before the policy and one afterward; an unrelated group still made three. Gateway handovers now use <strong>one replica and Recreate</strong>, preventing overlapping admission processes during rollout. Only the gateway configuration changed; all 20 main runtime specifications and the model pod remained unchanged. Private rollback specifications and the original immutable configuration were retained.</p>
+<p>The final 300-second test uses a deliberately held admission lock, not a fabricated GPU workload. It validates the real authenticated gateway&#39;s waiting/429 response and lease release. Actual 1M-plus-short-request overlap was established separately by the cold DSH run. The HTTP queue deadline is per request attempt; these measurements are not a client-wide retry or latency SLA.</p>
+<h3>Post-fix ordinary concurrency</h3>
+<p>All <strong>105 exact replies</strong> passed across 15 burst stages and three mixed stages. The interactive controller was interrupted after all 93 burst replies completed; the 12 mixed replies were resumed in a separate record rather than repeating completed bursts.</p>
+<table>
+<thead>
+<tr>
+<th>Concurrency</th>
+<th>Verified burst replies</th>
+<th>TTFT p95, s</th>
+<th>Completion p95, s</th>
+<th>Aggregate output tokens/s</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>3</td>
+<td>0.126</td>
+<td>3.682</td>
+<td>31.85–32.30</td>
+</tr>
+<tr>
+<td>2</td>
+<td>6</td>
+<td>0.361</td>
+<td>3.645</td>
+<td>62.73–65.71</td>
+</tr>
+<tr>
+<td>4</td>
+<td>12</td>
+<td>0.393</td>
+<td>3.867</td>
+<td>112.94–113.35</td>
+</tr>
+<tr>
+<td>8</td>
+<td>24</td>
+<td>0.900</td>
+<td>5.134</td>
+<td>162.47–175.69</td>
+</tr>
+<tr>
+<td>16</td>
+<td>48</td>
+<td>1.867</td>
+<td>7.565</td>
+<td>220.34–232.31</td>
+</tr>
+</tbody></table>
+<p>The mixed stages used approximately 24K, 96K and 120K inputs. At 120,049 input tokens, the larger request took 35.67s and concurrent short replies took 0.477–0.613s. These are bounded samples, not sustained saturation.</p>
+<p><strong>Memory limitation:</strong> the current-image progressive-test log window contained 1,132 recovering allocator mapping warnings, with a minimum warning-reported free memory of 1.75 MiB. No checked fatal CUDA/OOM, illegal-memory or scheduler-exception signatures were found, and the model pod/restart count stayed unchanged. This is not comfortable memory headroom.</p>
+<p><strong>Qualified operating boundary:</strong> one request above 128K at a time, with ordinary requests remaining concurrent. Two full simultaneous 1M requests, near-1M image inputs, full 8,192-token generation at near-1M input, semantic accuracy across arbitrary million-token material, and sustained-load guarantees are not established. Existing compaction behavior was not requalified by this retest.</p>
+<p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/current-image-1m-completion-summary-20261017.json">Completion summary</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/current-image-1m-runtime-readback-20261017.json">runtime/source readback</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-current-image-progressive-context-retest-20261016.json">original progressive run and queue failure</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-current-image-tool-after-admission-fix-20261016.json">post-fix tool continuation</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/long-admission-retry-router-fixture-20261016.json">Router integration fixture</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/long-admission-bounded-live-after-fix-retest-20261016.json">bounded admission</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-after-admission-fix-20261016.json">post-fix bursts</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-mixed-after-admission-fix-20261016.json">resumed mixed stages</a>.</p>
 <h2>Architecture and limits</h2>
 <p><code>Authenticated user → private DSH → authenticated internal LiteLLM :4000 → loopback context guard :4001 → SGLang :8000 → shared four H100 GPUs</code></p>
 <table>
@@ -17,7 +114,7 @@
 </thead>
 <tbody><tr>
 <td>DSH runtime</td>
-<td><code>0.2.0-rc.2</code>; current managed-tools image digest <code>595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6</code>; the recorded near-1M acceptance used preceding image <code>87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3</code></td>
+<td><code>0.2.0-rc.2</code>; current managed-tools image digest <code>595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6</code>; the latest reacceptance above used this current image; the earlier qualification used <code>87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3</code></td>
 </tr>
 <tr>
 <td>DSH DeepSeek aliases</td>
@@ -37,7 +134,7 @@
 </tr>
 <tr>
 <td>Long-request admission</td>
-<td>One request above 128K at a time in one gateway replica; wait up to 300 seconds, then retryable 429</td>
+<td>One request above 128K at a time in one gateway replica; wait up to 300 seconds, then retryable 429; no Router rate-limit retries for the two guarded model groups</td>
 </tr>
 <tr>
 <td>Ordinary requests</td>
@@ -65,7 +162,7 @@
 <p>Small prefill chunks avoid the temporary attention-memory failure seen in the older 262K experiment. V3 also prevents two requests from owning the scheduler&#39;s single chunk slot, which caused the first V2 512K assertion.</p>
 <p>That was insufficient for actual DSH: its roughly 7.5K system/tool prefix exceeds V2&#39;s interactive lane. A real short DSH request waited 368.7 seconds during uninterrupted 512K prefill while tiny API probes were fast. The final proxy prepares long prefixes in 2,048-token extensions and yields between them. Intermediate one-token outputs are discarded; they never become tool actions or conversation messages. Cache reuse is checked, and loss stops preparation instead of falling back to one blocking prefill.</p>
 <p>A bounded two-second cache probe can reuse a continuing conversation&#39;s prefix immediately. On a cold miss, the proxy aborts its own probe and prepares incrementally. Each request has its own ID; cleanup aborts only owned work and releases the admission lease. The guard listens only on loopback; production request-body capture is disabled.</p>
-<h2>Actual tests</h2>
+<h2>Earlier qualification tests</h2>
 <table>
 <thead>
 <tr>
@@ -128,7 +225,7 @@
 <p>During the production-route near-1M follow-up, two ordinary DSH calls returned in <strong>4.03 / 4.04 seconds</strong>. Two concurrent API replies produced <strong>16.01 aggregate output tokens/sec</strong> in 14.86 seconds; four produced <strong>27.10 aggregate tokens/sec</strong> in 17.56 seconds. All outputs matched and model pod/restart state stayed unchanged. Long-load output was slower: responsiveness for a brief answer does not mean unchanged sustained output speed.</p>
 <p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-final-wire-near-1m-20261016.json">near 1M</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-final-wire-250k-continuation-20261016.json">hot continuation</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-wire-tool-acceptance-20261016.json">tools</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-wire-api-acceptance-20261016.json">non-streaming/rejection</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-automatic-compaction-fixture-20261016.json">compaction fixture</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/production-1m-mixed-concurrency-20261016.json">production mixed traffic</a>.</p>
 <p>The later <strong>final managed-transport run</strong> measured two ordinary DSH replies at <strong>6.04 / 8.04 seconds</strong>, with the long test still active before and after. Its two-request API burst produced <strong>8.98 aggregate output tokens/sec</strong> in 22.15 seconds; four produced <strong>15.51 aggregate tokens/sec</strong> in 25.65 seconds. This is slower than the earlier mixed sample above. Different prefill progress and load can change the rate; no fixed latency or output-speed guarantee follows from either sample. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-managed-mixed-1m-20261016.json">Final managed mixed-load record</a>.</p>
-<h3>Fresh stress test on the deployed 1M proxy</h3>
+<h3>Earlier stress sample on the deployed 1M proxy</h3>
 <p><strong>105/105 exact replies passed across 18 stages.</strong> These bursts use short requests; a 1M ceiling does not make every request a 1M workload. Times include queue, prefill and networking. Percentiles come from small samples and are not an SLA.</p>
 <table>
 <thead>

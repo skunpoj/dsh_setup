@@ -2,13 +2,54 @@
 
 ## Current answer
 
-The main DSH → LiteLLM → SGLang route now uses **1,048,576 total tokens** for both DeepSeek aliases. All 20 main runtime profiles, imageIDs, inference origins and scoped transport hooks were checked after rollout. The final actual cold DSH request returned the correct persisted answer with **1,007,689 input + 8 output tokens in 1,170.08 seconds**, **zero retries** and **no model restart**.
+The main **DSH → LiteLLM → SGLang** route supports **1,048,576 total tokens**, with an 8,192 output ceiling and a 256-token reserve. All 20 main DSH runtime profiles were read back, and the current managed-tools image was qualified using a temporary DSH runtime with isolated synthetic storage against the Production inference service.
 
-A follow-up in that same conversation executed real write/read tools and returned the correct persisted answer with **1,008,103 input + 8 output tokens in 20.16 seconds**. Actual file content/hash and removal of the test marker were verified. These tests used synthetic data and the qualified runtime against the actual Production inference route. Legacy DSH2/DSH3 are separate installations and are not included in this upgrade.
+The latest cold DSH request used **1,007,689 input + 8 output tokens**, returned the exact persisted answer in **1,173.92 seconds (19m34s)**, while 18 ordinary DSH replies completed in pairs during the long run. After the gateway retry correction, a real write/read tool continuation used **1,008,103 input tokens** and passed in **20.16 seconds**. This qualifies the recorded main DSH cases, not the separate Claude Code or TrueForge clients.
 
 The earlier 128K statements described an incomplete deployment: the backend had been raised while DSH/LiteLLM guardrails remained lower. The [earlier review](LLM_128K_BASELINE_BEFORE_1M_20261016.md) and failed/intermediate trials are retained. Initial near-1M successes took about 19 minutes and required three automatic timeout retries. The final scoped Node transport correction removed those retries in both the delayed fixture and the real cold test.
 
-**Memory remains tight:** the final cold run recorded **1,460 recovering allocator mapping warnings**, with a minimum warning-reported free memory of **9.75 MiB** while attempting a 20 MiB mapping. No checked fatal exception or model restart occurred; ordinary DSH inference still returned correctly after warnings appeared. This passing test does not establish comfortable memory headroom, unrestricted long concurrency or a service-level guarantee. [Final cold acceptance and warning summary](context-evidence/final-managed-1m-acceptance-summary-20261016.json) · [near-1M tool continuation](context-evidence/final-managed-1m-tool-continuation-20261016.json).
+**Earlier qualification memory evidence:** the preceding-image cold run recorded **1,460 recovering allocator mapping warnings**, with a minimum warning-reported free memory of **9.75 MiB** while attempting a 20 MiB mapping. No checked fatal exception or model restart occurred; ordinary DSH inference still returned correctly after warnings appeared. This passing test does not establish comfortable memory headroom, unrestricted long concurrency or a service-level guarantee. [Final cold acceptance and warning summary](context-evidence/final-managed-1m-acceptance-summary-20261016.json) · [near-1M tool continuation](context-evidence/final-managed-1m-tool-continuation-20261016.json).
+
+## Current-image reacceptance — 16–17 October 2026 ICT
+
+Runtime image: `595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6`. Existing user histories and workspaces were not used for the capacity tests. The temporary runtime used empty volumes and the same current image, internal inference service and transport configuration.
+
+| Test | Actual result |
+|---|---|
+| Progressive DSH context | 263,693 input + 8 output; exact persisted reply; 124.28s |
+| Progressive DSH context | 519,694 input + 8 output; exact persisted reply; 358.65s |
+| Progressive DSH context | 1,007,689 input + 8 output; exact persisted reply; 1173.92s |
+| Near-1M tool continuation after gateway fix | 1,008,103 input; 20.16s; real file write/read, content check and marker removal |
+| Ordinary DSH during the cold 1M run | 18 exact persisted replies in nine pairs while long work remained active; 4.03–12.04s including polling overhead |
+| Busy long-request response after fix | Actual authenticated HTTP 429 after 300.36s under a simulated occupied admission lease; ordinary DSH replies continued |
+| Lease release | A subsequent long API request succeeded at 140,034 input tokens |
+| Oversized input | HTTP 400 in 1.62s |
+
+The initial real 1M run exposed a separate queueing defect: the internal guard returned 429 after 300 seconds, but LiteLLM's default Router retried rate-limit responses twice and the waiting test client timed out. The original stopped controller record is retained. The 1M response itself was exact and persisted; the queue failure was not reclassified as a pass.
+
+The correction sets `RateLimitErrorRetries: 0` only for `deepseek-v4.1-flash` and `deepseek-flash`. Other error policies and unrelated model groups retain their previous behavior. An installed-Router loopback fixture observed three attempts before the policy and one afterward; an unrelated group still made three. Gateway handovers now use **one replica and Recreate**, preventing overlapping admission processes during rollout. Only the gateway configuration changed; all 20 main runtime specifications and the model pod remained unchanged. Private rollback specifications and the original immutable configuration were retained.
+
+The final 300-second test uses a deliberately held admission lock, not a fabricated GPU workload. It validates the real authenticated gateway's waiting/429 response and lease release. Actual 1M-plus-short-request overlap was established separately by the cold DSH run. The HTTP queue deadline is per request attempt; these measurements are not a client-wide retry or latency SLA.
+
+### Post-fix ordinary concurrency
+
+All **105 exact replies** passed across 15 burst stages and three mixed stages. The interactive controller was interrupted after all 93 burst replies completed; the 12 mixed replies were resumed in a separate record rather than repeating completed bursts.
+
+| Concurrency | Verified burst replies | TTFT p95, s | Completion p95, s | Aggregate output tokens/s |
+|---|---|---|---|---|
+| 1 | 3 | 0.126 | 3.682 | 31.85–32.30 |
+| 2 | 6 | 0.361 | 3.645 | 62.73–65.71 |
+| 4 | 12 | 0.393 | 3.867 | 112.94–113.35 |
+| 8 | 24 | 0.900 | 5.134 | 162.47–175.69 |
+| 16 | 48 | 1.867 | 7.565 | 220.34–232.31 |
+
+The mixed stages used approximately 24K, 96K and 120K inputs. At 120,049 input tokens, the larger request took 35.67s and concurrent short replies took 0.477–0.613s. These are bounded samples, not sustained saturation.
+
+**Memory limitation:** the current-image progressive-test log window contained 1,132 recovering allocator mapping warnings, with a minimum warning-reported free memory of 1.75 MiB. No checked fatal CUDA/OOM, illegal-memory or scheduler-exception signatures were found, and the model pod/restart count stayed unchanged. This is not comfortable memory headroom.
+
+**Qualified operating boundary:** one request above 128K at a time, with ordinary requests remaining concurrent. Two full simultaneous 1M requests, near-1M image inputs, full 8,192-token generation at near-1M input, semantic accuracy across arbitrary million-token material, and sustained-load guarantees are not established. Existing compaction behavior was not requalified by this retest.
+
+[Completion summary](context-evidence/current-image-1m-completion-summary-20261017.json) · [runtime/source readback](context-evidence/current-image-1m-runtime-readback-20261017.json) · [original progressive run and queue failure](context-evidence/dsh-current-image-progressive-context-retest-20261016.json) · [post-fix tool continuation](context-evidence/dsh-current-image-tool-after-admission-fix-20261016.json) · [Router integration fixture](context-evidence/long-admission-retry-router-fixture-20261016.json) · [bounded admission](context-evidence/long-admission-bounded-live-after-fix-retest-20261016.json) · [post-fix bursts](context-evidence/inference-stress-after-admission-fix-20261016.json) · [resumed mixed stages](context-evidence/inference-mixed-after-admission-fix-20261016.json).
 
 ## Architecture and limits
 
@@ -16,12 +57,12 @@ The earlier 128K statements described an incomplete deployment: the backend had 
 
 | Layer | Deployed policy |
 |---|---|
-| DSH runtime | `0.2.0-rc.2`; current managed-tools image digest `595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6`; the recorded near-1M acceptance used preceding image `87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3` |
+| DSH runtime | `0.2.0-rc.2`; current managed-tools image digest `595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6`; the latest reacceptance above used this current image; the earlier qualification used `87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3` |
 | DSH DeepSeek aliases | 1,048,576 total context; maximum output 8,192 |
 | DSH transport | Provider timeout and stream-idle settings 3,600,000 ms; effective transport acceptance tested separately |
 | LiteLLM | Pinned digest `4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f`; existing inference keys and Secret references preserved |
 | Final request budget | Exact backend tokenizer includes messages, tools and template options; input + output + 256 reserve must fit 1,048,576 |
-| Long-request admission | One request above 128K at a time in one gateway replica; wait up to 300 seconds, then retryable 429 |
+| Long-request admission | One request above 128K at a time in one gateway replica; wait up to 300 seconds, then retryable 429; no Router rate-limit retries for the two guarded model groups |
 | Ordinary requests | Bypass the long-request lease and remain concurrent; queueing and slower output remain possible |
 | SGLang | Image digest `4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860`; model snapshot `dba1be0a40aa45a94ad051997016db3960a90277` |
 | Backend scheduling | Context 1M, static memory 0.90, running cap 16, chunk 1,024, maximum prefill 2,048, decode interval four, V2 fairness + V3 single-chunk-owner guard |
@@ -38,7 +79,7 @@ That was insufficient for actual DSH: its roughly 7.5K system/tool prefix exceed
 
 A bounded two-second cache probe can reuse a continuing conversation's prefix immediately. On a cold miss, the proxy aborts its own probe and prepares incrementally. Each request has its own ID; cleanup aborts only owned work and releases the admission lease. The guard listens only on loopback; production request-body capture is disabled.
 
-## Actual tests
+## Earlier qualification tests
 
 | Test | Observed result | Scope |
 |---|---|---|
@@ -59,7 +100,7 @@ Evidence: [near 1M](context-evidence/dsh-final-wire-near-1m-20261016.json), [hot
 
 The later **final managed-transport run** measured two ordinary DSH replies at **6.04 / 8.04 seconds**, with the long test still active before and after. Its two-request API burst produced **8.98 aggregate output tokens/sec** in 22.15 seconds; four produced **15.51 aggregate tokens/sec** in 25.65 seconds. This is slower than the earlier mixed sample above. Different prefill progress and load can change the rate; no fixed latency or output-speed guarantee follows from either sample. [Final managed mixed-load record](context-evidence/final-managed-mixed-1m-20261016.json).
 
-### Fresh stress test on the deployed 1M proxy
+### Earlier stress sample on the deployed 1M proxy
 
 **105/105 exact replies passed across 18 stages.** These bursts use short requests; a 1M ceiling does not make every request a 1M workload. Times include queue, prefill and networking. Percentiles come from small samples and are not an SLA.
 

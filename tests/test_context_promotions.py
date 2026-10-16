@@ -13,6 +13,18 @@ def load(name):
     m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 
 class RuntimePromotion(unittest.TestCase):
+    def test_admission_retry_policy_preserves_unrelated_retry_settings(self):
+        m=load('promote_1m_proxy')
+        config={'model_list':[{'model_name':n,'litellm_params':{'api_base':'http://127.0.0.1:4001/v1'}} for n in ['deepseek-flash','deepseek-v4.1-flash']],
+                'router_settings':{'num_retries':2,'model_group_retry_policy':{'other':{'RateLimitErrorRetries':3},'deepseek-flash':{'TimeoutErrorRetries':1}}}}
+        m.configure_admission_retries(config)
+        policies=config['router_settings']['model_group_retry_policy']
+        self.assertEqual(policies['other'],{'RateLimitErrorRetries':3})
+        self.assertEqual(policies['deepseek-flash'],{'TimeoutErrorRetries':1,'RateLimitErrorRetries':0})
+        self.assertEqual(config['router_settings']['num_retries'],2)
+        config['model_list'].append({'model_name':'unexpected','litellm_params':{'api_base':'http://127.0.0.1:4001/v1'}})
+        with self.assertRaises(ValueError):m.configure_admission_retries(config)
+
     def test_profile_backup_survives_repeat_start_and_exact_restore(self):
         m=load('promote_1m_runtimes')
         with tempfile.TemporaryDirectory() as tmp:
@@ -36,6 +48,7 @@ class RuntimePromotion(unittest.TestCase):
         data={'config.yaml':yaml.safe_dump({'model_list':routes+[other],'litellm_settings':{'callbacks':['old']}})}
         before=copy.deepcopy(original);v,cm,digest=m.candidate(original,data,'qualified@sha256:abc')
         self.assertEqual(original,before);self.assertTrue(cm['immutable'])
+        self.assertEqual(v['strategy'],{'type':'Recreate','rollingUpdate':None})
         self.assertEqual(yaml.safe_load(cm['data']['config.yaml'])['model_list'][-1],other)
         self.assertEqual(v['template']['spec']['containers'][0]['env'][0],before['spec']['template']['spec']['containers'][0]['env'][0])
         side=v['template']['spec']['containers'][1]
