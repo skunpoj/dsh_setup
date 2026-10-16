@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import importlib.util
 import json
 from pathlib import Path
@@ -135,6 +136,41 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(self.scope['guard'].active)
         await response.background()
         self.assertFalse(self.scope['guard'].active)
+
+    async def test_counted_conditioning_is_forwarded_and_exact_ids_are_warmed(self):
+        counted = []
+        warmed = []
+        exact_ids = [91, 42, 17, 63]
+        def count(data, final):
+            self.assertTrue(final)
+            counted.append(copy.deepcopy(data))
+            return {'count': 200000, 'tokens': exact_ids}
+        async def warm(ids):
+            warmed.append(list(ids))
+            return {'steps': 1}
+        self.scope['count_request'] = count
+        self.scope['guard'].warm = warm
+        response = await self.scope['completion'](self.request(
+            tool_choice='auto', reasoning_effort='low',
+            chat_template_kwargs={'enable_thinking': False},
+            tools=[{'type': 'function', 'function': {'name': 'example',
+                'strict': None, 'parameters': {'type': 'object',
+                    'properties': {'label': {'type': 'string'}}}}}]))
+        for field in ('model', 'messages', 'tools', 'tool_choice',
+                      'reasoning_effort', 'chat_template_kwargs', 'continue_final_message'):
+            self.assertEqual(counted[0][field], self.sent[0][field], field)
+        self.assertIs(counted[0]['tools'][0]['function']['strict'], False)
+        self.assertIs(counted[0]['continue_final_message'], False)
+        self.assertEqual(warmed, [exact_ids])
+        await response.background()
+
+    async def test_explicit_conditioning_is_not_replaced_by_defaults(self):
+        response = await self.scope['completion'](self.request(
+            continue_final_message=True,
+            tools=[{'type': 'function', 'function': {'name': 'example', 'strict': True}}]))
+        self.assertTrue(self.sent[0]['continue_final_message'])
+        self.assertTrue(self.sent[0]['tools'][0]['function']['strict'])
+        await response.background()
 
     async def test_cache_handoff_deadline_aborts_only_its_own_request(self):
         ticks = iter([0, 16])

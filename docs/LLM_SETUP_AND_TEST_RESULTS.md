@@ -125,6 +125,16 @@ Transport, tool continuation, compaction and restart/persistence checks are desc
 
 One million is **total request capacity**, not one million input plus unlimited output. With the full 8,192 output allowance, counted input must not exceed 1,040,128 after the proxy reserve. A smaller output reservation permits larger input. Near-1M text requests with DSH tool schemas and an actual write/read tool continuation are qualified for the recorded cases. Image requests above 128K are explicitly rejected because token-only prefix warming cannot reproduce image embeddings. Near-1M vision, full 8,192-token generation at near-1M input, and every possible plugin/tool result are not established.
 
+## Final-payload alignment review — 17 October 2026 ICT
+
+The original failure was a prompt mismatch, not insufficient warming: an earlier tool request counted 7,689 tokens but inference processed 7,561. The backend tokenizer materialized an omitted function `strict` default differently from chat inference. Warming the former token sequence could not guarantee a reusable prefix for the latter. The retained [before/after comparison](context-evidence/tool-default-exact-ids-and-cache-20261016.json) shows that explicit normalization made all prompt IDs identical.
+
+The deployed correction is already at the final forwarding boundary after LiteLLM: normalize prompt-affecting defaults, tokenize the complete final messages/tools/template settings, warm those returned IDs, and forward the same normalized conditioning. Only output-budget, request-ID and streaming transport fields are subsequently adjusted. Explicit caller values are preserved. Cache loss or a failed handoff stops the request rather than silently attempting the entire cold prompt.
+
+Fresh review read back all three installed source hashes and matched them to this repository. A small synthetic tool-schema request through the installed normalization/tokenizer and backend chat path counted **258 tokens**, used **258 input tokens**, returned the exact requested answer, and exposed **identical prompt token IDs**. This is a fresh alignment check, not another near-1M capacity test or a complete authenticated DSH replay. The recorded current-image end-to-end long tests remain the capacity evidence.
+
+All **nine forwarder regression tests** passed. New coverage compares counted conditioning with forwarded conditioning (messages, tools, tool choice, reasoning, template settings and continuation), verifies the exact returned IDs reach warming, and checks explicit defaults are preserved. Existing cases cover cache-handoff failure, cancellation/lease cleanup, non-streaming conversion, multimodal rejection and unavailable token budgeting. These are isolated regression tests, distinct from the live token comparison. [Fresh source/alignment readback](context-evidence/final-wire-review-20261017.json).
+
 ## Keeping ordinary requests responsive
 
 Small prefill chunks avoid the temporary attention-memory failure seen in the older 262K experiment. V3 also prevents two requests from owning the scheduler's single chunk slot, which caused the first V2 512K assertion.

@@ -1,0 +1,28 @@
+{
+  "files": {
+    "context_forwarder.py": "cec22210d419e75e74e326c73cde4c7e380a10b217a0eefa375334987d482b71",
+    "context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
+    "long_context_callbacks.py": "af3108c4340a53d7656c2749958aea19bbeeab145ff2d8958e87222708b67563"
+  },
+  "counted": 258,
+  "actualInput": 258,
+  "exactAnswer": true,
+  "promptIdsAvailable": true,
+  "idsExact": true,
+  "responseKeys": [
+    "id",
+    "object",
+    "created",
+    "model",
+    "choices",
+    "usage",
+    "metadata"
+  ],
+  "sourceHashesMatch": true,
+  "timeUTC": "2026-10-16T17:28:46.449314+00:00",
+  "scope": "Fresh small synthetic backend request from the live forwarding container using its installed normalization and tokenizer; not a new near-1M stress run.",
+  "regressionTests": {
+    "suite": "tests/test_context_forwarder.py",
+    "passed": 9
+  }
+}
