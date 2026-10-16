@@ -14,6 +14,8 @@ DSH provides local login, **No Internet / Internal (default)** and **Internet** 
 
 Read the English [pilot risk-control report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) and [source report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md). Its main narrative follows the supplied brief: prevent external leakage, prevent damage or excessive access, and keep results contained. The report explains only control design, principles and boundaries. Deployment evidence and LLM performance results remain in their separate guides and records. SMP EDA diagram zoom, fullscreen and SVG/PNG export remain available.
 
+The separate [BrowserCode and BOT DSH review](docs/BROWSERCODE_AND_BOT_DSH_REVIEW.html) compares browser and Kubernetes execution, network/data boundaries, persistence, previews and the three risk controls. It includes a public-data evaluation plan and two interactive architecture diagrams. This is a pinned upstream source review, not a deployed BrowserCode integration. Rebuild it with `node scripts/build_browsercode_review.mjs` after regenerating the shared report shell when necessary.
+
 **Existing-install safeguard:** The initial pool/routing YAML files are bootstrap templates. Do not reapply them over this private deployment: doing so can undo owner routing and masks. `scripts/restore_legacy_owner.py` performs a guarded, one-time owner cutover with rollback; it refuses a different routing baseline. Keep the saved original specifications and verify actual access before any restore.
 
 ## Features, design reasons and live status — 16 October 2026
