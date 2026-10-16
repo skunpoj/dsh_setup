@@ -1,0 +1,38 @@
+{
+  "observedAt": "2026-10-16T11:35:42.336030+00:00",
+  "scope": "Actual response-content review; HTTP 200 alone is not access evidence",
+  "legacy": [
+    {
+      "deployment": "dsh-user2",
+      "anonymousAppStatus": 200,
+      "anonymousAppIsLoginPage": true,
+      "anonymousHistoryStatus": 200,
+      "anonymousHistoryIsLoginPage": true,
+      "registrationPageStatus": 200,
+      "registrationIsLoginPage": true,
+      "sharedGuestAccountPresent": true,
+      "accountsInSharedRuntime": 3,
+      "designatedLoginSucceeded": true,
+      "authenticatedAppIsLoginPage": false,
+      "authenticatedHistoryRpcSucceeded": true,
+      "authenticatedHistoryCount": 8,
+      "revokedCookieIsLoginPage": true
+    },
+    {
+      "deployment": "dsh3",
+      "anonymousAppStatus": 200,
+      "anonymousAppIsLoginPage": true,
+      "anonymousHistoryStatus": 200,
+      "anonymousHistoryIsLoginPage": true,
+      "registrationPageStatus": 200,
+      "registrationIsLoginPage": true,
+      "sharedGuestAccountPresent": true,
+      "accountsInSharedRuntime": 3,
+      "designatedLoginSucceeded": true,
+      "authenticatedAppIsLoginPage": false,
+      "authenticatedHistoryRpcSucceeded": true,
+      "authenticatedHistoryCount": 1,
+      "revokedCookieIsLoginPage": true
+    }
+  ]
+}

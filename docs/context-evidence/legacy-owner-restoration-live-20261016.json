@@ -1,0 +1,46 @@
+{
+  "observedAt": "2026-10-16T11:34:24.960233+00:00",
+  "owner": "thanatcc",
+  "historyCopies": 0,
+  "modelRestarted": false,
+  "checks": [
+    {
+      "environment": "secure",
+      "formerPrivateWorkEmpty": true
+    },
+    {
+      "environment": "internet",
+      "formerPrivateWorkEmpty": true
+    }
+  ],
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "fence": {
+    "privateSubtreeHidden": true,
+    "privateSubtreeReadOnly": true,
+    "credentialAliasesMasked": 3,
+    "recoveryAndRoutingDirectoriesMasked": 2
+  },
+  "access": {
+    "timeUTC": "2026-10-16T11:35:37.562Z",
+    "legacyOwner": "thanatcc",
+    "ownerLegacyCount": 80,
+    "adminLegacyCount": 0,
+    "privateLogins": 16,
+    "privateEmptyHistories": 16,
+    "legacyPageDenials": 16,
+    "ordinaryAdminDenials": 16,
+    "excludedAccountDenials": 0,
+    "auditEventsVisible": true,
+    "adminSnapshotContentVerified": true
+  },
+  "legacyAfter": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "status": "passed"
+}

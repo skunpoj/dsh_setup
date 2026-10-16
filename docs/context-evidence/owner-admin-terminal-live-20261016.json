@@ -1,0 +1,42 @@
+{
+  "observedAt": "2026-10-16T11:36:33.914516+00:00",
+  "checks": [
+    {
+      "account": "thanatcc",
+      "time": "2026-10-16T11:36:32.989Z",
+      "results": [
+        {
+          "environment": "secure",
+          "authenticatedTerminalWebSocket": true,
+          "executedSentinel": true,
+          "nonRootUid": 10001
+        },
+        {
+          "environment": "internet",
+          "authenticatedTerminalWebSocket": true,
+          "executedSentinel": true,
+          "nonRootUid": 10001
+        }
+      ]
+    },
+    {
+      "account": "admin",
+      "time": "2026-10-16T11:36:35.771Z",
+      "results": [
+        {
+          "environment": "secure",
+          "authenticatedTerminalWebSocket": true,
+          "executedSentinel": true,
+          "nonRootUid": 10001
+        },
+        {
+          "environment": "internet",
+          "authenticatedTerminalWebSocket": true,
+          "executedSentinel": true,
+          "nonRootUid": 10001
+        }
+      ]
+    }
+  ],
+  "passwordsOrTerminalContentsExported": false
+}

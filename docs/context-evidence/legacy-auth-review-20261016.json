@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-10-16T11:35:00.644435+00:00",
+  "scope": "Read-only legacy auth review with existing designated login; no registration or data mutation",
+  "legacy": [
+    {
+      "deployment": "dsh-user2",
+      "anonymousAppStatus": 200,
+      "anonymousHistoryStatus": 200,
+      "registrationPageStatus": 200,
+      "sharedGuestAccountPresent": true,
+      "accountsInSharedRuntime": 3,
+      "designatedLoginStatus": 302,
+      "authenticatedAppStatus": 200,
+      "logoutStatus": 302,
+      "revokedCookieAppStatus": 200
+    },
+    {
+      "deployment": "dsh3",
+      "anonymousAppStatus": 200,
+      "anonymousHistoryStatus": 200,
+      "registrationPageStatus": 200,
+      "sharedGuestAccountPresent": true,
+      "accountsInSharedRuntime": 3,
+      "designatedLoginStatus": 302,
+      "authenticatedAppStatus": 200,
+      "logoutStatus": 302,
+      "revokedCookieAppStatus": 200
+    }
+  ]
+}

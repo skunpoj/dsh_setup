@@ -1,0 +1,7 @@
+{
+  "status": "stopped-for-additional-sensitive-mount-review",
+  "previousGatewaySpecRestored": true,
+  "privateSubtreeFenceRetainedUntilReviewedRetry": "Reviewed retry subsequently passed; see legacy-owner-restoration-live-20261016.json",
+  "reason": "Legacy auth store, credential file aliases and recovery directory required masking before owner access",
+  "firstAttemptDidNotProduceAcceptance": true
+}

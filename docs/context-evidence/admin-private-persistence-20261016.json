@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-16T11:37:05.464857+00:00",
+  "runtimes": [
+    {
+      "environment": "secure",
+      "processReplaced": true,
+      "persistedAndRemoved": 2
+    },
+    {
+      "environment": "internet",
+      "processReplaced": true,
+      "persistedAndRemoved": 2
+    }
+  ],
+  "modelRestarted": false,
+  "ownerRuntimeRestarted": false
+}

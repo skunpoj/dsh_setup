@@ -1,0 +1,67 @@
+{
+  "observedAt": "2026-10-16T11:38:54.171877+00:00",
+  "readOnly": true,
+  "stateOrCredentialsCopied": false,
+  "legacy": [
+    {
+      "deployment": "dsh-user2",
+      "state": {
+        "live": {
+          "sessionFiles": 9,
+          "uniqueHistories": 8,
+          "sessionAggregateSHA256": "f8e63b1b2f092cd7b279ad6665bfddef8bb9190299d5eb16330185432217b485",
+          "cwdTypes": {
+            "other": 1,
+            "root": 4,
+            "workspace": 4
+          },
+          "missingWorkingDirectories": 0,
+          "profilesPresent": true,
+          "credentialFilePresent": true
+        },
+        "persistent": {
+          "sessionFiles": 9,
+          "uniqueHistories": 8,
+          "sessionAggregateSHA256": "f8e63b1b2f092cd7b279ad6665bfddef8bb9190299d5eb16330185432217b485",
+          "cwdTypes": {
+            "other": 1,
+            "root": 4,
+            "workspace": 4
+          },
+          "missingWorkingDirectories": 0,
+          "profilesPresent": false,
+          "credentialFilePresent": true
+        }
+      },
+      "sessionCopiesEqual": true
+    },
+    {
+      "deployment": "dsh3",
+      "state": {
+        "live": {
+          "sessionFiles": 1,
+          "uniqueHistories": 1,
+          "sessionAggregateSHA256": "e6b5b72683262ef8f2ca561e45cfe4a25c50786eac28dcd82462394098760876",
+          "cwdTypes": {
+            "other": 1
+          },
+          "missingWorkingDirectories": 0,
+          "profilesPresent": true,
+          "credentialFilePresent": true
+        },
+        "persistent": {
+          "sessionFiles": 1,
+          "uniqueHistories": 1,
+          "sessionAggregateSHA256": "e6b5b72683262ef8f2ca561e45cfe4a25c50786eac28dcd82462394098760876",
+          "cwdTypes": {
+            "other": 1
+          },
+          "missingWorkingDirectories": 0,
+          "profilesPresent": false,
+          "credentialFilePresent": true
+        }
+      },
+      "sessionCopiesEqual": true
+    }
+  ]
+}

@@ -1,12 +1,14 @@
 # DSH — Private Execution Environments and Kerberos Datalake Access
 
-**Ownership correction, 16 October 2026:** The user explicitly identifies `thanatcc` as the owner of the legacy histories and files, not `admin`. `thanatcc` is a local DSH login; ownership does not grant the admin role. Live access is still incorrectly assigned to admin legacy runtimes, while `thanatcc` has private runtimes. Restoring owner access requires bounded storage migration, because the legacy mount also exposes the private-user subtree. No ownership migration or access reassignment has been performed by this correction. Admin dashboard and audit oversight remain separate from data ownership.
+**Ownership restored, 16 October 2026:** `thanatcc` now routes to its preserved No Internet and Internet runtimes. All 80 histories / 82 session files retain their recorded hash; all 82 working-directory records point to readable directories outside the masked paths. Admin routes to fresh private runtimes, retains dashboard/audit access, and is denied legacy-history reads through DSH. The owner runtime masks the private-user subtree, three reviewed credential-file aliases, and the routing/recovery directories. Infrastructure administrators remain trusted. See [live owner restoration](context-evidence/legacy-owner-restoration-live-20261016.json).
 
 **Confirmed remote-boundary gap, 16 October:** synthetic Livy/Spark driver and executor reached GitHub and a public IP. DSH pod restrictions do not extend to that datalake compute. The user chose to keep Livy/Spark available with this documented risk. Containment remains unapplied; this is accepted exposure, not a fixed network boundary or an end-to-end No Internet guarantee. No RDT was read or written.
 
 DSH provides local login, **No Internet / Internal (default)** and **Internet** environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses **Kerberos kinit → Livy/Spark → Hive/HDFS authorization**. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.
 
-Read the English [security and architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) and [source report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md). HTML embeds this README and saved evidence with SMP EDA diagram zoom, fullscreen and SVG/PNG export.
+Read the English [security and architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) and [source report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md). HTML embeds this README and the LLM guide, links raw evidence separately, and includes SMP EDA diagram zoom, fullscreen and SVG/PNG export.
+
+**Existing-install safeguard:** The initial pool/routing YAML files are bootstrap templates. Do not reapply them over this private deployment: doing so can undo owner routing and masks. `scripts/restore_legacy_owner.py` performs a guarded, one-time owner cutover with rollback; it refuses a different routing baseline. Keep the saved original specifications and verify actual access before any restore.
 
 ## Features, design reasons and live status — 16 October 2026
 
@@ -37,7 +39,7 @@ The share remains `\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation`. Historica
 | Credentials/configuration/Kerberos cache | Private local `/state`, ticket cache `/state/kerberos/ccache` | Separate private state |
 | Dependencies | Approved read-only cache | Writable Incoming |
 
-The original central `dsh` / `dsh/dsh_storage` trees and 80 histories belong to `thanatcc`; current routing still exposes them through admin legacy runtimes and must be corrected. Admin's broad legacy mount is a trusted-admin exception; ordinary runtimes cannot mount its root. Gateway audit is central `dsh-admin-audit`, outside execution mounts. Direct CIFS mounts need no continuous copy loop. PVC persistence is not backup/disaster recovery.
+The original central `dsh` / `dsh/dsh_storage` content and 80 histories remain with `thanatcc`; owner routing has been restored. Admin now uses private volumes and no longer receives the broad legacy workspace mount. The owner runtime masks reviewed private/security paths. Gateway audit is central `dsh-admin-audit`, outside execution mounts. Direct CIFS mounts need no continuous copy loop. PVC persistence is not backup/disaster recovery.
 
 All 80 histories in 82 files remain unchanged, aggregate SHA256 `7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317`. Actual process replacements preserved workspace/attachment markers. No histories were copied into non-admin accounts.
 
