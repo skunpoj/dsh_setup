@@ -43,6 +43,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--inference-secret', default='dsh-inference-canary-20261016')
+    parser.add_argument('--image', help='Optional immutable candidate image; existing Production stays unchanged')
     args = parser.parse_args()
     now = datetime.now(timezone(timedelta(hours=7)))
     ns = 'dsh-iso-' + now.strftime('%Y%m%d-%H%M%S')
@@ -54,7 +55,9 @@ def main():
     if record['legacyBefore']['uniqueHistories'] != 80:
         raise RuntimeError('Legacy baseline differs from the requested 80; review without modifying it')
     deployed = json.loads(command('get', 'deploy', 'dsh-secure', '-n', 'llm', '-o', 'json'))
-    image = deployed['spec']['template']['spec']['containers'][0]['image']
+    image = args.image or deployed['spec']['template']['spec']['containers'][0]['image']
+    import re
+    if not re.fullmatch(r'[^\s]+@sha256:[a-f0-9]{64}', image):raise ValueError('Immutable image required')
     docs = build(ns, image)
     workload_names = [d['metadata']['name'] for d in docs if d['kind'] == 'Deployment']
     runtimes = [n for n in workload_names if n != 'dsh-environment-gateway']
@@ -182,21 +185,21 @@ r['neighborWorkspaceAbsent']=not Path('/workspace/../'+OTHER+'/secure/private-re
 r['noEffectiveCapabilities']=next(s.split()[1] for s in Path('/proc/self/status').read_text().splitlines() if s.startswith('CapEff:'))=='0000000000000000'
 assert r['uid']==10001 and r['noServiceAccountToken'] and r['legacyHistoryTreeAbsent'] and r['neighborWorkspaceAbsent'] and r['noEffectiveCapabilities']
 if mode=='secure':
- source=Path('/data/rdt/records.csv');before=hashlib.sha256(source.read_bytes()).hexdigest();rows=list(csv.DictReader(source.open()));assert sum(int(x['amount']) for x in rows)==300
+ source=Path('/data/synthetic-source/records.csv');before=hashlib.sha256(source.read_bytes()).hexdigest();rows=list(csv.DictReader(source.open()));assert sum(int(x['amount']) for x in rows)==300
  denied=[]
  for operation in ['append','delete','create']:
   try:
    if operation=='append':
     with source.open('a') as f:f.write('UNEXPECTED_WRITE')
    elif operation=='delete':source.unlink()
-   else:Path('/data/rdt/new.txt').write_text('UNEXPECTED_WRITE')
+   else:Path('/data/synthetic-source/new.txt').write_text('UNEXPECTED_WRITE')
   except OSError as e:denied.append({'operation':operation,'errno':e.errno})
  assert len(denied)==3 and all(x['errno'] in [13,30] for x in denied)
  assert hashlib.sha256(source.read_bytes()).hexdigest()==before
- assert not Path('/data/rdt/../outside-source.txt').exists()
+ assert not Path('/data/synthetic-source/../outside-source.txt').exists()
  r.update({'syntheticRows':len(rows),'syntheticAmountTotal':300,'sourceWritesDenied':denied,'sourceHashUnchanged':True,'outsideSourceAbsent':True})
 else:
- r['noRdtMount']=not Path('/data/rdt').exists();assert r['noRdtMount']
+ r['noSyntheticSourceMount']=not Path('/data/synthetic-source').exists();assert r['noSyntheticSourceMount']
 probe=subprocess.run(['curl','--max-time','3','-s','-o','/dev/null','-w','%{http_code}','https://github.com'],capture_output=True,text=True)
 r['publicHTTPS']={'exitCode':probe.returncode,'status':probe.stdout}
 assert (probe.returncode!=0 and probe.stdout=='000') if mode=='secure' else probe.stdout=='200'

@@ -1,0 +1,229 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsh-internal-dns
+  namespace: llm
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: dsh-internal-dns
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: dsh-internal-dns
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - command:
+        - python3
+        - /config/resolver.py
+        env:
+        - name: DNS_UPSTREAM
+          value: 10.43.0.10
+        image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: resolver
+        ports:
+        - containerPort: 5353
+          protocol: UDP
+        - containerPort: 5353
+          protocol: TCP
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 32Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /config
+          name: config
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: dsh-internal-dns-369567dbcddb
+        name: config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dsh-internal-dns
+  namespace: llm
+spec:
+  clusterIP: 10.43.128.253
+  clusterIPs:
+  - 10.43.128.253
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: udp
+    port: 53
+    protocol: UDP
+    targetPort: 5353
+  - name: tcp
+    port: 53
+    protocol: TCP
+    targetPort: 5353
+  selector:
+    app: dsh-internal-dns
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+data:
+  allowed.json: '["_kerberos._tcp.bot.or.th", "_kerberos._udp.bot.or.th", "bot-dc-p1.bot.or.th",
+    "bot-dc-p2.bot.or.th", "bot-dc-p3.bot.or.th", "bot-dc-p4.bot.or.th", "botdlk-gw3-p1.bot.or.th",
+    "litellm", "litellm.llm", "litellm.llm.svc", "litellm.llm.svc.cluster.local",
+    "workspace.bot.or.th"]'
+  krb5.conf: "[libdefaults]\n default_realm = BOT.OR.TH\n dns_lookup_realm = false\n\
+    \ dns_lookup_kdc = true\n rdns = false\n dns_canonicalize_hostname = false\n[domain_realm]\n\
+    \ .bot.or.th = BOT.OR.TH\n bot.or.th = BOT.OR.TH\n"
+  resolver.py: "\"\"\"Non-forwarding-by-default DNS relay for explicitly named internal\
+    \ services.\n\nRebuilds upstream questions: client EDNS data, IDs and extra sections\
+    \ are never\nforwarded. Unknown names are answered locally; query names are not\
+    \ logged.\n\"\"\"\nimport json\nimport os\nimport secrets\nimport socket\nimport\
+    \ socketserver\nimport struct\nimport threading\nfrom http.server import BaseHTTPRequestHandler,\
+    \ HTTPServer\nfrom pathlib import Path\n\nALLOWED = {x.lower().rstrip('.') for\
+    \ x in json.loads(Path(os.environ.get('DNS_ALLOWLIST', '/config/allowed.json')).read_text(encoding='utf-8'))}\n\
+    UPSTREAM = os.environ['DNS_UPSTREAM']\nUPSTREAM_PORT = int(os.environ.get('DNS_UPSTREAM_PORT',\
+    \ '53'))\nLIMIT = threading.BoundedSemaphore(16)\nCOUNTS = {'allowed': 0, 'denied':\
+    \ 0, 'errors': 0}\n\n\ndef question(packet):\n    if len(packet) < 12 or len(packet)\
+    \ > 512:\n        raise ValueError('Invalid query length')\n    _, flags, count,\
+    \ _, _, _ = struct.unpack('!6H', packet[:12])\n    if flags & 0xF800 or count\
+    \ != 1:\n        raise ValueError('Unsupported query')\n    position = 12\n  \
+    \  labels = []\n    while True:\n        length = packet[position];position +=\
+    \ 1\n        if not length:break\n        if length > 63 or position + length\
+    \ > len(packet):raise ValueError('Invalid name')\n        labels.append(packet[position:position+length].decode('ascii').lower());position\
+    \ += length\n    if position + 4 > len(packet):raise ValueError('Missing query\
+    \ type')\n    kind, klass = struct.unpack('!HH', packet[position:position+4])\n\
+    \    if kind not in (1, 28, 33) or klass != 1:raise ValueError('Unsupported query\
+    \ type')\n    wire = b''.join(bytes([len(x)])+x.encode() for x in labels)+b'\\\
+    0'+struct.pack('!HH',kind,1)\n    return '.'.join(labels), wire\n\n\ndef exact(stream,\
+    \ length):\n    result=b''\n    while len(result)<length:\n        part=stream.recv(length-len(result))\n\
+    \        if not part:raise OSError('Incomplete DNS frame')\n        result+=part\n\
+    \    return result\n\n\ndef answer(packet):\n    identifier=packet[:2] if len(packet)>=2\
+    \ else b'\\0\\0'\n    try:\n        name, wire=question(packet)\n        if name\
+    \ not in ALLOWED:\n            COUNTS['denied']+=1\n            return identifier+struct.pack('!5H',0x8183,1,0,0,0)+wire\n\
+    \        if not LIMIT.acquire(blocking=False):raise OSError('DNS request capacity')\n\
+    \        try:\n            nonce=secrets.token_bytes(2)\n            query=nonce+struct.pack('!5H',0x0100,1,0,0,0)+wire\n\
+    \            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as upstream:\n\
+    \                upstream.settimeout(2);upstream.connect((UPSTREAM,UPSTREAM_PORT));upstream.send(query);response=upstream.recv(4096)\n\
+    \            if len(response)<12 or response[:2]!=nonce:raise OSError('Invalid\
+    \ upstream response')\n            if struct.unpack('!H',response[2:4])[0]&0x0200:\n\
+    \                with socket.create_connection((UPSTREAM,UPSTREAM_PORT),timeout=2)\
+    \ as upstream:\n                    upstream.sendall(struct.pack('!H',len(query))+query)\n\
+    \                    length=struct.unpack('!H',exact(upstream,2))[0]\n       \
+    \             if length>4096:raise OSError('Oversized upstream response')\n  \
+    \                  response=exact(upstream,length)\n                if response[:2]!=nonce:raise\
+    \ OSError('Invalid upstream response')\n            COUNTS['allowed']+=1\n   \
+    \         return identifier+response[2:]\n        finally:LIMIT.release()\n  \
+    \  except Exception:\n        COUNTS['errors']+=1\n        return identifier+struct.pack('!5H',0x8182,0,0,0,0)\n\
+    \n\nclass UDP(socketserver.BaseRequestHandler):\n    def handle(self):\n     \
+    \   packet, transport=self.request\n        transport.sendto(answer(packet),self.client_address)\n\
+    \n\nclass TCP(socketserver.BaseRequestHandler):\n    def handle(self):\n     \
+    \   self.request.settimeout(3)\n        try:\n            length=struct.unpack('!H',exact(self.request,2))[0]\n\
+    \            if length>512:return\n            response=answer(exact(self.request,length));self.request.sendall(struct.pack('!H',len(response))+response)\n\
+    \        except OSError:pass\n\n\nclass Health(BaseHTTPRequestHandler):\n    def\
+    \ log_message(self,*_):pass\n    def do_GET(self):\n        if self.path not in\
+    \ ('/health','/metrics'):self.send_error(404);return\n        body=json.dumps({'ready':True,'allowedNameCount':len(ALLOWED),'counts':COUNTS}).encode()\n\
+    \        self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)\n\
+    \n\nclass BoundedThreads(socketserver.ThreadingMixIn):\n    daemon_threads=True\n\
+    \    slots=threading.BoundedSemaphore(16)\n    def process_request(self,request,client_address):\n\
+    \        if not self.slots.acquire(blocking=False):self.shutdown_request(request);return\n\
+    \        try:super().process_request(request,client_address)\n        except Exception:self.slots.release();raise\n\
+    \    def process_request_thread(self,request,client_address):\n        try:super().process_request_thread(request,client_address)\n\
+    \        finally:self.slots.release()\n\n\nclass UDPServer(BoundedThreads,socketserver.UDPServer):pass\n\
+    class TCPServer(BoundedThreads,socketserver.TCPServer):pass\n\n\nif __name__=='__main__':\n\
+    \    for cls,handler in [(UDPServer,UDP),(TCPServer,TCP)]:\n        server=cls(('0.0.0.0',5353),handler);threading.Thread(target=server.serve_forever,daemon=True).start()\n\
+    \    HTTPServer(('0.0.0.0',8080),Health).serve_forever()\n"
+immutable: true
+kind: ConfigMap
+metadata:
+  name: dsh-internal-dns-369567dbcddb
+  namespace: llm
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsh-internal-dns-boundary
+  namespace: llm
+spec:
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          dsh.bot.or.th/egress-mode: offline
+    ports:
+    - port: 5353
+      protocol: UDP
+    - port: 5353
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app: dsh-internal-dns
+  policyTypes:
+  - Ingress
+  - Egress

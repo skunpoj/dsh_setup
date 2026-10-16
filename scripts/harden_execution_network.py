@@ -91,7 +91,9 @@ def main():
     old=[json.loads(kube('get','networkpolicy',n,'-o','json')) for n in ['dsh-offline-egress','dsh-online-egress']]
     (args.output/'rollback.json').write_text(json.dumps({'deployments':offline,'policies':old},indent=2),encoding='utf-8')
     model=json.loads(kube('get','service','litellm','-o','json'))['spec']['clusterIP']
-    dns=json.loads(subprocess.check_output(['kubectl','--request-timeout=30s','-n','kube-system','get','service','kube-dns','-o','json'],text=True))['spec']['clusterIP']
+    dns_services=json.loads(subprocess.check_output(['kubectl','--request-timeout=30s','-n','kube-system','get','service','-l','k8s-app=kube-dns','-o','json'],text=True))['items']
+    if len(dns_services)!=1:raise RuntimeError('Expected one labelled cluster DNS service')
+    dns=dns_services[0]['spec']['clusterIP']
     postgres=json.loads(kube('get','service','litellm-postgres','-o','json'))['spec']['clusterIP']
     record={'timeUTC':datetime.now(timezone.utc).isoformat(),'legacyBefore':legacy_fingerprint(),'modelRestarted':False}
     try:

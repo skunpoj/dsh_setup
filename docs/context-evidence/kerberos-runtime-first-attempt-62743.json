@@ -1,0 +1,15 @@
+{
+  "timeUTC": "2026-10-16T07:30:24.271070+00:00",
+  "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+  "modelRestarted": false,
+  "actualRdtAuthenticationTested": false,
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "runtimes": [],
+  "status": "failed",
+  "error": "Traceback (most recent call last):\n  File \"<stdin>\", line 11, in <module>\nAssertionError\ncommand terminated with exit code 1",
+  "originalSpecificationsRestored": true
+}

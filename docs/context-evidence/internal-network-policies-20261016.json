@@ -1,0 +1,205 @@
+[
+  {
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "NetworkPolicy",
+    "metadata": {
+      "name": "dsh-offline-egress",
+      "namespace": "llm"
+    },
+    "spec": {
+      "podSelector": {
+        "matchLabels": {
+          "dsh.bot.or.th/egress-mode": "offline"
+        }
+      },
+      "policyTypes": [
+        "Egress"
+      ],
+      "egress": [
+        {
+          "to": [
+            {
+              "namespaceSelector": {
+                "matchLabels": {
+                  "kubernetes.io/metadata.name": "llm"
+                }
+              },
+              "podSelector": {
+                "matchLabels": {
+                  "app": "litellm"
+                }
+              }
+            }
+          ],
+          "ports": [
+            {
+              "protocol": "TCP",
+              "port": 4000
+            }
+          ]
+        },
+        {
+          "to": [
+            {
+              "podSelector": {
+                "matchLabels": {
+                  "app": "dsh-internal-dns"
+                }
+              }
+            }
+          ],
+          "ports": [
+            {
+              "protocol": "UDP",
+              "port": 5353
+            },
+            {
+              "protocol": "TCP",
+              "port": 5353
+            }
+          ]
+        },
+        {
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "172.22.58.51/32"
+              }
+            },
+            {
+              "ipBlock": {
+                "cidr": "172.29.51.222/32"
+              }
+            },
+            {
+              "ipBlock": {
+                "cidr": "172.30.48.129/32"
+              }
+            },
+            {
+              "ipBlock": {
+                "cidr": "172.30.48.133/32"
+              }
+            },
+            {
+              "ipBlock": {
+                "cidr": "192.168.171.82/32"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "protocol": "TCP",
+              "port": 88
+            },
+            {
+              "protocol": "UDP",
+              "port": 88
+            }
+          ]
+        },
+        {
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "172.22.13.104/32"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "protocol": "TCP",
+              "port": 28998
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "NetworkPolicy",
+    "metadata": {
+      "name": "dsh-online-egress",
+      "namespace": "llm"
+    },
+    "spec": {
+      "podSelector": {
+        "matchLabels": {
+          "dsh.bot.or.th/egress-mode": "online"
+        }
+      },
+      "policyTypes": [
+        "Egress"
+      ],
+      "egress": [
+        {
+          "to": [
+            {
+              "namespaceSelector": {
+                "matchLabels": {
+                  "kubernetes.io/metadata.name": "llm"
+                }
+              },
+              "podSelector": {
+                "matchLabels": {
+                  "app": "litellm"
+                }
+              }
+            }
+          ],
+          "ports": [
+            {
+              "protocol": "TCP",
+              "port": 4000
+            }
+          ]
+        },
+        {
+          "to": [
+            {
+              "namespaceSelector": {
+                "matchLabels": {
+                  "kubernetes.io/metadata.name": "kube-system"
+                }
+              },
+              "podSelector": {
+                "matchLabels": {
+                  "k8s-app": "kube-dns"
+                }
+              }
+            }
+          ],
+          "ports": [
+            {
+              "protocol": "UDP",
+              "port": 53
+            },
+            {
+              "protocol": "TCP",
+              "port": 53
+            }
+          ]
+        },
+        {
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "0.0.0.0/0",
+                "except": [
+                  "10.0.0.0/8",
+                  "172.16.0.0/12",
+                  "192.168.0.0/16",
+                  "127.0.0.0/8",
+                  "169.254.0.0/16",
+                  "100.64.0.0/10",
+                  "224.0.0.0/4"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

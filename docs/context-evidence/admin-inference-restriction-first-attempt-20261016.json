@@ -1,0 +1,14 @@
+{
+  "timeUTC": "2026-10-16T07:12:28.883426+00:00",
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "credentialValuesExported": false,
+  "sharedMasterRotated": false,
+  "pools": [],
+  "status": "failed",
+  "error": "Traceback (most recent call last):\n  File \"<string>\", line 5, in <module>\nAssertionError\ncommand terminated with exit code 1",
+  "specificationsRestored": true
+}

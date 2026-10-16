@@ -1,0 +1,195 @@
+{
+  "namespace": "dsh-iso-20261016-135628",
+  "timeICT": "2026-10-16T13:56:28.179224+07:00",
+  "scope": "Disposable users and synthetic data only",
+  "productionRoutingChanged": false,
+  "legacyHistoriesMigrated": false,
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+  "syntheticUsers": [
+    "iso_alice",
+    "iso_bob"
+  ],
+  "legacyBaselineExpected": 80,
+  "candidateManifestsSHA256": "f5c3d989c765fba9d1bde26c1ebef55cdf9cec29364dfaafbfea94f39c8b6885",
+  "initialization": {
+    "syntheticSourceSeeded": true,
+    "productionTreeTouched": false
+  },
+  "fixtures": [
+    {
+      "identity": "adceb5ccb5d4fdea",
+      "environment": "secure",
+      "privateFixtureFiles": 5
+    },
+    {
+      "identity": "adceb5ccb5d4fdea",
+      "environment": "internet",
+      "privateFixtureFiles": 5
+    },
+    {
+      "identity": "6bebc6d6174e93c7",
+      "environment": "secure",
+      "privateFixtureFiles": 5
+    },
+    {
+      "identity": "6bebc6d6174e93c7",
+      "environment": "internet",
+      "privateFixtureFiles": 5
+    }
+  ],
+  "beforeRestart": {
+    "time": "2026-10-16T06:58:36.702Z",
+    "phase": "create",
+    "ownReports": 4,
+    "ownAttachmentFiles": 4,
+    "spoofedHeadersRejected": 4,
+    "ownSessionPages": 4,
+    "crossUserHistoryDenied": 4,
+    "crossEnvironmentHistoryDenied": 4,
+    "terminalCommands": 4,
+    "anonymousDenials": 4,
+    "websocketSpoofingDenied": 4,
+    "registrationDenied": true,
+    "sessionsCreated": 4
+  },
+  "workerTests": [
+    {
+      "environment": "secure",
+      "identity": "adceb5ccb5d4fdea",
+      "uid": 10001,
+      "noServiceAccountToken": true,
+      "legacyHistoryTreeAbsent": true,
+      "neighborWorkspaceAbsent": true,
+      "noEffectiveCapabilities": true,
+      "syntheticRows": 2,
+      "syntheticAmountTotal": 300,
+      "sourceWritesDenied": [
+        {
+          "operation": "append",
+          "errno": 30
+        },
+        {
+          "operation": "delete",
+          "errno": 30
+        },
+        {
+          "operation": "create",
+          "errno": 30
+        }
+      ],
+      "sourceHashUnchanged": true,
+      "outsideSourceAbsent": true,
+      "publicHTTPS": {
+        "exitCode": 28,
+        "status": "000"
+      },
+      "peerNetworkDenied": true
+    },
+    {
+      "environment": "internet",
+      "identity": "adceb5ccb5d4fdea",
+      "uid": 10001,
+      "noServiceAccountToken": true,
+      "legacyHistoryTreeAbsent": true,
+      "neighborWorkspaceAbsent": true,
+      "noEffectiveCapabilities": true,
+      "noRdtMount": true,
+      "publicHTTPS": {
+        "exitCode": 0,
+        "status": "200"
+      },
+      "peerNetworkDenied": true
+    },
+    {
+      "environment": "secure",
+      "identity": "6bebc6d6174e93c7",
+      "uid": 10001,
+      "noServiceAccountToken": true,
+      "legacyHistoryTreeAbsent": true,
+      "neighborWorkspaceAbsent": true,
+      "noEffectiveCapabilities": true,
+      "syntheticRows": 2,
+      "syntheticAmountTotal": 300,
+      "sourceWritesDenied": [
+        {
+          "operation": "append",
+          "errno": 30
+        },
+        {
+          "operation": "delete",
+          "errno": 30
+        },
+        {
+          "operation": "create",
+          "errno": 30
+        }
+      ],
+      "sourceHashUnchanged": true,
+      "outsideSourceAbsent": true,
+      "publicHTTPS": {
+        "exitCode": 28,
+        "status": "000"
+      },
+      "peerNetworkDenied": true
+    },
+    {
+      "environment": "internet",
+      "identity": "6bebc6d6174e93c7",
+      "uid": 10001,
+      "noServiceAccountToken": true,
+      "legacyHistoryTreeAbsent": true,
+      "neighborWorkspaceAbsent": true,
+      "noEffectiveCapabilities": true,
+      "noRdtMount": true,
+      "publicHTTPS": {
+        "exitCode": 0,
+        "status": "200"
+      },
+      "peerNetworkDenied": true
+    }
+  ],
+  "podUIDsBefore": {
+    "dsh-u-adceb5ccb5d4fdea-secure": "ca80ce39-c3ae-4b4e-a69b-0899fda64e86",
+    "dsh-u-adceb5ccb5d4fdea-internet": "310eb720-08d6-4864-9852-d8c37afa9cd4",
+    "dsh-u-6bebc6d6174e93c7-secure": "b07fc89d-32a9-45f2-a1f9-2f829d2f1569",
+    "dsh-u-6bebc6d6174e93c7-internet": "a48d18fe-f369-4838-9f0f-f03ce14d76ea"
+  },
+  "podUIDsAfter": {
+    "dsh-u-adceb5ccb5d4fdea-secure": "0232353d-2cc6-401f-8c9f-2fd9f0e85f0e",
+    "dsh-u-adceb5ccb5d4fdea-internet": "d0078512-4bcb-40b7-b901-5018d78c7a61",
+    "dsh-u-6bebc6d6174e93c7-secure": "731a5d7f-e4db-489c-add5-54c9fdb2f9fa",
+    "dsh-u-6bebc6d6174e93c7-internet": "74f86161-f29a-4307-bd81-5420c2f4bf78"
+  },
+  "afterRestart": {
+    "time": "2026-10-16T06:59:51.214Z",
+    "phase": "verify",
+    "ownReports": 4,
+    "ownAttachmentFiles": 4,
+    "spoofedHeadersRejected": 4,
+    "ownSessionPages": 4,
+    "crossUserHistoryDenied": 4,
+    "crossEnvironmentHistoryDenied": 4,
+    "terminalCommands": 4,
+    "anonymousDenials": 4,
+    "websocketSpoofingDenied": 4
+  },
+  "legacyAfter": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "legacyByteIdentical": true,
+  "status": "passed",
+  "cleanup": {
+    "candidateDeploymentsStopped": true,
+    "temporarySecretsRemoved": true,
+    "candidatePodsTerminated": true
+  },
+  "syntheticVolumesRetained": true,
+  "credentialValuesExported": false
+}

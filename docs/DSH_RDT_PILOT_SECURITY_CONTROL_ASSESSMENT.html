@@ -1,47 +1,37 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH RDT Pilot — Security Controls, Architecture and Acceptance</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-</style></head><body><main><h1>DSH RDT Pilot — Security Controls, Architecture and Acceptance</h1><div class="status"><strong>Status: partially satisfied; the three controls are not all closed.</strong> Deployed behavior, saved tests and target design are distinguished. This document does not authorize additional data access.</div><nav aria-label="Contents"><a href="#section-1">1 Executive assessment</a><a href="#section-2">2 Current architecture and execution boundary</a><a href="#section-3">3 Control 1 — Prevent external leakage</a><a href="#section-4">4 Control 2 — Prevent source damage and excessive access</a><a href="#section-5">5 Control 3 — Keep results within authorized users</a><a href="#section-6">6 Target architecture and pilot interaction</a><a href="#section-7">7 Dependency preparation without sharing protected workspaces</a><a href="#section-8">8 DA_WORKSPACE, active history and corrected storage</a><a href="#section-9">9 Deployment evidence and its limits</a><a href="#section-10">10 Proceeding when ownership and RDT scope are unknown</a><a href="#section-11">11 Upstream maintenance and shared inference</a><a href="#section-12">12 Evidence and document use</a><a href="#evidence">Embedded evidence</a></nav>
-<p><strong>Evidence status, 16 October 2026: synthetic per-user acceptance passed; existing Production controls remain partially satisfied.</strong></p>
-<p>Production baseline evidence is dated 15 October. A separate live canary on 16 October tested two disposable users and synthetic data, including restart persistence. It did not migrate real users, change Production routing or grant RDT access. All 80 legacy histories remained unchanged.</p>
-<p>The objective is to limit what can go wrong enough to make this specific pilot acceptable. It is not a claim that the Harness, its model or generated code is universally safe. This report separates deployed controls, recorded tests, remaining gaps and target architecture. Opening the HTML does not run a new security test. The previous Thai report is preserved separately.</p>
-<h3>Latest Production correction and measurements — 16 October</h3>
-<p>The canary-tested identity-header correction now runs in the Production gateway through immutable ConfigMap <code>dsh-gateway-source-c9737befbe88</code>; the build-62702 image is unchanged. Source hash readback matched the exact tested source. Fresh login/logout, selected environment, authenticated UI, history listing and terminal-page access passed before and after replacement. No execution pool or model restart occurred. All 80 legacy histories in 82 files stayed byte-identical; temporary probe credentials were removed. Earlier candidate-only statements below describe the initial test snapshot and are superseded for this gateway correction.</p>
-<p>Fresh mount evidence confirms <code>/workspace</code> and five durable <code>/state</code> directories are direct CIFS mounts. They do not require continuous central-state synchronization. The <code>/state</code> parent remains local for credentials/configuration. Secure GitHub/PyPI/npm probes all timed out; Internet returned 200. DSH2/DSH3 still run as root with service-account tokens and public connectivity; they cannot be included in Secure&#39;s acceptance.</p>
-<p>Three exact short replies completed in 0.230–0.231 seconds. Two concurrent exact replies each returned 119 tokens in 3.381–3.386 seconds, about 35.2 effective output tokens/sec per request. This includes queue/prefill/network overhead and is not sustained decode speed or near-1M contention evidence. Backend context remains 1M and running-request cap 16; DSH/LiteLLM remains 128K. Existing user pools remain shared and no actual RDT source was granted. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LIVE_REVIEW_AND_PERFORMANCE_20261016.md">complete current review and remaining constraints</a>.</p>
-<p>A fresh 24,047-token synthetic request completed in 4.987 seconds while three repeated short replies finished in 0.466–0.588 seconds, all before the longer request ended. This adds bounded live scheduling evidence; it is not near-1M acceptance.</p>
-<h3>Admin overview</h3>
-<p>The <a href="https://dsh.aiportal.bot.or.th/admin">admin dashboard</a> is deployed. Existing authenticated <code>admin</code> can read current gateway account/session counts and routing mode, plus the timestamped infrastructure/performance snapshot and unresolved controls. Other users are denied even with forged admin headers. The page is read-only and exposes no credentials or conversation contents. It does not grant the gateway Kubernetes API access or turn saved measurements into live monitoring. Its source overlay <code>dsh-gateway-source-c013b4abad57</code> supersedes the earlier identity-only overlay. Actual Production checks passed and the 80 legacy histories remained unchanged. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/ADMIN_DASHBOARD.md">dashboard details</a> and <a href="#evidence-admin-dashboard-live-20261016-json">live acceptance</a>.</p>
+</style></head><body><main><h1>DSH RDT Pilot — Security Controls and Execution Architecture</h1><div class="status"><strong>Private routing, central audit and restricted egress deployed. Kerberos/datalake authorization and remote-worker controls still require verification.</strong> Deployed behavior, saved tests and target design are distinguished. This document does not authorize additional data access.</div><nav aria-label="Contents"><a href="#section-1">1 Executive assessment</a><a href="#section-2">2 Deployed user and environment architecture</a><a href="#section-3">3 Control 1 — Prevent external leakage</a><a href="#section-4">4 Control 2 — Kerberos and datalake authorization</a><a href="#section-5">5 Control 3 — Contain reports, histories and execution</a><a href="#section-6">6 Dependency supply without protected workspace sharing</a><a href="#section-7">7 Rollout, rollback and experience</a><a href="#section-8">8 Context, performance and administration</a><a href="#section-9">9 Remaining acceptance</a><a href="#evidence">Embedded evidence</a></nav>
+<p><strong>16 October 2026: private user routing, central audit and datalake-aware restricted egress are deployed. Actual Kerberos/datalake authorization and remote Spark worker controls still require verification.</strong></p>
+<p>The objective is to limit what can go wrong enough to make this specific pilot acceptable, rather than declare the Harness or generated code universally safe. This report explains where each control acts, what was tested and what remains unverified. Opening saved evidence does not run a new test or authorize data access.</p>
 <h2 id="section-1">1 Executive assessment</h2>
-<p>Assume the Harness, its tools and generated code can make mistakes or exceed the intended scope. Enforce boundaries through infrastructure, execution identities, storage/database permissions and authenticated routes. Prompt instructions alone are insufficient.</p>
-<p>Three controls must work together: prevent external leakage, prevent source damage or excessive access, and contain outputs within authorized users. Internet denial does not prevent deletion of writable internal data. Authentication does not isolate people sharing a process and filesystem.</p>
-<p>Separate No Internet and Internet environments are deployed. Secure&#39;s workspace and durable histories now use the original mounted CIFS storage; credentials and profiles remain local. Representative public HTTPS requests failed from Secure while internal inference worked. Existing users still share each environment runtime. Per-user isolation and read-only source enforcement passed in a separate synthetic candidate. Existing Production has not been cut over, and approved real RDT access remains unverified.</p>
+<p><strong>RDT uses Kerberos (<code>kinit</code>) and the datalake connection, including Livy/Spark and Hive/HDFS authorization. DA_WORKSPACE stores DSH files and history.</strong> Mounting it is neither the source of RDT authorization nor proof of read-only RDT access. A local DSH login such as <code>thanatcc</code> is not an AD identity. The earlier request for an RDT PVC/folder conflated these independent controls and is withdrawn.</p>
 <table>
 <thead>
 <tr>
 <th>Risk</th>
-<th>Required enforcement</th>
-<th>Evidence-based conclusion</th>
+<th>Deployed enforcement</th>
+<th>Evidence and limit</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>1 External leakage</td>
-<td>Block unnecessary outbound traffic from every RDT execution environment; permit necessary internal services; disable external fallback</td>
-<td>Representative direct HTTPS separation passed. DNS, relays, IPv6 and every worker path are not exhaustively covered.</td>
+<td>Prevent external leakage</td>
+<td>Private No Internet workers; exact internal DNS, Kerberos, Livy and inference destinations; restricted inference keys</td>
+<td>All 18 workers tested. Public-domain and direct-IP probes fail from all 9 No Internet workers; internal paths work. Remote Spark egress and allowed-service relays remain separate.</td>
 </tr>
 <tr>
-<td>2 Damage or excessive access</td>
-<td>Dedicated non-admin identity, limited read-only RDT snapshot/view and separate writable results</td>
-<td>Container hardening is implemented. Synthetic source reads and six read-only write/create/delete denials passed; actual RDT scope and enforcement remain untested.</td>
+<td>Prevent damage/excessive access</td>
+<td>Non-root execution, no Kubernetes token, private workspace/state and ticket cache</td>
+<td>Local isolation/persistence tested. Actual AD identity, read-only Hive/HDFS scope and unrelated-resource denial remain untested.</td>
 </tr>
 <tr>
-<td>3 Internal disclosure</td>
-<td>Named pilot users; authenticated and authorized report/file/session/tool access; no unapproved automatic publishing</td>
-<td>Login/logout and anonymous denial are tested. Synthetic private runtimes passed cross-user and environment denial; Production pools remain shared.</td>
+<td>Keep results contained</td>
+<td>Fixed user/environment routing; authenticated application and terminal routes; admin-only legacy histories; central audit</td>
+<td>All 16 private logins denied an admin history and admin APIs. Administrator remains trusted. Browser exports and remote reports need separate review.</td>
 </tr>
 </tbody></table>
-<h2 id="section-2">2 Current architecture and execution boundary</h2>
-<p>An authenticated login selects an environment and remains pinned to it. Shells, terminals and generated code execute there. LiteLLM and four-GPU inference are shared; this does not require shared workspaces or histories.</p>
-<p>The diagram shows the <strong>deployed shared pools</strong>, not completed per-user isolation. The dotted path represents denied direct HTTPS requests. Highlighted components retain acceptance gaps.</p>
+<p>Local controls now go beyond the former shared-pool design. Full RDT closure requires tests at the authenticated datalake and remote execution boundaries, not relocation of RDT to a mounted folder.</p>
+<h2 id="section-2">2 Deployed user and environment architecture</h2>
+<p>Nine existing local accounts have fixed routes. Eight non-admin accounts each receive private No Internet and Internet runtimes: 16 private runtimes. Admin retains the two original runtimes and all 80 legacy histories. Registration remains disabled; switching environments requires logout and a new login.</p>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 1</span><div class="mermaid-toolbar">
   <button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button>
   <button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button>
@@ -51,68 +41,82 @@
   <button onclick="exportMermaid(this,'png')">Save PNG</button>
   <button onclick="exportMermaid(this,'copy')">Copy code</button>
   </div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart TB
- U[Browser user] --&gt; G[Login gateway]
- G --&gt; S[No Internet - shared pool]
- G --&gt; I[Internet staging]
- S --&gt; SW[DA_WORKSPACE - CIFS]
- S --&gt; SS[Central durable history on CIFS]
- S --&gt; LC[Local credentials and profiles]
- I --&gt; IW[Separate files and history]
- S --&gt; L[Internal LiteLLM]
+ U[Local DSH login] --&gt; G[Authenticated gateway and fixed routing]
+ G --&gt; S[Private user No Internet runtime]
+ G --&gt; I[Private user Internet runtime]
+ G --&gt; A[Admin legacy runtimes and 80 histories]
+ S --&gt; C[Private CIFS workspace and durable history]
+ S --&gt; K[Private local config and ticket cache]
+ I --&gt; W[Separate local workspace and history]
+ G --&gt; AU[Central admin-only audit]
+ S --&gt; L[Internal inference with restricted keys]
  I --&gt; L
- L --&gt; M[Shared GPU model server]
- I --&gt; W[Public package registries]
- S -. direct HTTPS denied .-&gt; W
- S --&gt; D[DNS - review pending]
- classDef gap fill:#713f12,stroke:#fbbf24,color:#fff;
- class S,D gap;
+ L --&gt; GPU[Shared four-H100 model]
 ">flowchart TB
- U[Browser user] --&gt; G[Login gateway]
- G --&gt; S[No Internet - shared pool]
- G --&gt; I[Internet staging]
- S --&gt; SW[DA_WORKSPACE - CIFS]
- S --&gt; SS[Central durable history on CIFS]
- S --&gt; LC[Local credentials and profiles]
- I --&gt; IW[Separate files and history]
- S --&gt; L[Internal LiteLLM]
+ U[Local DSH login] --&gt; G[Authenticated gateway and fixed routing]
+ G --&gt; S[Private user No Internet runtime]
+ G --&gt; I[Private user Internet runtime]
+ G --&gt; A[Admin legacy runtimes and 80 histories]
+ S --&gt; C[Private CIFS workspace and durable history]
+ S --&gt; K[Private local config and ticket cache]
+ I --&gt; W[Separate local workspace and history]
+ G --&gt; AU[Central admin-only audit]
+ S --&gt; L[Internal inference with restricted keys]
  I --&gt; L
- L --&gt; M[Shared GPU model server]
- I --&gt; W[Public package registries]
- S -. direct HTTPS denied .-&gt; W
- S --&gt; D[DNS - review pending]
- classDef gap fill:#713f12,stroke:#fbbf24,color:#fff;
- class S,D gap;
+ L --&gt; GPU[Shared four-H100 model]
 </div></div></section>
-<p>Inventory every component receiving RDT: Harness, subprocesses, execution workers, report servers and services receiving prompts/results. Legacy DSH2/DSH3 use different configurations and cannot inherit the new pools&#39; acceptance results. Internet On is an environment selection, not another name for DSH2/DSH3.</p>
+<p>Runtimes share inference, not writable workspaces, attachments, sessions or credentials. UID/GID 10001, disabled privilege escalation, dropped capabilities, RuntimeDefault seccomp, no service-account token and resource limits constrain execution. Per-user mounts provide isolation despite the same numeric container UID. This does not protect against trusted administrators or a host/kernel compromise.</p>
+<h3>Storage and persistence</h3>
+<p>The original share remains <code>\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation</code>. Historical name: <strong>dsh_storage</strong>, not dsh_volume. Replacing this share after a CIFS permission failure was an implementation deviation, not a user requirement. UID/GID mapping resolved compatibility; direct central mounts were restored.</p>
+<table>
+<thead>
+<tr>
+<th>Content</th>
+<th>No Internet</th>
+<th>Internet</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Private <code>/workspace</code></td>
+<td>CIFS <code>dsh/private/&lt;identity&gt;/secure</code></td>
+<td>Per-user local PVC</td>
+</tr>
+<tr>
+<td>Sessions, attachments, storages, workspaces, logs</td>
+<td>CIFS <code>dsh/private/&lt;identity&gt;/state/&lt;directory&gt;</code></td>
+<td>Per-user local state PVC</td>
+</tr>
+<tr>
+<td>Configuration, credentials and tickets</td>
+<td>Private local <code>/state</code>; <code>/state/kerberos/ccache</code></td>
+<td>Separate private local state</td>
+</tr>
+<tr>
+<td>Admin legacy data</td>
+<td>Existing <code>dsh</code> and <code>dsh/dsh_storage</code> trees</td>
+<td>Original admin Internet state</td>
+</tr>
+<tr>
+<td>Package access</td>
+<td>Approved cache read-only</td>
+<td>Incoming writable</td>
+</tr>
+<tr>
+<td>Gateway audit</td>
+<td>CIFS <code>dsh-admin-audit</code>, outside runtime mounts</td>
+<td>Same central gateway audit</td>
+</tr>
+</tbody></table>
+<p>Direct CIFS mounts need no copy loop. Local credentials/configuration remain separate from conversation content. PVC persistence is not a backup or disaster recovery guarantee. Admin&#39;s broad legacy mount is an explicit trusted-admin exception; non-admins never receive that root mount. Two markers per private runtime survived process replacement. The unchanged legacy aggregate is 80 histories / 82 files, SHA-256 <code>7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317</code>.</p>
 <h2 id="section-3">3 Control 1 — Prevent external leakage</h2>
-<h3>Threat and enforcement</h3>
-<p>Generated code can transmit information through HTTP, package tools, plugins, subprocesses or indirect services even when nobody clicks Export. Login selection must route to a genuinely restricted runtime, with restrictions covering every worker receiving protected data.</p>
-<p>Use Kubernetes NetworkPolicy enforced by the CNI. Begin with outbound denial and permit only required destinations/ports. The recorded <code>dsh-offline-egress</code> policy allows cluster DNS on TCP/UDP 53 and internal LiteLLM on TCP 4000. Runtime ingress follows the authenticated gateway policy. A label, browser preference or model refusal is not equivalent enforcement.</p>
-<p>DNS forwarding can carry encoded information; permitted internal services can relay requests externally. Review the whole path: effective providers, fallback, active credentials and downstream egress. The inspected LiteLLM configuration routes to internal services and has no configured fallback. Configuration evidence does not prove every indirect leakage path is blocked. Never include credential values in evidence.</p>
-<p>The deployed DSH catalogs expose only <code>litellm-cluster</code>. This reduces accidental external-provider selection but does not replace a firewall or constrain arbitrary generated code by itself.</p>
-<p>Internet staging intentionally reaches package registries. It must not mount Secure&#39;s workspace, RDT, histories, attachments or credentials, or receive RDT-containing prompts/logs during package preparation. Test that Internet cannot access protected content, rather than expecting Internet staging&#39;s public connections to fail.</p>
-<h3>Recorded behavior and remaining acceptance</h3>
-<p>After the central-state rollout, Secure&#39;s GitHub, PyPI and npm requests timed out with HTTP <code>000</code>; Internet returned HTTP <code>200</code> for each. Both environments returned the exact internal inference sentinel. These results establish the particular direct-egress separation observed.</p>
-<p>Before closure, test HTTP/HTTPS, direct IP, proxy settings, DNS, IPv6 and actual worker routes from every in-scope RDT runtime. Unnecessary external paths must fail while permitted internal services work. The infrastructure owner must confirm policy selectors, permitted destinations, CNI enforcement and results. Owner/assessor acceptance is separate from passing code tests.</p>
-<p><strong>Status: partially satisfied; complete-path external-leakage prevention is not established.</strong></p>
-<h2 id="section-4">4 Control 2 — Prevent source damage and excessive access</h2>
-<p>Generated code can read unrelated files, modify/delete source data or reuse credentials found in the runtime. No Internet and non-root execution do not prevent this when data or database credentials remain broadly writable.</p>
-<p>Separate the execution identity, data-access identity and results area. The runtime uses UID/GID <code>10001</code>, no privilege escalation, dropped capabilities, RuntimeDefault seccomp and no Kubernetes service-account token. These limit container/cluster privileges; a shared numeric UID does not establish separate human identities or restricted database rights.</p>
-<p>For file-based RDT, expose a scope-limited snapshot read-only at <code>/data/rdt</code>. Do not mount the Production root or supply source-write credentials. For database access, use a dedicated non-admin account restricted to approved views, rows and columns, without UPDATE, DELETE, DDL or unrelated access. Enforce the restriction through storage/database permissions rather than prompts.</p>
-<p>Keep writable results separate from source data and limited to each user&#39;s approved workspace. CPU, memory and storage quotas constrain resource use but do not prevent destruction inside a writable area.</p>
-<p>Restoring DA_WORKSPACE corrected a storage regression; it did not grant new RDT access. Dataset identification and history ownership were not prerequisites for restoring that mount. They are needed for the separate data-access and per-user cutover.</p>
-<p>The private-runtime generator supports an explicitly approved read-only snapshot and identity-specific central workspace/state paths. Source tests verify distinct paths for generated users. Production still uses shared environment pools. Non-root CIFS read/write tests prove workspace compatibility, not read-only RDT enforcement or cross-user isolation.</p>
-<p>Before closure, show approved scoped reads and result writes succeed while source writes/deletes/renames and out-of-scope reads fail. Include traversal, symlinks, tools, terminal and APIs; verify unchanged source content. Start with an approved test snapshot/view, not destructive Production probes.</p>
-<p><strong>Status: hardening and synthetic read-only enforcement passed; actual scoped RDT acceptance remains open.</strong></p>
-<h2 id="section-5">5 Control 3 — Keep results within authorized users</h2>
-<p>Reports, attachments, logs, temporary files and histories can disclose information internally without Internet access. Controls must cover every route returning content, not only login.</p>
-<p>Use named pilot identities, administrative provisioning and authenticated report access. Bind identity to a dedicated runtime, workspace, history/attachments and launch token. Reject spoofed identity headers and requests without a valid session. Do not enable automatic publishing or external export without explicit authorization.</p>
-<p>Registration is disabled. Recorded registration requests returned 403 without adding an account. Anonymous report/proxy/session routes returned the actual login form. Fresh login/logout, cookie rejection after logout and held sessions after backend restart passed. Actual terminal WebSocket command execution passed in both environments at UID <code>10001</code>.</p>
-<p>Users within a current pool still share its process and mounted environment tree. Authentication is not cross-user authorization. Another account&#39;s files, reports, sessions and attachments must be inaccessible through HTTP, WebSocket, terminal and tools before closure.</p>
-<p>Test user A, user B and an unauthenticated client. Inspect response content for guessed IDs/URLs, modified headers and direct backend routes. HTTP <code>200</code> containing login is not successful report access. Repeat ownership/access checks after logout and restart.</p>
-<p><strong>Status: authentication passed within the recorded scope; per-user authorization and export-path closure remain incomplete.</strong></p>
-<h2 id="section-6">6 Target architecture and pilot interaction</h2>
-<p>This diagram is a <strong>target tested with two synthetic identities, not deployed for existing Production users</strong>. It separates source access, results and identity while retaining mounted DA_WORKSPACE and shared inference.</p>
+<p>Kubernetes NetworkPolicy restricts the No Internet pod, including DSH, generated code, terminal commands and local subprocesses. Allowed paths are internal LiteLLM port 4000, an allowlisted resolver, verified KDCs TCP/UDP 88 and the existing Livy endpoint TCP 28998. This is <strong>No Internet / restricted egress</strong>, not an air gap: internal authentication, application, storage and inference remain connected.</p>
+<p>The resolver accepts exact internal names and necessary Kerberos SRV lookups. Public and encoded names return NXDOMAIN locally. Forwarded questions are rebuilt with client extra/EDNS payloads removed; query names are not logged. Direct CoreDNS and public DNS are blocked. Split-DNS inventory was verified from pods rather than assumed from Windows results.</p>
+<p>Internet runtimes reach public registries but cannot reach KDC, Livy or unrelated private services. They do not mount protected data or histories. Users must not paste protected data into Internet sessions; infrastructure cannot undo an explicit transfer.</p>
+<p>Private identities and admin pools use inference-only LiteLLM virtual keys. Exact inference works; key enumeration, key generation and model creation return 403. A client API-base override was rejected. The shared master key was not rotated for unrelated applications. Restricted credentials supplement network controls; they do not prove that every allowed service cannot relay data externally.</p>
+<p>All 9 No Internet workers failed GitHub/PyPI/npm resolution, public direct-IP, public DNS and direct CoreDNS TCP/UDP probes. All resolved approved internal names, reached KDC 88, received anonymous Livy 401 with <code>WWW-Authenticate: Negotiate</code>, and returned exact internal inference. All 9 Internet workers reached registries/inference but failed KDC, Livy and unrelated PostgreSQL access. The PostgreSQL negative control succeeded before restrictions and failed afterward.</p>
+<p>These are destination-specific observations, not exhaustive IPv6/proxy/relay/browser acceptance. Remote Spark executors are outside DSH pod policies. Infrastructure-owner confirmation of downstream enforcement remains necessary.</p>
+<p>Evidence: <a href="#evidence-internal-network-live-20261016-json">all-worker network tests</a>, <a href="#evidence-internal-network-policies-20261016-json">applied policies</a>, <a href="#evidence-internal-endpoint-split-dns-20261016-json">split DNS review</a>.</p>
+<h2 id="section-4">4 Control 2 — Kerberos and datalake authorization</h2>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 2</span><div class="mermaid-toolbar">
   <button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button>
   <button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button>
@@ -122,37 +126,37 @@
   <button onclick="exportMermaid(this,'png')">Save PNG</button>
   <button onclick="exportMermaid(this,'copy')">Copy code</button>
   </div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart TB
- U[Named pilot identity] --&gt; G[Authenticated fixed routing]
- G --&gt; A[Private user A Secure runtime]
- G --&gt; B[Private user B Secure runtime]
- R[Limited RDT snapshot or view] --&gt;|read only| A
- R --&gt;|read only| B
- A --&gt; AV[Private A workspace and state]
- B --&gt; BV[Private B workspace and state]
- AV --&gt; DA[Mounted DA_WORKSPACE - separate subpaths]
- BV --&gt; DA
- A --&gt; L[Internal inference - no external fallback]
- B --&gt; L
- G --&gt; I[Separate Internet staging - no RDT mounts]
+ D[Private No Internet runtime] --&gt; KA[kinit with approved AD principal]
+ KA --&gt; KC[Private local ticket cache]
+ KC --&gt; L[Internal Livy Negotiate authentication]
+ L --&gt; S[Remote Spark driver and executors]
+ S --&gt; R[Hive and HDFS RDT authorization]
+ R --&gt; O[Permitted read results]
+ O --&gt; W[Private DSH result workspace]
+ P[AD groups and datalake ACLs] --&gt; R
+ X[Remote worker egress policy] --&gt; S
 ">flowchart TB
- U[Named pilot identity] --&gt; G[Authenticated fixed routing]
- G --&gt; A[Private user A Secure runtime]
- G --&gt; B[Private user B Secure runtime]
- R[Limited RDT snapshot or view] --&gt;|read only| A
- R --&gt;|read only| B
- A --&gt; AV[Private A workspace and state]
- B --&gt; BV[Private B workspace and state]
- AV --&gt; DA[Mounted DA_WORKSPACE - separate subpaths]
- BV --&gt; DA
- A --&gt; L[Internal inference - no external fallback]
- B --&gt; L
- G --&gt; I[Separate Internet staging - no RDT mounts]
+ D[Private No Internet runtime] --&gt; KA[kinit with approved AD principal]
+ KA --&gt; KC[Private local ticket cache]
+ KC --&gt; L[Internal Livy Negotiate authentication]
+ L --&gt; S[Remote Spark driver and executors]
+ S --&gt; R[Hive and HDFS RDT authorization]
+ R --&gt; O[Permitted read results]
+ O --&gt; W[Private DSH result workspace]
+ P[AD groups and datalake ACLs] --&gt; R
+ X[Remote worker egress policy] --&gt; S
 </div></div></section>
-<p>A named user enters No Internet and reaches a fixed private runtime. It reads only the approved snapshot/view, writes to its own working area and uses internal inference without external fallback. Authorized users open results through authenticated routes. Ownership must survive restart.</p>
-<p>Changing environments requires logout and a new login, not changing network permissions underneath a running RDT process. Do not automatically transfer projects, histories, attachments or secrets into Internet staging. Physical central storage can be shared while mount boundaries and server permissions isolate logical areas. Broad legacy mounts must not expose future private trees when claiming user isolation.</p>
-<h2 id="section-7">7 Dependency preparation without sharing protected workspaces</h2>
-<p>The 16 October isolation canary used an empty read-only cache fixture. It did not validate package download, promotion or offline installation.</p>
-<p>Internet staging prepares dependencies for No Internet. It is an artifact-preparation area, not a route into protected projects. Dependency lists must not include RDT, histories or secrets.</p>
+<p><code>kinit</code> establishes identity; it does not make that identity read-only. The datalake must enforce the principal, groups, service impersonation/delegation and approved Hive/HDFS scope. A non-root DSH container cannot compensate for broad AD data-write rights.</p>
+<p>The replacement runtime contains Kerberos tools. No Internet uses BOT.OR.TH configuration and a private ticket cache with group/other access denied. A set-group-ID bit inherited from Kubernetes fsGroup does not grant group access. No principal, keytab, AD login or new datalake permission was provisioned. Tickets/passwords must not enter Git, audit logs or Internet staging.</p>
+<p>Acceptance must use an approved test principal/resource: confirm the actual Livy/Spark identity and impersonation; permit intended reads and writes to a separate result area; deny source append/overwrite/delete/rename, Hive DDL/DML and unrelated table/path reads; verify unchanged source. Do not run destructive probes against Production RDT. Inspect remote driver/executor placement and egress too. Anonymous 401 or KDC reachability proves neither authenticated identity nor authorization.</p>
+<p>Earlier canaries used a synthetic filesystem fixture historically named <code>/data/rdt</code>. Its read-only denials establish only fixture behavior. New source calls it a synthetic fixture explicitly; it is not the actual RDT access mechanism.</p>
+<h2 id="section-5">5 Control 3 — Contain reports, histories and execution</h2>
+<p>Authenticated session identity selects a fixed private runtime. Client headers cannot nominate another user. Applications and web terminals pass through authenticated proxy routes; terminal commands run in that selected environment, not in a cluster administrator shell. Runtime ingress permits the gateway rather than neighboring runtimes. Local DSH login is not AD/SSO.</p>
+<p>Production tests exercised all 16 private login/environment combinations, terminal pages, denial of an admin history ID and admin APIs even with forged headers. A separate four-runtime canary tested HTTP/WebSocket binding, real terminal commands, synthetic reports/history and restart persistence. Admin retains all 80 legacy histories; they were not copied into other accounts.</p>
+<p>Central audit fields are strictly time, event, user and environment. Events cover login/logout, runtime access, terminal/WebSocket access and admin denials, excluding passwords, tokens, prompts and conversation text. Only admin can read the audit API. Archives are retained; when configured capacity is exhausted, new login/runtime access fails closed until approved operator archival. This is access audit, not a full command transcript or tamper-proof SIEM.</p>
+<p>No external publisher was introduced. That is narrower than proving every plugin, browser download or remote report path safe. Pod policies cannot stop an authorized browser user manually sharing displayed results. Named-pilot/export acceptance remains an owner decision. Legacy DSH2/DSH3 retain old root/Internet configurations and are excluded from private-pilot acceptance; they must not process protected RDT under this report&#39;s approval.</p>
+<p>Evidence: <a href="#evidence-private-routing-live-20261016-json">private Production routing</a>, <a href="#evidence-isolation-audit-canary-20261016-json">isolation/audit canary</a>, <a href="#evidence-admin-dashboard-audit-tests-20261016-json">audit regressions</a>.</p>
+<h2 id="section-6">6 Dependency supply without protected workspace sharing</h2>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 3</span><div class="mermaid-toolbar">
   <button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button>
   <button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button>
@@ -162,346 +166,184 @@
   <button onclick="exportMermaid(this,'png')">Save PNG</button>
   <button onclick="exportMermaid(this,'copy')">Copy code</button>
   </div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart TB
- P[Public package registries] --&gt; I[Internet staging - no protected data]
- I --&gt; IN[Incoming candidate artifacts]
- IN --&gt; R[Operator reviews provenance and security]
- R --&gt; H[Approval manifest with exact hashes]
- H --&gt; J[Controlled promotion verifies artifacts]
- J --&gt; C[Approved package cache]
- C --&gt;|read only| S[No Internet runtime]
- S --&gt; O[Offline install into permitted working area]
+ R[Public package registries] --&gt; I[Private Internet environment]
+ I --&gt; N[Incoming artifacts]
+ N --&gt; V[Operator provenance and security review]
+ V --&gt; H[Hash verification and controlled promotion]
+ H --&gt; A[Approved read-only cache]
+ A --&gt; S[Private No Internet installation]
+ S --&gt; W[Protected workspace and history]
 ">flowchart TB
- P[Public package registries] --&gt; I[Internet staging - no protected data]
- I --&gt; IN[Incoming candidate artifacts]
- IN --&gt; R[Operator reviews provenance and security]
- R --&gt; H[Approval manifest with exact hashes]
- H --&gt; J[Controlled promotion verifies artifacts]
- J --&gt; C[Approved package cache]
- C --&gt;|read only| S[No Internet runtime]
- S --&gt; O[Offline install into permitted working area]
+ R[Public package registries] --&gt; I[Private Internet environment]
+ I --&gt; N[Incoming artifacts]
+ N --&gt; V[Operator provenance and security review]
+ V --&gt; H[Hash verification and controlled promotion]
+ H --&gt; A[Approved read-only cache]
+ A --&gt; S[Private No Internet installation]
+ S --&gt; W[Protected workspace and history]
 </div></div></section>
-<p>Download into Incoming and retain package versions, provenance and hashes. Review before promotion. A controlled job verifies approved artifacts and copies them to Approved. Secure mounts Approved read-only and installs from the offline cache. Internet cannot install directly inside Secure or modify its protected workspace.</p>
-<p>Hashes establish identity, not safety. Review installation hooks, transitive dependencies and provenance. Test actual offline installation and import/execution. Retain approvals and the promoted manifest. This does not make the platform air-gapped: internal gateway, DNS, inference and storage connectivity remain necessary.</p>
-<h2 id="section-8">8 DA_WORKSPACE, active history and corrected storage</h2>
-<p>The original requirement was mounted DA_WORKSPACE restricted to <code>dsh</code>, with no protected share in the Internet environment. Replacing it with local storage after a CIFS permission failure was an implementation decision, not a user requirement. Explicit UID/GID mapping proved non-root compatibility and enabled the actual mount&#39;s restoration.</p>
-<p>Raw USER_INPUT and UNC paths identify <strong>dsh_storage</strong>, not dsh_volume:</p>
-<p><code>\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation\dsh\dsh_storage</code></p>
+<p>Internet prepares packages; it cannot install directly into No Internet or edit protected files/history. An operator reviews provenance/security and promotes hash-verified artifacts into Approved. Secure installs from the read-only cache without public registries. Hashes detect substitution, not malicious package logic. Isolation canaries used empty cache fixtures and are not fresh package installation acceptance; original package workflow source/evidence remains separate.</p>
+<h2 id="section-7">7 Rollout, rollback and experience</h2>
+<p>Azure build 62743 produced image <code>sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6</code> from source <code>4b90c846ead7098433173a18046105b179744737</code>. Its matching disposable canary passed. Later operator/document changes are not represented as baked into that image. Gateway source is independently hashed.</p>
+<p>Sequential runtime rollout checks actual imageID, two persistent markers and Kerberos client/cache behavior, then gateway login/history/terminal/audit. Failure restores prior specifications, not an old copy of user data. The model is not restarted by this change. The final retry passed on all 18 runtimes and the gateway: actual image digest, persistent markers, Kerberos client/cache, 16 private login/denial checks and unchanged 80-history aggregate. See <a href="#evidence-kerberos-runtime-live-62743-json">live acceptance</a> and <a href="#evidence-kerberos-runtime-first-attempt-62743-json">initial rollback</a>. Pipeline success alone does not establish this.</p>
 <table>
 <thead>
 <tr>
-<th>Content</th>
-<th>No Internet / Secure</th>
-<th>Internet</th>
+<th>Trial</th>
+<th>Finding and correction</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><code>/workspace</code></td>
-<td>Original CIFS share, subpath <code>dsh</code></td>
-<td>Separate local staging</td>
+<td>CPU reservations</td>
+<td>One CPU per runtime left four Pending. Requests became 250m CPU / 1Gi, limits remain 4 CPU / 8Gi.</td>
 </tr>
 <tr>
-<td>Sessions, attachments, storages, workspaces and logs under <code>/state</code></td>
-<td>Direct CIFS submounts at <code>dsh/dsh_storage/&lt;directory&gt;</code></td>
-<td>Separate local state</td>
+<td>Admin key replacement</td>
+<td>First attempt missed <code>cordis.patch.yml</code> and rolled back. Exact old values were replaced across root YAML; retry passed inference and management denial.</td>
 </tr>
 <tr>
-<td>Credentials and web profiles</td>
-<td>Original local state; top-level credentials excluded from central migration</td>
-<td>Its own local state</td>
+<td>Split DNS</td>
+<td>Windows/pod mismatch stopped rollout before policy changes; reviewed pod addresses were used.</td>
 </tr>
 <tr>
-<td>Packages</td>
-<td>Approved cache read-only</td>
-<td>Incoming preparation area</td>
+<td>RKE2 DNS</td>
+<td>Label discovery replaced an incorrect assumed service name.</td>
+</tr>
+<tr>
+<td>Kerberos cache mode</td>
+<td>Initial check rejected 2700 despite denied group/other access and rolled back. Corrected check separates permission bits from set-group-ID.</td>
+</tr>
+<tr>
+<td>RDT confusion</td>
+<td>Synthetic mount tests do not establish real Kerberos/datalake rights. DA_WORKSPACE restoration is independent.</td>
+</tr>
+<tr>
+<td>Long context</td>
+<td>Approximately 262K input previously caused attention-workspace OOM. Smaller prefill chunks enabled a historical near-1M test; KV slots alone did not prove operational capacity.</td>
 </tr>
 </tbody></table>
-<p>Direct mounts write durable content centrally; these directories do not require the old 15-second copy loop. The share is not an independent backup, storage-server recovery plan or zero-loss guarantee. CIFS forced modes do not establish Windows/server ACL correctness.</p>
-<p>The single Secure writer was stopped before copying and hash-verifying <strong>29,078 files</strong>. Previous central directories and original local state were retained. Additional stopped reconciliation confirmed <strong>28,898 canonical central project files unchanged</strong>, without conflicts or content failures. The procedure now reconciles canonical projects before switching directories. Internet and the model server were not restarted by this storage deployment.</p>
-<h3>Legacy working-directory repair</h3>
-<p>The earlier review found 43 of 80 stored sessions under inaccessible <code>/root</code> paths. Explicit mappings point them to existing canonical CIFS project folders. Only the compressed header&#39;s <code>cwd</code> changed. IDs and all other header fields were preserved; compressed conversation-event frames remained byte-identical by SHA-256. Original generations were retained. Missing mappings, absent targets and destination collisions cause refusal before mutation; conversation text is not blanket-replaced.</p>
-<p>Installed DSH persistence passed CIFS create/flush/reopen. An independent process could not take a held writer lease and acquired it after release. Early probe harness attempts omitted required V4 fields and initially misclassified generic <code>EACCES</code>; corrected setup and the denial/release pair established acceptance.</p>
-<p>Final checks listed <strong>80 histories with 80 readable working directories and no <code>/root</code> cwd records</strong>. All <strong>82 session files</strong> stayed byte-identical across another process replacement. Four new durable-directory markers survived and were removed. Login/logout, held sessions and actual terminal WebSocket execution passed in both environments. Temporary acceptance credentials were removed.</p>
-<p>This does not establish every historical session&#39;s tool resumption. See <a href="#evidence-central-state-live-20261015-json">live evidence</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CENTRAL_STATE_RESTORATION_20261015.md">migration procedure and experience</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/MULTI_TENANT_STORAGE_AND_PERSISTENCE.md">storage guide</a>. Reconcile newer central writes before reverting to an older local mount; retain both versions.</p>
-<h2 id="section-9">9 Deployment evidence and its limits</h2>
-<h3>New synthetic canary — 16 October</h3>
-<p>Two test users exercised four dedicated Secure/Internet runtimes. Before and after replacing all four processes, exact own reports, attachment-file fixtures and real DSH history pages remained readable; cross-user/environment history requests, anonymous reads and forged HTTP/WebSocket identity headers were denied. Actual terminal commands ran at UID 10001. Both Secure workers rejected append/delete/create on the synthetic source with EROFS; Internet had no source mount. Direct neighbor-runtime HTTP was denied. Secure GitHub probes timed out; Internet returned 200.</p>
-<p>The first attempt found client identity headers passing through custom forwarding. The corrected gateway canonicalizes both normalized and raw HTTP/WebSocket identity headers. A negative control reproduced the defect in the original source. The correction was verified through a ConfigMap overlay in the isolated canary, <strong>initially not installed in the Production gateway; the later live review records its rollout</strong>. Both test namespaces are stopped and temporary Kubernetes Secrets removed; synthetic audit volumes remain. No model load test occurred.</p>
-<p>Legacy preservation was verified across both attempts: 80 histories in 82 files retained aggregate SHA-256 <code>7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317</code>. No legacy histories were reassigned. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/USER_ISOLATION_SYNTHETIC_TEST_20261016.md">full test, failures and limits</a>. This is candidate acceptance, not closure of real-user/RDT Production gaps.</p>
-<h3>Earlier Production baseline — 15 October</h3>
-<p>Build <strong>62702</strong>, image-source revision <strong><code>3fa74b72eaad7d7dd1e0986dd07a176f45ab2153</code></strong>, produced the gateway/pool runtime image:</p>
-<p><code>sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1</code></p>
-<p>Subsequent operator/document commits do not imply a rebuilt application image. Storage changes were pushed as GitHub <code>0e504ea</code> and Azure <code>f948b04</code>. The live storage annotation was read back against the Azure commit and mounts matched the tracked manifest. This English rewrite is documentation work, not another runtime deployment.</p>
-<table>
-<thead>
-<tr>
-<th>Check</th>
-<th>Recorded result</th>
-<th>Limit</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Login/logout and held sessions</td>
-<td>Both environments passed; tested logout cookie invalidated</td>
-<td>Not cross-user authorization</td>
-</tr>
-<tr>
-<td>Central state</td>
-<td>29,078 stopped files checked; 80 histories and readable cwd values</td>
-<td>Not full historical tool resumption</td>
-</tr>
-<tr>
-<td>Restart persistence</td>
-<td>82 session files unchanged; four new markers survived</td>
-<td>Not storage-server recovery or full restored-runtime boot</td>
-</tr>
-<tr>
-<td>Terminal WebSocket</td>
-<td>Actual sentinel command at UID 10001 in both environments</td>
-<td>Not every terminal/tool operation</td>
-</tr>
-<tr>
-<td>Public HTTPS</td>
-<td>Secure timeouts; Internet 200 at GitHub/PyPI/npm</td>
-<td>Not all leakage paths</td>
-</tr>
-<tr>
-<td>Internal inference</td>
-<td>Exact expected sentinel in both environments</td>
-<td>Not every model/tool workflow</td>
-</tr>
-<tr>
-<td>Source/report checks</td>
-<td>17 Python tests, manifest checks and HTML controls passed</td>
-<td>Not deployed cross-user/RDT acceptance</td>
-</tr>
-</tbody></table>
-<p>Recreate avoids overlapping writers. Startup/readiness/liveness probes check the application rather than only a forwarding port. Readiness cannot create high availability with one inference process.</p>
-<p>Earlier verifier workers hit CSI read-only-mount/SELinux setup errors, not byte mismatches. Corrected archive comparison avoids co-mounting live local state in another verifier. An earlier workspace validator used an unsupported Python extraction API and triggered actual automatic mount rollback; the portable retry passed. That earlier rollback is not a live exercise of every subsequent recovery path.</p>
-<p>Original storage and rollback specifications are retained. Direct mounts and restart acceptance are separate from archive restore, node-loss recovery and server ACL assurance. Older local-only history statements remain dated historical evidence.</p>
-<h2 id="section-10">10 Proceeding when ownership and RDT scope are unknown</h2>
-<p>Unknown ownership does not block the completed storage restoration. It prevents safely redistributing histories or granting new RDT rights. Do not infer ownership from an account, project name, topic or folder.</p>
-<p>A fresh read-only review found <strong>9 gateway accounts</strong>, <strong>80 unique sessions</strong> and <strong>82 generation files</strong>. Their inspected headers contain no <code>owner</code>, <code>username</code>, <code>userId</code>, <code>createdBy</code>, <code>user</code> or <code>principal</code> field. Headers cannot establish authenticated ownership. Account existence does not establish pilot approval. Account names remain in a private local CSV, not this published report.</p>
-<p>The practical staged approach is:</p>
+<h2 id="section-8">8 Context, performance and administration</h2>
+<p>Backend configuration: 1,048,576 context ceiling, memory fraction 0.90, request cap 16, prefill chunk 1,024, maximum prefill 2,048 and interleaved short-work scheduling. DSH/LiteLLM user guardrail remains 131,072 total, 8,192 output and a 256-token reserve; compaction is configured near 98,304. Configuration does not prove every session compacts successfully.</p>
+<p>Earlier bounded samples: short replies around 0.23 seconds, two concurrent replies around 35 effective output tokens/sec each, and short replies 0.466–0.588 seconds during fresh 24,047-token work. Effective rate includes queue, prefill and network time. These are not sustained capacity, two simultaneous 1M sessions or fresh near-1M fairness. Fresh post-upgrade tests on 16 October at 07:41 UTC returned exact short replies in 0.223–0.233 seconds, two concurrent replies at 35.16–35.20 effective output tokens/sec each, and short replies in 0.440–0.588 seconds during a 24,044-token input request. All three short replies finished before the larger request ended. See <a href="#evidence-performance-private-live-20261016-json">exact responses and timing</a>.</p>
+<p>The admin dashboard combines live gateway account/session/audit counters with a timestamped infrastructure snapshot. Refresh does not rerun Kubernetes/datalake probes. Gateway receives no cluster API token. Saved infrastructure claims must be refreshed after changes.</p>
+<h2 id="section-9">9 Remaining acceptance</h2>
+<p>Local implementation is not blanket RDT approval. Remaining evidence is specific:</p>
 <ol>
-<li><strong>Preserve legacy records together.</strong> Keep the 80 histories and central projects intact. Do not clone them into every private account or broaden access. Keeping the current service available is an interim operational choice, not closure of its shared-pool risk.</li>
-<li><strong>Synthetic isolation acceptance completed.</strong> Two disposable identities and four private runtimes passed positive access, A-to-B/environment denial and restart persistence. Six source mutations failed read-only. This validates the tested mechanism without assigning real histories or using RDT. Production cutover remains pending.</li>
-<li><strong>Start new private histories cleanly.</strong> Once a human identity is confirmed, provision an empty private environment. Leave legacy records in their current boundary. Migrate only verified ownership or an explicit recorded shared-access decision. Remove broad legacy access to private trees before cutover.</li>
-<li><strong>Default new pilot RDT access to none.</strong> Do not mount guessed sources or copy Production data. Test read-only enforcement with synthetic fixtures. A data/system owner can later identify the limited folder/snapshot/view and dedicated account.</li>
-<li><strong>Close against actual access tests.</strong> Verify scoped reads, rejected source writes/out-of-scope reads, private results, cross-user denial, every worker&#39;s outbound restrictions and absence of unapproved publishing. Separate infrastructure/data/pilot acceptance from code completion.</li>
+<li>Approved AD test principal, actual Livy/Spark identity/impersonation, permitted Hive/HDFS reads and denied source writes/unrelated reads.</li>
+<li>Remote Spark driver/executor egress and any allowed-service relay path.</li>
+<li>Named-pilot/report/export policy and infrastructure/data-owner acceptance, including trusted-admin and legacy-instance exceptions.</li>
+<li>Actual offline package installation after reviewed promotion; empty-cache fixtures do not establish it.</li>
 </ol>
-<p>Synthetic acceptance is now complete. It does <strong>not</strong> mean legacy access has already been restricted, accounts disabled, private users cut over or RDT access granted.</p>
-<table>
-<thead>
-<tr>
-<th>Work item</th>
-<th>Current disposition</th>
-<th>Closure evidence</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Central workspace and histories</td>
-<td>Deployed and tested</td>
-<td>Direct mounts, content hashes, accessible paths and restart checks recorded</td>
-</tr>
-<tr>
-<td>Approved identities and ownership</td>
-<td>Unknown; preserve legacy records</td>
-<td>Confirm human identity and ownership/shared-access decisions</td>
-</tr>
-<tr>
-<td>Private runtimes</td>
-<td>Live synthetic candidate passed; Production pools still shared</td>
-<td>Deployed fixed routing and A-to-B file/report/history/terminal/API denial</td>
-</tr>
-<tr>
-<td>Read-only RDT</td>
-<td>Actual scope unidentified</td>
-<td>Approved source/identity; permitted reads/results and rejected writes/out-of-scope reads</td>
-</tr>
-<tr>
-<td>Leakage paths</td>
-<td>Representative direct tests passed</td>
-<td>Every worker; DNS/relay/IPv6/proxy/fallback and infrastructure confirmation</td>
-</tr>
-<tr>
-<td>Publishing/export containment</td>
-<td>Not fully closed</td>
-<td>Job/plugin/credential inventory and unauthorized-access/export tests</td>
-</tr>
-<tr>
-<td>Independent recovery</td>
-<td>Separate from the central mount</td>
-<td>Server ACL review, backup/DR and full restored-runtime boot as required</td>
-</tr>
-</tbody></table>
-<h2 id="section-11">11 Upstream maintenance and shared inference</h2>
-<p>The recorded package is <code>0.2.0-rc.2</code>. This repository maintains deployment/authentication/routing/configuration overlays, not a fully synchronized source fork. The previous comparison inspected official master <code>571902028a75c64c1d767f4ae5fd099485f0ddf0</code> and tag <code>dsh-v0.2.1-alpha.3</code>. This rewrite did not refresh upstream or upgrade the package.</p>
-<p>Upstream supplies workspaces, tools, plugins, remote access, providers and session persistence. Infrastructure/data isolation and central storage remain deployment responsibilities. Review compatibility patches individually: a localhost-helper patch does not prove a broken Host fence, and a missing-image placeholder does not recover original image evidence.</p>
-<p>Pin source/image, fail closed on changed patch targets, inspect credential precedence and test copied state before upgrading. Cover auth/Host/Origin, sessions, attachments, tools, WebSocket, network/user/data boundaries, restart and restore. Retain old image/state; do not auto-merge into Production. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">synchronization procedure</a>, the <a href="https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/docs/user/guide/public-deployments.md">pinned official deployment guide</a> and <a href="https://github.com/deepseek-ai/deepseek-harness/blob/571902028a75c64c1d767f4ae5fd099485f0ddf0/SAFETY.md">pinned safety guidance</a>.</p>
-<p>Backend ceiling: <strong>1,048,576 tokens</strong>. DSH web/LiteLLM guardrail: <strong>131,072 total</strong>, <strong>8,192 maximum output</strong>, <strong>256-token proxy reserve</strong>, configured compaction near <strong>98,304</strong>. Backend memory fraction is 0.90, running-request cap 16, prefill chunk 1,024, maximum prefill 2,048, mixed prefill/decode and decode interval four. V2 reserves part of each chunk for short uncached tails while retaining long progress.</p>
-<p>Bounded V2 tests completed short requests in 0.59–1.47 seconds during approximately 133K work. A later two-request sample returned exact output at approximately 34–35 output tokens/second per request including elapsed time. These are samples, not an SLA or sustained benchmark. The earlier successful near-1M run belongs to a previous scheduler profile; it is not current end-to-end DSH 1M, two-1M concurrency or V2 near-1M fairness acceptance. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CONTEXT_OPTIMIZATION_20261015.md">context trials</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/SCHEDULING_FAIRNESS_20261015.md">scheduling evidence</a>.</p>
-<h2 id="section-12">12 Evidence and document use</h2>
-<p>Embedded records are saved responses/logs at their stated times, not a live webpage or a new test when opened. Original evidence remains unchanged and may include Thai source text. Narrative, navigation and controls are English. Passwords, tokens and RDT content are not intentionally reproduced.</p>
-<ul>
-<li><a href="#evidence-gateway-identity-live-20261016-json">Latest gateway correction</a>: source hash and actual pre/post authentication checks.</li>
-<li><a href="#evidence-status-live-20261016-json">Latest mount/network/configuration readback</a>: includes legacy DSH2/DSH3 limitations.</li>
-<li><a href="#evidence-performance-mixed-live-20261016-json">24K mixed-load responsiveness</a>: repeated short replies completed during fresh longer prefill.</li>
-<li><a href="#evidence-performance-live-20261016-json">Bounded performance sample</a>: exact short and concurrent responses.</li>
-<li><a href="#evidence-user-isolation-canary-20261016-json">Synthetic isolation acceptance</a>: successful live candidate and configuration readback.</li>
-<li><a href="#evidence-user-isolation-canary-first-attempt-20261016-json">First attempt</a>: observed defect, correction and unchanged legacy fingerprints.</li>
-<li><a href="#evidence-identity-metadata-review-20261015-json">Identity metadata review</a>: counts and absent ownership fields; account names retained privately.</li>
-<li><a href="#evidence-central-state-live-20261015-json">Latest central-state evidence</a>: mounts, copied-state counts, cwd correction, hashes, restart, terminal and connectivity.</li>
-<li><a href="#evidence-environment-session-storage-review-20261015-json">Earlier storage review</a>: raw-source provenance and pre-correction inaccessible paths.</li>
-<li><a href="#evidence-central-workspace-live-20261015-json">Workspace correction</a>: CIFS restoration, reconciliation, peer readback and earlier rollback.</li>
-<li><a href="#evidence-runtime-rollout-live-20261015-json">Runtime image rollout</a>: image/source readback and bounded acceptance.</li>
-<li><a href="#evidence-rdt-gateway-live-20261015-json">Gateway evidence</a>: registration denial and anonymous routes.</li>
-<li><a href="#evidence-rdt-egress-recheck-20261015-json">Earlier egress probes</a>: direct connectivity scope.</li>
-<li><a href="#evidence-rdt-candidate-cluster-check-62696-log">Candidate cluster tests</a>: candidate checks, not deployed cross-user RDT acceptance.</li>
-<li><a href="#evidence-storage-design-audit-20261015-json">Raw design audit</a>: curated messages, Git change and CIFS canary.</li>
-</ul>
-<p>The standalone HTML retains SMP EDA-style zoom/reset/fullscreen, source copy and SVG/PNG export. Mermaid 10.8.0 and svg-pan-zoom 3.6.1 are embedded; no CDN is required. It also embeds the actual English README content, not just a reference. Document QA verifies rendering and controls, not DSH security acceptance. See <a href="#evidence-html-verification-20261015-json">QA record</a>.</p>
-<details id="embedded-readme"><summary>Embedded README — features, design decisions and setup</summary><h1>DSH — Enterprise Execution Environments and RDT Pilot</h1>
-<p>DSH provides an authenticated gateway, separate <strong>No Internet / Internal (default)</strong> and <strong>Internet</strong> environments, internal LiteLLM and a shared four-H100 model. The three RDT pilot controls remain partially satisfied: the storage regression is corrected, but existing shared pools do not establish per-user isolation or approved read-only RDT access.</p>
-<p>Start with the English <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">interactive security and architecture walkthrough</a>, its <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md">Markdown source</a>, and the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CENTRAL_STATE_RESTORATION_20261015.md">central-state restoration procedure</a>. The standalone HTML embeds the README and evidence, with SMP EDA-style diagram zoom, fullscreen, source copy and SVG/PNG export.</p>
-<h2>Admin dashboard</h2>
-<p>Open <a href="https://dsh.aiportal.bot.or.th/admin">Admin overview</a> after logging in as the existing <code>admin</code> account, or use the <strong>Admin overview</strong> link beside Logout. Other accounts and anonymous visitors cannot read the page or summary API. The operator can configure <code>DSH_ADMIN_USERS</code> as an explicit comma-separated allowlist; this does not provision accounts or accept client-selected roles.</p>
-<p>The read-only dashboard shows current account counts, browser sessions by environment and whether routing uses shared pools or private users. It also shows the timestamped environment/storage/network snapshot, model budgets, performance samples and remaining controls. Refresh reads the summary; it does not rerun infrastructure probes. No passwords, conversation contents or source data are shown. The gateway has no Kubernetes service-account token or cluster-monitoring permissions.</p>
-<p>The new gateway source overlay is <code>dsh-gateway-source-c013b4abad57</code> (image unchanged). The read-only snapshot is <code>dsh-admin-status-ce5034f4013b</code>. Production admin access, ordinary-user/forged-role denial, anonymous denial and navigation passed; all 80 legacy histories stayed unchanged. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/ADMIN_DASHBOARD.md">setup, data freshness and test evidence</a>.</p>
-<h2>Latest live review and performance — 16 October 2026</h2>
-<p>The candidate-tested identity-header correction is now deployed to the Production gateway through immutable ConfigMap <code>dsh-gateway-source-c013b4abad57</code>. The image remains build 62702; its source overlay is tracked separately. Fresh login/logout, environment binding, history listing and terminal pages passed after replacement. Execution pools and the model were not restarted. All 80 legacy histories in 82 files remain byte-identical. Temporary probe credentials were removed.</p>
-<p>Current mount readback confirms Secure workspace and durable state are direct CIFS mounts; no continuous copy loop is required for those directories. The parent <code>/state</code> still holds local credentials/configuration. Secure GitHub/PyPI/npm probes timed out while Internet returned 200. DSH2/DSH3 remain legacy root-based, Internet-connected environments with mounted service-account tokens; they are not covered by Secure pilot acceptance.</p>
-<p>Three short model replies completed in 0.230–0.231 seconds. Two concurrent exact 119-token replies completed in 3.381–3.386 seconds each, about 35.2 effective output tokens/sec per request. Backend ceiling is 1M; the DSH/LiteLLM product guardrail remains 128K. This bounded sample does not prove near-1M fairness, sustained capacity or full agent-turn speed.</p>
-<p>A fresh 24,047-token synthetic request completed in 4.987 seconds while three repeated short replies finished in 0.466–0.588 seconds, all before the longer request ended. This adds bounded live scheduling evidence; it is not near-1M acceptance.</p>
-<p>Existing Production pools still share users; real RDT scope/identity is not identified or granted. Synthetic isolation and read-only tests are complete within their scope. They do not close real-user Production acceptance. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LIVE_REVIEW_AND_PERFORMANCE_20261016.md">live status, correction, performance and remaining work</a>. Preserve the tracked gateway source overlay when applying base manifests or building its replacement image.</p>
-<h2>Features, design decisions and current deployment</h2>
+<p>No new datalake permission was granted. No AD password or ticket was exported. The embedded README supplies setup/maintenance guidance; saved evidence preserves failed trials as well as successful ones.</p>
+<details id="embedded-readme"><summary>Embedded README — features, design decisions and setup</summary><h1>DSH — Private Execution Environments and Kerberos Datalake Access</h1>
+<p>DSH provides local login, <strong>No Internet / Internal (default)</strong> and <strong>Internet</strong> environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses <strong>Kerberos kinit → Livy/Spark → Hive/HDFS authorization</strong>. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.</p>
+<p>Read the English <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">security and architecture walkthrough</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md">source report</a>. HTML embeds this README and saved evidence with SMP EDA diagram zoom, fullscreen and SVG/PNG export.</p>
+<h2>Features, design reasons and live status — 16 October 2026</h2>
 <table>
 <thead>
 <tr>
 <th>Feature</th>
-<th>Design reason</th>
-<th>Actual status</th>
+<th>Reason</th>
+<th>Verified scope</th>
 </tr>
 </thead>
 <tbody><tr>
 <td>No Internet default</td>
-<td>Infrastructure restrictions apply to generated code and subprocesses</td>
-<td>Separate restricted-egress pool; not an air gap</td>
+<td>Restrict Harness, generated code and local subprocess egress</td>
+<td>Nine workers tested: public domains/direct IP/DNS denied; allowlisted internal inference, KDC and Livy reachable</td>
 </tr>
 <tr>
-<td>Internet environment</td>
-<td>Download dependencies without exposing protected work</td>
-<td>Separate local staging, history and credentials; no protected CIFS mount</td>
+<td>Separate Internet environment</td>
+<td>Prepare dependencies without mounting protected data</td>
+<td>Nine workers reach registries but cannot reach KDC, Livy or unrelated private services</td>
 </tr>
 <tr>
-<td>Gateway login, routing and logout</td>
-<td>Pin an authenticated login to one environment</td>
-<td>Deployed; registration disabled; runtime-token rotation handled</td>
+<td>Per-user runtime and state</td>
+<td>Prevent shared-process/file/history exposure</td>
+<td>Eight non-admin accounts × two environments deployed; admin retains original two runtimes</td>
 </tr>
 <tr>
-<td>Mounted central workspace</td>
-<td>Preserve the original DA_WORKSPACE design</td>
-<td>Secure <code>/workspace</code> mounts CIFS subpath <code>dsh</code></td>
+<td>DA_WORKSPACE persistence</td>
+<td>Preserve original mounted central storage design</td>
+<td>Private Secure CIFS subpaths; direct durable session/attachment mounts</td>
 </tr>
 <tr>
-<td>Central sessions, attachments and durable storage</td>
-<td>Persist actual active content centrally rather than substitute a backup</td>
-<td>Secure durable <code>/state</code> subdirectories bind directly to <code>dsh/dsh_storage</code>; local credentials/profiles remain separate</td>
+<td>Kerberos client</td>
+<td>Authenticate separately to the datalake</td>
+<td>Tools/private ticket cache in replacement image; no AD login or data permission granted</td>
 </tr>
 <tr>
-<td>Legacy working-directory compatibility</td>
-<td>Resume from canonical accessible project folders</td>
-<td>Explicit header-only mapping preserves original files and byte-identical conversation frames</td>
+<td>Restricted inference credentials</td>
+<td>Avoid exposing LiteLLM management authority to generated code</td>
+<td>Exact inference succeeds; key/model management returns 403</td>
 </tr>
 <tr>
-<td>Approved package transfer</td>
-<td>Provide offline dependencies without sharing writable workspaces</td>
-<td>Separate Incoming, operator/hash review, promotion and read-only Approved cache</td>
+<td>Admin dashboard/audit</td>
+<td>Central visibility without sharing conversation content</td>
+<td>Admin-only summary and fixed-schema access audit; ordinary/forged-role requests denied</td>
 </tr>
 <tr>
-<td>Private user runtimes</td>
-<td>Prevent users sharing execution and state</td>
-<td>Two-user live synthetic canary passed with restart persistence; existing Production pools have not been cut over</td>
+<td>Approved package cache</td>
+<td>Supply offline dependencies without writable workspace sharing</td>
+<td>Incoming → operator review/hash promotion → read-only Approved; empty-cache canaries are not package installation acceptance</td>
 </tr>
 <tr>
-<td>Read-only RDT source</td>
-<td>Limit reads and prevent source modification</td>
-<td>Synthetic read-only source and out-of-scope denial passed; actual RDT source scope, identity and acceptance remain required</td>
-</tr>
-<tr>
-<td>Shared inference</td>
-<td>Use the existing one-node four-GPU system efficiently</td>
-<td>Backend ceiling 1M; DSH web/LiteLLM user guardrail 128K</td>
-</tr>
-<tr>
-<td>Interactive scheduling</td>
-<td>Interleave short requests with long prefill</td>
-<td>Deployed V2; bounded 133K mixed-load tests passed, near-1M mixed load not revalidated</td>
+<td>Shared model</td>
+<td>Use the existing single-node GPUs efficiently</td>
+<td>Backend 1M ceiling; DSH/LiteLLM user guardrail 128K; request cap 16</td>
 </tr>
 </tbody></table>
-<h2>Latest synthetic isolation acceptance — 16 October 2026</h2>
-<p>Two disposable users, each with Secure and Internet runtimes, passed real gateway/history/terminal tests before and after replacing all four runtime processes. Own reports, attachment-file fixtures and DSH histories persisted. Other user/environment histories, forged HTTP/WebSocket identities and anonymous reads were denied. Both Secure workers rejected source append/delete/create (six EROFS results); Internet had no source mount. Direct neighbor-runtime HTTP was denied. Secure GitHub requests timed out while Internet returned 200.</p>
-<p>All <strong>80 legacy histories in 82 generation files stayed byte-identical</strong>, aggregate SHA-256 <code>7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317</code>. Candidate workloads are stopped, temporary Kubernetes Secrets removed and synthetic audit volumes retained. No legacy histories were assigned or moved.</p>
-<p>The first run exposed a custom-proxy identity-header defect. The corrected HTTP/WebSocket binding passed a negative-control regression and the revised live canary. <strong>At the time of the canary the source correction was candidate-only; the later live review above records its Production deployment.</strong> Existing shared Production pools remain shared; no actual RDT was used or authorized. Empty package-cache fixtures, synthetic attachment-file serving and bounded GitHub tests do not validate package installation, upstream uploads or every leakage path.</p>
-<p>See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/USER_ISOLATION_SYNTHETIC_TEST_20261016.md">complete test and experience record</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/user-isolation-canary-20261016.json">successful evidence</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/user-isolation-canary-first-attempt-20261016.json">first-attempt evidence</a>. Reproduction uses <code>scripts/run_isolation_canary.py</code> with a fresh isolated namespace. Resource validation refuses Production namespaces/claims and legacy subpaths.</p>
-<h2>Architecture and security boundary</h2>
-<pre><code class="language-mermaid">flowchart TB
- User[Authenticated user] --&gt; Gateway[Environment gateway]
- Gateway --&gt; Secure[No Internet - default]
- Gateway --&gt; Internet[Internet staging]
- Secure --&gt; Central[DA_WORKSPACE - workspace and durable history]
- Secure --&gt; Config[Local credentials and profiles]
- Internet --&gt; Local[Separate local workspace and history]
- Secure --&gt; L[Internal LiteLLM]
- Internet --&gt; L
- L --&gt; GPU[Shared four-H100 model]
- Internet --&gt; Incoming[Incoming packages]
- Incoming --&gt; Review[Operator review and hash verification]
- Review --&gt; Approved[Read-only approved cache]
- Approved --&gt; Secure
-</code></pre>
-<p>The environments share inference and approved dependency artifacts, not writable project data, chat histories, credentials or attachments. Internet cannot directly install inside Secure. Secure installs reviewed packages from Approved. Dependencies can execute arbitrary code after installation, so promotion requires provenance/security review; hashes alone do not prove safety.</p>
-<p>No Internet means restricted egress, not physical disconnection. Secure still requires internal inference, DNS, storage and authenticated gateway traffic. A direct public HTTPS timeout is bounded evidence; DNS forwarding, allowed-service relays and every pilot worker must also be assessed. Inspected LiteLLM routes point to internal services with no configured fallback; this does not establish that every indirect network path is blocked.</p>
-<h2>Exact storage mapping</h2>
+<p>The remaining end-to-end RDT gaps are actual AD/Livy/Spark identity and read-only Hive/HDFS permission tests, remote executor egress, and owner-approved report/export rules. A synthetic read-only filesystem test does not establish those controls. Legacy DSH2/DSH3 are older root/Internet instances, outside this private pilot acceptance.</p>
+<h2>Architecture and storage</h2>
+<p>Login pins one identity to one environment until logout. Private workspaces, sessions, attachments, credentials and launch tokens are separate. Inference and reviewed dependency artifacts are shared. Internet cannot install directly into No Internet. No Internet is <strong>restricted egress, not an air gap</strong>, because required internal services remain connected.</p>
+<p>The share remains <code>\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation</code>. Historical directory name is <code>dsh_storage</code>, not <code>dsh_volume</code>.</p>
 <table>
 <thead>
 <tr>
-<th>Data</th>
-<th>Secure</th>
-<th>Internet</th>
+<th>Content</th>
+<th>Private No Internet</th>
+<th>Private Internet</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><code>/workspace</code></td>
-<td><code>\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation\dsh</code></td>
-<td>Separate local staging PVC</td>
+<td>Workspace</td>
+<td>CIFS <code>dsh/private/&lt;identity&gt;/secure</code></td>
+<td>Separate local PVC</td>
 </tr>
 <tr>
-<td><code>/state/sessions</code>, <code>/state/attachments</code>, <code>/state/storages</code>, <code>/state/workspaces</code>, <code>/state/logs</code></td>
-<td>Direct CIFS submounts under <code>dsh/dsh_storage/&lt;directory&gt;</code></td>
+<td>Sessions/attachments/storages/workspaces/logs</td>
+<td>CIFS <code>dsh/private/&lt;identity&gt;/state/&lt;directory&gt;</code></td>
 <td>Separate local state PVC</td>
 </tr>
 <tr>
-<td>Credentials and web profiles</td>
-<td>Original local state PVC</td>
-<td>Its own local state PVC</td>
+<td>Credentials/configuration/Kerberos cache</td>
+<td>Private local <code>/state</code>, ticket cache <code>/state/kerberos/ccache</code></td>
+<td>Separate private state</td>
 </tr>
 <tr>
-<td>Package access</td>
-<td>Approved cache read-only</td>
-<td>Incoming writable; no protected mount</td>
+<td>Dependencies</td>
+<td>Approved read-only cache</td>
+<td>Writable Incoming</td>
 </tr>
 </tbody></table>
-<p>The raw export verifies the name <strong>dsh_storage</strong>, not dsh_volume. Earlier local-only state statements describe prior snapshots. Direct central mounts supersede the need for the legacy 15-second copy loop. Original local state and previous central versions are retained for recovery; the live share itself is not a backup or a zero-loss/disaster-recovery guarantee. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/central-state-live-20261015.json">live restoration evidence</a>.</p>
-<h2>Setup and change procedure</h2>
+<p>Admin retains the original central <code>dsh</code> / <code>dsh/dsh_storage</code> trees and all 80 histories. Admin&#39;s broad legacy mount is a trusted-admin exception; ordinary runtimes cannot mount its root. Gateway audit is central <code>dsh-admin-audit</code>, outside execution mounts. Direct CIFS mounts need no continuous copy loop. PVC persistence is not backup/disaster recovery.</p>
+<p>All 80 histories in 82 files remain unchanged, aggregate SHA256 <code>7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317</code>. Actual process replacements preserved workspace/attachment markers. No histories were copied into non-admin accounts.</p>
+<h2>Admin access and audit</h2>
+<p>Open <a href="https://dsh.aiportal.bot.or.th/admin">Admin overview</a> as existing <code>admin</code>, or use its navigation link. Registration is disabled. <code>DSH_ADMIN_USERS</code> is an operator allowlist, not a client role selector. Gateway source overlay SHA256 is <code>b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94</code>.</p>
+<p>The dashboard combines live gateway counts/routing/audit with a timestamped infrastructure snapshot; Refresh does not run infrastructure probes. Audit fields are time/event/user/environment, without passwords, tickets, prompts or conversation text. Rotation retains archives; capacity exhaustion refuses new runtime/login access until approved archival. It is not a complete command transcript or tamper-proof SIEM. The gateway has no Kubernetes API token.</p>
+<h2>Setup, changes and rollback</h2>
 <ol>
-<li>Build and verify the pinned runtime through <code>azure-pipelines.yml</code>; use an immutable digest. Current image is build 62702, digest <code>sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1</code>. Later operator/manifests/document commits do not imply a rebuilt image.</li>
-<li>Provision protected Secrets, auth state, separate runtime volumes and the tested CIFS claim in <code>k8s/dsh-da-workspace.yaml</code>. Never commit passwords, PATs or kubeconfigs.</li>
-<li>Apply reviewed gateway, environment and egress manifests. For current build 62702, retain <code>k8s/dsh-gateway-identity-overlay.yaml</code>: <code>scripts/rollout_gateway_identity.py --output &lt;new-private-rollback-directory&gt;</code> creates the immutable source ConfigMap, gates its hash against the canary and verifies behavior before/after replacement. Do not reapply the older gateway base alone and silently remove the source correction. Secure uses UID/GID 10001, no privilege escalation, dropped capabilities, no service-account token and resource limits. CIFS UID/GID mapping does not establish Windows/server ACLs or per-file POSIX mode semantics.</li>
-<li>For existing state, use <code>scripts/restore_central_state.py</code> with a new rollback directory and the private temporary-account probe. It stops the writer, verifies copied content, preserves central originals, reconciles canonical central projects and changes only explicit legacy cwd headers before cutover. Do not run it as a routine startup script or concurrently with a live state writer.</li>
-<li>Check actual mounts, file hashes, real login/logout, history paths and restart persistence. Retain rollback volumes. Reconcile any newer central writes before reverting to an older local mount.</li>
-<li>Before private-user cutover, establish named identities and history ownership, pre-create bounded central subpaths and revoke broad legacy access to private trees. Never copy all shared histories into every account. <code>scripts/generate_user_runtimes.py</code> generates identity-specific workspace and durable-state subpaths; it does not infer ownership or migrate users.</li>
-<li>Grant RDT access only through an explicitly scoped read-only snapshot/view and dedicated identity. Test source-write and out-of-scope-read denial against approved test data. DA_WORKSPACE restoration is separate from granting RDT permissions.</li>
+<li>Build/test via Azure pipeline, pin an immutable runtime digest and test it in a disposable namespace. Build 62743 uses source <code>4b90c846ead7098433173a18046105b179744737</code>, image <code>dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6</code>. All 18 runtime replacements and final gateway access checks passed; see <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/kerberos-runtime-live-62743.json">actual live acceptance</a>. Build success alone is not Production acceptance.</li>
+<li>Provision protected Secrets, auth state and the CIFS claim with explicit UID/GID mapping. Never commit credentials, keytabs, tickets, PATs or kubeconfigs.</li>
+<li>Review <code>k8s/dsh-internal-dns.yaml</code> and <code>k8s/dsh-egress-policies.yaml</code> against actual pod-side DNS, KDC/Livy addresses and CNI behavior. Exact allowlists must be updated deliberately when endpoints change. Internet permits public registries, not datalake access.</li>
+<li>Use <code>scripts/generate_user_runtimes.py</code> for reviewed private-user manifests and identity-specific CIFS subpaths. It does not infer history ownership or migrate existing records. The existing private cutover is already complete; do not blindly rerun initial provisioning against live users. Preserve admin routes, source overlay, audit mount and infrastructure snapshot.</li>
+<li>Run non-root without privilege escalation/capabilities/service-account token. Private frontends request 250m CPU/1Gi RAM with 4CPU/8Gi limits; creating a runtime does not allocate another GPU model.</li>
+<li>Authenticate to the datalake only with approved Kerberos identities. A private cache is not a read-only grant. Test Livy/Spark identity, Hive/HDFS allowed reads and denied source modifications/unrelated reads at the backend; include remote executor egress. DA_WORKSPACE is not that authorization control.</li>
+<li>Sequentially replace runtimes only after a matching image canary. <code>scripts/rollout_kerberos_runtime.py</code> snapshots specs and checks imageID, persistent markers, Kerberos client/cache and actual gateway behavior. On regression restore specifications without overwriting newer data. Preserve rollback originals and reconcile storage before any mount reversal.</li>
 </ol>
+<p>Optional read-only filesystem fixtures are explicitly named synthetic fixtures; they are unrelated to real RDT. Historical artifacts retain their original <code>/data/rdt</code> fixture naming with that limitation stated in the report.</p>
+<h2>Evidence and operational lessons</h2>
+<p>See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/private-routing-live-20261016.json">private Production routing</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/internal-network-live-20261016.json">all-worker network tests</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/kerberos-image-canary-62743.json">image canary</a> and the report&#39;s trial table. It records CPU oversubscription, credential replacement rollback/retry, split DNS, RKE2 discovery and the cache-mode verification rollback. Tests distinguish saved snapshots, source changes, built images and live behavior. No real AD authentication or RDT write probe was performed.</p>
 <h2>Context, speed and concurrency</h2>
 <p>Backend: context 1,048,576; memory fraction 0.90; running-request cap 16; prefill chunk 1,024; maximum prefill 2,048; mixed prefill/decode; decode interval four. The V2 overlay reserves up to 512 prefill tokens for short uncached tails while preserving long progress. It rejects an unexpected upstream scheduler source hash.</p>
 <p>DSH web profiles and LiteLLM retain 131,072 total tokens, 8,192 maximum output and a 256-token proxy reserve. Automatic compaction is configured at 75%, approximately 98,304 tokens. Compaction success for every historical session is not established.</p>
@@ -510,9 +352,2159 @@
 <p>This repository maintains deployment/authentication/configuration overlays, not a fully synchronized official source fork. The previously inspected official master was <code>571902028a75c64c1d767f4ae5fd099485f0ddf0</code>; inspected tag <code>dsh-v0.2.1-alpha.3</code>; deployed package remains rc.2. These are dated observations, not a fresh upstream check. No package upgrade is implied by the storage deployment.</p>
 <p>Rebase overlays onto a candidate pinned release, fail closed on changed patch targets, and test auth/Host/Origin, HTTP/WebSocket terminal, sessions, attachments, tools, network isolation, restart and restore before switching. Keep the installed image and coherent old state available for rollback. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">upstream procedure</a>.</p>
 <p>The same reviewed DSH tree is mirrored under <code>GPU_server/deployment/vllm/dsh-environments</code>; GPU model and scheduling sources remain in GPU_server. Historical reports stay dated and preserved. Source completion, live behavior, scan results and owner/assessor acceptance are separate claims.</p>
-<h2>Unknown legacy ownership: safe next step</h2>
-<p>A read-only review found 9 gateway accounts and 80 unique histories in 82 generation files; session headers contain no authenticated ownership field. Preserve legacy records together without broadening access. Validate isolation with two disposable identities and synthetic data; give confirmed future private users fresh histories. Assign old records only after verified ownership or an explicit shared-access decision. Keep new pilot RDT access unconfigured until a limited source and identity are identified. This is a proposed staged path, not a completed user cutover or an access change. Account names are kept in a private local CSV, not published here. See the English report, section 10.</p>
-</details><h2 id="evidence">Embedded evidence</h2><p>Saved test responses and logs at their stated times. Opening this report does not perform a new system test. Original evidence is preserved unchanged.</p><details id="evidence-admin-dashboard-live-20261016-json"><summary>admin-dashboard-live-20261016.json</summary><pre>{
+</details><h2 id="evidence">Embedded evidence</h2><p>Saved test responses and logs at their stated times. Opening this report does not perform a new system test. Original evidence is preserved unchanged.</p><details id="evidence-model-arguments-private-live-20261016-json"><summary>model-arguments-private-live-20261016.json</summary><pre>{
+  &quot;observedModelArguments&quot;: [
+    {
+      &quot;deployment&quot;: &quot;vllm-deepseek-v4-1-flash&quot;,
+      &quot;arguments&quot;: {
+        &quot;--context-length&quot;: &quot;1048576&quot;,
+        &quot;--mem-fraction-static&quot;: &quot;0.90&quot;,
+        &quot;--max-running-requests&quot;: &quot;16&quot;,
+        &quot;--chunked-prefill-size&quot;: &quot;1024&quot;,
+        &quot;--max-prefill-tokens&quot;: &quot;2048&quot;
+      }
+    }
+  ]
+}</pre></details><details id="evidence-admin-private-snapshot-live-20261016-json"><summary>admin-private-snapshot-live-20261016.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T07:42:15.596660+00:00&quot;,
+  &quot;snapshotConfigMap&quot;: &quot;dsh-admin-status-faca6a2f10c8&quot;,
+  &quot;runtimePoolsRestarted&quot;: false,
+  &quot;modelRestarted&quot;: false,
+  &quot;accessVerification&quot;: {
+    &quot;timeUTC&quot;: &quot;2026-10-16T07:42:58.431Z&quot;,
+    &quot;adminLegacyCount&quot;: 80,
+    &quot;privateLogins&quot;: 16,
+    &quot;privateEmptyHistories&quot;: 16,
+    &quot;legacyPageDenials&quot;: 16,
+    &quot;ordinaryAdminDenials&quot;: 16,
+    &quot;excludedAccountDenials&quot;: 0,
+    &quot;auditEventsVisible&quot;: true
+  },
+  &quot;mountedContentMatches&quot;: true,
+  &quot;status&quot;: &quot;passed&quot;
+}</pre></details><details id="evidence-final-private-gateway-live-20261016-json"><summary>final-private-gateway-live-20261016.json</summary><pre>{
+  &quot;status&quot;: &quot;passed&quot;,
+  &quot;gatewayImageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+  &quot;gatewaySourceSHA256&quot;: &quot;b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94&quot;,
+  &quot;accessVerification&quot;: {
+    &quot;timeUTC&quot;: &quot;2026-10-16T07:43:21.910Z&quot;,
+    &quot;adminLegacyCount&quot;: 80,
+    &quot;privateLogins&quot;: 16,
+    &quot;privateEmptyHistories&quot;: 16,
+    &quot;legacyPageDenials&quot;: 16,
+    &quot;ordinaryAdminDenials&quot;: 16,
+    &quot;excludedAccountDenials&quot;: 0,
+    &quot;auditEventsVisible&quot;: true,
+    &quot;adminSnapshotContentVerified&quot;: true
+  }
+}</pre></details><details id="evidence-kerberos-runtime-first-attempt-62743-json"><summary>kerberos-runtime-first-attempt-62743.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T07:30:24.271070+00:00&quot;,
+  &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+  &quot;modelRestarted&quot;: false,
+  &quot;actualRdtAuthenticationTested&quot;: false,
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;runtimes&quot;: [],
+  &quot;status&quot;: &quot;failed&quot;,
+  &quot;error&quot;: &quot;Traceback (most recent call last):\n  File \&quot;&lt;stdin&gt;\&quot;, line 11, in &lt;module&gt;\nAssertionError\ncommand terminated with exit code 1&quot;,
+  &quot;originalSpecificationsRestored&quot;: true
+}</pre></details><details id="evidence-kerberos-runtime-live-62743-json"><summary>kerberos-runtime-live-62743.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T07:35:54.118080+00:00&quot;,
+  &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+  &quot;modelRestarted&quot;: false,
+  &quot;actualRdtAuthenticationTested&quot;: false,
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;runtimes&quot;: [
+    {
+      &quot;runtime&quot;: &quot;dsh-internet&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-secure&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-120fc75e04cf8e5f-internet&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-120fc75e04cf8e5f-secure&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-156540115183048a-internet&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-156540115183048a-secure&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-26ae784d194a5760-internet&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-26ae784d194a5760-secure&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8205c7f83822ea35-internet&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8205c7f83822ea35-secure&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8a2539e2b69d9daf-internet&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8a2539e2b69d9daf-secure&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ae5deb822e0d7199-internet&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ae5deb822e0d7199-secure&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ca8b22d0db83a22d-internet&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ca8b22d0db83a22d-secure&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-d0b55cb0730a08ac-internet&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-d0b55cb0730a08ac-secure&quot;,
+      &quot;imageID&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+      &quot;persistenceMarkers&quot;: 2,
+      &quot;uid&quot;: 10001,
+      &quot;kerberosVersion&quot;: &quot;Kerberos 5 version 1.20.1&quot;,
+      &quot;privateTicketCacheConfigured&quot;: true,
+      &quot;ticketCacheDirectoryMode&quot;: &quot;0o2700&quot;,
+      &quot;groupAndOtherAccessDenied&quot;: true
+    }
+  ],
+  &quot;accessVerification&quot;: {
+    &quot;timeUTC&quot;: &quot;2026-10-16T07:41:16.130Z&quot;,
+    &quot;adminLegacyCount&quot;: 80,
+    &quot;privateLogins&quot;: 16,
+    &quot;privateEmptyHistories&quot;: 16,
+    &quot;legacyPageDenials&quot;: 16,
+    &quot;ordinaryAdminDenials&quot;: 16,
+    &quot;excludedAccountDenials&quot;: 0,
+    &quot;auditEventsVisible&quot;: true
+  },
+  &quot;legacyAfter&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;status&quot;: &quot;passed&quot;
+}</pre></details><details id="evidence-performance-private-live-20261016-json"><summary>performance-private-live-20261016.json</summary><pre>{
+  &quot;short&quot;: [
+    {
+      &quot;label&quot;: &quot;short-0&quot;,
+      &quot;firstTokenSeconds&quot;: 0.104,
+      &quot;elapsedSeconds&quot;: 0.223,
+      &quot;text&quot;: &quot;LIVE_STATUS_OK&quot;,
+      &quot;usage&quot;: {
+        &quot;completion_tokens&quot;: 5,
+        &quot;prompt_tokens&quot;: 14,
+        &quot;total_tokens&quot;: 19,
+        &quot;completion_tokens_details&quot;: {
+          &quot;reasoning_tokens&quot;: 0
+        }
+      },
+      &quot;finishReason&quot;: &quot;stop&quot;,
+      &quot;effectiveOutputTokensPerSecond&quot;: 22.42
+    },
+    {
+      &quot;label&quot;: &quot;short-1&quot;,
+      &quot;firstTokenSeconds&quot;: 0.115,
+      &quot;elapsedSeconds&quot;: 0.233,
+      &quot;text&quot;: &quot;LIVE_STATUS_OK&quot;,
+      &quot;usage&quot;: {
+        &quot;completion_tokens&quot;: 5,
+        &quot;prompt_tokens&quot;: 14,
+        &quot;total_tokens&quot;: 19,
+        &quot;completion_tokens_details&quot;: {
+          &quot;reasoning_tokens&quot;: 0
+        }
+      },
+      &quot;finishReason&quot;: &quot;stop&quot;,
+      &quot;effectiveOutputTokensPerSecond&quot;: 21.43
+    },
+    {
+      &quot;label&quot;: &quot;short-2&quot;,
+      &quot;firstTokenSeconds&quot;: 0.111,
+      &quot;elapsedSeconds&quot;: 0.23,
+      &quot;text&quot;: &quot;LIVE_STATUS_OK&quot;,
+      &quot;usage&quot;: {
+        &quot;completion_tokens&quot;: 5,
+        &quot;prompt_tokens&quot;: 14,
+        &quot;total_tokens&quot;: 19,
+        &quot;completion_tokens_details&quot;: {
+          &quot;reasoning_tokens&quot;: 0
+        }
+      },
+      &quot;finishReason&quot;: &quot;stop&quot;,
+      &quot;effectiveOutputTokensPerSecond&quot;: 21.71
+    }
+  ],
+  &quot;parallel&quot;: [
+    {
+      &quot;label&quot;: &quot;parallel-0&quot;,
+      &quot;firstTokenSeconds&quot;: 0.117,
+      &quot;elapsedSeconds&quot;: 3.381,
+      &quot;text&quot;: &quot;1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40&quot;,
+      &quot;usage&quot;: {
+        &quot;completion_tokens&quot;: 119,
+        &quot;prompt_tokens&quot;: 22,
+        &quot;total_tokens&quot;: 141,
+        &quot;completion_tokens_details&quot;: {
+          &quot;reasoning_tokens&quot;: 0
+        }
+      },
+      &quot;finishReason&quot;: &quot;stop&quot;,
+      &quot;effectiveOutputTokensPerSecond&quot;: 35.2
+    },
+    {
+      &quot;label&quot;: &quot;parallel-1&quot;,
+      &quot;firstTokenSeconds&quot;: 0.117,
+      &quot;elapsedSeconds&quot;: 3.385,
+      &quot;text&quot;: &quot;1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40&quot;,
+      &quot;usage&quot;: {
+        &quot;completion_tokens&quot;: 119,
+        &quot;prompt_tokens&quot;: 22,
+        &quot;total_tokens&quot;: 141,
+        &quot;completion_tokens_details&quot;: {
+          &quot;reasoning_tokens&quot;: 0
+        }
+      },
+      &quot;finishReason&quot;: &quot;stop&quot;,
+      &quot;effectiveOutputTokensPerSecond&quot;: 35.16
+    }
+  ],
+  &quot;shortExact&quot;: true,
+  &quot;parallelExact&quot;: true,
+  &quot;mixed24k&quot;: {
+    &quot;long&quot;: {
+      &quot;label&quot;: &quot;mixed-24k&quot;,
+      &quot;firstTokenSeconds&quot;: 4.805,
+      &quot;elapsedSeconds&quot;: 4.956,
+      &quot;text&quot;: &quot;MIXED_LONG_OK&quot;,
+      &quot;usage&quot;: {
+        &quot;completion_tokens&quot;: 7,
+        &quot;prompt_tokens&quot;: 24044,
+        &quot;total_tokens&quot;: 24051,
+        &quot;completion_tokens_details&quot;: {
+          &quot;reasoning_tokens&quot;: 0
+        }
+      },
+      &quot;finishReason&quot;: &quot;stop&quot;,
+      &quot;effectiveOutputTokensPerSecond&quot;: 1.41
+    },
+    &quot;shortDuring&quot;: [
+      {
+        &quot;label&quot;: &quot;mixed-short-0&quot;,
+        &quot;firstTokenSeconds&quot;: 0.156,
+        &quot;elapsedSeconds&quot;: 0.44,
+        &quot;text&quot;: &quot;LIVE_STATUS_OK&quot;,
+        &quot;usage&quot;: {
+          &quot;completion_tokens&quot;: 5,
+          &quot;prompt_tokens&quot;: 14,
+          &quot;total_tokens&quot;: 19,
+          &quot;completion_tokens_details&quot;: {
+            &quot;reasoning_tokens&quot;: 0
+          }
+        },
+        &quot;finishReason&quot;: &quot;stop&quot;,
+        &quot;effectiveOutputTokensPerSecond&quot;: 11.37,
+        &quot;longStillRunningAfterReply&quot;: true
+      },
+      {
+        &quot;label&quot;: &quot;mixed-short-1&quot;,
+        &quot;firstTokenSeconds&quot;: 0.299,
+        &quot;elapsedSeconds&quot;: 0.585,
+        &quot;text&quot;: &quot;LIVE_STATUS_OK&quot;,
+        &quot;usage&quot;: {
+          &quot;completion_tokens&quot;: 5,
+          &quot;prompt_tokens&quot;: 14,
+          &quot;total_tokens&quot;: 19,
+          &quot;completion_tokens_details&quot;: {
+            &quot;reasoning_tokens&quot;: 0
+          }
+        },
+        &quot;finishReason&quot;: &quot;stop&quot;,
+        &quot;effectiveOutputTokensPerSecond&quot;: 8.55,
+        &quot;longStillRunningAfterReply&quot;: true
+      },
+      {
+        &quot;label&quot;: &quot;mixed-short-2&quot;,
+        &quot;firstTokenSeconds&quot;: 0.298,
+        &quot;elapsedSeconds&quot;: 0.588,
+        &quot;text&quot;: &quot;LIVE_STATUS_OK&quot;,
+        &quot;usage&quot;: {
+          &quot;completion_tokens&quot;: 5,
+          &quot;prompt_tokens&quot;: 14,
+          &quot;total_tokens&quot;: 19,
+          &quot;completion_tokens_details&quot;: {
+            &quot;reasoning_tokens&quot;: 0
+          }
+        },
+        &quot;finishReason&quot;: &quot;stop&quot;,
+        &quot;effectiveOutputTokensPerSecond&quot;: 8.51,
+        &quot;longStillRunningAfterReply&quot;: true
+      }
+    ]
+  },
+  &quot;mixedExact&quot;: true,
+  &quot;definition&quot;: &quot;Effective output tokens/sec includes queue, prefill and network time; not steady-state decode speed.&quot;,
+  &quot;timeUTC&quot;: &quot;2026-10-16T07:41:07.109080+00:00&quot;,
+  &quot;scope&quot;: &quot;Synthetic short/two-concurrent and approximately 24K mixed-load LiteLLM calls from Secure; no near-1M or DSH agent benchmark&quot;
+}</pre></details><details id="evidence-private-routing-live-20261016-json"><summary>private-routing-live-20261016.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T06:59:59.307658+00:00&quot;,
+  &quot;legacyOwner&quot;: &quot;admin&quot;,
+  &quot;privateAccountCount&quot;: 8,
+  &quot;excludedSharedAccountCount&quot;: 0,
+  &quot;historyCopies&quot;: 0,
+  &quot;realRdtGranted&quot;: false,
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;gatewaySourceSHA256&quot;: &quot;b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94&quot;,
+  &quot;runtimes&quot;: [
+    &quot;dsh-u-26ae784d194a5760-secure&quot;,
+    &quot;dsh-u-26ae784d194a5760-internet&quot;,
+    &quot;dsh-u-d0b55cb0730a08ac-secure&quot;,
+    &quot;dsh-u-d0b55cb0730a08ac-internet&quot;,
+    &quot;dsh-u-ae5deb822e0d7199-secure&quot;,
+    &quot;dsh-u-ae5deb822e0d7199-internet&quot;,
+    &quot;dsh-u-ca8b22d0db83a22d-secure&quot;,
+    &quot;dsh-u-ca8b22d0db83a22d-internet&quot;,
+    &quot;dsh-u-120fc75e04cf8e5f-secure&quot;,
+    &quot;dsh-u-120fc75e04cf8e5f-internet&quot;,
+    &quot;dsh-u-156540115183048a-secure&quot;,
+    &quot;dsh-u-156540115183048a-internet&quot;,
+    &quot;dsh-u-8205c7f83822ea35-secure&quot;,
+    &quot;dsh-u-8205c7f83822ea35-internet&quot;,
+    &quot;dsh-u-8a2539e2b69d9daf-secure&quot;,
+    &quot;dsh-u-8a2539e2b69d9daf-internet&quot;
+  ],
+  &quot;keyChecks&quot;: [
+    {
+      &quot;timeUTC&quot;: &quot;2026-10-16T07:00:06.300393+00:00&quot;,
+      &quot;secret&quot;: &quot;dsh-inference-u-26ae784d194a5760&quot;,
+      &quot;credentialValuesExported&quot;: false,
+      &quot;denials&quot;: {
+        &quot;/key/list&quot;: 403,
+        &quot;/key/generate&quot;: 403,
+        &quot;/model/new&quot;: 403
+      },
+      &quot;inferenceExact&quot;: true,
+      &quot;allowedModelCount&quot;: 22
+    },
+    {
+      &quot;timeUTC&quot;: &quot;2026-10-16T07:00:10.904312+00:00&quot;,
+      &quot;secret&quot;: &quot;dsh-inference-u-d0b55cb0730a08ac&quot;,
+      &quot;credentialValuesExported&quot;: false,
+      &quot;denials&quot;: {
+        &quot;/key/list&quot;: 403,
+        &quot;/key/generate&quot;: 403,
+        &quot;/model/new&quot;: 403
+      },
+      &quot;inferenceExact&quot;: true,
+      &quot;allowedModelCount&quot;: 22
+    },
+    {
+      &quot;timeUTC&quot;: &quot;2026-10-16T07:00:15.543694+00:00&quot;,
+      &quot;secret&quot;: &quot;dsh-inference-u-ae5deb822e0d7199&quot;,
+      &quot;credentialValuesExported&quot;: false,
+      &quot;denials&quot;: {
+        &quot;/key/list&quot;: 403,
+        &quot;/key/generate&quot;: 403,
+        &quot;/model/new&quot;: 403
+      },
+      &quot;inferenceExact&quot;: true,
+      &quot;allowedModelCount&quot;: 22
+    },
+    {
+      &quot;timeUTC&quot;: &quot;2026-10-16T07:00:19.724138+00:00&quot;,
+      &quot;secret&quot;: &quot;dsh-inference-u-ca8b22d0db83a22d&quot;,
+      &quot;credentialValuesExported&quot;: false,
+      &quot;denials&quot;: {
+        &quot;/key/list&quot;: 403,
+        &quot;/key/generate&quot;: 403,
+        &quot;/model/new&quot;: 403
+      },
+      &quot;inferenceExact&quot;: true,
+      &quot;allowedModelCount&quot;: 22
+    },
+    {
+      &quot;timeUTC&quot;: &quot;2026-10-16T07:00:25.940179+00:00&quot;,
+      &quot;secret&quot;: &quot;dsh-inference-u-120fc75e04cf8e5f&quot;,
+      &quot;credentialValuesExported&quot;: false,
+      &quot;denials&quot;: {
+        &quot;/key/list&quot;: 403,
+        &quot;/key/generate&quot;: 403,
+        &quot;/model/new&quot;: 403
+      },
+      &quot;inferenceExact&quot;: true,
+      &quot;allowedModelCount&quot;: 22
+    },
+    {
+      &quot;timeUTC&quot;: &quot;2026-10-16T07:00:31.129242+00:00&quot;,
+      &quot;secret&quot;: &quot;dsh-inference-u-156540115183048a&quot;,
+      &quot;credentialValuesExported&quot;: false,
+      &quot;denials&quot;: {
+        &quot;/key/list&quot;: 403,
+        &quot;/key/generate&quot;: 403,
+        &quot;/model/new&quot;: 403
+      },
+      &quot;inferenceExact&quot;: true,
+      &quot;allowedModelCount&quot;: 22
+    },
+    {
+      &quot;timeUTC&quot;: &quot;2026-10-16T07:00:35.598318+00:00&quot;,
+      &quot;secret&quot;: &quot;dsh-inference-u-8205c7f83822ea35&quot;,
+      &quot;credentialValuesExported&quot;: false,
+      &quot;denials&quot;: {
+        &quot;/key/list&quot;: 403,
+        &quot;/key/generate&quot;: 403,
+        &quot;/model/new&quot;: 403
+      },
+      &quot;inferenceExact&quot;: true,
+      &quot;allowedModelCount&quot;: 22
+    },
+    {
+      &quot;timeUTC&quot;: &quot;2026-10-16T07:00:40.810653+00:00&quot;,
+      &quot;secret&quot;: &quot;dsh-inference-u-8a2539e2b69d9daf&quot;,
+      &quot;credentialValuesExported&quot;: false,
+      &quot;denials&quot;: {
+        &quot;/key/list&quot;: 403,
+        &quot;/key/generate&quot;: 403,
+        &quot;/model/new&quot;: 403
+      },
+      &quot;inferenceExact&quot;: true,
+      &quot;allowedModelCount&quot;: 22
+    }
+  ],
+  &quot;initialization&quot;: {
+    &quot;privateDirectoriesPrepared&quot;: 49
+  },
+  &quot;persistence&quot;: [
+    {
+      &quot;runtime&quot;: &quot;dsh-u-26ae784d194a5760-secure&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-26ae784d194a5760-internet&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-d0b55cb0730a08ac-secure&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-d0b55cb0730a08ac-internet&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ae5deb822e0d7199-secure&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ae5deb822e0d7199-internet&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ca8b22d0db83a22d-secure&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ca8b22d0db83a22d-internet&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-120fc75e04cf8e5f-secure&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-120fc75e04cf8e5f-internet&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-156540115183048a-secure&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-156540115183048a-internet&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8205c7f83822ea35-secure&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8205c7f83822ea35-internet&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8a2539e2b69d9daf-secure&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8a2539e2b69d9daf-internet&quot;,
+      &quot;processReplaced&quot;: true,
+      &quot;uid&quot;: 10001,
+      &quot;markerFiles&quot;: 2,
+      &quot;phase&quot;: &quot;cleanup&quot;,
+      &quot;noLegacyTree&quot;: true
+    }
+  ],
+  &quot;accessVerification&quot;: {
+    &quot;timeUTC&quot;: &quot;2026-10-16T07:12:12.795Z&quot;,
+    &quot;adminLegacyCount&quot;: 80,
+    &quot;privateLogins&quot;: 16,
+    &quot;privateEmptyHistories&quot;: 16,
+    &quot;legacyPageDenials&quot;: 16,
+    &quot;ordinaryAdminDenials&quot;: 16,
+    &quot;excludedAccountDenials&quot;: 0,
+    &quot;auditEventsVisible&quot;: true
+  },
+  &quot;legacyAfter&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;status&quot;: &quot;passed&quot;
+}</pre></details><details id="evidence-isolation-audit-canary-20261016-json"><summary>isolation-audit-canary-20261016.json</summary><pre>{
+  &quot;namespace&quot;: &quot;dsh-iso-20261016-135628&quot;,
+  &quot;timeICT&quot;: &quot;2026-10-16T13:56:28.179224+07:00&quot;,
+  &quot;scope&quot;: &quot;Disposable users and synthetic data only&quot;,
+  &quot;productionRoutingChanged&quot;: false,
+  &quot;legacyHistoriesMigrated&quot;: false,
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1&quot;,
+  &quot;syntheticUsers&quot;: [
+    &quot;iso_alice&quot;,
+    &quot;iso_bob&quot;
+  ],
+  &quot;legacyBaselineExpected&quot;: 80,
+  &quot;candidateManifestsSHA256&quot;: &quot;f5c3d989c765fba9d1bde26c1ebef55cdf9cec29364dfaafbfea94f39c8b6885&quot;,
+  &quot;initialization&quot;: {
+    &quot;syntheticSourceSeeded&quot;: true,
+    &quot;productionTreeTouched&quot;: false
+  },
+  &quot;fixtures&quot;: [
+    {
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    }
+  ],
+  &quot;beforeRestart&quot;: {
+    &quot;time&quot;: &quot;2026-10-16T06:58:36.702Z&quot;,
+    &quot;phase&quot;: &quot;create&quot;,
+    &quot;ownReports&quot;: 4,
+    &quot;ownAttachmentFiles&quot;: 4,
+    &quot;spoofedHeadersRejected&quot;: 4,
+    &quot;ownSessionPages&quot;: 4,
+    &quot;crossUserHistoryDenied&quot;: 4,
+    &quot;crossEnvironmentHistoryDenied&quot;: 4,
+    &quot;terminalCommands&quot;: 4,
+    &quot;anonymousDenials&quot;: 4,
+    &quot;websocketSpoofingDenied&quot;: 4,
+    &quot;registrationDenied&quot;: true,
+    &quot;sessionsCreated&quot;: 4
+  },
+  &quot;workerTests&quot;: [
+    {
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;syntheticRows&quot;: 2,
+      &quot;syntheticAmountTotal&quot;: 300,
+      &quot;sourceWritesDenied&quot;: [
+        {
+          &quot;operation&quot;: &quot;append&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;delete&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;create&quot;,
+          &quot;errno&quot;: 30
+        }
+      ],
+      &quot;sourceHashUnchanged&quot;: true,
+      &quot;outsideSourceAbsent&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 28,
+        &quot;status&quot;: &quot;000&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    },
+    {
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;noRdtMount&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 0,
+        &quot;status&quot;: &quot;200&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    },
+    {
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;syntheticRows&quot;: 2,
+      &quot;syntheticAmountTotal&quot;: 300,
+      &quot;sourceWritesDenied&quot;: [
+        {
+          &quot;operation&quot;: &quot;append&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;delete&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;create&quot;,
+          &quot;errno&quot;: 30
+        }
+      ],
+      &quot;sourceHashUnchanged&quot;: true,
+      &quot;outsideSourceAbsent&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 28,
+        &quot;status&quot;: &quot;000&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    },
+    {
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;noRdtMount&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 0,
+        &quot;status&quot;: &quot;200&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    }
+  ],
+  &quot;podUIDsBefore&quot;: {
+    &quot;dsh-u-adceb5ccb5d4fdea-secure&quot;: &quot;ca80ce39-c3ae-4b4e-a69b-0899fda64e86&quot;,
+    &quot;dsh-u-adceb5ccb5d4fdea-internet&quot;: &quot;310eb720-08d6-4864-9852-d8c37afa9cd4&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-secure&quot;: &quot;b07fc89d-32a9-45f2-a1f9-2f829d2f1569&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-internet&quot;: &quot;a48d18fe-f369-4838-9f0f-f03ce14d76ea&quot;
+  },
+  &quot;podUIDsAfter&quot;: {
+    &quot;dsh-u-adceb5ccb5d4fdea-secure&quot;: &quot;0232353d-2cc6-401f-8c9f-2fd9f0e85f0e&quot;,
+    &quot;dsh-u-adceb5ccb5d4fdea-internet&quot;: &quot;d0078512-4bcb-40b7-b901-5018d78c7a61&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-secure&quot;: &quot;731a5d7f-e4db-489c-add5-54c9fdb2f9fa&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-internet&quot;: &quot;74f86161-f29a-4307-bd81-5420c2f4bf78&quot;
+  },
+  &quot;afterRestart&quot;: {
+    &quot;time&quot;: &quot;2026-10-16T06:59:51.214Z&quot;,
+    &quot;phase&quot;: &quot;verify&quot;,
+    &quot;ownReports&quot;: 4,
+    &quot;ownAttachmentFiles&quot;: 4,
+    &quot;spoofedHeadersRejected&quot;: 4,
+    &quot;ownSessionPages&quot;: 4,
+    &quot;crossUserHistoryDenied&quot;: 4,
+    &quot;crossEnvironmentHistoryDenied&quot;: 4,
+    &quot;terminalCommands&quot;: 4,
+    &quot;anonymousDenials&quot;: 4,
+    &quot;websocketSpoofingDenied&quot;: 4
+  },
+  &quot;legacyAfter&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;legacyByteIdentical&quot;: true,
+  &quot;status&quot;: &quot;passed&quot;,
+  &quot;cleanup&quot;: {
+    &quot;candidateDeploymentsStopped&quot;: true,
+    &quot;temporarySecretsRemoved&quot;: true,
+    &quot;candidatePodsTerminated&quot;: true
+  },
+  &quot;syntheticVolumesRetained&quot;: true,
+  &quot;credentialValuesExported&quot;: false
+}</pre></details><details id="evidence-admin-dashboard-audit-tests-20261016-json"><summary>admin-dashboard-audit-tests-20261016.json</summary><pre>{
+  &quot;passed&quot;: true,
+  &quot;timeUTC&quot;: &quot;2026-10-16T07:00:27.535Z&quot;,
+  &quot;gatewayOverlaySHA256&quot;: &quot;b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94&quot;,
+  &quot;checks&quot;: [
+    &quot;anonymous denied&quot;,
+    &quot;ordinary user denied despite forged admin headers&quot;,
+    &quot;admin access&quot;,
+    &quot;read-only methods&quot;,
+    &quot;secret projection&quot;,
+    &quot;admin-only navigation&quot;,
+    &quot;browser rendering&quot;,
+    &quot;snapshot timestamps&quot;,
+    &quot;DOM injection inert&quot;,
+    &quot;missing snapshot unknown&quot;,
+    &quot;logout revokes access&quot;,
+    &quot;audit contains no passwords&quot;,
+    &quot;audit schema constrained&quot;,
+    &quot;full audit capacity denies new login and preserves archives&quot;
+  ]
+}</pre></details><details id="evidence-admin-inference-restriction-first-attempt-20261016-json"><summary>admin-inference-restriction-first-attempt-20261016.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T07:12:28.883426+00:00&quot;,
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;credentialValuesExported&quot;: false,
+  &quot;sharedMasterRotated&quot;: false,
+  &quot;pools&quot;: [],
+  &quot;status&quot;: &quot;failed&quot;,
+  &quot;error&quot;: &quot;Traceback (most recent call last):\n  File \&quot;&lt;string&gt;\&quot;, line 5, in &lt;module&gt;\nAssertionError\ncommand terminated with exit code 1&quot;,
+  &quot;specificationsRestored&quot;: true
+}</pre></details><details id="evidence-admin-inference-restriction-live-20261016-json"><summary>admin-inference-restriction-live-20261016.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T07:13:53.454439+00:00&quot;,
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;credentialValuesExported&quot;: false,
+  &quot;sharedMasterRotated&quot;: false,
+  &quot;pools&quot;: [
+    {
+      &quot;name&quot;: &quot;dsh-secure&quot;,
+      &quot;literalCredentialOccurrencesReplaced&quot;: 1,
+      &quot;runtimeKeyIsNotMaster&quot;: true,
+      &quot;noMasterInRootConfig&quot;: true,
+      &quot;administrationDenied&quot;: 403,
+      &quot;inferenceExact&quot;: true
+    },
+    {
+      &quot;name&quot;: &quot;dsh-internet&quot;,
+      &quot;literalCredentialOccurrencesReplaced&quot;: 0,
+      &quot;runtimeKeyIsNotMaster&quot;: true,
+      &quot;noMasterInRootConfig&quot;: true,
+      &quot;administrationDenied&quot;: 403,
+      &quot;inferenceExact&quot;: true
+    }
+  ],
+  &quot;legacyAfter&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;status&quot;: &quot;passed&quot;
+}</pre></details><details id="evidence-kerberos-image-canary-62743-json"><summary>kerberos-image-canary-62743.json</summary><pre>{
+  &quot;namespace&quot;: &quot;dsh-iso-20261016-141659&quot;,
+  &quot;timeICT&quot;: &quot;2026-10-16T14:16:59.653418+07:00&quot;,
+  &quot;scope&quot;: &quot;Disposable users and synthetic data only&quot;,
+  &quot;productionRoutingChanged&quot;: false,
+  &quot;legacyHistoriesMigrated&quot;: false,
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;image&quot;: &quot;dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6&quot;,
+  &quot;syntheticUsers&quot;: [
+    &quot;iso_alice&quot;,
+    &quot;iso_bob&quot;
+  ],
+  &quot;legacyBaselineExpected&quot;: 80,
+  &quot;candidateManifestsSHA256&quot;: &quot;b35abbb363c32974f8d53d7aadb357bf06e7aeb3b73adf50f9a878233beb5471&quot;,
+  &quot;initialization&quot;: {
+    &quot;syntheticSourceSeeded&quot;: true,
+    &quot;productionTreeTouched&quot;: false
+  },
+  &quot;fixtures&quot;: [
+    {
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    },
+    {
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;privateFixtureFiles&quot;: 5
+    }
+  ],
+  &quot;beforeRestart&quot;: {
+    &quot;time&quot;: &quot;2026-10-16T07:19:35.984Z&quot;,
+    &quot;phase&quot;: &quot;create&quot;,
+    &quot;ownReports&quot;: 4,
+    &quot;ownAttachmentFiles&quot;: 4,
+    &quot;spoofedHeadersRejected&quot;: 4,
+    &quot;ownSessionPages&quot;: 4,
+    &quot;crossUserHistoryDenied&quot;: 4,
+    &quot;crossEnvironmentHistoryDenied&quot;: 4,
+    &quot;terminalCommands&quot;: 4,
+    &quot;anonymousDenials&quot;: 4,
+    &quot;websocketSpoofingDenied&quot;: 4,
+    &quot;registrationDenied&quot;: true,
+    &quot;sessionsCreated&quot;: 4
+  },
+  &quot;workerTests&quot;: [
+    {
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;syntheticRows&quot;: 2,
+      &quot;syntheticAmountTotal&quot;: 300,
+      &quot;sourceWritesDenied&quot;: [
+        {
+          &quot;operation&quot;: &quot;append&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;delete&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;create&quot;,
+          &quot;errno&quot;: 30
+        }
+      ],
+      &quot;sourceHashUnchanged&quot;: true,
+      &quot;outsideSourceAbsent&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 28,
+        &quot;status&quot;: &quot;000&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    },
+    {
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;identity&quot;: &quot;adceb5ccb5d4fdea&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;noRdtMount&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 0,
+        &quot;status&quot;: &quot;200&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    },
+    {
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;syntheticRows&quot;: 2,
+      &quot;syntheticAmountTotal&quot;: 300,
+      &quot;sourceWritesDenied&quot;: [
+        {
+          &quot;operation&quot;: &quot;append&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;delete&quot;,
+          &quot;errno&quot;: 30
+        },
+        {
+          &quot;operation&quot;: &quot;create&quot;,
+          &quot;errno&quot;: 30
+        }
+      ],
+      &quot;sourceHashUnchanged&quot;: true,
+      &quot;outsideSourceAbsent&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 28,
+        &quot;status&quot;: &quot;000&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    },
+    {
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;identity&quot;: &quot;6bebc6d6174e93c7&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;noServiceAccountToken&quot;: true,
+      &quot;legacyHistoryTreeAbsent&quot;: true,
+      &quot;neighborWorkspaceAbsent&quot;: true,
+      &quot;noEffectiveCapabilities&quot;: true,
+      &quot;noRdtMount&quot;: true,
+      &quot;publicHTTPS&quot;: {
+        &quot;exitCode&quot;: 0,
+        &quot;status&quot;: &quot;200&quot;
+      },
+      &quot;peerNetworkDenied&quot;: true
+    }
+  ],
+  &quot;podUIDsBefore&quot;: {
+    &quot;dsh-u-adceb5ccb5d4fdea-secure&quot;: &quot;7b286d33-6454-486a-8360-254a385a3434&quot;,
+    &quot;dsh-u-adceb5ccb5d4fdea-internet&quot;: &quot;6d3fca0c-8296-497c-9b00-b2e2b9a40d1d&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-secure&quot;: &quot;1ac4ee34-ec71-47fc-9383-c851d8e6900d&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-internet&quot;: &quot;0383735b-5a29-4093-be94-72df9f2ed7fb&quot;
+  },
+  &quot;podUIDsAfter&quot;: {
+    &quot;dsh-u-adceb5ccb5d4fdea-secure&quot;: &quot;ae04e59d-fa88-424a-8fde-cb3bfd068417&quot;,
+    &quot;dsh-u-adceb5ccb5d4fdea-internet&quot;: &quot;6b651811-7423-467b-9472-d7d769c6a386&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-secure&quot;: &quot;b6f2646c-cc9d-4581-9124-6ae3810366b1&quot;,
+    &quot;dsh-u-6bebc6d6174e93c7-internet&quot;: &quot;d81c3923-daa1-4d7e-912d-72da28e03191&quot;
+  },
+  &quot;afterRestart&quot;: {
+    &quot;time&quot;: &quot;2026-10-16T07:20:59.154Z&quot;,
+    &quot;phase&quot;: &quot;verify&quot;,
+    &quot;ownReports&quot;: 4,
+    &quot;ownAttachmentFiles&quot;: 4,
+    &quot;spoofedHeadersRejected&quot;: 4,
+    &quot;ownSessionPages&quot;: 4,
+    &quot;crossUserHistoryDenied&quot;: 4,
+    &quot;crossEnvironmentHistoryDenied&quot;: 4,
+    &quot;terminalCommands&quot;: 4,
+    &quot;anonymousDenials&quot;: 4,
+    &quot;websocketSpoofingDenied&quot;: 4
+  },
+  &quot;legacyAfter&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;legacyByteIdentical&quot;: true,
+  &quot;status&quot;: &quot;passed&quot;,
+  &quot;cleanup&quot;: {
+    &quot;candidateDeploymentsStopped&quot;: true,
+    &quot;temporarySecretsRemoved&quot;: true,
+    &quot;candidatePodsTerminated&quot;: true
+  },
+  &quot;syntheticVolumesRetained&quot;: true,
+  &quot;credentialValuesExported&quot;: false
+}</pre></details><details id="evidence-internal-endpoint-split-dns-20261016-json"><summary>internal-endpoint-split-dns-20261016.json</summary><pre>{
+  &quot;windowsDNS&quot;: [
+    {
+      &quot;host&quot;: &quot;bot-dc-p1.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;100.64.1.3&quot;
+      ]
+    },
+    {
+      &quot;host&quot;: &quot;bot-dc-p2.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;100.64.1.2&quot;
+      ]
+    },
+    {
+      &quot;host&quot;: &quot;bot-dc-p3.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;100.64.1.19&quot;
+      ]
+    },
+    {
+      &quot;host&quot;: &quot;bot-dc-p4.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;100.64.1.20&quot;
+      ]
+    },
+    {
+      &quot;host&quot;: &quot;workspace.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;202.90.4.78&quot;
+      ]
+    },
+    {
+      &quot;host&quot;: &quot;botdlk-gw3-p1.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;100.64.1.22&quot;
+      ]
+    }
+  ],
+  &quot;podDNS&quot;: [
+    {
+      &quot;host&quot;: &quot;bot-dc-p1.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;172.22.58.51&quot;
+      ]
+    },
+    {
+      &quot;host&quot;: &quot;bot-dc-p2.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;172.29.51.222&quot;
+      ]
+    },
+    {
+      &quot;host&quot;: &quot;bot-dc-p3.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;172.30.48.133&quot;
+      ]
+    },
+    {
+      &quot;host&quot;: &quot;bot-dc-p4.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;172.30.48.129&quot;
+      ]
+    },
+    {
+      &quot;host&quot;: &quot;workspace.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;192.168.171.82&quot;
+      ]
+    },
+    {
+      &quot;host&quot;: &quot;botdlk-gw3-p1.bot.or.th&quot;,
+      &quot;addresses&quot;: [
+        &quot;172.22.13.104&quot;
+      ]
+    }
+  ],
+  &quot;initialRolloutRefusedBeforePolicyChange&quot;: true,
+  &quot;selectedSource&quot;: &quot;pod-side corporate DNS verified before applying endpoint rules&quot;
+}</pre></details><details id="evidence-internal-network-live-20261016-json"><summary>internal-network-live-20261016.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T07:25:50.302510+00:00&quot;,
+  &quot;internalServiceInventory&quot;: {
+    &quot;bot-dc-p1.bot.or.th&quot;: [
+      &quot;172.22.58.51&quot;
+    ],
+    &quot;bot-dc-p2.bot.or.th&quot;: [
+      &quot;172.29.51.222&quot;
+    ],
+    &quot;bot-dc-p3.bot.or.th&quot;: [
+      &quot;172.30.48.133&quot;
+    ],
+    &quot;bot-dc-p4.bot.or.th&quot;: [
+      &quot;172.30.48.129&quot;
+    ],
+    &quot;workspace.bot.or.th&quot;: [
+      &quot;192.168.171.82&quot;
+    ],
+    &quot;botdlk-gw3-p1.bot.or.th&quot;: [
+      &quot;172.22.13.104&quot;
+    ]
+  },
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;policyScope&quot;: &quot;Harness and local execution pods only; remote Livy/Spark workers not attested&quot;,
+  &quot;realRdtPermissionGranted&quot;: false,
+  &quot;dnsResolverSourceSHA256&quot;: &quot;595a9567af6d9d5a39f87479d0d0858a19a6db5a3567a5acba7e6e9ecf208618&quot;,
+  &quot;configMap&quot;: &quot;dsh-internal-dns-369567dbcddb&quot;,
+  &quot;onlineNegativeControl&quot;: {
+    &quot;unrelatedInternalServiceReachableBefore&quot;: true
+  },
+  &quot;workers&quot;: [
+    {
+      &quot;runtime&quot;: &quot;dsh-secure&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://1.1.1.1&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;HTTP&quot;: &quot;000&quot;
+        }
+      ],
+      &quot;publicDNSLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;encodedNameLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;kerberosSRV&quot;: {
+        &quot;rcode&quot;: 0,
+        &quot;answers&quot;: 5
+      },
+      &quot;directCoreDNSDenied&quot;: true,
+      &quot;directPublicDNSDenied&quot;: true,
+      &quot;directCoreDNSTCPDenied&quot;: true,
+      &quot;kerberosPortReachable&quot;: true,
+      &quot;livyAnonymousStatus&quot;: 401,
+      &quot;kerberosChallengePresent&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-120fc75e04cf8e5f-secure&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://1.1.1.1&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;HTTP&quot;: &quot;000&quot;
+        }
+      ],
+      &quot;publicDNSLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;encodedNameLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;kerberosSRV&quot;: {
+        &quot;rcode&quot;: 0,
+        &quot;answers&quot;: 5
+      },
+      &quot;directCoreDNSDenied&quot;: true,
+      &quot;directPublicDNSDenied&quot;: true,
+      &quot;directCoreDNSTCPDenied&quot;: true,
+      &quot;kerberosPortReachable&quot;: true,
+      &quot;livyAnonymousStatus&quot;: 401,
+      &quot;kerberosChallengePresent&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-156540115183048a-secure&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://1.1.1.1&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;HTTP&quot;: &quot;000&quot;
+        }
+      ],
+      &quot;publicDNSLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;encodedNameLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;kerberosSRV&quot;: {
+        &quot;rcode&quot;: 0,
+        &quot;answers&quot;: 5
+      },
+      &quot;directCoreDNSDenied&quot;: true,
+      &quot;directPublicDNSDenied&quot;: true,
+      &quot;directCoreDNSTCPDenied&quot;: true,
+      &quot;kerberosPortReachable&quot;: true,
+      &quot;livyAnonymousStatus&quot;: 401,
+      &quot;kerberosChallengePresent&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-26ae784d194a5760-secure&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://1.1.1.1&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;HTTP&quot;: &quot;000&quot;
+        }
+      ],
+      &quot;publicDNSLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;encodedNameLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;kerberosSRV&quot;: {
+        &quot;rcode&quot;: 0,
+        &quot;answers&quot;: 5
+      },
+      &quot;directCoreDNSDenied&quot;: true,
+      &quot;directPublicDNSDenied&quot;: true,
+      &quot;directCoreDNSTCPDenied&quot;: true,
+      &quot;kerberosPortReachable&quot;: true,
+      &quot;livyAnonymousStatus&quot;: 401,
+      &quot;kerberosChallengePresent&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8205c7f83822ea35-secure&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://1.1.1.1&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;HTTP&quot;: &quot;000&quot;
+        }
+      ],
+      &quot;publicDNSLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;encodedNameLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;kerberosSRV&quot;: {
+        &quot;rcode&quot;: 0,
+        &quot;answers&quot;: 5
+      },
+      &quot;directCoreDNSDenied&quot;: true,
+      &quot;directPublicDNSDenied&quot;: true,
+      &quot;directCoreDNSTCPDenied&quot;: true,
+      &quot;kerberosPortReachable&quot;: true,
+      &quot;livyAnonymousStatus&quot;: 401,
+      &quot;kerberosChallengePresent&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8a2539e2b69d9daf-secure&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://1.1.1.1&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;HTTP&quot;: &quot;000&quot;
+        }
+      ],
+      &quot;publicDNSLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;encodedNameLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;kerberosSRV&quot;: {
+        &quot;rcode&quot;: 0,
+        &quot;answers&quot;: 5
+      },
+      &quot;directCoreDNSDenied&quot;: true,
+      &quot;directPublicDNSDenied&quot;: true,
+      &quot;directCoreDNSTCPDenied&quot;: true,
+      &quot;kerberosPortReachable&quot;: true,
+      &quot;livyAnonymousStatus&quot;: 401,
+      &quot;kerberosChallengePresent&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ae5deb822e0d7199-secure&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://1.1.1.1&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;HTTP&quot;: &quot;000&quot;
+        }
+      ],
+      &quot;publicDNSLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;encodedNameLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;kerberosSRV&quot;: {
+        &quot;rcode&quot;: 0,
+        &quot;answers&quot;: 5
+      },
+      &quot;directCoreDNSDenied&quot;: true,
+      &quot;directPublicDNSDenied&quot;: true,
+      &quot;directCoreDNSTCPDenied&quot;: true,
+      &quot;kerberosPortReachable&quot;: true,
+      &quot;livyAnonymousStatus&quot;: 401,
+      &quot;kerberosChallengePresent&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ca8b22d0db83a22d-secure&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://1.1.1.1&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;HTTP&quot;: &quot;000&quot;
+        }
+      ],
+      &quot;publicDNSLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;encodedNameLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;kerberosSRV&quot;: {
+        &quot;rcode&quot;: 0,
+        &quot;answers&quot;: 5
+      },
+      &quot;directCoreDNSDenied&quot;: true,
+      &quot;directPublicDNSDenied&quot;: true,
+      &quot;directCoreDNSTCPDenied&quot;: true,
+      &quot;kerberosPortReachable&quot;: true,
+      &quot;livyAnonymousStatus&quot;: 401,
+      &quot;kerberosChallengePresent&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-d0b55cb0730a08ac-secure&quot;,
+      &quot;environment&quot;: &quot;secure&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 6,
+          &quot;HTTP&quot;: &quot;000&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://1.1.1.1&quot;,
+          &quot;exitCode&quot;: 28,
+          &quot;HTTP&quot;: &quot;000&quot;
+        }
+      ],
+      &quot;publicDNSLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;encodedNameLocalDenial&quot;: {
+        &quot;rcode&quot;: 3,
+        &quot;answers&quot;: 0
+      },
+      &quot;kerberosSRV&quot;: {
+        &quot;rcode&quot;: 0,
+        &quot;answers&quot;: 5
+      },
+      &quot;directCoreDNSDenied&quot;: true,
+      &quot;directPublicDNSDenied&quot;: true,
+      &quot;directCoreDNSTCPDenied&quot;: true,
+      &quot;kerberosPortReachable&quot;: true,
+      &quot;livyAnonymousStatus&quot;: 401,
+      &quot;kerberosChallengePresent&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-internet&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        }
+      ],
+      &quot;unrelatedInternalServiceDenied&quot;: true,
+      &quot;datalakeFromInternetDenied&quot;: true,
+      &quot;kdcFromInternetDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-120fc75e04cf8e5f-internet&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        }
+      ],
+      &quot;unrelatedInternalServiceDenied&quot;: true,
+      &quot;datalakeFromInternetDenied&quot;: true,
+      &quot;kdcFromInternetDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-156540115183048a-internet&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        }
+      ],
+      &quot;unrelatedInternalServiceDenied&quot;: true,
+      &quot;datalakeFromInternetDenied&quot;: true,
+      &quot;kdcFromInternetDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-26ae784d194a5760-internet&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        }
+      ],
+      &quot;unrelatedInternalServiceDenied&quot;: true,
+      &quot;datalakeFromInternetDenied&quot;: true,
+      &quot;kdcFromInternetDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8205c7f83822ea35-internet&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        }
+      ],
+      &quot;unrelatedInternalServiceDenied&quot;: true,
+      &quot;datalakeFromInternetDenied&quot;: true,
+      &quot;kdcFromInternetDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-8a2539e2b69d9daf-internet&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        }
+      ],
+      &quot;unrelatedInternalServiceDenied&quot;: true,
+      &quot;datalakeFromInternetDenied&quot;: true,
+      &quot;kdcFromInternetDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ae5deb822e0d7199-internet&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        }
+      ],
+      &quot;unrelatedInternalServiceDenied&quot;: true,
+      &quot;datalakeFromInternetDenied&quot;: true,
+      &quot;kdcFromInternetDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-ca8b22d0db83a22d-internet&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        }
+      ],
+      &quot;unrelatedInternalServiceDenied&quot;: true,
+      &quot;datalakeFromInternetDenied&quot;: true,
+      &quot;kdcFromInternetDenied&quot;: true
+    },
+    {
+      &quot;runtime&quot;: &quot;dsh-u-d0b55cb0730a08ac-internet&quot;,
+      &quot;environment&quot;: &quot;internet&quot;,
+      &quot;uid&quot;: 10001,
+      &quot;actualRdtAuthenticationTested&quot;: false,
+      &quot;internalInferenceExact&quot;: true,
+      &quot;public&quot;: [
+        {
+          &quot;target&quot;: &quot;https://github.com&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://pypi.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        },
+        {
+          &quot;target&quot;: &quot;https://registry.npmjs.org&quot;,
+          &quot;exitCode&quot;: 0,
+          &quot;HTTP&quot;: &quot;200&quot;
+        }
+      ],
+      &quot;unrelatedInternalServiceDenied&quot;: true,
+      &quot;datalakeFromInternetDenied&quot;: true,
+      &quot;kdcFromInternetDenied&quot;: true
+    }
+  ],
+  &quot;legacyAfter&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;status&quot;: &quot;passed&quot;
+}</pre></details><details id="evidence-internal-network-policies-20261016-json"><summary>internal-network-policies-20261016.json</summary><pre>[
+  {
+    &quot;apiVersion&quot;: &quot;networking.k8s.io/v1&quot;,
+    &quot;kind&quot;: &quot;NetworkPolicy&quot;,
+    &quot;metadata&quot;: {
+      &quot;name&quot;: &quot;dsh-offline-egress&quot;,
+      &quot;namespace&quot;: &quot;llm&quot;
+    },
+    &quot;spec&quot;: {
+      &quot;podSelector&quot;: {
+        &quot;matchLabels&quot;: {
+          &quot;dsh.bot.or.th/egress-mode&quot;: &quot;offline&quot;
+        }
+      },
+      &quot;policyTypes&quot;: [
+        &quot;Egress&quot;
+      ],
+      &quot;egress&quot;: [
+        {
+          &quot;to&quot;: [
+            {
+              &quot;namespaceSelector&quot;: {
+                &quot;matchLabels&quot;: {
+                  &quot;kubernetes.io/metadata.name&quot;: &quot;llm&quot;
+                }
+              },
+              &quot;podSelector&quot;: {
+                &quot;matchLabels&quot;: {
+                  &quot;app&quot;: &quot;litellm&quot;
+                }
+              }
+            }
+          ],
+          &quot;ports&quot;: [
+            {
+              &quot;protocol&quot;: &quot;TCP&quot;,
+              &quot;port&quot;: 4000
+            }
+          ]
+        },
+        {
+          &quot;to&quot;: [
+            {
+              &quot;podSelector&quot;: {
+                &quot;matchLabels&quot;: {
+                  &quot;app&quot;: &quot;dsh-internal-dns&quot;
+                }
+              }
+            }
+          ],
+          &quot;ports&quot;: [
+            {
+              &quot;protocol&quot;: &quot;UDP&quot;,
+              &quot;port&quot;: 5353
+            },
+            {
+              &quot;protocol&quot;: &quot;TCP&quot;,
+              &quot;port&quot;: 5353
+            }
+          ]
+        },
+        {
+          &quot;to&quot;: [
+            {
+              &quot;ipBlock&quot;: {
+                &quot;cidr&quot;: &quot;172.22.58.51/32&quot;
+              }
+            },
+            {
+              &quot;ipBlock&quot;: {
+                &quot;cidr&quot;: &quot;172.29.51.222/32&quot;
+              }
+            },
+            {
+              &quot;ipBlock&quot;: {
+                &quot;cidr&quot;: &quot;172.30.48.129/32&quot;
+              }
+            },
+            {
+              &quot;ipBlock&quot;: {
+                &quot;cidr&quot;: &quot;172.30.48.133/32&quot;
+              }
+            },
+            {
+              &quot;ipBlock&quot;: {
+                &quot;cidr&quot;: &quot;192.168.171.82/32&quot;
+              }
+            }
+          ],
+          &quot;ports&quot;: [
+            {
+              &quot;protocol&quot;: &quot;TCP&quot;,
+              &quot;port&quot;: 88
+            },
+            {
+              &quot;protocol&quot;: &quot;UDP&quot;,
+              &quot;port&quot;: 88
+            }
+          ]
+        },
+        {
+          &quot;to&quot;: [
+            {
+              &quot;ipBlock&quot;: {
+                &quot;cidr&quot;: &quot;172.22.13.104/32&quot;
+              }
+            }
+          ],
+          &quot;ports&quot;: [
+            {
+              &quot;protocol&quot;: &quot;TCP&quot;,
+              &quot;port&quot;: 28998
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    &quot;apiVersion&quot;: &quot;networking.k8s.io/v1&quot;,
+    &quot;kind&quot;: &quot;NetworkPolicy&quot;,
+    &quot;metadata&quot;: {
+      &quot;name&quot;: &quot;dsh-online-egress&quot;,
+      &quot;namespace&quot;: &quot;llm&quot;
+    },
+    &quot;spec&quot;: {
+      &quot;podSelector&quot;: {
+        &quot;matchLabels&quot;: {
+          &quot;dsh.bot.or.th/egress-mode&quot;: &quot;online&quot;
+        }
+      },
+      &quot;policyTypes&quot;: [
+        &quot;Egress&quot;
+      ],
+      &quot;egress&quot;: [
+        {
+          &quot;to&quot;: [
+            {
+              &quot;namespaceSelector&quot;: {
+                &quot;matchLabels&quot;: {
+                  &quot;kubernetes.io/metadata.name&quot;: &quot;llm&quot;
+                }
+              },
+              &quot;podSelector&quot;: {
+                &quot;matchLabels&quot;: {
+                  &quot;app&quot;: &quot;litellm&quot;
+                }
+              }
+            }
+          ],
+          &quot;ports&quot;: [
+            {
+              &quot;protocol&quot;: &quot;TCP&quot;,
+              &quot;port&quot;: 4000
+            }
+          ]
+        },
+        {
+          &quot;to&quot;: [
+            {
+              &quot;namespaceSelector&quot;: {
+                &quot;matchLabels&quot;: {
+                  &quot;kubernetes.io/metadata.name&quot;: &quot;kube-system&quot;
+                }
+              },
+              &quot;podSelector&quot;: {
+                &quot;matchLabels&quot;: {
+                  &quot;k8s-app&quot;: &quot;kube-dns&quot;
+                }
+              }
+            }
+          ],
+          &quot;ports&quot;: [
+            {
+              &quot;protocol&quot;: &quot;UDP&quot;,
+              &quot;port&quot;: 53
+            },
+            {
+              &quot;protocol&quot;: &quot;TCP&quot;,
+              &quot;port&quot;: 53
+            }
+          ]
+        },
+        {
+          &quot;to&quot;: [
+            {
+              &quot;ipBlock&quot;: {
+                &quot;cidr&quot;: &quot;0.0.0.0/0&quot;,
+                &quot;except&quot;: [
+                  &quot;10.0.0.0/8&quot;,
+                  &quot;172.16.0.0/12&quot;,
+                  &quot;192.168.0.0/16&quot;,
+                  &quot;127.0.0.0/8&quot;,
+                  &quot;169.254.0.0/16&quot;,
+                  &quot;100.64.0.0/10&quot;,
+                  &quot;224.0.0.0/4&quot;
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+]</pre></details><details id="evidence-admin-dashboard-live-20261016-json"><summary>admin-dashboard-live-20261016.json</summary><pre>{
   &quot;timeUTC&quot;: &quot;2026-10-16T06:44:44.155785+00:00&quot;,
   &quot;sourceSHA256&quot;: &quot;c013b4abad57d93ad2219b803537826e9ad9c1a0eff55aa1a8ab8369d54682a9&quot;,
   &quot;runtimePoolsRestarted&quot;: false,
@@ -636,31 +2628,31 @@
     &quot;logout revokes access&quot;
   ]
 }</pre></details><details id="evidence-admin-dashboard-snapshot-20261016-json"><summary>admin-dashboard-snapshot-20261016.json</summary><pre>{
-  &quot;observedAt&quot;: &quot;2026-10-16T06:32:56.361472+00:00&quot;,
+  &quot;observedAt&quot;: &quot;2026-10-16T07:42:13.869454+00:00&quot;,
   &quot;environments&quot;: [
     {
-      &quot;name&quot;: &quot;dsh-secure&quot;,
+      &quot;name&quot;: &quot;No Internet: admin + 8 private users&quot;,
       &quot;ready&quot;: true,
-      &quot;storage&quot;: &quot;CIFS workspace and durable history&quot;,
-      &quot;network&quot;: &quot;GitHub/PyPI/npm: all timed out&quot;
+      &quot;storage&quot;: &quot;Private CIFS workspace/history; private local config/tickets&quot;,
+      &quot;network&quot;: &quot;9 workers: public domains/IP/DNS denied; KDC/Livy/inference permitted&quot;
     },
     {
-      &quot;name&quot;: &quot;dsh-internet&quot;,
+      &quot;name&quot;: &quot;Internet: admin + 8 private users&quot;,
       &quot;ready&quot;: true,
-      &quot;storage&quot;: &quot;Separate local persistent storage&quot;,
-      &quot;network&quot;: &quot;GitHub/PyPI/npm: all HTTP 200&quot;
+      &quot;storage&quot;: &quot;Separate per-user local workspace/history&quot;,
+      &quot;network&quot;: &quot;9 workers: registries/inference pass; KDC/Livy/private service denied&quot;
     },
     {
-      &quot;name&quot;: &quot;dsh-user2&quot;,
+      &quot;name&quot;: &quot;Legacy DSH2&quot;,
       &quot;ready&quot;: true,
-      &quot;storage&quot;: &quot;Separate local persistent storage&quot;,
-      &quot;network&quot;: &quot;GitHub/PyPI/npm: all HTTP 200&quot;
+      &quot;storage&quot;: &quot;Legacy; excluded from private-pilot acceptance&quot;,
+      &quot;network&quot;: &quot;Earlier root/Internet configuration; not covered by this release&quot;
     },
     {
-      &quot;name&quot;: &quot;dsh3&quot;,
+      &quot;name&quot;: &quot;Legacy DSH3&quot;,
       &quot;ready&quot;: true,
-      &quot;storage&quot;: &quot;Separate local persistent storage&quot;,
-      &quot;network&quot;: &quot;GitHub/PyPI/npm: all HTTP 200&quot;
+      &quot;storage&quot;: &quot;Legacy; excluded from private-pilot acceptance&quot;,
+      &quot;network&quot;: &quot;Earlier root/Internet configuration; not covered by this release&quot;
     }
   ],
   &quot;model&quot;: {
@@ -669,16 +2661,16 @@
     &quot;concurrencyCeiling&quot;: 16
   },
   &quot;performance&quot;: [
-    &quot;Short replies: 0.23 seconds in bounded sample.&quot;,
-    &quot;Two concurrent replies: about 35.2 effective output tokens/sec per request.&quot;,
-    &quot;During fresh 24,047-token work: short replies 0.466\u20130.588 seconds.&quot;
+    &quot;2026-10-16T07:41:07.109080+00:00: short exact replies 0.223-0.233s.&quot;,
+    &quot;Two concurrent exact replies: 35.16-35.20 effective output tokens/sec each.&quot;,
+    &quot;Fresh 24,044-token input: short replies 0.440-0.588s while long request remained active. Bounded synthetic test only.&quot;
   ],
   &quot;gaps&quot;: [
-    &quot;Existing Production pools still share users. Per-user isolation passed only in the two-user candidate.&quot;,
-    &quot;Real RDT source scope and dedicated access identity remain unidentified.&quot;,
-    &quot;DSH2/DSH3 remain legacy root-based Internet environments.&quot;,
-    &quot;No Internet is restricted egress, not an air gap; DNS/relay and full worker-path acceptance remain open.&quot;,
-    &quot;Near-1M mixed-load fairness and full DSH 1M product behavior are not verified.&quot;
+    &quot;RDT uses Kerberos/Livy/Spark; actual AD principal, impersonation and read-only Hive/HDFS authorization remain untested.&quot;,
+    &quot;Remote Spark executor egress and allowed-service relays require separate verification.&quot;,
+    &quot;Named-pilot report/export and infrastructure/data-owner acceptance remain required.&quot;,
+    &quot;Legacy DSH2/DSH3 remain outside private-pilot controls; admin retains trusted broad legacy access.&quot;,
+    &quot;Near-1M mixed-load fairness and end-to-end DSH 1M remain unverified; user guardrail is 128K.&quot;
   ]
 }</pre></details><details id="evidence-performance-mixed-live-20261016-json"><summary>performance-mixed-live-20261016.json</summary><pre>{
   &quot;short&quot;: [
@@ -4020,7 +6012,7 @@ environment routing and session stickiness tests passed
 routing checks completed
 per-user routing, spoof resistance, missing-runtime denial, registration denial and stickiness tests passed
 </pre></details><details id="evidence-html-verification-20261015-json"><summary>html-verification-20261015.json</summary><pre>{
-  &quot;time&quot;: &quot;2026-10-16T06:46:57.546Z&quot;,
+  &quot;time&quot;: &quot;2026-10-16T07:43:46.873Z&quot;,
   &quot;englishNarrative&quot;: true,
   &quot;readmeEmbedded&quot;: true,
   &quot;renderedDiagrams&quot;: 3,
@@ -4033,8 +6025,8 @@ per-user routing, spoof resistance, missing-runtime denial, registration denial 
   &quot;svgExport&quot;: true,
   &quot;pngExport&quot;: true,
   &quot;pageErrors&quot;: [],
-  &quot;pngWidth&quot;: 4121,
-  &quot;pngHeight&quot;: 1012
+  &quot;pngWidth&quot;: 4336,
+  &quot;pngHeight&quot;: 965
 }</pre></details><p class="meta">Built from tracked Markdown. Diagram controls adapted from SMP EDA ARCHITECTURE_AND_DATAFLOW.html; local Mermaid 10.8.0 / svg-pan-zoom 3.6.1. No CDN required.</p></main>
 <script>(function(BL,Z0){typeof exports=="object"&&typeof module<"u"?module.exports=Z0():typeof define=="function"&&define.amd?define(Z0):(BL=typeof globalThis<"u"?globalThis:BL||self,BL.mermaid=Z0())})(this,function(){var mVt,vVt;"use strict";function BL(i){for(var a=[],f=1;f<arguments.length;f++)a[f-1]=arguments[f];var g=Array.from(typeof i=="string"?[i]:i);g[g.length-1]=g[g.length-1].replace(/\r?\n([\t ]*)$/,"");var w=g.reduce(function(E,S){var _=S.match(/\n([\t ]+|(?!\s).)/g);return _?E.concat(_.map(function(M){var F,R;return(R=(F=M.match(/[\t ]/g))===null||F===void 0?void 0:F.length)!==null&&R!==void 0?R:0})):E},[]);if(w.length){var v=new RegExp(`
 [	 ]{`+Math.min.apply(Math,w)+"}","g");g=g.map(function(E){return E.replace(v,`

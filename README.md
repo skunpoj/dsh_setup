@@ -1,98 +1,63 @@
-# DSH — Enterprise Execution Environments and RDT Pilot
+# DSH — Private Execution Environments and Kerberos Datalake Access
 
-DSH provides an authenticated gateway, separate **No Internet / Internal (default)** and **Internet** environments, internal LiteLLM and a shared four-H100 model. The three RDT pilot controls remain partially satisfied: the storage regression is corrected, but existing shared pools do not establish per-user isolation or approved read-only RDT access.
+DSH provides local login, **No Internet / Internal (default)** and **Internet** environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses **Kerberos kinit → Livy/Spark → Hive/HDFS authorization**. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.
 
-Start with the English [interactive security and architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html), its [Markdown source](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md), and the [central-state restoration procedure](docs/CENTRAL_STATE_RESTORATION_20261015.md). The standalone HTML embeds the README and evidence, with SMP EDA-style diagram zoom, fullscreen, source copy and SVG/PNG export.
+Read the English [security and architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) and [source report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md). HTML embeds this README and saved evidence with SMP EDA diagram zoom, fullscreen and SVG/PNG export.
 
-## Admin dashboard
+## Features, design reasons and live status — 16 October 2026
 
-Open [Admin overview](https://dsh.aiportal.bot.or.th/admin) after logging in as the existing `admin` account, or use the **Admin overview** link beside Logout. Other accounts and anonymous visitors cannot read the page or summary API. The operator can configure `DSH_ADMIN_USERS` as an explicit comma-separated allowlist; this does not provision accounts or accept client-selected roles.
-
-The read-only dashboard shows current account counts, browser sessions by environment and whether routing uses shared pools or private users. It also shows the timestamped environment/storage/network snapshot, model budgets, performance samples and remaining controls. Refresh reads the summary; it does not rerun infrastructure probes. No passwords, conversation contents or source data are shown. The gateway has no Kubernetes service-account token or cluster-monitoring permissions.
-
-The new gateway source overlay is `dsh-gateway-source-c013b4abad57` (image unchanged). The read-only snapshot is `dsh-admin-status-ce5034f4013b`. Production admin access, ordinary-user/forged-role denial, anonymous denial and navigation passed; all 80 legacy histories stayed unchanged. See [setup, data freshness and test evidence](docs/ADMIN_DASHBOARD.md).
-
-## Latest live review and performance — 16 October 2026
-
-The candidate-tested identity-header correction is now deployed to the Production gateway through immutable ConfigMap `dsh-gateway-source-c013b4abad57`. The image remains build 62702; its source overlay is tracked separately. Fresh login/logout, environment binding, history listing and terminal pages passed after replacement. Execution pools and the model were not restarted. All 80 legacy histories in 82 files remain byte-identical. Temporary probe credentials were removed.
-
-Current mount readback confirms Secure workspace and durable state are direct CIFS mounts; no continuous copy loop is required for those directories. The parent `/state` still holds local credentials/configuration. Secure GitHub/PyPI/npm probes timed out while Internet returned 200. DSH2/DSH3 remain legacy root-based, Internet-connected environments with mounted service-account tokens; they are not covered by Secure pilot acceptance.
-
-Three short model replies completed in 0.230–0.231 seconds. Two concurrent exact 119-token replies completed in 3.381–3.386 seconds each, about 35.2 effective output tokens/sec per request. Backend ceiling is 1M; the DSH/LiteLLM product guardrail remains 128K. This bounded sample does not prove near-1M fairness, sustained capacity or full agent-turn speed.
-
-A fresh 24,047-token synthetic request completed in 4.987 seconds while three repeated short replies finished in 0.466–0.588 seconds, all before the longer request ended. This adds bounded live scheduling evidence; it is not near-1M acceptance.
-
-Existing Production pools still share users; real RDT scope/identity is not identified or granted. Synthetic isolation and read-only tests are complete within their scope. They do not close real-user Production acceptance. See [live status, correction, performance and remaining work](docs/LIVE_REVIEW_AND_PERFORMANCE_20261016.md). Preserve the tracked gateway source overlay when applying base manifests or building its replacement image.
-
-## Features, design decisions and current deployment
-
-| Feature | Design reason | Actual status |
+| Feature | Reason | Verified scope |
 |---|---|---|
-| No Internet default | Infrastructure restrictions apply to generated code and subprocesses | Separate restricted-egress pool; not an air gap |
-| Internet environment | Download dependencies without exposing protected work | Separate local staging, history and credentials; no protected CIFS mount |
-| Gateway login, routing and logout | Pin an authenticated login to one environment | Deployed; registration disabled; runtime-token rotation handled |
-| Mounted central workspace | Preserve the original DA_WORKSPACE design | Secure `/workspace` mounts CIFS subpath `dsh` |
-| Central sessions, attachments and durable storage | Persist actual active content centrally rather than substitute a backup | Secure durable `/state` subdirectories bind directly to `dsh/dsh_storage`; local credentials/profiles remain separate |
-| Legacy working-directory compatibility | Resume from canonical accessible project folders | Explicit header-only mapping preserves original files and byte-identical conversation frames |
-| Approved package transfer | Provide offline dependencies without sharing writable workspaces | Separate Incoming, operator/hash review, promotion and read-only Approved cache |
-| Private user runtimes | Prevent users sharing execution and state | Two-user live synthetic canary passed with restart persistence; existing Production pools have not been cut over |
-| Read-only RDT source | Limit reads and prevent source modification | Synthetic read-only source and out-of-scope denial passed; actual RDT source scope, identity and acceptance remain required |
-| Shared inference | Use the existing one-node four-GPU system efficiently | Backend ceiling 1M; DSH web/LiteLLM user guardrail 128K |
-| Interactive scheduling | Interleave short requests with long prefill | Deployed V2; bounded 133K mixed-load tests passed, near-1M mixed load not revalidated |
+| No Internet default | Restrict Harness, generated code and local subprocess egress | Nine workers tested: public domains/direct IP/DNS denied; allowlisted internal inference, KDC and Livy reachable |
+| Separate Internet environment | Prepare dependencies without mounting protected data | Nine workers reach registries but cannot reach KDC, Livy or unrelated private services |
+| Per-user runtime and state | Prevent shared-process/file/history exposure | Eight non-admin accounts × two environments deployed; admin retains original two runtimes |
+| DA_WORKSPACE persistence | Preserve original mounted central storage design | Private Secure CIFS subpaths; direct durable session/attachment mounts |
+| Kerberos client | Authenticate separately to the datalake | Tools/private ticket cache in replacement image; no AD login or data permission granted |
+| Restricted inference credentials | Avoid exposing LiteLLM management authority to generated code | Exact inference succeeds; key/model management returns 403 |
+| Admin dashboard/audit | Central visibility without sharing conversation content | Admin-only summary and fixed-schema access audit; ordinary/forged-role requests denied |
+| Approved package cache | Supply offline dependencies without writable workspace sharing | Incoming → operator review/hash promotion → read-only Approved; empty-cache canaries are not package installation acceptance |
+| Shared model | Use the existing single-node GPUs efficiently | Backend 1M ceiling; DSH/LiteLLM user guardrail 128K; request cap 16 |
 
-## Latest synthetic isolation acceptance — 16 October 2026
+The remaining end-to-end RDT gaps are actual AD/Livy/Spark identity and read-only Hive/HDFS permission tests, remote executor egress, and owner-approved report/export rules. A synthetic read-only filesystem test does not establish those controls. Legacy DSH2/DSH3 are older root/Internet instances, outside this private pilot acceptance.
 
-Two disposable users, each with Secure and Internet runtimes, passed real gateway/history/terminal tests before and after replacing all four runtime processes. Own reports, attachment-file fixtures and DSH histories persisted. Other user/environment histories, forged HTTP/WebSocket identities and anonymous reads were denied. Both Secure workers rejected source append/delete/create (six EROFS results); Internet had no source mount. Direct neighbor-runtime HTTP was denied. Secure GitHub requests timed out while Internet returned 200.
+## Architecture and storage
 
-All **80 legacy histories in 82 generation files stayed byte-identical**, aggregate SHA-256 `7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317`. Candidate workloads are stopped, temporary Kubernetes Secrets removed and synthetic audit volumes retained. No legacy histories were assigned or moved.
+Login pins one identity to one environment until logout. Private workspaces, sessions, attachments, credentials and launch tokens are separate. Inference and reviewed dependency artifacts are shared. Internet cannot install directly into No Internet. No Internet is **restricted egress, not an air gap**, because required internal services remain connected.
 
-The first run exposed a custom-proxy identity-header defect. The corrected HTTP/WebSocket binding passed a negative-control regression and the revised live canary. **At the time of the canary the source correction was candidate-only; the later live review above records its Production deployment.** Existing shared Production pools remain shared; no actual RDT was used or authorized. Empty package-cache fixtures, synthetic attachment-file serving and bounded GitHub tests do not validate package installation, upstream uploads or every leakage path.
+The share remains `\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation`. Historical directory name is `dsh_storage`, not `dsh_volume`.
 
-See the [complete test and experience record](docs/USER_ISOLATION_SYNTHETIC_TEST_20261016.md), [successful evidence](docs/context-evidence/user-isolation-canary-20261016.json) and [first-attempt evidence](docs/context-evidence/user-isolation-canary-first-attempt-20261016.json). Reproduction uses `scripts/run_isolation_canary.py` with a fresh isolated namespace. Resource validation refuses Production namespaces/claims and legacy subpaths.
-
-## Architecture and security boundary
-
-```mermaid
-flowchart TB
- User[Authenticated user] --> Gateway[Environment gateway]
- Gateway --> Secure[No Internet - default]
- Gateway --> Internet[Internet staging]
- Secure --> Central[DA_WORKSPACE - workspace and durable history]
- Secure --> Config[Local credentials and profiles]
- Internet --> Local[Separate local workspace and history]
- Secure --> L[Internal LiteLLM]
- Internet --> L
- L --> GPU[Shared four-H100 model]
- Internet --> Incoming[Incoming packages]
- Incoming --> Review[Operator review and hash verification]
- Review --> Approved[Read-only approved cache]
- Approved --> Secure
-```
-
-The environments share inference and approved dependency artifacts, not writable project data, chat histories, credentials or attachments. Internet cannot directly install inside Secure. Secure installs reviewed packages from Approved. Dependencies can execute arbitrary code after installation, so promotion requires provenance/security review; hashes alone do not prove safety.
-
-No Internet means restricted egress, not physical disconnection. Secure still requires internal inference, DNS, storage and authenticated gateway traffic. A direct public HTTPS timeout is bounded evidence; DNS forwarding, allowed-service relays and every pilot worker must also be assessed. Inspected LiteLLM routes point to internal services with no configured fallback; this does not establish that every indirect network path is blocked.
-
-## Exact storage mapping
-
-| Data | Secure | Internet |
+| Content | Private No Internet | Private Internet |
 |---|---|---|
-| `/workspace` | `\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation\dsh` | Separate local staging PVC |
-| `/state/sessions`, `/state/attachments`, `/state/storages`, `/state/workspaces`, `/state/logs` | Direct CIFS submounts under `dsh/dsh_storage/<directory>` | Separate local state PVC |
-| Credentials and web profiles | Original local state PVC | Its own local state PVC |
-| Package access | Approved cache read-only | Incoming writable; no protected mount |
+| Workspace | CIFS `dsh/private/<identity>/secure` | Separate local PVC |
+| Sessions/attachments/storages/workspaces/logs | CIFS `dsh/private/<identity>/state/<directory>` | Separate local state PVC |
+| Credentials/configuration/Kerberos cache | Private local `/state`, ticket cache `/state/kerberos/ccache` | Separate private state |
+| Dependencies | Approved read-only cache | Writable Incoming |
 
-The raw export verifies the name **dsh_storage**, not dsh_volume. Earlier local-only state statements describe prior snapshots. Direct central mounts supersede the need for the legacy 15-second copy loop. Original local state and previous central versions are retained for recovery; the live share itself is not a backup or a zero-loss/disaster-recovery guarantee. See [live restoration evidence](docs/context-evidence/central-state-live-20261015.json).
+Admin retains the original central `dsh` / `dsh/dsh_storage` trees and all 80 histories. Admin's broad legacy mount is a trusted-admin exception; ordinary runtimes cannot mount its root. Gateway audit is central `dsh-admin-audit`, outside execution mounts. Direct CIFS mounts need no continuous copy loop. PVC persistence is not backup/disaster recovery.
 
-## Setup and change procedure
+All 80 histories in 82 files remain unchanged, aggregate SHA256 `7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317`. Actual process replacements preserved workspace/attachment markers. No histories were copied into non-admin accounts.
 
-1. Build and verify the pinned runtime through `azure-pipelines.yml`; use an immutable digest. Current image is build 62702, digest `sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1`. Later operator/manifests/document commits do not imply a rebuilt image.
-2. Provision protected Secrets, auth state, separate runtime volumes and the tested CIFS claim in `k8s/dsh-da-workspace.yaml`. Never commit passwords, PATs or kubeconfigs.
-3. Apply reviewed gateway, environment and egress manifests. For current build 62702, retain `k8s/dsh-gateway-identity-overlay.yaml`: `scripts/rollout_gateway_identity.py --output <new-private-rollback-directory>` creates the immutable source ConfigMap, gates its hash against the canary and verifies behavior before/after replacement. Do not reapply the older gateway base alone and silently remove the source correction. Secure uses UID/GID 10001, no privilege escalation, dropped capabilities, no service-account token and resource limits. CIFS UID/GID mapping does not establish Windows/server ACLs or per-file POSIX mode semantics.
-4. For existing state, use `scripts/restore_central_state.py` with a new rollback directory and the private temporary-account probe. It stops the writer, verifies copied content, preserves central originals, reconciles canonical central projects and changes only explicit legacy cwd headers before cutover. Do not run it as a routine startup script or concurrently with a live state writer.
-5. Check actual mounts, file hashes, real login/logout, history paths and restart persistence. Retain rollback volumes. Reconcile any newer central writes before reverting to an older local mount.
-6. Before private-user cutover, establish named identities and history ownership, pre-create bounded central subpaths and revoke broad legacy access to private trees. Never copy all shared histories into every account. `scripts/generate_user_runtimes.py` generates identity-specific workspace and durable-state subpaths; it does not infer ownership or migrate users.
-7. Grant RDT access only through an explicitly scoped read-only snapshot/view and dedicated identity. Test source-write and out-of-scope-read denial against approved test data. DA_WORKSPACE restoration is separate from granting RDT permissions.
+## Admin access and audit
+
+Open [Admin overview](https://dsh.aiportal.bot.or.th/admin) as existing `admin`, or use its navigation link. Registration is disabled. `DSH_ADMIN_USERS` is an operator allowlist, not a client role selector. Gateway source overlay SHA256 is `b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94`.
+
+The dashboard combines live gateway counts/routing/audit with a timestamped infrastructure snapshot; Refresh does not run infrastructure probes. Audit fields are time/event/user/environment, without passwords, tickets, prompts or conversation text. Rotation retains archives; capacity exhaustion refuses new runtime/login access until approved archival. It is not a complete command transcript or tamper-proof SIEM. The gateway has no Kubernetes API token.
+
+## Setup, changes and rollback
+
+1. Build/test via Azure pipeline, pin an immutable runtime digest and test it in a disposable namespace. Build 62743 uses source `4b90c846ead7098433173a18046105b179744737`, image `dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6`. All 18 runtime replacements and final gateway access checks passed; see [actual live acceptance](docs/context-evidence/kerberos-runtime-live-62743.json). Build success alone is not Production acceptance.
+2. Provision protected Secrets, auth state and the CIFS claim with explicit UID/GID mapping. Never commit credentials, keytabs, tickets, PATs or kubeconfigs.
+3. Review `k8s/dsh-internal-dns.yaml` and `k8s/dsh-egress-policies.yaml` against actual pod-side DNS, KDC/Livy addresses and CNI behavior. Exact allowlists must be updated deliberately when endpoints change. Internet permits public registries, not datalake access.
+4. Use `scripts/generate_user_runtimes.py` for reviewed private-user manifests and identity-specific CIFS subpaths. It does not infer history ownership or migrate existing records. The existing private cutover is already complete; do not blindly rerun initial provisioning against live users. Preserve admin routes, source overlay, audit mount and infrastructure snapshot.
+5. Run non-root without privilege escalation/capabilities/service-account token. Private frontends request 250m CPU/1Gi RAM with 4CPU/8Gi limits; creating a runtime does not allocate another GPU model.
+6. Authenticate to the datalake only with approved Kerberos identities. A private cache is not a read-only grant. Test Livy/Spark identity, Hive/HDFS allowed reads and denied source modifications/unrelated reads at the backend; include remote executor egress. DA_WORKSPACE is not that authorization control.
+7. Sequentially replace runtimes only after a matching image canary. `scripts/rollout_kerberos_runtime.py` snapshots specs and checks imageID, persistent markers, Kerberos client/cache and actual gateway behavior. On regression restore specifications without overwriting newer data. Preserve rollback originals and reconcile storage before any mount reversal.
+
+Optional read-only filesystem fixtures are explicitly named synthetic fixtures; they are unrelated to real RDT. Historical artifacts retain their original `/data/rdt` fixture naming with that limitation stated in the report.
+
+## Evidence and operational lessons
+
+See [private Production routing](docs/context-evidence/private-routing-live-20261016.json), [all-worker network tests](docs/context-evidence/internal-network-live-20261016.json), [image canary](docs/context-evidence/kerberos-image-canary-62743.json) and the report's trial table. It records CPU oversubscription, credential replacement rollback/retry, split DNS, RKE2 discovery and the cache-mode verification rollback. Tests distinguish saved snapshots, source changes, built images and live behavior. No real AD authentication or RDT write probe was performed.
 
 ## Context, speed and concurrency
 
@@ -109,7 +74,3 @@ This repository maintains deployment/authentication/configuration overlays, not 
 Rebase overlays onto a candidate pinned release, fail closed on changed patch targets, and test auth/Host/Origin, HTTP/WebSocket terminal, sessions, attachments, tools, network isolation, restart and restore before switching. Keep the installed image and coherent old state available for rollback. See [upstream procedure](docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md).
 
 The same reviewed DSH tree is mirrored under `GPU_server/deployment/vllm/dsh-environments`; GPU model and scheduling sources remain in GPU_server. Historical reports stay dated and preserved. Source completion, live behavior, scan results and owner/assessor acceptance are separate claims.
-
-## Unknown legacy ownership: safe next step
-
-A read-only review found 9 gateway accounts and 80 unique histories in 82 generation files; session headers contain no authenticated ownership field. Preserve legacy records together without broadening access. Validate isolation with two disposable identities and synthetic data; give confirmed future private users fresh histories. Assign old records only after verified ownership or an explicit shared-access decision. Keep new pilot RDT access unconfigured until a limited source and identity are identified. This is a proposed staged path, not a completed user cutover or an access change. Account names are kept in a private local CSV, not published here. See the English report, section 10.

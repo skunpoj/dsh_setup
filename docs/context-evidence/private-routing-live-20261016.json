@@ -1,0 +1,279 @@
+{
+  "timeUTC": "2026-10-16T06:59:59.307658+00:00",
+  "legacyOwner": "admin",
+  "privateAccountCount": 8,
+  "excludedSharedAccountCount": 0,
+  "historyCopies": 0,
+  "realRdtGranted": false,
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "gatewaySourceSHA256": "b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94",
+  "runtimes": [
+    "dsh-u-26ae784d194a5760-secure",
+    "dsh-u-26ae784d194a5760-internet",
+    "dsh-u-d0b55cb0730a08ac-secure",
+    "dsh-u-d0b55cb0730a08ac-internet",
+    "dsh-u-ae5deb822e0d7199-secure",
+    "dsh-u-ae5deb822e0d7199-internet",
+    "dsh-u-ca8b22d0db83a22d-secure",
+    "dsh-u-ca8b22d0db83a22d-internet",
+    "dsh-u-120fc75e04cf8e5f-secure",
+    "dsh-u-120fc75e04cf8e5f-internet",
+    "dsh-u-156540115183048a-secure",
+    "dsh-u-156540115183048a-internet",
+    "dsh-u-8205c7f83822ea35-secure",
+    "dsh-u-8205c7f83822ea35-internet",
+    "dsh-u-8a2539e2b69d9daf-secure",
+    "dsh-u-8a2539e2b69d9daf-internet"
+  ],
+  "keyChecks": [
+    {
+      "timeUTC": "2026-10-16T07:00:06.300393+00:00",
+      "secret": "dsh-inference-u-26ae784d194a5760",
+      "credentialValuesExported": false,
+      "denials": {
+        "/key/list": 403,
+        "/key/generate": 403,
+        "/model/new": 403
+      },
+      "inferenceExact": true,
+      "allowedModelCount": 22
+    },
+    {
+      "timeUTC": "2026-10-16T07:00:10.904312+00:00",
+      "secret": "dsh-inference-u-d0b55cb0730a08ac",
+      "credentialValuesExported": false,
+      "denials": {
+        "/key/list": 403,
+        "/key/generate": 403,
+        "/model/new": 403
+      },
+      "inferenceExact": true,
+      "allowedModelCount": 22
+    },
+    {
+      "timeUTC": "2026-10-16T07:00:15.543694+00:00",
+      "secret": "dsh-inference-u-ae5deb822e0d7199",
+      "credentialValuesExported": false,
+      "denials": {
+        "/key/list": 403,
+        "/key/generate": 403,
+        "/model/new": 403
+      },
+      "inferenceExact": true,
+      "allowedModelCount": 22
+    },
+    {
+      "timeUTC": "2026-10-16T07:00:19.724138+00:00",
+      "secret": "dsh-inference-u-ca8b22d0db83a22d",
+      "credentialValuesExported": false,
+      "denials": {
+        "/key/list": 403,
+        "/key/generate": 403,
+        "/model/new": 403
+      },
+      "inferenceExact": true,
+      "allowedModelCount": 22
+    },
+    {
+      "timeUTC": "2026-10-16T07:00:25.940179+00:00",
+      "secret": "dsh-inference-u-120fc75e04cf8e5f",
+      "credentialValuesExported": false,
+      "denials": {
+        "/key/list": 403,
+        "/key/generate": 403,
+        "/model/new": 403
+      },
+      "inferenceExact": true,
+      "allowedModelCount": 22
+    },
+    {
+      "timeUTC": "2026-10-16T07:00:31.129242+00:00",
+      "secret": "dsh-inference-u-156540115183048a",
+      "credentialValuesExported": false,
+      "denials": {
+        "/key/list": 403,
+        "/key/generate": 403,
+        "/model/new": 403
+      },
+      "inferenceExact": true,
+      "allowedModelCount": 22
+    },
+    {
+      "timeUTC": "2026-10-16T07:00:35.598318+00:00",
+      "secret": "dsh-inference-u-8205c7f83822ea35",
+      "credentialValuesExported": false,
+      "denials": {
+        "/key/list": 403,
+        "/key/generate": 403,
+        "/model/new": 403
+      },
+      "inferenceExact": true,
+      "allowedModelCount": 22
+    },
+    {
+      "timeUTC": "2026-10-16T07:00:40.810653+00:00",
+      "secret": "dsh-inference-u-8a2539e2b69d9daf",
+      "credentialValuesExported": false,
+      "denials": {
+        "/key/list": 403,
+        "/key/generate": 403,
+        "/model/new": 403
+      },
+      "inferenceExact": true,
+      "allowedModelCount": 22
+    }
+  ],
+  "initialization": {
+    "privateDirectoriesPrepared": 49
+  },
+  "persistence": [
+    {
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-secure",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-internet",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "processReplaced": true,
+      "uid": 10001,
+      "markerFiles": 2,
+      "phase": "cleanup",
+      "noLegacyTree": true
+    }
+  ],
+  "accessVerification": {
+    "timeUTC": "2026-10-16T07:12:12.795Z",
+    "adminLegacyCount": 80,
+    "privateLogins": 16,
+    "privateEmptyHistories": 16,
+    "legacyPageDenials": 16,
+    "ordinaryAdminDenials": 16,
+    "excludedAccountDenials": 0,
+    "auditEventsVisible": true
+  },
+  "legacyAfter": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "status": "passed"
+}

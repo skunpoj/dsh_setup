@@ -1,0 +1,80 @@
+{
+  "windowsDNS": [
+    {
+      "host": "bot-dc-p1.bot.or.th",
+      "addresses": [
+        "100.64.1.3"
+      ]
+    },
+    {
+      "host": "bot-dc-p2.bot.or.th",
+      "addresses": [
+        "100.64.1.2"
+      ]
+    },
+    {
+      "host": "bot-dc-p3.bot.or.th",
+      "addresses": [
+        "100.64.1.19"
+      ]
+    },
+    {
+      "host": "bot-dc-p4.bot.or.th",
+      "addresses": [
+        "100.64.1.20"
+      ]
+    },
+    {
+      "host": "workspace.bot.or.th",
+      "addresses": [
+        "202.90.4.78"
+      ]
+    },
+    {
+      "host": "botdlk-gw3-p1.bot.or.th",
+      "addresses": [
+        "100.64.1.22"
+      ]
+    }
+  ],
+  "podDNS": [
+    {
+      "host": "bot-dc-p1.bot.or.th",
+      "addresses": [
+        "172.22.58.51"
+      ]
+    },
+    {
+      "host": "bot-dc-p2.bot.or.th",
+      "addresses": [
+        "172.29.51.222"
+      ]
+    },
+    {
+      "host": "bot-dc-p3.bot.or.th",
+      "addresses": [
+        "172.30.48.133"
+      ]
+    },
+    {
+      "host": "bot-dc-p4.bot.or.th",
+      "addresses": [
+        "172.30.48.129"
+      ]
+    },
+    {
+      "host": "workspace.bot.or.th",
+      "addresses": [
+        "192.168.171.82"
+      ]
+    },
+    {
+      "host": "botdlk-gw3-p1.bot.or.th",
+      "addresses": [
+        "172.22.13.104"
+      ]
+    }
+  ],
+  "initialRolloutRefusedBeforePolicyChange": true,
+  "selectedSource": "pod-side corporate DNS verified before applying endpoint rules"
+}

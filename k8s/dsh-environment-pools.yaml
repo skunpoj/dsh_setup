@@ -4,7 +4,8 @@ metadata:
   name: dsh-auth-state
   namespace: llm
 spec:
-  accessModes: [ReadWriteOnce]
+  accessModes:
+  - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
@@ -15,7 +16,8 @@ metadata:
   name: dsh-secure-workspace
   namespace: llm
 spec:
-  accessModes: [ReadWriteOnce]
+  accessModes:
+  - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi
@@ -26,7 +28,8 @@ metadata:
   name: dsh-package-incoming
   namespace: llm
 spec:
-  accessModes: [ReadWriteOnce]
+  accessModes:
+  - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi
@@ -37,7 +40,8 @@ metadata:
   name: dsh-package-approved
   namespace: llm
 spec:
-  accessModes: [ReadWriteOnce]
+  accessModes:
+  - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi
@@ -48,7 +52,8 @@ metadata:
   name: dsh-secure-token
   namespace: llm
 spec:
-  accessModes: [ReadWriteOnce]
+  accessModes:
+  - ReadWriteOnce
   resources:
     requests:
       storage: 100Mi
@@ -59,7 +64,8 @@ metadata:
   name: dsh-internet-token
   namespace: llm
 spec:
-  accessModes: [ReadWriteOnce]
+  accessModes:
+  - ReadWriteOnce
   resources:
     requests:
       storage: 100Mi
@@ -70,7 +76,8 @@ metadata:
   name: dsh-secure-state
   namespace: llm
 spec:
-  accessModes: [ReadWriteOnce]
+  accessModes:
+  - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi
@@ -81,7 +88,8 @@ metadata:
   name: dsh-internet-state
   namespace: llm
 spec:
-  accessModes: [ReadWriteOnce]
+  accessModes:
+  - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi
@@ -92,7 +100,8 @@ metadata:
   name: dsh-internet-staging
   namespace: llm
 spec:
-  accessModes: [ReadWriteOnce]
+  accessModes:
+  - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi
@@ -104,9 +113,11 @@ metadata:
   namespace: llm
 spec:
   replicas: 1
-  strategy: { type: Recreate }
+  strategy:
+    type: Recreate
   selector:
-    matchLabels: { app: dsh-secure }
+    matchLabels:
+      app: dsh-secure
   template:
     metadata:
       labels:
@@ -116,65 +127,125 @@ spec:
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 120
       securityContext:
-        seccompProfile: { type: RuntimeDefault }
+        seccompProfile:
+          type: RuntimeDefault
         fsGroup: 10001
         fsGroupChangePolicy: OnRootMismatch
       containers:
-        - name: dsh
-          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 10001
-            runAsGroup: 10001
-            allowPrivilegeEscalation: false
-            capabilities: { drop: [ALL] }
-          env:
-            - { name: DSH_ENVIRONMENT, value: secure }
-            - { name: DSH_TRUSTED_HOST, value: dsh.aiportal.bot.or.th }
-            - { name: DEEPSEEK_BASE_URL, value: "http://litellm.llm.svc.cluster.local:4000/v1" }
-            - name: DEEPSEEK_API_KEY
-              valueFrom: { secretKeyRef: { name: dsh-runtime-secrets, key: litellm-api-key } }
-          ports:
-            - { name: web, containerPort: 3081 }
-            - { name: terminal, containerPort: 7681 }
-          startupProbe:
-            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 120
-          readinessProbe:
-            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
-            timeoutSeconds: 3
-            periodSeconds: 5
-            failureThreshold: 6
-          livenessProbe:
-            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
-            timeoutSeconds: 3
-            initialDelaySeconds: 30
-            periodSeconds: 15
-          resources:
-            requests: { cpu: "1", memory: 2Gi }
-            limits: { cpu: "4", memory: 8Gi }
-          volumeMounts:
-            - { name: state, mountPath: /state }
-            - { name: protected-workspace, mountPath: /workspace, subPath: dsh }
-            - { name: protected-workspace, mountPath: /state/sessions, subPath: dsh/dsh_storage/sessions }
-            - { name: protected-workspace, mountPath: /state/attachments, subPath: dsh/dsh_storage/attachments }
-            - { name: protected-workspace, mountPath: /state/storages, subPath: dsh/dsh_storage/storages }
-            - { name: protected-workspace, mountPath: /state/workspaces, subPath: dsh/dsh_storage/workspaces }
-            - { name: protected-workspace, mountPath: /state/logs, subPath: dsh/dsh_storage/logs }
-            - { name: package-cache, mountPath: /packages/approved, readOnly: true }
-            - { name: routing-tokens, mountPath: /runtime-tokens }
-      volumes:
+      - name: dsh
+        image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          runAsGroup: 10001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: DSH_ENVIRONMENT
+          value: secure
+        - name: DSH_TRUSTED_HOST
+          value: dsh.aiportal.bot.or.th
+        - name: DEEPSEEK_BASE_URL
+          value: http://litellm.llm.svc.cluster.local:4000/v1
+        - name: DEEPSEEK_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: dsh-inference-admin-20261016
+              key: litellm-api-key
+        - name: KRB5_CONFIG
+          value: /kerberos-config/krb5.conf
+        ports:
+        - name: web
+          containerPort: 3081
+        - name: terminal
+          containerPort: 7681
+        startupProbe:
+          exec:
+            command:
+            - node
+            - /opt/dsh/scripts/runtime_health.js
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 120
+        readinessProbe:
+          exec:
+            command:
+            - node
+            - /opt/dsh/scripts/runtime_health.js
+          timeoutSeconds: 3
+          periodSeconds: 5
+          failureThreshold: 6
+        livenessProbe:
+          exec:
+            command:
+            - node
+            - /opt/dsh/scripts/runtime_health.js
+          timeoutSeconds: 3
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: '1'
+            memory: 2Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+        volumeMounts:
         - name: state
-          persistentVolumeClaim: { claimName: dsh-secure-state }
+          mountPath: /state
         - name: protected-workspace
-          persistentVolumeClaim: { claimName: dsh-da-workspace-secure }
-        - name: routing-tokens
-          persistentVolumeClaim: { claimName: dsh-secure-token }
+          mountPath: /workspace
+          subPath: dsh
+        - name: protected-workspace
+          mountPath: /state/sessions
+          subPath: dsh/dsh_storage/sessions
+        - name: protected-workspace
+          mountPath: /state/attachments
+          subPath: dsh/dsh_storage/attachments
+        - name: protected-workspace
+          mountPath: /state/storages
+          subPath: dsh/dsh_storage/storages
+        - name: protected-workspace
+          mountPath: /state/workspaces
+          subPath: dsh/dsh_storage/workspaces
+        - name: protected-workspace
+          mountPath: /state/logs
+          subPath: dsh/dsh_storage/logs
         - name: package-cache
-          persistentVolumeClaim: { claimName: dsh-package-approved }
+          mountPath: /packages/approved
+          readOnly: true
+        - name: routing-tokens
+          mountPath: /runtime-tokens
+        - mountPath: /kerberos-config
+          name: kerberos-config
+          readOnly: true
+      volumes:
+      - name: state
+        persistentVolumeClaim:
+          claimName: dsh-secure-state
+      - name: protected-workspace
+        persistentVolumeClaim:
+          claimName: dsh-da-workspace-secure
+      - name: routing-tokens
+        persistentVolumeClaim:
+          claimName: dsh-secure-token
+      - name: package-cache
+        persistentVolumeClaim:
+          claimName: dsh-package-approved
+      - configMap:
+          defaultMode: 420
+          name: dsh-internal-dns-369567dbcddb
+        name: kerberos-config
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 10.43.128.253
+        options:
+        - name: ndots
+          value: '1'
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -183,9 +254,11 @@ metadata:
   namespace: llm
 spec:
   replicas: 1
-  strategy: { type: Recreate }
+  strategy:
+    type: Recreate
   selector:
-    matchLabels: { app: dsh-internet }
+    matchLabels:
+      app: dsh-internet
   template:
     metadata:
       labels:
@@ -195,77 +268,123 @@ spec:
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 120
       securityContext:
-        seccompProfile: { type: RuntimeDefault }
+        seccompProfile:
+          type: RuntimeDefault
         fsGroup: 10001
         fsGroupChangePolicy: OnRootMismatch
       containers:
-        - name: dsh
-          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 10001
-            runAsGroup: 10001
-            allowPrivilegeEscalation: false
-            capabilities: { drop: [ALL] }
-          env:
-            - { name: DSH_ENVIRONMENT, value: internet }
-            - { name: DSH_TRUSTED_HOST, value: dsh.aiportal.bot.or.th }
-            - { name: DEEPSEEK_BASE_URL, value: "http://litellm.llm.svc.cluster.local:4000/v1" }
-            - name: DEEPSEEK_API_KEY
-              valueFrom: { secretKeyRef: { name: dsh-runtime-secrets, key: litellm-api-key } }
-          ports:
-            - { name: web, containerPort: 3081 }
-            - { name: terminal, containerPort: 7681 }
-          startupProbe:
-            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 120
-          readinessProbe:
-            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
-            timeoutSeconds: 3
-            periodSeconds: 5
-            failureThreshold: 6
-          livenessProbe:
-            exec: { command: [node, /opt/dsh/scripts/runtime_health.js] }
-            timeoutSeconds: 3
-            initialDelaySeconds: 30
-            periodSeconds: 15
-          resources:
-            requests: { cpu: "1", memory: 2Gi }
-            limits: { cpu: "4", memory: 8Gi }
-          volumeMounts:
-            - { name: state, mountPath: /state }
-            - { name: staging, mountPath: /workspace }
-            - { name: package-incoming, mountPath: /packages/incoming }
-            - { name: routing-tokens, mountPath: /runtime-tokens }
-      volumes:
+      - name: dsh
+        image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          runAsGroup: 10001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: DSH_ENVIRONMENT
+          value: internet
+        - name: DSH_TRUSTED_HOST
+          value: dsh.aiportal.bot.or.th
+        - name: DEEPSEEK_BASE_URL
+          value: http://litellm.llm.svc.cluster.local:4000/v1
+        - name: DEEPSEEK_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: dsh-inference-admin-20261016
+              key: litellm-api-key
+        ports:
+        - name: web
+          containerPort: 3081
+        - name: terminal
+          containerPort: 7681
+        startupProbe:
+          exec:
+            command:
+            - node
+            - /opt/dsh/scripts/runtime_health.js
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 120
+        readinessProbe:
+          exec:
+            command:
+            - node
+            - /opt/dsh/scripts/runtime_health.js
+          timeoutSeconds: 3
+          periodSeconds: 5
+          failureThreshold: 6
+        livenessProbe:
+          exec:
+            command:
+            - node
+            - /opt/dsh/scripts/runtime_health.js
+          timeoutSeconds: 3
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: '1'
+            memory: 2Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+        volumeMounts:
         - name: state
-          persistentVolumeClaim: { claimName: dsh-internet-state }
+          mountPath: /state
         - name: staging
-          persistentVolumeClaim: { claimName: dsh-internet-staging }
-        - name: routing-tokens
-          persistentVolumeClaim: { claimName: dsh-internet-token }
+          mountPath: /workspace
         - name: package-incoming
-          persistentVolumeClaim: { claimName: dsh-package-incoming }
+          mountPath: /packages/incoming
+        - name: routing-tokens
+          mountPath: /runtime-tokens
+      volumes:
+      - name: state
+        persistentVolumeClaim:
+          claimName: dsh-internet-state
+      - name: staging
+        persistentVolumeClaim:
+          claimName: dsh-internet-staging
+      - name: routing-tokens
+        persistentVolumeClaim:
+          claimName: dsh-internet-token
+      - name: package-incoming
+        persistentVolumeClaim:
+          claimName: dsh-package-incoming
 ---
 apiVersion: v1
 kind: Service
-metadata: { name: dsh-secure, namespace: llm }
+metadata:
+  name: dsh-secure
+  namespace: llm
 spec:
   clusterIP: None
-  selector: { app: dsh-secure }
+  selector:
+    app: dsh-secure
   ports:
-    - { name: web, port: 3081, targetPort: web }
-    - { name: terminal, port: 7681, targetPort: terminal }
+  - name: web
+    port: 3081
+    targetPort: web
+  - name: terminal
+    port: 7681
+    targetPort: terminal
 ---
 apiVersion: v1
 kind: Service
-metadata: { name: dsh-internet, namespace: llm }
+metadata:
+  name: dsh-internet
+  namespace: llm
 spec:
   clusterIP: None
-  selector: { app: dsh-internet }
+  selector:
+    app: dsh-internet
   ports:
-    - { name: web, port: 3081, targetPort: web }
-    - { name: terminal, port: 7681, targetPort: terminal }
+  - name: web
+    port: 3081
+    targetPort: web
+  - name: terminal
+    port: 7681
+    targetPort: terminal

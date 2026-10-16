@@ -27,9 +27,18 @@ def build(namespace, image):
         if d['kind'] == 'Deployment':
             pod = d['spec']['template']['spec']
             container = pod['containers'][0]
+            # This disposable namespace tests synthetic storage and identity.
+            # Production's datalake-aware DNS is tested separately on all workers.
+            pod['dnsPolicy'] = 'ClusterFirst'
+            pod.pop('dnsConfig', None)
+            pod['volumes'] = [v for v in pod.get('volumes', []) if v['name'] != 'kerberos-config']
+            container['volumeMounts'] = [v for v in container.get('volumeMounts', []) if v['name'] != 'kerberos-config']
+            container['env'] = [e for e in container.get('env', []) if e['name'] != 'KRB5_CONFIG']
             for e in container.get('env', []):
                 if e['name'] == 'DSH_TRUSTED_HOST':
                     e['value'] = 'dsh-isolation.test'
+                if e['name'] == 'DEEPSEEK_API_KEY':
+                    e['valueFrom']['secretKeyRef']['name'] = 'dsh-runtime-secrets'
             pod['volumes'].append({'name': 'test-scripts', 'configMap': {'name': 'canary-scripts'}})
             container['volumeMounts'].append({'name': 'test-scripts', 'mountPath': '/synthetic-tests', 'readOnly': True})
             if d['metadata']['name'] == 'dsh-environment-gateway':
@@ -70,7 +79,7 @@ def build(namespace, image):
                     m['subPath'] = m['subPath'].replace('dsh/private/', prefix + '/private/', 1)
             if mode == 'secure':
                 pod['volumes'].append({'name': 'synthetic-source', 'persistentVolumeClaim': {'claimName': 'synthetic-source', 'readOnly': True}})
-                container['volumeMounts'].append({'name': 'synthetic-source', 'mountPath': '/data/rdt', 'subPath': prefix + '/source', 'readOnly': True})
+                container['volumeMounts'].append({'name': 'synthetic-source', 'mountPath': '/data/synthetic-source', 'subPath': prefix + '/source', 'readOnly': True})
         elif d['kind'] == 'ConfigMap' and 'users.json' in d.get('data', {}):
             routes = json.loads(d['data']['users.json'])
             for targets in routes.values():
@@ -105,6 +114,15 @@ def build(namespace, image):
     policies = list(yaml.safe_load_all((Path(__file__).resolve().parents[1] / 'k8s/dsh-egress-policies.yaml').read_text()))
     for p in policies:
         p['metadata']['namespace'] = namespace
+        if p['metadata']['name'] == 'dsh-offline-egress':
+            # Synthetic acceptance namespace has no production datalake access.
+            p['spec']['egress'] = [
+                {'to': [{'namespaceSelector': {'matchLabels': {'kubernetes.io/metadata.name': 'kube-system'}},
+                         'podSelector': {'matchLabels': {'k8s-app': 'kube-dns'}}}],
+                 'ports': [{'protocol': 'UDP', 'port': 53}, {'protocol': 'TCP', 'port': 53}]},
+                {'to': [{'namespaceSelector': {'matchLabels': {'kubernetes.io/metadata.name': 'llm'}},
+                         'podSelector': {'matchLabels': {'app': 'litellm'}}}],
+                 'ports': [{'protocol': 'TCP', 'port': 4000}]}]
     documents.extend(policies)
     validate(documents, namespace, prefix)
     return documents

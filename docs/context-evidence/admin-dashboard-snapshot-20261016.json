@@ -1,29 +1,29 @@
 {
-  "observedAt": "2026-10-16T06:32:56.361472+00:00",
+  "observedAt": "2026-10-16T07:42:13.869454+00:00",
   "environments": [
     {
-      "name": "dsh-secure",
+      "name": "No Internet: admin + 8 private users",
       "ready": true,
-      "storage": "CIFS workspace and durable history",
-      "network": "GitHub/PyPI/npm: all timed out"
+      "storage": "Private CIFS workspace/history; private local config/tickets",
+      "network": "9 workers: public domains/IP/DNS denied; KDC/Livy/inference permitted"
     },
     {
-      "name": "dsh-internet",
+      "name": "Internet: admin + 8 private users",
       "ready": true,
-      "storage": "Separate local persistent storage",
-      "network": "GitHub/PyPI/npm: all HTTP 200"
+      "storage": "Separate per-user local workspace/history",
+      "network": "9 workers: registries/inference pass; KDC/Livy/private service denied"
     },
     {
-      "name": "dsh-user2",
+      "name": "Legacy DSH2",
       "ready": true,
-      "storage": "Separate local persistent storage",
-      "network": "GitHub/PyPI/npm: all HTTP 200"
+      "storage": "Legacy; excluded from private-pilot acceptance",
+      "network": "Earlier root/Internet configuration; not covered by this release"
     },
     {
-      "name": "dsh3",
+      "name": "Legacy DSH3",
       "ready": true,
-      "storage": "Separate local persistent storage",
-      "network": "GitHub/PyPI/npm: all HTTP 200"
+      "storage": "Legacy; excluded from private-pilot acceptance",
+      "network": "Earlier root/Internet configuration; not covered by this release"
     }
   ],
   "model": {
@@ -32,15 +32,15 @@
     "concurrencyCeiling": 16
   },
   "performance": [
-    "Short replies: 0.23 seconds in bounded sample.",
-    "Two concurrent replies: about 35.2 effective output tokens/sec per request.",
-    "During fresh 24,047-token work: short replies 0.466\u20130.588 seconds."
+    "2026-10-16T07:41:07.109080+00:00: short exact replies 0.223-0.233s.",
+    "Two concurrent exact replies: 35.16-35.20 effective output tokens/sec each.",
+    "Fresh 24,044-token input: short replies 0.440-0.588s while long request remained active. Bounded synthetic test only."
   ],
   "gaps": [
-    "Existing Production pools still share users. Per-user isolation passed only in the two-user candidate.",
-    "Real RDT source scope and dedicated access identity remain unidentified.",
-    "DSH2/DSH3 remain legacy root-based Internet environments.",
-    "No Internet is restricted egress, not an air gap; DNS/relay and full worker-path acceptance remain open.",
-    "Near-1M mixed-load fairness and full DSH 1M product behavior are not verified."
+    "RDT uses Kerberos/Livy/Spark; actual AD principal, impersonation and read-only Hive/HDFS authorization remain untested.",
+    "Remote Spark executor egress and allowed-service relays require separate verification.",
+    "Named-pilot report/export and infrastructure/data-owner acceptance remain required.",
+    "Legacy DSH2/DSH3 remain outside private-pilot controls; admin retains trusted broad legacy access.",
+    "Near-1M mixed-load fairness and end-to-end DSH 1M remain unverified; user guardrail is 128K."
   ]
 }

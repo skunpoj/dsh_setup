@@ -26,7 +26,7 @@ const rpc=async(cookie,method,args)=>JSON.parse((await request('POST','/api/'+me
     if(user==='admin'&&mode==='off'){
      assert.equal(items.length,80);result.adminLegacyCount=items.length;example=items[0];
     }else if(user!=='admin'){
-     result.privateLogins++;assert.equal(items.length,0);result.privateEmptyHistories++;
+     result.privateLogins++;assert(!items.some(item=>item.sessionId===example.sessionId));if(items.length===0)result.privateEmptyHistories++;
      const denied=await rpc(cookie,'session/page',{request:{address:{kind:'session',sessionId:example.sessionId},throughSeq:1,maxMessages:1}});
      assert.equal(denied.result?.ok,false);assert(/not.found|no persisted session/i.test(JSON.stringify(denied.result.error)));result.legacyPageDenials++;
      assert.equal((await request('GET','/api/admin/summary','',cookie,{'x-dsh-user':'admin'})).status,403);result.ordinaryAdminDenials++;
@@ -34,6 +34,10 @@ const rpc=async(cookie,method,args)=>JSON.parse((await request('POST','/api/'+me
     const terminal=await request('GET','/terminal','',cookie);assert.equal(terminal.status,302);
     const page=await request('GET','/proxy/7681/','',cookie);assert.equal(page.status,200);assert(/ttyd|terminal/i.test(page.text));
     if(user==='admin'&&mode==='off'){
+     const summary=JSON.parse((await request('GET','/api/admin/summary','',cookie)).text);
+     assert.equal(summary.privateUserRouting,true);
+     assert.deepEqual(summary.snapshot,JSON.parse(fs.readFileSync('/admin-status/summary.json','utf8')));
+     result.adminSnapshotContentVerified=true;
      const audit=JSON.parse((await request('GET','/api/admin/audit','',cookie)).text);
      assert(audit.events.length>0);assert(audit.events.every(e=>Object.keys(e).sort().join(',')==='environment,event,time,user'));result.auditEventsVisible=true;
     }

@@ -1,3 +1,5 @@
+> **Superseded operational snapshot:** the later 16 October private-user, Kerberos-runtime and datalake-aware network rollout is recorded in [the current security report](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md), [runtime acceptance](context-evidence/kerberos-runtime-live-62743.json) and [fresh performance](context-evidence/performance-private-live-20261016.json). Preserve the observations below as historical evidence; shared-pool and unidentified-RDT-mechanism statements are no longer current. Real RDT uses Kerberos/Livy/Spark, independent of DA_WORKSPACE.
+
 # Live review, correction and performance — 16 October 2026
 
 ## Conclusion and the outdated storage statement

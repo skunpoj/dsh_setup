@@ -1,0 +1,209 @@
+{
+  "timeUTC": "2026-10-16T07:35:54.118080+00:00",
+  "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+  "modelRestarted": false,
+  "actualRdtAuthenticationTested": false,
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "runtimes": [
+    {
+      "runtime": "dsh-internet",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-secure",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-internet",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-secure",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+      "persistenceMarkers": 2,
+      "uid": 10001,
+      "kerberosVersion": "Kerberos 5 version 1.20.1",
+      "privateTicketCacheConfigured": true,
+      "ticketCacheDirectoryMode": "0o2700",
+      "groupAndOtherAccessDenied": true
+    }
+  ],
+  "accessVerification": {
+    "timeUTC": "2026-10-16T07:41:16.130Z",
+    "adminLegacyCount": 80,
+    "privateLogins": 16,
+    "privateEmptyHistories": 16,
+    "legacyPageDenials": 16,
+    "ordinaryAdminDenials": 16,
+    "excludedAccountDenials": 0,
+    "auditEventsVisible": true
+  },
+  "legacyAfter": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "status": "passed"
+}

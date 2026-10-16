@@ -1,0 +1,34 @@
+{
+  "timeUTC": "2026-10-16T07:13:53.454439+00:00",
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "credentialValuesExported": false,
+  "sharedMasterRotated": false,
+  "pools": [
+    {
+      "name": "dsh-secure",
+      "literalCredentialOccurrencesReplaced": 1,
+      "runtimeKeyIsNotMaster": true,
+      "noMasterInRootConfig": true,
+      "administrationDenied": 403,
+      "inferenceExact": true
+    },
+    {
+      "name": "dsh-internet",
+      "literalCredentialOccurrencesReplaced": 0,
+      "runtimeKeyIsNotMaster": true,
+      "noMasterInRootConfig": true,
+      "administrationDenied": 403,
+      "inferenceExact": true
+    }
+  ],
+  "legacyAfter": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "status": "passed"
+}

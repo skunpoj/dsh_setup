@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "gatewayImageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6",
+  "gatewaySourceSHA256": "b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94",
+  "accessVerification": {
+    "timeUTC": "2026-10-16T07:43:21.910Z",
+    "adminLegacyCount": 80,
+    "privateLogins": 16,
+    "privateEmptyHistories": 16,
+    "legacyPageDenials": 16,
+    "ordinaryAdminDenials": 16,
+    "excludedAccountDenials": 0,
+    "auditEventsVisible": true,
+    "adminSnapshotContentVerified": true
+  }
+}

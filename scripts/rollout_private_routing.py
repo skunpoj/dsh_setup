@@ -39,6 +39,8 @@ def main():
     if tested.get('gatewayOverlaySHA256') != source_hash or tested.get('passed') is not True:
         raise RuntimeError('Matching passed gateway test evidence required')
     original = json.loads(kube('get', 'deploy', 'dsh-environment-gateway', '-o', 'json'))
+    if any(e['name'] == 'DSH_USER_TARGETS_FILE' for e in original['spec']['template']['spec']['containers'][0]['env']):
+        raise RuntimeError('Private routing is already installed; initial provisioning must not overwrite live user routing')
     (args.output / 'gateway-before.json').write_text(json.dumps(original, indent=2), encoding='utf-8')
     accounts = json.loads(kube('exec', 'deploy/dsh-environment-gateway', '--', 'node', '-e',
         "console.log(JSON.stringify(Object.keys(JSON.parse(require('fs').readFileSync(process.env.DSH_USER_STORE_PATH)))))"))

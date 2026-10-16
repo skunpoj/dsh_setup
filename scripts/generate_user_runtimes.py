@@ -13,14 +13,14 @@ from pathlib import Path
 import yaml
 
 
-def generate(users, image, rdt_source_pvc=None, rdt_approval_ref=None):
+def generate(users, image, fixture_source_pvc=None, fixture_approval_ref=None):
     if not users or len(users) != len(set(users)):
         raise ValueError('Supply unique approved pilot identities')
     if not re.fullmatch(r'[^\s]+@sha256:[a-f0-9]{64}', image):
         raise ValueError('An immutable image digest is required')
-    if bool(rdt_source_pvc) != bool(rdt_approval_ref):
-        raise ValueError('RDT source requires both a dedicated approved snapshot PVC and owner approval reference')
-    if rdt_source_pvc and (len(rdt_source_pvc) > 253 or not re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?', rdt_source_pvc)):
+    if bool(fixture_source_pvc) != bool(fixture_approval_ref):
+        raise ValueError('Read-only test fixture requires both a dedicated approved fixture PVC and owner approval reference')
+    if fixture_source_pvc and (len(fixture_source_pvc) > 253 or not re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?', fixture_source_pvc)):
         raise ValueError('Invalid snapshot PVC name')
     root = Path(__file__).resolve().parents[1]
     templates = list(yaml.safe_load_all((root / 'k8s/dsh-environment-pools.yaml').read_text()))
@@ -66,7 +66,12 @@ def generate(users, image, rdt_source_pvc=None, rdt_approval_ref=None):
             # Private DSH frontends share GPU inference. Reserve lightweight
             # idle capacity without multiplying a full CPU per environment.
             runtime['spec']['containers'][0]['resources']['requests'] = {'cpu': '250m', 'memory': '1Gi'}
+            for entry in runtime['spec']['containers'][0]['env']:
+                if entry['name'] == 'DEEPSEEK_API_KEY':
+                    entry['valueFrom']['secretKeyRef']['name'] = 'dsh-inference-u-' + identity
             for volume in runtime['spec']['volumes']:
+                if 'persistentVolumeClaim' not in volume:
+                    continue  # Read-only configuration is not a user data volume.
                 old = volume['persistentVolumeClaim']['claimName']
                 if old == 'dsh-package-approved':
                     continue  # Shared approved artifacts; mounted read-only.
@@ -97,14 +102,14 @@ def generate(users, image, rdt_source_pvc=None, rdt_approval_ref=None):
                     pod['volumes'].append({'name': token_volume, 'persistentVolumeClaim': {'claimName': claim}})
                     container['volumeMounts'].append({'name': token_volume,
                         'mountPath': f'/runtime-tokens/{identity}/{environment}', 'readOnly': True})
-            # Only an explicitly approved, scope-limited snapshot belongs here.
+            # Optional filesystem fixture only. Real RDT uses Kerberos/Livy/HDFS permissions, not this mount.
             # Never mount a production root or broad shared source as the snapshot.
-            if environment == 'secure' and rdt_source_pvc:
-                runtime['metadata'].setdefault('annotations', {})['dsh.bot.or.th/rdt-approval'] = rdt_approval_ref
-                runtime['spec']['volumes'].append({'name': 'rdt-source', 'persistentVolumeClaim': {
-                    'claimName': rdt_source_pvc, 'readOnly': True}})
+            if environment == 'secure' and fixture_source_pvc:
+                runtime['metadata'].setdefault('annotations', {})['dsh.bot.or.th/fixture-approval'] = fixture_approval_ref
+                runtime['spec']['volumes'].append({'name': 'readonly-fixture', 'persistentVolumeClaim': {
+                    'claimName': fixture_source_pvc, 'readOnly': True}})
                 runtime['spec']['containers'][0]['volumeMounts'].append({
-                    'name': 'rdt-source', 'mountPath': '/data/rdt', 'readOnly': True})
+                    'name': 'readonly-fixture', 'mountPath': '/data/fixtures', 'readOnly': True})
             documents.extend([deployment, {'apiVersion': 'v1', 'kind': 'Service',
                 'metadata': {'name': name, 'namespace': 'llm'},
                 'spec': {'clusterIP': 'None', 'selector': {'app': name}, 'ports': [
@@ -125,7 +130,7 @@ if __name__ == '__main__':
     parser.add_argument('--users', nargs='+', required=True)
     parser.add_argument('--image', required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--rdt-source-pvc', help='Dedicated approved read-only RDT snapshot PVC; secure runtimes only')
-    parser.add_argument('--rdt-approval-ref', help='Owner approval reference identifying snapshot scope and permitted users')
+    parser.add_argument('--readonly-fixture-pvc', dest='fixture_source_pvc', help='Optional read-only filesystem test fixture; unrelated to Kerberos/datalake RDT access')
+    parser.add_argument('--fixture-approval-ref', help='Operator approval reference for the synthetic filesystem fixture')
     args = parser.parse_args()
-    args.output.write_text(yaml.safe_dump_all(generate(args.users, args.image, args.rdt_source_pvc, args.rdt_approval_ref), sort_keys=False), encoding='utf-8')
+    args.output.write_text(yaml.safe_dump_all(generate(args.users, args.image, args.fixture_source_pvc, args.fixture_approval_ref), sort_keys=False), encoding='utf-8')

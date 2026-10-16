@@ -30,11 +30,11 @@ def main():
     replace=r'''
 import sys,json,os,hashlib
 from pathlib import Path
-pair=json.load(sys.stdin);p=Path('/state/.credentials.yaml');count=0
-if p.exists():
- before=p.read_text();count=before.count(pair['old'])
- if count:
-  after=before.replace(pair['old'],pair['new']);temp=p.with_suffix('.yaml.client-key.tmp')
+pair=json.load(sys.stdin);count=0
+for p in list(Path('/state').glob('*.yaml'))+list(Path('/state').glob('*.yml')):
+ before=p.read_text();matches=before.count(pair['old']);count+=matches
+ if matches:
+  after=before.replace(pair['old'],pair['new']);temp=p.with_suffix(p.suffix+'.client-key.tmp')
   temp.write_text(after);temp.chmod(0o600);os.replace(temp,p)
 print(json.dumps({'literalCredentialOccurrencesReplaced':count}))
 '''

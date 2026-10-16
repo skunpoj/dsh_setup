@@ -28,7 +28,7 @@ def connect(url):
 with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
  network=list(pool.map(connect,['https://github.com','https://pypi.org','https://registry.npmjs.org']))
 print(json.dumps({'uid':os.getuid(),'serviceAccountTokenMounted':os.path.exists('/var/run/secrets/kubernetes.io/serviceaccount/token'),
- 'mounts':mounts,'network':network,'rdtSourceMounted':os.path.exists('/data/rdt')}))
+ 'mounts':mounts,'network':network,'syntheticFilesystemFixtureMounted':os.path.exists('/data/synthetic-source')}))
 '''
 
 

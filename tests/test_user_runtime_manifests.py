@@ -19,7 +19,10 @@ class IsolationManifests(unittest.TestCase):
         for workload in workloads:
             pod = workload['spec']['template']['spec']
             self.assertFalse(pod['automountServiceAccountToken'])
+            key_ref = next(e for e in pod['containers'][0]['env'] if e['name'] == 'DEEPSEEK_API_KEY')['valueFrom']['secretKeyRef']['name']
+            self.assertEqual(key_ref, 'dsh-inference-u-' + workload['spec']['template']['metadata']['labels']['dsh.bot.or.th/owner'])
             for volume in pod['volumes']:
+                if 'persistentVolumeClaim' not in volume:continue
                 claim = volume['persistentVolumeClaim']['claimName']
                 if claim == 'dsh-package-approved':
                     mount = next(m for m in pod['containers'][0]['volumeMounts'] if m['name'] == volume['name'])
@@ -72,21 +75,21 @@ class IsolationManifests(unittest.TestCase):
             scoped.append(values)
         self.assertTrue(scoped[0].isdisjoint(scoped[1]))
 
-    def test_approved_snapshot_is_secure_only_and_read_only(self):
+    def test_synthetic_fixture_is_secure_only_and_read_only(self):
         image = 'registry/runtime@sha256:' + 'a' * 64
-        for source, approval in [('rdt-snapshot', None), (None, 'OWNER-TEST'), ('../source', 'OWNER-TEST')]:
+        for source, approval in [('synthetic-fixture', None), (None, 'OWNER-TEST'), ('../source', 'OWNER-TEST')]:
             with self.assertRaises(ValueError):
                 generator.generate(['alice'], image, source, approval)
-        docs = generator.generate(['alice', 'bob'], image, 'rdt-snapshot', 'OWNER-TEST')
+        docs = generator.generate(['alice', 'bob'], image, 'synthetic-fixture', 'OWNER-TEST')
         for workload in (d for d in docs if d['kind'] == 'Deployment' and '-u-' in d['metadata']['name']):
             template = workload['spec']['template']
-            volumes = [v for v in template['spec']['volumes'] if v['name'] == 'rdt-source']
-            mounts = [m for m in template['spec']['containers'][0]['volumeMounts'] if m['name'] == 'rdt-source']
+            volumes = [v for v in template['spec']['volumes'] if v['name'] == 'readonly-fixture']
+            mounts = [m for m in template['spec']['containers'][0]['volumeMounts'] if m['name'] == 'readonly-fixture']
             if workload['metadata']['name'].endswith('-secure'):
                 self.assertTrue(volumes[0]['persistentVolumeClaim']['readOnly'])
                 self.assertTrue(mounts[0]['readOnly'])
-                self.assertEqual(mounts[0]['mountPath'], '/data/rdt')
-                self.assertEqual(template['metadata']['annotations']['dsh.bot.or.th/rdt-approval'], 'OWNER-TEST')
+                self.assertEqual(mounts[0]['mountPath'], '/data/fixtures')
+                self.assertEqual(template['metadata']['annotations']['dsh.bot.or.th/fixture-approval'], 'OWNER-TEST')
             else:
                 self.assertFalse(volumes)
                 self.assertFalse(mounts)

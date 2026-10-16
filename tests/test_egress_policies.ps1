@@ -19,7 +19,9 @@ function Invoke-Probe([string]$Pod, [string]$Url) {
 }
 
 try {
-    kubectl apply -f $manifest | Out-Null
+    # Tests must not rewrite Production policy. Use the deployed DNS boundary.
+    $resolver = kubectl -n $namespace get service dsh-internal-dns -o jsonpath='{.spec.clusterIP}'
+    if ($LASTEXITCODE -ne 0 -or -not $resolver) { throw 'Reviewed internal DNS service required' }
     @"
 apiVersion: v1
 kind: Pod
@@ -31,6 +33,10 @@ metadata:
     dsh.bot.or.th/egress-mode: offline
 spec:
   restartPolicy: Never
+  automountServiceAccountToken: false
+  dnsPolicy: None
+  dnsConfig:
+    nameservers: ["$resolver"]
   containers:
     - name: curl
       image: curlimages/curl:8.12.1
@@ -46,6 +52,7 @@ metadata:
     dsh.bot.or.th/egress-mode: online
 spec:
   restartPolicy: Never
+  automountServiceAccountToken: false
   containers:
     - name: curl
       image: curlimages/curl:8.12.1

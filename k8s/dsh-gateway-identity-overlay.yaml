@@ -10,7 +10,7 @@ spec:
   template:
     metadata:
       annotations:
-        dsh.bot.or.th/gateway-source-sha256: c013b4abad57d93ad2219b803537826e9ad9c1a0eff55aa1a8ab8369d54682a9
+        dsh.bot.or.th/gateway-source-sha256: b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94
     spec:
       containers:
         - name: gateway
@@ -25,7 +25,7 @@ spec:
       volumes:
         - name: gateway-source
           configMap:
-            name: dsh-gateway-source-c013b4abad57
+            name: dsh-gateway-source-b34ee162ec9b
         - name: admin-status
           configMap:
-            name: dsh-admin-status-ce5034f4013b
+            name: dsh-admin-status-faca6a2f10c8
