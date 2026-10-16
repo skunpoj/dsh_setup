@@ -103,6 +103,154 @@
 <p><strong>Memory limitation:</strong> the current-image progressive-test log window contained 1,132 recovering allocator mapping warnings, with a minimum warning-reported free memory of 1.75 MiB. No checked fatal CUDA/OOM, illegal-memory or scheduler-exception signatures were found, and the model pod/restart count stayed unchanged. This is not comfortable memory headroom.</p>
 <p><strong>Qualified operating boundary:</strong> one request above 128K at a time, with ordinary requests remaining concurrent. Two full simultaneous 1M requests, near-1M image inputs, full 8,192-token generation at near-1M input, semantic accuracy across arbitrary million-token material, and sustained-load guarantees are not established. Existing compaction behavior was not requalified by this retest.</p>
 <p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/current-image-1m-completion-summary-20261017.json">Completion summary</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/current-image-1m-runtime-readback-20261017.json">runtime/source readback</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-current-image-progressive-context-retest-20261016.json">original progressive run and queue failure</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-current-image-tool-after-admission-fix-20261016.json">post-fix tool continuation</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/long-admission-retry-router-fixture-20261016.json">Router integration fixture</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/long-admission-bounded-live-after-fix-retest-20261016.json">bounded admission</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-after-admission-fix-20261016.json">post-fix bursts</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-mixed-after-admission-fix-20261016.json">resumed mixed stages</a>.</p>
+<h2>Consolidated stress-test review</h2>
+<p><strong>Review date: 17 October 2026 ICT.</strong> This review reconciles the retained capacity, concurrency, scheduling and application-level records; it did not run another live load test. The earlier statement that an isolated candidate was still being tested describes an intermediate stage. The completed current-image results above supersede that status. Separate runs below must not be added together as one uninterrupted benchmark.</p>
+<h3>Capacity and memory trials</h3>
+<table>
+<thead>
+<tr>
+<th>Trial</th>
+<th>Recorded outcome</th>
+<th>Meaning and lesson</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Initial approximately 262K request, static memory 0.92</td>
+<td>CUDA out-of-memory failure; model restarted; approximately 14-minute recovery</td>
+<td>Historical incident described in the engineering record; no standalone raw response is bundled. A large KV-slot count did not include temporary attention workspace.</td>
+</tr>
+<tr>
+<td>256K startup, static memory 0.88</td>
+<td>Failed before inference</td>
+<td>Reducing static allocation too far also prevented the required cache layout from initializing.</td>
+</tr>
+<tr>
+<td>250,011-token backend input</td>
+<td>Exact <code>LONG_CONTEXT_OK</code></td>
+<td>Backend capacity check, not a DSH agent test.</td>
+</tr>
+<tr>
+<td>500,012-token backend input, chunk 4,096</td>
+<td>Exact answer, but allocator warnings and low free memory</td>
+<td>Rejected as unstable despite the answer.</td>
+</tr>
+<tr>
+<td>500,012-token backend input, chunk 2,048</td>
+<td>Exact answer; recorded no scheduler/OOM exception or restart</td>
+<td>Intermediate backend qualification; does not transfer automatically to another scheduler.</td>
+</tr>
+<tr>
+<td>First near-1M backend attempt, chunk 2,048</td>
+<td>Internal Server Error; engineering record reports allocator failures and one restart</td>
+<td>Failed trial retained; the response file contains plain error text despite its <code>.json</code> name.</td>
+</tr>
+<tr>
+<td>1,000,015-token backend input, chunk 1,024</td>
+<td>Exact <code>LONG_1M_RETEST_OK</code>, 10 output tokens</td>
+<td>Historical backend-only success; not proof of full output capacity or DSH end-to-end operation.</td>
+</tr>
+<tr>
+<td>Two 480,012-token backend requests submitted together</td>
+<td>Both exact, 538.22s; kernel-loading warning with negligible transient headroom</td>
+<td>Two submissions completed; this is not two full 1M contexts or proof of continuous parallel execution. Current gateway admits only one request above 128K.</td>
+</tr>
+<tr>
+<td>Current-image DSH progressive 263,693 → 519,694 → 1,007,689 input</td>
+<td>Exact persisted replies; 124.28 → 358.65 → 1,173.92s</td>
+<td>Actual DSH/tools envelope through LiteLLM; the accompanying queue-control failure remains recorded separately.</td>
+</tr>
+</tbody></table>
+<p>Sources: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CONTEXT_OPTIMIZATION_20261015.md">context/memory trial narrative</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-256k-response.json">256K response</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-512k-response.json">512K at chunk 4,096</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-512k-response-chunk2048.json">512K at chunk 2,048</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-1m-response.json">failed 1M response</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-1m-response-chunk1024.json">successful backend 1M</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dual-480k-response.json">dual 480K</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-current-image-progressive-context-retest-20261016.json">current-image progressive record</a>. Warning/restart details for early trials come from the engineering narrative, not the response bodies alone. Its 128K and pending-retest statements are historical checkpoints, superseded by this guide&#39;s current-image section.</p>
+<h3>Scheduling and real-user responsiveness trials</h3>
+<table>
+<thead>
+<tr>
+<th>Trial</th>
+<th>Result under contention</th>
+<th>Correction or interpretation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Original scheduler, 133,044-token long input</td>
+<td>Four short replies took 32.38–33.58s; none finished before the long reply</td>
+<td>Reproduced head-of-line blocking. Post-test fast replies had previously hidden this problem.</td>
+</tr>
+<tr>
+<td>V1, tiny/fresh short requests</td>
+<td>All four finished before the long reply; approximately 0.58–1.45s across the two patterns</td>
+<td>Partial improvement only.</td>
+</tr>
+<tr>
+<td>V1, continuing sessions with approximately 24K cached history</td>
+<td>Four short replies still took 33.01–34.07s</td>
+<td>Failed cached-session gate; corrected prefix classification in V2.</td>
+</tr>
+<tr>
+<td>V2, continuing cached sessions and fresh small requests</td>
+<td>All eight short replies finished before their respective long request; 0.59–1.47s</td>
+<td>Bounded approximately 133K mixed-load acceptance, not a 1M result.</td>
+</tr>
+<tr>
+<td>First isolated 1M-candidate escalation</td>
+<td>256,046-token leg passed; subsequent approximately 512K leg returned HTTP 500</td>
+<td>Failed escalation preserved; led to V3 single-chunk-owner correction.</td>
+</tr>
+<tr>
+<td>V3, 512,047-token API input</td>
+<td>Exact in 378.31s; tiny short probes 0.62–0.90s</td>
+<td>API-only success still missed the real DSH system/tool-prefix workload.</td>
+</tr>
+<tr>
+<td>Actual ordinary DSH during uninterrupted 512K prefill</td>
+<td>Exact eventual reply after approximately 368.7s, with timeout/retry</td>
+<td>Failed responsiveness gate; a tiny API probe was not representative of DSH.</td>
+</tr>
+<tr>
+<td>Incremental proxy warming and final-wire normalization</td>
+<td>Warmed 256K/500K agent and tool trials, then actual near-1M DSH qualification</td>
+<td>Prepare prefixes in bounded extensions and count the final tools/template envelope. Hot-cache follow-ups are distinct from cold input throughput.</td>
+</tr>
+<tr>
+<td>Current-image cold near-1M plus ordinary DSH</td>
+<td>18 exact persisted replies in nine pairs; 4.03–12.04s</td>
+<td>Actual overlap, but the slowest reply exceeds the earlier five-second small-probe target. No universal sub-five-second promise.</td>
+</tr>
+<tr>
+<td>Current-image API bursts during cold near-1M</td>
+<td>Two concurrent: 9.00s, 26.46 aggregate output tokens/s; four: 10.38s, 45.85 aggregate output tokens/s</td>
+<td>Confirmed overlap; substantially slower than idle short-burst throughput.</td>
+</tr>
+</tbody></table>
+<p>Sources: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/SCHEDULING_FAIRNESS_20261015.md">scheduler comparison and failed V1 gate</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/current-1m-canary-20261016.json">candidate escalation</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/current-1m-v3-512k-20261016.json">V3 512K</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-1m-agent-during-512k-20261016.json">actual DSH starvation</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-agent-during-warmed-256k-20261016.json">warmed 256K agent</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-image-agent-during-warmed-500k-20261016.json">warmed 500K agent</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-image-tool-during-warmed-500k-20261016.json">warmed 500K tools</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-wire-token-id-comparison-20261016.json">final-wire token comparison</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dsh-current-image-progressive-context-retest-20261016.json">current mixed-load details</a>.</p>
+<h3>Burst, admission and reliability coverage</h3>
+<p>Four retained ordinary-load campaigns cover 1/2/4/8/16 concurrent bursts and approximately 24K/96K/120K mixed input. Each campaign accounts for 105 exact replies across 18 stages; these are separate repetitions, not 420 simultaneous requests or a prolonged saturation test:</p>
+<table>
+<thead>
+<tr>
+<th>Campaign</th>
+<th>Scope and record status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Earlier 128K product baseline</td>
+<td>Completed 105/105; <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LLM_128K_BASELINE_BEFORE_1M_20261016.md">baseline tables and limits</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-20261016-live.json">raw record</a>.</td>
+</tr>
+<tr>
+<td>Earlier deployed 1M proxy</td>
+<td>Completed 105/105 within short/mixed input sizes; <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-1m-final-route-20261016.json">raw record</a>. Raising the ceiling did not make these million-token requests.</td>
+</tr>
+<tr>
+<td>Current-image, before admission retry correction</td>
+<td>Completed 105/105; <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-current-image-retest-20261016.json">raw record</a>. Separate from the progressive controller that stopped on queue timeout.</td>
+</tr>
+<tr>
+<td>Current-image, after admission retry correction</td>
+<td>93 burst replies completed before controller interruption, then 12 mixed replies resumed and completed; combined 105/105. Both records and the table above preserve that split.</td>
+</tr>
+</tbody></table>
+<p>The queue tests found a real failure: two hidden Router retries extended a nominal 300-second admission wait beyond the client&#39;s timeout. After the targeted retry correction, an installed-Router fixture verified one attempt for each guarded alias and three for an unrelated group. A deliberately held admission lease then produced a real authenticated 429 at 300.36s; short DSH requests continued, lease release allowed a 140,034-token request, and overflow returned 400. This verifies admission behavior, not two actual near-1M GPU requests. The external 429 did not include a <code>Retry-After</code> header.</p>
+<p>Transport, tool continuation, compaction and restart/persistence checks are described in their dedicated sections below. The 315-second delayed endpoint is a transport fixture, the low-threshold compaction run is a functional fixture, and the Router loopback endpoint is a retry fixture. None should be counted as a GPU stress benchmark.</p>
+<p><strong>Remaining coverage limits:</strong> no sustained soak/saturation test, two full concurrent 1M requests, full 8,192-token output near maximum input, near-1M vision, near-1M Claude Code/TrueForge run, or arbitrary long-document recall/semantic-quality assessment. Recovering allocation warnings remain material. Short-request responsiveness is measured, not guaranteed. A further live test must save a new record and identify the exact runtime, route and scheduler rather than inheriting an older pass.</p>
 <h2>Architecture and limits</h2>
 <p><code>Authenticated user → private DSH → authenticated internal LiteLLM :4000 → loopback context guard :4001 → SGLang :8000 → shared four H100 GPUs</code></p>
 <table>
