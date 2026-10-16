@@ -18,9 +18,9 @@ for(const [relative,markers] of required){
 }
 const home=process.env.DSH_HOME || path.join(process.env.HOME,'.dsh');
 const profile=fs.readFileSync(path.join(home,'profiles/web/cordis.patch.yml'),'utf8');
-assert(profile.includes('contextWindow: 131072') && profile.includes('maxTokens: 8192'),'Candidate web budget missing');
-assert(profile.includes('thresholdRatio: 0.75'),'Candidate compaction policy missing');
+assert(profile.includes('contextWindow: 1048576') && profile.includes('maxTokens: 8192'),'Candidate web budget missing');
+assert(profile.includes('thresholdRatio: 0.875'),'Candidate compaction policy missing');
 const dump=spawnSync('dsh',['--profile','web','--dump-config'],{encoding:'utf8',timeout:30000});
 assert.equal(dump.status,0,'Actual upstream web profile composition failed');
-assert(dump.stdout.includes('litellm-cluster') && dump.stdout.includes('contextWindow: 131072'),'Composed internal model route missing');
+assert(dump.stdout.includes('litellm-cluster') && dump.stdout.includes('contextWindow: 1048576'),'Composed internal model route missing');
 console.log(JSON.stringify({installedVersion:pkg.version,actualModulesChecked:required.length,syntax:true,webComposition:true,scope:'Installed package checks; no inference, user history or Production access'}));

@@ -1,0 +1,36 @@
+{
+  "prefixStages": [
+    {
+      "inputTokens": 8192,
+      "seconds": 1.3273,
+      "cachedTokens": 0,
+      "promptTokens": 8192,
+      "outputTokens": 1
+    },
+    {
+      "inputTokens": 16384,
+      "seconds": 1.4149,
+      "cachedTokens": 8192,
+      "promptTokens": 16384,
+      "outputTokens": 1
+    },
+    {
+      "inputTokens": 24611,
+      "seconds": 1.6155,
+      "cachedTokens": 16384,
+      "promptTokens": 24611,
+      "outputTokens": 1
+    }
+  ],
+  "chatSeconds": 0.2864,
+  "chatUsage": {
+    "prompt_tokens": 24611,
+    "total_tokens": 24617,
+    "completion_tokens": 6,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+  },
+  "chatExact": true,
+  "reusedPriorPrefixes": true,
+  "status": "passed"
+}

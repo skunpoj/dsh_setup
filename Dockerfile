@@ -13,7 +13,7 @@ RUN chmod 0755 /usr/local/bin/ttyd \
 RUN groupadd --gid 10001 dsh \
  && useradd --uid 10001 --gid 10001 --create-home --home-dir /home/dsh dsh
 
-ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh KRB5CCNAME=FILE:/state/kerberos/ccache
+ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh KRB5CCNAME=FILE:/state/kerberos/ccache DSH_CONTEXT_TOKENS=1048576
 
 COPY scripts/ /opt/dsh/scripts/
 COPY tests/ /opt/dsh/tests/

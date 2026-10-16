@@ -1,0 +1,1288 @@
+{
+  "startUTC": "2026-10-16T13:04:34.091717+00:00",
+  "scope": "Isolated LiteLLM candidate, current shared scheduler; not DSH agent acceptance",
+  "stages": [
+    {
+      "plan": {
+        "kind": "mixed",
+        "inputTarget": 256000
+      },
+      "wallSeconds": 113.6407,
+      "rows": [
+        {
+          "label": "mixed-long",
+          "startMonotonic": 610587.194936884,
+          "endMonotonic": 610700.832507756,
+          "firstTokenSeconds": 113.4372,
+          "elapsedSeconds": 113.6376,
+          "text": "MIXED_STRESS_OK",
+          "expected": "MIXED_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 8,
+            "prompt_tokens": 256046,
+            "total_tokens": 256054,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 7,
+          "effectiveOutputTokensPerSecond": 0.07
+        },
+        {
+          "label": "mixed-short-0",
+          "startMonotonic": 610587.697891957,
+          "endMonotonic": 610588.7916277,
+          "firstTokenSeconds": 0.7771,
+          "elapsedSeconds": 1.0937,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 40,
+            "total_tokens": 47,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 6.4,
+          "longStillRunningAfterReply": true
+        },
+        {
+          "label": "mixed-short-1",
+          "startMonotonic": 610588.791714681,
+          "endMonotonic": 610589.268169147,
+          "firstTokenSeconds": 0.1572,
+          "elapsedSeconds": 0.4765,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 43,
+            "total_tokens": 50,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 14.692,
+          "longStillRunningAfterReply": true
+        },
+        {
+          "label": "mixed-short-2",
+          "startMonotonic": 610589.268276549,
+          "endMonotonic": 610589.748045493,
+          "firstTokenSeconds": 0.1611,
+          "elapsedSeconds": 0.4798,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 44,
+            "total_tokens": 51,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 14.59,
+          "longStillRunningAfterReply": true
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 0.255
+    },
+    {
+      "plan": {
+        "kind": "mixed",
+        "inputTarget": 512000
+      },
+      "wallSeconds": 68.538,
+      "rows": [
+        {
+          "label": "mixed-long",
+          "elapsedSeconds": 68.5337,
+          "exact": false,
+          "errorType": "HTTPError",
+          "httpStatus": 500
+        },
+        {
+          "label": "mixed-short-0",
+          "startMonotonic": 610705.546179339,
+          "endMonotonic": 610707.226832244,
+          "firstTokenSeconds": 1.6805,
+          "elapsedSeconds": 1.6807,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 39,
+            "total_tokens": 46,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 4.165,
+          "longStillRunningAfterReply": true
+        },
+        {
+          "label": "mixed-short-1",
+          "startMonotonic": 610707.226897172,
+          "endMonotonic": 610707.825011065,
+          "firstTokenSeconds": 0.2857,
+          "elapsedSeconds": 0.5981,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 46,
+            "total_tokens": 53,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 11.703,
+          "longStillRunningAfterReply": true
+        },
+        {
+          "label": "mixed-short-2",
+          "startMonotonic": 610707.825093038,
+          "endMonotonic": 610708.295646182,
+          "firstTokenSeconds": 0.1558,
+          "elapsedSeconds": 0.4706,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 43,
+            "total_tokens": 50,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 14.876,
+          "longStillRunningAfterReply": true
+        }
+      ],
+      "allExact": false,
+      "aggregateOutputTokensPerSecond": 0.306
+    }
+  ],
+  "samples": [
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.05,
+        "sglang:full_token_usage": 0.004123263888888889
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 90730,
+          "freeMiB": 4590,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 98
+        },
+        {
+          "index": 2,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 96
+        },
+        {
+          "index": 3,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 96
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:04:44.919204+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.04,
+        "sglang:full_token_usage": 0.03689236111111111
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 90730,
+          "freeMiB": 4590,
+          "utilizationPercent": 92
+        },
+        {
+          "index": 1,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 92
+        },
+        {
+          "index": 2,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 92
+        },
+        {
+          "index": 3,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:04:53.142461+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.06,
+        "sglang:full_token_usage": 0.061197916666666664
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 90730,
+          "freeMiB": 4590,
+          "utilizationPercent": 89
+        },
+        {
+          "index": 1,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 90
+        },
+        {
+          "index": 2,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 90
+        },
+        {
+          "index": 3,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:05:01.002173+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.08,
+        "sglang:full_token_usage": 0.08116319444444445
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 90730,
+          "freeMiB": 4590,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:05:09.258440+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.1,
+        "sglang:full_token_usage": 0.0993923611111111
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 90730,
+          "freeMiB": 4590,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 90728,
+          "freeMiB": 4592,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:05:17.225534+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.12,
+        "sglang:full_token_usage": 0.1150173611111111
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 90750,
+          "freeMiB": 4570,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 90748,
+          "freeMiB": 4572,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 90748,
+          "freeMiB": 4572,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 90748,
+          "freeMiB": 4572,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:05:25.170010+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.13,
+        "sglang:full_token_usage": 0.12890625
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 90830,
+          "freeMiB": 4490,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 90828,
+          "freeMiB": 4492,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 90828,
+          "freeMiB": 4492,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 90828,
+          "freeMiB": 4492,
+          "utilizationPercent": 82
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:05:33.140033+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.14,
+        "sglang:full_token_usage": 0.1427951388888889
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 90910,
+          "freeMiB": 4410,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 90908,
+          "freeMiB": 4412,
+          "utilizationPercent": 93
+        },
+        {
+          "index": 2,
+          "usedMiB": 90908,
+          "freeMiB": 4412,
+          "utilizationPercent": 81
+        },
+        {
+          "index": 3,
+          "usedMiB": 90908,
+          "freeMiB": 4412,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:05:41.170867+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.15,
+        "sglang:full_token_usage": 0.15494791666666666
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 90930,
+          "freeMiB": 4390,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 90928,
+          "freeMiB": 4392,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 90928,
+          "freeMiB": 4392,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 90928,
+          "freeMiB": 4392,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:05:49.229914+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.17,
+        "sglang:full_token_usage": 0.16710069444444445
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91010,
+          "freeMiB": 4310,
+          "utilizationPercent": 86
+        },
+        {
+          "index": 1,
+          "usedMiB": 91008,
+          "freeMiB": 4312,
+          "utilizationPercent": 78
+        },
+        {
+          "index": 2,
+          "usedMiB": 91008,
+          "freeMiB": 4312,
+          "utilizationPercent": 77
+        },
+        {
+          "index": 3,
+          "usedMiB": 91008,
+          "freeMiB": 4312,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:05:57.206971+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.18,
+        "sglang:full_token_usage": 0.17838541666666666
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91110,
+          "freeMiB": 4210,
+          "utilizationPercent": 75
+        },
+        {
+          "index": 1,
+          "usedMiB": 91108,
+          "freeMiB": 4212,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 91108,
+          "freeMiB": 4212,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 91108,
+          "freeMiB": 4212,
+          "utilizationPercent": 83
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:06:05.123979+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.19,
+        "sglang:full_token_usage": 0.18880208333333334
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91190,
+          "freeMiB": 4130,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 91188,
+          "freeMiB": 4132,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 91188,
+          "freeMiB": 4132,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 91188,
+          "freeMiB": 4132,
+          "utilizationPercent": 74
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:06:12.986302+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.2,
+        "sglang:full_token_usage": 0.19835069444444445
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91190,
+          "freeMiB": 4130,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 91188,
+          "freeMiB": 4132,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 91188,
+          "freeMiB": 4132,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 91188,
+          "freeMiB": 4132,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:06:20.807634+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.21,
+        "sglang:full_token_usage": 0.2087673611111111
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91310,
+          "freeMiB": 4010,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 71
+        },
+        {
+          "index": 2,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 71
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:06:28.980599+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.22,
+        "sglang:full_token_usage": 0.2172309027777778
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91310,
+          "freeMiB": 4010,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:06:36.700056+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.04,
+        "sglang:full_token_usage": 0.0078125
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91310,
+          "freeMiB": 4010,
+          "utilizationPercent": 93
+        },
+        {
+          "index": 1,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 95
+        },
+        {
+          "index": 2,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 94
+        },
+        {
+          "index": 3,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 93
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:06:44.589782+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.04,
+        "sglang:full_token_usage": 0.03993055555555555
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91310,
+          "freeMiB": 4010,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 91
+        },
+        {
+          "index": 2,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 92
+        },
+        {
+          "index": 3,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 91
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:06:52.415211+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.06,
+        "sglang:full_token_usage": 0.0642361111111111
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91310,
+          "freeMiB": 4010,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:07:00.262587+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.08,
+        "sglang:full_token_usage": 0.0842013888888889
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91310,
+          "freeMiB": 4010,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:07:08.640773+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.1,
+        "sglang:full_token_usage": 0.1032986111111111
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91310,
+          "freeMiB": 4010,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:07:16.560595+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.12,
+        "sglang:full_token_usage": 0.1189236111111111
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91310,
+          "freeMiB": 4010,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 84
+        },
+        {
+          "index": 2,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 82
+        },
+        {
+          "index": 3,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:07:24.431654+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.14,
+        "sglang:full_token_usage": 0.13541666666666666
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 91310,
+          "freeMiB": 4010,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 91308,
+          "freeMiB": 4012,
+          "utilizationPercent": 81
+        }
+      ],
+      "pods": [
+        {
+          "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+          "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T13:07:33.976232+00:00"
+    },
+    {
+      "error": "RuntimeError"
+    }
+  ],
+  "status": "stopped",
+  "before": {
+    "metrics": {
+      "sglang:num_running_reqs": 0,
+      "sglang:num_queue_reqs": 0,
+      "sglang:token_usage": 0,
+      "sglang:full_token_usage": 0
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "usedMiB": 90730,
+        "freeMiB": 4590,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 1,
+        "usedMiB": 90728,
+        "freeMiB": 4592,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 2,
+        "usedMiB": 90728,
+        "freeMiB": 4592,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 3,
+        "usedMiB": 90728,
+        "freeMiB": 4592,
+        "utilizationPercent": 0
+      }
+    ],
+    "pods": [
+      {
+        "uid": "70de8543-f205-438b-9c1f-53577a2eab72",
+        "name": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "timeUTC": "2026-10-16T13:04:37.041524+00:00"
+  },
+  "reason": "512K HTTP failure followed by model process restart; postcheck unavailable during startup",
+  "afterRestartObserved": true,
+  "failureLogExcerpt": [
+    "[2026-10-16 13:07:37 TP3] Scheduler hit an exception: Traceback (most recent call last):",
+    "[2026-10-16 13:07:37 TP0] Scheduler hit an exception: Traceback (most recent call last):",
+    "[2026-10-16 13:07:37 TP1] Scheduler hit an exception: Traceback (most recent call last):",
+    "[2026-10-16 13:07:37] SIGQUIT received. signum=None, frame=None. It usually means one child failed.",
+    "[2026-10-16 13:07:37 TP2] Scheduler hit an exception: Traceback (most recent call last):",
+    "[2026-10-16 13:07:42] SIGQUIT received. signum=None, frame=None. It usually means one child failed.",
+    "[2026-10-16 13:07:42] SIGTERM/SIGQUIT/Exception triggered, but crash dump already performed, skipping.",
+    "[2026-10-16 13:07:42] SIGQUIT received. signum=None, frame=None. It usually means one child failed.",
+    "[2026-10-16 13:07:42] SIGTERM/SIGQUIT/Exception triggered, but crash dump already performed, skipping."
+  ]
+}

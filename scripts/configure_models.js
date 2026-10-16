@@ -71,8 +71,8 @@ if (fs.existsSync(scFile)) {
 				models: [
 					{
 						id: "deepseek-v4.1-flash",
-						name: "DeepSeek-V4.1-Flash (Verified 128K CED MoE)",
-						description: "Primary in-cluster model with a verified 128K context window (Vision + Tool-Use)",
+						name: "DeepSeek-V4.1-Flash (1M CED MoE)",
+						description: "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)",
 						inputModalities: ["text", "image"]
 					},
 					{
@@ -145,8 +145,8 @@ if (fs.existsSync(smFile)) {
 				if (Array.isArray(fromSchema) && fromSchema.length > 0) return fromSchema;
 				if (settingsPath.includes("litellm-cluster") || props.provider === "litellm-cluster") {
 					return [
-						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Verified 128K CED MoE)", contextWindow: 131072, maxTokens: 8192, input: ["text", "image"] },
-						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 131072, maxTokens: 8192, input: ["text", "image"] },
+						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
+						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
 						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] },
 						{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] }
 					];
@@ -185,8 +185,8 @@ if (fs.existsSync(smFile)) {
 												apiKeyEnv: "DEEPSEEK_API_KEY",
 												defaultInput: ["text", "image"],
 												models: [
-													{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Verified 128K CED MoE)", contextWindow: 131072, maxTokens: 8192, input: ["text", "image"] },
-													{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 131072, maxTokens: 8192, input: ["text", "image"] },
+													{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
+													{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
 													{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] },
 													{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] }
 												]
@@ -231,7 +231,7 @@ if (fs.existsSync(msFile)) {
 					id: "litellm-cluster",
 					name: "Cluster LiteLLM Gateway",
 					models: [
-						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Verified 128K CED MoE)", description: "Primary in-cluster model with a verified 128K context window (Vision + Tool-Use)", inputModalities: ["text", "image"] },
+						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", description: "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)", inputModalities: ["text", "image"] },
 						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)", inputModalities: ["text", "image"] },
 						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", description: "Standby 4-GPU cluster model", inputModalities: ["text"] },
 						{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", description: "Agile 27B dense reasoning model", inputModalities: ["text"] }
@@ -307,7 +307,7 @@ if (fs.existsSync(msFile)) {
 							id: "litellm-cluster",
 							name: "Cluster LiteLLM Gateway",
 							models: [
-								{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (Verified 128K CED MoE)", description: "Primary in-cluster model with a verified 128K context window (Vision + Tool-Use)", inputModalities: ["text", "image"] },
+								{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", description: "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)", inputModalities: ["text", "image"] },
 								{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)", inputModalities: ["text", "image"] },
 								{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", description: "Standby 4-GPU cluster model", inputModalities: ["text"] },
 								{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", description: "Agile 27B dense reasoning model", inputModalities: ["text"] }
@@ -366,15 +366,15 @@ llm-pi-ai:
         - image
       models:
         - id: "deepseek-v4.1-flash"
-          name: "DeepSeek-V4.1-Flash (Verified 128K CED MoE)"
-          contextWindow: 131072
+          name: "DeepSeek-V4.1-Flash (1M CED MoE)"
+          contextWindow: 1048576
           maxTokens: 8192
           input:
             - text
             - image
         - id: "deepseek-flash"
           name: "DeepSeek-Flash (V4.1-Flash Alias)"
-          contextWindow: 131072
+          contextWindow: 1048576
           maxTokens: 8192
           input:
             - text
@@ -412,7 +412,7 @@ if (fs.existsSync(sysPromptFile)) {
   const tenantPrefix = (dshHost.split('.')[0] || 'dsh').trim();
   const baseDomain = dshHost.includes('.') ? dshHost.substring(dshHost.indexOf('.') + 1) : 'local';
 
-  const newText = `text: "You are DeepSeek Harness (DSH), an expert software engineering assistant on private enterprise cluster infrastructure.\\n- Primary Model: DeepSeek-V4.1-Flash (Verified 128K CED MoE).\\n- Dynamic Application Reverse Proxy Gateway:\\n  When running web servers, APIs, or dashboards (e.g. Streamlit, FastAPI, Vite, Flask, Next.js) on any container port <port>, ALWAYS inform the user that their application is accessible via:\\n  • Subdomain (Root URL): https://${tenantPrefix}-<port>.${baseDomain}\\n  • Path Proxy: https://${dshHost}/proxy/<port>/\\n  NEVER instruct users to visit localhost or 127.0.0.1 directly because those are container-internal. Always provide the external HTTPS links above.\\n  WebSockets are fully supported for Streamlit and live-reload.\\n  Optional port aliases can be configured in /workspace/.ports.json.\\n- Core Invariants:\\n1. Always respond concisely, professionally, and directly to the user.\\n2. Never output unclosed thinking, meta-deliberation, prompt injection analysis, or internal self-talk.\\n3. Greet users politely and offer direct assistance with code, architecture, and debugging."`;
+  const newText = `text: "You are DeepSeek Harness (DSH), an expert software engineering assistant on private enterprise cluster infrastructure.\\n- Primary Model: DeepSeek-V4.1-Flash (1M CED MoE).\\n- Dynamic Application Reverse Proxy Gateway:\\n  When running web servers, APIs, or dashboards (e.g. Streamlit, FastAPI, Vite, Flask, Next.js) on any container port <port>, ALWAYS inform the user that their application is accessible via:\\n  • Subdomain (Root URL): https://${tenantPrefix}-<port>.${baseDomain}\\n  • Path Proxy: https://${dshHost}/proxy/<port>/\\n  NEVER instruct users to visit localhost or 127.0.0.1 directly because those are container-internal. Always provide the external HTTPS links above.\\n  WebSockets are fully supported for Streamlit and live-reload.\\n  Optional port aliases can be configured in /workspace/.ports.json.\\n- Core Invariants:\\n1. Always respond concisely, professionally, and directly to the user.\\n2. Never output unclosed thinking, meta-deliberation, prompt injection analysis, or internal self-talk.\\n3. Greet users politely and offer direct assistance with code, architecture, and debugging."`;
 
   const oldText = 'text: "You are an AI agent powered by DeepSeek Harness."';
   if (spContent.includes(oldText)) {
@@ -457,7 +457,7 @@ When you build, develop, or run web applications, APIs, dashboards, or preview s
 
 ## 3. High-Performance Cluster Inference
 - LiteLLM Gateway is available at \`http://litellm.llm.svc.cluster.local:4000/v1\`.
-- Primary cluster model: \`deepseek-v4.1-flash\` (verified 128K context window).
+- Primary cluster model: \`deepseek-v4.1-flash\` (configured 1M context window).
 
 ## 4. Built-in Interactive Web Terminal
 - An interactive bash web terminal (powered by ttyd) runs natively on port 7681 (alias \`terminal\` or \`ttyd\`).
@@ -592,7 +592,7 @@ if (fs.existsSync(alFile)) {
   }
 }
 
-// 12. Enforce Web Profile cordis.patch.yml with Compaction and Verified 128K Context Window
+// 12. Enforce Web Profile cordis.patch.yml with Compaction and 1M Context Window
 try {
   const profileDir = `${dshHome}/profiles/web`;
   fs.mkdirSync(profileDir, { recursive: true });
@@ -612,15 +612,15 @@ try {
           - image
         models:
           - id: deepseek-v4.1-flash
-            name: DeepSeek-V4.1-Flash (Verified 128K CED MoE)
-            contextWindow: 131072
+            name: DeepSeek-V4.1-Flash (1M CED MoE)
+            contextWindow: 1048576
             maxTokens: 8192
             input:
               - text
               - image
           - id: deepseek-flash
             name: DeepSeek-Flash (V4.1-Flash Alias)
-            contextWindow: 131072
+            contextWindow: 1048576
             maxTokens: 8192
             input:
               - text
@@ -648,7 +648,9 @@ try {
   disabled: false
   config:
     auto: true
-    thresholdRatio: 0.75
+    thresholdRatio: 0.875
+    headroomTokens: 65536
+    maxTokens: 8192
 
 - id: command-compact
   disabled: false
@@ -662,7 +664,7 @@ try {
     welcomeNoticeVersion: 2026-09-28.1
 `;
   fs.writeFileSync(patchYmlPath, cordisContent, "utf8");
-  console.log("[CONFIG] Enforced cordis.patch.yml with auto-compaction and verified 128K context window");
+  console.log("[CONFIG] Enforced cordis.patch.yml with auto-compaction and configured 1M context window");
 } catch (e) {
   console.error("[CONFIG] Failed to write cordis.patch.yml:", e.message);
 }

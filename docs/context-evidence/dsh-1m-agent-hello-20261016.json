@@ -1,0 +1,5 @@
+{
+  "errorType": "DSHProbeFailed",
+  "stderr": "Defaulted container \"dsh\" out of: dsh, profile (init)\nerror: Internal error occurred: unable to upgrade connection: container not found (\"dsh\")\n",
+  "stdout": ""
+}

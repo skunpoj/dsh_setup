@@ -1,5 +1,7 @@
 # Shared LLM — Setup and Verified Test Results
 
+**Rollout checkpoint:** The extensive review below describes the earlier 128K product baseline. The model now has V2 scheduling plus a V3 single-chunk-owner guard. A 1M runtime/gateway candidate is being qualified, including bounded cached prefill for actual DSH responsiveness. Production user profiles have not yet been raised. [Current implementation and trial evidence](END_TO_END_1M_ROLLOUT_20261016.md).
+
 **Extensive live review, 16 October:** DSH does not currently have end-to-end 1M access through LiteLLM. The SGLang backend is configured for 1,048,576 tokens. All 20 main runtime web-profile files declare 131,072 context and 8,192 output for the DeepSeek aliases. Boot-free composition of the legacy owner's and private admin's web profiles confirms those values. The legacy home-level 1M entry refers to an older GLM configuration; it does not establish a 1M DeepSeek web route. The mounted LiteLLM callback uses 131,072/8,192/256, with coverage limitations detailed below. No model, gateway or DSH server was restarted or reconfigured during this investigation.
 
 **Correction:** automatic compaction is not simply 75% of 128K. The installed plugin subtracts output reservation and headroom too. Its normal calculated threshold is **57,344 estimated tokens**, not 98,304. This is a code/configuration calculation, not a fresh successful compaction of a real historical session.

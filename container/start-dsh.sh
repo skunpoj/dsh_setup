@@ -34,6 +34,9 @@ fi
 if [ -f /state/.credentials.yaml ]; then
   chmod 0600 /state/.credentials.yaml
 fi
+if [ -n "${DSH_CONTEXT_TOKENS:-}" ]; then
+  node /opt/dsh/scripts/configure_runtime_context.js /state "$DSH_CONTEXT_TOKENS"
+fi
 
 ttyd -p 7681 -i 0.0.0.0 -W bash -l >/tmp/ttyd.log 2>&1 &
 socat TCP-LISTEN:3081,bind=0.0.0.0,reuseaddr,fork TCP:127.0.0.1:3080 >/tmp/dsh-bridge.log 2>&1 &
