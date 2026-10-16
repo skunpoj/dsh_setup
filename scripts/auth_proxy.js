@@ -15,6 +15,42 @@ const USER_STORE_PATH = process.env.DSH_USER_STORE_PATH || `${USER_ROOT}/.user_a
 const USER_SETTINGS_PATH = process.env.DSH_USER_SETTINGS_PATH || `${USER_ROOT}/.user_settings.json`;
 const COOKIE_NAME = process.env.DSH_COOKIE_NAME || 'dsh_auth';
 const COOKIE_TRANSPORT = process.env.DSH_COOKIE_SECURE === 'false' ? '' : '; Secure';
+const ADMIN_USERS = new Set((process.env.DSH_ADMIN_USERS || 'admin').split(',').map(x => x.trim()).filter(Boolean));
+const ADMIN_SUMMARY_FILE = process.env.DSH_ADMIN_SUMMARY_FILE || '/admin-status/summary.json';
+
+function adminSummary() {
+  let saved = {};
+  try { saved = JSON.parse(fs.readFileSync(ADMIN_SUMMARY_FILE, 'utf8')); } catch {}
+  const sessions = { secure: 0, internet: 0 };
+  for (const s of SESSIONS.values()) sessions[normalizeInternetMode(s.internet) === 'on' ? 'internet' : 'secure']++;
+  // Explicit projection prevents accidental publication of credentials or raw
+  // Kubernetes configuration from an operator-supplied snapshot.
+  return { generatedAt: new Date().toISOString(), registeredAccounts: Object.keys(loadUsers()).length,
+    activeBrowserSessions: sessions, privateUserRouting: Boolean(USER_TARGETS), registrationEnabled: ALLOW_REGISTRATION,
+    snapshot: { observedAt: typeof saved.observedAt === 'string' ? saved.observedAt : null,
+      environments: Array.isArray(saved.environments) ? saved.environments.map(e => ({ name: String(e.name || ''),
+        ready: e.ready === true, storage: String(e.storage || ''), network: String(e.network || '') })) : [],
+      model: saved.model ? { backendContext: Number(saved.model.backendContext) || null,
+        userContext: Number(saved.model.userContext) || null, concurrencyCeiling: Number(saved.model.concurrencyCeiling) || null } : null,
+      performance: Array.isArray(saved.performance) ? saved.performance.map(String) : [],
+      gaps: Array.isArray(saved.gaps) ? saved.gaps.map(String) : [] } };
+}
+
+function renderAdminDashboard() {
+  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Admin overview</title>
+<style>body{font:16px/1.6 system-ui;background:#f1f5f9;color:#172033;margin:0}main{max-width:1100px;margin:auto;padding:32px}a{color:#075985}header{display:flex;gap:24px;align-items:center;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}section{background:white;border:1px solid #cbd5e1;border-radius:12px;padding:20px;margin:18px 0}h1,h2{line-height:1.2}strong{font-size:24px}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0}.muted{color:#475569}.notice{border-left:5px solid #d97706}button{padding:8px 16px;cursor:pointer}</style>
+<main><header><h1>DSH Admin overview</h1><a href="/">Back to DSH</a><a href="/logout">Logout</a><button id="refresh">Refresh</button></header><p id="error" role="alert"></p><p id="time" class="muted"></p>
+<div class="cards"><section>Registered accounts<br><strong id="accounts">—</strong></section><section>Active browser sessions<br><strong id="sessions">—</strong><div id="sessionDetail"></div></section><section>User routing<br><strong id="routing">—</strong></section></div>
+<section class="notice"><h2>Evidence freshness</h2><p id="freshness"></p><p>Account/session counts and routing are current gateway values. Environment health, storage, limits and performance below are an operator-recorded snapshot, not live monitoring. Browser logins are not unique users or model requests.</p></section>
+<section><h2>Execution environments</h2><div style="overflow:auto"><table><thead><tr><th>Environment</th><th>Recorded readiness</th><th>Storage</th><th>Recorded network behavior</th></tr></thead><tbody id="environments"></tbody></table></div></section>
+<section><h2>Model limits</h2><p id="model"></p><p class="muted">A concurrency ceiling does not guarantee that many maximum-length requests fit.</p></section><section><h2>Recorded performance</h2><ul id="performance"></ul></section><section class="notice"><h2>Remaining controls</h2><ul id="gaps"></ul></section><p class="muted">Read-only overview. No passwords, cookies, conversation contents or source records are displayed.</p></main>
+<script>
+const put=(id,value)=>document.getElementById(id).textContent=value;
+function list(id,values){const root=document.getElementById(id);root.replaceChildren();for(const value of values){const li=document.createElement('li');li.textContent=value;root.append(li);}}
+async function refresh(){try{const r=await fetch('/api/admin/summary',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('Admin access unavailable ('+r.status+').');const d=await r.json();put('error','');put('time','Gateway read at '+d.generatedAt);put('accounts',d.registeredAccounts);put('sessions',d.activeBrowserSessions.secure+d.activeBrowserSessions.internet);put('sessionDetail','No Internet: '+d.activeBrowserSessions.secure+' · Internet: '+d.activeBrowserSessions.internet);put('routing',d.privateUserRouting?'Per user':'Shared pools');put('freshness',d.snapshot.observedAt?'Snapshot observed at '+d.snapshot.observedAt+'. Refresh does not rerun infrastructure tests.':'No snapshot available. Infrastructure status is unknown.');const root=document.getElementById('environments');root.replaceChildren();for(const e of d.snapshot.environments){const tr=document.createElement('tr');for(const text of [e.name,e.ready?'Ready at observation':'Not verified ready',e.storage,e.network]){const td=document.createElement('td');td.textContent=text;tr.append(td);}root.append(tr);}const m=d.snapshot.model;put('model',m?'Backend context: '+m.backendContext+' tokens · DSH/LiteLLM budget: '+m.userContext+' tokens · Running-request ceiling: '+m.concurrencyCeiling:'No recorded limits.');list('performance',d.snapshot.performance);list('gaps',d.snapshot.gaps);}catch(e){put('error',e.message);}}
+document.getElementById('refresh').addEventListener('click',refresh);refresh();
+</script></html>`;
+}
 
 // A gateway can route an authenticated session to a dedicated execution pool.
 // When these variables are absent the proxy keeps its original single-pod behaviour.
@@ -380,11 +416,12 @@ function setUserInternetMode(username, mode) {
   return saveUserSettings(settings);
 }
 
-function injectLogoutControl(html) {
+function injectLogoutControl(html, isAdmin = false) {
   if (typeof html !== 'string' || html.includes('id="dsh-enterprise-logout"')) return html;
   const control = `<a id="dsh-enterprise-logout" href="/logout" aria-label="ออกจากระบบ (Logout)" title="ออกจากระบบ (Logout)" style="position:fixed;right:18px;top:14px;z-index:2147483647;display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(148,163,184,.42);border-radius:8px;background:rgba(15,23,42,.94);color:#f8fafc;font:600 13px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.28);backdrop-filter:blur(8px)"><span aria-hidden="true">&#x21AA;</span><span>ออกจากระบบ / Logout</span></a>`;
-  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}</body>`);
-  return html + control;
+  const adminLink = isAdmin ? '<a id="dsh-admin-dashboard" href="/admin" style="position:fixed;right:220px;top:14px;z-index:2147483647;background:#0f172a;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 13px system-ui">Admin overview</a>' : '';
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}${adminLink}</body>`);
+  return html + control + adminLink;
 }
 
 // Initialize user store if missing
@@ -903,6 +940,16 @@ const server = http.createServer((req, res) => {
     return res.end(renderAuthPage({ tab }));
   }
 
+  // Reserve admin routes before any app forwarding or environment lookup.
+  if (parsedUrl.pathname === '/admin' || parsedUrl.pathname === '/api/admin/summary') {
+    const headers = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer' };
+    if (!ADMIN_USERS.has(sessionUser)) { res.writeHead(403, headers); return res.end('Administrator access required.'); }
+    if (req.method !== 'GET') { res.writeHead(405, { ...headers, Allow: 'GET' }); return res.end('Read-only endpoint.'); }
+    const api = parsedUrl.pathname === '/api/admin/summary';
+    res.writeHead(200, { ...headers, 'Content-Type': api ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8' });
+    return res.end(api ? JSON.stringify(adminSummary()) : renderAdminDashboard());
+  }
   const internetMode = normalizeInternetMode(activeSession && activeSession.internet);
   const environmentTarget = getEnvironmentTarget(internetMode, sessionUser);
   if (!environmentTarget) {
@@ -978,7 +1025,7 @@ const server = http.createServer((req, res) => {
       const chunks = [];
       proxyRes.on('data', chunk => chunks.push(chunk));
       proxyRes.on('end', () => {
-        const body = injectLogoutControl(Buffer.concat(chunks).toString('utf8'));
+        const body = injectLogoutControl(Buffer.concat(chunks).toString('utf8'), ADMIN_USERS.has(sessionUser));
         resHeaders['content-length'] = Buffer.byteLength(body);
         res.writeHead(proxyRes.statusCode, resHeaders);
         res.end(body);

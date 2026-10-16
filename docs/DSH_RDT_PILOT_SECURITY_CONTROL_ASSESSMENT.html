@@ -9,6 +9,8 @@
 <p>Fresh mount evidence confirms <code>/workspace</code> and five durable <code>/state</code> directories are direct CIFS mounts. They do not require continuous central-state synchronization. The <code>/state</code> parent remains local for credentials/configuration. Secure GitHub/PyPI/npm probes all timed out; Internet returned 200. DSH2/DSH3 still run as root with service-account tokens and public connectivity; they cannot be included in Secure&#39;s acceptance.</p>
 <p>Three exact short replies completed in 0.230–0.231 seconds. Two concurrent exact replies each returned 119 tokens in 3.381–3.386 seconds, about 35.2 effective output tokens/sec per request. This includes queue/prefill/network overhead and is not sustained decode speed or near-1M contention evidence. Backend context remains 1M and running-request cap 16; DSH/LiteLLM remains 128K. Existing user pools remain shared and no actual RDT source was granted. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LIVE_REVIEW_AND_PERFORMANCE_20261016.md">complete current review and remaining constraints</a>.</p>
 <p>A fresh 24,047-token synthetic request completed in 4.987 seconds while three repeated short replies finished in 0.466–0.588 seconds, all before the longer request ended. This adds bounded live scheduling evidence; it is not near-1M acceptance.</p>
+<h3>Admin overview</h3>
+<p>The <a href="https://dsh.aiportal.bot.or.th/admin">admin dashboard</a> is deployed. Existing authenticated <code>admin</code> can read current gateway account/session counts and routing mode, plus the timestamped infrastructure/performance snapshot and unresolved controls. Other users are denied even with forged admin headers. The page is read-only and exposes no credentials or conversation contents. It does not grant the gateway Kubernetes API access or turn saved measurements into live monitoring. Its source overlay <code>dsh-gateway-source-c013b4abad57</code> supersedes the earlier identity-only overlay. Actual Production checks passed and the 80 legacy histories remained unchanged. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/ADMIN_DASHBOARD.md">dashboard details</a> and <a href="#evidence-admin-dashboard-live-20261016-json">live acceptance</a>.</p>
 <h2 id="section-1">1 Executive assessment</h2>
 <p>Assume the Harness, its tools and generated code can make mistakes or exceed the intended scope. Enforce boundaries through infrastructure, execution identities, storage/database permissions and authenticated routes. Prompt instructions alone are insufficient.</p>
 <p>Three controls must work together: prevent external leakage, prevent source damage or excessive access, and contain outputs within authorized users. Internet denial does not prevent deletion of writable internal data. Authentication does not isolate people sharing a process and filesystem.</p>
@@ -361,8 +363,12 @@
 <details id="embedded-readme"><summary>Embedded README — features, design decisions and setup</summary><h1>DSH — Enterprise Execution Environments and RDT Pilot</h1>
 <p>DSH provides an authenticated gateway, separate <strong>No Internet / Internal (default)</strong> and <strong>Internet</strong> environments, internal LiteLLM and a shared four-H100 model. The three RDT pilot controls remain partially satisfied: the storage regression is corrected, but existing shared pools do not establish per-user isolation or approved read-only RDT access.</p>
 <p>Start with the English <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">interactive security and architecture walkthrough</a>, its <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md">Markdown source</a>, and the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CENTRAL_STATE_RESTORATION_20261015.md">central-state restoration procedure</a>. The standalone HTML embeds the README and evidence, with SMP EDA-style diagram zoom, fullscreen, source copy and SVG/PNG export.</p>
+<h2>Admin dashboard</h2>
+<p>Open <a href="https://dsh.aiportal.bot.or.th/admin">Admin overview</a> after logging in as the existing <code>admin</code> account, or use the <strong>Admin overview</strong> link beside Logout. Other accounts and anonymous visitors cannot read the page or summary API. The operator can configure <code>DSH_ADMIN_USERS</code> as an explicit comma-separated allowlist; this does not provision accounts or accept client-selected roles.</p>
+<p>The read-only dashboard shows current account counts, browser sessions by environment and whether routing uses shared pools or private users. It also shows the timestamped environment/storage/network snapshot, model budgets, performance samples and remaining controls. Refresh reads the summary; it does not rerun infrastructure probes. No passwords, conversation contents or source data are shown. The gateway has no Kubernetes service-account token or cluster-monitoring permissions.</p>
+<p>The new gateway source overlay is <code>dsh-gateway-source-c013b4abad57</code> (image unchanged). The read-only snapshot is <code>dsh-admin-status-ce5034f4013b</code>. Production admin access, ordinary-user/forged-role denial, anonymous denial and navigation passed; all 80 legacy histories stayed unchanged. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/ADMIN_DASHBOARD.md">setup, data freshness and test evidence</a>.</p>
 <h2>Latest live review and performance — 16 October 2026</h2>
-<p>The candidate-tested identity-header correction is now deployed to the Production gateway through immutable ConfigMap <code>dsh-gateway-source-c9737befbe88</code>. The image remains build 62702; its source overlay is tracked separately. Fresh login/logout, environment binding, history listing and terminal pages passed after replacement. Execution pools and the model were not restarted. All 80 legacy histories in 82 files remain byte-identical. Temporary probe credentials were removed.</p>
+<p>The candidate-tested identity-header correction is now deployed to the Production gateway through immutable ConfigMap <code>dsh-gateway-source-c013b4abad57</code>. The image remains build 62702; its source overlay is tracked separately. Fresh login/logout, environment binding, history listing and terminal pages passed after replacement. Execution pools and the model were not restarted. All 80 legacy histories in 82 files remain byte-identical. Temporary probe credentials were removed.</p>
 <p>Current mount readback confirms Secure workspace and durable state are direct CIFS mounts; no continuous copy loop is required for those directories. The parent <code>/state</code> still holds local credentials/configuration. Secure GitHub/PyPI/npm probes timed out while Internet returned 200. DSH2/DSH3 remain legacy root-based, Internet-connected environments with mounted service-account tokens; they are not covered by Secure pilot acceptance.</p>
 <p>Three short model replies completed in 0.230–0.231 seconds. Two concurrent exact 119-token replies completed in 3.381–3.386 seconds each, about 35.2 effective output tokens/sec per request. Backend ceiling is 1M; the DSH/LiteLLM product guardrail remains 128K. This bounded sample does not prove near-1M fairness, sustained capacity or full agent-turn speed.</p>
 <p>A fresh 24,047-token synthetic request completed in 4.987 seconds while three repeated short replies finished in 0.466–0.588 seconds, all before the longer request ended. This adds bounded live scheduling evidence; it is not near-1M acceptance.</p>
@@ -506,7 +512,175 @@
 <p>The same reviewed DSH tree is mirrored under <code>GPU_server/deployment/vllm/dsh-environments</code>; GPU model and scheduling sources remain in GPU_server. Historical reports stay dated and preserved. Source completion, live behavior, scan results and owner/assessor acceptance are separate claims.</p>
 <h2>Unknown legacy ownership: safe next step</h2>
 <p>A read-only review found 9 gateway accounts and 80 unique histories in 82 generation files; session headers contain no authenticated ownership field. Preserve legacy records together without broadening access. Validate isolation with two disposable identities and synthetic data; give confirmed future private users fresh histories. Assign old records only after verified ownership or an explicit shared-access decision. Keep new pilot RDT access unconfigured until a limited source and identity are identified. This is a proposed staged path, not a completed user cutover or an access change. Account names are kept in a private local CSV, not published here. See the English report, section 10.</p>
-</details><h2 id="evidence">Embedded evidence</h2><p>Saved test responses and logs at their stated times. Opening this report does not perform a new system test. Original evidence is preserved unchanged.</p><details id="evidence-performance-mixed-live-20261016-json"><summary>performance-mixed-live-20261016.json</summary><pre>{
+</details><h2 id="evidence">Embedded evidence</h2><p>Saved test responses and logs at their stated times. Opening this report does not perform a new system test. Original evidence is preserved unchanged.</p><details id="evidence-admin-dashboard-live-20261016-json"><summary>admin-dashboard-live-20261016.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T06:44:44.155785+00:00&quot;,
+  &quot;sourceSHA256&quot;: &quot;c013b4abad57d93ad2219b803537826e9ad9c1a0eff55aa1a8ab8369d54682a9&quot;,
+  &quot;runtimePoolsRestarted&quot;: false,
+  &quot;modelRestarted&quot;: false,
+  &quot;legacyBefore&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;prepare&quot;: {
+    &quot;temporaryProbeProvisioned&quot;: true
+  },
+  &quot;before&quot;: {
+    &quot;time&quot;: &quot;2026-10-16T06:44:51.305Z&quot;,
+    &quot;results&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;secure&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 80,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;internet&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 0,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      }
+    ]
+  },
+  &quot;adminSummaryConfigMap&quot;: &quot;dsh-admin-status-ce5034f4013b&quot;,
+  &quot;after&quot;: {
+    &quot;time&quot;: &quot;2026-10-16T06:45:37.101Z&quot;,
+    &quot;results&quot;: [
+      {
+        &quot;environment&quot;: &quot;off&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;secure&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 80,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      },
+      {
+        &quot;environment&quot;: &quot;on&quot;,
+        &quot;loginStatus&quot;: 302,
+        &quot;sessionEnvironment&quot;: &quot;internet&quot;,
+        &quot;uiStatus&quot;: 200,
+        &quot;uiIsHTML&quot;: true,
+        &quot;logoutButton&quot;: true,
+        &quot;secureCookie&quot;: true,
+        &quot;historyListed&quot;: true,
+        &quot;historyCount&quot;: 0,
+        &quot;terminalPage&quot;: true,
+        &quot;logoutStatus&quot;: 302,
+        &quot;logoutInvalidatesSession&quot;: true
+      }
+    ]
+  },
+  &quot;adminDashboardVerification&quot;: {
+    &quot;passed&quot;: true,
+    &quot;timeUTC&quot;: &quot;2026-10-16T06:45:39.315Z&quot;,
+    &quot;adminPage&quot;: true,
+    &quot;adminSummary&quot;: true,
+    &quot;snapshotMatchesMountedContent&quot;: true,
+    &quot;snapshotObservedAt&quot;: &quot;2026-10-16T06:32:56.361472+00:00&quot;,
+    &quot;environmentCount&quot;: 4,
+    &quot;ordinaryUserDenied&quot;: true,
+    &quot;forgedRoleDenied&quot;: true,
+    &quot;anonymousDenied&quot;: true,
+    &quot;adminOnlyNavigation&quot;: true,
+    &quot;passwordsOrCookiesExported&quot;: false
+  },
+  &quot;legacyAfter&quot;: {
+    &quot;uniqueHistories&quot;: 80,
+    &quot;sessionFiles&quot;: 82,
+    &quot;aggregateSHA256&quot;: &quot;7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317&quot;
+  },
+  &quot;runningSourceSHA256&quot;: &quot;c013b4abad57d93ad2219b803537826e9ad9c1a0eff55aa1a8ab8369d54682a9&quot;,
+  &quot;status&quot;: &quot;passed&quot;,
+  &quot;configMap&quot;: &quot;dsh-gateway-source-c013b4abad57&quot;,
+  &quot;cleanup&quot;: {
+    &quot;temporaryProbeRemoved&quot;: true,
+    &quot;otherAccountsUnchanged&quot;: true
+  }
+}</pre></details><details id="evidence-admin-dashboard-tests-20261016-json"><summary>admin-dashboard-tests-20261016.json</summary><pre>{
+  &quot;passed&quot;: true,
+  &quot;timeUTC&quot;: &quot;2026-10-16T06:44:05.528Z&quot;,
+  &quot;gatewayOverlaySHA256&quot;: &quot;c013b4abad57d93ad2219b803537826e9ad9c1a0eff55aa1a8ab8369d54682a9&quot;,
+  &quot;checks&quot;: [
+    &quot;anonymous denied&quot;,
+    &quot;ordinary user denied despite forged admin headers&quot;,
+    &quot;admin access&quot;,
+    &quot;read-only methods&quot;,
+    &quot;secret projection&quot;,
+    &quot;admin-only navigation&quot;,
+    &quot;browser rendering&quot;,
+    &quot;snapshot timestamps&quot;,
+    &quot;DOM injection inert&quot;,
+    &quot;missing snapshot unknown&quot;,
+    &quot;logout revokes access&quot;
+  ]
+}</pre></details><details id="evidence-admin-dashboard-snapshot-20261016-json"><summary>admin-dashboard-snapshot-20261016.json</summary><pre>{
+  &quot;observedAt&quot;: &quot;2026-10-16T06:32:56.361472+00:00&quot;,
+  &quot;environments&quot;: [
+    {
+      &quot;name&quot;: &quot;dsh-secure&quot;,
+      &quot;ready&quot;: true,
+      &quot;storage&quot;: &quot;CIFS workspace and durable history&quot;,
+      &quot;network&quot;: &quot;GitHub/PyPI/npm: all timed out&quot;
+    },
+    {
+      &quot;name&quot;: &quot;dsh-internet&quot;,
+      &quot;ready&quot;: true,
+      &quot;storage&quot;: &quot;Separate local persistent storage&quot;,
+      &quot;network&quot;: &quot;GitHub/PyPI/npm: all HTTP 200&quot;
+    },
+    {
+      &quot;name&quot;: &quot;dsh-user2&quot;,
+      &quot;ready&quot;: true,
+      &quot;storage&quot;: &quot;Separate local persistent storage&quot;,
+      &quot;network&quot;: &quot;GitHub/PyPI/npm: all HTTP 200&quot;
+    },
+    {
+      &quot;name&quot;: &quot;dsh3&quot;,
+      &quot;ready&quot;: true,
+      &quot;storage&quot;: &quot;Separate local persistent storage&quot;,
+      &quot;network&quot;: &quot;GitHub/PyPI/npm: all HTTP 200&quot;
+    }
+  ],
+  &quot;model&quot;: {
+    &quot;backendContext&quot;: 1048576,
+    &quot;userContext&quot;: 131072,
+    &quot;concurrencyCeiling&quot;: 16
+  },
+  &quot;performance&quot;: [
+    &quot;Short replies: 0.23 seconds in bounded sample.&quot;,
+    &quot;Two concurrent replies: about 35.2 effective output tokens/sec per request.&quot;,
+    &quot;During fresh 24,047-token work: short replies 0.466\u20130.588 seconds.&quot;
+  ],
+  &quot;gaps&quot;: [
+    &quot;Existing Production pools still share users. Per-user isolation passed only in the two-user candidate.&quot;,
+    &quot;Real RDT source scope and dedicated access identity remain unidentified.&quot;,
+    &quot;DSH2/DSH3 remain legacy root-based Internet environments.&quot;,
+    &quot;No Internet is restricted egress, not an air gap; DNS/relay and full worker-path acceptance remain open.&quot;,
+    &quot;Near-1M mixed-load fairness and full DSH 1M product behavior are not verified.&quot;
+  ]
+}</pre></details><details id="evidence-performance-mixed-live-20261016-json"><summary>performance-mixed-live-20261016.json</summary><pre>{
   &quot;short&quot;: [
     {
       &quot;label&quot;: &quot;short-0&quot;,
@@ -3846,7 +4020,7 @@ environment routing and session stickiness tests passed
 routing checks completed
 per-user routing, spoof resistance, missing-runtime denial, registration denial and stickiness tests passed
 </pre></details><details id="evidence-html-verification-20261015-json"><summary>html-verification-20261015.json</summary><pre>{
-  &quot;time&quot;: &quot;2026-10-16T06:37:16.488Z&quot;,
+  &quot;time&quot;: &quot;2026-10-16T06:46:57.546Z&quot;,
   &quot;englishNarrative&quot;: true,
   &quot;readmeEmbedded&quot;: true,
   &quot;renderedDiagrams&quot;: 3,

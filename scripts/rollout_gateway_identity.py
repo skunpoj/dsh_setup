@@ -26,11 +26,13 @@ def kube(*args, data=None):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--output', type=Path, required=True)
+    ap.add_argument('--verification-file', type=Path, default=ROOT / 'docs/context-evidence/user-isolation-canary-20261016.json')
+    ap.add_argument('--admin-summary', type=Path, help='Sanitized operator snapshot for the read-only admin dashboard')
     args = ap.parse_args()
     args.output.mkdir(exist_ok=False, parents=True)
     source = (ROOT / 'scripts/auth_proxy.js').read_text(encoding='utf-8')
     digest = hashlib.sha256(source.encode()).hexdigest()
-    evidence = json.loads((ROOT / 'docs/context-evidence/user-isolation-canary-20261016.json').read_text(encoding='utf-8'))
+    evidence = json.loads(args.verification_file.read_text(encoding='utf-8'))
     if digest != evidence['gatewayOverlaySHA256']:
         raise RuntimeError('Source differs from the live-tested canary correction')
     before = json.loads(kube('get', 'deployment', 'dsh-environment-gateway', '-o', 'json'))
@@ -64,6 +66,17 @@ def main():
         c['volumeMounts'] = [v for v in c['volumeMounts'] if v['name'] != 'gateway-source']
         c['volumeMounts'].append({'name': 'gateway-source', 'mountPath': '/gateway-source', 'readOnly': True})
         c['command'] = ['node', '/gateway-source/auth_proxy.js']
+        if args.admin_summary:
+            summary = args.admin_summary.read_text(encoding='utf-8')
+            json.loads(summary)
+            summary_name = 'dsh-admin-status-' + hashlib.sha256(summary.encode()).hexdigest()[:12]
+            kube('apply', '-f', '-', data=json.dumps({'apiVersion': 'v1', 'kind': 'ConfigMap', 'immutable': True,
+                 'metadata': {'name': summary_name, 'namespace': 'llm'}, 'data': {'summary.json': summary}}))
+            pod['volumes'] = [v for v in pod['volumes'] if v['name'] != 'admin-status']
+            pod['volumes'].append({'name': 'admin-status', 'configMap': {'name': summary_name}})
+            c['volumeMounts'] = [v for v in c['volumeMounts'] if v['name'] != 'admin-status']
+            c['volumeMounts'].append({'name': 'admin-status', 'mountPath': '/admin-status', 'readOnly': True})
+            record['adminSummaryConfigMap'] = summary_name
         changed = True
         kube('patch', 'deployment', 'dsh-environment-gateway', '--type=merge', '-p',
              json.dumps({'spec': {'template': template}}))
@@ -73,6 +86,10 @@ def main():
         if actual != digest:
             raise RuntimeError('Running source hash mismatch')
         record['after'] = run_probe('verify')
+        if args.admin_summary:
+            admin_probe = (ROOT / 'scripts/verify_admin_dashboard_live.js').read_text(encoding='utf-8')
+            record['adminDashboardVerification'] = json.loads(kube('exec', '-i', 'deploy/dsh-environment-gateway',
+                                                                  '--', 'node', '-', data=admin_probe))
         record['legacyAfter'] = legacy_fingerprint()
         if record['legacyBefore'] != record['legacyAfter']:
             raise RuntimeError('Legacy history fingerprint changed; investigate without restoring data')

@@ -1,0 +1,107 @@
+{
+  "timeUTC": "2026-10-16T06:44:44.155785+00:00",
+  "sourceSHA256": "c013b4abad57d93ad2219b803537826e9ad9c1a0eff55aa1a8ab8369d54682a9",
+  "runtimePoolsRestarted": false,
+  "modelRestarted": false,
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "prepare": {
+    "temporaryProbeProvisioned": true
+  },
+  "before": {
+    "time": "2026-10-16T06:44:51.305Z",
+    "results": [
+      {
+        "environment": "off",
+        "loginStatus": 302,
+        "sessionEnvironment": "secure",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 80,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      },
+      {
+        "environment": "on",
+        "loginStatus": 302,
+        "sessionEnvironment": "internet",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 0,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      }
+    ]
+  },
+  "adminSummaryConfigMap": "dsh-admin-status-ce5034f4013b",
+  "after": {
+    "time": "2026-10-16T06:45:37.101Z",
+    "results": [
+      {
+        "environment": "off",
+        "loginStatus": 302,
+        "sessionEnvironment": "secure",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 80,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      },
+      {
+        "environment": "on",
+        "loginStatus": 302,
+        "sessionEnvironment": "internet",
+        "uiStatus": 200,
+        "uiIsHTML": true,
+        "logoutButton": true,
+        "secureCookie": true,
+        "historyListed": true,
+        "historyCount": 0,
+        "terminalPage": true,
+        "logoutStatus": 302,
+        "logoutInvalidatesSession": true
+      }
+    ]
+  },
+  "adminDashboardVerification": {
+    "passed": true,
+    "timeUTC": "2026-10-16T06:45:39.315Z",
+    "adminPage": true,
+    "adminSummary": true,
+    "snapshotMatchesMountedContent": true,
+    "snapshotObservedAt": "2026-10-16T06:32:56.361472+00:00",
+    "environmentCount": 4,
+    "ordinaryUserDenied": true,
+    "forgedRoleDenied": true,
+    "anonymousDenied": true,
+    "adminOnlyNavigation": true,
+    "passwordsOrCookiesExported": false
+  },
+  "legacyAfter": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "runningSourceSHA256": "c013b4abad57d93ad2219b803537826e9ad9c1a0eff55aa1a8ab8369d54682a9",
+  "status": "passed",
+  "configMap": "dsh-gateway-source-c013b4abad57",
+  "cleanup": {
+    "temporaryProbeRemoved": true,
+    "otherAccountsUnchanged": true
+  }
+}

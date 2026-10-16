@@ -1,0 +1,46 @@
+{
+  "observedAt": "2026-10-16T06:32:56.361472+00:00",
+  "environments": [
+    {
+      "name": "dsh-secure",
+      "ready": true,
+      "storage": "CIFS workspace and durable history",
+      "network": "GitHub/PyPI/npm: all timed out"
+    },
+    {
+      "name": "dsh-internet",
+      "ready": true,
+      "storage": "Separate local persistent storage",
+      "network": "GitHub/PyPI/npm: all HTTP 200"
+    },
+    {
+      "name": "dsh-user2",
+      "ready": true,
+      "storage": "Separate local persistent storage",
+      "network": "GitHub/PyPI/npm: all HTTP 200"
+    },
+    {
+      "name": "dsh3",
+      "ready": true,
+      "storage": "Separate local persistent storage",
+      "network": "GitHub/PyPI/npm: all HTTP 200"
+    }
+  ],
+  "model": {
+    "backendContext": 1048576,
+    "userContext": 131072,
+    "concurrencyCeiling": 16
+  },
+  "performance": [
+    "Short replies: 0.23 seconds in bounded sample.",
+    "Two concurrent replies: about 35.2 effective output tokens/sec per request.",
+    "During fresh 24,047-token work: short replies 0.466\u20130.588 seconds."
+  ],
+  "gaps": [
+    "Existing Production pools still share users. Per-user isolation passed only in the two-user candidate.",
+    "Real RDT source scope and dedicated access identity remain unidentified.",
+    "DSH2/DSH3 remain legacy root-based Internet environments.",
+    "No Internet is restricted egress, not an air gap; DNS/relay and full worker-path acceptance remain open.",
+    "Near-1M mixed-load fairness and full DSH 1M product behavior are not verified."
+  ]
+}

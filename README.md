@@ -4,9 +4,17 @@ DSH provides an authenticated gateway, separate **No Internet / Internal (defaul
 
 Start with the English [interactive security and architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html), its [Markdown source](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md), and the [central-state restoration procedure](docs/CENTRAL_STATE_RESTORATION_20261015.md). The standalone HTML embeds the README and evidence, with SMP EDA-style diagram zoom, fullscreen, source copy and SVG/PNG export.
 
+## Admin dashboard
+
+Open [Admin overview](https://dsh.aiportal.bot.or.th/admin) after logging in as the existing `admin` account, or use the **Admin overview** link beside Logout. Other accounts and anonymous visitors cannot read the page or summary API. The operator can configure `DSH_ADMIN_USERS` as an explicit comma-separated allowlist; this does not provision accounts or accept client-selected roles.
+
+The read-only dashboard shows current account counts, browser sessions by environment and whether routing uses shared pools or private users. It also shows the timestamped environment/storage/network snapshot, model budgets, performance samples and remaining controls. Refresh reads the summary; it does not rerun infrastructure probes. No passwords, conversation contents or source data are shown. The gateway has no Kubernetes service-account token or cluster-monitoring permissions.
+
+The new gateway source overlay is `dsh-gateway-source-c013b4abad57` (image unchanged). The read-only snapshot is `dsh-admin-status-ce5034f4013b`. Production admin access, ordinary-user/forged-role denial, anonymous denial and navigation passed; all 80 legacy histories stayed unchanged. See [setup, data freshness and test evidence](docs/ADMIN_DASHBOARD.md).
+
 ## Latest live review and performance — 16 October 2026
 
-The candidate-tested identity-header correction is now deployed to the Production gateway through immutable ConfigMap `dsh-gateway-source-c9737befbe88`. The image remains build 62702; its source overlay is tracked separately. Fresh login/logout, environment binding, history listing and terminal pages passed after replacement. Execution pools and the model were not restarted. All 80 legacy histories in 82 files remain byte-identical. Temporary probe credentials were removed.
+The candidate-tested identity-header correction is now deployed to the Production gateway through immutable ConfigMap `dsh-gateway-source-c013b4abad57`. The image remains build 62702; its source overlay is tracked separately. Fresh login/logout, environment binding, history listing and terminal pages passed after replacement. Execution pools and the model were not restarted. All 80 legacy histories in 82 files remain byte-identical. Temporary probe credentials were removed.
 
 Current mount readback confirms Secure workspace and durable state are direct CIFS mounts; no continuous copy loop is required for those directories. The parent `/state` still holds local credentials/configuration. Secure GitHub/PyPI/npm probes timed out while Internet returned 200. DSH2/DSH3 remain legacy root-based, Internet-connected environments with mounted service-account tokens; they are not covered by Secure pilot acceptance.
 

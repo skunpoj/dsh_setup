@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "timeUTC": "2026-10-16T06:44:05.528Z",
+  "gatewayOverlaySHA256": "c013b4abad57d93ad2219b803537826e9ad9c1a0eff55aa1a8ab8369d54682a9",
+  "checks": [
+    "anonymous denied",
+    "ordinary user denied despite forged admin headers",
+    "admin access",
+    "read-only methods",
+    "secret projection",
+    "admin-only navigation",
+    "browser rendering",
+    "snapshot timestamps",
+    "DOM injection inert",
+    "missing snapshot unknown",
+    "logout revokes access"
+  ]
+}

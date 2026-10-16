@@ -16,6 +16,10 @@ Three exact short replies completed in 0.230–0.231 seconds. Two concurrent exa
 
 A fresh 24,047-token synthetic request completed in 4.987 seconds while three repeated short replies finished in 0.466–0.588 seconds, all before the longer request ended. This adds bounded live scheduling evidence; it is not near-1M acceptance.
 
+### Admin overview
+
+The [admin dashboard](https://dsh.aiportal.bot.or.th/admin) is deployed. Existing authenticated `admin` can read current gateway account/session counts and routing mode, plus the timestamped infrastructure/performance snapshot and unresolved controls. Other users are denied even with forged admin headers. The page is read-only and exposes no credentials or conversation contents. It does not grant the gateway Kubernetes API access or turn saved measurements into live monitoring. Its source overlay `dsh-gateway-source-c013b4abad57` supersedes the earlier identity-only overlay. Actual Production checks passed and the 80 legacy histories remained unchanged. See [dashboard details](ADMIN_DASHBOARD.md) and [live acceptance](context-evidence/admin-dashboard-live-20261016.json).
+
 ## 1 Executive assessment
 
 Assume the Harness, its tools and generated code can make mistakes or exceed the intended scope. Enforce boundaries through infrastructure, execution identities, storage/database permissions and authenticated routes. Prompt instructions alone are insufficient.
