@@ -1,0 +1,25 @@
+# Strategic merge patch, applied by scripts/rollout_gateway_identity.py after
+# creating the immutable ConfigMap from canary-verified scripts/auth_proxy.js.
+# The image digest remains unchanged; the process runs this versioned overlay.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsh-environment-gateway
+  namespace: llm
+spec:
+  template:
+    metadata:
+      annotations:
+        dsh.bot.or.th/gateway-source-sha256: c9737befbe880f77e65b97cf4ec186883a26cb292267be55c18481253259c988
+    spec:
+      containers:
+        - name: gateway
+          command: [node, /gateway-source/auth_proxy.js]
+          volumeMounts:
+            - name: gateway-source
+              mountPath: /gateway-source
+              readOnly: true
+      volumes:
+        - name: gateway-source
+          configMap:
+            name: dsh-gateway-source-c9737befbe88

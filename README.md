@@ -4,6 +4,18 @@ DSH provides an authenticated gateway, separate **No Internet / Internal (defaul
 
 Start with the English [interactive security and architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html), its [Markdown source](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md), and the [central-state restoration procedure](docs/CENTRAL_STATE_RESTORATION_20261015.md). The standalone HTML embeds the README and evidence, with SMP EDA-style diagram zoom, fullscreen, source copy and SVG/PNG export.
 
+## Latest live review and performance — 16 October 2026
+
+The candidate-tested identity-header correction is now deployed to the Production gateway through immutable ConfigMap `dsh-gateway-source-c9737befbe88`. The image remains build 62702; its source overlay is tracked separately. Fresh login/logout, environment binding, history listing and terminal pages passed after replacement. Execution pools and the model were not restarted. All 80 legacy histories in 82 files remain byte-identical. Temporary probe credentials were removed.
+
+Current mount readback confirms Secure workspace and durable state are direct CIFS mounts; no continuous copy loop is required for those directories. The parent `/state` still holds local credentials/configuration. Secure GitHub/PyPI/npm probes timed out while Internet returned 200. DSH2/DSH3 remain legacy root-based, Internet-connected environments with mounted service-account tokens; they are not covered by Secure pilot acceptance.
+
+Three short model replies completed in 0.230–0.231 seconds. Two concurrent exact 119-token replies completed in 3.381–3.386 seconds each, about 35.2 effective output tokens/sec per request. Backend ceiling is 1M; the DSH/LiteLLM product guardrail remains 128K. This bounded sample does not prove near-1M fairness, sustained capacity or full agent-turn speed.
+
+A fresh 24,047-token synthetic request completed in 4.987 seconds while three repeated short replies finished in 0.466–0.588 seconds, all before the longer request ended. This adds bounded live scheduling evidence; it is not near-1M acceptance.
+
+Existing Production pools still share users; real RDT scope/identity is not identified or granted. Synthetic isolation and read-only tests are complete within their scope. They do not close real-user Production acceptance. See [live status, correction, performance and remaining work](docs/LIVE_REVIEW_AND_PERFORMANCE_20261016.md). Preserve the tracked gateway source overlay when applying base manifests or building its replacement image.
+
 ## Features, design decisions and current deployment
 
 | Feature | Design reason | Actual status |
@@ -26,7 +38,7 @@ Two disposable users, each with Secure and Internet runtimes, passed real gatewa
 
 All **80 legacy histories in 82 generation files stayed byte-identical**, aggregate SHA-256 `7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317`. Candidate workloads are stopped, temporary Kubernetes Secrets removed and synthetic audit volumes retained. No legacy histories were assigned or moved.
 
-The first run exposed a custom-proxy identity-header defect. The corrected HTTP/WebSocket binding passed a negative-control regression and the revised live canary. **The source correction is candidate-tested, not deployed to the existing Production gateway.** Existing shared Production pools remain shared; no actual RDT was used or authorized. Empty package-cache fixtures, synthetic attachment-file serving and bounded GitHub tests do not validate package installation, upstream uploads or every leakage path.
+The first run exposed a custom-proxy identity-header defect. The corrected HTTP/WebSocket binding passed a negative-control regression and the revised live canary. **At the time of the canary the source correction was candidate-only; the later live review above records its Production deployment.** Existing shared Production pools remain shared; no actual RDT was used or authorized. Empty package-cache fixtures, synthetic attachment-file serving and bounded GitHub tests do not validate package installation, upstream uploads or every leakage path.
 
 See the [complete test and experience record](docs/USER_ISOLATION_SYNTHETIC_TEST_20261016.md), [successful evidence](docs/context-evidence/user-isolation-canary-20261016.json) and [first-attempt evidence](docs/context-evidence/user-isolation-canary-first-attempt-20261016.json). Reproduction uses `scripts/run_isolation_canary.py` with a fresh isolated namespace. Resource validation refuses Production namespaces/claims and legacy subpaths.
 
@@ -68,7 +80,7 @@ The raw export verifies the name **dsh_storage**, not dsh_volume. Earlier local-
 
 1. Build and verify the pinned runtime through `azure-pipelines.yml`; use an immutable digest. Current image is build 62702, digest `sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1`. Later operator/manifests/document commits do not imply a rebuilt image.
 2. Provision protected Secrets, auth state, separate runtime volumes and the tested CIFS claim in `k8s/dsh-da-workspace.yaml`. Never commit passwords, PATs or kubeconfigs.
-3. Apply reviewed gateway, environment and egress manifests. Secure uses UID/GID 10001, no privilege escalation, dropped capabilities, no service-account token and resource limits. CIFS UID/GID mapping does not establish Windows/server ACLs or per-file POSIX mode semantics.
+3. Apply reviewed gateway, environment and egress manifests. For current build 62702, retain `k8s/dsh-gateway-identity-overlay.yaml`: `scripts/rollout_gateway_identity.py --output <new-private-rollback-directory>` creates the immutable source ConfigMap, gates its hash against the canary and verifies behavior before/after replacement. Do not reapply the older gateway base alone and silently remove the source correction. Secure uses UID/GID 10001, no privilege escalation, dropped capabilities, no service-account token and resource limits. CIFS UID/GID mapping does not establish Windows/server ACLs or per-file POSIX mode semantics.
 4. For existing state, use `scripts/restore_central_state.py` with a new rollback directory and the private temporary-account probe. It stops the writer, verifies copied content, preserves central originals, reconciles canonical central projects and changes only explicit legacy cwd headers before cutover. Do not run it as a routine startup script or concurrently with a live state writer.
 5. Check actual mounts, file hashes, real login/logout, history paths and restart persistence. Retain rollback volumes. Reconcile any newer central writes before reverting to an older local mount.
 6. Before private-user cutover, establish named identities and history ownership, pre-create bounded central subpaths and revoke broad legacy access to private trees. Never copy all shared histories into every account. `scripts/generate_user_runtimes.py` generates identity-specific workspace and durable-state subpaths; it does not infer ownership or migrate users.

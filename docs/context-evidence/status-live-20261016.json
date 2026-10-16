@@ -1,0 +1,844 @@
+{
+  "timeUTC": "2026-10-16T06:32:56.361472+00:00",
+  "deployments": {
+    "dsh-environment-gateway": {
+      "desired": 1,
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "annotations": {
+        "dsh.bot.or.th/gateway-source-sha256": "c9737befbe880f77e65b97cf4ec186883a26cb292267be55c18481253259c988",
+        "kubectl.kubernetes.io/restartedAt": "2026-10-15T11:26:37+07:00"
+      },
+      "volumes": [
+        {
+          "name": "auth",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-auth-state"
+          }
+        },
+        {
+          "name": "secure-token",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-secure-token"
+          }
+        },
+        {
+          "name": "internet-token",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-internet-token"
+          }
+        },
+        {
+          "configMap": {
+            "defaultMode": 420,
+            "name": "dsh-gateway-source-c9737befbe88"
+          },
+          "name": "gateway-source"
+        }
+      ],
+      "mounts": [
+        {
+          "mountPath": "/auth",
+          "name": "auth"
+        },
+        {
+          "mountPath": "/runtime-tokens/secure",
+          "name": "secure-token",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens/internet",
+          "name": "internet-token",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/gateway-source",
+          "name": "gateway-source",
+          "readOnly": true
+        }
+      ],
+      "securityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "automountServiceAccountToken": false,
+      "resources": {
+        "limits": {
+          "cpu": "1",
+          "memory": "512Mi"
+        },
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        }
+      },
+      "command": [
+        "node",
+        "/gateway-source/auth_proxy.js"
+      ],
+      "userRoutingConfigured": false
+    },
+    "dsh-secure": {
+      "desired": 1,
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "annotations": {
+        "dsh.bot.or.th/durable-state-backend": "DA_WORKSPACE-CIFS",
+        "dsh.bot.or.th/workspace-backend": "DA_WORKSPACE-CIFS",
+        "kubectl.kubernetes.io/restartedAt": "2026-10-15T22:16:02+07:00"
+      },
+      "volumes": [
+        {
+          "name": "state",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-secure-state"
+          }
+        },
+        {
+          "name": "protected-workspace",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-da-workspace-secure"
+          }
+        },
+        {
+          "name": "routing-tokens",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-secure-token"
+          }
+        },
+        {
+          "name": "package-cache",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-package-approved"
+          }
+        }
+      ],
+      "mounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/dsh_storage/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/dsh_storage/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/dsh_storage/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/dsh_storage/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/dsh_storage/logs"
+        }
+      ],
+      "securityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "automountServiceAccountToken": false,
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "1",
+          "memory": "2Gi"
+        }
+      }
+    },
+    "dsh-internet": {
+      "desired": 1,
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:96be6e7fad0a1d456484bacfed45612c3d3ba95290a9f59a03eb612d50a4efc1",
+      "annotations": {},
+      "volumes": [
+        {
+          "name": "state",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-internet-state"
+          }
+        },
+        {
+          "name": "staging",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-internet-staging"
+          }
+        },
+        {
+          "name": "routing-tokens",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-internet-token"
+          }
+        },
+        {
+          "name": "package-incoming",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-package-incoming"
+          }
+        }
+      ],
+      "mounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        }
+      ],
+      "securityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "automountServiceAccountToken": false,
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "1",
+          "memory": "2Gi"
+        }
+      }
+    },
+    "dsh-user2": {
+      "desired": 1,
+      "ready": 1,
+      "image": "ubuntu:24.04",
+      "annotations": {
+        "kubectl.kubernetes.io/restartedAt": "2026-10-15T08:22:03+07:00"
+      },
+      "volumes": [
+        {
+          "name": "isolated-local-storage",
+          "persistentVolumeClaim": {
+            "claimName": "dsh-user2-storage-pvc"
+          }
+        },
+        {
+          "configMap": {
+            "defaultMode": 493,
+            "name": "dsh-scripts"
+          },
+          "name": "dsh-scripts"
+        }
+      ],
+      "mounts": [
+        {
+          "mountPath": "/workspace",
+          "name": "isolated-local-storage"
+        },
+        {
+          "mountPath": "/scripts",
+          "name": "dsh-scripts"
+        }
+      ],
+      "securityContext": {},
+      "automountServiceAccountToken": "default",
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "1",
+          "memory": "2Gi"
+        }
+      }
+    },
+    "dsh3": {
+      "desired": 1,
+      "ready": 1,
+      "image": "ubuntu:24.04",
+      "annotations": {
+        "kubectl.kubernetes.io/restartedAt": "2026-10-15T08:27:36+07:00"
+      },
+      "volumes": [
+        {
+          "name": "isolated-local-storage",
+          "persistentVolumeClaim": {
+            "claimName": "dsh3-storage-pvc"
+          }
+        },
+        {
+          "configMap": {
+            "defaultMode": 493,
+            "name": "dsh-scripts"
+          },
+          "name": "dsh-scripts"
+        }
+      ],
+      "mounts": [
+        {
+          "mountPath": "/workspace",
+          "name": "isolated-local-storage"
+        },
+        {
+          "mountPath": "/scripts",
+          "name": "dsh-scripts"
+        }
+      ],
+      "securityContext": {},
+      "automountServiceAccountToken": "default",
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "1",
+          "memory": "2Gi"
+        }
+      }
+    },
+    "litellm": {
+      "desired": 1,
+      "ready": 1,
+      "image": "ghcr.io/berriai/litellm:main-latest",
+      "annotations": {
+        "cattle.io/timestamp": "2026-09-16T07:08:22Z",
+        "kubectl.kubernetes.io/restartedAt": "2026-10-15T11:45:33+07:00"
+      },
+      "volumes": [
+        {
+          "configMap": {
+            "defaultMode": 420,
+            "name": "litellm-config"
+          },
+          "name": "config"
+        }
+      ],
+      "mounts": [
+        {
+          "mountPath": "/etc/litellm",
+          "name": "config"
+        }
+      ],
+      "securityContext": {},
+      "automountServiceAccountToken": "default",
+      "resources": {
+        "limits": {
+          "cpu": "2",
+          "memory": "2Gi"
+        },
+        "requests": {
+          "cpu": "500m",
+          "memory": "512Mi"
+        }
+      }
+    },
+    "vllm-deepseek-v4-1-flash": {
+      "desired": 1,
+      "ready": 1,
+      "image": "lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+      "annotations": {
+        "dsh.bot.or.th/scheduler-overlay": "interactive-v2"
+      },
+      "volumes": [
+        {
+          "name": "model-cache",
+          "persistentVolumeClaim": {
+            "claimName": "model-cache-2tb"
+          }
+        },
+        {
+          "emptyDir": {
+            "medium": "Memory",
+            "sizeLimit": "128Gi"
+          },
+          "name": "shm"
+        },
+        {
+          "emptyDir": {},
+          "name": "scheduler-overlay"
+        },
+        {
+          "configMap": {
+            "defaultMode": 420,
+            "name": "deepseek-scheduler-fairness"
+          },
+          "name": "scheduler-patch-source"
+        }
+      ],
+      "mounts": [
+        {
+          "mountPath": "/models",
+          "name": "model-cache"
+        },
+        {
+          "mountPath": "/dev/shm",
+          "name": "shm"
+        },
+        {
+          "mountPath": "/sgl-workspace/sglang/python/sglang/srt/managers/scheduler.py",
+          "name": "scheduler-overlay",
+          "readOnly": true,
+          "subPath": "scheduler.py"
+        }
+      ],
+      "securityContext": {},
+      "automountServiceAccountToken": "default",
+      "resources": {
+        "limits": {
+          "cpu": "32",
+          "memory": "512Gi",
+          "nvidia.com/gpu": "4"
+        },
+        "requests": {
+          "cpu": "16",
+          "memory": "256Gi",
+          "nvidia.com/gpu": "4"
+        }
+      },
+      "arguments": [
+        "--model-path",
+        "/models/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+        "--served-model-name",
+        "deepseek-ai/DeepSeek-V4.1-Flash,deepseek-v4.1-flash,deepseek-v4-flash,deepseek",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--tp-size",
+        "4",
+        "--moe-runner-backend",
+        "marlin",
+        "--trust-remote-code",
+        "--mem-fraction-static",
+        "0.90",
+        "--max-running-requests",
+        "16",
+        "--chunked-prefill-size",
+        "1024",
+        "--max-prefill-tokens",
+        "2048",
+        "--swa-prefix-tails",
+        "0",
+        "--context-length",
+        "1048576",
+        "--reasoning-parser",
+        "deepseek-v41",
+        "--tool-call-parser",
+        "deepseekv41",
+        "--enable-mixed-chunk",
+        "--enable-metrics",
+        "--prefill-decode-interval",
+        "4"
+      ]
+    }
+  },
+  "runtimes": {
+    "dsh-secure": {
+      "uid": 10001,
+      "serviceAccountTokenMounted": false,
+      "mounts": [
+        {
+          "target": "/state",
+          "filesystem": "xfs",
+          "source": "/dev/mapper/data-f0512ccb--f23d--4e41--9578--7bb17cad8ebd",
+          "mountRoot": "/",
+          "options": "rw,relatime"
+        },
+        {
+          "target": "/workspace",
+          "filesystem": "cifs",
+          "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+          "mountRoot": "/dsh",
+          "options": "rw,relatime"
+        },
+        {
+          "target": "/packages/approved",
+          "filesystem": "xfs",
+          "source": "/dev/mapper/data-bef95428--b783--4f7a--a6c3--4b3b7ca8cb85",
+          "mountRoot": "/",
+          "options": "ro,relatime"
+        },
+        {
+          "target": "/state/sessions",
+          "filesystem": "cifs",
+          "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+          "mountRoot": "/dsh/dsh_storage/sessions",
+          "options": "rw,relatime"
+        },
+        {
+          "target": "/state/attachments",
+          "filesystem": "cifs",
+          "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+          "mountRoot": "/dsh/dsh_storage/attachments",
+          "options": "rw,relatime"
+        },
+        {
+          "target": "/state/storages",
+          "filesystem": "cifs",
+          "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+          "mountRoot": "/dsh/dsh_storage/storages",
+          "options": "rw,relatime"
+        },
+        {
+          "target": "/state/workspaces",
+          "filesystem": "cifs",
+          "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+          "mountRoot": "/dsh/dsh_storage/workspaces",
+          "options": "rw,relatime"
+        },
+        {
+          "target": "/state/logs",
+          "filesystem": "cifs",
+          "source": "//bot.or.th/cfs/FILESERV/DA_WORKSPACE/workstation",
+          "mountRoot": "/dsh/dsh_storage/logs",
+          "options": "rw,relatime"
+        }
+      ],
+      "network": [
+        {
+          "url": "https://github.com",
+          "exitCode": 28,
+          "HTTP": "000"
+        },
+        {
+          "url": "https://pypi.org",
+          "exitCode": 28,
+          "HTTP": "000"
+        },
+        {
+          "url": "https://registry.npmjs.org",
+          "exitCode": 28,
+          "HTTP": "000"
+        }
+      ],
+      "rdtSourceMounted": false
+    },
+    "dsh-internet": {
+      "uid": 10001,
+      "serviceAccountTokenMounted": false,
+      "mounts": [
+        {
+          "target": "/state",
+          "filesystem": "xfs",
+          "source": "/dev/mapper/data-278484d5--112f--4c5e--887f--887ca3dd9b05",
+          "mountRoot": "/",
+          "options": "rw,relatime"
+        },
+        {
+          "target": "/workspace",
+          "filesystem": "xfs",
+          "source": "/dev/mapper/data-b54ccd54--667d--44b2--a4d5--bcbc19c66df0",
+          "mountRoot": "/",
+          "options": "rw,relatime"
+        }
+      ],
+      "network": [
+        {
+          "url": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "url": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "url": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "rdtSourceMounted": false
+    },
+    "dsh-user2": {
+      "uid": 0,
+      "serviceAccountTokenMounted": true,
+      "mounts": [
+        {
+          "target": "/workspace",
+          "filesystem": "xfs",
+          "source": "/dev/mapper/data-a1b58ed1--d870--4a01--bf49--7038ab0335f9",
+          "mountRoot": "/",
+          "options": "rw,relatime"
+        }
+      ],
+      "network": [
+        {
+          "url": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "url": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "url": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "rdtSourceMounted": false
+    },
+    "dsh3": {
+      "uid": 0,
+      "serviceAccountTokenMounted": true,
+      "mounts": [
+        {
+          "target": "/workspace",
+          "filesystem": "xfs",
+          "source": "/dev/mapper/data-1fd4c579--47b4--43ec--a77a--71528a76df3a",
+          "mountRoot": "/",
+          "options": "rw,relatime"
+        }
+      ],
+      "network": [
+        {
+          "url": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "url": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "url": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "rdtSourceMounted": false
+    }
+  },
+  "networkPolicies": [
+    {
+      "name": "dsh-environment-pool-ingress",
+      "spec": {
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "dsh-environment-gateway"
+                  }
+                }
+              }
+            ],
+            "ports": [
+              {
+                "endPort": 65535,
+                "port": 1024,
+                "protocol": "TCP"
+              }
+            ]
+          }
+        ],
+        "podSelector": {
+          "matchExpressions": [
+            {
+              "key": "dsh.bot.or.th/egress-mode",
+              "operator": "In",
+              "values": [
+                "offline",
+                "online"
+              ]
+            }
+          ]
+        },
+        "policyTypes": [
+          "Ingress"
+        ]
+      }
+    },
+    {
+      "name": "dsh-offline-egress",
+      "spec": {
+        "egress": [
+          {
+            "ports": [
+              {
+                "port": 53,
+                "protocol": "UDP"
+              },
+              {
+                "port": 53,
+                "protocol": "TCP"
+              }
+            ],
+            "to": [
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "kube-system"
+                  }
+                },
+                "podSelector": {
+                  "matchLabels": {
+                    "k8s-app": "kube-dns"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "ports": [
+              {
+                "port": 4000,
+                "protocol": "TCP"
+              }
+            ],
+            "to": [
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "llm"
+                  }
+                },
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "litellm"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "podSelector": {
+          "matchLabels": {
+            "dsh.bot.or.th/egress-mode": "offline"
+          }
+        },
+        "policyTypes": [
+          "Egress"
+        ]
+      }
+    },
+    {
+      "name": "dsh-online-egress",
+      "spec": {
+        "egress": [
+          {}
+        ],
+        "podSelector": {
+          "matchLabels": {
+            "dsh.bot.or.th/egress-mode": "online"
+          }
+        },
+        "policyTypes": [
+          "Egress"
+        ]
+      }
+    }
+  ],
+  "liteLLM": [
+    {
+      "model": "deepseek-v4.1-flash",
+      "maxTokens": null,
+      "maxInputTokens": 131072,
+      "maxOutputTokens": 8192,
+      "endpoint": "http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1"
+    },
+    {
+      "model": "deepseek-flash",
+      "maxTokens": null,
+      "maxInputTokens": 131072,
+      "maxOutputTokens": 8192,
+      "endpoint": "http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1"
+    },
+    {
+      "model": "deepseek-chat",
+      "maxTokens": null,
+      "maxInputTokens": 131072,
+      "maxOutputTokens": 8192,
+      "endpoint": "http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1"
+    },
+    {
+      "model": "deepseek-reasoner",
+      "maxTokens": null,
+      "maxInputTokens": 131072,
+      "maxOutputTokens": 8192,
+      "endpoint": "http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1"
+    },
+    {
+      "model": "deepseek-v4.1",
+      "maxTokens": null,
+      "maxInputTokens": 131072,
+      "maxOutputTokens": 8192,
+      "endpoint": "http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1"
+    },
+    {
+      "model": "deepseek-v4",
+      "maxTokens": null,
+      "maxInputTokens": 131072,
+      "maxOutputTokens": 8192,
+      "endpoint": "http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1"
+    },
+    {
+      "model": "deepseek-v4-flash",
+      "maxTokens": null,
+      "maxInputTokens": 131072,
+      "maxOutputTokens": 8192,
+      "endpoint": "http://vllm-deepseek-v4-flash.llm.svc.cluster.local:8000/v1"
+    }
+  ],
+  "fallbackConfigured": false
+}

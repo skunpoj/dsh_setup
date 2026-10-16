@@ -6,6 +6,16 @@ Production baseline evidence is dated 15 October. A separate live canary on 16 O
 
 The objective is to limit what can go wrong enough to make this specific pilot acceptable. It is not a claim that the Harness, its model or generated code is universally safe. This report separates deployed controls, recorded tests, remaining gaps and target architecture. Opening the HTML does not run a new security test. The previous Thai report is preserved separately.
 
+### Latest Production correction and measurements — 16 October
+
+The canary-tested identity-header correction now runs in the Production gateway through immutable ConfigMap `dsh-gateway-source-c9737befbe88`; the build-62702 image is unchanged. Source hash readback matched the exact tested source. Fresh login/logout, selected environment, authenticated UI, history listing and terminal-page access passed before and after replacement. No execution pool or model restart occurred. All 80 legacy histories in 82 files stayed byte-identical; temporary probe credentials were removed. Earlier candidate-only statements below describe the initial test snapshot and are superseded for this gateway correction.
+
+Fresh mount evidence confirms `/workspace` and five durable `/state` directories are direct CIFS mounts. They do not require continuous central-state synchronization. The `/state` parent remains local for credentials/configuration. Secure GitHub/PyPI/npm probes all timed out; Internet returned 200. DSH2/DSH3 still run as root with service-account tokens and public connectivity; they cannot be included in Secure's acceptance.
+
+Three exact short replies completed in 0.230–0.231 seconds. Two concurrent exact replies each returned 119 tokens in 3.381–3.386 seconds, about 35.2 effective output tokens/sec per request. This includes queue/prefill/network overhead and is not sustained decode speed or near-1M contention evidence. Backend context remains 1M and running-request cap 16; DSH/LiteLLM remains 128K. Existing user pools remain shared and no actual RDT source was granted. See the [complete current review and remaining constraints](LIVE_REVIEW_AND_PERFORMANCE_20261016.md).
+
+A fresh 24,047-token synthetic request completed in 4.987 seconds while three repeated short replies finished in 0.466–0.588 seconds, all before the longer request ended. This adds bounded live scheduling evidence; it is not near-1M acceptance.
+
 ## 1 Executive assessment
 
 Assume the Harness, its tools and generated code can make mistakes or exceed the intended scope. Enforce boundaries through infrastructure, execution identities, storage/database permissions and authenticated routes. Prompt instructions alone are insufficient.
@@ -182,7 +192,7 @@ This does not establish every historical session's tool resumption. See [live ev
 
 Two test users exercised four dedicated Secure/Internet runtimes. Before and after replacing all four processes, exact own reports, attachment-file fixtures and real DSH history pages remained readable; cross-user/environment history requests, anonymous reads and forged HTTP/WebSocket identity headers were denied. Actual terminal commands ran at UID 10001. Both Secure workers rejected append/delete/create on the synthetic source with EROFS; Internet had no source mount. Direct neighbor-runtime HTTP was denied. Secure GitHub probes timed out; Internet returned 200.
 
-The first attempt found client identity headers passing through custom forwarding. The corrected gateway canonicalizes both normalized and raw HTTP/WebSocket identity headers. A negative control reproduced the defect in the original source. The correction was verified through a ConfigMap overlay in the isolated canary, **not installed in the existing Production gateway**. Both test namespaces are stopped and temporary Kubernetes Secrets removed; synthetic audit volumes remain. No model load test occurred.
+The first attempt found client identity headers passing through custom forwarding. The corrected gateway canonicalizes both normalized and raw HTTP/WebSocket identity headers. A negative control reproduced the defect in the original source. The correction was verified through a ConfigMap overlay in the isolated canary, **initially not installed in the Production gateway; the later live review records its rollout**. Both test namespaces are stopped and temporary Kubernetes Secrets removed; synthetic audit volumes remain. No model load test occurred.
 
 Legacy preservation was verified across both attempts: 80 histories in 82 files retained aggregate SHA-256 `7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317`. No legacy histories were reassigned. See the [full test, failures and limits](USER_ISOLATION_SYNTHETIC_TEST_20261016.md). This is candidate acceptance, not closure of real-user/RDT Production gaps.
 
@@ -252,6 +262,10 @@ Bounded V2 tests completed short requests in 0.59–1.47 seconds during approxim
 
 Embedded records are saved responses/logs at their stated times, not a live webpage or a new test when opened. Original evidence remains unchanged and may include Thai source text. Narrative, navigation and controls are English. Passwords, tokens and RDT content are not intentionally reproduced.
 
+- [Latest gateway correction](context-evidence/gateway-identity-live-20261016.json): source hash and actual pre/post authentication checks.
+- [Latest mount/network/configuration readback](context-evidence/status-live-20261016.json): includes legacy DSH2/DSH3 limitations.
+- [24K mixed-load responsiveness](context-evidence/performance-mixed-live-20261016.json): repeated short replies completed during fresh longer prefill.
+- [Bounded performance sample](context-evidence/performance-live-20261016.json): exact short and concurrent responses.
 - [Synthetic isolation acceptance](context-evidence/user-isolation-canary-20261016.json): successful live candidate and configuration readback.
 - [First attempt](context-evidence/user-isolation-canary-first-attempt-20261016.json): observed defect, correction and unchanged legacy fingerprints.
 - [Identity metadata review](context-evidence/identity-metadata-review-20261015.json): counts and absent ownership fields; account names retained privately.

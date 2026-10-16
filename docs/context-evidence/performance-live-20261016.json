@@ -1,0 +1,91 @@
+{
+  "short": [
+    {
+      "label": "short-0",
+      "firstTokenSeconds": 0.114,
+      "elapsedSeconds": 0.231,
+      "text": "LIVE_STATUS_OK",
+      "usage": {
+        "completion_tokens": 5,
+        "prompt_tokens": 14,
+        "total_tokens": 19,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "finishReason": "stop",
+      "effectiveOutputTokensPerSecond": 21.6
+    },
+    {
+      "label": "short-1",
+      "firstTokenSeconds": 0.112,
+      "elapsedSeconds": 0.231,
+      "text": "LIVE_STATUS_OK",
+      "usage": {
+        "completion_tokens": 5,
+        "prompt_tokens": 14,
+        "total_tokens": 19,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "finishReason": "stop",
+      "effectiveOutputTokensPerSecond": 21.68
+    },
+    {
+      "label": "short-2",
+      "firstTokenSeconds": 0.111,
+      "elapsedSeconds": 0.23,
+      "text": "LIVE_STATUS_OK",
+      "usage": {
+        "completion_tokens": 5,
+        "prompt_tokens": 14,
+        "total_tokens": 19,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "finishReason": "stop",
+      "effectiveOutputTokensPerSecond": 21.78
+    }
+  ],
+  "parallel": [
+    {
+      "label": "parallel-0",
+      "firstTokenSeconds": 0.116,
+      "elapsedSeconds": 3.386,
+      "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+      "usage": {
+        "completion_tokens": 119,
+        "prompt_tokens": 22,
+        "total_tokens": 141,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "finishReason": "stop",
+      "effectiveOutputTokensPerSecond": 35.15
+    },
+    {
+      "label": "parallel-1",
+      "firstTokenSeconds": 0.115,
+      "elapsedSeconds": 3.381,
+      "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+      "usage": {
+        "completion_tokens": 119,
+        "prompt_tokens": 22,
+        "total_tokens": 141,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "finishReason": "stop",
+      "effectiveOutputTokensPerSecond": 35.2
+    }
+  ],
+  "shortExact": true,
+  "parallelExact": true,
+  "definition": "Effective output tokens/sec includes queue, prefill and network time; not steady-state decode speed.",
+  "timeUTC": "2026-10-16T06:32:02.051499+00:00",
+  "scope": "Synthetic short/two-concurrent LiteLLM calls from Secure; no long-context or DSH agent benchmark"
+}

@@ -1,5 +1,7 @@
 # Per-user isolation — synthetic live canary, 16 October 2026
 
+**Later update:** The [live review](LIVE_REVIEW_AND_PERFORMANCE_20261016.md) records subsequent Production deployment of the exact gateway correction. Candidate-only statements in this test record describe the original canary snapshot. Existing Production user pools remain shared.
+
 Two disposable users, `iso_alice` and `iso_bob`, exercised four private runtimes: one No Internet and one Internet runtime each. This was a separate live candidate, not a migration of existing Production users. All 80 legacy histories remained unchanged.
 
 ## Boundary and actual configuration
