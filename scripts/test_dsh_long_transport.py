@@ -8,6 +8,8 @@ from pathlib import Path
 import subprocess
 import time
 import yaml
+import argparse
+import hashlib
 
 def kube(*args,source=None):
     p=subprocess.run(['kubectl','-n','llm',*args],input=source,text=True,capture_output=True,timeout=450)
@@ -31,8 +33,9 @@ async def complete(request:Request):
 '''
 
 def main():
+    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--managed',action='store_true');args=ap.parse_args()
     name='litellm-timeout-fixture'
-    if kube('get','pod',name,'--ignore-not-found','-o','name').strip():raise ValueError('Existing fixture; inspect first')
+    if kube('get','pod',name,'--ignore-not-found','-o','name').strip() and not args.managed:raise ValueError('Existing fixture; inspect first')
     p=json.loads(kube('get','pod','litellm-1m-canary','-o','json'))
     cm=json.loads(kube('get','cm','litellm-1m-canary','-o','json'))['data']
     config=yaml.safe_load(cm['config.yaml'])
@@ -51,17 +54,29 @@ def main():
     # Replace only the numeric endpoint in the canary's seed script.
     import re
     d['initContainers'][0]['command'][2]=re.sub(r'http://[0-9.]+:4000',f'http://{ip}:4000',d['initContainers'][0]['command'][2])
-    dn='dsh-timeout-fixture'
+    dn='dsh-timeout-managed-fixture' if args.managed else 'dsh-timeout-fixture'
+    if args.managed:
+        code=Path(__file__).with_name('managed_inference_transport.cjs').read_text()
+        digest=hashlib.sha256(code.encode()).hexdigest()
+        cm_name='dsh-managed-transport-'+digest[:12]
+        kube('apply','-f','-',source=json.dumps({'apiVersion':'v1','kind':'ConfigMap','immutable':True,'metadata':{'name':cm_name},'data':{'managed_inference_transport.cjs':code}}))
+        d['volumes'].append({'name':'context-transport','configMap':{'name':cm_name}})
+        dc=d['containers'][0];dc['volumeMounts'].append({'name':'context-transport','mountPath':'/context-runtime','readOnly':True})
+        dc['env']=[e for e in dc.get('env',[]) if e['name'] not in ['NODE_OPTIONS','DSH_MANAGED_TRANSPORT','DSH_LLM_TRANSPORT_ORIGIN']]+[
+            {'name':'NODE_OPTIONS','value':'--require /context-runtime/managed_inference_transport.cjs'},
+            {'name':'DSH_MANAGED_TRANSPORT','value':'1'},{'name':'DSH_LLM_TRANSPORT_ORIGIN','value':'http://'+ip+':4000'}]
     kube('apply','-f','-',source=json.dumps({'apiVersion':'v1','kind':'Pod','metadata':{'name':dn,'labels':dp['metadata']['labels']},'spec':d}))
     kube('wait','--for=condition=Ready','pod/'+dn,'--timeout=120s')
     time.sleep(5)
     source="import sys;sys.argv=['probe','--deadline','420']\n"+Path(__file__).with_name('probe_dsh_1m_agent.py').read_text()
-    result=json.loads(kube('exec','-i',dn,'--','python3','-',source=source))
+    response=subprocess.run(['kubectl','-n','llm','exec','-i',dn,'--','python3','-'],input=source,text=True,capture_output=True,timeout=440)
+    result=json.loads(response.stdout)
     retries=[e for e in result.get('events',[]) if e['type']=='llm/retry']
     record={'scope':'Delayed synthetic HTTP/SSE transport; no GPU/model inference','upstreamDelaySeconds':315,
         'litellmTimeoutSeconds':3600,'litellmStreamTimeoutSeconds':3600,'dshTimeoutMs':3600000,
         'retryCount':len(retries),'result':result}
-    Path('docs/context-evidence/dsh-five-minute-transport-fixture-20261016.json').write_text(json.dumps(record,indent=2))
+    record['managedNodeTransport']=args.managed
+    Path('docs/context-evidence/dsh-five-minute-transport-'+('managed-' if args.managed else '')+'fixture-20261016.json').write_text(json.dumps(record,indent=2))
     assert result['expectedTextPresent'] and result['persistedPromptMatches'] and result['elapsedSeconds']>=315 and not retries
     print(json.dumps({k:v for k,v in record.items() if k!='result'}))
 

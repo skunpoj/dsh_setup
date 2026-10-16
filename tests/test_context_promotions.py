@@ -3,6 +3,9 @@ import importlib.util
 from pathlib import Path
 import unittest
 import yaml
+import tempfile
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 
 ROOT=Path(__file__).resolve().parents[1]
 def load(name):
@@ -10,6 +13,19 @@ def load(name):
     m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 
 class RuntimePromotion(unittest.TestCase):
+    def test_profile_backup_survives_repeat_start_and_exact_restore(self):
+        m=load('promote_1m_runtimes')
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);profile=root/'profiles/web/cordis.patch.yml';profile.parent.mkdir(parents=True);profile.write_text('original-profile')
+            c={'image':'old','volumeMounts':[{'name':'state','mountPath':'/state'}]}
+            backup=m.profile_init(c,'same')['command'][2].replace('/state',root.as_posix())
+            exec(backup,{})
+            profile.write_text('new-profile');exec(backup,{})
+            self.assertEqual(profile.read_text(),'new-profile')
+            self.assertEqual((root/'.context-upgrade-backup/same/profile.yml').read_text(),'original-profile')
+            restore=m.profile_init(c,'same',True)['command'][2].replace('/state',root.as_posix());exec(restore,{})
+            self.assertEqual(profile.read_text(),'original-profile')
+
     def test_proxy_preserves_secrets_and_unrelated_route(self):
         m=load('promote_1m_proxy')
         original={'spec':{'replicas':1,'template':{'metadata':{},'spec':{
@@ -42,6 +58,22 @@ class RuntimePromotion(unittest.TestCase):
         self.assertIn('exist_ok=False',init['command'][2])
         restored=m.profile_init(before['spec']['template']['spec']['containers'][0],'test',True)
         self.assertIn('hashlib.sha256(original)',restored['command'][2]);self.assertIn('os.replace',restored['command'][2])
+
+    def test_transport_overlay_retains_mounts_and_restart_safe_rollback(self):
+        m=load('rollout_managed_transport')
+        original={'spec':{'replicas':1,'strategy':{'type':'Recreate'},'template':{
+            'metadata':{'annotations':{'dsh.bot.or.th/context-rollout':'retained-tag'}},'spec':{
+            'containers':[{'image':'qualified-image','env':[{'name':'PRIVATE','valueFrom':{'secretKeyRef':{'name':'existing','key':'key'}}}],
+                'volumeMounts':[{'name':'state','mountPath':'/state'},{'name':'cifs','mountPath':'/workspace'}]}],
+            'initContainers':[{'name':'context-profile-backup','image':'old-backup-image'}],
+            'volumes':[{'name':'state'},{'name':'cifs'}]}}}}
+        before=copy.deepcopy(original);new,rollback=m.specification(original,'immutable-source')
+        self.assertEqual(original,before)
+        pod=new['template']['spec'];self.assertEqual(pod['volumes'][:2],before['spec']['template']['spec']['volumes'])
+        self.assertEqual(pod['containers'][0]['volumeMounts'][:2],before['spec']['template']['spec']['containers'][0]['volumeMounts'])
+        self.assertEqual(pod['containers'][0]['env'][0],before['spec']['template']['spec']['containers'][0]['env'][0])
+        self.assertIn('if root.exists()',rollback['template']['spec']['initContainers'][0]['command'][2])
+        self.assertFalse(any(v['name']=='context-transport' for v in rollback['template']['spec']['volumes']))
 
     def test_excludes_legacy_and_shared_gateway(self):
         m=load('promote_1m_runtimes')

@@ -23,7 +23,7 @@ def kube(*args, source=None):
 def selected(name):
     return name in ['dsh-secure','dsh-internet'] or bool(re.fullmatch(r'dsh-u-[0-9a-f]{16}-(secure|internet)',name))
 
-def profile_init(container, tag, restore=False):
+def profile_init(container, tag, restore=False, baseline_hash=None):
     script="""
 from pathlib import Path
 import hashlib,json,os
@@ -31,20 +31,27 @@ root=Path('/state/.context-upgrade-backup/TAG')
 profile=Path('/state/profiles/web/cordis.patch.yml')
 RESTORE
 """.replace('TAG',tag)
-    action="""root.mkdir(parents=True,exist_ok=False,mode=0o700)
-original=profile.read_bytes()
-(root/'profile.yml').write_bytes(original)
-os.chmod(root/'profile.yml',0o600)
-(root/'sha256').write_text(hashlib.sha256(original).hexdigest())
-assert (root/'profile.yml').read_bytes()==original
+    action="""if root.exists():
+ original=(root/'profile.yml').read_bytes()
+ assert hashlib.sha256(original).hexdigest()==(root/'sha256').read_text()
+else:
+ root.mkdir(parents=True,exist_ok=False,mode=0o700)
+ original=profile.read_bytes()
+ (root/'profile.yml').write_bytes(original)
+ os.chmod(root/'profile.yml',0o600)
+ (root/'sha256').write_text(hashlib.sha256(original).hexdigest())
+ assert (root/'profile.yml').read_bytes()==original
 """
     if restore:
-        action="""original=(root/'profile.yml').read_bytes()
-assert hashlib.sha256(original).hexdigest()==(root/'sha256').read_text()
-tmp=profile.with_suffix('.rollback.tmp')
-tmp.write_bytes(original);os.chmod(tmp,0o600);os.replace(tmp,profile)
-assert profile.read_bytes()==original
-"""
+        action="""if root.exists():
+ original=(root/'profile.yml').read_bytes()
+ assert hashlib.sha256(original).hexdigest()==(root/'sha256').read_text()
+ tmp=profile.with_suffix('.rollback.tmp')
+ tmp.write_bytes(original);os.chmod(tmp,0o600);os.replace(tmp,profile)
+ assert profile.read_bytes()==original
+else:
+ assert BASELINE is not None and hashlib.sha256(profile.read_bytes()).hexdigest()==BASELINE
+""".replace('BASELINE',repr(baseline_hash))
     state=next(m for m in container['volumeMounts'] if m['mountPath']=='/state')
     return {'name':'context-profile-restore' if restore else 'context-profile-backup',
         'image':container['image'],'command':['python3','-c',script.replace('RESTORE',action)],
@@ -101,6 +108,8 @@ def main():
     results=[]
     for original in ds:
         name=original['metadata']['name'];new=candidate(original,tag)
+        baseline=kube('exec','deploy/'+name,'--','python3','-c',"from pathlib import Path;import hashlib;print(hashlib.sha256(Path('/state/profiles/web/cordis.patch.yml').read_bytes()).hexdigest())").strip()
+        if not re.fullmatch('[0-9a-f]{64}',baseline):raise RuntimeError('Profile hash unavailable')
         (args.rollback_dir/(name+'.json')).write_text(json.dumps(original,indent=2))
         current=json.loads(kube('get','deploy',name,'-o','json'))
         if current['spec']!=original['spec']:raise RuntimeError('Concurrent change; refuse '+name)
@@ -116,7 +125,7 @@ def main():
             (args.rollback_dir/'results.json').write_text(json.dumps(results,indent=2))
         except Exception:
             restore=copy.deepcopy(original['spec'])
-            restore['template']['spec']['initContainers']=[profile_init(original['spec']['template']['spec']['containers'][0],tag,True)]
+            restore['template']['spec']['initContainers']=[profile_init(original['spec']['template']['spec']['containers'][0],tag,True,baseline)]
             kube('patch','deploy',name,'--type=merge','-p',json.dumps({'spec':restore}))
             wait(name)
             print(json.dumps({'rolledBack':name,'priorPromotionsPreserved':len(results)}),flush=True)

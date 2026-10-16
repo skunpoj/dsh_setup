@@ -37,6 +37,13 @@ fi
 if [ -n "${DSH_CONTEXT_TOKENS:-}" ]; then
   node /opt/dsh/scripts/configure_runtime_context.js /state "$DSH_CONTEXT_TOKENS"
 fi
+if [ "${DSH_CONTEXT_TOKENS:-}" = 1048576 ]; then
+  export DSH_MANAGED_TRANSPORT=1
+  case "${NODE_OPTIONS:-}" in
+    *managed_inference_transport.cjs*) ;;
+    *) export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--require /opt/dsh/scripts/managed_inference_transport.cjs" ;;
+  esac
+fi
 
 ttyd -p 7681 -i 0.0.0.0 -W bash -l >/tmp/ttyd.log 2>&1 &
 socat TCP-LISTEN:3081,bind=0.0.0.0,reuseaddr,fork TCP:127.0.0.1:3080 >/tmp/dsh-bridge.log 2>&1 &

@@ -13,3 +13,5 @@ try{
  fs.unlinkSync(file);assert.equal(verify(root,contract)[0].reason,'missing');
  console.log('Reviewed target accepted; changed and missing upstream targets refused.');
 }finally{fs.rmSync(root,{recursive:true,force:true});}
+// The existing candidate job runs this suite; cover the managed transport too.
+require('./test_managed_inference_transport.js');

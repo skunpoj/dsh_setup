@@ -35,7 +35,7 @@ try {
  assert.equal(await page.locator('details[id^="evidence-"]').count(),0,'Raw evidence logs must remain separate');
  await page.locator('#embedded-llm-guide > summary').click();
  const guide=await page.locator('#embedded-llm-guide').innerText();
- assert(guide.includes('0.223–0.233')&&guide.includes('measure_live_responsiveness.py')&&guide.includes('128K'));
+ assert(guide.includes('1,007,688')&&guide.includes('917,504')&&guide.includes('promote_1m_runtimes.py'));
  await page.locator('#embedded-llm-guide > summary').click();
 
  await page.waitForTimeout(1200);
