@@ -1,6 +1,6 @@
 # DSH RDT Pilot — Security Controls and Execution Architecture
 
-**16 October 2026: private user routing, central audit and datalake-aware restricted egress are deployed. Actual Kerberos/datalake authorization and remote Spark worker controls still require verification.**
+**16 October 2026: private user routing, central audit and datalake-aware restricted egress are deployed. Existing per-user AD/datalake rights are preserved. A real remote Spark test found public egress; full-path No Internet acceptance is not closed.**
 
 The objective is to limit what can go wrong enough to make this specific pilot acceptable, rather than declare the Harness or generated code universally safe. This report explains where each control acts, what was tested and what remains unverified. Opening saved evidence does not run a new test or authorize data access.
 
@@ -10,11 +10,11 @@ The objective is to limit what can go wrong enough to make this specific pilot a
 
 | Risk | Deployed enforcement | Evidence and limit |
 |---|---|---|
-| Prevent external leakage | Private No Internet workers; exact internal DNS, Kerberos, Livy and inference destinations; restricted inference keys | All 18 workers tested. Public-domain and direct-IP probes fail from all 9 No Internet workers; internal paths work. Remote Spark egress and allowed-service relays remain separate. |
-| Prevent damage/excessive access | Non-root execution, no Kubernetes token, private workspace/state and ticket cache | Local isolation/persistence tested. Actual AD identity, read-only Hive/HDFS scope and unrelated-resource denial remain untested. |
+| Prevent external leakage | Private No Internet workers; exact internal DNS, Kerberos, Livy and inference destinations; restricted inference keys | All 18 workers tested. Public-domain and direct-IP probes fail from all 9 No Internet workers; internal paths work. Remote Spark driver and executor actually reached GitHub/public IP; local pod policy does not cover that downstream path. |
+| Prevent damage/excessive access | Non-root execution, no Kubernetes token, private workspace/state and ticket cache | Local isolation/persistence tested. Per user instruction, existing AD/Hive/HDFS rights are inherited; DSH grants no new data authority and does not universally enforce read-only access. |
 | Keep results contained | Fixed user/environment routing; authenticated application and terminal routes; admin-only legacy histories; central audit | All 16 private logins denied an admin history and admin APIs. Administrator remains trusted. Browser exports and remote reports need separate review. |
 
-Local controls now go beyond the former shared-pool design. Full RDT closure requires tests at the authenticated datalake and remote execution boundaries, not relocation of RDT to a mounted folder.
+Local controls now go beyond the former shared-pool design. The approved data-access policy preserves each user’s existing AD/datalake permissions. This supersedes the earlier requirement for universal read-only RDT access; it is a requirement change, not proof that write-capable AD accounts became read-only. DA_WORKSPACE remains independent of datalake authorization.
 
 ## 2 Deployed user and environment architecture
 
@@ -64,7 +64,11 @@ Private identities and admin pools use inference-only LiteLLM virtual keys. Exac
 
 All 9 No Internet workers failed GitHub/PyPI/npm resolution, public direct-IP, public DNS and direct CoreDNS TCP/UDP probes. All resolved approved internal names, reached KDC 88, received anonymous Livy 401 with `WWW-Authenticate: Negotiate`, and returned exact internal inference. All 9 Internet workers reached registries/inference but failed KDC, Livy and unrelated PostgreSQL access. The PostgreSQL negative control succeeded before restrictions and failed afterward.
 
-These are destination-specific observations, not exhaustive IPv6/proxy/relay/browser acceptance. Remote Spark executors are outside DSH pod policies. Infrastructure-owner confirmation of downstream enforcement remains necessary.
+These are destination-specific observations, not exhaustive IPv6/proxy/relay/browser acceptance. Remote Spark executors are outside DSH pod policies. A real synthetic Livy/Spark test confirmed both driver and executor can connect to `github.com:443` and `1.1.1.1:443` (public DNS port 53 was blocked). This demonstrates an allowed public TCP path outside DSH’s local policy, which fails the intended outbound-denial requirement. These were TCP-connect probes, not HTTP-body or data-exfiltration tests; no RDT was read or transmitted, and no compromise is asserted. The test session owner matched the Spark user; this verifies the observed mechanism for one identity, not other users’ entitlements. The test used existing Windows SSPI Negotiate without retrieving a password or copying a ticket into DSH.
+
+The first small session ended before probes. A retry using the existing example’s 2GiB driver/executor settings and a dedicated temporary staging path ran the probes successfully. Both sessions were explicitly stopped and verified absent from Livy’s active list. See [failed initial execution](context-evidence/remote-spark-first-attempt-20261016.json) and [actual driver/executor results](context-evidence/remote-spark-boundary-live-20261016.json).
+
+A reversible patch removes only Livy port 28998 from No Internet egress, preserving Kerberos, inference, DNS and mounted storage. It passed server dry-run; that is preparation, not applied containment. Applying it temporarily disables new Livy/Spark connections from No Internet and does not terminate existing remote applications. Restoring protected remote Spark functionality requires enforced datalake driver/executor egress restrictions. See [prepared patch review](context-evidence/livy-containment-prepared-20261016.json).
 
 Evidence: [all-worker network tests](context-evidence/internal-network-live-20261016.json), [applied policies](context-evidence/internal-network-policies-20261016.json), [split DNS review](context-evidence/internal-endpoint-split-dns-20261016.json).
 
@@ -83,11 +87,13 @@ flowchart TB
  X[Remote worker egress policy] --> S
 ```
 
-`kinit` establishes identity; it does not make that identity read-only. The datalake must enforce the principal, groups, service impersonation/delegation and approved Hive/HDFS scope. A non-root DSH container cannot compensate for broad AD data-write rights.
+`kinit` establishes a user-specific identity. The user explicitly selected “Preserve each user’s existing AD/datalake permissions” on 16 October 2026. DSH therefore does not add a universal read-only restriction or provision a common service identity. Existing AD/Hive/HDFS authorization governs reads and writes. Generated code can perform operations already permitted to that principal: this is a retained authority and risk, not a new DSH grant.
+
+One credential can test a common connection/identity mechanism; it cannot prove the entitlements of other users. DSH acceptance verifies private credential/cache storage, fixed local-user routing and execution/network containment. Data owners continue to administer each principal’s rights. Local DSH login and Kerberos identity are distinct: DSH does not force their usernames to match. It prevents gateway identity spoofing and shared mounts; it does not prevent a person from authenticating as another AD account whose credentials they possess.
 
 The replacement runtime contains Kerberos tools. No Internet uses BOT.OR.TH configuration and a private ticket cache with group/other access denied. A set-group-ID bit inherited from Kubernetes fsGroup does not grant group access. No principal, keytab, AD login or new datalake permission was provisioned. Tickets/passwords must not enter Git, audit logs or Internet staging.
 
-Acceptance must use an approved test principal/resource: confirm the actual Livy/Spark identity and impersonation; permit intended reads and writes to a separate result area; deny source append/overwrite/delete/rename, Hive DDL/DML and unrelated table/path reads; verify unchanged source. Do not run destructive probes against Production RDT. Inspect remote driver/executor placement and egress too. Anonymous 401 or KDC reachability proves neither authenticated identity nor authorization.
+A universal read-only permission test is no longer a release requirement under the revised policy. A representative authenticated connection can establish mechanism behavior, while per-user entitlements remain the datalake owner’s responsibility. Do not infer authenticated identity from anonymous 401 or KDC connectivity. Remote Spark network behavior is evaluated with synthetic connectivity probes, without reading or modifying RDT.
 
 Earlier canaries used a synthetic filesystem fixture historically named `/data/rdt`. Its read-only denials establish only fixture behavior. New source calls it a synthetic fixture explicitly; it is not the actual RDT access mechanism.
 
@@ -116,7 +122,9 @@ flowchart TB
  S --> W[Protected workspace and history]
 ```
 
-Internet prepares packages; it cannot install directly into No Internet or edit protected files/history. An operator reviews provenance/security and promotes hash-verified artifacts into Approved. Secure installs from the read-only cache without public registries. Hashes detect substitution, not malicious package logic. Isolation canaries used empty cache fixtures and are not fresh package installation acceptance; original package workflow source/evidence remains separate.
+Internet prepares packages; it cannot install directly into No Internet or edit protected files/history. An operator reviews provenance/security and promotes hash-verified artifacts into Approved. Secure installs from the read-only cache without public registries. Hashes detect substitution, not malicious package logic. The earlier canaries used empty caches. Fresh end-to-end acceptance now downloaded pinned `six==1.17.0` in Internet, matched its SHA-256 to HTTPS PyPI metadata, checked wheel members for path traversal, native code, .pth files and entry points, promoted it with reviewed hashes, then installed/imported it in a temporary No Internet venv using `--no-index`. The exact result was `OFFLINE_PACKAGE_OK`; attempts to append to Approved were denied. Temporary venv cleanup completed. These are functional/provenance checks, not a claim that hashes or a wheel inspection prove a package benign.
+
+The old promoter hashed a pathname then reopened it for copying. The corrected operator code opens source components with directory descriptors and no-follow semantics, stages bytes from the same opened file, validates every row before publication, refuses symlink/path traversal and conflicting overwrites, and publishes individual artifacts atomically. The promotion job has no network egress, no Kubernetes token and a read-only root filesystem. Five real Linux regressions passed, including substitution after source open and hash failure without publishing another row. Operators still control admission and provenance review. The pinned runtime image is unchanged; reviewed promotion source runs from a separately hashed immutable ConfigMap. See [complete live package acceptance](context-evidence/package-workflow-live-20261016.json).
 
 ## 7 Rollout, rollback and experience
 
@@ -133,6 +141,8 @@ Sequential runtime rollout checks actual imageID, two persistent markers and Ker
 | Kerberos cache mode | Initial check rejected 2700 despite denied group/other access and rolled back. Corrected check separates permission bits from set-group-ID. |
 | RDT confusion | Synthetic mount tests do not establish real Kerberos/datalake rights. DA_WORKSPACE restoration is independent. |
 | Long context | Approximately 262K input previously caused attention-workspace OOM. Smaller prefill chunks enabled a historical near-1M test; KV slots alone did not prove operational capacity. |
+| Package promotion | Hash-then-reopen allowed a replacement window. Same-descriptor staging and no-follow traversal passed five Linux attack regressions; actual offline install/import passed. |
+| Remote Spark | First synthetic session ended before probes; the retry reached Internet from both driver/executor. Authenticated session owner matched Spark user. Both test sessions were stopped; no RDT was accessed. Local CNI policy cannot establish downstream egress protection. |
 
 ## 8 Context, performance and administration
 
@@ -146,9 +156,9 @@ The admin dashboard combines live gateway account/session/audit counters with a 
 
 Local implementation is not blanket RDT approval. Remaining evidence is specific:
 
-1. Approved AD test principal, actual Livy/Spark identity/impersonation, permitted Hive/HDFS reads and denied source writes/unrelated reads.
-2. Remote Spark driver/executor egress and any allowed-service relay path.
-3. Named-pilot/report/export policy and infrastructure/data-owner acceptance, including trusted-admin and legacy-instance exceptions.
-4. Actual offline package installation after reviewed promotion; empty-cache fixtures do not establish it.
+1. Existing user-specific AD/datalake entitlements remain inherited controls, not a missing universal read-only DSH feature. No new access was provisioned.
+2. **Confirmed live gap:** remote Spark driver/executor public egress. Either contain new Livy connections or enforce downstream egress before full-path No Internet closure. A policy-change decision is pending; no successful test is fabricated.
+3. Named-pilot/report/export governance remains an operational responsibility, including the trusted-admin and legacy-instance exceptions. Authentication and private report/file routes are tested; browser/manual export and every plugin are not certified by those tests.
+4. Offline package workflow is now verified by an actual download → hash promotion → No Internet installation/import, with five adversarial promotion tests. Future artifacts still require operator review.
 
 No new datalake permission was granted. No AD password or ticket was exported. The embedded README supplies setup/maintenance guidance; saved evidence preserves failed trials as well as successful ones.

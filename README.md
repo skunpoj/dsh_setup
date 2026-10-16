@@ -1,5 +1,7 @@
 # DSH — Private Execution Environments and Kerberos Datalake Access
 
+**Confirmed remote-boundary gap, 16 October:** synthetic Livy/Spark driver and executor reached GitHub and a public IP. DSH pod restrictions do not extend to that datalake compute. A reversible Livy containment patch is prepared (not applied); full-path No Internet cannot yet be called closed. No RDT was read or written.
+
 DSH provides local login, **No Internet / Internal (default)** and **Internet** environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses **Kerberos kinit → Livy/Spark → Hive/HDFS authorization**. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.
 
 Read the English [security and architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) and [source report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md). HTML embeds this README and saved evidence with SMP EDA diagram zoom, fullscreen and SVG/PNG export.
@@ -15,10 +17,10 @@ Read the English [security and architecture walkthrough](docs/DSH_RDT_PILOT_SECU
 | Kerberos client | Authenticate separately to the datalake | Tools/private ticket cache in replacement image; no AD login or data permission granted |
 | Restricted inference credentials | Avoid exposing LiteLLM management authority to generated code | Exact inference succeeds; key/model management returns 403 |
 | Admin dashboard/audit | Central visibility without sharing conversation content | Admin-only summary and fixed-schema access audit; ordinary/forged-role requests denied |
-| Approved package cache | Supply offline dependencies without writable workspace sharing | Incoming → operator review/hash promotion → read-only Approved; empty-cache canaries are not package installation acceptance |
+| Approved package cache | Supply offline dependencies without writable workspace sharing | Incoming → operator review/hash promotion → read-only Approved; fresh pinned download/hash promotion/No Internet install passed; five tamper/symlink tests passed |
 | Shared model | Use the existing single-node GPUs efficiently | Backend 1M ceiling; DSH/LiteLLM user guardrail 128K; request cap 16 |
 
-The remaining end-to-end RDT gaps are actual AD/Livy/Spark identity and read-only Hive/HDFS permission tests, remote executor egress, and owner-approved report/export rules. A synthetic read-only filesystem test does not establish those controls. Legacy DSH2/DSH3 are older root/Internet instances, outside this private pilot acceptance.
+The approved policy preserves each user’s existing AD/datalake rights; it does not force all users to be read-only. User-specific Kerberos credentials are not requested for generic DSH isolation acceptance. One principal cannot establish another’s data entitlements. Remote executor egress and report/export governance are tracked separately. A synthetic read-only fixture does not establish real datalake permissions. Legacy DSH2/DSH3 are older root/Internet instances, outside this private pilot acceptance.
 
 ## Architecture and storage
 
@@ -50,7 +52,7 @@ The dashboard combines live gateway counts/routing/audit with a timestamped infr
 3. Review `k8s/dsh-internal-dns.yaml` and `k8s/dsh-egress-policies.yaml` against actual pod-side DNS, KDC/Livy addresses and CNI behavior. Exact allowlists must be updated deliberately when endpoints change. Internet permits public registries, not datalake access.
 4. Use `scripts/generate_user_runtimes.py` for reviewed private-user manifests and identity-specific CIFS subpaths. It does not infer history ownership or migrate existing records. The existing private cutover is already complete; do not blindly rerun initial provisioning against live users. Preserve admin routes, source overlay, audit mount and infrastructure snapshot.
 5. Run non-root without privilege escalation/capabilities/service-account token. Private frontends request 250m CPU/1Gi RAM with 4CPU/8Gi limits; creating a runtime does not allocate another GPU model.
-6. Authenticate to the datalake only with approved Kerberos identities. A private cache is not a read-only grant. Test Livy/Spark identity, Hive/HDFS allowed reads and denied source modifications/unrelated reads at the backend; include remote executor egress. DA_WORKSPACE is not that authorization control.
+6. Authenticate to the datalake only with approved Kerberos identities. A private cache is not a read-only grant. Preserve each user’s existing AD/datalake permissions as instructed; do not provision a shared identity or claim that testing one principal proves all users’ entitlements. Include remote executor egress in boundary acceptance. DA_WORKSPACE is not that authorization control.
 7. Sequentially replace runtimes only after a matching image canary. `scripts/rollout_kerberos_runtime.py` snapshots specs and checks imageID, persistent markers, Kerberos client/cache and actual gateway behavior. On regression restore specifications without overwriting newer data. Preserve rollback originals and reconcile storage before any mount reversal.
 
 Optional read-only filesystem fixtures are explicitly named synthetic fixtures; they are unrelated to real RDT. Historical artifacts retain their original `/data/rdt` fixture naming with that limitation stated in the report.
@@ -74,3 +76,7 @@ This repository maintains deployment/authentication/configuration overlays, not 
 Rebase overlays onto a candidate pinned release, fail closed on changed patch targets, and test auth/Host/Origin, HTTP/WebSocket terminal, sessions, attachments, tools, network isolation, restart and restore before switching. Keep the installed image and coherent old state available for rollback. See [upstream procedure](docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md).
 
 The same reviewed DSH tree is mirrored under `GPU_server/deployment/vllm/dsh-environments`; GPU model and scheduling sources remain in GPU_server. Historical reports stay dated and preserved. Source completion, live behavior, scan results and owner/assessor acceptance are separate claims.
+
+## Package promotion hardening and live acceptance
+
+The reviewed promoter stages bytes from one opened source file, rejects source/destination symlinks and traversal, validates all hashes before publication, and refuses conflicting approved artifacts. It runs in a network-denied operator job from a separately pinned immutable source ConfigMap; rebuilding DSH runtimes is not required for that operator code. Apply the reviewed source manifest before a deliberately approved promotion Job; the reusable template remains suspended with empty approval. A real pinned PyPI wheel passed download/hash verification, promotion, `--no-index` install/import in No Internet and Approved write denial. Five Linux attack regressions passed. See [live evidence](docs/context-evidence/package-workflow-live-20261016.json). Package provenance/security review remains an operator responsibility; these checks are not malware certification.

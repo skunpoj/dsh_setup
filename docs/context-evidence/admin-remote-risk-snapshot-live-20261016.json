@@ -1,0 +1,19 @@
+{
+  "timeUTC": "2026-10-16T08:07:38.100131+00:00",
+  "snapshotConfigMap": "dsh-admin-status-5f8cf0bdfd11",
+  "runtimePoolsRestarted": false,
+  "modelRestarted": false,
+  "accessVerification": {
+    "timeUTC": "2026-10-16T08:08:22.776Z",
+    "adminLegacyCount": 80,
+    "privateLogins": 16,
+    "privateEmptyHistories": 16,
+    "legacyPageDenials": 16,
+    "ordinaryAdminDenials": 16,
+    "excludedAccountDenials": 0,
+    "auditEventsVisible": true,
+    "adminSnapshotContentVerified": true
+  },
+  "mountedContentMatches": true,
+  "status": "passed"
+}

@@ -32,11 +32,16 @@ steps:
 
   - powershell: |
       $image = "dsoreg-sm1-p1.bot.or.th/$(imageRepository):$(imageTag)"
-      docker run --rm --entrypoint node -w /opt/dsh $image --check scripts/auth_proxy.js
-      docker run --rm --entrypoint node -w /opt/dsh $image tests/test_auth_proxy_internet.js
-      docker run --rm --entrypoint node -w /opt/dsh $image tests/test_environment_routing.js
-      docker run --rm --entrypoint node -w /opt/dsh $image tests/test_user_isolation_routing.js
-      docker run --rm --entrypoint node -w /opt/dsh $image tests/test_internal_model_catalog.js
+      function Test-Candidate([string]$runtime, [string[]]$testArguments) {
+        docker run --rm --entrypoint $runtime -w /opt/dsh $image @testArguments
+        if ($LASTEXITCODE -ne 0) { throw "Candidate test failed: $runtime $testArguments" }
+      }
+      Test-Candidate node @('--check', 'scripts/auth_proxy.js')
+      Test-Candidate node @('tests/test_auth_proxy_internet.js')
+      Test-Candidate node @('tests/test_environment_routing.js')
+      Test-Candidate node @('tests/test_user_isolation_routing.js')
+      Test-Candidate node @('tests/test_internal_model_catalog.js')
+      Test-Candidate python3 @('-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_package_promotion.py')
       ./tests/test_environment_manifests.ps1
     displayName: Verify gateway routing and deployment boundaries
 

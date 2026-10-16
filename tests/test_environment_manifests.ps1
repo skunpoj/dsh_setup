@@ -43,7 +43,7 @@ if ($internetDocument -notmatch 'claimName: dsh-package-incoming' -or $internetD
     throw 'Internet pool must mount incoming packages and must not mount approved packages.'
 }
 $secureDocument = @($pools -split '(?m)^---\s*$' | Where-Object { $_ -match 'kind: Deployment' -and $_ -match 'name: dsh-secure' })[0]
-if ($secureDocument -notmatch 'claimName: dsh-da-workspace-secure' -or $secureDocument -notmatch 'mountPath: /workspace, subPath: dsh') {
+if ($secureDocument -notmatch 'claimName: dsh-da-workspace-secure' -or $secureDocument -notmatch 'mountPath:\s*/workspace(?:,\s*|\s+)subPath:\s*dsh(?:\s|$|\})') {
     throw 'Secure must retain the actual mounted DA_WORKSPACE subpath.'
 }
 if ($secureDocument -notmatch 'claimName: dsh-package-approved' -or $secureDocument -match 'claimName: dsh-package-incoming') {

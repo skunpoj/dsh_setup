@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH RDT Pilot — Security Controls, Architecture and Acceptance</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-</style></head><body><main><h1>DSH RDT Pilot — Security Controls and Execution Architecture</h1><div class="status"><strong>Private routing, central audit and restricted egress deployed. Kerberos/datalake authorization and remote-worker controls still require verification.</strong> Deployed behavior, saved tests and target design are distinguished. This document does not authorize additional data access.</div><nav aria-label="Contents"><a href="#section-1">1 Executive assessment</a><a href="#section-2">2 Deployed user and environment architecture</a><a href="#section-3">3 Control 1 — Prevent external leakage</a><a href="#section-4">4 Control 2 — Kerberos and datalake authorization</a><a href="#section-5">5 Control 3 — Contain reports, histories and execution</a><a href="#section-6">6 Dependency supply without protected workspace sharing</a><a href="#section-7">7 Rollout, rollback and experience</a><a href="#section-8">8 Context, performance and administration</a><a href="#section-9">9 Remaining acceptance</a><a href="#evidence">Embedded evidence</a></nav>
-<p><strong>16 October 2026: private user routing, central audit and datalake-aware restricted egress are deployed. Actual Kerberos/datalake authorization and remote Spark worker controls still require verification.</strong></p>
+</style></head><body><main><h1>DSH RDT Pilot — Security Controls and Execution Architecture</h1><div class="status"><strong>Local controls and offline packages verified. Remote Spark public egress confirmed: full-path No Internet is not yet closed. Per-user AD permissions are preserved.</strong> Deployed behavior, saved tests and target design are distinguished. This document does not authorize additional data access.</div><nav aria-label="Contents"><a href="#section-1">1 Executive assessment</a><a href="#section-2">2 Deployed user and environment architecture</a><a href="#section-3">3 Control 1 — Prevent external leakage</a><a href="#section-4">4 Control 2 — Kerberos and datalake authorization</a><a href="#section-5">5 Control 3 — Contain reports, histories and execution</a><a href="#section-6">6 Dependency supply without protected workspace sharing</a><a href="#section-7">7 Rollout, rollback and experience</a><a href="#section-8">8 Context, performance and administration</a><a href="#section-9">9 Remaining acceptance</a><a href="#evidence">Embedded evidence</a></nav>
+<p><strong>16 October 2026: private user routing, central audit and datalake-aware restricted egress are deployed. Existing per-user AD/datalake rights are preserved. A real remote Spark test found public egress; full-path No Internet acceptance is not closed.</strong></p>
 <p>The objective is to limit what can go wrong enough to make this specific pilot acceptable, rather than declare the Harness or generated code universally safe. This report explains where each control acts, what was tested and what remains unverified. Opening saved evidence does not run a new test or authorize data access.</p>
 <h2 id="section-1">1 Executive assessment</h2>
 <p><strong>RDT uses Kerberos (<code>kinit</code>) and the datalake connection, including Livy/Spark and Hive/HDFS authorization. DA_WORKSPACE stores DSH files and history.</strong> Mounting it is neither the source of RDT authorization nor proof of read-only RDT access. A local DSH login such as <code>thanatcc</code> is not an AD identity. The earlier request for an RDT PVC/folder conflated these independent controls and is withdrawn.</p>
@@ -16,12 +16,12 @@
 <tbody><tr>
 <td>Prevent external leakage</td>
 <td>Private No Internet workers; exact internal DNS, Kerberos, Livy and inference destinations; restricted inference keys</td>
-<td>All 18 workers tested. Public-domain and direct-IP probes fail from all 9 No Internet workers; internal paths work. Remote Spark egress and allowed-service relays remain separate.</td>
+<td>All 18 workers tested. Public-domain and direct-IP probes fail from all 9 No Internet workers; internal paths work. Remote Spark driver and executor actually reached GitHub/public IP; local pod policy does not cover that downstream path.</td>
 </tr>
 <tr>
 <td>Prevent damage/excessive access</td>
 <td>Non-root execution, no Kubernetes token, private workspace/state and ticket cache</td>
-<td>Local isolation/persistence tested. Actual AD identity, read-only Hive/HDFS scope and unrelated-resource denial remain untested.</td>
+<td>Local isolation/persistence tested. Per user instruction, existing AD/Hive/HDFS rights are inherited; DSH grants no new data authority and does not universally enforce read-only access.</td>
 </tr>
 <tr>
 <td>Keep results contained</td>
@@ -29,7 +29,7 @@
 <td>All 16 private logins denied an admin history and admin APIs. Administrator remains trusted. Browser exports and remote reports need separate review.</td>
 </tr>
 </tbody></table>
-<p>Local controls now go beyond the former shared-pool design. Full RDT closure requires tests at the authenticated datalake and remote execution boundaries, not relocation of RDT to a mounted folder.</p>
+<p>Local controls now go beyond the former shared-pool design. The approved data-access policy preserves each user’s existing AD/datalake permissions. This supersedes the earlier requirement for universal read-only RDT access; it is a requirement change, not proof that write-capable AD accounts became read-only. DA_WORKSPACE remains independent of datalake authorization.</p>
 <h2 id="section-2">2 Deployed user and environment architecture</h2>
 <p>Nine existing local accounts have fixed routes. Eight non-admin accounts each receive private No Internet and Internet runtimes: 16 private runtimes. Admin retains the two original runtimes and all 80 legacy histories. Registration remains disabled; switching environments requires logout and a new login.</p>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 1</span><div class="mermaid-toolbar">
@@ -114,7 +114,9 @@
 <p>Internet runtimes reach public registries but cannot reach KDC, Livy or unrelated private services. They do not mount protected data or histories. Users must not paste protected data into Internet sessions; infrastructure cannot undo an explicit transfer.</p>
 <p>Private identities and admin pools use inference-only LiteLLM virtual keys. Exact inference works; key enumeration, key generation and model creation return 403. A client API-base override was rejected. The shared master key was not rotated for unrelated applications. Restricted credentials supplement network controls; they do not prove that every allowed service cannot relay data externally.</p>
 <p>All 9 No Internet workers failed GitHub/PyPI/npm resolution, public direct-IP, public DNS and direct CoreDNS TCP/UDP probes. All resolved approved internal names, reached KDC 88, received anonymous Livy 401 with <code>WWW-Authenticate: Negotiate</code>, and returned exact internal inference. All 9 Internet workers reached registries/inference but failed KDC, Livy and unrelated PostgreSQL access. The PostgreSQL negative control succeeded before restrictions and failed afterward.</p>
-<p>These are destination-specific observations, not exhaustive IPv6/proxy/relay/browser acceptance. Remote Spark executors are outside DSH pod policies. Infrastructure-owner confirmation of downstream enforcement remains necessary.</p>
+<p>These are destination-specific observations, not exhaustive IPv6/proxy/relay/browser acceptance. Remote Spark executors are outside DSH pod policies. A real synthetic Livy/Spark test confirmed both driver and executor can connect to <code>github.com:443</code> and <code>1.1.1.1:443</code> (public DNS port 53 was blocked). This demonstrates an allowed public TCP path outside DSH’s local policy, which fails the intended outbound-denial requirement. These were TCP-connect probes, not HTTP-body or data-exfiltration tests; no RDT was read or transmitted, and no compromise is asserted. The test session owner matched the Spark user; this verifies the observed mechanism for one identity, not other users’ entitlements. The test used existing Windows SSPI Negotiate without retrieving a password or copying a ticket into DSH.</p>
+<p>The first small session ended before probes. A retry using the existing example’s 2GiB driver/executor settings and a dedicated temporary staging path ran the probes successfully. Both sessions were explicitly stopped and verified absent from Livy’s active list. See <a href="#evidence-remote-spark-first-attempt-20261016-json">failed initial execution</a> and <a href="#evidence-remote-spark-boundary-live-20261016-json">actual driver/executor results</a>.</p>
+<p>A reversible patch removes only Livy port 28998 from No Internet egress, preserving Kerberos, inference, DNS and mounted storage. It passed server dry-run; that is preparation, not applied containment. Applying it temporarily disables new Livy/Spark connections from No Internet and does not terminate existing remote applications. Restoring protected remote Spark functionality requires enforced datalake driver/executor egress restrictions. See <a href="#evidence-livy-containment-prepared-20261016-json">prepared patch review</a>.</p>
 <p>Evidence: <a href="#evidence-internal-network-live-20261016-json">all-worker network tests</a>, <a href="#evidence-internal-network-policies-20261016-json">applied policies</a>, <a href="#evidence-internal-endpoint-split-dns-20261016-json">split DNS review</a>.</p>
 <h2 id="section-4">4 Control 2 — Kerberos and datalake authorization</h2>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 2</span><div class="mermaid-toolbar">
@@ -146,9 +148,10 @@
  P[AD groups and datalake ACLs] --&gt; R
  X[Remote worker egress policy] --&gt; S
 </div></div></section>
-<p><code>kinit</code> establishes identity; it does not make that identity read-only. The datalake must enforce the principal, groups, service impersonation/delegation and approved Hive/HDFS scope. A non-root DSH container cannot compensate for broad AD data-write rights.</p>
+<p><code>kinit</code> establishes a user-specific identity. The user explicitly selected “Preserve each user’s existing AD/datalake permissions” on 16 October 2026. DSH therefore does not add a universal read-only restriction or provision a common service identity. Existing AD/Hive/HDFS authorization governs reads and writes. Generated code can perform operations already permitted to that principal: this is a retained authority and risk, not a new DSH grant.</p>
+<p>One credential can test a common connection/identity mechanism; it cannot prove the entitlements of other users. DSH acceptance verifies private credential/cache storage, fixed local-user routing and execution/network containment. Data owners continue to administer each principal’s rights. Local DSH login and Kerberos identity are distinct: DSH does not force their usernames to match. It prevents gateway identity spoofing and shared mounts; it does not prevent a person from authenticating as another AD account whose credentials they possess.</p>
 <p>The replacement runtime contains Kerberos tools. No Internet uses BOT.OR.TH configuration and a private ticket cache with group/other access denied. A set-group-ID bit inherited from Kubernetes fsGroup does not grant group access. No principal, keytab, AD login or new datalake permission was provisioned. Tickets/passwords must not enter Git, audit logs or Internet staging.</p>
-<p>Acceptance must use an approved test principal/resource: confirm the actual Livy/Spark identity and impersonation; permit intended reads and writes to a separate result area; deny source append/overwrite/delete/rename, Hive DDL/DML and unrelated table/path reads; verify unchanged source. Do not run destructive probes against Production RDT. Inspect remote driver/executor placement and egress too. Anonymous 401 or KDC reachability proves neither authenticated identity nor authorization.</p>
+<p>A universal read-only permission test is no longer a release requirement under the revised policy. A representative authenticated connection can establish mechanism behavior, while per-user entitlements remain the datalake owner’s responsibility. Do not infer authenticated identity from anonymous 401 or KDC connectivity. Remote Spark network behavior is evaluated with synthetic connectivity probes, without reading or modifying RDT.</p>
 <p>Earlier canaries used a synthetic filesystem fixture historically named <code>/data/rdt</code>. Its read-only denials establish only fixture behavior. New source calls it a synthetic fixture explicitly; it is not the actual RDT access mechanism.</p>
 <h2 id="section-5">5 Control 3 — Contain reports, histories and execution</h2>
 <p>Authenticated session identity selects a fixed private runtime. Client headers cannot nominate another user. Applications and web terminals pass through authenticated proxy routes; terminal commands run in that selected environment, not in a cluster administrator shell. Runtime ingress permits the gateway rather than neighboring runtimes. Local DSH login is not AD/SSO.</p>
@@ -182,7 +185,8 @@
  A --&gt; S[Private No Internet installation]
  S --&gt; W[Protected workspace and history]
 </div></div></section>
-<p>Internet prepares packages; it cannot install directly into No Internet or edit protected files/history. An operator reviews provenance/security and promotes hash-verified artifacts into Approved. Secure installs from the read-only cache without public registries. Hashes detect substitution, not malicious package logic. Isolation canaries used empty cache fixtures and are not fresh package installation acceptance; original package workflow source/evidence remains separate.</p>
+<p>Internet prepares packages; it cannot install directly into No Internet or edit protected files/history. An operator reviews provenance/security and promotes hash-verified artifacts into Approved. Secure installs from the read-only cache without public registries. Hashes detect substitution, not malicious package logic. The earlier canaries used empty caches. Fresh end-to-end acceptance now downloaded pinned <code>six==1.17.0</code> in Internet, matched its SHA-256 to HTTPS PyPI metadata, checked wheel members for path traversal, native code, .pth files and entry points, promoted it with reviewed hashes, then installed/imported it in a temporary No Internet venv using <code>--no-index</code>. The exact result was <code>OFFLINE_PACKAGE_OK</code>; attempts to append to Approved were denied. Temporary venv cleanup completed. These are functional/provenance checks, not a claim that hashes or a wheel inspection prove a package benign.</p>
+<p>The old promoter hashed a pathname then reopened it for copying. The corrected operator code opens source components with directory descriptors and no-follow semantics, stages bytes from the same opened file, validates every row before publication, refuses symlink/path traversal and conflicting overwrites, and publishes individual artifacts atomically. The promotion job has no network egress, no Kubernetes token and a read-only root filesystem. Five real Linux regressions passed, including substitution after source open and hash failure without publishing another row. Operators still control admission and provenance review. The pinned runtime image is unchanged; reviewed promotion source runs from a separately hashed immutable ConfigMap. See <a href="#evidence-package-workflow-live-20261016-json">complete live package acceptance</a>.</p>
 <h2 id="section-7">7 Rollout, rollback and experience</h2>
 <p>Azure build 62743 produced image <code>sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6</code> from source <code>4b90c846ead7098433173a18046105b179744737</code>. Its matching disposable canary passed. Later operator/document changes are not represented as baked into that image. Gateway source is independently hashed.</p>
 <p>Sequential runtime rollout checks actual imageID, two persistent markers and Kerberos client/cache behavior, then gateway login/history/terminal/audit. Failure restores prior specifications, not an old copy of user data. The model is not restarted by this change. The final retry passed on all 18 runtimes and the gateway: actual image digest, persistent markers, Kerberos client/cache, 16 private login/denial checks and unchanged 80-history aggregate. See <a href="#evidence-kerberos-runtime-live-62743-json">live acceptance</a> and <a href="#evidence-kerberos-runtime-first-attempt-62743-json">initial rollback</a>. Pipeline success alone does not establish this.</p>
@@ -221,6 +225,14 @@
 <td>Long context</td>
 <td>Approximately 262K input previously caused attention-workspace OOM. Smaller prefill chunks enabled a historical near-1M test; KV slots alone did not prove operational capacity.</td>
 </tr>
+<tr>
+<td>Package promotion</td>
+<td>Hash-then-reopen allowed a replacement window. Same-descriptor staging and no-follow traversal passed five Linux attack regressions; actual offline install/import passed.</td>
+</tr>
+<tr>
+<td>Remote Spark</td>
+<td>First synthetic session ended before probes; the retry reached Internet from both driver/executor. Authenticated session owner matched Spark user. Both test sessions were stopped; no RDT was accessed. Local CNI policy cannot establish downstream egress protection.</td>
+</tr>
 </tbody></table>
 <h2 id="section-8">8 Context, performance and administration</h2>
 <p>Backend configuration: 1,048,576 context ceiling, memory fraction 0.90, request cap 16, prefill chunk 1,024, maximum prefill 2,048 and interleaved short-work scheduling. DSH/LiteLLM user guardrail remains 131,072 total, 8,192 output and a 256-token reserve; compaction is configured near 98,304. Configuration does not prove every session compacts successfully.</p>
@@ -229,13 +241,14 @@
 <h2 id="section-9">9 Remaining acceptance</h2>
 <p>Local implementation is not blanket RDT approval. Remaining evidence is specific:</p>
 <ol>
-<li>Approved AD test principal, actual Livy/Spark identity/impersonation, permitted Hive/HDFS reads and denied source writes/unrelated reads.</li>
-<li>Remote Spark driver/executor egress and any allowed-service relay path.</li>
-<li>Named-pilot/report/export policy and infrastructure/data-owner acceptance, including trusted-admin and legacy-instance exceptions.</li>
-<li>Actual offline package installation after reviewed promotion; empty-cache fixtures do not establish it.</li>
+<li>Existing user-specific AD/datalake entitlements remain inherited controls, not a missing universal read-only DSH feature. No new access was provisioned.</li>
+<li><strong>Confirmed live gap:</strong> remote Spark driver/executor public egress. Either contain new Livy connections or enforce downstream egress before full-path No Internet closure. A policy-change decision is pending; no successful test is fabricated.</li>
+<li>Named-pilot/report/export governance remains an operational responsibility, including the trusted-admin and legacy-instance exceptions. Authentication and private report/file routes are tested; browser/manual export and every plugin are not certified by those tests.</li>
+<li>Offline package workflow is now verified by an actual download → hash promotion → No Internet installation/import, with five adversarial promotion tests. Future artifacts still require operator review.</li>
 </ol>
 <p>No new datalake permission was granted. No AD password or ticket was exported. The embedded README supplies setup/maintenance guidance; saved evidence preserves failed trials as well as successful ones.</p>
 <details id="embedded-readme"><summary>Embedded README — features, design decisions and setup</summary><h1>DSH — Private Execution Environments and Kerberos Datalake Access</h1>
+<p><strong>Confirmed remote-boundary gap, 16 October:</strong> synthetic Livy/Spark driver and executor reached GitHub and a public IP. DSH pod restrictions do not extend to that datalake compute. A reversible Livy containment patch is prepared (not applied); full-path No Internet cannot yet be called closed. No RDT was read or written.</p>
 <p>DSH provides local login, <strong>No Internet / Internal (default)</strong> and <strong>Internet</strong> environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses <strong>Kerberos kinit → Livy/Spark → Hive/HDFS authorization</strong>. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.</p>
 <p>Read the English <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">security and architecture walkthrough</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md">source report</a>. HTML embeds this README and saved evidence with SMP EDA diagram zoom, fullscreen and SVG/PNG export.</p>
 <h2>Features, design reasons and live status — 16 October 2026</h2>
@@ -285,7 +298,7 @@
 <tr>
 <td>Approved package cache</td>
 <td>Supply offline dependencies without writable workspace sharing</td>
-<td>Incoming → operator review/hash promotion → read-only Approved; empty-cache canaries are not package installation acceptance</td>
+<td>Incoming → operator review/hash promotion → read-only Approved; fresh pinned download/hash promotion/No Internet install passed; five tamper/symlink tests passed</td>
 </tr>
 <tr>
 <td>Shared model</td>
@@ -293,7 +306,7 @@
 <td>Backend 1M ceiling; DSH/LiteLLM user guardrail 128K; request cap 16</td>
 </tr>
 </tbody></table>
-<p>The remaining end-to-end RDT gaps are actual AD/Livy/Spark identity and read-only Hive/HDFS permission tests, remote executor egress, and owner-approved report/export rules. A synthetic read-only filesystem test does not establish those controls. Legacy DSH2/DSH3 are older root/Internet instances, outside this private pilot acceptance.</p>
+<p>The approved policy preserves each user’s existing AD/datalake rights; it does not force all users to be read-only. User-specific Kerberos credentials are not requested for generic DSH isolation acceptance. One principal cannot establish another’s data entitlements. Remote executor egress and report/export governance are tracked separately. A synthetic read-only fixture does not establish real datalake permissions. Legacy DSH2/DSH3 are older root/Internet instances, outside this private pilot acceptance.</p>
 <h2>Architecture and storage</h2>
 <p>Login pins one identity to one environment until logout. Private workspaces, sessions, attachments, credentials and launch tokens are separate. Inference and reviewed dependency artifacts are shared. Internet cannot install directly into No Internet. No Internet is <strong>restricted egress, not an air gap</strong>, because required internal services remain connected.</p>
 <p>The share remains <code>\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation</code>. Historical directory name is <code>dsh_storage</code>, not <code>dsh_volume</code>.</p>
@@ -338,7 +351,7 @@
 <li>Review <code>k8s/dsh-internal-dns.yaml</code> and <code>k8s/dsh-egress-policies.yaml</code> against actual pod-side DNS, KDC/Livy addresses and CNI behavior. Exact allowlists must be updated deliberately when endpoints change. Internet permits public registries, not datalake access.</li>
 <li>Use <code>scripts/generate_user_runtimes.py</code> for reviewed private-user manifests and identity-specific CIFS subpaths. It does not infer history ownership or migrate existing records. The existing private cutover is already complete; do not blindly rerun initial provisioning against live users. Preserve admin routes, source overlay, audit mount and infrastructure snapshot.</li>
 <li>Run non-root without privilege escalation/capabilities/service-account token. Private frontends request 250m CPU/1Gi RAM with 4CPU/8Gi limits; creating a runtime does not allocate another GPU model.</li>
-<li>Authenticate to the datalake only with approved Kerberos identities. A private cache is not a read-only grant. Test Livy/Spark identity, Hive/HDFS allowed reads and denied source modifications/unrelated reads at the backend; include remote executor egress. DA_WORKSPACE is not that authorization control.</li>
+<li>Authenticate to the datalake only with approved Kerberos identities. A private cache is not a read-only grant. Preserve each user’s existing AD/datalake permissions as instructed; do not provision a shared identity or claim that testing one principal proves all users’ entitlements. Include remote executor egress in boundary acceptance. DA_WORKSPACE is not that authorization control.</li>
 <li>Sequentially replace runtimes only after a matching image canary. <code>scripts/rollout_kerberos_runtime.py</code> snapshots specs and checks imageID, persistent markers, Kerberos client/cache and actual gateway behavior. On regression restore specifications without overwriting newer data. Preserve rollback originals and reconcile storage before any mount reversal.</li>
 </ol>
 <p>Optional read-only filesystem fixtures are explicitly named synthetic fixtures; they are unrelated to real RDT. Historical artifacts retain their original <code>/data/rdt</code> fixture naming with that limitation stated in the report.</p>
@@ -352,7 +365,153 @@
 <p>This repository maintains deployment/authentication/configuration overlays, not a fully synchronized official source fork. The previously inspected official master was <code>571902028a75c64c1d767f4ae5fd099485f0ddf0</code>; inspected tag <code>dsh-v0.2.1-alpha.3</code>; deployed package remains rc.2. These are dated observations, not a fresh upstream check. No package upgrade is implied by the storage deployment.</p>
 <p>Rebase overlays onto a candidate pinned release, fail closed on changed patch targets, and test auth/Host/Origin, HTTP/WebSocket terminal, sessions, attachments, tools, network isolation, restart and restore before switching. Keep the installed image and coherent old state available for rollback. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">upstream procedure</a>.</p>
 <p>The same reviewed DSH tree is mirrored under <code>GPU_server/deployment/vllm/dsh-environments</code>; GPU model and scheduling sources remain in GPU_server. Historical reports stay dated and preserved. Source completion, live behavior, scan results and owner/assessor acceptance are separate claims.</p>
-</details><h2 id="evidence">Embedded evidence</h2><p>Saved test responses and logs at their stated times. Opening this report does not perform a new system test. Original evidence is preserved unchanged.</p><details id="evidence-model-arguments-private-live-20261016-json"><summary>model-arguments-private-live-20261016.json</summary><pre>{
+<h2>Package promotion hardening and live acceptance</h2>
+<p>The reviewed promoter stages bytes from one opened source file, rejects source/destination symlinks and traversal, validates all hashes before publication, and refuses conflicting approved artifacts. It runs in a network-denied operator job from a separately pinned immutable source ConfigMap; rebuilding DSH runtimes is not required for that operator code. Apply the reviewed source manifest before a deliberately approved promotion Job; the reusable template remains suspended with empty approval. A real pinned PyPI wheel passed download/hash verification, promotion, <code>--no-index</code> install/import in No Internet and Approved write denial. Five Linux attack regressions passed. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">live evidence</a>. Package provenance/security review remains an operator responsibility; these checks are not malware certification.</p>
+</details><h2 id="evidence">Embedded evidence</h2><p>Saved test responses and logs at their stated times. Opening this report does not perform a new system test. Original evidence is preserved unchanged.</p><details id="evidence-admin-remote-risk-snapshot-live-20261016-json"><summary>admin-remote-risk-snapshot-live-20261016.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T08:07:38.100131+00:00&quot;,
+  &quot;snapshotConfigMap&quot;: &quot;dsh-admin-status-5f8cf0bdfd11&quot;,
+  &quot;runtimePoolsRestarted&quot;: false,
+  &quot;modelRestarted&quot;: false,
+  &quot;accessVerification&quot;: {
+    &quot;timeUTC&quot;: &quot;2026-10-16T08:08:22.776Z&quot;,
+    &quot;adminLegacyCount&quot;: 80,
+    &quot;privateLogins&quot;: 16,
+    &quot;privateEmptyHistories&quot;: 16,
+    &quot;legacyPageDenials&quot;: 16,
+    &quot;ordinaryAdminDenials&quot;: 16,
+    &quot;excludedAccountDenials&quot;: 0,
+    &quot;auditEventsVisible&quot;: true,
+    &quot;adminSnapshotContentVerified&quot;: true
+  },
+  &quot;mountedContentMatches&quot;: true,
+  &quot;status&quot;: &quot;passed&quot;
+}</pre></details><details id="evidence-control-closure-review-20261016-json"><summary>control-closure-review-20261016.json</summary><pre>{
+  &quot;observedAt&quot;: &quot;2026-10-16T08:07:16.322919+00:00&quot;,
+  &quot;dataAccessDecision&quot;: {
+    &quot;source&quot;: &quot;Explicit user reply in this chat&quot;,
+    &quot;policy&quot;: &quot;Preserve each user existing AD/datalake permissions&quot;,
+    &quot;universalReadOnlyRequirementSuperseded&quot;: true,
+    &quot;allUserEntitlementsProvenByOneCredential&quot;: false
+  },
+  &quot;localControls&quot;: {
+    &quot;privateRouting&quot;: &quot;verified&quot;,
+    &quot;noDirectPublicEgress&quot;: &quot;verified&quot;,
+    &quot;centralAudit&quot;: &quot;verified&quot;,
+    &quot;historyPersistence&quot;: &quot;verified&quot;,
+    &quot;offlinePackageWorkflow&quot;: &quot;verified&quot;
+  },
+  &quot;remoteSparkBoundary&quot;: {
+    &quot;authenticatedMechanismObserved&quot;: true,
+    &quot;sessionOwnerMatchedSparkUser&quot;: true,
+    &quot;driverPublicEgressBlocked&quot;: false,
+    &quot;executorPublicEgressBlocked&quot;: false,
+    &quot;noRealRdtReadOrWritten&quot;: true
+  },
+  &quot;containment&quot;: {
+    &quot;preparedAndServerDryRunAccepted&quot;: true,
+    &quot;applied&quot;: false,
+    &quot;requiresRoutingChoice&quot;: &quot;Block new Livy access from No Internet, or retain the connection with this documented risk&quot;
+  },
+  &quot;overall&quot;: &quot;Full-path no-Internet closure is not established because remote Spark public egress was demonstrated&quot;
+}</pre></details><details id="evidence-remote-spark-first-attempt-20261016-json"><summary>remote-spark-first-attempt-20261016.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T08:00:02.924697+00:00&quot;,
+  &quot;authentication&quot;: &quot;Existing Windows SSPI Negotiate&quot;,
+  &quot;realRdtReadOrWritten&quot;: false,
+  &quot;sessionCreatedByThisTest&quot;: 626,
+  &quot;sessionState&quot;: &quot;dead&quot;,
+  &quot;status&quot;: &quot;not-established&quot;,
+  &quot;error&quot;: &quot;Synthetic Spark session did not become idle&quot;,
+  &quot;ownSessionStopRequested&quot;: true,
+  &quot;ownSessionAbsentFromActiveList&quot;: true
+}</pre></details><details id="evidence-remote-spark-boundary-live-20261016-json"><summary>remote-spark-boundary-live-20261016.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T08:03:18.127321+00:00&quot;,
+  &quot;authentication&quot;: &quot;Existing Windows SSPI Negotiate&quot;,
+  &quot;realRdtReadOrWritten&quot;: false,
+  &quot;sessionCreatedByThisTest&quot;: 627,
+  &quot;sessionOwnerHash&quot;: &quot;9bca9bad82a1bf8459f61859d083896592b20d8e9c2a53f3a2a2a3c12e160cc3&quot;,
+  &quot;sparkUserHash&quot;: &quot;9bca9bad82a1bf8459f61859d083896592b20d8e9c2a53f3a2a2a3c12e160cc3&quot;,
+  &quot;ownerMatchesSparkUser&quot;: true,
+  &quot;network&quot;: {
+    &quot;driver&quot;: [
+      {
+        &quot;target&quot;: &quot;1.1.1.1&quot;,
+        &quot;port&quot;: 443,
+        &quot;blocked&quot;: false
+      },
+      {
+        &quot;target&quot;: &quot;8.8.8.8&quot;,
+        &quot;port&quot;: 53,
+        &quot;blocked&quot;: true
+      },
+      {
+        &quot;target&quot;: &quot;github.com&quot;,
+        &quot;port&quot;: 443,
+        &quot;blocked&quot;: false
+      }
+    ],
+    &quot;executor&quot;: [
+      {
+        &quot;target&quot;: &quot;1.1.1.1&quot;,
+        &quot;port&quot;: 443,
+        &quot;blocked&quot;: false
+      },
+      {
+        &quot;target&quot;: &quot;8.8.8.8&quot;,
+        &quot;port&quot;: 53,
+        &quot;blocked&quot;: true
+      },
+      {
+        &quot;target&quot;: &quot;github.com&quot;,
+        &quot;port&quot;: 443,
+        &quot;blocked&quot;: false
+      }
+    ]
+  },
+  &quot;allRepresentativeExternalConnectionsBlocked&quot;: false,
+  &quot;status&quot;: &quot;failed-egress-boundary&quot;,
+  &quot;ownSessionStopRequested&quot;: true,
+  &quot;ownSessionAbsentFromActiveList&quot;: true
+}</pre></details><details id="evidence-livy-containment-prepared-20261016-json"><summary>livy-containment-prepared-20261016.json</summary><pre>{
+  &quot;serverDryRunAccepted&quot;: true,
+  &quot;livePolicyChanged&quot;: false,
+  &quot;removedDestinationPort&quot;: 28998,
+  &quot;preservedPorts&quot;: [
+    88,
+    4000,
+    5353
+  ],
+  &quot;impact&quot;: &quot;Temporarily blocks new Livy/Spark connections from all No Internet runtimes. Does not revoke AD permissions or stop already-running remote Spark applications.&quot;
+}</pre></details><details id="evidence-package-workflow-live-20261016-json"><summary>package-workflow-live-20261016.json</summary><pre>{
+  &quot;timeUTC&quot;: &quot;2026-10-16T07:52:11.708775+00:00&quot;,
+  &quot;download&quot;: {
+    &quot;run&quot;: &quot;acceptance-20261016-closure&quot;,
+    &quot;artifact&quot;: &quot;acceptance-20261016-closure/python/six-1.17.0-py2.py3-none-any.whl&quot;,
+    &quot;sha256&quot;: &quot;4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274&quot;,
+    &quot;matchesPyPIMetadata&quot;: true,
+    &quot;wheelMembers&quot;: [
+      &quot;six.py&quot;,
+      &quot;six-1.17.0.dist-info/LICENSE&quot;,
+      &quot;six-1.17.0.dist-info/METADATA&quot;,
+      &quot;six-1.17.0.dist-info/WHEEL&quot;,
+      &quot;six-1.17.0.dist-info/top_level.txt&quot;,
+      &quot;six-1.17.0.dist-info/RECORD&quot;
+    ],
+    &quot;purePythonNoPthOrEntrypoints&quot;: true
+  },
+  &quot;promotionConfigMap&quot;: &quot;dsh-promotion-496db3932230&quot;,
+  &quot;promotionSourceSHA256&quot;: &quot;30d5c7429c2550f8f397738d8cbb91bd8c4ec44f77e6156c9f8e0ed56cbaee4a&quot;,
+  &quot;job&quot;: &quot;dsh-package-acceptance-075211&quot;,
+  &quot;noRealRdtUsed&quot;: true,
+  &quot;promotionLog&quot;: &quot;test_hash_failure_publishes_no_other_rows (test_package_promotion.PackagePromotionTests.test_hash_failure_publishes_no_other_rows) ... ok\ntest_path_replacement_after_open_cannot_change_promoted_bytes (test_package_promotion.PackagePromotionTests.test_path_replacement_after_open_cannot_change_promoted_bytes) ... ok\ntest_source_and_destination_symlinks_denied (test_package_promotion.PackagePromotionTests.test_source_and_destination_symlinks_denied) ... ok\ntest_traversal_and_empty_approval_refused (test_package_promotion.PackagePromotionTests.test_traversal_and_empty_approval_refused) ... ok\ntest_verified_idempotent_and_no_overwrite (test_package_promotion.PackagePromotionTests.test_verified_idempotent_and_no_overwrite) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.019s\n\nOK\npromoted 1 verified dependency artifacts\n&quot;,
+  &quot;offlineInstallation&quot;: {
+    &quot;exactImportResult&quot;: &quot;OFFLINE_PACKAGE_OK&quot;,
+    &quot;installedWithNoIndex&quot;: true,
+    &quot;approvedWheelHashMatches&quot;: true,
+    &quot;approvedWriteDenied&quot;: true,
+    &quot;temporaryVenvRemovedOnExit&quot;: true
+  },
+  &quot;status&quot;: &quot;passed&quot;
+}</pre></details><details id="evidence-model-arguments-private-live-20261016-json"><summary>model-arguments-private-live-20261016.json</summary><pre>{
   &quot;observedModelArguments&quot;: [
     {
       &quot;deployment&quot;: &quot;vllm-deepseek-v4-1-flash&quot;,
@@ -2628,7 +2787,7 @@
     &quot;logout revokes access&quot;
   ]
 }</pre></details><details id="evidence-admin-dashboard-snapshot-20261016-json"><summary>admin-dashboard-snapshot-20261016.json</summary><pre>{
-  &quot;observedAt&quot;: &quot;2026-10-16T07:42:13.869454+00:00&quot;,
+  &quot;observedAt&quot;: &quot;2026-10-16T08:06:00.052220+00:00&quot;,
   &quot;environments&quot;: [
     {
       &quot;name&quot;: &quot;No Internet: admin + 8 private users&quot;,
@@ -2666,11 +2825,11 @@
     &quot;Fresh 24,044-token input: short replies 0.440-0.588s while long request remained active. Bounded synthetic test only.&quot;
   ],
   &quot;gaps&quot;: [
-    &quot;RDT uses Kerberos/Livy/Spark; actual AD principal, impersonation and read-only Hive/HDFS authorization remain untested.&quot;,
-    &quot;Remote Spark executor egress and allowed-service relays require separate verification.&quot;,
-    &quot;Named-pilot report/export and infrastructure/data-owner acceptance remain required.&quot;,
-    &quot;Legacy DSH2/DSH3 remain outside private-pilot controls; admin retains trusted broad legacy access.&quot;,
-    &quot;Near-1M mixed-load fairness and end-to-end DSH 1M remain unverified; user guardrail is 128K.&quot;
+    &quot;CONFIRMED: remote Spark driver and executor reached GitHub/public IP. DSH pod policy does not cover datalake compute. Livy containment patch prepared, not applied.&quot;,
+    &quot;Existing AD/datalake permissions are preserved as instructed; universal read-only enforcement is no longer required. One identity does not establish other users entitlement.&quot;,
+    &quot;Named-pilot browser/report/export governance and trusted-admin exception remain owner responsibilities.&quot;,
+    &quot;Legacy DSH2/DSH3 are outside the private-pilot controls.&quot;,
+    &quot;Near-1M mixed-load/end-to-end DSH 1M remains unverified; current user guardrail is 128K.&quot;
   ]
 }</pre></details><details id="evidence-performance-mixed-live-20261016-json"><summary>performance-mixed-live-20261016.json</summary><pre>{
   &quot;short&quot;: [
@@ -6012,7 +6171,7 @@ environment routing and session stickiness tests passed
 routing checks completed
 per-user routing, spoof resistance, missing-runtime denial, registration denial and stickiness tests passed
 </pre></details><details id="evidence-html-verification-20261015-json"><summary>html-verification-20261015.json</summary><pre>{
-  &quot;time&quot;: &quot;2026-10-16T07:43:46.873Z&quot;,
+  &quot;time&quot;: &quot;2026-10-16T08:10:12.596Z&quot;,
   &quot;englishNarrative&quot;: true,
   &quot;readmeEmbedded&quot;: true,
   &quot;renderedDiagrams&quot;: 3,

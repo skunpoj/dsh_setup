@@ -1,0 +1,11 @@
+{
+  "timeUTC": "2026-10-16T08:00:02.924697+00:00",
+  "authentication": "Existing Windows SSPI Negotiate",
+  "realRdtReadOrWritten": false,
+  "sessionCreatedByThisTest": 626,
+  "sessionState": "dead",
+  "status": "not-established",
+  "error": "Synthetic Spark session did not become idle",
+  "ownSessionStopRequested": true,
+  "ownSessionAbsentFromActiveList": true
+}

@@ -28,4 +28,4 @@ spec:
             name: dsh-gateway-source-b34ee162ec9b
         - name: admin-status
           configMap:
-            name: dsh-admin-status-faca6a2f10c8
+            name: dsh-admin-status-5f8cf0bdfd11

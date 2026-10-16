@@ -22,11 +22,11 @@ Runtime pods retain the existing restricted/Internet policy labels and gateway-o
 
 ## Preserve the existing central storage requirement
 
-The generator now retains `dsh-da-workspace-secure` and assigns `dsh/private/<identity-hash>/secure` as the workspace subpath. It does not redistribute existing shared files/history. Administratively pre-create and verify those central directories before applying private runtimes; their main containers must never mount the share root. The actual shared Secure workspace was remounted and restart-tested at 21:32 ICT; per-user runtimes themselves remain undeployed. See [actual correction evidence](context-evidence/central-workspace-live-20261015.json).
+The generator now retains `dsh-da-workspace-secure` and assigns `dsh/private/<identity-hash>/secure` as the workspace subpath. It does not redistribute existing shared files/history. Administratively pre-create and verify those central directories before applying private runtimes; their main containers must never mount the share root. The shared Secure workspace was remounted and restart-tested at 21:32 ICT on 15 October. On 16 October, eight non-admin accounts were cut over to private runtimes in both environments; admin retains the legacy trees and all 80 histories. See [actual correction evidence](context-evidence/central-workspace-live-20261015.json).
 
 ## Rollout and evidence boundary
 
-RDT snapshot option: `--rdt-source-pvc APPROVED_SNAPSHOT_PVC --rdt-approval-ref OWNER_APPROVAL_REFERENCE` adds `/data/rdt` read-only to Secure runtimes only. Both options are required together. The PVC must already contain only the approved snapshot; the generator cannot determine data scope or grant database permissions. Public registration now defaults to disabled even before isolated routing is enabled.
+Optional synthetic filesystem fixture: `--readonly-fixture-pvc APPROVED_FIXTURE --fixture-approval-ref REVIEW_REFERENCE` adds `/data/fixtures` read-only to Secure test runtimes. This is unrelated to real RDT, which uses user-specific Kerberos and existing datalake rights. Both fixture options are required together. No shared RDT service identity or universal read-only policy is provisioned. Public registration remains disabled.
 
 1. Confirm named pilot identities and provision their accounts administratively. Build an immutable runtime image containing the new gateway code.
 2. Generate manifests using `python scripts/generate_user_runtimes.py --users alice bob --image REGISTRY/IMAGE@sha256:DIGEST --output candidate.yaml` (requires PyYAML). These names are examples only.
@@ -36,6 +36,6 @@ RDT snapshot option: `--rdt-source-pvc APPROVED_SNAPSHOT_PVC --rdt-approval-ref 
 6. Test A-to-B file/session/report/attachment reads and writes through HTTP, WebSocket, terminal and tools; they must fail. Verify default No Internet and denied external traffic for every Secure runtime, Internet download, approved-package installation, logout, persistence and inference.
 7. Only after these checks should legacy shared pool access be retired. Existing sessions remain on the old gateway until cutover and will require reauthentication.
 
-Source tests cover identity routing, spoofed URL resistance, missing-route denial, registration denial, session stickiness and generated volume/Service boundaries. They do not establish deployed per-user isolation, migrate history, or prove RDT data authorization. Production was read back with the existing shared Secure/Internet deployments; this extension has not been deployed.
+Private-user routing is now deployed and tested for eight non-admin identities across both environments. Admin retains the original two runtimes and all 80 unchanged histories. Source and live evidence distinguish identity routing, spoofed-header denial, terminal/application access, persistence and inherited AD data authorization. Existing AD/datalake rights are preserved; local DSH login is not AD/SSO. See the current security report and private-runtime acceptance records for actual deployed evidence.
 
 Dedicated pods provide a stronger process/storage boundary, but share the node kernel and inference service. They are not VMs or separate physical systems. RDT still requires its own limited read-only source identity/view and separate writable results location.

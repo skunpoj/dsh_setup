@@ -1,0 +1,11 @@
+{
+  "serverDryRunAccepted": true,
+  "livePolicyChanged": false,
+  "removedDestinationPort": 28998,
+  "preservedPorts": [
+    88,
+    4000,
+    5353
+  ],
+  "impact": "Temporarily blocks new Livy/Spark connections from all No Internet runtimes. Does not revoke AD permissions or stop already-running remote Spark applications."
+}

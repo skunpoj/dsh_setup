@@ -1,0 +1,31 @@
+{
+  "timeUTC": "2026-10-16T07:52:11.708775+00:00",
+  "download": {
+    "run": "acceptance-20261016-closure",
+    "artifact": "acceptance-20261016-closure/python/six-1.17.0-py2.py3-none-any.whl",
+    "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+    "matchesPyPIMetadata": true,
+    "wheelMembers": [
+      "six.py",
+      "six-1.17.0.dist-info/LICENSE",
+      "six-1.17.0.dist-info/METADATA",
+      "six-1.17.0.dist-info/WHEEL",
+      "six-1.17.0.dist-info/top_level.txt",
+      "six-1.17.0.dist-info/RECORD"
+    ],
+    "purePythonNoPthOrEntrypoints": true
+  },
+  "promotionConfigMap": "dsh-promotion-496db3932230",
+  "promotionSourceSHA256": "30d5c7429c2550f8f397738d8cbb91bd8c4ec44f77e6156c9f8e0ed56cbaee4a",
+  "job": "dsh-package-acceptance-075211",
+  "noRealRdtUsed": true,
+  "promotionLog": "test_hash_failure_publishes_no_other_rows (test_package_promotion.PackagePromotionTests.test_hash_failure_publishes_no_other_rows) ... ok\ntest_path_replacement_after_open_cannot_change_promoted_bytes (test_package_promotion.PackagePromotionTests.test_path_replacement_after_open_cannot_change_promoted_bytes) ... ok\ntest_source_and_destination_symlinks_denied (test_package_promotion.PackagePromotionTests.test_source_and_destination_symlinks_denied) ... ok\ntest_traversal_and_empty_approval_refused (test_package_promotion.PackagePromotionTests.test_traversal_and_empty_approval_refused) ... ok\ntest_verified_idempotent_and_no_overwrite (test_package_promotion.PackagePromotionTests.test_verified_idempotent_and_no_overwrite) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.019s\n\nOK\npromoted 1 verified dependency artifacts\n",
+  "offlineInstallation": {
+    "exactImportResult": "OFFLINE_PACKAGE_OK",
+    "installedWithNoIndex": true,
+    "approvedWheelHashMatches": true,
+    "approvedWriteDenied": true,
+    "temporaryVenvRemovedOnExit": true
+  },
+  "status": "passed"
+}

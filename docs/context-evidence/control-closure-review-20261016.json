@@ -1,0 +1,29 @@
+{
+  "observedAt": "2026-10-16T08:07:16.322919+00:00",
+  "dataAccessDecision": {
+    "source": "Explicit user reply in this chat",
+    "policy": "Preserve each user existing AD/datalake permissions",
+    "universalReadOnlyRequirementSuperseded": true,
+    "allUserEntitlementsProvenByOneCredential": false
+  },
+  "localControls": {
+    "privateRouting": "verified",
+    "noDirectPublicEgress": "verified",
+    "centralAudit": "verified",
+    "historyPersistence": "verified",
+    "offlinePackageWorkflow": "verified"
+  },
+  "remoteSparkBoundary": {
+    "authenticatedMechanismObserved": true,
+    "sessionOwnerMatchedSparkUser": true,
+    "driverPublicEgressBlocked": false,
+    "executorPublicEgressBlocked": false,
+    "noRealRdtReadOrWritten": true
+  },
+  "containment": {
+    "preparedAndServerDryRunAccepted": true,
+    "applied": false,
+    "requiresRoutingChoice": "Block new Livy access from No Internet, or retain the connection with this documented risk"
+  },
+  "overall": "Full-path no-Internet closure is not established because remote Spark public egress was demonstrated"
+}

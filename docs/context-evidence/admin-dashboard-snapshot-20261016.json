@@ -1,5 +1,5 @@
 {
-  "observedAt": "2026-10-16T07:42:13.869454+00:00",
+  "observedAt": "2026-10-16T08:06:00.052220+00:00",
   "environments": [
     {
       "name": "No Internet: admin + 8 private users",
@@ -37,10 +37,10 @@
     "Fresh 24,044-token input: short replies 0.440-0.588s while long request remained active. Bounded synthetic test only."
   ],
   "gaps": [
-    "RDT uses Kerberos/Livy/Spark; actual AD principal, impersonation and read-only Hive/HDFS authorization remain untested.",
-    "Remote Spark executor egress and allowed-service relays require separate verification.",
-    "Named-pilot report/export and infrastructure/data-owner acceptance remain required.",
-    "Legacy DSH2/DSH3 remain outside private-pilot controls; admin retains trusted broad legacy access.",
-    "Near-1M mixed-load fairness and end-to-end DSH 1M remain unverified; user guardrail is 128K."
+    "CONFIRMED: remote Spark driver and executor reached GitHub/public IP. DSH pod policy does not cover datalake compute. Livy containment patch prepared, not applied.",
+    "Existing AD/datalake permissions are preserved as instructed; universal read-only enforcement is no longer required. One identity does not establish other users entitlement.",
+    "Named-pilot browser/report/export governance and trusted-admin exception remain owner responsibilities.",
+    "Legacy DSH2/DSH3 are outside the private-pilot controls.",
+    "Near-1M mixed-load/end-to-end DSH 1M remains unverified; current user guardrail is 128K."
   ]
 }

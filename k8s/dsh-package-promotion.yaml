@@ -4,10 +4,9 @@ metadata:
   name: dsh-package-approval
   namespace: llm
 data:
-  # An operator replaces this file with reviewed SHA-256 rows before resuming
-  # the suspended Job: <sha256><two spaces><relative incoming path>
-  manifest.sha256: |
-    # Example only; an empty approval intentionally fails closed.
+  manifest.sha256: '# Example only; an empty approval intentionally fails closed.
+
+    '
 ---
 apiVersion: batch/v1
 kind: Job
@@ -19,31 +18,79 @@ spec:
   backoffLimit: 0
   template:
     metadata:
-      labels: { app: dsh-package-promotion }
+      labels:
+        app: dsh-package-promotion
     spec:
       restartPolicy: Never
       securityContext:
         fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
-        - name: promote
-          image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:d3a300605a87aa63ec4a2588f827658a132407ff17908ba49403fa7cca8d261a
-          command: [/opt/dsh/container/promote-packages.sh]
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 10001
-            runAsGroup: 10001
-            allowPrivilegeEscalation: false
-            capabilities: { drop: [ALL] }
-          env:
-            - { name: APPROVAL_MANIFEST, value: /approval/manifest.sha256 }
-          volumeMounts:
-            - { name: approval, mountPath: /approval, readOnly: true }
-            - { name: incoming, mountPath: /packages/incoming, readOnly: true }
-            - { name: approved, mountPath: /packages/approved }
-      volumes:
+      - name: promote
+        image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6
+        command:
+        - python3
+        - /promotion/promote_packages.py
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          runAsGroup: 10001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        env:
+        - name: APPROVAL_MANIFEST
+          value: /approval/manifest.sha256
+        volumeMounts:
         - name: approval
-          configMap: { name: dsh-package-approval }
+          mountPath: /approval
+          readOnly: true
         - name: incoming
-          persistentVolumeClaim: { claimName: dsh-package-incoming }
+          mountPath: /packages/incoming
+          readOnly: true
         - name: approved
-          persistentVolumeClaim: { claimName: dsh-package-approved }
+          mountPath: /packages/approved
+        - name: source
+          mountPath: /promotion
+          readOnly: true
+        - name: temporary
+          mountPath: /tmp
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: '1'
+            memory: 256Mi
+      volumes:
+      - name: approval
+        configMap:
+          name: dsh-package-approval
+      - name: incoming
+        persistentVolumeClaim:
+          claimName: dsh-package-incoming
+      - name: approved
+        persistentVolumeClaim:
+          claimName: dsh-package-approved
+      - name: source
+        configMap:
+          name: dsh-promotion-source-30d5c7429c25
+      - name: temporary
+        emptyDir: {}
+      automountServiceAccountToken: false
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsh-package-promotion-boundary
+  namespace: llm
+spec:
+  podSelector:
+    matchLabels:
+      app: dsh-package-promotion
+  policyTypes:
+  - Ingress
+  - Egress
