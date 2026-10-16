@@ -5,8 +5,8 @@ ARG CLAUDE_CODE_VERSION=2.1.301
 ARG TRUEFORGE_VERSION=0.179.2
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends bash ca-certificates curl git jq krb5-user openssl procps python3 python3-pip python3-venv socat \
- && npm install -g --ignore-scripts "@deepseek-ai/dsh@${DSH_VERSION}" "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
- && npm install -g "@truefoundry/trueforge@${TRUEFORGE_VERSION}" \
+ && npm install -g --ignore-scripts "@deepseek-ai/dsh@${DSH_VERSION}" \
+ && npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" "@truefoundry/trueforge@${TRUEFORGE_VERSION}" \
  && rm -rf /var/lib/apt/lists/* /root/.npm
 
 COPY vendor/ttyd /usr/local/bin/ttyd
