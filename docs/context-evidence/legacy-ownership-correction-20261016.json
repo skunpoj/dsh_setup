@@ -1,0 +1,18 @@
+{
+  "observedAt": "2026-10-16T08:36:57.330085+00:00",
+  "confirmedOwner": "thanatcc",
+  "adminRoleIsNotDataOwnership": true,
+  "routing": {
+    "ownerAccountExists": true,
+    "ownerHasPrivateSecure": true,
+    "adminHasLegacySecure": true,
+    "adminHasLegacyInternet": true
+  },
+  "legacyFingerprint": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "runtimeAccessChanged": false,
+  "ownerAccessRestoration": "pending bounded migration; broad legacy mount cannot be reassigned safely"
+}

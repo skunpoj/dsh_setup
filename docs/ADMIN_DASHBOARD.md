@@ -1,5 +1,7 @@
 # Admin dashboard
 
+**Ownership correction, 16 October 2026:** The user explicitly identifies `thanatcc` as the owner of the legacy histories and files, not `admin`. `thanatcc` is a local DSH login; ownership does not grant the admin role. Live access is still incorrectly assigned to admin legacy runtimes, while `thanatcc` has private runtimes. Restoring owner access requires bounded storage migration, because the legacy mount also exposes the private-user subtree. No ownership migration or access reassignment has been performed by this correction. Admin dashboard and audit oversight remain separate from data ownership.
+
 Open `https://dsh.aiportal.bot.or.th/admin` after logging in as the existing admin account. An Admin overview link appears beside Logout only for authorized administrators. The summary API is `GET /api/admin/summary`; no user-management or workload-changing actions are provided.
 
 ## Authorization and containment
@@ -32,7 +34,7 @@ Production checks passed: actual admin page/API, mounted snapshot readback, four
 
 The first full unit-suite run hit a Windows Access Denied error while replacing a temporary file in an unrelated reconciliation test. That isolated test and the subsequent full 21-test run passed. No storage-reconciliation code was changed or executed against Production by those mocked tests.
 
-Private-user isolation is now deployed for eight non-admin identities in both environments; all 80 histories belong to admin. The dashboard does not establish actual Kerberos/Livy/Spark identity, all user-specific Hive/HDFS entitlements or remote worker egress, legacy-instance hardening or near-1M fairness. DA_WORKSPACE is storage, not RDT authorization. The policy preserves existing AD/datalake rights. Remote Spark egress is now a confirmed failure, not an untested assumption; offline package promotion/install acceptance passed. Central audit fields are time/event/user/environment and are admin-only; no passwords, tickets or conversation text are recorded. At retention capacity, new runtime/login access fails closed until operator archival.
+Private-user isolation is now deployed for eight non-admin identities in both environments; the previous admin-ownership statement was incorrect; the confirmed owner is `thanatcc` (live reassignment remains pending). The dashboard does not establish actual Kerberos/Livy/Spark identity, all user-specific Hive/HDFS entitlements or remote worker egress, legacy-instance hardening or near-1M fairness. DA_WORKSPACE is storage, not RDT authorization. The policy preserves existing AD/datalake rights. Remote Spark egress is now a confirmed failure, not an untested assumption; offline package promotion/install acceptance passed. Central audit fields are time/event/user/environment and are admin-only; no passwords, tickets or conversation text are recorded. At retention capacity, new runtime/login access fails closed until operator archival.
 
 Evidence: [local authorization/browser checks](context-evidence/admin-dashboard-tests-20261016.json), [deployed acceptance](context-evidence/admin-dashboard-live-20261016.json), [mounted snapshot](context-evidence/admin-dashboard-snapshot-20261016.json).
 

@@ -1,4 +1,4 @@
-"""Preserve admin's legacy trees and provision empty private runtimes for others.
+"""Preserve the explicitly confirmed owner's legacy trees and isolate others.
 
 No history ownership inference, history copies or new RDT grants. Shared guest,
 demo and test identities remain in the auth store but are not routed.
@@ -31,6 +31,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--verification-file', type=Path, required=True)
+    ap.add_argument('--legacy-owner', required=True,
+                    help='Explicitly confirmed local DSH owner; never inferred from admin role')
     args = ap.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     source = (ROOT / 'scripts/auth_proxy.js').read_text(encoding='utf-8')
@@ -44,9 +46,13 @@ def main():
     (args.output / 'gateway-before.json').write_text(json.dumps(original, indent=2), encoding='utf-8')
     accounts = json.loads(kube('exec', 'deploy/dsh-environment-gateway', '--', 'node', '-e',
         "console.log(JSON.stringify(Object.keys(JSON.parse(require('fs').readFileSync(process.env.DSH_USER_STORE_PATH)))))"))
-    if 'admin' not in accounts:
-        raise RuntimeError('Confirmed legacy owner admin is absent')
-    private = [u for u in accounts if u != 'admin' and re.fullmatch(r'[a-z0-9_.-]{3,30}', u)
+    if args.legacy_owner not in accounts:
+        raise RuntimeError('Confirmed legacy owner is absent')
+    # The original runtimes mount a broader tree than a private identity may
+    # access. Do not hand those mounts to a non-admin as an ownership shortcut.
+    if args.legacy_owner != 'admin':
+        raise RuntimeError('Non-admin legacy owner requires bounded storage migration; this initial rollout cannot safely assign broad legacy mounts')
+    private = [u for u in accounts if u != args.legacy_owner and re.fullmatch(r'[a-z0-9_.-]{3,30}', u)
                and u not in {'guest', 'demo', 'test', 'anonymous'} and not u.startswith(('rtcheck_', 'iso_'))]
     if not private:
         raise RuntimeError('No named local accounts to isolate')
@@ -59,11 +65,11 @@ def main():
     pod = template['spec'];gateway = pod['containers'][0]
     # Preserve original admin-only runtimes and their state paths/tokens.
     env = {e['name']: e.get('value') for e in gateway['env']}
-    routes['admin'] = {
+    routes[args.legacy_owner] = {
         'secure': {'host': env['DSH_OFFLINE_HOST'], 'port': int(env['DSH_OFFLINE_PORT']), 'tokenFile': env['DSH_OFFLINE_TOKEN_FILE']},
         'internet': {'host': env['DSH_ONLINE_HOST'], 'port': int(env['DSH_ONLINE_PORT']), 'tokenFile': env['DSH_ONLINE_TOKEN_FILE']}}
     routes_map['data']['users.json'] = json.dumps(routes, indent=2)
-    record = {'timeUTC': datetime.now(timezone.utc).isoformat(), 'legacyOwner': 'admin',
+    record = {'timeUTC': datetime.now(timezone.utc).isoformat(), 'legacyOwner': args.legacy_owner,
               'privateAccountCount': len(private), 'excludedSharedAccountCount': len(accounts)-len(private)-1,
               'historyCopies': 0, 'realRdtGranted': False, 'legacyBefore': legacy_fingerprint(),
               'gatewaySourceSHA256': source_hash, 'runtimes': [], 'keyChecks': []}

@@ -1,5 +1,7 @@
 # Per-user execution isolation and the original environment design
 
+**Ownership correction, 16 October 2026:** The user explicitly identifies `thanatcc` as the owner of the legacy histories and files, not `admin`. `thanatcc` is a local DSH login; ownership does not grant the admin role. Live access is still incorrectly assigned to admin legacy runtimes, while `thanatcc` has private runtimes. Restoring owner access requires bounded storage migration, because the legacy mount also exposes the private-user subtree. No ownership migration or access reassignment has been performed by this correction. Admin dashboard and audit oversight remain separate from data ownership.
+
 ## Why two environments
 
 The user asked for Internet Off by default and an Internet environment that can obtain libraries for the offline environment. The later clarification was that shared storage was intended to supply dependencies, not to expose protected working data. The resulting design separates writable projects, chat sessions, attachments, runtime state and launch tokens. Internet writes candidate dependencies into incoming storage; an operator reviews provenance and security results and approves hashes; a promotion job publishes approved artifacts; No Internet mounts the approved cache read-only. Hash matching establishes artifact integrity, not package safety by itself.
@@ -22,7 +24,7 @@ Runtime pods retain the existing restricted/Internet policy labels and gateway-o
 
 ## Preserve the existing central storage requirement
 
-The generator now retains `dsh-da-workspace-secure` and assigns `dsh/private/<identity-hash>/secure` as the workspace subpath. It does not redistribute existing shared files/history. Administratively pre-create and verify those central directories before applying private runtimes; their main containers must never mount the share root. The shared Secure workspace was remounted and restart-tested at 21:32 ICT on 15 October. On 16 October, eight non-admin accounts were cut over to private runtimes in both environments; admin retains the legacy trees and all 80 histories. See [actual correction evidence](context-evidence/central-workspace-live-20261015.json).
+The generator now retains `dsh-da-workspace-secure` and assigns `dsh/private/<identity-hash>/secure` as the workspace subpath. It does not redistribute existing shared files/history. Administratively pre-create and verify those central directories before applying private runtimes; their main containers must never mount the share root. The shared Secure workspace was remounted and restart-tested at 21:32 ICT on 15 October. On 16 October, eight non-admin accounts were cut over to private runtimes in both environments; admin still has legacy access, but the confirmed owner is `thanatcc`; restoring owner access is pending. See [actual correction evidence](context-evidence/central-workspace-live-20261015.json).
 
 ## Rollout and evidence boundary
 
@@ -36,6 +38,6 @@ Optional synthetic filesystem fixture: `--readonly-fixture-pvc APPROVED_FIXTURE 
 6. Test A-to-B file/session/report/attachment reads and writes through HTTP, WebSocket, terminal and tools; they must fail. Verify default No Internet and denied external traffic for every Secure runtime, Internet download, approved-package installation, logout, persistence and inference.
 7. Only after these checks should legacy shared pool access be retired. Existing sessions remain on the old gateway until cutover and will require reauthentication.
 
-Private-user routing is now deployed and tested for eight non-admin identities across both environments. Admin retains the original two runtimes and all 80 unchanged histories. Source and live evidence distinguish identity routing, spoofed-header denial, terminal/application access, persistence and inherited AD data authorization. Existing AD/datalake rights are preserved; local DSH login is not AD/SSO. See the current security report and private-runtime acceptance records for actual deployed evidence.
+Private-user routing is now deployed and tested for eight non-admin identities across both environments. The original two runtimes still route to admin and hold 80 unchanged histories owned by `thanatcc`; owner access restoration is pending. Source and live evidence distinguish identity routing, spoofed-header denial, terminal/application access, persistence and inherited AD data authorization. Existing AD/datalake rights are preserved; local DSH login is not AD/SSO. See the current security report and private-runtime acceptance records for actual deployed evidence.
 
 Dedicated pods provide a stronger process/storage boundary, but share the node kernel and inference service. They are not VMs or separate physical systems. RDT still requires its own limited read-only source identity/view and separate writable results location.

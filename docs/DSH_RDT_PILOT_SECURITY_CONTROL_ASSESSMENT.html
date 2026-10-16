@@ -1,6 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH RDT Pilot — Security Controls, Architecture and Acceptance</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
 </style></head><body><main><h1>DSH RDT Pilot — Security Controls and Execution Architecture</h1><div class="status"><strong>Local controls verified. Livy/Spark remains available with explicitly accepted remote-egress risk. Per-user AD permissions are preserved.</strong> Deployed behavior, saved tests and target design are distinguished. This document does not authorize additional data access.</div><nav aria-label="Contents"><a href="#section-1">1 Executive assessment</a><a href="#section-2">2 Deployed user and environment architecture</a><a href="#section-3">3 Control 1 — Prevent external leakage</a><a href="#section-4">4 Control 2 — Kerberos and datalake authorization</a><a href="#section-5">5 Control 3 — Contain reports, histories and execution</a><a href="#section-6">6 Dependency supply without protected workspace sharing</a><a href="#section-7">7 Upstream maintenance</a><a href="#section-8">8 LLM results and setup</a><a href="#section-9">9 Closure checklist and accepted exceptions</a><a href="#evidence">Evidence references</a></nav>
+<p><strong>Ownership correction, 16 October 2026:</strong> The user explicitly identifies <code>thanatcc</code> as the owner of the legacy histories and files, not <code>admin</code>. <code>thanatcc</code> is a local DSH login; ownership does not grant the admin role. Live access is still incorrectly assigned to admin legacy runtimes, while <code>thanatcc</code> has private runtimes. Restoring owner access requires bounded storage migration, because the legacy mount also exposes the private-user subtree. No ownership migration or access reassignment has been performed by this correction. Admin dashboard and audit oversight remain separate from data ownership.</p>
 <p><strong>16 October 2026: private user routing, central audit and datalake-aware restricted egress are deployed. Existing per-user AD/datalake rights are preserved. Remote Spark public TCP access is an explicitly accepted exception; Livy/Spark remains available.</strong></p>
 <p>The objective is to limit what can go wrong enough to make this specific pilot acceptable, rather than declare the Harness or generated code universally safe. This report explains where each control acts, what was tested and what remains unverified. Opening saved evidence does not run a new test or authorize data access.</p>
 <h2 id="section-1">1 Executive assessment</h2>
@@ -25,13 +26,13 @@
 </tr>
 <tr>
 <td>Keep results contained</td>
-<td>Fixed user/environment routing; authenticated application and terminal routes; admin-only legacy histories; central audit</td>
-<td>All 16 private logins denied an admin history and admin APIs. Administrator remains trusted. Browser exports and remote reports need separate review.</td>
+<td>Fixed user/environment routing; authenticated application and terminal routes; legacy histories still routed to admin (ownership correction pending); central audit</td>
+<td>All 16 private logins denied a legacy history and admin APIs. Administrator remains trusted. Browser exports and remote reports need separate review.</td>
 </tr>
 </tbody></table>
 <p>Local controls now go beyond the former shared-pool design. The approved data-access policy preserves each user’s existing AD/datalake permissions. This supersedes the earlier requirement for universal read-only RDT access; it is a requirement change, not proof that write-capable AD accounts became read-only. DA_WORKSPACE remains independent of datalake authorization.</p>
 <h2 id="section-2">2 Deployed user and environment architecture</h2>
-<p>Nine existing local accounts have fixed routes. Eight non-admin accounts each receive private No Internet and Internet runtimes: 16 private runtimes. Admin retains the two original runtimes and all 80 legacy histories. Registration remains disabled; switching environments requires logout and a new login.</p>
+<p>Nine existing local accounts have fixed routes. Eight non-admin accounts each receive private No Internet and Internet runtimes: 16 private runtimes. The two original runtimes still route to admin, which is an access mismatch: the confirmed legacy owner is <code>thanatcc</code>. Registration remains disabled; switching environments requires logout and a new login.</p>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 1</span><div class="mermaid-toolbar">
   <button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button>
   <button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button>
@@ -44,7 +45,7 @@
  U[Local DSH login] --&gt; G[Authenticated gateway and fixed routing]
  G --&gt; S[Private user No Internet runtime]
  G --&gt; I[Private user Internet runtime]
- G --&gt; A[Admin legacy runtimes and 80 histories]
+ G --&gt; A[Legacy access still admin - owner thanatcc]
  S --&gt; C[Private CIFS workspace and durable history]
  S --&gt; K[Private local config and ticket cache]
  I --&gt; W[Separate local workspace and history]
@@ -56,7 +57,7 @@
  U[Local DSH login] --&gt; G[Authenticated gateway and fixed routing]
  G --&gt; S[Private user No Internet runtime]
  G --&gt; I[Private user Internet runtime]
- G --&gt; A[Admin legacy runtimes and 80 histories]
+ G --&gt; A[Legacy access still admin - owner thanatcc]
  S --&gt; C[Private CIFS workspace and durable history]
  S --&gt; K[Private local config and ticket cache]
  I --&gt; W[Separate local workspace and history]
@@ -92,9 +93,9 @@
 <td>Separate private local state</td>
 </tr>
 <tr>
-<td>Admin legacy data</td>
+<td>Legacy data owned by thanatcc; live routing pending</td>
 <td>Existing <code>dsh</code> and <code>dsh/dsh_storage</code> trees</td>
-<td>Original admin Internet state</td>
+<td>Original Internet state; ownership/access review pending</td>
 </tr>
 <tr>
 <td>Package access</td>
@@ -107,6 +108,7 @@
 <td>Same central gateway audit</td>
 </tr>
 </tbody></table>
+<p>The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-ownership-correction-20261016.json">fresh ownership review</a> confirms all 80 histories / 82 files retain their recorded hash. Before cutover, inventory newer files in both existing and private owner trees, reconcile without overwriting, preserve session IDs and working-directory mappings, mount only owner directories, then verify owner access, peer denial and restart persistence. The original records remain preserved.</p>
 <p>Direct mounts persist content centrally. Non-admin runtimes do not mount the share root; admin retains trusted access to the legacy records. Persistence and restart tests passed. Storage migration details remain in separate operational records.</p>
 <h2 id="section-3">3 Control 1 — Prevent external leakage</h2>
 <p>Kubernetes NetworkPolicy restricts the No Internet pod, including DSH, generated code, terminal commands and local subprocesses. Allowed paths are internal LiteLLM port 4000, an allowlisted resolver, verified KDCs TCP/UDP 88 and the existing Livy endpoint TCP 28998. This is <strong>No Internet / restricted egress</strong>, not an air gap: internal authentication, application, storage and inference remain connected.</p>
@@ -155,7 +157,7 @@
 <p>Earlier canaries used a synthetic filesystem fixture historically named <code>/data/rdt</code>. Its read-only denials establish only fixture behavior. New source calls it a synthetic fixture explicitly; it is not the actual RDT access mechanism.</p>
 <h2 id="section-5">5 Control 3 — Contain reports, histories and execution</h2>
 <p>Authenticated session identity selects a fixed private runtime. Client headers cannot nominate another user. Applications and web terminals pass through authenticated proxy routes; terminal commands run in that selected environment, not in a cluster administrator shell. Runtime ingress permits the gateway rather than neighboring runtimes. Local DSH login is not AD/SSO.</p>
-<p>Production tests exercised all 16 private login/environment combinations, terminal pages, denial of an admin history ID and admin APIs even with forged headers. A separate four-runtime canary tested HTTP/WebSocket binding, real terminal commands, synthetic reports/history and restart persistence. Admin retains all 80 legacy histories; they were not copied into other accounts.</p>
+<p>Production tests exercised all 16 private login/environment combinations, terminal pages, denial of a legacy history ID and admin APIs even with forged headers. A separate four-runtime canary tested HTTP/WebSocket binding, real terminal commands, synthetic reports/history and restart persistence. The 80 legacy histories belong to <code>thanatcc</code>, although live access remains through admin runtimes; they were not copied into other accounts.</p>
 <p>Central audit fields are strictly time, event, user and environment. Events cover login/logout, runtime access, terminal/WebSocket access and admin denials, excluding passwords, tokens, prompts and conversation text. Only admin can read the audit API. Archives are retained; when configured capacity is exhausted, new login/runtime access fails closed until approved operator archival. This is access audit, not a full command transcript or tamper-proof SIEM.</p>
 <p>No external publisher was introduced. That is narrower than proving every plugin, browser download or remote report path safe. Pod policies cannot stop an authorized browser user manually sharing displayed results. Named-pilot/export acceptance remains an owner decision. Legacy DSH2/DSH3 retain old root/Internet configurations and are excluded from private-pilot acceptance; they must not process protected RDT under this report&#39;s approval.</p>
 <p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/private-routing-live-20261016.json">private Production routing</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/isolation-audit-canary-20261016.json">isolation/audit canary</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-dashboard-audit-tests-20261016.json">audit regressions</a>.</p>
@@ -390,6 +392,7 @@ kubectl apply --dry-run=server -f deployment/vllm/04-vllm-deepseek-v4-1-flash.ya
 <p>Keep DSH upstream updates separate from SGLang/model/scheduler upgrades. The prepared upstream workflow checks npm channels and tests a candidate before proposing a package-pin PR. GitHub publication is currently blocked by missing workflow permission on the stored PAT; it is not active. It does not merge or deploy Production. Qualify copied-state migration, browser/WebSocket behavior, compaction, private-user/network boundaries and restart/restore before release.</p>
 <p>On regression, restore the saved compatible Deployment/configuration pair and repeat exact inference plus DSH access/persistence tests. Do not replace newer workspace/history data with an older snapshot merely to roll back an image. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">maintenance procedure</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CONTEXT_OPTIMIZATION_20261015.md">existing context trial record</a> remain separate technical references.</p>
 </details><details id="embedded-readme"><summary>Deployment README</summary><h1>DSH — Private Execution Environments and Kerberos Datalake Access</h1>
+<p><strong>Ownership correction, 16 October 2026:</strong> The user explicitly identifies <code>thanatcc</code> as the owner of the legacy histories and files, not <code>admin</code>. <code>thanatcc</code> is a local DSH login; ownership does not grant the admin role. Live access is still incorrectly assigned to admin legacy runtimes, while <code>thanatcc</code> has private runtimes. Restoring owner access requires bounded storage migration, because the legacy mount also exposes the private-user subtree. No ownership migration or access reassignment has been performed by this correction. Admin dashboard and audit oversight remain separate from data ownership.</p>
 <p><strong>Confirmed remote-boundary gap, 16 October:</strong> synthetic Livy/Spark driver and executor reached GitHub and a public IP. DSH pod restrictions do not extend to that datalake compute. The user chose to keep Livy/Spark available with this documented risk. Containment remains unapplied; this is accepted exposure, not a fixed network boundary or an end-to-end No Internet guarantee. No RDT was read or written.</p>
 <p>DSH provides local login, <strong>No Internet / Internal (default)</strong> and <strong>Internet</strong> environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses <strong>Kerberos kinit → Livy/Spark → Hive/HDFS authorization</strong>. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.</p>
 <p>Read the English <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">security and architecture walkthrough</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md">source report</a>. HTML embeds this README and saved evidence with SMP EDA diagram zoom, fullscreen and SVG/PNG export.</p>
@@ -481,7 +484,7 @@ kubectl apply --dry-run=server -f deployment/vllm/04-vllm-deepseek-v4-1-flash.ya
 <td>Writable Incoming</td>
 </tr>
 </tbody></table>
-<p>Admin retains the original central <code>dsh</code> / <code>dsh/dsh_storage</code> trees and all 80 histories. Admin&#39;s broad legacy mount is a trusted-admin exception; ordinary runtimes cannot mount its root. Gateway audit is central <code>dsh-admin-audit</code>, outside execution mounts. Direct CIFS mounts need no continuous copy loop. PVC persistence is not backup/disaster recovery.</p>
+<p>The original central <code>dsh</code> / <code>dsh/dsh_storage</code> trees and 80 histories belong to <code>thanatcc</code>; current routing still exposes them through admin legacy runtimes and must be corrected. Admin&#39;s broad legacy mount is a trusted-admin exception; ordinary runtimes cannot mount its root. Gateway audit is central <code>dsh-admin-audit</code>, outside execution mounts. Direct CIFS mounts need no continuous copy loop. PVC persistence is not backup/disaster recovery.</p>
 <p>All 80 histories in 82 files remain unchanged, aggregate SHA256 <code>7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317</code>. Actual process replacements preserved workspace/attachment markers. No histories were copied into non-admin accounts.</p>
 <h2>Admin access and audit</h2>
 <p>Open <a href="https://dsh.aiportal.bot.or.th/admin">Admin overview</a> as existing <code>admin</code>, or use its navigation link. Registration is disabled. <code>DSH_ADMIN_USERS</code> is an operator allowlist, not a client role selector. Gateway source overlay SHA256 is <code>b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94</code>.</p>

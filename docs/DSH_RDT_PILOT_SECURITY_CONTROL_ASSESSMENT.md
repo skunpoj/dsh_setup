@@ -1,5 +1,7 @@
 # DSH RDT Pilot — Security Controls and Execution Architecture
 
+**Ownership correction, 16 October 2026:** The user explicitly identifies `thanatcc` as the owner of the legacy histories and files, not `admin`. `thanatcc` is a local DSH login; ownership does not grant the admin role. Live access is still incorrectly assigned to admin legacy runtimes, while `thanatcc` has private runtimes. Restoring owner access requires bounded storage migration, because the legacy mount also exposes the private-user subtree. No ownership migration or access reassignment has been performed by this correction. Admin dashboard and audit oversight remain separate from data ownership.
+
 **16 October 2026: private user routing, central audit and datalake-aware restricted egress are deployed. Existing per-user AD/datalake rights are preserved. Remote Spark public TCP access is an explicitly accepted exception; Livy/Spark remains available.**
 
 The objective is to limit what can go wrong enough to make this specific pilot acceptable, rather than declare the Harness or generated code universally safe. This report explains where each control acts, what was tested and what remains unverified. Opening saved evidence does not run a new test or authorize data access.
@@ -12,20 +14,20 @@ The objective is to limit what can go wrong enough to make this specific pilot a
 |---|---|---|
 | Prevent external leakage | Private No Internet workers; exact internal DNS, Kerberos, Livy and inference destinations; restricted inference keys | All 18 workers tested. Public-domain and direct-IP probes fail from all 9 No Internet workers; internal paths work. Remote Spark driver and executor actually reached GitHub/public IP; local pod policy does not cover that downstream path. |
 | Prevent damage/excessive access | Non-root execution, no Kubernetes token, private workspace/state and ticket cache | Local isolation/persistence tested. Per user instruction, existing AD/Hive/HDFS rights are inherited; DSH grants no new data authority and does not universally enforce read-only access. |
-| Keep results contained | Fixed user/environment routing; authenticated application and terminal routes; admin-only legacy histories; central audit | All 16 private logins denied an admin history and admin APIs. Administrator remains trusted. Browser exports and remote reports need separate review. |
+| Keep results contained | Fixed user/environment routing; authenticated application and terminal routes; legacy histories still routed to admin (ownership correction pending); central audit | All 16 private logins denied a legacy history and admin APIs. Administrator remains trusted. Browser exports and remote reports need separate review. |
 
 Local controls now go beyond the former shared-pool design. The approved data-access policy preserves each user’s existing AD/datalake permissions. This supersedes the earlier requirement for universal read-only RDT access; it is a requirement change, not proof that write-capable AD accounts became read-only. DA_WORKSPACE remains independent of datalake authorization.
 
 ## 2 Deployed user and environment architecture
 
-Nine existing local accounts have fixed routes. Eight non-admin accounts each receive private No Internet and Internet runtimes: 16 private runtimes. Admin retains the two original runtimes and all 80 legacy histories. Registration remains disabled; switching environments requires logout and a new login.
+Nine existing local accounts have fixed routes. Eight non-admin accounts each receive private No Internet and Internet runtimes: 16 private runtimes. The two original runtimes still route to admin, which is an access mismatch: the confirmed legacy owner is `thanatcc`. Registration remains disabled; switching environments requires logout and a new login.
 
 ```mermaid
 flowchart TB
  U[Local DSH login] --> G[Authenticated gateway and fixed routing]
  G --> S[Private user No Internet runtime]
  G --> I[Private user Internet runtime]
- G --> A[Admin legacy runtimes and 80 histories]
+ G --> A[Legacy access still admin - owner thanatcc]
  S --> C[Private CIFS workspace and durable history]
  S --> K[Private local config and ticket cache]
  I --> W[Separate local workspace and history]
@@ -46,9 +48,11 @@ Secure files and durable histories use the original mounted DA_WORKSPACE share, 
 | Private `/workspace` | CIFS `dsh/private/<identity>/secure` | Per-user local PVC |
 | Sessions, attachments, storages, workspaces, logs | CIFS `dsh/private/<identity>/state/<directory>` | Per-user local state PVC |
 | Configuration, credentials and tickets | Private local `/state`; `/state/kerberos/ccache` | Separate private local state |
-| Admin legacy data | Existing `dsh` and `dsh/dsh_storage` trees | Original admin Internet state |
+| Legacy data owned by thanatcc; live routing pending | Existing `dsh` and `dsh/dsh_storage` trees | Original Internet state; ownership/access review pending |
 | Package access | Approved cache read-only | Incoming writable |
 | Gateway audit | CIFS `dsh-admin-audit`, outside runtime mounts | Same central gateway audit |
+
+The [fresh ownership review](context-evidence/legacy-ownership-correction-20261016.json) confirms all 80 histories / 82 files retain their recorded hash. Before cutover, inventory newer files in both existing and private owner trees, reconcile without overwriting, preserve session IDs and working-directory mappings, mount only owner directories, then verify owner access, peer denial and restart persistence. The original records remain preserved.
 
 Direct mounts persist content centrally. Non-admin runtimes do not mount the share root; admin retains trusted access to the legacy records. Persistence and restart tests passed. Storage migration details remain in separate operational records.
 
@@ -101,7 +105,7 @@ Earlier canaries used a synthetic filesystem fixture historically named `/data/r
 
 Authenticated session identity selects a fixed private runtime. Client headers cannot nominate another user. Applications and web terminals pass through authenticated proxy routes; terminal commands run in that selected environment, not in a cluster administrator shell. Runtime ingress permits the gateway rather than neighboring runtimes. Local DSH login is not AD/SSO.
 
-Production tests exercised all 16 private login/environment combinations, terminal pages, denial of an admin history ID and admin APIs even with forged headers. A separate four-runtime canary tested HTTP/WebSocket binding, real terminal commands, synthetic reports/history and restart persistence. Admin retains all 80 legacy histories; they were not copied into other accounts.
+Production tests exercised all 16 private login/environment combinations, terminal pages, denial of a legacy history ID and admin APIs even with forged headers. A separate four-runtime canary tested HTTP/WebSocket binding, real terminal commands, synthetic reports/history and restart persistence. The 80 legacy histories belong to `thanatcc`, although live access remains through admin runtimes; they were not copied into other accounts.
 
 Central audit fields are strictly time, event, user and environment. Events cover login/logout, runtime access, terminal/WebSocket access and admin denials, excluding passwords, tokens, prompts and conversation text. Only admin can read the audit API. Archives are retained; when configured capacity is exhausted, new login/runtime access fails closed until approved operator archival. This is access audit, not a full command transcript or tamper-proof SIEM.
 

@@ -1,5 +1,7 @@
 # DSH — Private Execution Environments and Kerberos Datalake Access
 
+**Ownership correction, 16 October 2026:** The user explicitly identifies `thanatcc` as the owner of the legacy histories and files, not `admin`. `thanatcc` is a local DSH login; ownership does not grant the admin role. Live access is still incorrectly assigned to admin legacy runtimes, while `thanatcc` has private runtimes. Restoring owner access requires bounded storage migration, because the legacy mount also exposes the private-user subtree. No ownership migration or access reassignment has been performed by this correction. Admin dashboard and audit oversight remain separate from data ownership.
+
 **Confirmed remote-boundary gap, 16 October:** synthetic Livy/Spark driver and executor reached GitHub and a public IP. DSH pod restrictions do not extend to that datalake compute. The user chose to keep Livy/Spark available with this documented risk. Containment remains unapplied; this is accepted exposure, not a fixed network boundary or an end-to-end No Internet guarantee. No RDT was read or written.
 
 DSH provides local login, **No Internet / Internal (default)** and **Internet** environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses **Kerberos kinit → Livy/Spark → Hive/HDFS authorization**. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.
@@ -35,7 +37,7 @@ The share remains `\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation`. Historica
 | Credentials/configuration/Kerberos cache | Private local `/state`, ticket cache `/state/kerberos/ccache` | Separate private state |
 | Dependencies | Approved read-only cache | Writable Incoming |
 
-Admin retains the original central `dsh` / `dsh/dsh_storage` trees and all 80 histories. Admin's broad legacy mount is a trusted-admin exception; ordinary runtimes cannot mount its root. Gateway audit is central `dsh-admin-audit`, outside execution mounts. Direct CIFS mounts need no continuous copy loop. PVC persistence is not backup/disaster recovery.
+The original central `dsh` / `dsh/dsh_storage` trees and 80 histories belong to `thanatcc`; current routing still exposes them through admin legacy runtimes and must be corrected. Admin's broad legacy mount is a trusted-admin exception; ordinary runtimes cannot mount its root. Gateway audit is central `dsh-admin-audit`, outside execution mounts. Direct CIFS mounts need no continuous copy loop. PVC persistence is not backup/disaster recovery.
 
 All 80 histories in 82 files remain unchanged, aggregate SHA256 `7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317`. Actual process replacements preserved workspace/attachment markers. No histories were copied into non-admin accounts.
 
