@@ -1,0 +1,44 @@
+{
+  "observedAt": "2026-10-16T11:58:39.783490+00:00",
+  "resourceManagerEndpointsFromSparkConfig": true,
+  "results": [
+    {
+      "endpoint": "https://botdlk-sm3-p3.bot.or.th:8090/ws/v1/cluster/metrics",
+      "HTTP": "000",
+      "curlExitCode": 35,
+      "liveClusterMetricsValidated": false
+    },
+    {
+      "endpoint": "http://botdlk-sm3-p3.bot.or.th:8088/ws/v1/cluster/metrics",
+      "HTTP": "200",
+      "curlExitCode": 0,
+      "liveClusterMetricsValidated": true,
+      "numericMetricFields": [
+        "appsRunning",
+        "containersAllocated",
+        "allocatedMB",
+        "availableMB",
+        "totalMB",
+        "allocatedVirtualCores",
+        "availableVirtualCores",
+        "totalVirtualCores",
+        "activeNodes"
+      ]
+    },
+    {
+      "endpoint": "https://botdlk-sm3-p2.bot.or.th:8090/ws/v1/cluster/metrics",
+      "HTTP": "000",
+      "curlExitCode": 35,
+      "liveClusterMetricsValidated": false
+    },
+    {
+      "endpoint": "http://botdlk-sm3-p2.bot.or.th:8088/ws/v1/cluster/metrics",
+      "HTTP": "307",
+      "curlExitCode": 0,
+      "liveClusterMetricsValidated": false
+    }
+  ],
+  "alertingRetentionAndPilotQueueLimitsVerified": false,
+  "requestAuthenticationMode": "curl Windows SSPI Negotiate enabled; endpoint challenge/enforcement was not tested",
+  "systemAccountUsed": false
+}

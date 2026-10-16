@@ -1,0 +1,9 @@
+{
+  "recordedAt": "2026-10-16T12:00:49.057448+00:00",
+  "mainConfiguredTicketCachesChecked": 20,
+  "systemPrincipalTicketFound": false,
+  "legacyInstancesWithoutTicketProbeTool": 2,
+  "matchingKerberosKeytabAgentSecretNamesFound": 0,
+  "credentialValuesExported": false,
+  "limitation": "Checked configured caches and credential-reference names only; this does not prove no authentication exists elsewhere."
+}

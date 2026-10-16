@@ -1,10 +1,43 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Pilot — Controlling Data Leakage, Source Damage and Result Exposure</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-</style></head><body><main><h1>DSH Pilot — Controlling Data Leakage, Source Damage and Result Exposure</h1><div class="status"><strong>Three controls govern this pilot: prevent external leakage, prevent source damage or excessive access, and keep results contained.</strong> Main DSH protections are deployed; remote-worker egress and read-only source scope do not yet meet every condition in the original brief.</div><nav aria-label="Contents"><a href="#section-1">Pilot boundary and environment choice</a><a href="#section-2">1 Prevent external leakage</a><a href="#section-3">2 Prevent damage or excessive access</a><a href="#section-4">3 Keep results contained</a><a href="#section-5">Acceptance and remaining decisions</a><a href="#verification-records">Supporting verification records</a></nav>
+</style></head><body><main><h1>DSH Pilot — Controlling Data Leakage, Source Damage and Result Exposure</h1><div class="status"><strong>Three controls govern this pilot: prevent external leakage, prevent source damage or excessive access, and keep results contained.</strong> Main DSH protections are deployed; the public-data pilot still needs system-account/sandbox acceptance and verified remote-worker containment.</div><nav aria-label="Contents"><a href="#section-1">Pilot boundary and environment choice</a><a href="#section-2">1 Prevent external leakage</a><a href="#section-3">2 Prevent damage or excessive access</a><a href="#section-4">3 Keep results contained</a><a href="#section-5">Acceptance and remaining decisions</a><a href="#verification-records">Supporting verification records</a></nav>
 <p>The pilot assumes that the Harness, its tools and generated code can make mistakes or act beyond the intended task. Its protection therefore comes from network boundaries, execution identities, data permissions, private storage and authenticated access—not prompt instructions alone.</p>
 <p><strong>The objective is to limit what can go wrong enough to make this specific pilot acceptable. It is not to prove that the Harness is universally safe.</strong></p>
-<p>This report follows the three controls in the supplied pilot brief. It explains which environment to use, how each protection works, what the recorded tests establish and what still needs a decision or additional enforcement. The main DSH environment has deployed protections. The original full-path Internet-denial and read-only-source requirements are <strong>not both satisfied</strong> under the current operating decisions.</p>
+<p>This report follows the three controls in the supplied pilot brief. It explains which environment to use, how each protection works, what the recorded tests establish and what still needs a decision or additional enforcement. The main DSH environment has deployed protections. The newly clarified pilot is <strong>public-data-only</strong>, using a dedicated system identity limited to one sandbox. That scoped pilot is not yet qualified: its system-account authentication and sandbox permissions have not been accepted, and remote-worker containment needs its own test.</p>
 <h2 id="section-1">Pilot boundary and environment choice</h2>
+<h3>Public-data pilot and execution identity</h3>
+<p>The pilot described in the supplied operating plan uses <strong><code>da-agent-system-user</code></strong>, with read/write access only to <strong><code>sandbox_da_agent_public_data</code></strong>. Personal AD rights remain unchanged outside the pilot, but personal credentials are not the intended agent identity for this exercise. People still use named DSH logins for private workspaces and audit; the system account is the datalake execution identity, not a shared DSH web login. Only public data is permitted initially; use of internal BOT data requires a later internal approval decision. Read/write access to the disposable public sandbox is deliberate and must not be confused with unrestricted access to internal source data.</p>
+<table>
+<thead>
+<tr>
+<th>Pilot condition</th>
+<th>Current evidence and limit</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dedicated system account</td>
+<td>AD lookup found <code>da-agent-system-user</code> enabled. Prior Spark acceptance used the personal Windows login, not this account. No system-account ticket was found in the checked main caches; an approved private authentication reference is still needed.</td>
+</tr>
+<tr>
+<td>Exactly one public-data sandbox</td>
+<td>The exact name was not visible through the personal login&#39;s Hive catalog on <code>hdfs://botdlk-da</code>. This is not proof of nonexistence, and does not test the system account&#39;s rights. Verify the approved catalog/path and account scope with its own authentication.</td>
+</tr>
+<tr>
+<td>Local execution without Internet</td>
+<td>Main No Internet pod probes passed. Personal-account remote Spark driver/executor probes reached public TCP destinations. The system-account workload needs its own worker-boundary test; the pilot is not qualified as fully offline.</td>
+</tr>
+<tr>
+<td>Clear software/data terms</td>
+<td>The running Harness package reports MIT, consistent with the <a href="https://github.com/deepseek-ai/deepseek-harness/blob/86a402200d95fecef4529d969836f1fe13c6cb0d/LICENSE">official license</a>. This does not clear model weights, dependencies, connected services or dataset reuse terms, and is not legal/committee approval.</td>
+</tr>
+<tr>
+<td>DA cluster resource monitoring</td>
+<td>The DA ResourceManager API returned validated memory, vCore-allocation, container/node and running-application metrics. Pilot queue limits, alerts, retention and human-to-job correlation were not established. The DSH dashboard is not a substitute for this monitoring.</td>
+</tr>
+</tbody></table>
+<p>Use a <strong>dedicated pilot runtime with a clean workspace/history and credential cache</strong>, retaining central CIFS persistence through bounded pilot subpaths. A new working directory alone does not restrict access to legacy data already mounted in a process. Do not mount the broad legacy workspace or introduce internal datasets into this public-data exercise. Keep each human&#39;s workspace isolated even if the data-access principal is shared; correlate gateway user, runtime, Livy session and Spark application in the pilot audit design.</p>
+<p>The approval/creation workflow in the plan is still required: data-owner approval, creation through the sandbox system, and granting this principal the intended sandbox role. Account existence alone proves none of those steps. Prepare the internal-review package in parallel, with verified facts and open conditions clearly labelled; do not describe preparation as approval to use internal data.</p>
+<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-system-account-directory-20261016.json">AD account lookup</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-auth-availability-20261016.json">authentication availability</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-sandbox-metadata-20261016.json">sandbox metadata check</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-da-resource-metrics-20261016.json">DA metrics</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-license-review-20261016.json">license check scope</a>.</p>
 <p>An analyst defines a DQ hypothesis and the permitted data scope. The agent can prepare Python or Spark code, execute it under the available identity and produce reports in that user&#39;s working area. The controls below must constrain those actions even when the generated code is wrong.</p>
 <table>
 <thead>
@@ -16,7 +49,7 @@
 </thead>
 <tbody><tr>
 <td><strong>No Internet / Internal — default</strong></td>
-<td>Work with internal information and run approved analysis</td>
+<td>Public-data pilot after scope validation; internal data requires separate approval</td>
 <td>Dedicated user workspace, history and credential state; internal inference, restricted DNS, Kerberos and the permitted Livy endpoint. Representative direct public connections are blocked.</td>
 </tr>
 <tr>
@@ -31,7 +64,7 @@
 </tr>
 </tbody></table>
 <p>The two DSH environments share the internal inference service and authentication gateway, <strong>not writable project data, conversation history or credentials</strong>. Switching environments requires logout and a new login. This is restricted egress, not a strict air gap: the default environment still needs approved internal connections.</p>
-<p>Only reviewed dependency artifacts should move from Internet staging to the No Internet package cache. Sensitive prompts, datasets, reports and credentials are not part of that transfer workflow. Existing users&#39; AD/datalake permissions remain unchanged; selecting an environment does not grant a new data entitlement.</p>
+<p>Only reviewed dependency artifacts should move from Internet staging to the No Internet package cache. Sensitive prompts, datasets, reports and credentials are not part of that transfer workflow. Existing users&#39; AD/datalake permissions remain unchanged outside the scoped pilot. The public-data exercise must use its dedicated sandbox-limited principal; selecting an environment alone neither imposes that identity nor grants a data entitlement.</p>
 <h2 id="section-2">1 Prevent external leakage</h2>
 <p><strong>Risk:</strong> the Harness or generated code could transmit RDT, prompts, credentials or results to an external destination. The network control must cover every place the code executes, including remote workers.</p>
 <h3>What enforces the boundary</h3>
@@ -102,7 +135,7 @@
 <td><strong>The end-to-end Internet-denial requirement is not met.</strong> Blocking Internet only in DSH does not contain code sent to remote Spark.</td>
 </tr>
 </tbody></table>
-<p>The user explicitly chose to keep Livy/Spark available with this documented exposure. That is an accepted operational exception, not a repaired firewall. No RDT was read or transmitted by the recorded connectivity tests.</p>
+<p>The user previously chose to keep Livy/Spark available in the general platform with this documented exposure. That accepted operational exception does not qualify the newly clarified offline public-data pilot and is not a repaired firewall. No RDT was read or transmitted by the recorded connectivity tests.</p>
 <p><strong>To meet the original requirement:</strong> the datalake infrastructure owner must enforce restricted egress for the actual Spark drivers/executors and retain only their necessary internal services. Acceptance must test outbound paths from each relevant execution mode, including direct IP, DNS, configured proxies and IPv6 where enabled. If that enforcement cannot be provided, sensitive remote execution needs an explicit risk decision or a restriction on its use. This report does not silently disable the retained Livy service.</p>
 <p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/design-consistency-live-20261016.json">local boundaries</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-private-network-20261016.json">new admin runtimes</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">offline package workflow</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">authenticated remote Spark retest</a>.</p>
 <h2 id="section-3">2 Prevent damage or excessive access</h2>
@@ -120,57 +153,58 @@
   <button onclick="exportMermaid(this,'png')">Save PNG</button>
   <button onclick="exportMermaid(this,'copy')">Copy code</button>
   </div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart TB
- A[Local DSH login] --&gt; X[Dedicated non-root runtime]
- X --&gt; W[Own workspace and result files]
- X --&gt; K[Private Kerberos credential cache]
- K --&gt; P[Authenticated AD principal]
- P --&gt; D[Datalake authorization]
- D --&gt; Q[Permitted reads and writes]
- Q --&gt; F[Source damage remains possible if the principal has write rights]
- T[Original brief - least-privilege pilot access] --&gt; V[Approved source scope - read only]
+ A[Named pilot user] --&gt; X[Dedicated non-root public-data runtime - target]
+ X --&gt; W[Clean private workspace and results]
+ X --&gt; K[Private system-account cache - authentication pending]
+ K --&gt; P[da-agent-system-user]
+ P --&gt; D[Sandbox-only authorization - acceptance pending]
+ D --&gt; Q[sandbox_da_agent_public_data - intended read and write]
+ D --&gt; N[Other data denied - must be verified]
+ T[Internal data only after separate approval] --&gt; V[Least-privilege source access]
  T --&gt; O[Separate writable results scope]
- classDef exposure fill:#7f1d1d,stroke:#f87171,color:#ffffff
- class F exposure
+ classDef pending fill:#78350f,stroke:#fbbf24,color:#ffffff
+ class K,D,N pending
 ">flowchart TB
- A[Local DSH login] --&gt; X[Dedicated non-root runtime]
- X --&gt; W[Own workspace and result files]
- X --&gt; K[Private Kerberos credential cache]
- K --&gt; P[Authenticated AD principal]
- P --&gt; D[Datalake authorization]
- D --&gt; Q[Permitted reads and writes]
- Q --&gt; F[Source damage remains possible if the principal has write rights]
- T[Original brief - least-privilege pilot access] --&gt; V[Approved source scope - read only]
+ A[Named pilot user] --&gt; X[Dedicated non-root public-data runtime - target]
+ X --&gt; W[Clean private workspace and results]
+ X --&gt; K[Private system-account cache - authentication pending]
+ K --&gt; P[da-agent-system-user]
+ P --&gt; D[Sandbox-only authorization - acceptance pending]
+ D --&gt; Q[sandbox_da_agent_public_data - intended read and write]
+ D --&gt; N[Other data denied - must be verified]
+ T[Internal data only after separate approval] --&gt; V[Least-privilege source access]
  T --&gt; O[Separate writable results scope]
- classDef exposure fill:#7f1d1d,stroke:#f87171,color:#ffffff
- class F exposure
+ classDef pending fill:#78350f,stroke:#fbbf24,color:#ffffff
+ class K,D,N pending
 </div></div></section>
-<h3>Original brief versus the selected permission policy</h3>
+<h3>Source protection in the public-data pilot and later internal use</h3>
 <table>
 <thead>
 <tr>
-<th>Requirement in the brief</th>
+<th>Source-protection condition</th>
 <th>Current position</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>Dedicated non-admin execution identity</td>
-<td>Implemented for the main private DSH runtimes; DSH2/DSH3 still need migration.</td>
+<td>Dedicated non-admin execution</td>
+<td>Implemented for main private DSH runtimes; DSH2/DSH3 still need migration.</td>
 </tr>
 <tr>
-<td>Read-only access to a limited RDT snapshot/view</td>
-<td><strong>Not imposed.</strong> The later instruction was to preserve each user&#39;s existing AD/datalake rights. A write-capable principal remains write-capable.</td>
+<td>Public sandbox read/write, no unrelated data access</td>
+<td>Intended for <code>da-agent-system-user</code>; AD account existence is verified, but its sandbox-only effective rights and authentication are not yet accepted.</td>
 </tr>
 <tr>
-<td>Results written only to a separate working area</td>
-<td>DSH provides private working areas. It does not override that principal&#39;s separate datalake write permissions.</td>
+<td>Internal source protection</td>
+<td>Internal data is outside this initial pilot. Later use requires approval and an explicit source/results permission design; do not silently inherit broad personal rights into the pilot.</td>
 </tr>
 <tr>
-<td>Source writes and out-of-scope reads fail</td>
-<td>Requires an approved test resource and its actual permissions. Neither the name <code>da-agent-system-user</code> nor successful authentication proves this result.</td>
+<td>Results confined to approved storage</td>
+<td>DSH provides isolated working areas. Datalake writes must also stay within the approved public sandbox/results scope.</td>
 </tr>
 </tbody></table>
-<p><strong>To meet the original read-only requirement without changing personal accounts:</strong> provide a dedicated pilot principal limited to reading approved sources and writing only to an approved results location, or an equivalently enforced access broker that the execution environment cannot bypass. A view alone is insufficient if the same code can use broader credentials directly. This is a proposed pilot control; no AD entitlement was changed by this report.</p>
-<p>The data owner should specify disposable test resources for one permitted read, a prohibited write/delete and an out-of-scope read. Acceptance must establish an authorization denial, not merely a missing object or network error. Test each distinct principal/role boundary; do not assume one account&#39;s result represents everyone.</p>
+<p><strong>To qualify this pilot:</strong> authenticate the system account through the approved private process, confirm that its effective Hive/HDFS and sandbox-application roles grant the intended public-sandbox access, and test permitted sandbox reads/writes on disposable public fixtures. The data owner must also provide a safe out-of-scope test target whose access is denied. Do not use genuine internal records for that negative test or assume that one visible database proves exclusivity. Keep a recoverable reference copy of public test inputs so generated transformations do not destroy the experiment&#39;s baseline.</p>
+<p>Public-sandbox administration must not confer broader datalake administration. The system principal&#39;s credentials must stay out of the Internet environment. A shared service identity also needs human-to-job audit correlation; the current identity-propagation tests alone do not establish that correlation for all pilot users.</p>
+<p>If internal RDT is approved later, establish least-privilege source access—read-only where required—and a separate writable result scope. A view alone is insufficient if execution can bypass it with broader credentials. None of these permissions or approvals is granted by this report.</p>
 <p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/owner-admin-snapshot-live-20261016.json">private routing and audit checks</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">identity propagation</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/kerberos-personal-ticket-check-20261016.json">Kerberos ticket-presence check</a>.</p>
 <h2 id="section-4">3 Keep results contained</h2>
 <p><strong>Risk:</strong> reports, logs, attachments or temporary files could expose RDT to another person, or be published/exported outside the approved pilot.</p>
@@ -226,13 +260,13 @@
 </thead>
 <tbody><tr>
 <td>Prevent external leakage</td>
-<td>Local No Internet controls verified; remote Spark public connectivity remains an accepted exposure</td>
-<td>Infrastructure owner restricts and tests remote-worker egress, or an explicit sensitive-workload restriction/risk decision covers that exposure.</td>
+<td>Local No Internet controls verified; general-platform personal-account Spark exposure was accepted, while the scoped pilot worker boundary is unqualified</td>
+<td>Infrastructure owner restricts and tests the actual system-account driver/executor egress; the earlier general-platform exception must not be presented as offline pilot acceptance.</td>
 </tr>
 <tr>
 <td>Prevent damage or excessive access</td>
-<td>Main runtime isolation verified; existing AD permissions preserved</td>
-<td>Data owner defines an enforced source/results scope and verifies the applicable read/write denials for the pilot identity.</td>
+<td>Main runtime isolation verified; dedicated public-sandbox identity/scope not yet accepted</td>
+<td>Authenticate <code>da-agent-system-user</code>, validate sandbox read/write and safe out-of-scope denial, and keep internal data out until separately approved.</td>
 </tr>
 <tr>
 <td>Keep results contained</td>
@@ -404,6 +438,7 @@ kubectl apply --dry-run=server -f deployment/vllm/04-vllm-deepseek-v4-1-flash.ya
 <p>Keep DSH upstream updates separate from SGLang/model/scheduler upgrades. The prepared upstream workflow checks npm channels and tests a candidate before proposing a package-pin PR. GitHub publication is currently blocked by missing workflow permission on the stored PAT; it is not active. It does not merge or deploy Production. Qualify copied-state migration, browser/WebSocket behavior, compaction, private-user/network boundaries and restart/restore before release.</p>
 <p>On regression, restore the saved compatible Deployment/configuration pair and repeat exact inference plus DSH access/persistence tests. Do not replace newer workspace/history data with an older snapshot merely to roll back an image. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">maintenance procedure</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CONTEXT_OPTIMIZATION_20261015.md">existing context trial record</a> remain separate technical references.</p>
 </details><details id="embedded-readme"><summary>Deployment README</summary><h1>DSH — Private Execution Environments and Kerberos Datalake Access</h1>
+<p><strong>Public-data pilot target:</strong> Use <code>da-agent-system-user</code> limited to read/write in <code>sandbox_da_agent_public_data</code>, with clean pilot-only mounts and no internal BOT data until separate approval. The account is enabled in AD, but system-account authentication and exclusive sandbox rights are not yet verified. The exact sandbox was not visible in the personal login’s checked Hive catalog; this is not proof of nonexistence. DA/YARN resource metrics were verified, while quota/alert acceptance remains open. This pilot target is narrower than the general platform’s existing per-user AD access. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">risk-control report</a>.</p>
 <p><strong>Ownership restored, 16 October 2026:</strong> <code>thanatcc</code> now routes to its preserved No Internet and Internet runtimes. All 80 histories / 82 session files retain their recorded hash; all 82 working-directory records point to readable directories outside the masked paths. Admin routes to fresh private runtimes, retains dashboard/audit access, and is denied legacy-history reads through DSH. The owner runtime masks the private-user subtree, three reviewed credential-file aliases, and the routing/recovery directories. Infrastructure administrators remain trusted. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/context-evidence/legacy-owner-restoration-live-20261016.json">live owner restoration</a>.</p>
 <p><strong>Confirmed remote-boundary gap, 16 October:</strong> synthetic Livy/Spark driver and executor reached GitHub and a public IP. DSH pod restrictions do not extend to that datalake compute. The user chose to keep Livy/Spark available with this documented risk. Containment remains unapplied; this is accepted exposure, not a fixed network boundary or an end-to-end No Internet guarantee. No RDT was read or written.</p>
 <p>DSH provides local login, <strong>No Internet / Internal (default)</strong> and <strong>Internet</strong> environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses <strong>Kerberos kinit → Livy/Spark → Hive/HDFS authorization</strong>. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.</p>

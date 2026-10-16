@@ -1,0 +1,46 @@
+{
+  "observedAt": "2026-10-16T11:56:56.341676+00:00",
+  "targetSandbox": "sandbox_da_agent_public_data",
+  "authentication": "Existing Windows SSPI Negotiate",
+  "sourceDataReadOrWritten": false,
+  "permissionsChanged": false,
+  "metadataOnly": true,
+  "syntheticSession": 629,
+  "ownerHash": "9bca9bad82a1bf8459f61859d083896592b20d8e9c2a53f3a2a2a3c12e160cc3",
+  "authenticatedAsSystemAccount": false,
+  "sparkUserHash": "9bca9bad82a1bf8459f61859d083896592b20d8e9c2a53f3a2a2a3c12e160cc3",
+  "ownerMatchesSparkUser": true,
+  "metadata": {
+    "catalogImplementation": "hive",
+    "targetVisibleInThisCatalog": false,
+    "defaultFileSystem": "hdfs://botdlk-da",
+    "resourceManagerWebAddresses": [
+      {
+        "setting": "yarn.resourcemanager.webapp.https.address.rm191",
+        "address": "botdlk-sm3-p3.bot.or.th:8090"
+      },
+      {
+        "setting": "yarn.resourcemanager.webapp.address.rm191",
+        "address": "botdlk-sm3-p3.bot.or.th:8088"
+      },
+      {
+        "setting": "yarn.resourcemanager.webapp.https.address.rm273",
+        "address": "botdlk-sm3-p2.bot.or.th:8090"
+      },
+      {
+        "setting": "yarn.resourcemanager.webapp.address.rm273",
+        "address": "botdlk-sm3-p2.bot.or.th:8088"
+      },
+      {
+        "setting": "yarn.resourcemanager.webapp.address",
+        "address": "${yarn.resourcemanager.hostname}:8088"
+      },
+      {
+        "setting": "yarn.resourcemanager.webapp.https.address",
+        "address": "${yarn.resourcemanager.hostname}:8090"
+      }
+    ]
+  },
+  "status": "metadata-checked-not-system-account-acceptance",
+  "ownSessionStoppedAndAbsent": true
+}

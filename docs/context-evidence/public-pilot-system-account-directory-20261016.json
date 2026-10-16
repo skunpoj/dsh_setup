@@ -1,0 +1,10 @@
+{
+  "accountEnabled": true,
+  "observedAt": "2026-10-16T11:57:25.6762733Z",
+  "systemAccountFound": true,
+  "scopeProvenByDirectoryMembership": false,
+  "directoryQuerySucceeded": true,
+  "directGroupCount": 0,
+  "directGroupCountExcludesPrimaryAndNestedGroups": true,
+  "successfulAuthenticationEstablished": false
+}

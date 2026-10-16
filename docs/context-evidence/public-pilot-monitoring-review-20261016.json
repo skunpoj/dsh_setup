@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-10-16T11:57:54.037987+00:00",
+  "platform": "GPU Kubernetes cluster Rancher Prometheus, not automatically the remote DA cluster",
+  "queries": [
+    {
+      "query": "count(up)",
+      "querySucceeded": true,
+      "values": [
+        [
+          1792151873.344,
+          "22"
+        ]
+      ]
+    },
+    {
+      "query": "count(up{job=~\".*(yarn|spark|hdfs|livy).*\"})",
+      "querySucceeded": true,
+      "values": []
+    }
+  ],
+  "daClusterMonitoringEstablished": false,
+  "limitation": "Resource-monitoring coverage/alerts for remote DA workers require their actual monitoring endpoint or authoritative configuration."
+}

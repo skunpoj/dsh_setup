@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-10-16T12:00:49.058453+00:00",
+  "runningPackage": {
+    "name": "@deepseek-ai/dsh",
+    "version": "0.2.0-rc.2",
+    "licenseMetadata": "MIT"
+  },
+  "officialLicense": "https://github.com/deepseek-ai/deepseek-harness/blob/86a402200d95fecef4529d969836f1fe13c6cb0d/LICENSE",
+  "fullTermsOrLegalApprovalEstablished": false,
+  "limitation": "Installed package metadata and official Harness license checked; model, dependencies, services and dataset terms are separate."
+}
