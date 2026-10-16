@@ -1,0 +1,10 @@
+{
+  "checkedAtUTC": "2026-10-16T08:29:14.888592+00:00",
+  "localDetectorTestsPassed": 3,
+  "defaultAndPreviewMetadataChecksPassed": true,
+  "githubWorkflowPublished": false,
+  "scheduleActive": false,
+  "blocker": "GitHub rejected the stored PAT because it lacks workflow scope",
+  "workflowReferenceSHA256": "ba6d68ccd18acec9dc1660c652bfff4189835457a87fc253764c965f37c45182",
+  "productionPackageChanged": false
+}

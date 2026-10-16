@@ -20,6 +20,12 @@ try {
  const narrative=await page.locator('main').evaluate(main=>{const copy=main.cloneNode(true);copy.querySelectorAll('details[id^="evidence-"]').forEach(node=>node.remove());return copy.textContent;});
  assert(!/[\u0e00-\u0e7f]/.test(narrative),'Report narrative and embedded README must be English; original evidence is excluded');
  assert(await page.locator('#embedded-readme').count()===1);
+ assert.equal(await page.locator('#embedded-llm-guide').count(),1);
+ assert.equal(await page.locator('details[id^="evidence-"]').count(),0,'Raw evidence logs must remain separate');
+ await page.locator('#embedded-llm-guide > summary').click();
+ const guide=await page.locator('#embedded-llm-guide').innerText();
+ assert(guide.includes('0.223–0.233')&&guide.includes('measure_live_responsiveness.py')&&guide.includes('128K'));
+ await page.locator('#embedded-llm-guide > summary').click();
 
  await page.waitForTimeout(1200);
  assert.equal(await page.locator('.mermaid-container svg').count(),3);
@@ -52,6 +58,10 @@ try {
  await page.locator('.mermaid-wrapper').first().screenshot({path:path.join(out,'report-architecture.png')});
  for (let i=1;i<3;i++) await page.locator('.mermaid-wrapper').nth(i).screenshot({path:path.join(out,`report-architecture-${i+1}.png`)});
  assert.deepEqual(errors,[]);
- const record={time:new Date().toISOString(),englishNarrative:true,readmeEmbedded:true,renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
+ const setupPage=await context.newPage();
+ await setupPage.goto(pathToFileURL(path.join(root,'docs/LLM_SETUP_AND_TEST_RESULTS.html')).href);
+ assert((await setupPage.locator('main').innerText()).includes('measure_live_responsiveness.py'));
+ assert((await setupPage.locator('h1').innerText()).includes('Setup and Verified Test Results'));
+ const record={time:new Date().toISOString(),englishNarrative:true,readmeEmbedded:true,llmGuideEmbedded:true,standaloneLlmGuide:true,rawEvidenceEmbedded:false,renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
  fs.writeFileSync(path.join(out,'html-verification.json'),JSON.stringify(record,null,2));console.log(JSON.stringify(record));
 }finally{await browser.close();}

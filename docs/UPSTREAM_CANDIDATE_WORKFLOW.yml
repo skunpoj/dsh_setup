@@ -1,0 +1,81 @@
+name: DSH upstream candidate
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/upstream-candidate.yml, scripts/check_upstream.py]
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+    inputs:
+      candidate_version:
+        description: Optional explicit preview version; empty tracks npm latest
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: dsh-upstream-candidate
+  cancel-in-progress: false
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Check official release channels
+        env:
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+        run: |
+          python3 -m unittest discover -s tests -p test_upstream_check.py
+          args=()
+          if [ -n "$CANDIDATE_VERSION" ]; then args=(--candidate "$CANDIDATE_VERSION"); fi
+          python3 scripts/check_upstream.py --output /tmp/upstream.json "${args[@]}"
+          python3 - <<'PY'
+          import json,os
+          d=json.load(open('/tmp/upstream.json'))
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('CANDIDATE='+d['candidateVersion']+'\n')
+              f.write('NEEDS_UPDATE='+str(d['candidateChangeRequired']).lower()+'\n')
+          PY
+      - name: Build and test isolated candidate
+        if: env.NEEDS_UPDATE == 'true'
+        run: |
+          docker build --build-arg "DSH_VERSION=$CANDIDATE" -t dsh-upstream-candidate .
+          docker run --rm --entrypoint node -w /opt/dsh dsh-upstream-candidate tests/test_auth_proxy_internet.js
+          docker run --rm --entrypoint node -w /opt/dsh dsh-upstream-candidate tests/test_environment_routing.js
+          docker run --rm --entrypoint node -w /opt/dsh dsh-upstream-candidate tests/test_user_isolation_routing.js
+          docker run --rm --entrypoint node -w /opt/dsh dsh-upstream-candidate tests/test_internal_model_catalog.js
+          docker run --rm --entrypoint python3 -w /opt/dsh dsh-upstream-candidate -m unittest discover -s tests -p test_package_promotion.py
+      - name: Propose reviewed package pin
+        if: env.NEEDS_UPDATE == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          branch="automation/dsh-$CANDIDATE"
+          existing=$(gh pr list --head "$branch" --state open --json number --jq 'length')
+          if [ "$existing" != 0 ]; then echo 'Candidate PR already open'; exit 0; fi
+          if git ls-remote --exit-code origin "refs/heads/$branch" >/dev/null 2>&1; then
+            echo 'Existing candidate branch retained; review it manually'; exit 1
+          fi
+          python3 scripts/check_upstream.py --candidate "$CANDIDATE" --prepare-candidate --output /tmp/candidate.json
+          git checkout -b "$branch"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add Dockerfile
+          git commit -m "Prepare DSH $CANDIDATE candidate"
+          gh auth setup-git
+          git push origin "$branch"
+          printf '%s\n' 'Candidate image and local routing/catalog/package tests passed. This does not establish copied-state migration, browser behavior, runtime isolation or Production acceptance. Complete the documented canary gates before merge/deployment.' > /tmp/pr-body.txt
+          gh pr create --head "$branch" --base main --title "Prepare DSH $CANDIDATE candidate" --body-file /tmp/pr-body.txt
+      - name: Save detection evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: upstream-detection
+          path: /tmp/upstream.json

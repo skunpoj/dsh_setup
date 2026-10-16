@@ -38,4 +38,4 @@ Evidence: [local authorization/browser checks](context-evidence/admin-dashboard-
 
 ## Latest closure review
 
-The 16 October package workflow is now tested end to end. The user chose to preserve existing per-user AD/datalake permissions, superseding universal read-only enforcement. Synthetic remote Spark tests confirmed public egress from driver and executor. The current risk snapshot records this failure explicitly; local pod restrictions must not be described as covering remote datalake compute. A containment patch is prepared but has not been applied while the Livy routing decision is pending.
+The 16 October package workflow is now tested end to end. The user chose to preserve existing per-user AD/datalake permissions, superseding universal read-only enforcement. Synthetic remote Spark tests confirmed public egress from driver and executor. The current risk snapshot records this failure explicitly; local pod restrictions must not be described as covering remote datalake compute. The user chose to keep Livy/Spark available with this documented risk; containment remains unapplied as an accepted exception.

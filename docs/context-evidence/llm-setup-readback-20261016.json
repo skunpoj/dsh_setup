@@ -1,0 +1,25 @@
+{
+  "observedAtUTC": "2026-10-16T08:23:11.980738+00:00",
+  "runningDshPackageVersion": "0.2.0-rc.2",
+  "services": [
+    {
+      "deployment": "vllm-deepseek-v4-1-flash",
+      "configuredImage": "lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+      "actualImageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+      "publicRuntimeArguments": {
+        "--context-length": "1048576",
+        "--mem-fraction-static": "0.90",
+        "--max-running-requests": "16",
+        "--chunked-prefill-size": "1024",
+        "--max-prefill-tokens": "2048"
+      }
+    },
+    {
+      "deployment": "litellm",
+      "configuredImage": "ghcr.io/berriai/litellm:main-latest",
+      "actualImageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+      "publicRuntimeArguments": {}
+    }
+  ],
+  "noProductionConfigurationChanged": true
+}

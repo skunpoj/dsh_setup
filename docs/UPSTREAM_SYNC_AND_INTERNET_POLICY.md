@@ -1,101 +1,57 @@
-# DSH upstream synchronization and internet policy
+# DSH upstream maintenance and release policy
 
-## Verified production context boundary
+## Why this is not a fully synchronized source fork
 
-The initial static-0.92 deployment failed a real approximately 262K-token request with a CUDA OOM. Subsequent controlled tests on the same four-H100 node progressed through 256K and 512K, including failed configurations and rollback, to a successful 1,000,015-input-token request with static 0.90, prefill chunk 1,024 and max prefill tokens 2,048. The model ceiling is 1,048,576 total tokens. This does not establish unrestricted 1M concurrency or full-window output quality.
+`dsh_setup` packages the official npm distribution and maintains deployment, authentication, routing, storage and model-configuration overlays. It does not copy the official monorepo. Updating the official package and preserving these overlays is the correct synchronization operation; merging all official source files into this deployment repository would mix two different repository purposes.
 
-DSH and LiteLLM still enforce 131,072 total tokens, an 8,192 output ceiling, a 256-token LiteLLM safety buffer and compaction around 98,304 tokens. Product-level admission, long-session compaction and end-to-end gates remain before exposing a larger budget. The complete trial matrix, failures, evidence limits and rollback are in [CONTEXT_OPTIMIZATION_20261015.md](CONTEXT_OPTIMIZATION_20261015.md).
+Fresh checks on 16 October 2026 found:
 
-## Deployed source layers
+| Item | Observed value |
+|---|---|
+| Running DSH package and Dockerfile pin | `0.2.0-rc.2` |
+| npm latest / next | `0.2.0-rc.2` / `0.2.0-rc.2` |
+| npm alpha | `0.2.1-alpha.4` |
+| Official master | `86a402200d95fecef4529d969836f1fe13c6cb0d` |
 
-The deployment installs a published `@deepseek-ai/dsh` package and then applies repository-owned configuration and compatibility patches from `scripts/configure_models.js`. The enterprise authentication gateway in `scripts/auth_proxy.js` is also repository-owned. These files are overlays; they are not part of the official DeepSeek Harness repository.
+The installed package therefore matches the default published release channel. It is behind the newest preview source, not behind npm latest. The older master/tag comparison is superseded by [the current channel check](context-evidence/upstream-check-20261016.json). Explicit preview detection is recorded separately; the preview has not been built or deployed by that metadata check.
 
-The current upstream comparison is:
+Upstream describes DSH as developer-preview software with breaking changes. See the [official README](https://github.com/deepseek-ai/deepseek-harness/tree/86a402200d95fecef4529d969836f1fe13c6cb0d#developer-preview) and [safety guidance](https://github.com/deepseek-ai/deepseek-harness/blob/86a402200d95fecef4529d969836f1fe13c6cb0d/SAFETY.md).
 
-| Item | Revision inspected |
-| --- | --- |
-| Deployed package baseline | `dsh-v0.2.0-rc.2` |
-| Official upstream | `deepseek-ai/deepseek-harness` `master` at `571902028a75c64c1d767f4ae5fd099485f0ddf0` |
-| Latest upstream tag inspected | `dsh-v0.2.1-alpha.3` (`2fbf4359b8`) |
+## Automated checking and candidate patching
 
-These references were fetched again on 15 October 2026. Official `master` and the
-latest inspected tag were unchanged, so no upstream source was incorporated into
-the enterprise overlay in this update.
+No release-check workflow was configured previously. The prepared local `.github/workflows/upstream-candidate.yml` defines:
 
-The upstream interval changes thousands of files and includes Session v4 persistence, remote-access principals, permission policy, web tools, sandbox behavior, compaction, attachment handling, plugin composition, and the Web client. Treating it as a drop-in package update would put stored sessions and runtime byte patches at risk.
+1. Daily release checks at 02:17 UTC (09:17 ICT), plus manual dispatch and checks when the detector/workflow changes.
+2. Tracking npm latest by default. A manual `candidate_version` can explicitly select a preview.
+3. A candidate Docker build and authentication/routing/catalog/package tests when the selected version differs.
+4. A package-pin branch and PR only after those candidate tests pass. Existing branches are retained rather than overwritten.
+5. No auto-merge, image publication or Production deployment in this GitHub workflow.
 
-## Synchronization procedure
+**Publication status:** GitHub rejected the workflow push because the stored PAT lacks workflow permission. The implementation is preserved locally and in the Azure reference copy, but no GitHub schedule is active. Update the existing GitHub credential’s workflow-write permission through the normal credential manager, then publish the prepared file. No token value belongs in this document or chat.
 
-1. Record the deployed package version, running image digest, ConfigMap hash, and coherent backups of the current `/state` and `/workspace` volumes (legacy `/workspace/dsh_storage` separately).
-2. Fetch official upstream tags into a separate checkout. Never merge upstream source into this deployment repository.
-3. Compare the next published tag with the pinned baseline. Review Session format and upgrade guides first, followed by every package file currently modified by `configure_models.js`.
-4. Build a candidate image that already contains the selected DSH package and operating-system dependencies. Do not depend on network package installation during pod startup.
-5. Reapply each enterprise requirement through documented configuration or a Cordis plugin when upstream exposes an extension point. Retain byte patching only when no supported extension exists, and make every patch fail loudly when its expected source text changes.
-6. Restore a copy of Production data into an isolated candidate environment. Verify login, existing Session reads, new prompts, compaction, attachments, model calls, tools, terminal, dynamic application proxy, and orderly restart persistence.
-7. Deploy with a rollback image and the preserved ConfigMap. Read back the running image digest and mounted scripts, then repeat the affected behavior tests.
+The workflow requires GitHub Actions to be enabled and the repository setting allowing Actions to create pull requests. Hosted execution/PR permissions are separate from local detection tests. A default-channel check with no version change skips build and PR creation. Scheduled execution is defined only in the GitHub repository; the copy inside Azure is reference source, not another scheduler.
 
-## Working-environment selection on the login page
+To reproduce detection locally:
 
-The enterprise login page provides `No Internet / Internal` and `Internet`, with `No Internet / Internal` selected initially. The wire values remain `off` and `on` for compatibility. On successful login the gateway:
+```powershell
+python scripts/check_upstream.py --output upstream-check.json
+python scripts/check_upstream.py --candidate 0.2.1-alpha.4 --output preview-check.json
+```
 
-- validates the credential before accepting the selection;
-- stores the user's most recent selection in `/auth/.user_settings.json` in the environment gateway with mode `0600`;
-- binds the selection to the new in-memory authenticated session;
-- exposes the authenticated result at `GET /api/auth/session`; and
-- forwards `X-DSH-Internet-Access: off|on` and `X-DSH-User` to the DSH Web service.
+`--prepare-candidate` changes only the Dockerfile pin. Neither command installs packages into Production. Candidate version input is validated before registry lookup/preparation. Detection does not claim that text patches rebase themselves correctly.
 
-`scripts/auth_proxy.js` now supports session-sticky routing to two backend targets. The selected environment is fixed in the authenticated session and is used for HTTP, WebSocket and application-proxy traffic. The compatibility response field `internet` is retained and `GET /api/auth/session` also reports `environment: secure|internet`.
+## Why Production upgrades remain gated
 
-## Implemented deployment architecture
+Our compatibility layer still modifies selected package files. Some changes use text anchors; not every anchor is guarded by a full source contract. Candidate build/catalog tests cover known requirements, not every future upstream semantic change. Prefer supported configuration/plugins over text patching as extension points become available; do not claim that migration is already complete.
 
-The repository includes a prebuilt runtime image and two execution pools behind a standalone authenticated gateway:
+Before deployment, qualify copied-state session reads, new prompts, compaction, attachments, tools, browser Host/Origin handling, HTTP/WebSocket terminal/application proxy, private-user/network boundaries and restart/restore. Review any unmatched patch target. Retain a compatible old image/configuration and coherent state recovery baseline. Read back the actual running image and test the affected behavior after cutover.
 
-- an offline pool with default-deny egress and explicit DNS plus in-cluster LiteLLM access;
-- an online pool with the approved outbound policy; and
-- routing that binds each authenticated Session to exactly one pool for its lifetime;
-- separate RWO state volumes, so live DSH session files are never written concurrently by both pools;
-- a separate protected local workspace mounted only by the Secure pool; central DA_WORKSPACE persistence remains to be restored; and
-- a separate staging PVC mounted by the Internet pool.
+A passing build is a candidate result, not migration or Production acceptance. Never overwrite newer workspace/history data just to roll back an image.
 
-`Dockerfile` bakes the DSH package, Node, Python, terminal and operating-system dependencies into the image. `container/start-dsh.sh` starts without package installation, keeps each pool's state on its own PVC and publishes its process token to the gateway through the restricted routing-token directory. `k8s/dsh-environment-pools.yaml` and `k8s/dsh-environment-gateway.yaml` define the runtime.
+## Current enterprise responsibilities
 
-The two pools deliberately do not multi-write the same session directory. Identity and login settings are central at the gateway, but active session state belongs to the chosen environment. Authentication, the Secure workspace, incoming packages, approved packages, each environment's runtime state, Internet staging and each launch token use separate local RWO volumes. This avoids the root-only ownership behavior verified on the legacy CIFS share and prevents one environment from mounting another environment's workspace, token or package area. During controlled cutover, the suspended `dsh-migrate-secure-state` Job performs three distinct migrations: gateway identity files into `dsh-auth-state`, project files into `dsh-secure-workspace` while excluding `users` and `dsh_storage`, and the complete legacy `dsh_storage` tree into `dsh-secure-state`. The separation is intentional: runtime history, sessions, attachments, settings, and credentials belong under `/state`, not in the project workspace. The Job then assigns UID/GID `10001`, protects `.credentials.yaml` with mode `0600`, and fails unless the authentication store is non-empty and `/state/sessions` exists. Moving project data to the Internet environment requires an approved copy into its staging PVC. This prevents an Internet-capable process from reading the protected workspace and avoids file-lock and history corruption from concurrent writers.
+Private No Internet and Internet runtimes are deployed for eight non-admin accounts; admin retains the original two runtimes and 80 legacy histories. Secure workspaces/durable state use private CIFS subpaths; credentials/configuration/tickets remain private local state. Internet uses separate local storage. The environments share inference and reviewed dependency artifacts, not writable projects or histories.
 
-## Offline dependency acquisition
+No Internet restricts local execution through infrastructure policy. A real remote Spark test demonstrated public TCP access from its driver and executor; the user explicitly chose to keep Livy/Spark available with that documented risk. The prepared containment patch remains unapplied. This is not solved by updating DSH. Existing AD/datalake permissions are preserved as instructed; universal read-only enforcement is not claimed.
 
-The Internet environment supplies dependencies to Secure without receiving the protected workspace:
-
-1. In Internet, `prepare-offline-deps python requirements.txt` downloads Python wheels and source distributions to `/packages/incoming/python`. `prepare-offline-deps npm <project-directory>` populates `/packages/incoming/npm-cache` from a locked Node project without running package lifecycle scripts.
-2. An operator reviews the package names, source and security results and writes exact SHA-256 plus relative-path rows to the `dsh-package-approval` ConfigMap.
-3. The suspended `dsh-promote-approved-packages` Job is resumed for that approval. It rejects empty manifests, absolute or parent paths, missing artifacts and hash mismatches, then copies verified files read-only into `/packages/approved`.
-4. Secure mounts only `/packages/approved` read-only. Python has `PIP_NO_INDEX=1` and resolves through `/packages/approved/python`; npm has offline mode enabled and resolves through `/packages/approved/npm-cache`.
-
-Internet never mounts the approved directory or protected workspace. Secure never mounts incoming and cannot reach public package repositories. This allows Internet-assisted installation while keeping the security boundary and preventing uncontrolled multi-writer access.
-
-The package-transfer volumes were verified on the live one-node cluster with UID/GID `10001`: Internet's incoming volume accepted a write, Secure's read-only approved mount rejected a write, and the promotion script copied a test artifact only after its SHA-256 matched, setting the promoted file mode to `0444`.
-
-Deployment remains gated on building and pushing the referenced image, creating `dsh-runtime-secrets`, backing up the current workspace, and exercising the isolated manifests with restored test data. Existing Production workloads remain the rollback route until the new gateway passes login, history, prompt, tool, terminal, restart and egress tests.
-
-`k8s/dsh-egress-policies.yaml` defines the enforcement boundary. Pods labelled `dsh.bot.or.th/egress-mode=offline` may resolve cluster DNS and call LiteLLM on TCP 4000, while public egress is denied. Pods labelled `dsh.bot.or.th/egress-mode=online` retain egress. The policies do not select unlabeled Production pods.
-
-On 15 October 2026, `tests/test_egress_policies.ps1` was exercised against the live Calico cluster. The offline canary timed out when connecting to GitHub, returned HTTP 200 from LiteLLM liveliness, and the online canary returned HTTP 200 from GitHub. This proves policy enforcement; it does not prove that the login toggle routes a user to a pool.
-
-## Shared-model scheduling validation
-
-The model's `interactive-v2` overlay is maintained in GPU_server, not in the DSH package overlay. It matches queued cache prefixes before reserving up to 512 prefill tokens, retains long-request progress, and uses mixed chunking plus a decode interval of four. The first revision passed tiny prompts but failed cached 24K sessions; V2 passed both. See [the full scheduling record](SCHEDULING_FAIRNESS_20261015.md).
-
-Before changing either the model image or client prompt construction, repeat the fresh-input and continuing-session interference gates. Preserve the original scheduler source-hash check and review it against the next image; do not blindly rebase or accept a new hash. The present 128K client guardrail remains in force. Large uncached history can still queue, and near-1M mixed-load behavior has not been revalidated.
-
-
-## Runtime rollout verified — 15 October 2026, 20:39 ICT
-
-Build 62702 is deployed in gateway, Secure and Internet. Read the [actual rollout procedure, restart/persistence results and rollback limitations](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md) and [live evidence](context-evidence/runtime-rollout-live-20261015.json). Secure retained 80 listed histories and 2,732 checked files; Internet retained controlled markers. Coherent local snapshot PVCs were retained; no central DA_WORKSPACE synchronization or full restore was established. Use Recreate and actual application health probes; do not run two state writers or co-mount live state in a verifier pod. The GPU configuration was not changed by this rollout.
-
-
-## Central workspace corrected — 15 October 2026, 21:32 ICT
-
-Secure `/workspace` now directly mounts DA_WORKSPACE through `dsh-da-workspace-secure`, subpath `dsh`, as non-root UID 10001. Conflict-preserving reconciliation, independent peer readback, another runtime restart and held/fresh login checks passed; Secure still lists 80 histories. A first validator compatibility error triggered an actual mount rollback; the portable validator and retry passed. Active `/state` remains local, with a verified central coherent baseline but no continuous synchronization. See the [current storage guide](MULTI_TENANT_STORAGE_AND_PERSISTENCE.md) and [live correction record](context-evidence/central-workspace-live-20261015.json). Do not apply historical local-workspace manifests or rerun the old migration job as if they were the current storage design.
-
-## Current central-state correction — 15 October 2026
-
-This supersedes earlier local-only active-history statements above. Secure durable sessions, attachments, storage, workspaces and logs now mount directly from `dsh/dsh_storage` on CIFS; credentials/profiles remain local. Internet remains separate. 43 cwd headers were corrected with byte-identical conversation frames; all 80 histories have readable cwd paths. Restart, exact session-file hashes, actual terminal WebSocket execution and network probes passed within the [recorded scope](context-evidence/central-state-live-20261015.json). Use the [new operator procedure and rollback guidance](CENTRAL_STATE_RESTORATION_20261015.md). Per-user isolation and approved read-only RDT access remain open; no ownership or RDT scope was inferred.
+The [risk report](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md) tracks those boundaries. The [LLM setup and results guide](LLM_SETUP_AND_TEST_RESULTS.md) covers the shared inference installation and observed performance separately.

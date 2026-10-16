@@ -1,5 +1,5 @@
 {
-  "observedAt": "2026-10-16T08:06:00.052220+00:00",
+  "observedAt": "2026-10-16T08:24:48.600550+00:00",
   "environments": [
     {
       "name": "No Internet: admin + 8 private users",
@@ -37,7 +37,7 @@
     "Fresh 24,044-token input: short replies 0.440-0.588s while long request remained active. Bounded synthetic test only."
   ],
   "gaps": [
-    "CONFIRMED: remote Spark driver and executor reached GitHub/public IP. DSH pod policy does not cover datalake compute. Livy containment patch prepared, not applied.",
+    "ACCEPTED EXCEPTION: remote Spark driver/executor public TCP access. User chose to keep Livy/Spark available; containment is not applied. Local No Internet restrictions do not cover that compute.",
     "Existing AD/datalake permissions are preserved as instructed; universal read-only enforcement is no longer required. One identity does not establish other users entitlement.",
     "Named-pilot browser/report/export governance and trusted-admin exception remain owner responsibilities.",
     "Legacy DSH2/DSH3 are outside the private-pilot controls.",

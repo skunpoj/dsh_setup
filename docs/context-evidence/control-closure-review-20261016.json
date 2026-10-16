@@ -23,7 +23,9 @@
   "containment": {
     "preparedAndServerDryRunAccepted": true,
     "applied": false,
-    "requiresRoutingChoice": "Block new Livy access from No Internet, or retain the connection with this documented risk"
+    "userDecision": "Keep Livy/Spark available with this documented risk",
+    "disposition": "accepted risk, not remediation"
   },
-  "overall": "Full-path no-Internet closure is not established because remote Spark public egress was demonstrated"
+  "overall": "Local controls verified; remote Spark public TCP access retained as an explicit user-approved operational exception",
+  "decisionAtUTC": "2026-10-16T08:24:48.551001+00:00"
 }

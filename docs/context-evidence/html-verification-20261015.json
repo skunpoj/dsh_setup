@@ -1,7 +1,10 @@
 {
-  "time": "2026-10-16T08:10:12.596Z",
+  "time": "2026-10-16T08:28:43.449Z",
   "englishNarrative": true,
   "readmeEmbedded": true,
+  "llmGuideEmbedded": true,
+  "standaloneLlmGuide": true,
+  "rawEvidenceEmbedded": false,
   "renderedDiagrams": 3,
   "initialNodesUnclipped": true,
   "externalResourceRequests": 0,

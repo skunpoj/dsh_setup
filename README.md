@@ -1,6 +1,6 @@
 # DSH — Private Execution Environments and Kerberos Datalake Access
 
-**Confirmed remote-boundary gap, 16 October:** synthetic Livy/Spark driver and executor reached GitHub and a public IP. DSH pod restrictions do not extend to that datalake compute. A reversible Livy containment patch is prepared (not applied); full-path No Internet cannot yet be called closed. No RDT was read or written.
+**Confirmed remote-boundary gap, 16 October:** synthetic Livy/Spark driver and executor reached GitHub and a public IP. DSH pod restrictions do not extend to that datalake compute. The user chose to keep Livy/Spark available with this documented risk. Containment remains unapplied; this is accepted exposure, not a fixed network boundary or an end-to-end No Internet guarantee. No RDT was read or written.
 
 DSH provides local login, **No Internet / Internal (default)** and **Internet** environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses **Kerberos kinit → Livy/Spark → Hive/HDFS authorization**. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.
 
@@ -71,7 +71,7 @@ Recorded V2 mixed-load tests completed short requests in 0.59–1.47 seconds dur
 
 ## Upstream synchronization and rollback
 
-This repository maintains deployment/authentication/configuration overlays, not a fully synchronized official source fork. The previously inspected official master was `571902028a75c64c1d767f4ae5fd099485f0ddf0`; inspected tag `dsh-v0.2.1-alpha.3`; deployed package remains rc.2. These are dated observations, not a fresh upstream check. No package upgrade is implied by the storage deployment.
+This repository maintains deployment/authentication/configuration overlays around the published DSH package, not an official-source fork. The fresh 16 October check confirmed running `0.2.0-rc.2` matches npm latest/next, while official master `86a402200d95fecef4529d969836f1fe13c6cb0d` and preview channel `0.2.1-alpha.4` are ahead. Daily candidate detection/testing/PR automation is prepared, but GitHub rejected workflow publication because the stored PAT lacks workflow permission. It is not active; Production deployment remains gated. Alpha selection is explicit. See the update policy for hosted-run permissions and release gates.
 
 Rebase overlays onto a candidate pinned release, fail closed on changed patch targets, and test auth/Host/Origin, HTTP/WebSocket terminal, sessions, attachments, tools, network isolation, restart and restore before switching. Keep the installed image and coherent old state available for rollback. See [upstream procedure](docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md).
 
@@ -80,3 +80,7 @@ The same reviewed DSH tree is mirrored under `GPU_server/deployment/vllm/dsh-env
 ## Package promotion hardening and live acceptance
 
 The reviewed promoter stages bytes from one opened source file, rejects source/destination symlinks and traversal, validates all hashes before publication, and refuses conflicting approved artifacts. It runs in a network-denied operator job from a separately pinned immutable source ConfigMap; rebuilding DSH runtimes is not required for that operator code. Apply the reviewed source manifest before a deliberately approved promotion Job; the reusable template remains suspended with empty approval. A real pinned PyPI wheel passed download/hash verification, promotion, `--no-index` install/import in No Internet and Approved write denial. Five Linux attack regressions passed. See [live evidence](docs/context-evidence/package-workflow-live-20261016.json). Package provenance/security review remains an operator responsibility; these checks are not malware certification.
+
+## Upstream updates and shared LLM setup
+
+The running DSH package `0.2.0-rc.2` matches npm latest/next at the fresh 16 October check; alpha is `0.2.1-alpha.4`. This is a deployment/overlay repository, not an official-source fork. The prepared GitHub workflow is designed for daily checks, candidate tests and package-pin PRs. Publication is blocked by the stored PAT lacking workflow permission; no scheduled workflow is active. It does not auto-merge or deploy Production. See [update policy](docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md). The [LLM setup/results guide](docs/LLM_SETUP_AND_TEST_RESULTS.md) includes deployment order, actual settings, rollback and measured tests. The main HTML contains that guide but links raw evidence separately.
