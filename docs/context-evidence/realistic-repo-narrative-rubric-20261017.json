@@ -1,0 +1,46 @@
+{
+  "criteria": [
+    {
+      "id": "R1",
+      "criterion": "Explains final-wire normalization and why tool defaults can defeat prefix reuse.",
+      "status": "met"
+    },
+    {
+      "id": "R2",
+      "criterion": "Distinguishes one long-admission lease, the 128K threshold and ordinary scheduler concurrency; no two-full-1M claim.",
+      "status": "partial - historical admission continuity is overstated"
+    },
+    {
+      "id": "R3",
+      "criterion": "Distinguishes cold input preparation from cached continuation and output generation; no guaranteed latency.",
+      "status": "met"
+    },
+    {
+      "id": "R4",
+      "criterion": "Explains compaction pressure versus exact proxy budgeting and overflow refusal.",
+      "status": "met"
+    },
+    {
+      "id": "R5",
+      "criterion": "Explains static KV cache versus temporary attention workspace and retains memory-warning limitations.",
+      "status": "partial - host RAM citation is unsupported by cited lines"
+    },
+    {
+      "id": "R6",
+      "criterion": "Separates current frozen source, historical checkpoints and saved tests from fresh live acceptance.",
+      "status": "partial - source/live separation is explicit but several conclusions exceed evidence"
+    },
+    {
+      "id": "R7",
+      "criterion": "Gives an actionable workflow and distinguishes limits of a sentinel capacity test from analytical accuracy.",
+      "status": "met"
+    },
+    {
+      "id": "R8",
+      "criterion": "Material report claims have source citations that support their meaning, rather than merely valid line ranges.",
+      "status": "not met - see seven narrative findings and quotation defects"
+    }
+  ],
+  "method": "Source-based reviewer assessment after output completion; no model self-grade used.",
+  "overall": "Not accepted without source review and corrections"
+}

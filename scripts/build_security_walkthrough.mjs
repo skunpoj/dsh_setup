@@ -25,7 +25,9 @@ html = html.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pr
 const toc = [];
 html = html.replace(/<h2>(.*?)<\/h2>/g, (_, title) => { const id = `section-${toc.length+1}`; toc.push(`<a href="#${id}">${title}</a>`); return `<h2 id="${id}">${title}</h2>`; });
 html = html.replace(/href="(?!https?:|#)([^"\s]+)"/g, (_, name) => `href="https://github.com/skunpoj/dsh_setup/blob/main/docs/${name}"`);
-const guide = marked.parse(fs.readFileSync(path.join(root,'docs/LLM_SETUP_AND_TEST_RESULTS.md'),'utf8')).replace(/href="(?!https?:|#)([^"\s]+)"/g, (_, name) => `href="https://github.com/skunpoj/dsh_setup/blob/main/docs/${name}"`);
+const guide = marked.parse(fs.readFileSync(path.join(root,'docs/LLM_SETUP_AND_TEST_RESULTS.md'),'utf8')).replace(/href="(?!https?:|#)([^"\s]+)"/g, (_, name) =>
+  name === 'REALISTIC_REPOSITORY_REVIEW_20261017.html' ? `href="${name}"` :
+    `href="https://github.com/skunpoj/dsh_setup/blob/main/docs/${name}"`);
 
 const assets = ['mermaid-10.8.0.min.js','svg-pan-zoom-3.6.1.min.js','smpeda-diagram-controls.js'].map(name => fs.readFileSync(path.join(root,'docs/assets',name),'utf8').replace(/<\/script/gi,'<\\/script'));
 const result = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Pilot — Controlling Data Leakage, Source Damage and Result Exposure</title><style>

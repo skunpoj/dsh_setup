@@ -4,11 +4,32 @@
 
 The main **DSH → LiteLLM → SGLang** route supports **1,048,576 total tokens**, with an 8,192 output ceiling and a 256-token reserve. All 20 main DSH runtime profiles were read back, and the current managed-tools image was qualified using a temporary DSH runtime with isolated synthetic storage against the Production inference service.
 
-The latest cold DSH request used **1,007,689 input + 8 output tokens**, returned the exact persisted answer in **1,173.92 seconds (19m34s)**, while 18 ordinary DSH replies completed in pairs during the long run. After the gateway retry correction, a real write/read tool continuation used **1,008,103 input tokens** and passed in **20.16 seconds**. This qualifies the recorded main DSH cases, not the separate Claude Code or TrueForge clients.
+The earlier clean current-image cold DSH capacity request used **1,007,689 input + 8 output tokens**, returned the exact persisted answer in **1,173.92 seconds (19m34s)**, while 18 ordinary DSH replies completed in pairs during the long run. After the gateway retry correction, a real write/read tool continuation used **1,008,103 input tokens** and passed in **20.16 seconds**. This qualifies the recorded main DSH cases, not the separate Claude Code or TrueForge clients.
 
 The earlier 128K statements described an incomplete deployment: the backend had been raised while DSH/LiteLLM guardrails remained lower. The [earlier review](LLM_128K_BASELINE_BEFORE_1M_20261016.md) and failed/intermediate trials are retained. Initial near-1M successes took about 19 minutes and required three automatic timeout retries. The final scoped Node transport correction removed those retries in both the delayed fixture and the real cold test.
 
 **Earlier qualification memory evidence:** the preceding-image cold run recorded **1,460 recovering allocator mapping warnings**, with a minimum warning-reported free memory of **9.75 MiB** while attempting a 20 MiB mapping. No checked fatal exception or model restart occurred; ordinary DSH inference still returned correctly after warnings appeared. This passing test does not establish comfortable memory headroom, unrestricted long concurrency or a service-level guarantee. [Final cold acceptance and warning summary](context-evidence/final-managed-1m-acceptance-summary-20261016.json) · [near-1M tool continuation](context-evidence/final-managed-1m-tool-continuation-20261016.json).
+
+## Real repository accuracy and long-output test — 17 October 2026 ICT
+
+**Execution completed; factual retrieval was correct; strict citation/narrative acceptance did not pass.** The actual DSH agent reviewed 239 current source blocks plus 99 labelled historical revisions from DSH/GPU_server, without synthetic filler. It used **992,638 input tokens** and generated **4,767 output tokens**, including a **2,252-word report**. This was DSH agent RPC, not Claude Code, TrueForge or a new manual browser-interface test.
+
+| Result | Recorded outcome |
+|---|---|
+| Targeted facts | 15/15 intended values correct by independent source review, allowing equivalent units/time formats |
+| Original literal checker | 7/15 literal values; 4/15 met every strict answer condition; not relabelled as a pass |
+| Quotation and citation limits | 14/15 quotations literally match their cited spans; five exceed 200 characters; two miss requested source/definition-line selection |
+| Narrative citations | All 69 ranges exist; 12 exceed the requested 12-line maximum; source review found unsupported/inadequately cited conclusions |
+| Latency | 39m39s total: approximately 17m45s before warming, 19m23s preparation, then approximately 2m28s output generation |
+| Ordinary DSH during admitted work | 18 correct persisted replies in pairs, 4.03–10.05s; two occurred during report generation |
+| Queue behavior | Three DSH-side capacity retries; distinguish these from disabled LiteLLM Router retries |
+| Memory | 1,356 recovering mapping warnings in the admitted-phase shared-model log window; no checked fatal signatures or model restart |
+
+The generated report is useful as a draft, not reliable unreviewed guidance. Examples include a changed purported source quotation, a test-comment citation used as proof of an assertion, an incorrectly targeted host-memory citation, and claims about SLA existence/shared resources that exceed the supplied evidence. The report and original answer are retained rather than corrected silently.
+
+The first setup failed on an oversized test-helper exec URI. After runtime deletion, a long slot remained occupied while warming continued; deletion alone did not prove upstream cancellation. The following request waited and retried. The harness now checks admission ownership as well as idle GPU metrics, and uploads helper source instead of putting it in a long command argument. No shared inference configuration changed. The disposable pod was removed after archive/hash readback; post-cleanup inference passed and the admission lock was free.
+
+See the [full accuracy, citation, timing and original-report review](REALISTIC_REPOSITORY_REVIEW_20261017.html), [source narrative](REALISTIC_REPOSITORY_REVIEW_20261017.md), [raw response](context-evidence/realistic-repo-model-response-20261017.json) and [measured phases](context-evidence/realistic-repo-performance-20261017.json). This one task does not establish general million-token analytical accuracy, a sustained-load SLA, two full simultaneous 1M requests or full 8,192-token output acceptance.
 
 ## Current-image reacceptance — 16–17 October 2026 ICT
 
@@ -53,7 +74,7 @@ The mixed stages used approximately 24K, 96K and 120K inputs. At 120,049 input t
 
 ## Consolidated stress-test review
 
-**Review date: 17 October 2026 ICT.** This review reconciles the retained capacity, concurrency, scheduling and application-level records; it did not run another live load test. The earlier statement that an isolated candidate was still being tested describes an intermediate stage. The completed current-image results above supersede that status. Separate runs below must not be added together as one uninterrupted benchmark.
+**Review date: 17 October 2026 ICT.** The earlier consolidation reconciled retained capacity, concurrency, scheduling and application-level records without another live load test. The later real-repository run above is separate live work. The earlier statement that an isolated candidate was still being tested describes an intermediate stage. The completed current-image results above supersede that status. Separate runs below must not be added together as one uninterrupted benchmark.
 
 ### Capacity and memory trials
 

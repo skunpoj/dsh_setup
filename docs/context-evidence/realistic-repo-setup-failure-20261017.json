@@ -1,0 +1,238 @@
+{
+  "controller": {
+    "startUTC": "2026-10-16T21:55:50.975614+00:00",
+    "status": "stopped",
+    "pod": "dsh-realistic-1m-test-20261017",
+    "before": {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 95258,
+          "freeMiB": 62,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 95258,
+          "freeMiB": 62,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 95258,
+          "freeMiB": 62,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 95258,
+          "freeMiB": 62,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-16T21:55:50.975614+00:00"
+    },
+    "samples": [
+      {
+        "metrics": {
+          "sglang:num_running_reqs": 0,
+          "sglang:num_queue_reqs": 0,
+          "sglang:token_usage": 0.02,
+          "sglang:full_token_usage": 0.0078125
+        },
+        "gpus": [
+          {
+            "index": 0,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 98
+          },
+          {
+            "index": 1,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 97
+          },
+          {
+            "index": 2,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 98
+          },
+          {
+            "index": 3,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 92
+          }
+        ],
+        "pods": [
+          {
+            "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+            "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+            "containers": [
+              {
+                "restartCount": 0,
+                "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+              }
+            ]
+          }
+        ],
+        "timeUTC": "2026-10-16T21:55:57.764781+00:00"
+      },
+      {
+        "metrics": {
+          "sglang:num_running_reqs": 0,
+          "sglang:num_queue_reqs": 0,
+          "sglang:token_usage": 0,
+          "sglang:full_token_usage": 0
+        },
+        "gpus": [
+          {
+            "index": 0,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 99
+          },
+          {
+            "index": 1,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 88
+          },
+          {
+            "index": 2,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 88
+          },
+          {
+            "index": 3,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 88
+          }
+        ],
+        "pods": [
+          {
+            "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+            "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+            "containers": [
+              {
+                "restartCount": 0,
+                "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+              }
+            ]
+          }
+        ],
+        "timeUTC": "2026-10-16T21:56:12.872459+00:00"
+      },
+      {
+        "metrics": {
+          "sglang:num_running_reqs": 0,
+          "sglang:num_queue_reqs": 0,
+          "sglang:token_usage": 0,
+          "sglang:full_token_usage": 0
+        },
+        "gpus": [
+          {
+            "index": 0,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 99
+          },
+          {
+            "index": 1,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 99
+          },
+          {
+            "index": 2,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 100
+          },
+          {
+            "index": 3,
+            "usedMiB": 95258,
+            "freeMiB": 62,
+            "utilizationPercent": 99
+          }
+        ],
+        "pods": [
+          {
+            "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+            "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+            "containers": [
+              {
+                "restartCount": 0,
+                "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+              }
+            ]
+          }
+        ],
+        "timeUTC": "2026-10-16T21:56:29.688852+00:00"
+      }
+    ],
+    "shortPairs": [],
+    "remoteProbePID": "79",
+    "elapsedSeconds": 36.98400000000038,
+    "reason": "error: unable to upgrade connection: <html>\n<head><title>414 Request-URI Too Large</title></head>\n<body>\n<center><h1>414 Request-URI Too Large</h1></center>\n<hr><center>nginx</center>\n</body>\n</html>\n"
+  },
+  "initialProgress": {
+    "startUTC": "2026-10-16T21:55:52.641237+00:00",
+    "sessionId": "session-856d5f27-47ca-4a2d-b48c-6fb6ca24d864",
+    "promptSHA256": "31736b1e96bdceb2aaeeae1fbf2a8dcc9ae426aa4c1495b7c7cc4d7d055d3b15",
+    "promptBytes": 3738888,
+    "status": "running",
+    "scope": "Actual DSH agent, frozen repository sources, isolated ephemeral state",
+    "events": [],
+    "elapsedSeconds": 3.1323,
+    "projection": {
+      "contextPressure": {
+        "contextWindow": 1048576
+      },
+      "sessionStats": {
+        "turns": 0,
+        "steps": 0,
+        "llmMs": 0,
+        "toolMs": 0,
+        "ttftMs": 0,
+        "ttftSteps": 0,
+        "decodeMs": 0,
+        "decodeTokens": 0
+      },
+      "tokenUsage": {
+        "uncachedInputTokens": 0,
+        "outputTokens": 0,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    }
+  },
+  "interpretation": "First setup was stopped on kubectl exec HTTP 414. Runtime deletion did not establish upstream cancellation. Subsequent request waited for a busy lease and retried at DSH layer. Earlier prefix-progress observations did not identify request ownership. Warm-phase timing is correlated by exact final input count and timestamps, not a globally unique request ID.",
+  "harnessFixes": [
+    "Upload helper code on stdin; keep exec URI arguments short.",
+    "Require free admission lease as well as idle GPU metrics before a future run.",
+    "Runtime deletion alone does not confirm upstream cancellation."
+  ]
+}

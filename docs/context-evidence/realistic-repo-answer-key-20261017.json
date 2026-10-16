@@ -1,0 +1,107 @@
+[
+  {
+    "id": "Q01",
+    "expectedValue": "1048576",
+    "sourceId": "S0308",
+    "supportLine": 19,
+    "supportText": "CONTEXT = 1048576"
+  },
+  {
+    "id": "Q02",
+    "expectedValue": "8192",
+    "sourceId": "S0308",
+    "supportLine": 20,
+    "supportText": "OUTPUT = 8192"
+  },
+  {
+    "id": "Q03",
+    "expectedValue": "256",
+    "sourceId": "S0308",
+    "supportLine": 21,
+    "supportText": "RESERVE = 256"
+  },
+  {
+    "id": "Q04",
+    "expectedValue": "131072",
+    "sourceId": "S0308",
+    "supportLine": 22,
+    "supportText": "LONG_THRESHOLD = 131072"
+  },
+  {
+    "id": "Q05",
+    "expectedValue": "300",
+    "sourceId": "S0308",
+    "supportLine": 144,
+    "supportText": "            deadline = time.monotonic() + 300"
+  },
+  {
+    "id": "Q06",
+    "expectedValue": "2048",
+    "sourceId": "S0308",
+    "supportLine": 26,
+    "supportText": "WARM_STEP = 2048"
+  },
+  {
+    "id": "Q07",
+    "expectedValue": "2",
+    "sourceId": "S0308",
+    "supportLine": 27,
+    "supportText": "CACHE_PROBE_SECONDS = 2"
+  },
+  {
+    "id": "Q08",
+    "expectedValue": "false",
+    "sourceId": "S0272",
+    "supportLine": 12,
+    "supportText": "                function['strict'] = False"
+  },
+  {
+    "id": "Q09",
+    "expectedValue": "false",
+    "sourceId": "S0272",
+    "supportLine": 5,
+    "supportText": "    data.setdefault('continue_final_message', False)"
+  },
+  {
+    "id": "Q10",
+    "expectedValue": "15",
+    "sourceId": "S0196",
+    "supportLine": 152,
+    "supportText": "            deadline = time.monotonic()+15"
+  },
+  {
+    "id": "Q11",
+    "expectedValue": "0.875",
+    "sourceId": "S0005",
+    "supportLine": 31,
+    "supportText": "    provider: 'litellm-cluster', model, thresholdRatio: context === 1048576 ? 0.875 : 0.75,"
+  },
+  {
+    "id": "Q12",
+    "expectedValue": "65536",
+    "sourceId": "S0005",
+    "supportLine": 32,
+    "supportText": "    headroomTokens: 65536, maxTokens: 8192,"
+  },
+  {
+    "id": "Q13",
+    "expectedValue": "19:34",
+    "sourceId": "S0087",
+    "supportLine": 5,
+    "supportText": "**Current-image 1M reacceptance, 17 October 2026 ICT:** all 20 main runtime profiles use 1,048,576 total tokens, output capped at 8,192. A temporary DSH runtime on the current managed-tools image returned the exact persisted answer at **1,007,689 input tokens in 19m34s**. A real write/read tool continuation at **1,008,103 tokens passed in 20.16s** after the gateway retry correction. One long request is admitted while short work remains concurrent; 18 actual DSH replies overlapped the cold 1M test. All 105 post-fix bounded stress replies passed. LiteLLM now returns bounded admission 429s without two hidden Router retries, and gateway updates use Recreate. Recovering GPU mapping warnings show thin memory margin; this is not two-full-1M concurrency or an SLA. See [current setup, measurements and limits](docs/LLM_SETUP_AND_TEST_RESULTS.html)."
+  },
+  {
+    "id": "Q14",
+    "expectedValue": "sandbox_da_agent_public_data",
+    "sourceId": "S0087",
+    "supportLine": 7,
+    "supportText": "**Public-data pilot target:** Use `da-agent-system-user` limited to read/write in `sandbox_da_agent_public_data`, with clean pilot-only mounts and no internal BOT data until separate approval. A fresh private Kerberos login succeeded and Livy/Spark both executed as the system account. Exclusive sandbox rights are not verified: the exact target was not visible in that identity\u2019s checked Hive catalog, which is not proof of nonexistence. Its remote Spark driver/executor still reached public TCP destinations. The temporary session/ticket/runtime were cleaned up; no password was stored in this repository. DA/YARN resource metrics were verified, while quota/alert acceptance remains open. This pilot target is narrower than the general platform\u2019s existing per-user AD access. See the [risk-control report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html)."
+  },
+  {
+    "id": "Q15",
+    "expectedValue": "rejected",
+    "sourceId": "S0196",
+    "supportLine": 105,
+    "supportText": "        raise HTTPException(400, 'Above 128K, this warming route supports text and tools; reduce multimodal input.')"
+  }
+]

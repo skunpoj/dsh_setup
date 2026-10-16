@@ -1,0 +1,65 @@
+{
+  "semanticFactValuesCorrect": 15,
+  "semanticFactValueCount": 15,
+  "semanticMethod": "Reviewer compared each intended value with the pre-recorded source answer key; accepts equivalent units, Boolean wording and 19m34s versus 19:34. This does not override the original literal checker.",
+  "literalValueMatches": 7,
+  "strictAllConditionsMatches": 4,
+  "literalQuotesWithinCitedSpan": 14,
+  "answerQuoteCount": 15,
+  "quotesWithin200Characters": 10,
+  "requestedSourceAndDefinitionLineMatches": 13,
+  "reportCitationRangesExist": 69,
+  "reportCitationRangeCount": 69,
+  "reportCitationRangesWithin12Lines": 57,
+  "overallAcceptance": "NOT PASSED: accurate targeted fact retrieval and long output, but citation/quotation/instruction and narrative-support defects remain.",
+  "findings": [
+    {
+      "id": "N1",
+      "issue": "The generated statement that no approved corporate SLA exists goes beyond the supplied evidence.",
+      "correction": "No approved SLA was supplied or established by this review; absence in the corpus is not proof of nonexistence."
+    },
+    {
+      "id": "N2",
+      "issue": "The report calls the shared model the only shared writable-adjacent resource. That exclusivity is unsupported.",
+      "correction": "Describe specific isolation boundaries; the architecture also includes shared gateway, audit and central-storage infrastructure."
+    },
+    {
+      "id": "N3",
+      "issue": "S0273:L1 is a test-file comment, not the asserted exactly-one-identity-header check.",
+      "correction": "Cite the actual assertions, not a comment as proof of a test result."
+    },
+    {
+      "id": "N4",
+      "issue": "The 512Gi container memory claim cites S0280:L87-L98, which contains model arguments, not the memory resource limit.",
+      "correction": "The resource limit is at L137; distinguish host/container RAM from GPU attention workspace."
+    },
+    {
+      "id": "N5",
+      "issue": "The reconciliation says one-long admission was unchanged from the 128K checkpoint. S0002:L7 instead says product admission remained to be implemented.",
+      "correction": "The current one-long admission policy is verified in current source; do not project it backwards into that checkpoint."
+    },
+    {
+      "id": "N6",
+      "issue": "A single NetworkPolicy excerpt is treated as proof that every other egress path is denied.",
+      "correction": "Effective Kubernetes egress is the union of applicable policies; configuration excerpts alone do not establish the deployed complete boundary."
+    },
+    {
+      "id": "N7",
+      "issue": "The execution description leans on bootstrap shared-pool defaults without explaining the current per-user target mapping.",
+      "correction": "Use getEnvironmentTarget and the configured per-user mapping to explain private routing; distinguish bootstrap templates from deployed topology."
+    }
+  ],
+  "answerCitationNotes": {
+    "Q04": "Cited lines use LONG_THRESHOLD but omit its numeric definition; another current-source line is needed.",
+    "Q11": "The purported verbatim quote changes `for (const model of aliases)` to `for model of aliases)`; value0.875 is correct but quotation is not.",
+    "Q13": "Uses a different current guide instead of the requested README; time is semantically correct, but requested source and mm:ss format were not followed.",
+    "overlongQuotes": [
+      "Q08",
+      "Q11",
+      "Q12",
+      "Q13",
+      "Q15"
+    ]
+  },
+  "scope": "One source-retrieval and synthesis sample; no arbitrary million-token reasoning accuracy or complete code/security audit."
+}
