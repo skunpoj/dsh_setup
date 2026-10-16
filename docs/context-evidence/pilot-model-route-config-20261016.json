@@ -1,0 +1,17 @@
+{
+  "recordedAt": "2026-10-16T11:51:46.735118+00:00",
+  "method": "Read mounted /etc/litellm/config.yaml inside the running LiteLLM pod; secret fields excluded",
+  "configuredFallbacks": {
+    "top": {},
+    "router": {},
+    "litellm": {}
+  },
+  "apiBaseHosts": [
+    "ollama.ollama.svc.cluster.local",
+    "typhoon-audio-8b.llm.svc.cluster.local",
+    "vllm-deepseek-v4-flash.llm.svc.cluster.local"
+  ],
+  "modelEntries": 22,
+  "scope": "Mounted static configuration only; not an audit of every plugin, dynamic database entry or client fallback",
+  "runtimeChanged": false
+}

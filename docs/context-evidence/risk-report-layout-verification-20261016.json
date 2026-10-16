@@ -1,0 +1,28 @@
+{
+  "time": "2026-10-16T11:51:53.610Z",
+  "riskCentredHeadings": [
+    "Pilot boundary and environment choice",
+    "1 Prevent external leakage",
+    "2 Prevent damage or excessive access",
+    "3 Keep results contained",
+    "Acceptance and remaining decisions"
+  ],
+  "supportingMaterialInitiallyCollapsed": true,
+  "englishNarrative": true,
+  "readmeEmbedded": true,
+  "llmGuideEmbedded": true,
+  "standaloneLlmGuide": true,
+  "rawEvidenceEmbedded": false,
+  "renderedDiagrams": 3,
+  "initialNodesUnclipped": true,
+  "externalResourceRequests": 0,
+  "zoom": true,
+  "reset": true,
+  "fullscreen": true,
+  "copySource": true,
+  "svgExport": true,
+  "pngExport": true,
+  "pageErrors": [],
+  "pngWidth": 2010,
+  "pngHeight": 2015
+}

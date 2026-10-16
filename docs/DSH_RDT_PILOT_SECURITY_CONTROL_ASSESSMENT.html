@@ -1,41 +1,43 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH RDT Pilot — Security Controls, Architecture and Acceptance</title><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Pilot — Controlling Data Leakage, Source Damage and Result Exposure</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-</style></head><body><main><h1>DSH RDT Pilot — Security Controls and Execution Architecture</h1><div class="status"><strong>Local controls verified. Livy/Spark remains available with explicitly accepted remote-egress risk. Per-user AD permissions are preserved.</strong> Deployed behavior, saved tests and target design are distinguished. This document does not authorize additional data access.</div><nav aria-label="Contents"><a href="#section-1">1 Executive assessment</a><a href="#section-2">2 Deployed user and environment architecture</a><a href="#section-3">3 Control 1 — Prevent external leakage</a><a href="#section-4">4 Control 2 — Kerberos and datalake authorization</a><a href="#section-5">5 Control 3 — Contain reports, histories and execution</a><a href="#section-6">6 Dependency supply without protected workspace sharing</a><a href="#section-7">7 Upstream maintenance</a><a href="#section-8">8 LLM results and setup</a><a href="#section-9">9 Closure checklist and accepted exceptions</a><a href="#evidence">Evidence references</a></nav>
-<p><strong>Live configuration clarification, 16 October:</strong> DSH does not currently have end-to-end 1M access through LiteLLM. Fresh readback found the SGLang backend at 1,048,576 tokens, but LiteLLM’s loaded callback enforces 131,072 total tokens, 8,192 maximum output and a 256-token reserve. The legacy <code>dsh-secure</code> runtime still contains <code>contextWindow: 1048576</code> in <code>/state/cordis.patch.yml</code>; this is a configuration mismatch, not proof of usable 1M requests. The table below describes the intended product budget, not a fresh verification of every runtime profile. No runtime settings were changed in this clarification. Performance figures remain recorded samples, not a new benchmark.</p>
-<p><strong>Ownership restored, 16 October 2026:</strong> <code>thanatcc</code> now routes to its preserved No Internet and Internet runtimes. All 80 histories / 82 session files retain their recorded hash; all 82 working-directory records point to readable directories outside the masked paths. Admin routes to fresh private runtimes, retains dashboard/audit access, and is denied legacy-history reads through DSH. The owner runtime masks the private-user subtree, three reviewed credential-file aliases, and the routing/recovery directories. Infrastructure administrators remain trusted. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-owner-restoration-live-20261016.json">live owner restoration</a>.</p>
-<p><strong>16 October 2026: private user routing, central audit and datalake-aware restricted egress are deployed. Existing per-user AD/datalake rights are preserved. Remote Spark public TCP access is an explicitly accepted exception; Livy/Spark remains available.</strong></p>
-<p>The objective is to limit what can go wrong enough to make this specific pilot acceptable, rather than declare the Harness or generated code universally safe. This report explains where each control acts, what was tested and what remains unverified. Opening saved evidence does not run a new test or authorize data access.</p>
-<h2 id="section-1">1 Executive assessment</h2>
-<p>Fresh <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/design-consistency-live-20261016.json">local verification</a> passed all 16 private login/environment combinations, authenticated admin audit access, ordinary-user admin denial and all 18 worker network probes (9 No Internet, 9 Internet). Internal inference returned the required text and the legacy fingerprint remained unchanged. These checks do not repeat the remote Spark test or certify every user’s datalake entitlements.</p>
-<p><strong>Design consistency:</strong> Owner routing is restored: <code>thanatcc</code> can list all 80 histories, while admin and other users are denied legacy-history reads through DSH. The reviewed private subtree and credential/recovery aliases are masked in the owner runtime. Admin management/audit authority remains separate from data ownership. Existing user-specific datalake permissions are preserved. Remote Spark public TCP access remains an explicitly accepted exposure, and DSH2/DSH3 are not yet migrated.</p>
-<p><strong>RDT uses Kerberos (<code>kinit</code>) and the datalake connection, including Livy/Spark and Hive/HDFS authorization. DA_WORKSPACE stores DSH files and history.</strong> Mounting it is neither the source of RDT authorization nor proof of read-only RDT access. A local DSH login such as <code>thanatcc</code> is not an AD identity. The earlier request for an RDT PVC/folder conflated these independent controls and is withdrawn.</p>
+</style></head><body><main><h1>DSH Pilot — Controlling Data Leakage, Source Damage and Result Exposure</h1><div class="status"><strong>Three controls govern this pilot: prevent external leakage, prevent source damage or excessive access, and keep results contained.</strong> Main DSH protections are deployed; remote-worker egress and read-only source scope do not yet meet every condition in the original brief.</div><nav aria-label="Contents"><a href="#section-1">Pilot boundary and environment choice</a><a href="#section-2">1 Prevent external leakage</a><a href="#section-3">2 Prevent damage or excessive access</a><a href="#section-4">3 Keep results contained</a><a href="#section-5">Acceptance and remaining decisions</a><a href="#verification-records">Supporting verification records</a></nav>
+<p>The pilot assumes that the Harness, its tools and generated code can make mistakes or act beyond the intended task. Its protection therefore comes from network boundaries, execution identities, data permissions, private storage and authenticated access—not prompt instructions alone.</p>
+<p><strong>The objective is to limit what can go wrong enough to make this specific pilot acceptable. It is not to prove that the Harness is universally safe.</strong></p>
+<p>This report follows the three controls in the supplied pilot brief. It explains which environment to use, how each protection works, what the recorded tests establish and what still needs a decision or additional enforcement. The main DSH environment has deployed protections. The original full-path Internet-denial and read-only-source requirements are <strong>not both satisfied</strong> under the current operating decisions.</p>
+<h2 id="section-1">Pilot boundary and environment choice</h2>
+<p>An analyst defines a DQ hypothesis and the permitted data scope. The agent can prepare Python or Spark code, execute it under the available identity and produce reports in that user&#39;s working area. The controls below must constrain those actions even when the generated code is wrong.</p>
 <table>
 <thead>
 <tr>
-<th>Risk</th>
-<th>Deployed enforcement</th>
-<th>Evidence and limit</th>
+<th>Environment</th>
+<th>Intended use</th>
+<th>What it can reach and store</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>Prevent external leakage</td>
-<td>Private No Internet workers; exact internal DNS, Kerberos, Livy and inference destinations; restricted inference keys</td>
-<td>All 18 workers tested. Public-domain and direct-IP probes fail from all 9 No Internet workers; internal paths work. Remote Spark driver and executor actually reached GitHub/public IP; local pod policy does not cover that downstream path.</td>
+<td><strong>No Internet / Internal — default</strong></td>
+<td>Work with internal information and run approved analysis</td>
+<td>Dedicated user workspace, history and credential state; internal inference, restricted DNS, Kerberos and the permitted Livy endpoint. Representative direct public connections are blocked.</td>
 </tr>
 <tr>
-<td>Prevent damage/excessive access</td>
-<td>Non-root execution, no Kubernetes token, private workspace/state and ticket cache</td>
-<td>Local isolation/persistence tested. Per user instruction, existing AD/Hive/HDFS rights are inherited; DSH grants no new data authority and does not universally enforce read-only access.</td>
+<td><strong>Internet</strong></td>
+<td>Obtain libraries and prepare dependency artifacts</td>
+<td>Separate workspace/history and package incoming area. It does not mount the protected No Internet workspace. Tested datalake/KDC destinations are denied.</td>
 </tr>
 <tr>
-<td>Keep results contained</td>
-<td>Fixed user/environment routing; authenticated application and terminal routes; legacy histories routed only to their confirmed owner; central audit</td>
-<td>Sixteen peer legacy-read attempts and sixteen non-admin dashboard/API attempts were denied. Administrator remains trusted. Browser exports and remote reports need separate review.</td>
+<td><strong>Remote Livy/Spark compute</strong></td>
+<td>Execute distributed analysis under the authenticated principal</td>
+<td>A separate execution boundary in the datalake platform. DSH pod policies do not govern its driver or executors. Public TCP connectivity was observed there.</td>
 </tr>
 </tbody></table>
-<p>Local controls now go beyond the former shared-pool design. The approved data-access policy preserves each user’s existing AD/datalake permissions. This supersedes the earlier requirement for universal read-only RDT access; it is a requirement change, not proof that write-capable AD accounts became read-only. DA_WORKSPACE remains independent of datalake authorization.</p>
-<h2 id="section-2">2 Deployed user and environment architecture</h2>
-<p>Nine existing local accounts each have two fixed routes. Seven ordinary users plus admin use 16 private runtimes; <code>thanatcc</code> uses the two preserved, fenced owner runtimes. The original runtimes are dedicated to <code>thanatcc</code>; admin now has separate private runtimes. Registration remains disabled; switching environments requires logout and a new login.</p>
+<p>The two DSH environments share the internal inference service and authentication gateway, <strong>not writable project data, conversation history or credentials</strong>. Switching environments requires logout and a new login. This is restricted egress, not a strict air gap: the default environment still needs approved internal connections.</p>
+<p>Only reviewed dependency artifacts should move from Internet staging to the No Internet package cache. Sensitive prompts, datasets, reports and credentials are not part of that transfer workflow. Existing users&#39; AD/datalake permissions remain unchanged; selecting an environment does not grant a new data entitlement.</p>
+<h2 id="section-2">1 Prevent external leakage</h2>
+<p><strong>Risk:</strong> the Harness or generated code could transmit RDT, prompts, credentials or results to an external destination. The network control must cover every place the code executes, including remote workers.</p>
+<h3>What enforces the boundary</h3>
+<p>The default DSH runtime is selected by the authenticated gateway and placed under a Kubernetes egress policy. That policy permits only the required internal destinations: the internal model gateway, restricted DNS, Kerberos and the allowed Livy connection. The DNS relay accepts the required internal names and rejects public/encoded test names locally. Direct public DNS and direct CoreDNS bypass probes are denied.</p>
+<p>Model requests use internal LiteLLM and inference-only credentials. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/pilot-model-route-config-20261016.json">mounted configuration readback</a> found 22 model entries using internal service hosts and no explicit fallback settings in the checked configuration scopes. Recorded tests denied model/key administration and a client-selected API-base override. External provider fallback must remain disabled for the pilot; this static-file check does not audit every dynamic model entry, plugin or client. These controls constrain the approved inference path, not every possible relay through an allowed internal service.</p>
+<p>The Internet environment is separate compute and storage. It can download packages into an incoming area, but cannot install directly into the protected workspace or modify the approved cache. An operator reviews artifacts and their hashes; the promotion helper verifies the exact bytes and publishes them to a cache that No Internet mounts read-only. Hash verification proves integrity, not that a package is harmless.</p>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 1</span><div class="mermaid-toolbar">
   <button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button>
   <button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button>
@@ -45,87 +47,70 @@
   <button onclick="exportMermaid(this,'png')">Save PNG</button>
   <button onclick="exportMermaid(this,'copy')">Copy code</button>
   </div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart TB
- U[Local DSH login] --&gt; G[Authenticated gateway and fixed routing]
- G --&gt; S[Private user No Internet runtime]
- G --&gt; I[Private user Internet runtime]
- G --&gt; A[Legacy owner thanatcc - fenced workspace]
- S --&gt; C[Private CIFS workspace and durable history]
- S --&gt; K[Private local config and ticket cache]
- I --&gt; W[Separate local workspace and history]
- G --&gt; AU[Central admin-only audit]
- S --&gt; L[Internal inference with restricted keys]
- I --&gt; L
- L --&gt; GPU[Shared four-H100 model]
+ U[Named user selects an environment] --&gt; G[Authenticated gateway]
+ G --&gt; S[No Internet runtime - private data]
+ G --&gt; I[Internet runtime - separate staging]
+ S --&gt; M[Internal LiteLLM and shared model]
+ S --&gt; L[Permitted Livy connection]
+ L --&gt; R[Remote Spark driver and executors]
+ R --&gt; E[Public TCP reachable - accepted exposure]
+ S --&gt; B[Direct public probes blocked]
+ I --&gt; P[Package incoming]
+ P --&gt; V[Operator review and exact-byte hash verification]
+ V --&gt; C[Approved read-only package cache]
+ C --&gt; S
+ classDef exposure fill:#7f1d1d,stroke:#f87171,color:#ffffff
+ class E exposure
 ">flowchart TB
- U[Local DSH login] --&gt; G[Authenticated gateway and fixed routing]
- G --&gt; S[Private user No Internet runtime]
- G --&gt; I[Private user Internet runtime]
- G --&gt; A[Legacy owner thanatcc - fenced workspace]
- S --&gt; C[Private CIFS workspace and durable history]
- S --&gt; K[Private local config and ticket cache]
- I --&gt; W[Separate local workspace and history]
- G --&gt; AU[Central admin-only audit]
- S --&gt; L[Internal inference with restricted keys]
- I --&gt; L
- L --&gt; GPU[Shared four-H100 model]
+ U[Named user selects an environment] --&gt; G[Authenticated gateway]
+ G --&gt; S[No Internet runtime - private data]
+ G --&gt; I[Internet runtime - separate staging]
+ S --&gt; M[Internal LiteLLM and shared model]
+ S --&gt; L[Permitted Livy connection]
+ L --&gt; R[Remote Spark driver and executors]
+ R --&gt; E[Public TCP reachable - accepted exposure]
+ S --&gt; B[Direct public probes blocked]
+ I --&gt; P[Package incoming]
+ P --&gt; V[Operator review and exact-byte hash verification]
+ V --&gt; C[Approved read-only package cache]
+ C --&gt; S
+ classDef exposure fill:#7f1d1d,stroke:#f87171,color:#ffffff
+ class E exposure
 </div></div></section>
-<p>Runtimes share inference, not writable workspaces, attachments, sessions or credentials. UID/GID 10001, disabled privilege escalation, dropped capabilities, RuntimeDefault seccomp, no service-account token and resource limits constrain execution. Per-user mounts provide isolation despite the same numeric container UID. This does not protect against trusted administrators or a host/kernel compromise.</p>
-<h3>Storage and persistence</h3>
-<p>Secure files and durable histories use the original mounted DA_WORKSPACE share, with separate per-user subpaths. Credentials and Kerberos caches remain in private local state.</p>
+<h3>What is verified and what remains</h3>
 <table>
 <thead>
 <tr>
-<th>Content</th>
-<th>No Internet</th>
-<th>Internet</th>
+<th>Recorded observation</th>
+<th>Meaning for the risk</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>Private <code>/workspace</code></td>
-<td>CIFS <code>dsh/private/&lt;identity&gt;/secure</code></td>
-<td>Per-user local PVC</td>
+<td>Public-domain, direct-IP and DNS-bypass probes failed from the tested No Internet workers; internal inference returned the required response</td>
+<td>The tested local pod boundary works for those destinations. This is not an exhaustive proxy/IPv6/relay assessment.</td>
 </tr>
 <tr>
-<td>Sessions, attachments, storages, workspaces, logs</td>
-<td>CIFS <code>dsh/private/&lt;identity&gt;/state/&lt;directory&gt;</code></td>
-<td>Per-user local state PVC</td>
+<td>Internet workers reached package sites but failed the tested KDC, Livy and unrelated internal-service connections</td>
+<td>Dependency preparation is separated from the tested internal data-access paths.</td>
 </tr>
 <tr>
-<td>Configuration, credentials and tickets</td>
-<td>Private local <code>/state</code>; <code>/state/kerberos/ccache</code></td>
-<td>Separate private local state</td>
+<td>A package was downloaded, hash-promoted, installed without an index and imported inside No Internet; cache writes were denied</td>
+<td>The intended library-transfer path works without sharing writable workspaces.</td>
 </tr>
 <tr>
-<td>Legacy data owned by thanatcc; routing restored</td>
-<td>Existing <code>dsh</code> and <code>dsh/dsh_storage</code> trees</td>
-<td>Original Internet state, owner-bound route</td>
-</tr>
-<tr>
-<td>Package access</td>
-<td>Approved cache read-only</td>
-<td>Incoming writable</td>
-</tr>
-<tr>
-<td>Gateway audit</td>
-<td>CIFS <code>dsh-admin-audit</code>, outside runtime mounts</td>
-<td>Same central gateway audit</td>
+<td>The authenticated Spark driver <strong>and executor</strong> reached <code>github.com:443</code> and <code>1.1.1.1:443</code></td>
+<td><strong>The end-to-end Internet-denial requirement is not met.</strong> Blocking Internet only in DSH does not contain code sent to remote Spark.</td>
 </tr>
 </tbody></table>
-<p>The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-owner-restoration-live-20261016.json">owner restoration</a> retained the original histories in place. Both former owner-private workspaces/histories were checked empty before routing changed. The owner can list 80 histories; admin and seven other accounts are denied those histories. All 82 working directories remain readable outside masked paths. Owner/admin terminal WebSockets executed real non-root commands; four markers survived replacement of the two new admin processes and were removed. Existing records and rollback specifications are retained. Historical tool resumption was not replayed for every session.</p>
-<p>Direct mounts persist content centrally. Non-admin runtimes do not mount the share root; the owner retains access to its records while the DSH admin route is isolated. Persistence and restart tests passed. Storage migration details remain in separate operational records.</p>
-<h2 id="section-3">3 Control 1 — Prevent external leakage</h2>
-<p>Kubernetes NetworkPolicy restricts the No Internet pod, including DSH, generated code, terminal commands and local subprocesses. Allowed paths are internal LiteLLM port 4000, an allowlisted resolver, verified KDCs TCP/UDP 88 and the existing Livy endpoint TCP 28998. This is <strong>No Internet / restricted egress</strong>, not an air gap: internal authentication, application, storage and inference remain connected.</p>
-<p>The resolver accepts exact internal names and necessary Kerberos SRV lookups. Public and encoded names return NXDOMAIN locally. Forwarded questions are rebuilt with client extra/EDNS payloads removed; query names are not logged. Direct CoreDNS and public DNS are blocked. Split-DNS inventory was verified from pods rather than assumed from Windows results.</p>
-<p>Internet runtimes reach public registries but cannot reach KDC, Livy or unrelated private services. They do not mount protected data or histories. Users must not paste protected data into Internet sessions; infrastructure cannot undo an explicit transfer.</p>
-<p>Private identities and admin pools use inference-only LiteLLM virtual keys. Exact inference works; key enumeration, key generation and model creation return 403. A client API-base override was rejected. The shared master key was not rotated for unrelated applications. Restricted credentials supplement network controls; they do not prove that every allowed service cannot relay data externally.</p>
-<p>All 9 No Internet workers failed GitHub/PyPI/npm resolution, public direct-IP, public DNS and direct CoreDNS TCP/UDP probes. All resolved approved internal names, reached KDC 88, received anonymous Livy 401 with <code>WWW-Authenticate: Negotiate</code>, and returned exact internal inference. All 9 Internet workers reached registries/inference but failed KDC, Livy and unrelated PostgreSQL access. The PostgreSQL negative control succeeded before restrictions and failed afterward.</p>
-<p>These are destination-specific observations, not exhaustive IPv6/proxy/relay/browser acceptance. Remote Spark executors are outside DSH pod policies. A real synthetic Livy/Spark test confirmed both driver and executor can connect to <code>github.com:443</code> and <code>1.1.1.1:443</code> (public DNS port 53 was blocked). This demonstrates an allowed public TCP path outside DSH’s local policy, which fails the intended outbound-denial requirement. These were TCP-connect probes, not HTTP-body or data-exfiltration tests; no RDT was read or transmitted, and no compromise is asserted. The test session owner matched the Spark user; this verifies the observed mechanism for one identity, not other users’ entitlements. The test used existing Windows SSPI Negotiate without retrieving a password or copying a ticket into DSH.</p>
-<p>The first small session ended before probes. A retry using the existing example’s 2GiB driver/executor settings and a dedicated temporary staging path ran the probes successfully. Both sessions were explicitly stopped and verified absent from Livy’s active list. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-first-attempt-20261016.json">failed initial execution</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-boundary-live-20261016.json">actual driver/executor results</a>.</p>
-<p>A reversible patch removes only Livy port 28998 from No Internet egress, preserving Kerberos, inference, DNS and mounted storage. It passed server dry-run but was not applied. The user explicitly chose “Keep Livy/Spark available with this documented risk.” Livy remains available and AD permissions are unchanged. This closes the routing decision as an accepted exception; it does not fix remote public TCP access or establish end-to-end No Internet. Future containment would block new Livy connections but would not terminate existing remote applications. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/livy-containment-prepared-20261016.json">prepared patch review</a>.</p>
-<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/internal-network-live-20261016.json">all-worker network tests</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/internal-network-policies-20261016.json">applied policies</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/internal-endpoint-split-dns-20261016.json">split DNS review</a>.</p>
-<h2 id="section-4">4 Control 2 — Kerberos and datalake authorization</h2>
-<p><strong>Fresh authenticated retest, 16 October:</strong> The existing personal Windows SSPI identity successfully created bounded synthetic Spark session 628. Livy owner and Spark execution-user hashes matched. Both driver and executor again reached <code>github.com:443</code> and <code>1.1.1.1:443</code>; public DNS <code>8.8.8.8:53</code> was blocked. The session was stopped and verified absent. No RDT was read or written. This confirms identity propagation and a failed remote egress boundary, not read-only dataset authorization. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">fresh retest record</a>.</p>
-<p>The user identified personal accounts or <code>da-agent-system-user</code> as the relevant identities. The latter was not authenticated in this retest, and the personal result is not attributed to it. Neither an account name nor successful authentication establishes read-only access: table/path-specific entitlements are required. No specific dataset target was supplied, so no dataset authorization or write-denial claim is made. Existing AD/datalake permissions remain the selected policy.</p>
+<p>The user explicitly chose to keep Livy/Spark available with this documented exposure. That is an accepted operational exception, not a repaired firewall. No RDT was read or transmitted by the recorded connectivity tests.</p>
+<p><strong>To meet the original requirement:</strong> the datalake infrastructure owner must enforce restricted egress for the actual Spark drivers/executors and retain only their necessary internal services. Acceptance must test outbound paths from each relevant execution mode, including direct IP, DNS, configured proxies and IPv6 where enabled. If that enforcement cannot be provided, sensitive remote execution needs an explicit risk decision or a restriction on its use. This report does not silently disable the retained Livy service.</p>
+<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/design-consistency-live-20261016.json">local boundaries</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-private-network-20261016.json">new admin runtimes</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">offline package workflow</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">authenticated remote Spark retest</a>.</p>
+<h2 id="section-3">2 Prevent damage or excessive access</h2>
+<p><strong>Risk:</strong> generated code could modify source data, delete writable content or reach unrelated resources. Denying Internet access does not prevent those actions inside an authorized internal system.</p>
+<h3>What enforces the boundary</h3>
+<p>Each main DSH user has a dedicated execution environment for each network mode. The runtime uses UID/GID 10001, disables privilege escalation, drops Linux capabilities, uses RuntimeDefault seccomp and does not mount a Kubernetes service-account token. Separate workspace, session, attachment and credential mounts prevent an ordinary user from obtaining another user&#39;s files through a shared process or filesystem. Resource limits constrain the local runtime; remote Spark resources and permissions remain a datalake responsibility.</p>
+<p>Projects and results belong in the user&#39;s working area. No Internet durable files/history use the mounted DA_WORKSPACE CIFS storage with bounded user paths; Internet staging uses separate storage. The approved package cache is read-only. <strong>DA_WORKSPACE is persistence, not the source of RDT authorization and not an independent backup.</strong></p>
+<p>RDT access follows the authenticated AD principal through Kerberos and Livy/Spark to the applicable Hive/HDFS permissions. A local DSH login is a separate identity. The personal Kerberos retest found the required service ticket and confirmed that Livy&#39;s owner matched Spark&#39;s execution user; it did not establish read-only access to an unspecified table or path.</p>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 2</span><div class="mermaid-toolbar">
   <button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button>
   <button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button>
@@ -135,38 +120,64 @@
   <button onclick="exportMermaid(this,'png')">Save PNG</button>
   <button onclick="exportMermaid(this,'copy')">Copy code</button>
   </div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart TB
- D[Private No Internet runtime] --&gt; KA[kinit with approved AD principal]
- KA --&gt; KC[Private local ticket cache]
- KC --&gt; L[Internal Livy Negotiate authentication]
- L --&gt; S[Remote Spark driver and executors]
- S --&gt; R[Hive and HDFS RDT authorization]
- R --&gt; O[Permitted read results]
- O --&gt; W[Private DSH result workspace]
- P[AD groups and datalake ACLs] --&gt; R
- X[Remote worker egress policy] --&gt; S
+ A[Local DSH login] --&gt; X[Dedicated non-root runtime]
+ X --&gt; W[Own workspace and result files]
+ X --&gt; K[Private Kerberos credential cache]
+ K --&gt; P[Authenticated AD principal]
+ P --&gt; D[Datalake authorization]
+ D --&gt; Q[Permitted reads and writes]
+ Q --&gt; F[Source damage remains possible if the principal has write rights]
+ T[Original brief - least-privilege pilot access] --&gt; V[Approved source scope - read only]
+ T --&gt; O[Separate writable results scope]
+ classDef exposure fill:#7f1d1d,stroke:#f87171,color:#ffffff
+ class F exposure
 ">flowchart TB
- D[Private No Internet runtime] --&gt; KA[kinit with approved AD principal]
- KA --&gt; KC[Private local ticket cache]
- KC --&gt; L[Internal Livy Negotiate authentication]
- L --&gt; S[Remote Spark driver and executors]
- S --&gt; R[Hive and HDFS RDT authorization]
- R --&gt; O[Permitted read results]
- O --&gt; W[Private DSH result workspace]
- P[AD groups and datalake ACLs] --&gt; R
- X[Remote worker egress policy] --&gt; S
+ A[Local DSH login] --&gt; X[Dedicated non-root runtime]
+ X --&gt; W[Own workspace and result files]
+ X --&gt; K[Private Kerberos credential cache]
+ K --&gt; P[Authenticated AD principal]
+ P --&gt; D[Datalake authorization]
+ D --&gt; Q[Permitted reads and writes]
+ Q --&gt; F[Source damage remains possible if the principal has write rights]
+ T[Original brief - least-privilege pilot access] --&gt; V[Approved source scope - read only]
+ T --&gt; O[Separate writable results scope]
+ classDef exposure fill:#7f1d1d,stroke:#f87171,color:#ffffff
+ class F exposure
 </div></div></section>
-<p><code>kinit</code> establishes a user-specific identity. The user explicitly selected “Preserve each user’s existing AD/datalake permissions” on 16 October 2026. DSH therefore does not add a universal read-only restriction or provision a common service identity. Existing AD/Hive/HDFS authorization governs reads and writes. Generated code can perform operations already permitted to that principal: this is a retained authority and risk, not a new DSH grant.</p>
-<p>One credential can test a common connection/identity mechanism; it cannot prove the entitlements of other users. DSH acceptance verifies private credential/cache storage, fixed local-user routing and execution/network containment. Data owners continue to administer each principal’s rights. Local DSH login and Kerberos identity are distinct: DSH does not force their usernames to match. It prevents gateway identity spoofing and shared mounts; it does not prevent a person from authenticating as another AD account whose credentials they possess.</p>
-<p>The replacement runtime contains Kerberos tools. No Internet uses BOT.OR.TH configuration and a private ticket cache with group/other access denied. A set-group-ID bit inherited from Kubernetes fsGroup does not grant group access. No new AD principal, keytab or datalake permission was provisioned. Tickets/passwords must not enter Git, audit logs or Internet staging.</p>
-<p>A universal read-only permission test is no longer a release requirement under the revised policy. A representative authenticated connection can establish mechanism behavior, while per-user entitlements remain the datalake owner’s responsibility. Do not infer authenticated identity from anonymous 401 or KDC connectivity. Remote Spark network behavior is evaluated with synthetic connectivity probes, without reading or modifying RDT.</p>
-<p>Earlier canaries used a synthetic filesystem fixture historically named <code>/data/rdt</code>. Its read-only denials establish only fixture behavior. New source calls it a synthetic fixture explicitly; it is not the actual RDT access mechanism.</p>
-<h2 id="section-5">5 Control 3 — Contain reports, histories and execution</h2>
-<p>Authenticated session identity selects a fixed private runtime. Client headers cannot nominate another user. Applications and web terminals pass through authenticated proxy routes; terminal commands run in that selected environment, not in a cluster administrator shell. Runtime ingress permits the gateway rather than neighboring runtimes. Local DSH login is not AD/SSO.</p>
-<p>Production tests exercised all 16 private login/environment combinations, terminal pages, denial of a legacy history ID and admin APIs even with forged headers. A separate four-runtime canary tested HTTP/WebSocket binding, real terminal commands, synthetic reports/history and restart persistence. The 80 legacy histories remain with <code>thanatcc</code>; live owner access is restored without copying them into other accounts.</p>
-<p>Central audit fields are strictly time, event, user and environment. Events cover login/logout, runtime access, terminal/WebSocket access and admin denials, excluding passwords, tokens, prompts and conversation text. Only admin can read the audit API. Archives are retained; when configured capacity is exhausted, new login/runtime access fails closed until approved operator archival. This is access audit, not a full command transcript or tamper-proof SIEM.</p>
-<p>No external publisher was introduced. That is narrower than proving every plugin, browser download or remote report path safe. Pod policies cannot stop an authorized browser user manually sharing displayed results. Named-pilot/export acceptance remains an owner decision. Legacy DSH2/DSH3 retain old root/Internet configurations and are excluded from private-pilot acceptance; they must not process protected RDT under this report&#39;s approval.</p>
-<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/private-routing-live-20261016.json">private Production routing</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/isolation-audit-canary-20261016.json">isolation/audit canary</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-dashboard-audit-tests-20261016.json">audit regressions</a>.</p>
-<h2 id="section-6">6 Dependency supply without protected workspace sharing</h2>
+<h3>Original brief versus the selected permission policy</h3>
+<table>
+<thead>
+<tr>
+<th>Requirement in the brief</th>
+<th>Current position</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dedicated non-admin execution identity</td>
+<td>Implemented for the main private DSH runtimes; DSH2/DSH3 still need migration.</td>
+</tr>
+<tr>
+<td>Read-only access to a limited RDT snapshot/view</td>
+<td><strong>Not imposed.</strong> The later instruction was to preserve each user&#39;s existing AD/datalake rights. A write-capable principal remains write-capable.</td>
+</tr>
+<tr>
+<td>Results written only to a separate working area</td>
+<td>DSH provides private working areas. It does not override that principal&#39;s separate datalake write permissions.</td>
+</tr>
+<tr>
+<td>Source writes and out-of-scope reads fail</td>
+<td>Requires an approved test resource and its actual permissions. Neither the name <code>da-agent-system-user</code> nor successful authentication proves this result.</td>
+</tr>
+</tbody></table>
+<p><strong>To meet the original read-only requirement without changing personal accounts:</strong> provide a dedicated pilot principal limited to reading approved sources and writing only to an approved results location, or an equivalently enforced access broker that the execution environment cannot bypass. A view alone is insufficient if the same code can use broader credentials directly. This is a proposed pilot control; no AD entitlement was changed by this report.</p>
+<p>The data owner should specify disposable test resources for one permitted read, a prohibited write/delete and an out-of-scope read. Acceptance must establish an authorization denial, not merely a missing object or network error. Test each distinct principal/role boundary; do not assume one account&#39;s result represents everyone.</p>
+<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/owner-admin-snapshot-live-20261016.json">private routing and audit checks</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">identity propagation</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/kerberos-personal-ticket-check-20261016.json">Kerberos ticket-presence check</a>.</p>
+<h2 id="section-4">3 Keep results contained</h2>
+<p><strong>Risk:</strong> reports, logs, attachments or temporary files could expose RDT to another person, or be published/exported outside the approved pilot.</p>
+<h3>What enforces the boundary</h3>
+<p>The main gateway admits provisioned local accounts and disables self-registration. It selects the user&#39;s fixed runtime; a URL, form field or forged identity header cannot select another user&#39;s backend. Application, report and terminal traffic pass through authenticated routes. Login sessions stay in one environment, and logout revokes the gateway session.</p>
+<p>Workspaces, histories, attachments and credentials are private to the user and environment. Existing legacy content remains with its confirmed owner, <code>thanatcc</code>. Admin uses fresh private runtimes and cannot read those owner histories through DSH. The owner runtime masks the reviewed peer-data subtree, old authentication/credential aliases and recovery paths. Host, cluster and storage administrators remain a privileged trust boundary.</p>
+<p>Central dashboard access is admin-only. The central access audit records time, event, user and environment—not passwords, Kerberos tickets, prompts or conversation bodies. Audit storage is outside the execution workspaces. It supports accountability, but is not a full command transcript or a tamper-proof external SIEM.</p>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 3</span><div class="mermaid-toolbar">
   <button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button>
   <button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button>
@@ -176,97 +187,61 @@
   <button onclick="exportMermaid(this,'png')">Save PNG</button>
   <button onclick="exportMermaid(this,'copy')">Copy code</button>
   </div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart TB
- R[Public package registries] --&gt; I[Private Internet environment]
- I --&gt; N[Incoming artifacts]
- N --&gt; V[Operator provenance and security review]
- V --&gt; H[Hash verification and controlled promotion]
- H --&gt; A[Approved read-only cache]
- A --&gt; S[Private No Internet installation]
- S --&gt; W[Protected workspace and history]
+ U[Named pilot user] --&gt; G[Authenticated gateway and fixed user route]
+ G --&gt; A[Own runtime - files - reports - history]
+ X[Another ordinary user] --&gt; N[Peer data and owner-history requests denied]
+ AD[DSH admin] --&gt; D[Admin dashboard and central access audit]
+ AD --&gt; P[Admin private runtime]
+ AD --&gt; B[Owner-history reads denied through DSH]
+ A --&gt; BR[Authorized browser displays results]
+ BR --&gt; M[Manual copying remains outside pod controls]
+ classDef boundary fill:#78350f,stroke:#fbbf24,color:#ffffff
+ class M boundary
 ">flowchart TB
- R[Public package registries] --&gt; I[Private Internet environment]
- I --&gt; N[Incoming artifacts]
- N --&gt; V[Operator provenance and security review]
- V --&gt; H[Hash verification and controlled promotion]
- H --&gt; A[Approved read-only cache]
- A --&gt; S[Private No Internet installation]
- S --&gt; W[Protected workspace and history]
+ U[Named pilot user] --&gt; G[Authenticated gateway and fixed user route]
+ G --&gt; A[Own runtime - files - reports - history]
+ X[Another ordinary user] --&gt; N[Peer data and owner-history requests denied]
+ AD[DSH admin] --&gt; D[Admin dashboard and central access audit]
+ AD --&gt; P[Admin private runtime]
+ AD --&gt; B[Owner-history reads denied through DSH]
+ A --&gt; BR[Authorized browser displays results]
+ BR --&gt; M[Manual copying remains outside pod controls]
+ classDef boundary fill:#78350f,stroke:#fbbf24,color:#ffffff
+ class M boundary
 </div></div></section>
-<p>Internet prepares packages; it cannot install directly into No Internet or edit protected files/history. An operator reviews provenance/security and promotes hash-verified artifacts into Approved. Secure installs from the read-only cache without public registries. Hashes detect substitution, not malicious package logic. The earlier canaries used empty caches. Fresh end-to-end acceptance now downloaded pinned <code>six==1.17.0</code> in Internet, matched its SHA-256 to HTTPS PyPI metadata, checked wheel members for path traversal, native code, .pth files and entry points, promoted it with reviewed hashes, then installed/imported it in a temporary No Internet venv using <code>--no-index</code>. The exact result was <code>OFFLINE_PACKAGE_OK</code>; attempts to append to Approved were denied. Temporary venv cleanup completed. These are functional/provenance checks, not a claim that hashes or a wheel inspection prove a package benign.</p>
-<p>The old promoter hashed a pathname then reopened it for copying. The corrected operator code opens source components with directory descriptors and no-follow semantics, stages bytes from the same opened file, validates every row before publication, refuses symlink/path traversal and conflicting overwrites, and publishes individual artifacts atomically. The promotion job has no network egress, no Kubernetes token and a read-only root filesystem. Five real Linux regressions passed, including substitution after source open and hash failure without publishing another row. Operators still control admission and provenance review. The pinned runtime image is unchanged; reviewed promotion source runs from a separately hashed immutable ConfigMap. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">complete live package acceptance</a>.</p>
-<h2 id="section-7">7 Upstream maintenance</h2>
-<p>The deployment uses the official published package plus our authentication, routing and configuration overlays. It is not a source fork that should merge every official file. Fresh checks on 16 October confirmed the running <code>0.2.0-rc.2</code> still matches npm&#39;s <strong>latest</strong> and <strong>next</strong> channels. Official master is now <code>86a402200d95fecef4529d969836f1fe13c6cb0d</code>; the preview channel is <code>0.2.1-alpha.4</code>.</p>
-<p>There was no automatic release-check workflow. The prepared workflow will check release channels daily, build/test changed default-channel candidates and propose a package-pin PR. GitHub rejected its publication because the stored PAT lacks workflow permission; it is not active. Alpha versions require explicit selection. It does not auto-merge or deploy Production. Local candidate tests do not establish copied-state migration or every browser/runtime behavior. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">maintenance procedure</a>.</p>
-<h2 id="section-8">8 LLM results and setup</h2>
+<h3>What is verified and what remains</h3>
+<p>Recorded checks verified owner-history access, denial to other users including admin, non-admin denial of the dashboard/API and rejection of forged-role attempts. Real authenticated terminal WebSockets executed non-root commands in both owner and admin environments. Workspace/attachment markers survived replacement of the new admin runtime processes. The earlier isolated two-user acceptance also exercised synthetic report, attachment and session boundaries.</p>
+<p>These checks establish the tested access paths. They do not certify every historical tool action, plugin or generated application. Pilot reports must remain behind the authenticated gateway; any publication or export must be separately authorized rather than treated as an automatic outcome of analysis.</p>
+<p><strong>Browser boundary:</strong> a person authorized to see a result can still copy, download, photograph or manually share it. Pod egress policies do not govern that person&#39;s device. If the pilot requires prevention of those actions, the endpoint owner must add managed-browser/VDI/DLP controls and verify the intended restrictions. This report does not claim those controls are deployed, and it does not disable useful downloads while presenting that as complete data-loss prevention.</p>
+<p><strong>Legacy boundary:</strong> DSH2 and DSH3 are not yet equivalent to the main deployment. They still run as root with a service-account token and three local accounts sharing each process. Basic anonymous/login/logout route checks passed, but that is not user isolation. Migration requires the pending decision on their history owners and reconciliation of live profiles/root working directories before restart. Their original data remains preserved.</p>
+<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-owner-restoration-live-20261016.json">owner/peer access</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/owner-admin-terminal-live-20261016.json">real terminal checks</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-private-persistence-20261016.json">restart persistence</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-auth-content-review-20261016.json">legacy response-content review</a>.</p>
+<h2 id="section-5">Acceptance and remaining decisions</h2>
 <table>
 <thead>
 <tr>
-<th>Recorded test</th>
-<th>Result</th>
+<th>Control</th>
+<th>Current disposition</th>
+<th>What is needed to satisfy the original brief</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>Short exact replies</td>
-<td>0.223–0.233 seconds</td>
+<td>Prevent external leakage</td>
+<td>Local No Internet controls verified; remote Spark public connectivity remains an accepted exposure</td>
+<td>Infrastructure owner restricts and tests remote-worker egress, or an explicit sensitive-workload restriction/risk decision covers that exposure.</td>
 </tr>
 <tr>
-<td>Two simultaneous 119-token replies</td>
-<td>35.16–35.20 effective output tokens/sec each</td>
+<td>Prevent damage or excessive access</td>
+<td>Main runtime isolation verified; existing AD permissions preserved</td>
+<td>Data owner defines an enforced source/results scope and verifies the applicable read/write denials for the pilot identity.</td>
 </tr>
 <tr>
-<td>Short replies during 24,044-token work</td>
-<td>0.440–0.588 seconds; all finished before the larger request</td>
-</tr>
-<tr>
-<td>Historical near-1M backend test</td>
-<td>1,000,015 input tokens; exact required response</td>
-</tr>
-<tr>
-<td>Current end-to-end DSH 1M / two-1M concurrency</td>
-<td>Not established; DSH/LiteLLM remains 128K</td>
+<td>Keep results contained</td>
+<td>Main authenticated routes, private data boundaries and central audit verified</td>
+<td>Finish legacy-instance migration; define report/export handling and add endpoint controls if manual-copy prevention is required.</td>
 </tr>
 </tbody></table>
-<p>These are bounded samples including request overhead, not an SLA or sustained decode benchmark. The backend context ceiling is 1M; the product budget is 128K. The full <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LLM_SETUP_AND_TEST_RESULTS.md">LLM setup guide and test results</a> are included as a separate expandable section below. Raw test logs and migration histories are linked separately.</p>
-<h2 id="section-9">9 Closure checklist and accepted exceptions</h2>
-<table>
-<thead>
-<tr>
-<th>Requested limitation</th>
-<th>Actual disposition after this rollout</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Principal read-only permissions</td>
-<td>Superseded by the explicit requirement to preserve existing AD/datalake rights. Personal Kerberos identity propagation passed; no universal read-only or unspecified dataset permission is claimed.</td>
-</tr>
-<tr>
-<td>Remote Spark controls</td>
-<td>Driver/executor public TCP access was retested and failed the intended restriction. Livy remains available under the user&#39;s recorded risk acceptance. This is not technical remediation.</td>
-</tr>
-<tr>
-<td>Broad DSH admin data access</td>
-<td>Corrected for the main deployment: admin now uses private runtimes, cannot read owner histories via DSH, and retains only its management/audit role. Host, cluster and storage administrators remain trusted.</td>
-</tr>
-<tr>
-<td>Browser downloads/manual sharing</td>
-<td>Authorized recipients can still copy displayed information. Pod policies cannot control their devices. Restricting this needs managed-endpoint/VDI/DLP enforcement and its own acceptance; it is not marked closed here.</td>
-</tr>
-<tr>
-<td>DSH2/DSH3</td>
-<td>Reviewed, not migrated: root execution, mounted service-account token and three accounts per process remain. Existing login/logout protect the tested routes. DSH2 has 8 histories in 9 files; DSH3 has 1 history/file. Ownership mapping was requested before private migration.</td>
-</tr>
-</tbody></table>
-<p>The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-auth-content-review-20261016.json">legacy response-content review</a> establishes that anonymous and revoked-cookie requests return login forms, despite HTTP 200. It does not establish per-user process/filesystem isolation. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-state-review-20261016.json">state review</a> found equal live/persistent session hashes but live profiles absent from the persistent tree; four DSH2 session files use root working directories. Preserve and reconcile these before changing those pods. No legacy accounts, credentials, files or histories were deleted.</p>
-<p>The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-owner-restoration-live-20261016.json">owner restoration</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/owner-working-directories-20261016.json">working-directory checks</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/owner-admin-terminal-live-20261016.json">real terminal checks</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-private-persistence-20261016.json">admin persistence checks</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-private-network-20261016.json">new admin network checks</a> record the completed main-deployment correction. The first owner-cutover attempt was stopped for additional sensitive-alias review and the gateway specification was restored; the reviewed retry is the accepted result. Do not treat the first attempt as an acceptance run.</p>
-<p>Rollback uses the privately saved gateway/runtime specifications. Restore routing and mount specifications without overwriting newer central data; retain prepared private PVCs and original records. No model-server restart was required.</p>
-<p>The agreed disposition distinguishes verified controls, inherited permissions and accepted exposure:</p>
-<ol>
-<li>Existing user-specific AD/datalake entitlements remain inherited controls, not a missing universal read-only DSH feature. No new access was provisioned.</li>
-<li><strong>Accepted exception:</strong> remote Spark driver/executor public TCP access. The user chose to keep Livy/Spark available. Containment is not applied; full-path No Internet is not claimed.</li>
-<li>Named-pilot/report/export governance remains an operational responsibility, including the trusted-admin and legacy-instance exceptions. Admin no longer has the broad legacy mount through its DSH runtime; host/cluster/storage administrators remain privileged. Authentication and private report/file routes are tested; browser/manual export and every plugin are not certified by those tests.</li>
-<li>Offline package workflow is now verified by an actual download → hash promotion → No Internet installation/import, with five adversarial promotion tests. Future artifacts still require operator review.</li>
-</ol>
-<p>No new datalake permission was granted. No AD password or ticket was exported. The embedded README supplies setup/maintenance guidance; detailed test records remain separate from the risk summary.</p>
+<p>The environment choice, data scope and named participants should be recorded for each pilot exercise. Infrastructure owners own network enforcement; data owners own entitlements; the DSH operator owns runtime/routing/persistence; endpoint owners own device restrictions; the pilot owner decides whether residual exposure is acceptable. An accepted exception must not be labelled a technical fix.</p>
+<p>The evidence linked here records specific checks on 16 October 2026. Opening or regenerating this HTML does not run new security tests or grant access to data. Detailed migration histories, raw logs, model trials and setup instructions are supporting material, not the main risk-control narrative.</p>
 <details id="embedded-llm-guide"><summary>LLM setup guide and verified test results</summary><h1>Shared LLM — Setup and Verified Test Results</h1>
 <p><strong>Live configuration clarification, 16 October:</strong> DSH does not currently have end-to-end 1M access through LiteLLM. Fresh readback found the SGLang backend at 1,048,576 tokens, but LiteLLM’s loaded callback enforces 131,072 total tokens, 8,192 maximum output and a 256-token reserve. The legacy <code>dsh-secure</code> runtime still contains <code>contextWindow: 1048576</code> in <code>/state/cordis.patch.yml</code>; this is a configuration mismatch, not proof of usable 1M requests. The table below describes the intended product budget, not a fresh verification of every runtime profile. No runtime settings were changed in this clarification. Performance figures remain recorded samples, not a new benchmark.</p>
 <h2>Results that users can rely on</h2>
@@ -432,7 +407,7 @@ kubectl apply --dry-run=server -f deployment/vllm/04-vllm-deepseek-v4-1-flash.ya
 <p><strong>Ownership restored, 16 October 2026:</strong> <code>thanatcc</code> now routes to its preserved No Internet and Internet runtimes. All 80 histories / 82 session files retain their recorded hash; all 82 working-directory records point to readable directories outside the masked paths. Admin routes to fresh private runtimes, retains dashboard/audit access, and is denied legacy-history reads through DSH. The owner runtime masks the private-user subtree, three reviewed credential-file aliases, and the routing/recovery directories. Infrastructure administrators remain trusted. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/context-evidence/legacy-owner-restoration-live-20261016.json">live owner restoration</a>.</p>
 <p><strong>Confirmed remote-boundary gap, 16 October:</strong> synthetic Livy/Spark driver and executor reached GitHub and a public IP. DSH pod restrictions do not extend to that datalake compute. The user chose to keep Livy/Spark available with this documented risk. Containment remains unapplied; this is accepted exposure, not a fixed network boundary or an end-to-end No Internet guarantee. No RDT was read or written.</p>
 <p>DSH provides local login, <strong>No Internet / Internal (default)</strong> and <strong>Internet</strong> environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses <strong>Kerberos kinit → Livy/Spark → Hive/HDFS authorization</strong>. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.</p>
-<p>Read the English <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">security and architecture walkthrough</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md">source report</a>. HTML embeds this README and the LLM guide, links raw evidence separately, and includes SMP EDA diagram zoom, fullscreen and SVG/PNG export.</p>
+<p>Read the English <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">pilot risk-control report</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md">source report</a>. Its main narrative follows the supplied brief: prevent external leakage, prevent damage or excessive access, and keep results contained. Each control explains the environment, enforcement, observed tests and remaining decisions. The README, LLM guide and verification references are supporting material, collapsed initially. SMP EDA diagram zoom, fullscreen and SVG/PNG export remain available.</p>
 <p><strong>Existing-install safeguard:</strong> The initial pool/routing YAML files are bootstrap templates. Do not reapply them over this private deployment: doing so can undo owner routing and masks. <code>scripts/restore_legacy_owner.py</code> performs a guarded, one-time owner cutover with rollback; it refuses a different routing baseline. Keep the saved original specifications and verify actual access before any restore.</p>
 <h2>Features, design reasons and live status — 16 October 2026</h2>
 <table>
@@ -552,7 +527,7 @@ kubectl apply --dry-run=server -f deployment/vllm/04-vllm-deepseek-v4-1-flash.ya
 <p>The reviewed promoter stages bytes from one opened source file, rejects source/destination symlinks and traversal, validates all hashes before publication, and refuses conflicting approved artifacts. It runs in a network-denied operator job from a separately pinned immutable source ConfigMap; rebuilding DSH runtimes is not required for that operator code. Apply the reviewed source manifest before a deliberately approved promotion Job; the reusable template remains suspended with empty approval. A real pinned PyPI wheel passed download/hash verification, promotion, <code>--no-index</code> install/import in No Internet and Approved write denial. Five Linux attack regressions passed. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">live evidence</a>. Package provenance/security review remains an operator responsibility; these checks are not malware certification.</p>
 <h2>Upstream updates and shared LLM setup</h2>
 <p>The running DSH package <code>0.2.0-rc.2</code> matches npm latest/next at the fresh 16 October check; alpha is <code>0.2.1-alpha.4</code>. This is a deployment/overlay repository, not an official-source fork. The prepared GitHub workflow is designed for daily checks, candidate tests and package-pin PRs. Publication is blocked by the stored PAT lacking workflow permission; no scheduled workflow is active. It does not auto-merge or deploy Production. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">update policy</a>. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LLM_SETUP_AND_TEST_RESULTS.md">LLM setup/results guide</a> includes deployment order, actual settings, rollback and measured tests. The main HTML contains that guide but links raw evidence separately.</p>
-</details><h2 id="evidence">Selected evidence references</h2><p>Detailed logs and historical migration records stay in separate technical files. They are not embedded in this report.</p><ul><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/control-closure-review-20261016.json">control-closure-review-20261016.json</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-risk-accepted-snapshot-live-20261016.json">admin-risk-accepted-snapshot-live-20261016.json</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/upstream-check-20261016.json">upstream-check-20261016.json</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/performance-private-live-20261016.json">performance-private-live-20261016.json</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-1m-response-chunk1024.json">near-1m-response-chunk1024.json</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/final-private-gateway-live-20261016.json">final-private-gateway-live-20261016.json</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">package-workflow-live-20261016.json</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-boundary-live-20261016.json">remote-spark-boundary-live-20261016.json</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/livy-containment-prepared-20261016.json">livy-containment-prepared-20261016.json</a></li></ul><p class="meta">Built from tracked Markdown. Diagram controls adapted from SMP EDA ARCHITECTURE_AND_DATAFLOW.html; local Mermaid 10.8.0 / svg-pan-zoom 3.6.1. No CDN required.</p></main>
+</details><details id="verification-records"><summary>Verification records — supporting technical references</summary><p>Raw logs and historical migration records stay in separate files. The risk-control narrative above is the primary report.</p><ul><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/design-consistency-live-20261016.json">Local routing, audit and network checks</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">Authenticated remote-worker egress retest</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">Controlled offline package transfer</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-owner-restoration-live-20261016.json">Owner access and peer denial</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/owner-admin-terminal-live-20261016.json">Authenticated terminal execution</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-private-persistence-20261016.json">Private-state restart persistence</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-auth-content-review-20261016.json">Legacy-instance access review</a></li></ul></details><p class="meta">Built from tracked Markdown. Diagram controls adapted from SMP EDA ARCHITECTURE_AND_DATAFLOW.html; local Mermaid 10.8.0 / svg-pan-zoom 3.6.1. No CDN required.</p></main>
 <script>(function(BL,Z0){typeof exports=="object"&&typeof module<"u"?module.exports=Z0():typeof define=="function"&&define.amd?define(Z0):(BL=typeof globalThis<"u"?globalThis:BL||self,BL.mermaid=Z0())})(this,function(){var mVt,vVt;"use strict";function BL(i){for(var a=[],f=1;f<arguments.length;f++)a[f-1]=arguments[f];var g=Array.from(typeof i=="string"?[i]:i);g[g.length-1]=g[g.length-1].replace(/\r?\n([\t ]*)$/,"");var w=g.reduce(function(E,S){var _=S.match(/\n([\t ]+|(?!\s).)/g);return _?E.concat(_.map(function(M){var F,R;return(R=(F=M.match(/[\t ]/g))===null||F===void 0?void 0:F.length)!==null&&R!==void 0?R:0})):E},[]);if(w.length){var v=new RegExp(`
 [	 ]{`+Math.min.apply(Math,w)+"}","g");g=g.map(function(E){return E.replace(v,`
 `)})}g[0]=g[0].replace(/^\r?\n/,"");var b=g[0];return a.forEach(function(E,S){var _=b.match(/(?:^|\n)( *)$/),M=_?_[1]:"",F=E;typeof E=="string"&&E.includes(`

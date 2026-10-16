@@ -6,7 +6,7 @@
 
 DSH provides local login, **No Internet / Internal (default)** and **Internet** environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses **Kerberos kinit → Livy/Spark → Hive/HDFS authorization**. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.
 
-Read the English [security and architecture walkthrough](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) and [source report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md). HTML embeds this README and the LLM guide, links raw evidence separately, and includes SMP EDA diagram zoom, fullscreen and SVG/PNG export.
+Read the English [pilot risk-control report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) and [source report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md). Its main narrative follows the supplied brief: prevent external leakage, prevent damage or excessive access, and keep results contained. Each control explains the environment, enforcement, observed tests and remaining decisions. The README, LLM guide and verification references are supporting material, collapsed initially. SMP EDA diagram zoom, fullscreen and SVG/PNG export remain available.
 
 **Existing-install safeguard:** The initial pool/routing YAML files are bootstrap templates. Do not reapply them over this private deployment: doing so can undo owner routing and masks. `scripts/restore_legacy_owner.py` performs a guarded, one-time owner cutover with rollback; it refuses a different routing baseline. Keep the saved original specifications and verify actual access before any restore.
 
