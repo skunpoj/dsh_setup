@@ -24,13 +24,11 @@ try {
   '2 Prevent damage or excessive access',
   '3 Keep results contained'
  ],'Primary report must be organized around the supplied three pilot risks');
- for(const id of ['verification-records']){
-  assert.equal(await page.locator('#'+id).evaluate(e=>e.open),false,'Technical support material must be collapsed initially');
- }
  const narrative=await page.locator('main').evaluate(main=>{const copy=main.cloneNode(true);copy.querySelectorAll('details[id^="evidence-"]').forEach(node=>node.remove());return copy.textContent;});
  assert(!/[\u0e00-\u0e7f]/.test(narrative),'Risk report narrative must be English');
  assert.equal(await page.locator('#embedded-readme, #embedded-llm-guide').count(),0,'General setup guides must remain outside the three-risk report');
- assert.equal(await page.locator('details[id^="evidence-"]').count(),0,'Raw evidence logs must remain separate');
+ assert.equal(await page.locator('#verification-records, a[href*="context-evidence"], details[id^="evidence-"]').count(),0,'Design report must not contain evidence sections or links');
+ assert(!/Recorded result|Verification and remaining exposure|Supporting evidence|Public egress observed|workers tested/.test(narrative),'Design explanations must not contain test-result reporting');
  assert(!/Main DSH model status|Context and performance|Live configuration clarification|Ownership correction|Executive assessment|conflated|withdrawn|earlier request|tokens\/second|tokens\/sec/.test(narrative),'Operational updates must not interrupt the risk-control narrative');
 
  await page.waitForTimeout(1200);
@@ -68,6 +66,6 @@ try {
  await setupPage.goto(pathToFileURL(path.join(root,'docs/LLM_SETUP_AND_TEST_RESULTS.html')).href);
  assert((await setupPage.locator('main').innerText()).includes(acceptedInput));
  assert((await setupPage.locator('h1').innerText()).includes('1M Setup, Performance and Operational Limits'));
- const record={time:new Date().toISOString(),riskCentredHeadings:mainHeadings,supportingMaterialInitiallyCollapsed:true,englishNarrative:true,readmeEmbedded:false,llmGuideEmbedded:false,standaloneLlmGuide:true,rawEvidenceEmbedded:false,renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
+ const record={time:new Date().toISOString(),riskCentredHeadings:mainHeadings,designOnly:true,supportingEvidenceIncluded:false,englishNarrative:true,readmeEmbedded:false,llmGuideEmbedded:false,standaloneLlmGuide:true,rawEvidenceEmbedded:false,renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
  fs.writeFileSync(path.join(out,'html-verification.json'),JSON.stringify(record,null,2));console.log(JSON.stringify(record));
 }finally{await browser.close();}

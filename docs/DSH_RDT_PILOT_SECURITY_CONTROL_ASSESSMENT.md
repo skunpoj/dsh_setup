@@ -1,6 +1,6 @@
 # DSH — Controlling Three Security Risks
 
-The controls below limit what the Harness, its tools and generated code can reach, change and disclose. Enforcement belongs in network rules, execution identities, storage permissions and authenticated routes. A prompt asking the agent to behave safely is not an access control.
+This document explains the control design for limiting what the Harness, its tools and generated code can reach, change and disclose. It describes principles and required boundaries rather than deployment status or test results. Enforcement belongs in network rules, execution identities, storage permissions and authenticated routes. A prompt asking the agent to behave safely is not an access control.
 
 ## 1 Prevent external leakage
 
@@ -35,37 +35,30 @@ flowchart TB
  G --> S[No Internet - private execution and data]
  G --> I[Internet - separate dependency staging]
  S --> M[Internal LiteLLM and model]
- S --> B[Direct public connections denied]
+ S --> B[Network layer blocks public destinations]
  I --> P[Incoming packages]
  P --> V[Operator review and hash verification]
  V --> C[Approved read-only cache]
  C --> S
  S --> L[Allowed Livy endpoint]
  L --> R[Remote Spark drivers and executors]
- R --> E[Public egress observed - remaining exposure]
+ R --> E[Separate worker network restrictions required]
  classDef exposure fill:#7f1d1d,stroke:#f87171,color:#ffffff
  class E exposure
 ```
 
 ### Cover remote execution as well as DSH
 
-A Spark job executes on remote drivers and executors. The DSH pod's network rules do not follow the code onto those workers. Remote execution therefore requires its own destination restrictions, DNS/proxy controls and outbound tests. Allowing an internal Livy connection is safe only to the extent that the resulting remote execution is appropriately contained.
+A Spark job executes on remote drivers and executors. The DSH pod's network rules do not follow the code onto those workers. Remote execution therefore requires its own destination restrictions and DNS/proxy controls. An internal Livy connection is an execution path into another platform, so its drivers and executors must be included in the network design.
 
-Livy/Spark remains available. Recorded driver and executor tests reached public TCP destinations, so complete outbound containment is not established. Closing this exposure requires the datalake infrastructure owner to restrict the actual worker network paths, or route protected jobs to a worker environment with equivalent restrictions. An accepted exception permits continued use; it does not block the connection.
+The same principle applies to any remote tool, notebook server or job runner: the component that executes code needs its own egress boundary. DSH restrictions cannot substitute for a firewall on a downstream platform. The datalake infrastructure owner controls worker destinations; the DSH operator controls the local runtime and which remote endpoints it may contact.
 
-### Verification and remaining exposure
+### Allow only necessary internal services
 
-| Check | Recorded result | Control implication |
-|---|---|---|
-| Public domains, direct public IPs and DNS bypass from tested No Internet runtimes | Representative requests failed while internal inference worked | The tested local outbound boundary is enforced. |
-| Internet dependency access versus internal data-service access | Package sites were reachable; tested KDC, Livy and unrelated internal services were denied | Dependency preparation is separated from the tested data-access paths. |
-| Offline dependency installation | Download, hash promotion, offline installation and import passed; writes to the approved cache were denied | Packages can be supplied without sharing writable workspaces. |
-| Internal inference restrictions | Checked configuration used internal hosts; administration and endpoint-override requests were denied | The tested configured inference route is constrained. |
-| Remote Spark driver and executor outbound access | Public TCP connections succeeded | Remote-worker containment remains open. |
+Use a default-deny policy and explicit destinations and ports. DNS should resolve only the names required by the environment, and alternative DNS, proxies and relay services must not create an unintended route outside the boundary. Approved internal services must themselves have an appropriate trust and outbound policy; an allowed internal endpoint can otherwise become an indirect path to the Internet.
 
-Network acceptance must include each execution mode and representative domain, direct-IP, DNS, proxy and IPv6 paths where enabled. The infrastructure owner must confirm the enforced rules and repeat the checks after relevant routing or policy changes.
+Keep network changes under operator control rather than letting generated code change policy labels, routing or firewall rules. The execution identity should have no Kubernetes management credential. Dependency downloads, internal inference and distributed analysis remain distinct flows with separate permissions and owners.
 
-Supporting evidence: [local network boundaries](context-evidence/design-consistency-live-20261016.json), [dependency transfer](context-evidence/package-workflow-live-20261016.json), [model-route configuration](context-evidence/pilot-model-route-config-20261016.json), [remote-worker tests](context-evidence/public-pilot-system-account-live-20261016.json).
 
 ## 2 Prevent damage or excessive access
 
@@ -97,26 +90,21 @@ flowchart TB
  C --> K[Kerberos execution identity]
  K --> A[Effective datalake authorization]
  A --> D[Approved source or public sandbox]
- A --> N[Out-of-scope access denied - test required]
+ A --> N[Authorization denies unrelated data]
  P --> Q[CPU and memory limits]
  D --> O[Separate result scope where required]
  classDef pending fill:#78350f,stroke:#fbbf24,color:#ffffff
  class N pending
 ```
 
-### Verification and remaining exposure
+### Bound resource use and recover from mistakes
 
-| Check | Recorded result | Control implication |
-|---|---|---|
-| Private runtime execution and terminal access | Non-root execution and tested user boundaries passed | Local work is separated from peer workspaces and administrative execution. |
-| Approved package cache | Write attempts were denied | Execution cannot alter the approved dependency source through that mount. |
-| System-account authentication and identity propagation | Kerberos authentication passed; Livy owner and Spark execution user matched the system principal | The tested job used the expected identity. This does not prove its full entitlement scope. |
-| Exact public sandbox and exclusive permissions | The expected sandbox was not visible in the checked catalog; permitted operations and out-of-scope denial were not accepted | Sandbox-only authorization remains unverified. |
-| Remote resource control | ResourceManager metrics were available; pilot queue limits and alerts were not established | Monitoring visibility alone does not constrain a runaway remote job. |
+Local CPU and memory limits protect the application host, but distributed jobs need datalake queue limits, executor limits, timeouts and cancellation controls. Resource monitoring should connect a named user and submitted job to its consumption so an operator can stop excessive work without affecting unrelated users.
 
-Closure requires a confirmed sandbox catalog/path and effective grants, permitted reads/writes on disposable fixtures, and denied access to a safe out-of-scope fixture. For protected sources, verify denied writes without modifying genuine records. Remote jobs also require queue/resource limits and an operator response to excessive consumption. Keep a recoverable baseline for disposable test inputs and transformations.
+Separate original inputs from generated outputs. Preserve a recoverable baseline for experiments, restrict deletion where practical and apply versioning or backups according to the data's recovery requirements. A mounted central share provides persistence; it does not prevent code with write permission from overwriting or deleting content.
 
-Supporting evidence: [private routing and audit](context-evidence/owner-admin-snapshot-live-20261016.json), [execution identity and sandbox check](context-evidence/public-pilot-system-account-live-20261016.json), [remote resource metrics](context-evidence/public-pilot-da-resource-metrics-20261016.json).
+The key principle is to constrain effective permissions, not merely the intended task. A non-root container can still damage files it may write, and a correctly authenticated job can still misuse broad data permissions. Network isolation, local execution restrictions and datalake authorization must work together.
+
 
 ## 3 Keep results contained
 
@@ -154,21 +142,14 @@ flowchart TB
 
 ### Control the browser and legacy routes
 
-An authorized browser can display, download or copy a result. Pod network policy does not control the user's device. Where the handling requirement prohibits those actions, managed-browser, VDI or endpoint DLP restrictions must enforce it, with explicit tests of the allowed and prohibited actions.
+An authorized browser can display, download or copy a result. Pod network policy does not control the user's device. Where the handling requirement prohibits those actions, managed-browser, VDI or endpoint DLP restrictions must enforce it, according to the required data-handling policy.
 
-Legacy DSH2/DSH3 instances do not provide the same private-runtime boundary: their recorded configuration uses root execution, a service-account token and multiple accounts sharing a process. They must be migrated to equivalent isolation or excluded from handling protected pilot content. A successful login on those instances does not establish containment between their users.
+Every application instance, including a legacy runtime or separately launched report server, needs the same user, network and storage boundaries before it handles protected content. A separate hostname or a successful login does not isolate users who share one process and broad filesystem access.
 
-### Verification and remaining exposure
+### Keep containment consistent across the full workflow
 
-| Check | Recorded result | Control implication |
-|---|---|---|
-| Owner versus peer history access | Owner access passed; other users, including the application admin, were denied ordinary access | The tested history routes respect ownership. |
-| Dashboard and role manipulation | Non-admin dashboard/API requests and forged-role attempts were denied | The tested oversight routes are restricted. |
-| Terminal and attachment boundaries | Authenticated terminal execution and synthetic user/session/file boundary tests passed | The tested interactive paths preserve the user boundary. |
-| Runtime replacement | Workspace and attachment markers persisted in the tested replacements | The tested durable outputs survived process replacement. |
-| Authorized-device copying | No managed-browser/VDI/DLP acceptance is established | Manual copying is outside the verified pod controls. |
-| Legacy instances | Basic authentication passed; equivalent per-user containment is not established | Legacy routes must not inherit the main deployment's acceptance. |
+Apply authorization when a file is created, listed, opened, downloaded or served by a generated application. Bind the request to the authenticated user on the server; do not trust a submitted owner name or a client-selected filesystem path. Restrict direct access to runtime ports so the gateway cannot be bypassed.
 
-Closure requires named participant provisioning, checks of every report/file/terminal route, denial of peer and unauthenticated access, and verification that generated tools do not add unauthenticated publishing paths. Apply endpoint restrictions where required and migrate or exclude legacy execution paths. Repeat these checks after changes to authentication, routing or storage mounts.
+Temporary files, exported charts and application logs should stay in the same private scope as the underlying analysis. Use appropriate retention and cleanup, avoid recording credentials or unnecessary sensitive content, and ensure temporary download links do not become public or permanent access paths.
 
-Supporting evidence: [owner and peer access](context-evidence/legacy-owner-restoration-live-20261016.json), [terminal routes](context-evidence/owner-admin-terminal-live-20261016.json), [private-state persistence](context-evidence/admin-private-persistence-20261016.json), [legacy access review](context-evidence/legacy-auth-content-review-20261016.json).
+Keep operational oversight separate from access to user content. Administrative exceptions should be narrow, attributable and governed by an explicit support process. Network controls prevent unauthorized machine-to-machine transmission; authentication and private storage prevent peer access; endpoint handling controls govern what an authorized person can take away. Each addresses a different part of result containment.
