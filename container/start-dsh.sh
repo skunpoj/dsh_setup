@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 : "${DSH_ENVIRONMENT:?DSH_ENVIRONMENT must be secure or internet}"
 : "${DSH_TRUSTED_HOST:?DSH_TRUSTED_HOST is required}"
@@ -22,7 +23,9 @@ else
   export npm_config_cache=/packages/incoming/npm-cache
 fi
 
-mkdir -p /state/sessions /state/storages /state/attachments /workspace /runtime-tokens
+mkdir -p /state/sessions /state/storages /state/attachments /state/kerberos /workspace /runtime-tokens
+chmod 0700 /state/kerberos
+export KRB5CCNAME="${KRB5CCNAME:-FILE:/state/kerberos/ccache}"
 rm -rf "${DSH_HOME:-$HOME/.dsh}"
 ln -s /state "${DSH_HOME:-$HOME/.dsh}"
 if [ ! -f /state/settings.yaml ]; then

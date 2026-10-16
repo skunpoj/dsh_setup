@@ -1,0 +1,12 @@
+{
+  "timeUTC": "2026-10-16T07:04:54.729494+00:00",
+  "secret": "dsh-inference-admin-20261016",
+  "credentialValuesExported": false,
+  "denials": {
+    "/key/list": 403,
+    "/key/generate": 403,
+    "/model/new": 403
+  },
+  "inferenceExact": true,
+  "allowedModelCount": 22
+}

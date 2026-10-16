@@ -45,6 +45,12 @@ class IsolationManifests(unittest.TestCase):
         mounts = gateway['spec']['template']['spec']['containers'][0]['volumeMounts']
         self.assertFalse(any(m['mountPath'] in ('/state', '/workspace') for m in mounts))
         self.assertTrue(all(m['readOnly'] for m in mounts if m['name'].startswith('token-')))
+        gateway_pod = gateway['spec']['template']['spec']
+        self.assertEqual(gateway_pod['containers'][0]['command'], ['node', '/gateway-source/auth_proxy.js'])
+        source_volume = next(v for v in gateway_pod['volumes'] if v['name'] == 'gateway-source')
+        source_map = next(d for d in docs if d['kind'] == 'ConfigMap' and d['metadata']['name'] == source_volume['configMap']['name'])
+        self.assertIn('function bindAuthenticatedProxyIdentity', source_map['data']['auth_proxy.js'])
+        self.assertIn('function renderAdminDashboard', source_map['data']['auth_proxy.js'])
 
     def test_rejects_invalid_provisioning(self):
         for users in (['../alice'], ['alice', 'alice'], []):

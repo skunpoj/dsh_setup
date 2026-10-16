@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "timeUTC": "2026-10-16T07:00:27.535Z",
+  "gatewayOverlaySHA256": "b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94",
+  "checks": [
+    "anonymous denied",
+    "ordinary user denied despite forged admin headers",
+    "admin access",
+    "read-only methods",
+    "secret projection",
+    "admin-only navigation",
+    "browser rendering",
+    "snapshot timestamps",
+    "DOM injection inert",
+    "missing snapshot unknown",
+    "logout revokes access",
+    "audit contains no passwords",
+    "audit schema constrained",
+    "full audit capacity denies new login and preserves archives"
+  ]
+}

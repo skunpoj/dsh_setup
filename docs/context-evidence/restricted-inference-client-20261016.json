@@ -1,0 +1,12 @@
+{
+  "timeUTC": "2026-10-16T06:56:23.049063+00:00",
+  "secret": "dsh-inference-canary-20261016",
+  "credentialValuesExported": false,
+  "denials": {
+    "/key/list": 403,
+    "/key/generate": 403,
+    "/model/new": 403
+  },
+  "inferenceExact": true,
+  "allowedModelCount": 22
+}

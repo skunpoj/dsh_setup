@@ -17,6 +17,29 @@ const COOKIE_NAME = process.env.DSH_COOKIE_NAME || 'dsh_auth';
 const COOKIE_TRANSPORT = process.env.DSH_COOKIE_SECURE === 'false' ? '' : '; Secure';
 const ADMIN_USERS = new Set((process.env.DSH_ADMIN_USERS || 'admin').split(',').map(x => x.trim()).filter(Boolean));
 const ADMIN_SUMMARY_FILE = process.env.DSH_ADMIN_SUMMARY_FILE || '/admin-status/summary.json';
+const AUDIT_DIR = process.env.DSH_AUDIT_DIR || `${USER_ROOT}/audit`;
+let auditFailures = 0;
+function auditEvent(event, actor, mode) {
+  try {
+    fs.mkdirSync(AUDIT_DIR, { recursive: true, mode: 0o700 });
+    const file = `${AUDIT_DIR}/events.jsonl`;
+    if (fs.existsSync(file) && fs.statSync(file).size >= 5 * 1024 * 1024) {
+      // Preserve old records; stop rather than silently delete an audit archive.
+      if (fs.existsSync(`${AUDIT_DIR}/events.5.jsonl`)) throw new Error('Audit retention capacity reached');
+      for (let i = 4; i >= 1; i--) if (fs.existsSync(`${AUDIT_DIR}/events.${i}.jsonl`)) fs.renameSync(`${AUDIT_DIR}/events.${i}.jsonl`, `${AUDIT_DIR}/events.${i+1}.jsonl`);
+      fs.renameSync(file, `${AUDIT_DIR}/events.1.jsonl`);
+    }
+    const user = typeof actor === 'string' && /^[a-zA-Z0-9_.-]{1,30}$/.test(actor) ? actor : 'unidentified';
+    fs.appendFileSync(file, JSON.stringify({ time: new Date().toISOString(), event, user,
+      environment: normalizeInternetMode(mode) === 'on' ? 'internet' : 'secure' }) + '\n', { mode: 0o600 });
+    return true;
+  } catch { auditFailures++; console.error('[AUDIT] Could not persist security event'); return false; }
+}
+function recentAudit() {
+  try { return fs.readFileSync(`${AUDIT_DIR}/events.jsonl`, 'utf8').trim().split('\n').filter(Boolean).slice(-100).map(line => {
+    const r = JSON.parse(line);return {time:r.time,event:r.event,user:r.user,environment:r.environment};
+  }); } catch { return []; }
+}
 
 function adminSummary() {
   let saved = {};
@@ -27,6 +50,7 @@ function adminSummary() {
   // Kubernetes configuration from an operator-supplied snapshot.
   return { generatedAt: new Date().toISOString(), registeredAccounts: Object.keys(loadUsers()).length,
     activeBrowserSessions: sessions, privateUserRouting: Boolean(USER_TARGETS), registrationEnabled: ALLOW_REGISTRATION,
+    audit: { failuresSinceStart: auditFailures, recentEvents: recentAudit().length },
     snapshot: { observedAt: typeof saved.observedAt === 'string' ? saved.observedAt : null,
       environments: Array.isArray(saved.environments) ? saved.environments.map(e => ({ name: String(e.name || ''),
         ready: e.ready === true, storage: String(e.storage || ''), network: String(e.network || '') })) : [],
@@ -43,12 +67,12 @@ function renderAdminDashboard() {
 <div class="cards"><section>Registered accounts<br><strong id="accounts">—</strong></section><section>Active browser sessions<br><strong id="sessions">—</strong><div id="sessionDetail"></div></section><section>User routing<br><strong id="routing">—</strong></section></div>
 <section class="notice"><h2>Evidence freshness</h2><p id="freshness"></p><p>Account/session counts and routing are current gateway values. Environment health, storage, limits and performance below are an operator-recorded snapshot, not live monitoring. Browser logins are not unique users or model requests.</p></section>
 <section><h2>Execution environments</h2><div style="overflow:auto"><table><thead><tr><th>Environment</th><th>Recorded readiness</th><th>Storage</th><th>Recorded network behavior</th></tr></thead><tbody id="environments"></tbody></table></div></section>
-<section><h2>Model limits</h2><p id="model"></p><p class="muted">A concurrency ceiling does not guarantee that many maximum-length requests fit.</p></section><section><h2>Recorded performance</h2><ul id="performance"></ul></section><section class="notice"><h2>Remaining controls</h2><ul id="gaps"></ul></section><p class="muted">Read-only overview. No passwords, cookies, conversation contents or source records are displayed.</p></main>
+<section><h2>Model limits</h2><p id="model"></p><p class="muted">A concurrency ceiling does not guarantee that many maximum-length requests fit.</p></section><section><h2>Recorded performance</h2><ul id="performance"></ul></section><section><h2>Central access audit</h2><p id="audit"></p><a href="/api/admin/audit">Read recent access events</a></section><section class="notice"><h2>Remaining controls</h2><ul id="gaps"></ul></section><p class="muted">Read-only overview. No passwords, cookies, conversation contents or source records are displayed.</p></main>
 <script>
 const put=(id,value)=>document.getElementById(id).textContent=value;
 function list(id,values){const root=document.getElementById(id);root.replaceChildren();for(const value of values){const li=document.createElement('li');li.textContent=value;root.append(li);}}
 async function refresh(){try{const r=await fetch('/api/admin/summary',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('Admin access unavailable ('+r.status+').');const d=await r.json();put('error','');put('time','Gateway read at '+d.generatedAt);put('accounts',d.registeredAccounts);put('sessions',d.activeBrowserSessions.secure+d.activeBrowserSessions.internet);put('sessionDetail','No Internet: '+d.activeBrowserSessions.secure+' · Internet: '+d.activeBrowserSessions.internet);put('routing',d.privateUserRouting?'Per user':'Shared pools');put('freshness',d.snapshot.observedAt?'Snapshot observed at '+d.snapshot.observedAt+'. Refresh does not rerun infrastructure tests.':'No snapshot available. Infrastructure status is unknown.');const root=document.getElementById('environments');root.replaceChildren();for(const e of d.snapshot.environments){const tr=document.createElement('tr');for(const text of [e.name,e.ready?'Ready at observation':'Not verified ready',e.storage,e.network]){const td=document.createElement('td');td.textContent=text;tr.append(td);}root.append(tr);}const m=d.snapshot.model;put('model',m?'Backend context: '+m.backendContext+' tokens · DSH/LiteLLM budget: '+m.userContext+' tokens · Running-request ceiling: '+m.concurrencyCeiling:'No recorded limits.');list('performance',d.snapshot.performance);list('gaps',d.snapshot.gaps);}catch(e){put('error',e.message);}}
-document.getElementById('refresh').addEventListener('click',refresh);refresh();
+document.getElementById('refresh').addEventListener('click',refresh);refresh().then(async()=>{try{const r=await fetch('/api/admin/summary',{cache:'no-store'});const d=await r.json();put('audit','Recent recorded events: '+d.audit.recentEvents+' · Write failures since gateway start: '+d.audit.failuresSinceStart);}catch{put('audit','Audit status unavailable.');}});
 </script></html>`;
 }
 
@@ -768,6 +792,7 @@ const server = http.createServer((req, res) => {
           res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
           return res.end(renderAuthPage({ tab: 'login', errorMsg: 'ไม่สามารถบันทึกนโยบาย Internet access ได้ กรุณาลองใหม่อีกครั้ง' }));
         }
+        if (!auditEvent('login.success', username, internet)) { res.writeHead(503); return res.end('Audit storage unavailable.'); }
         const sessionId = crypto.randomBytes(24).toString('hex');
         SESSIONS.set(sessionId, { user: username, internet, created: Date.now() });
 
@@ -792,6 +817,7 @@ const server = http.createServer((req, res) => {
           return res.end();
         });
       } else {
+        auditEvent('login.denied', username, 'off');
         console.log(`[AUTH-PROXY] Failed login attempt for user: ${username}`);
         res.writeHead(401, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(renderAuthPage({ tab: 'login', errorMsg: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง' }));
@@ -894,7 +920,11 @@ const server = http.createServer((req, res) => {
   if (parsedUrl.pathname === '/logout') {
     for (const c of (req.headers.cookie || '').split(';').map(v => v.trim())) {
       for (const name of [COOKIE_NAME, 'dsh_auth']) {
-        if (c.startsWith(`${name}=`)) SESSIONS.delete(c.substring(name.length + 1));
+        if (c.startsWith(`${name}=`)) {
+          const sid = c.substring(name.length + 1);const s = SESSIONS.get(sid);
+          if (s) auditEvent('logout', s.user, s.internet);
+          SESSIONS.delete(sid);
+        }
       }
     }
     const domainAttr = getCookieDomain();
@@ -941,14 +971,14 @@ const server = http.createServer((req, res) => {
   }
 
   // Reserve admin routes before any app forwarding or environment lookup.
-  if (parsedUrl.pathname === '/admin' || parsedUrl.pathname === '/api/admin/summary') {
+  if (parsedUrl.pathname === '/admin' || parsedUrl.pathname === '/api/admin/summary' || parsedUrl.pathname === '/api/admin/audit') {
     const headers = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer' };
-    if (!ADMIN_USERS.has(sessionUser)) { res.writeHead(403, headers); return res.end('Administrator access required.'); }
+    if (!ADMIN_USERS.has(sessionUser)) { auditEvent('admin.denied', sessionUser, activeSession.internet); res.writeHead(403, headers); return res.end('Administrator access required.'); }
     if (req.method !== 'GET') { res.writeHead(405, { ...headers, Allow: 'GET' }); return res.end('Read-only endpoint.'); }
-    const api = parsedUrl.pathname === '/api/admin/summary';
+    const api = parsedUrl.pathname !== '/admin';
     res.writeHead(200, { ...headers, 'Content-Type': api ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8' });
-    return res.end(api ? JSON.stringify(adminSummary()) : renderAdminDashboard());
+    return res.end(api ? JSON.stringify(parsedUrl.pathname.endsWith('/audit') ? {events:recentAudit()} : adminSummary()) : renderAdminDashboard());
   }
   const internetMode = normalizeInternetMode(activeSession && activeSession.internet);
   const environmentTarget = getEnvironmentTarget(internetMode, sessionUser);
@@ -970,6 +1000,7 @@ const server = http.createServer((req, res) => {
   }
 
   // Dynamic App Gateway (Option 1 Subdomain or Option 2 Path Proxy); only reachable after login
+  if (!auditEvent('runtime.http', sessionUser, internetMode)) { res.writeHead(503); return res.end('Audit storage unavailable.'); }
   const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
   const appTarget = parseAppTarget(incomingHost, req.url);
   if (appTarget && appTarget.port) {
@@ -1088,6 +1119,7 @@ server.on('upgrade', (req, socket, head) => {
   const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
   const appTarget = parseAppTarget(incomingHost, req.url);
   if (appTarget && appTarget.port) {
+    if (!auditEvent(appTarget.port === 7681 ? 'terminal.open' : 'application.websocket', activeSession.user, internetMode)) return socket.destroy();
     return forwardWebSocketToLocalApp(appTarget.port, appTarget.targetPath, req, socket, head, environmentTarget.host);
   }
 

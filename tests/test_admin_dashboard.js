@@ -54,8 +54,17 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
   await browser.close();browser=null;
   fs.unlinkSync(path.join(root,'summary.json'));const missing=JSON.parse((await request('GET','/api/admin/summary','',admin)).text);assert.equal(missing.snapshot.observedAt,null);assert.deepEqual(missing.snapshot.environments,[]);
   await request('GET','/logout','',admin);assert((await request('GET','/admin','',admin)).text.includes('id="pane-login"'));
+  const audit=fs.readFileSync(path.join(root,'audit/events.jsonl'),'utf8');
+  assert(!audit.includes('synthetic-admin')&&!audit.includes('synthetic-ordinary'));
+  assert(audit.includes('login.success')&&audit.includes('admin.denied')&&audit.includes('logout'));
+  for(const line of audit.trim().split('\n'))assert.deepEqual(Object.keys(JSON.parse(line)).sort(),['environment','event','time','user']);
+  fs.writeFileSync(path.join(root,'audit/events.jsonl'),'x'.repeat(5*1024*1024));
+  fs.writeFileSync(path.join(root,'audit/events.5.jsonl'),'preserved archive');
+  const full=await request('POST','/login','username=admin&password=synthetic-admin&internet=off');
+  assert.equal(full.status,503);assert(!full.headers['set-cookie']);
+  assert.equal(fs.readFileSync(path.join(root,'audit/events.5.jsonl'),'utf8'),'preserved archive');
   const evidence={passed:true,timeUTC:new Date().toISOString(),gatewayOverlaySHA256:crypto.createHash('sha256').update(fs.readFileSync(source,'utf8').replace(/\r\n/g,'\n')).digest('hex'),
-   checks:['anonymous denied','ordinary user denied despite forged admin headers','admin access','read-only methods','secret projection','admin-only navigation','browser rendering','snapshot timestamps','DOM injection inert','missing snapshot unknown','logout revokes access']};
+   checks:['anonymous denied','ordinary user denied despite forged admin headers','admin access','read-only methods','secret projection','admin-only navigation','browser rendering','snapshot timestamps','DOM injection inert','missing snapshot unknown','logout revokes access','audit contains no passwords','audit schema constrained','full audit capacity denies new login and preserves archives']};
   if(process.env.DSH_TEST_EVIDENCE_OUTPUT)fs.writeFileSync(process.env.DSH_TEST_EVIDENCE_OUTPUT,JSON.stringify(evidence,null,2));
   console.log(JSON.stringify(evidence));
  }finally{if(browser)await browser.close();gateway.kill();await new Promise(r=>gateway.once('exit',r));await new Promise(r=>backend.close(r));fs.rmSync(root,{recursive:true,force:true});}

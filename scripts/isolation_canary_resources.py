@@ -71,7 +71,7 @@ def build(namespace, image):
             if mode == 'secure':
                 pod['volumes'].append({'name': 'synthetic-source', 'persistentVolumeClaim': {'claimName': 'synthetic-source', 'readOnly': True}})
                 container['volumeMounts'].append({'name': 'synthetic-source', 'mountPath': '/data/rdt', 'subPath': prefix + '/source', 'readOnly': True})
-        elif d['kind'] == 'ConfigMap':
+        elif d['kind'] == 'ConfigMap' and 'users.json' in d.get('data', {}):
             routes = json.loads(d['data']['users.json'])
             for targets in routes.values():
                 for target in targets.values():

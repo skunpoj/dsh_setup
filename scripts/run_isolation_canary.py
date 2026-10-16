@@ -42,6 +42,7 @@ print(json.dumps({'uniqueHistories':len(ids),'sessionFiles':len(rows),'aggregate
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--inference-secret', default='dsh-inference-canary-20261016')
     args = parser.parse_args()
     now = datetime.now(timezone(timedelta(hours=7)))
     ns = 'dsh-iso-' + now.strftime('%Y%m%d-%H%M%S')
@@ -95,7 +96,7 @@ def main():
     try:
         # The only copied Production secret field is the existing internal
         # inference key. It is never persisted in local or Git evidence.
-        existing = json.loads(command('get', 'secret', 'dsh-runtime-secrets', '-n', 'llm', '-o', 'json'))
+        existing = json.loads(command('get', 'secret', args.inference_secret, '-n', 'llm', '-o', 'json'))
         apply({'apiVersion': 'v1', 'kind': 'Secret', 'metadata': {'name': 'dsh-runtime-secrets', 'namespace': ns},
                'data': {'litellm-api-key': existing['data']['litellm-api-key']}})
         users = {u: secrets.token_hex(32) for u in USERS}

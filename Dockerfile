@@ -2,7 +2,7 @@ FROM node:22-bookworm-slim
 
 ARG DSH_VERSION=0.2.0-rc.2
 RUN apt-get update \
- && apt-get install -y --no-install-recommends bash ca-certificates curl git jq openssl procps python3 python3-pip python3-venv socat \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends bash ca-certificates curl git jq krb5-user openssl procps python3 python3-pip python3-venv socat \
  && npm install -g --ignore-scripts "@deepseek-ai/dsh@${DSH_VERSION}" \
  && rm -rf /var/lib/apt/lists/* /root/.npm
 
@@ -13,7 +13,7 @@ RUN chmod 0755 /usr/local/bin/ttyd \
 RUN groupadd --gid 10001 dsh \
  && useradd --uid 10001 --gid 10001 --create-home --home-dir /home/dsh dsh
 
-ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh
+ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh KRB5CCNAME=FILE:/state/kerberos/ccache
 
 COPY scripts/ /opt/dsh/scripts/
 COPY tests/ /opt/dsh/tests/

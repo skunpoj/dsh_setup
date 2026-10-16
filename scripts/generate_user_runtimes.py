@@ -37,6 +37,15 @@ def generate(users, image, rdt_source_pvc=None, rdt_approval_ref=None):
     pod['volumes'] = [v for v in pod['volumes'] if v['name'] == 'auth']
     container['volumeMounts'].append({'name': 'routing', 'mountPath': '/routing', 'readOnly': True})
     pod['volumes'].append({'name': 'routing', 'configMap': {'name': 'dsh-user-routing'}})
+    # A private-user cutover must not revert the current hardened gateway and
+    # admin dashboard to the older source baked into the pinned runtime image.
+    gateway_source = (root / 'scripts/auth_proxy.js').read_text(encoding='utf-8')
+    source_hash = hashlib.sha256(gateway_source.encode()).hexdigest()
+    source_name = 'dsh-gateway-source-' + source_hash[:12]
+    container['command'] = ['node', '/gateway-source/auth_proxy.js']
+    container['volumeMounts'].append({'name': 'gateway-source', 'mountPath': '/gateway-source', 'readOnly': True})
+    pod['volumes'].append({'name': 'gateway-source', 'configMap': {'name': source_name}})
+    gateway['spec']['template']['metadata'].setdefault('annotations', {})['dsh.bot.or.th/gateway-source-sha256'] = source_hash
     documents, routes = [], {}
     for user in users:
         if not re.fullmatch(r'[a-z0-9_.-]{3,30}', user):
@@ -54,6 +63,9 @@ def generate(users, image, rdt_source_pvc=None, rdt_approval_ref=None):
             runtime['spec']['automountServiceAccountToken'] = False
             runtime['spec']['securityContext']['seccompProfile'] = {'type': 'RuntimeDefault'}
             runtime['spec']['containers'][0]['image'] = image
+            # Private DSH frontends share GPU inference. Reserve lightweight
+            # idle capacity without multiplying a full CPU per environment.
+            runtime['spec']['containers'][0]['resources']['requests'] = {'cpu': '250m', 'memory': '1Gi'}
             for volume in runtime['spec']['volumes']:
                 old = volume['persistentVolumeClaim']['claimName']
                 if old == 'dsh-package-approved':
@@ -102,7 +114,9 @@ def generate(users, image, rdt_source_pvc=None, rdt_approval_ref=None):
                 'tokenFile': f'/runtime-tokens/{identity}/{environment}/{environment}'}
     documents.extend([{'apiVersion': 'v1', 'kind': 'ConfigMap',
         'metadata': {'name': 'dsh-user-routing', 'namespace': 'llm'},
-        'data': {'users.json': json.dumps(routes, indent=2)}}, gateway])
+        'data': {'users.json': json.dumps(routes, indent=2)}},
+        {'apiVersion': 'v1', 'kind': 'ConfigMap', 'immutable': True,
+         'metadata': {'name': source_name, 'namespace': 'llm'}, 'data': {'auth_proxy.js': gateway_source}}, gateway])
     return documents
 
 
