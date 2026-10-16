@@ -24,6 +24,14 @@ else
 fi
 
 mkdir -p /state/sessions /state/storages /state/attachments /state/kerberos /workspace /runtime-tokens
+mkdir -p /state/claude /state/trueforge
+chmod 0700 /state/claude /state/trueforge
+if [ ! -e "$HOME/.claude" ]; then
+  ln -s /state/claude "$HOME/.claude"
+elif [ "$(readlink "$HOME/.claude" || true)" != /state/claude ]; then
+  echo 'Existing Claude directory requires explicit reconciliation' >&2
+  exit 65
+fi
 chmod 0700 /state/kerberos
 export KRB5CCNAME="${KRB5CCNAME:-FILE:/state/kerberos/ccache}"
 rm -rf "${DSH_HOME:-$HOME/.dsh}"

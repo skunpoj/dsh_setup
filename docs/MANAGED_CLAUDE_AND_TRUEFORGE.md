@@ -22,7 +22,9 @@ This protects the supplied installations, not arbitrary programs a user writes. 
 
 ## Isolation and use
 
-Run `claude` from the authenticated DSH terminal. Run `trueforge` to start its private server on loopback port 8790. It uses `/state/trueforge` within the current user's selected environment, separate from DSH history. It is not exposed through an unauthenticated Ingress. Browser publication requires an authenticated route and separate acceptance; binding a server locally is not a shared multi-user deployment.
+Run `claude` from the authenticated DSH terminal. Run `trueforge` to start its private server on port 3000, then use the existing authenticated [DSH app route](https://dsh-3000.aiportal.bot.or.th). It uses `/state/trueforge` within the current user's selected environment, separate from DSH history. NetworkPolicy permits ingress only from the DSH gateway; the gateway selects the logged-in user's environment/runtime. There is no new public unauthenticated Ingress. Start it only when port 3000 is free; other applications may already use that app port.
+
+LiteLLM must set `use_chat_completions_url_for_anthropic_messages: true`. Without it the protected canonical route receives unsupported `/responses` requests and returns 404. The switch was tested first on a separate LiteLLM candidate with the same guard, then applied to the existing gateway. No inference-backend restart is required.
 
 The existing user/environment separation, CIFS workspace mounts, histories, Kerberos tickets, network policies and shared GPU model remain independent of these tool configurations. TrueForge local sandbox availability must be tested in the restricted container; no privileged container, host socket or additional datalake access is granted to make it work.
 

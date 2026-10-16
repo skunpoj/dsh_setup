@@ -50,6 +50,7 @@ def candidate(original, data, image):
     if sorted(matched) != ['deepseek-flash', 'deepseek-v4.1-flash']:
         raise ValueError('Expected both canonical routes')
     config['litellm_settings']['callbacks'] = ['gateway_output_guard.proxy_handler_instance']
+    config['litellm_settings']['use_chat_completions_url_for_anthropic_messages'] = True
     new_data = dict(data)
     new_data['config.yaml'] = yaml.safe_dump(config, sort_keys=False)
     for name in ['gateway_output_guard.py', 'context_forwarder.py',
