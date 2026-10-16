@@ -1,0 +1,128 @@
+{
+  "workflow": {
+    "id": 386666257,
+    "name": "DSH upstream candidate",
+    "path": ".github/workflows/upstream-candidate.yml",
+    "state": "active",
+    "html_url": "https://github.com/skunpoj/dsh_setup/blob/main/.github/workflows/upstream-candidate.yml"
+  },
+  "runs": [
+    {
+      "id": 38900841456,
+      "head_sha": "a315e9a281cb2f79718ccd6950d2fbe8baff4af9",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/skunpoj/dsh_setup/actions/runs/38900841456",
+      "created_at": "2026-10-16T12:29:14Z",
+      "updated_at": "2026-10-16T12:30:50Z",
+      "jobs": [
+        {
+          "id": 116972414201,
+          "name": "qualify",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/skunpoj/dsh_setup/actions/runs/38900841456/job/116972414201",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-16T12:29:17Z",
+              "completed_at": "2026-10-16T12:29:18Z"
+            },
+            {
+              "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-16T12:29:18Z",
+              "completed_at": "2026-10-16T12:29:19Z"
+            },
+            {
+              "name": "Detect official release and validate input",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-16T12:29:19Z",
+              "completed_at": "2026-10-16T12:29:20Z"
+            },
+            {
+              "name": "Build candidate with reviewed upstream patch contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-16T12:29:20Z",
+              "completed_at": "2026-10-16T12:30:13Z"
+            },
+            {
+              "name": "Test actual installed package and disposable web runtime",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-16T12:30:13Z",
+              "completed_at": "2026-10-16T12:30:16Z"
+            },
+            {
+              "name": "Test deployment overlays",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-16T12:30:16Z",
+              "completed_at": "2026-10-16T12:30:23Z"
+            },
+            {
+              "name": "Verify admin dashboard browser behavior",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-16T12:30:23Z",
+              "completed_at": "2026-10-16T12:30:46Z"
+            },
+            {
+              "name": "Write qualification summary",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-16T12:30:46Z",
+              "completed_at": "2026-10-16T12:30:46Z"
+            },
+            {
+              "name": "Retain detection, image and test evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-16T12:30:46Z",
+              "completed_at": "2026-10-16T12:30:47Z"
+            },
+            {
+              "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18,
+              "started_at": "2026-10-16T12:30:47Z",
+              "completed_at": "2026-10-16T12:30:47Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "started_at": "2026-10-16T12:30:47Z",
+              "completed_at": "2026-10-16T12:30:47Z"
+            }
+          ]
+        },
+        {
+          "id": 116973051322,
+          "name": "propose",
+          "status": "completed",
+          "conclusion": "skipped",
+          "html_url": "https://github.com/skunpoj/dsh_setup/actions/runs/38900841456/job/116973051322",
+          "steps": []
+        }
+      ]
+    }
+  ]
+}
