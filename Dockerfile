@@ -1,9 +1,12 @@
 FROM node:22-bookworm-slim
 
 ARG DSH_VERSION=0.2.0-rc.2
+ARG CLAUDE_CODE_VERSION=2.1.301
+ARG TRUEFORGE_VERSION=0.179.2
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends bash ca-certificates curl git jq krb5-user openssl procps python3 python3-pip python3-venv socat \
- && npm install -g --ignore-scripts "@deepseek-ai/dsh@${DSH_VERSION}" \
+ && npm install -g --ignore-scripts "@deepseek-ai/dsh@${DSH_VERSION}" "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
+ && npm install -g "@truefoundry/trueforge@${TRUEFORGE_VERSION}" \
  && rm -rf /var/lib/apt/lists/* /root/.npm
 
 COPY vendor/ttyd /usr/local/bin/ttyd
@@ -18,7 +21,9 @@ ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh KRB5CCNAME=FILE:/state/kerberos/ccach
 COPY scripts/ /opt/dsh/scripts/
 COPY tests/ /opt/dsh/tests/
 COPY container/ /opt/dsh/container/
-RUN node /opt/dsh/scripts/verify_upstream_contract.js \
+RUN python3 /opt/dsh/scripts/configure_managed_harnesses.py \
+ && node /opt/dsh/tests/test_managed_harnesses.mjs \
+ && node /opt/dsh/scripts/verify_upstream_contract.js \
  && node /opt/dsh/scripts/configure_models.js \
  && node /opt/dsh/scripts/verify_installed_candidate.js "${DSH_VERSION}" \
  && mkdir -p /opt/dsh/seed \

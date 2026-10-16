@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
+const policy = JSON.parse(fs.readFileSync('/etc/claude-code/managed-settings.json'));
+assert.deepEqual(policy.allowedProviders, ['customEndpoint']);
+assert.deepEqual(policy.availableModels, ['deepseek-v4.1-flash']);
+assert.equal(policy.enforceAvailableModels, true);
+assert.equal(policy.availableModelsMatch, 'exact');
+assert.equal(policy.env.NODE_TLS_REJECT_UNAUTHORIZED, undefined);
+const source = fs.readFileSync('/usr/local/lib/node_modules/@truefoundry/trueforge/dist/main.js','utf8');
+assert.ok(source.includes('const modelProviderStore = managedStore();'));
+assert.ok(source.includes('Model configuration is operator managed'));
+assert.match(execFileSync('claude', ['--version'], {encoding:'utf8'}), /2\.1\.301/);
+assert.match(execFileSync('trueforge', ['--help'], {encoding:'utf8'}), /0\.179\.2/);
+console.log('Pinned harness versions and operator-owned configuration verified.');
