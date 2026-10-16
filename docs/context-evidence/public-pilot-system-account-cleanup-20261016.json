@@ -1,0 +1,10 @@
+{
+  "temporaryCacheMetadata": {
+    "uid": 10001,
+    "mode": "0o600"
+  },
+  "ticketDestroySucceeded": true,
+  "cacheFileAbsent": true,
+  "podRemovalSucceeded": true,
+  "networkpolicyRemovalSucceeded": true
+}

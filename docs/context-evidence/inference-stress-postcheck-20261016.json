@@ -1,0 +1,59 @@
+{
+  "checkedAtUTC": "2026-10-16T12:42:15.937944+00:00",
+  "healthSentinel": {
+    "label": "post-health",
+    "startMonotonic": 609240.267700146,
+    "endMonotonic": 609240.524132874,
+    "firstTokenSeconds": 0.1077,
+    "elapsedSeconds": 0.2564,
+    "text": "STRESS_HEALTH_OK",
+    "expected": "STRESS_HEALTH_OK",
+    "exact": true,
+    "usage": {
+      "completion_tokens": 6,
+      "prompt_tokens": 16,
+      "total_tokens": 22,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finishReason": "stop",
+    "contentEvents": 5,
+    "effectiveOutputTokensPerSecond": 23.398
+  },
+  "services": [
+    {
+      "app": "vllm-deepseek-v4-1-flash",
+      "pod": "vllm-deepseek-v4-1-flash-5ddc98546f-m7tcl",
+      "startedAt": "2026-10-15T10:33:36Z",
+      "containers": [
+        {
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+          "restartCount": 0,
+          "startedAt": "2026-10-15T10:33:40Z"
+        }
+      ],
+      "budgetArguments": {
+        "--context-length": "1048576",
+        "--mem-fraction-static": "0.90",
+        "--max-running-requests": "16",
+        "--chunked-prefill-size": "1024",
+        "--max-prefill-tokens": "2048",
+        "--prefill-decode-interval": "4"
+      }
+    },
+    {
+      "app": "litellm",
+      "pod": "litellm-fd8cbfc7-qn4dj",
+      "startedAt": "2026-10-15T04:45:34Z",
+      "containers": [
+        {
+          "imageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+          "restartCount": 0,
+          "startedAt": "2026-10-15T04:45:35Z"
+        }
+      ]
+    }
+  ],
+  "configurationChanged": false
+}

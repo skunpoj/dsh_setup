@@ -1,9 +1,9 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Pilot — Controlling Data Leakage, Source Damage and Result Exposure</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-</style></head><body><main><h1>DSH Pilot — Controlling Data Leakage, Source Damage and Result Exposure</h1><div class="status"><strong>Three controls govern this pilot: prevent external leakage, prevent source damage or excessive access, and keep results contained.</strong> Main DSH protections are deployed; the public-data pilot still needs system-account/sandbox acceptance and verified remote-worker containment.</div><nav aria-label="Contents"><a href="#section-1">Pilot boundary and environment choice</a><a href="#section-2">1 Prevent external leakage</a><a href="#section-3">2 Prevent damage or excessive access</a><a href="#section-4">3 Keep results contained</a><a href="#section-5">Acceptance and remaining decisions</a><a href="#verification-records">Supporting verification records</a></nav>
+</style></head><body><main><h1>DSH Pilot — Controlling Data Leakage, Source Damage and Result Exposure</h1><div class="status"><strong>Three controls govern this pilot: prevent external leakage, prevent source damage or excessive access, and keep results contained.</strong> Main DSH protections are deployed; system-account authentication is verified, while public-sandbox scope and remote-worker containment remain open.</div><nav aria-label="Contents"><a href="#section-1">Pilot boundary and environment choice</a><a href="#section-2">1 Prevent external leakage</a><a href="#section-3">2 Prevent damage or excessive access</a><a href="#section-4">3 Keep results contained</a><a href="#section-5">Acceptance and remaining decisions</a><a href="#verification-records">Supporting verification records</a></nav>
 <p>The pilot assumes that the Harness, its tools and generated code can make mistakes or act beyond the intended task. Its protection therefore comes from network boundaries, execution identities, data permissions, private storage and authenticated access—not prompt instructions alone.</p>
 <p><strong>The objective is to limit what can go wrong enough to make this specific pilot acceptable. It is not to prove that the Harness is universally safe.</strong></p>
-<p>This report follows the three controls in the supplied pilot brief. It explains which environment to use, how each protection works, what the recorded tests establish and what still needs a decision or additional enforcement. The main DSH environment has deployed protections. The newly clarified pilot is <strong>public-data-only</strong>, using a dedicated system identity limited to one sandbox. That scoped pilot is not yet qualified: its system-account authentication and sandbox permissions have not been accepted, and remote-worker containment needs its own test.</p>
+<p>This report follows the three controls in the supplied pilot brief. It explains which environment to use, how each protection works, what the recorded tests establish and what still needs a decision or additional enforcement. The main DSH environment has deployed protections. The newly clarified pilot is <strong>public-data-only</strong>, using a dedicated system identity limited to one sandbox. System-account Kerberos authentication and identity propagation through Livy/Spark are now verified in an isolated temporary canary. The scoped pilot is not yet qualified: the exact sandbox was not visible under that identity, exclusive sandbox permissions are unverified, and its remote driver/executor still reached public TCP destinations.</p>
 <h2 id="section-1">Pilot boundary and environment choice</h2>
 <h3>Public-data pilot and execution identity</h3>
 <p>The pilot described in the supplied operating plan uses <strong><code>da-agent-system-user</code></strong>, with read/write access only to <strong><code>sandbox_da_agent_public_data</code></strong>. Personal AD rights remain unchanged outside the pilot, but personal credentials are not the intended agent identity for this exercise. People still use named DSH logins for private workspaces and audit; the system account is the datalake execution identity, not a shared DSH web login. Only public data is permitted initially; use of internal BOT data requires a later internal approval decision. Read/write access to the disposable public sandbox is deliberate and must not be confused with unrestricted access to internal source data.</p>
@@ -16,15 +16,15 @@
 </thead>
 <tbody><tr>
 <td>Dedicated system account</td>
-<td>AD lookup found <code>da-agent-system-user</code> enabled. Prior Spark acceptance used the personal Windows login, not this account. No system-account ticket was found in the checked main caches; an approved private authentication reference is still needed.</td>
+<td>A fresh private Kerberos login passed. Livy owner and Spark execution user both matched <code>da-agent-system-user</code> in synthetic session 630. The temporary ticket cache was isolated from existing users; no password was written to reports or Git.</td>
 </tr>
 <tr>
 <td>Exactly one public-data sandbox</td>
-<td>The exact name was not visible through the personal login&#39;s Hive catalog on <code>hdfs://botdlk-da</code>. This is not proof of nonexistence, and does not test the system account&#39;s rights. Verify the approved catalog/path and account scope with its own authentication.</td>
+<td>The exact name was not visible through the system account on the Hive catalog using <code>hdfs://botdlk-da</code>. This is not proof of nonexistence; creation, catalog/path or permissions may differ. The data owner must confirm the approved target and grants before read/write or exclusivity acceptance.</td>
 </tr>
 <tr>
 <td>Local execution without Internet</td>
-<td>Main No Internet pod probes passed. Personal-account remote Spark driver/executor probes reached public TCP destinations. The system-account workload needs its own worker-boundary test; the pilot is not qualified as fully offline.</td>
+<td>Main No Internet pod probes passed. Fresh system-account Spark driver and executor probes reached <code>github.com:443</code> and <code>1.1.1.1:443</code>; public DNS TCP/53 timed out. The end-to-end offline requirement remains unmet.</td>
 </tr>
 <tr>
 <td>Clear software/data terms</td>
@@ -37,6 +37,7 @@
 </tbody></table>
 <p>Use a <strong>dedicated pilot runtime with a clean workspace/history and credential cache</strong>, retaining central CIFS persistence through bounded pilot subpaths. A new working directory alone does not restrict access to legacy data already mounted in a process. Do not mount the broad legacy workspace or introduce internal datasets into this public-data exercise. Keep each human&#39;s workspace isolated even if the data-access principal is shared; correlate gateway user, runtime, Livy session and Spark application in the pilot audit design.</p>
 <p>The approval/creation workflow in the plan is still required: data-owner approval, creation through the sandbox system, and granting this principal the intended sandbox role. Account existence alone proves none of those steps. Prepare the internal-review package in parallel, with verified facts and open conditions clearly labelled; do not describe preparation as approval to use internal data.</p>
+<p><strong>Fresh system-account test:</strong> metadata only; no source data was queried or modified and no permission was changed. The test-created Livy session was deleted and its absence verified. Its private ticket was destroyed and the temporary runtime removed. This verifies that identity, not every user&#39;s entitlements. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-system-account-live-20261016.json">system-account result</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-system-account-cleanup-20261016.json">credential/runtime cleanup</a>.</p>
 <p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-system-account-directory-20261016.json">AD account lookup</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-auth-availability-20261016.json">authentication availability</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-sandbox-metadata-20261016.json">sandbox metadata check</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-da-resource-metrics-20261016.json">DA metrics</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-license-review-20261016.json">license check scope</a>.</p>
 <p>An analyst defines a DQ hypothesis and the permitted data scope. The agent can prepare Python or Spark code, execute it under the available identity and produce reports in that user&#39;s working area. The controls below must constrain those actions even when the generated code is wrong.</p>
 <table>
@@ -86,7 +87,7 @@
  S --&gt; M[Internal LiteLLM and shared model]
  S --&gt; L[Permitted Livy connection]
  L --&gt; R[Remote Spark driver and executors]
- R --&gt; E[Public TCP reachable - accepted exposure]
+ R --&gt; E[Public TCP reachable - containment open]
  S --&gt; B[Direct public probes blocked]
  I --&gt; P[Package incoming]
  P --&gt; V[Operator review and exact-byte hash verification]
@@ -101,7 +102,7 @@
  S --&gt; M[Internal LiteLLM and shared model]
  S --&gt; L[Permitted Livy connection]
  L --&gt; R[Remote Spark driver and executors]
- R --&gt; E[Public TCP reachable - accepted exposure]
+ R --&gt; E[Public TCP reachable - containment open]
  S --&gt; B[Direct public probes blocked]
  I --&gt; P[Package incoming]
  P --&gt; V[Operator review and exact-byte hash verification]
@@ -131,13 +132,13 @@
 <td>The intended library-transfer path works without sharing writable workspaces.</td>
 </tr>
 <tr>
-<td>The authenticated Spark driver <strong>and executor</strong> reached <code>github.com:443</code> and <code>1.1.1.1:443</code></td>
+<td>The authenticated system-account Spark driver <strong>and executor</strong> reached <code>github.com:443</code> and <code>1.1.1.1:443</code></td>
 <td><strong>The end-to-end Internet-denial requirement is not met.</strong> Blocking Internet only in DSH does not contain code sent to remote Spark.</td>
 </tr>
 </tbody></table>
 <p>The user previously chose to keep Livy/Spark available in the general platform with this documented exposure. That accepted operational exception does not qualify the newly clarified offline public-data pilot and is not a repaired firewall. No RDT was read or transmitted by the recorded connectivity tests.</p>
 <p><strong>To meet the original requirement:</strong> the datalake infrastructure owner must enforce restricted egress for the actual Spark drivers/executors and retain only their necessary internal services. Acceptance must test outbound paths from each relevant execution mode, including direct IP, DNS, configured proxies and IPv6 where enabled. If that enforcement cannot be provided, sensitive remote execution needs an explicit risk decision or a restriction on its use. This report does not silently disable the retained Livy service.</p>
-<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/design-consistency-live-20261016.json">local boundaries</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-private-network-20261016.json">new admin runtimes</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">offline package workflow</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">authenticated remote Spark retest</a>.</p>
+<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/design-consistency-live-20261016.json">local boundaries</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-private-network-20261016.json">new admin runtimes</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">offline package workflow</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">earlier personal-account Spark retest</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-system-account-live-20261016.json">fresh system-account driver/executor retest</a>.</p>
 <h2 id="section-3">2 Prevent damage or excessive access</h2>
 <p><strong>Risk:</strong> generated code could modify source data, delete writable content or reach unrelated resources. Denying Internet access does not prevent those actions inside an authorized internal system.</p>
 <h3>What enforces the boundary</h3>
@@ -155,7 +156,7 @@
   </div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart TB
  A[Named pilot user] --&gt; X[Dedicated non-root public-data runtime - target]
  X --&gt; W[Clean private workspace and results]
- X --&gt; K[Private system-account cache - authentication pending]
+ X --&gt; K[Private system ticket - canary verified]
  K --&gt; P[da-agent-system-user]
  P --&gt; D[Sandbox-only authorization - acceptance pending]
  D --&gt; Q[sandbox_da_agent_public_data - intended read and write]
@@ -163,11 +164,11 @@
  T[Internal data only after separate approval] --&gt; V[Least-privilege source access]
  T --&gt; O[Separate writable results scope]
  classDef pending fill:#78350f,stroke:#fbbf24,color:#ffffff
- class K,D,N pending
+ class D,N pending
 ">flowchart TB
  A[Named pilot user] --&gt; X[Dedicated non-root public-data runtime - target]
  X --&gt; W[Clean private workspace and results]
- X --&gt; K[Private system-account cache - authentication pending]
+ X --&gt; K[Private system ticket - canary verified]
  K --&gt; P[da-agent-system-user]
  P --&gt; D[Sandbox-only authorization - acceptance pending]
  D --&gt; Q[sandbox_da_agent_public_data - intended read and write]
@@ -175,7 +176,7 @@
  T[Internal data only after separate approval] --&gt; V[Least-privilege source access]
  T --&gt; O[Separate writable results scope]
  classDef pending fill:#78350f,stroke:#fbbf24,color:#ffffff
- class K,D,N pending
+ class D,N pending
 </div></div></section>
 <h3>Source protection in the public-data pilot and later internal use</h3>
 <table>
@@ -191,7 +192,7 @@
 </tr>
 <tr>
 <td>Public sandbox read/write, no unrelated data access</td>
-<td>Intended for <code>da-agent-system-user</code>; AD account existence is verified, but its sandbox-only effective rights and authentication are not yet accepted.</td>
+<td>Intended for <code>da-agent-system-user</code>; authentication and Livy/Spark identity propagation are verified; its sandbox-only effective rights are not accepted, and the target was not visible in the checked catalog.</td>
 </tr>
 <tr>
 <td>Internal source protection</td>
@@ -202,7 +203,7 @@
 <td>DSH provides isolated working areas. Datalake writes must also stay within the approved public sandbox/results scope.</td>
 </tr>
 </tbody></table>
-<p><strong>To qualify this pilot:</strong> authenticate the system account through the approved private process, confirm that its effective Hive/HDFS and sandbox-application roles grant the intended public-sandbox access, and test permitted sandbox reads/writes on disposable public fixtures. The data owner must also provide a safe out-of-scope test target whose access is denied. Do not use genuine internal records for that negative test or assume that one visible database proves exclusivity. Keep a recoverable reference copy of public test inputs so generated transformations do not destroy the experiment&#39;s baseline.</p>
+<p><strong>To qualify this pilot:</strong> confirm the sandbox creation/catalog/path and effective Hive/HDFS and sandbox-application grants for the now-tested system identity, and test permitted sandbox reads/writes on disposable public fixtures. The data owner must also provide a safe out-of-scope test target whose access is denied. Do not use genuine internal records for that negative test or assume that one visible database proves exclusivity. Keep a recoverable reference copy of public test inputs so generated transformations do not destroy the experiment&#39;s baseline.</p>
 <p>Public-sandbox administration must not confer broader datalake administration. The system principal&#39;s credentials must stay out of the Internet environment. A shared service identity also needs human-to-job audit correlation; the current identity-propagation tests alone do not establish that correlation for all pilot users.</p>
 <p>If internal RDT is approved later, establish least-privilege source access—read-only where required—and a separate writable result scope. A view alone is insufficient if execution can bypass it with broader credentials. None of these permissions or approvals is granted by this report.</p>
 <p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/owner-admin-snapshot-live-20261016.json">private routing and audit checks</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">identity propagation</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/kerberos-personal-ticket-check-20261016.json">Kerberos ticket-presence check</a>.</p>
@@ -260,13 +261,13 @@
 </thead>
 <tbody><tr>
 <td>Prevent external leakage</td>
-<td>Local No Internet controls verified; general-platform personal-account Spark exposure was accepted, while the scoped pilot worker boundary is unqualified</td>
-<td>Infrastructure owner restricts and tests the actual system-account driver/executor egress; the earlier general-platform exception must not be presented as offline pilot acceptance.</td>
+<td>Local No Internet controls verified; fresh system-account Spark driver/executor Internet access is confirmed</td>
+<td>Infrastructure owner restricts the actual pilot driver/executor egress and repeats the probes; the earlier general-platform exception is not offline pilot acceptance.</td>
 </tr>
 <tr>
 <td>Prevent damage or excessive access</td>
-<td>Main runtime isolation verified; dedicated public-sandbox identity/scope not yet accepted</td>
-<td>Authenticate <code>da-agent-system-user</code>, validate sandbox read/write and safe out-of-scope denial, and keep internal data out until separately approved.</td>
+<td>Main runtime isolation and system-account authentication/identity verified; exclusive public-sandbox scope not accepted</td>
+<td>Confirm the approved sandbox catalog/path and grants, validate read/write and safe out-of-scope denial, and keep internal data out until separately approved.</td>
 </tr>
 <tr>
 <td>Keep results contained</td>
@@ -275,6 +276,7 @@
 </tr>
 </tbody></table>
 <p>The environment choice, data scope and named participants should be recorded for each pilot exercise. Infrastructure owners own network enforcement; data owners own entitlements; the DSH operator owns runtime/routing/persistence; endpoint owners own device restrictions; the pilot owner decides whether residual exposure is acceptable. An accepted exception must not be labelled a technical fix.</p>
+<p><strong>Performance retest:</strong> 105/105 synthetic inference responses passed at burst concurrency up to 16 and mixed input up to 120,048 tokens. At 16 concurrency, aggregate output was 214.5–229.4 tokens/sec; short replies during 120K input finished in 0.475–0.545 seconds. The sampler observed a queue peak of 12; there was no model restart or checked OOM/scheduler-error signature. Full tables are in the embedded LLM guide below. Performance acceptance is separate from closure of the security controls.</p>
 <p>The evidence linked here records specific checks on 16 October 2026. Opening or regenerating this HTML does not run new security tests or grant access to data. Detailed migration histories, raw logs, model trials and setup instructions are supporting material, not the main risk-control narrative.</p>
 <details id="embedded-llm-guide"><summary>LLM setup guide and verified test results</summary><h1>Shared LLM — Setup and Verified Test Results</h1>
 <p><strong>Extensive live review, 16 October:</strong> DSH does not currently have end-to-end 1M access through LiteLLM. The SGLang backend is configured for 1,048,576 tokens. All 20 main runtime web-profile files declare 131,072 context and 8,192 output for the DeepSeek aliases. Boot-free composition of the legacy owner&#39;s and private admin&#39;s web profiles confirms those values. The legacy home-level 1M entry refers to an older GLM configuration; it does not establish a 1M DeepSeek web route. The mounted LiteLLM callback uses 131,072/8,192/256, with coverage limitations detailed below. No model, gateway or DSH server was restarted or reconfigured during this investigation.</p>
@@ -326,6 +328,105 @@
 </tr>
 </tbody></table>
 <p>The earlier 16 October measurements are in <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/performance-private-live-20261016.json">the exact response/timing record</a>; the fresh review is in <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/llm-review-performance-20261016.json">the new response/timing record</a>. Fresh isolated short replies took 0.230–0.246 seconds. The historical million-token result is <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-1m-response-chunk1024.json">recorded separately</a>. None is a substitute for application-level task correctness.</p>
+<h2>Live stress retest — 16 October 2026</h2>
+<p><strong>Passed: 105/105 synthetic responses across 18 stages</strong>, from 19:37:31 to 19:41:27 ICT. The test used the real internal LiteLLM streaming route from Secure, its existing inference credential, temperature zero and fresh nonce prefixes. It changed no settings, created no DSH histories and read no business data. This is an inference-route test, not a DSH browser/agent or compaction test.</p>
+<h3>Concurrent bursts</h3>
+<p>Each concurrency level ran three times. Every response had to contain the requested complete 1–40 sequence after whitespace normalization. Actual completion counts varied from 80 to 119 tokens because formatting varied; rates use returned token usage rather than an assumed 119 tokens. TTFT means time to first streamed content or reasoning event. Percentiles are nearest-rank values from these small samples, not service-level guarantees.</p>
+<table>
+<thead>
+<tr>
+<th>Concurrent requests</th>
+<th>Responses verified</th>
+<th>TTFT p95, seconds</th>
+<th>Completion p95, seconds</th>
+<th>Effective output tokens/sec per request</th>
+<th>Aggregate output tokens/sec across rounds</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>3/3</td>
+<td>0.131</td>
+<td>3.694</td>
+<td>32.1–32.3</td>
+<td>32.1–32.3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>6/6</td>
+<td>0.320</td>
+<td>3.700</td>
+<td>32.2–34.5</td>
+<td>53.8–66.1</td>
+</tr>
+<tr>
+<td>4</td>
+<td>12/12</td>
+<td>0.356</td>
+<td>3.827</td>
+<td>29.8–32.4</td>
+<td>105.3–124.3</td>
+</tr>
+<tr>
+<td>8</td>
+<td>24/24</td>
+<td>0.856</td>
+<td>5.145</td>
+<td>21.5–26.8</td>
+<td>168.0–179.9</td>
+</tr>
+<tr>
+<td>16</td>
+<td>48/48</td>
+<td>1.966</td>
+<td>7.460</td>
+<td>13.1–18.6</td>
+<td>214.5–229.4</td>
+</tr>
+</tbody></table>
+<p>More concurrency increased aggregate throughput while each request became slower. Sixteen is a tested burst level for these short outputs, not a promise of sixteen large contexts or sustained-load capacity. Rates include queue, prefill and network time; they are not isolated steady-state decode speed.</p>
+<h3>Short replies during larger uncached input</h3>
+<p>One larger synthetic request ran alongside three sequential short probes. Returned usage verified each input size; all nine short probes returned the expected sentinel before their larger request completed.</p>
+<table>
+<thead>
+<tr>
+<th>Actual larger input tokens</th>
+<th>Larger completion, seconds</th>
+<th>Short completion range, seconds</th>
+<th>Short TTFT range, seconds</th>
+<th>Shorts finished before larger response</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>24,043</td>
+<td>5.223</td>
+<td>0.476–0.486</td>
+<td>0.159–0.169</td>
+<td>3/3</td>
+</tr>
+<tr>
+<td>96,046</td>
+<td>26.041</td>
+<td>0.475–0.495</td>
+<td>0.155–0.178</td>
+<td>3/3</td>
+</tr>
+<tr>
+<td>120,048</td>
+<td>35.528</td>
+<td>0.475–0.545</td>
+<td>0.157–0.229</td>
+<td>3/3</td>
+</tr>
+</tbody></table>
+<p>The sampler observed <strong>16 running requests and a queue peak of 12</strong>. Queueing is therefore not absent, despite the responsive short mixed-load probes. Forty-four GPU/queue samples completed without monitor errors. Minimum sampled free GPU memory was 4,592–4,594 MiB per GPU; sampled GPU utilization reached 100%. These samples do not establish the exact transient memory peak.</p>
+<p>The model pod identity and zero restart count stayed unchanged. The test interval contained no matches for the checked CUDA OOM, OutOfMemoryError, illegal-memory-access or scheduler-exception signatures. A separate post-test request returned exactly <code>STRESS_HEALTH_OK</code> in <strong>0.256 seconds</strong>. Running model/LiteLLM imageIDs and start times were read back; both retained zero restarts, with the existing model arguments.</p>
+<h3>Stop conditions, reproduction and limits</h3>
+<p>The probe requires idle admission metrics before each stage. It stops escalation on inference errors, incorrect output, changed model pod/image/restart state, burst completion over 15 seconds, larger completion over 40 seconds, or short mixed replies over five seconds or without observed overlap. Completed/stopped stages are saved rather than overwritten. An independent readback validated all response content, finish reasons, returned token counts and model error-signature counts.</p>
+<pre><code class="language-powershell">python scripts/stress_live_inference.py --output stress-new-run.json
+</code></pre>
+<p>This deliberately loads the shared service; run it when idle. It is a bounded burst/mixed-load stress test, not a destructive OOM or prolonged saturation exercise. It did <strong>not</strong> test arbitrary tool schemas, images, complete DSH tasks, compaction, current near-1M operation or two concurrent 1M requests. The backend remains configured for 1,048,576; testing stayed within the existing 131,072-token LiteLLM budget. No limit was raised for this run.</p>
+<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-20261016-live.json">complete request/sampling record</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-summary-20261016.json">independently recalculated tables and executed probe hash</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-postcheck-20261016.json">post-test sentinel, imageIDs and arguments</a>. Raw logs are linked supporting material, not embedded in the main risk narrative.</p>
 <h2>Current service layout and limits</h2>
 <p><code>Private DSH runtime → internal LiteLLM :4000 → SGLang :8000 → shared four-H100 model</code></p>
 <p>The Kubernetes deployment is named <code>vllm-deepseek-v4-1-flash</code> for compatibility, but its process runs <strong>SGLang</strong>. The Service remains <code>vllm-deepseek-v4-flash</code>.</p>
@@ -505,7 +606,7 @@ kubectl apply --dry-run=server -f deployment/vllm/04-vllm-deepseek-v4-1-flash.ya
 <p>The workflow is now active and <a href="https://github.com/skunpoj/dsh_setup/actions/runs/38900841456">its first hosted run passed</a>. Downloaded evidence confirmed the candidate image build, ten matching patch targets, actual web startup/authentication/catalog checks, 35 Linux Python cases and admin browser checks. That workflow makes no model call: the measured LLM inference results earlier in this guide remain separate recorded experiments. There was no version change, so no update PR or Production release occurred.</p>
 <p>On regression, restore the saved compatible Deployment/configuration pair and repeat exact inference plus DSH access/persistence tests. Do not replace newer workspace/history data with an older snapshot merely to roll back an image. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">maintenance procedure</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CONTEXT_OPTIMIZATION_20261015.md">existing context trial record</a> remain separate technical references.</p>
 </details><details id="embedded-readme"><summary>Deployment README</summary><h1>DSH — Private Execution Environments and Kerberos Datalake Access</h1>
-<p><strong>Public-data pilot target:</strong> Use <code>da-agent-system-user</code> limited to read/write in <code>sandbox_da_agent_public_data</code>, with clean pilot-only mounts and no internal BOT data until separate approval. The account is enabled in AD, but system-account authentication and exclusive sandbox rights are not yet verified. The exact sandbox was not visible in the personal login’s checked Hive catalog; this is not proof of nonexistence. DA/YARN resource metrics were verified, while quota/alert acceptance remains open. This pilot target is narrower than the general platform’s existing per-user AD access. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">risk-control report</a>.</p>
+<p><strong>Public-data pilot target:</strong> Use <code>da-agent-system-user</code> limited to read/write in <code>sandbox_da_agent_public_data</code>, with clean pilot-only mounts and no internal BOT data until separate approval. A fresh private Kerberos login succeeded and Livy/Spark both executed as the system account. Exclusive sandbox rights are not verified: the exact target was not visible in that identity’s checked Hive catalog, which is not proof of nonexistence. Its remote Spark driver/executor still reached public TCP destinations. The temporary session/ticket/runtime were cleaned up; no password was stored in this repository. DA/YARN resource metrics were verified, while quota/alert acceptance remains open. This pilot target is narrower than the general platform’s existing per-user AD access. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">risk-control report</a>.</p>
 <p><strong>Ownership restored, 16 October 2026:</strong> <code>thanatcc</code> now routes to its preserved No Internet and Internet runtimes. All 80 histories / 82 session files retain their recorded hash; all 82 working-directory records point to readable directories outside the masked paths. Admin routes to fresh private runtimes, retains dashboard/audit access, and is denied legacy-history reads through DSH. The owner runtime masks the private-user subtree, three reviewed credential-file aliases, and the routing/recovery directories. Infrastructure administrators remain trusted. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/context-evidence/legacy-owner-restoration-live-20261016.json">live owner restoration</a>.</p>
 <p><strong>Confirmed remote-boundary gap, 16 October:</strong> synthetic Livy/Spark driver and executor reached GitHub and a public IP. DSH pod restrictions do not extend to that datalake compute. The user chose to keep Livy/Spark available with this documented risk. Containment remains unapplied; this is accepted exposure, not a fixed network boundary or an end-to-end No Internet guarantee. No RDT was read or written.</p>
 <p>DSH provides local login, <strong>No Internet / Internal (default)</strong> and <strong>Internet</strong> environments, private per-user execution/storage, central audit, internal LiteLLM and shared four-H100 inference. RDT access uses <strong>Kerberos kinit → Livy/Spark → Hive/HDFS authorization</strong>. DA_WORKSPACE stores projects, results and history; it does not grant RDT access. Local DSH accounts are not AD/SSO accounts.</p>
@@ -616,11 +717,12 @@ kubectl apply --dry-run=server -f deployment/vllm/04-vllm-deepseek-v4-1-flash.ya
 </ol>
 <p>Optional read-only filesystem fixtures are explicitly named synthetic fixtures; they are unrelated to real RDT. Historical artifacts retain their original <code>/data/rdt</code> fixture naming with that limitation stated in the report.</p>
 <h2>Evidence and operational lessons</h2>
-<p>See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/private-routing-live-20261016.json">private Production routing</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/internal-network-live-20261016.json">all-worker network tests</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/kerberos-image-canary-62743.json">image canary</a> and the report&#39;s trial table. It records CPU oversubscription, credential replacement rollback/retry, split DNS, RKE2 discovery and the cache-mode verification rollback. Tests distinguish saved snapshots, source changes, built images and live behavior. No real AD authentication or RDT write probe was performed.</p>
+<p>See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/private-routing-live-20261016.json">private Production routing</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/internal-network-live-20261016.json">all-worker network tests</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/kerberos-image-canary-62743.json">image canary</a> and the report&#39;s trial table. It records CPU oversubscription, credential replacement rollback/retry, split DNS, RKE2 discovery and the cache-mode verification rollback. Tests distinguish saved snapshots, source changes, built images and live behavior. Those earlier checks did not authenticate to AD. A later isolated system-account Kerberos/Livy/Spark test now verifies that identity; it made no source-data query or write and changed no permissions. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-system-account-live-20261016.json">fresh system-account evidence</a>.</p>
 <h2>Context, speed and concurrency</h2>
 <p>Backend: context 1,048,576; memory fraction 0.90; running-request cap 16; prefill chunk 1,024; maximum prefill 2,048; mixed prefill/decode; decode interval four. The V2 overlay reserves up to 512 prefill tokens for short uncached tails while preserving long progress. It rejects an unexpected upstream scheduler source hash.</p>
 <p>DSH web profiles declare 131,072 total tokens and 8,192 maximum output; LiteLLM&#39;s callback uses those limits with a 256-token reserve. The extensive 16 October review found that its counting omits tool definitions and does not cover every request shape, so this is not a universal exact-token guarantee. Automatic compaction uses both the 0.75 ratio and 65,536 headroom: its normal calculated threshold is 57,344 estimated tokens with 8,192 reserved output, not the previously stated 98,304. Real compaction success for every historical session is not established. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LLM_SETUP_AND_TEST_RESULTS.md#investigation-findings-and-remaining-work">live investigation and fresh performance results</a>.</p>
 <p>Recorded V2 mixed-load tests completed short requests in 0.59–1.47 seconds during approximately 133K input work. A later two-request short test verified exact output and about 34–35 output tokens/second per request including request elapsed time. These are bounded samples, not an SLA or sustained benchmark. The earlier successful near-1M test belongs to the prior scheduling profile; it is not fresh proof of end-to-end DSH 1M, two simultaneous 1M sessions or V2 near-1M fairness. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CONTEXT_OPTIMIZATION_20261015.md">trial history</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/SCHEDULING_FAIRNESS_20261015.md">scheduling evidence</a>.</p>
+<p>The latest live stress retest passed <strong>105/105 responses</strong>: three bursts each at 1/2/4/8/16 concurrent requests, plus mixed input up to 120,048 tokens. At 16 concurrency, aggregate throughput was 214.5–229.4 output tokens/sec and completion p95 was 7.460 seconds for the sequence task. During 120K input, short replies finished in 0.475–0.545 seconds before the larger answer. The sampler saw 16 running and 12 queued requests; model restarts remained zero and checked OOM/scheduler-error signatures were absent. This is a bounded LiteLLM-route test, not DSH 1M or sustained saturation acceptance. See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LLM_SETUP_AND_TEST_RESULTS.md">stress tables and evidence</a>.</p>
 <h2>Upstream synchronization and rollback</h2>
 <p>This repository maintains deployment/authentication/configuration overlays around the published DSH package, not an official-source fork. The fresh 16 October check confirmed running <code>0.2.0-rc.2</code> matches npm latest/next; official master advanced to <code>1517a4dbca0a2789ff1d41ba439600f8547d23fa</code> and the preview channel is <code>0.2.1-alpha.4</code>. Daily candidate automation is now active and its first hosted qualification passed. Production deployment remains gated and alpha selection is explicit. See the update policy for exact evidence, proposal permissions and release gates.</p>
 <p>Rebase overlays onto a candidate pinned release, fail closed on changed patch targets, and test auth/Host/Origin, HTTP/WebSocket terminal, sessions, attachments, tools, network isolation, restart and restore before switching. Keep the installed image and coherent old state available for rollback. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">upstream procedure</a>.</p>
@@ -630,7 +732,7 @@ kubectl apply --dry-run=server -f deployment/vllm/04-vllm-deepseek-v4-1-flash.ya
 <h2>Upstream updates and shared LLM setup</h2>
 <p>The running DSH package <code>0.2.0-rc.2</code> matches npm latest/next at the fresh 16 October check; alpha is <code>0.2.1-alpha.4</code>, while official source master has advanced separately. This deployment/overlay repository updates the published package rather than merging the official monorepo. The expanded workflow detects releases daily, checks all ten upstream patch targets, builds a candidate, tests its actual installed package and disposable web server, exercises routing/security/browser checks, retains evidence and proposes a pin PR only after success. Qualification runs without write permissions; a separate proposal job can create the PR. It never auto-merges or deploys Production. Publication/hosted-run status is recorded separately in the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">update policy</a>. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LLM_SETUP_AND_TEST_RESULTS.md">LLM setup/results guide</a> includes deployment order, actual settings, rollback and measured tests. The main HTML embeds that guide and this README; raw logs remain linked supporting evidence.</p>
 <p><strong>Automation is active:</strong> scheduled daily at 09:17 ICT, with manual and relevant push/PR triggers. The <a href="https://github.com/skunpoj/dsh_setup/actions/runs/38900841456">first hosted run</a> passed; its downloaded artifact content confirmed the build, actual web/runtime checks, all 35 Linux Python tests and browser checks. No version change meant no update PR; future PR-creation permission is not claimed verified. Changed upstream patch targets stop for source review instead of being patched blindly.</p>
-</details><details id="verification-records"><summary>Verification records — supporting technical references</summary><p>Raw logs and historical migration records stay in separate files. The risk-control narrative above is the primary report.</p><ul><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/design-consistency-live-20261016.json">Local routing, audit and network checks</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">Authenticated remote-worker egress retest</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">Controlled offline package transfer</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-owner-restoration-live-20261016.json">Owner access and peer denial</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/owner-admin-terminal-live-20261016.json">Authenticated terminal execution</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-private-persistence-20261016.json">Private-state restart persistence</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-auth-content-review-20261016.json">Legacy-instance access review</a></li></ul></details><p class="meta">Built from tracked Markdown. Diagram controls adapted from SMP EDA ARCHITECTURE_AND_DATAFLOW.html; local Mermaid 10.8.0 / svg-pan-zoom 3.6.1. No CDN required.</p></main>
+</details><details id="verification-records"><summary>Verification records — supporting technical references</summary><p>Raw logs and historical migration records stay in separate files. The risk-control narrative above is the primary report.</p><ul><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/design-consistency-live-20261016.json">Local routing, audit and network checks</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/remote-spark-recheck-20261016.json">Authenticated remote-worker egress retest</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/package-workflow-live-20261016.json">Controlled offline package transfer</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-owner-restoration-live-20261016.json">Owner access and peer denial</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/owner-admin-terminal-live-20261016.json">Authenticated terminal execution</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/admin-private-persistence-20261016.json">Private-state restart persistence</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/legacy-auth-content-review-20261016.json">Legacy-instance access review</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-summary-20261016.json">Live inference stress retest summary</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-20261016-live.json">Stress responses and GPU/queue samples</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-system-account-live-20261016.json">System-account identity, sandbox and worker egress</a></li><li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/public-pilot-system-account-cleanup-20261016.json">Temporary credential and runtime cleanup</a></li></ul></details><p class="meta">Built from tracked Markdown. Diagram controls adapted from SMP EDA ARCHITECTURE_AND_DATAFLOW.html; local Mermaid 10.8.0 / svg-pan-zoom 3.6.1. No CDN required.</p></main>
 <script>(function(BL,Z0){typeof exports=="object"&&typeof module<"u"?module.exports=Z0():typeof define=="function"&&define.amd?define(Z0):(BL=typeof globalThis<"u"?globalThis:BL||self,BL.mermaid=Z0())})(this,function(){var mVt,vVt;"use strict";function BL(i){for(var a=[],f=1;f<arguments.length;f++)a[f-1]=arguments[f];var g=Array.from(typeof i=="string"?[i]:i);g[g.length-1]=g[g.length-1].replace(/\r?\n([\t ]*)$/,"");var w=g.reduce(function(E,S){var _=S.match(/\n([\t ]+|(?!\s).)/g);return _?E.concat(_.map(function(M){var F,R;return(R=(F=M.match(/[\t ]/g))===null||F===void 0?void 0:F.length)!==null&&R!==void 0?R:0})):E},[]);if(w.length){var v=new RegExp(`
 [	 ]{`+Math.min.apply(Math,w)+"}","g");g=g.map(function(E){return E.replace(v,`
 `)})}g[0]=g[0].replace(/^\r?\n/,"");var b=g[0];return a.forEach(function(E,S){var _=b.match(/(?:^|\n)( *)$/),M=_?_[1]:"",F=E;typeof E=="string"&&E.includes(`

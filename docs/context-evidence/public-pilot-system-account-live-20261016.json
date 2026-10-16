@@ -1,0 +1,65 @@
+{
+  "startedAtUTC": "2026-10-16T12:47:25.095415+00:00",
+  "principal": "da-agent-system-user",
+  "sandbox": "sandbox_da_agent_public_data",
+  "sourceDataReadOrWritten": false,
+  "permissionsChanged": false,
+  "credentialValuesExported": false,
+  "scope": "Dedicated temporary No Internet pod and ticket cache; metadata and synthetic driver/executor network probes",
+  "kerberosPrincipalVerified": true,
+  "authenticatedLivyGetSucceeded": true,
+  "existingSessionCount": 0,
+  "syntheticSessionId": 630,
+  "livyOwnerIsSystemAccount": true,
+  "metadata": {
+    "sparkUser": "da-agent-system-user",
+    "catalogImplementation": "hive",
+    "defaultFileSystem": "hdfs://botdlk-da",
+    "targetVisibleInThisCatalog": false,
+    "driverNetwork": [
+      {
+        "host": "github.com",
+        "port": 443,
+        "tcpConnected": true
+      },
+      {
+        "host": "1.1.1.1",
+        "port": 443,
+        "tcpConnected": true
+      },
+      {
+        "host": "8.8.8.8",
+        "port": 53,
+        "tcpConnected": false,
+        "errorType": "TimeoutError"
+      }
+    ],
+    "executorNetwork": [
+      [
+        {
+          "host": "github.com",
+          "port": 443,
+          "tcpConnected": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "tcpConnected": true
+        },
+        {
+          "host": "8.8.8.8",
+          "port": 53,
+          "tcpConnected": false,
+          "errorType": "TimeoutError"
+        }
+      ]
+    ]
+  },
+  "sparkIdentityIsSystemAccount": true,
+  "exclusiveSandboxPermissionsEstablished": false,
+  "outOfScopeNegativeFixture": "Not supplied; no genuine internal dataset was queried",
+  "status": "metadata-test-completed",
+  "syntheticSessionDeleteAccepted": true,
+  "syntheticSessionAbsentAfterDelete": true,
+  "finishedAtUTC": "2026-10-16T12:48:25.551306+00:00"
+}

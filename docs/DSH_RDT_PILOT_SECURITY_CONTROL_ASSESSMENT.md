@@ -4,7 +4,7 @@ The pilot assumes that the Harness, its tools and generated code can make mistak
 
 **The objective is to limit what can go wrong enough to make this specific pilot acceptable. It is not to prove that the Harness is universally safe.**
 
-This report follows the three controls in the supplied pilot brief. It explains which environment to use, how each protection works, what the recorded tests establish and what still needs a decision or additional enforcement. The main DSH environment has deployed protections. The newly clarified pilot is **public-data-only**, using a dedicated system identity limited to one sandbox. That scoped pilot is not yet qualified: its system-account authentication and sandbox permissions have not been accepted, and remote-worker containment needs its own test.
+This report follows the three controls in the supplied pilot brief. It explains which environment to use, how each protection works, what the recorded tests establish and what still needs a decision or additional enforcement. The main DSH environment has deployed protections. The newly clarified pilot is **public-data-only**, using a dedicated system identity limited to one sandbox. System-account Kerberos authentication and identity propagation through Livy/Spark are now verified in an isolated temporary canary. The scoped pilot is not yet qualified: the exact sandbox was not visible under that identity, exclusive sandbox permissions are unverified, and its remote driver/executor still reached public TCP destinations.
 
 ## Pilot boundary and environment choice
 
@@ -14,15 +14,17 @@ The pilot described in the supplied operating plan uses **`da-agent-system-user`
 
 | Pilot condition | Current evidence and limit |
 |---|---|
-| Dedicated system account | AD lookup found `da-agent-system-user` enabled. Prior Spark acceptance used the personal Windows login, not this account. No system-account ticket was found in the checked main caches; an approved private authentication reference is still needed. |
-| Exactly one public-data sandbox | The exact name was not visible through the personal login's Hive catalog on `hdfs://botdlk-da`. This is not proof of nonexistence, and does not test the system account's rights. Verify the approved catalog/path and account scope with its own authentication. |
-| Local execution without Internet | Main No Internet pod probes passed. Personal-account remote Spark driver/executor probes reached public TCP destinations. The system-account workload needs its own worker-boundary test; the pilot is not qualified as fully offline. |
+| Dedicated system account | A fresh private Kerberos login passed. Livy owner and Spark execution user both matched `da-agent-system-user` in synthetic session 630. The temporary ticket cache was isolated from existing users; no password was written to reports or Git. |
+| Exactly one public-data sandbox | The exact name was not visible through the system account on the Hive catalog using `hdfs://botdlk-da`. This is not proof of nonexistence; creation, catalog/path or permissions may differ. The data owner must confirm the approved target and grants before read/write or exclusivity acceptance. |
+| Local execution without Internet | Main No Internet pod probes passed. Fresh system-account Spark driver and executor probes reached `github.com:443` and `1.1.1.1:443`; public DNS TCP/53 timed out. The end-to-end offline requirement remains unmet. |
 | Clear software/data terms | The running Harness package reports MIT, consistent with the [official license](https://github.com/deepseek-ai/deepseek-harness/blob/86a402200d95fecef4529d969836f1fe13c6cb0d/LICENSE). This does not clear model weights, dependencies, connected services or dataset reuse terms, and is not legal/committee approval. |
 | DA cluster resource monitoring | The DA ResourceManager API returned validated memory, vCore-allocation, container/node and running-application metrics. Pilot queue limits, alerts, retention and human-to-job correlation were not established. The DSH dashboard is not a substitute for this monitoring. |
 
 Use a **dedicated pilot runtime with a clean workspace/history and credential cache**, retaining central CIFS persistence through bounded pilot subpaths. A new working directory alone does not restrict access to legacy data already mounted in a process. Do not mount the broad legacy workspace or introduce internal datasets into this public-data exercise. Keep each human's workspace isolated even if the data-access principal is shared; correlate gateway user, runtime, Livy session and Spark application in the pilot audit design.
 
 The approval/creation workflow in the plan is still required: data-owner approval, creation through the sandbox system, and granting this principal the intended sandbox role. Account existence alone proves none of those steps. Prepare the internal-review package in parallel, with verified facts and open conditions clearly labelled; do not describe preparation as approval to use internal data.
+
+**Fresh system-account test:** metadata only; no source data was queried or modified and no permission was changed. The test-created Livy session was deleted and its absence verified. Its private ticket was destroyed and the temporary runtime removed. This verifies that identity, not every user's entitlements. See [system-account result](context-evidence/public-pilot-system-account-live-20261016.json) and [credential/runtime cleanup](context-evidence/public-pilot-system-account-cleanup-20261016.json).
 
 Evidence: [AD account lookup](context-evidence/public-pilot-system-account-directory-20261016.json), [authentication availability](context-evidence/public-pilot-auth-availability-20261016.json), [sandbox metadata check](context-evidence/public-pilot-sandbox-metadata-20261016.json), [DA metrics](context-evidence/public-pilot-da-resource-metrics-20261016.json), [license check scope](context-evidence/public-pilot-license-review-20261016.json).
 
@@ -58,7 +60,7 @@ flowchart TB
  S --> M[Internal LiteLLM and shared model]
  S --> L[Permitted Livy connection]
  L --> R[Remote Spark driver and executors]
- R --> E[Public TCP reachable - accepted exposure]
+ R --> E[Public TCP reachable - containment open]
  S --> B[Direct public probes blocked]
  I --> P[Package incoming]
  P --> V[Operator review and exact-byte hash verification]
@@ -75,13 +77,13 @@ flowchart TB
 | Public-domain, direct-IP and DNS-bypass probes failed from the tested No Internet workers; internal inference returned the required response | The tested local pod boundary works for those destinations. This is not an exhaustive proxy/IPv6/relay assessment. |
 | Internet workers reached package sites but failed the tested KDC, Livy and unrelated internal-service connections | Dependency preparation is separated from the tested internal data-access paths. |
 | A package was downloaded, hash-promoted, installed without an index and imported inside No Internet; cache writes were denied | The intended library-transfer path works without sharing writable workspaces. |
-| The authenticated Spark driver **and executor** reached `github.com:443` and `1.1.1.1:443` | **The end-to-end Internet-denial requirement is not met.** Blocking Internet only in DSH does not contain code sent to remote Spark. |
+| The authenticated system-account Spark driver **and executor** reached `github.com:443` and `1.1.1.1:443` | **The end-to-end Internet-denial requirement is not met.** Blocking Internet only in DSH does not contain code sent to remote Spark. |
 
 The user previously chose to keep Livy/Spark available in the general platform with this documented exposure. That accepted operational exception does not qualify the newly clarified offline public-data pilot and is not a repaired firewall. No RDT was read or transmitted by the recorded connectivity tests.
 
 **To meet the original requirement:** the datalake infrastructure owner must enforce restricted egress for the actual Spark drivers/executors and retain only their necessary internal services. Acceptance must test outbound paths from each relevant execution mode, including direct IP, DNS, configured proxies and IPv6 where enabled. If that enforcement cannot be provided, sensitive remote execution needs an explicit risk decision or a restriction on its use. This report does not silently disable the retained Livy service.
 
-Evidence: [local boundaries](context-evidence/design-consistency-live-20261016.json), [new admin runtimes](context-evidence/admin-private-network-20261016.json), [offline package workflow](context-evidence/package-workflow-live-20261016.json), [authenticated remote Spark retest](context-evidence/remote-spark-recheck-20261016.json).
+Evidence: [local boundaries](context-evidence/design-consistency-live-20261016.json), [new admin runtimes](context-evidence/admin-private-network-20261016.json), [offline package workflow](context-evidence/package-workflow-live-20261016.json), [earlier personal-account Spark retest](context-evidence/remote-spark-recheck-20261016.json), [fresh system-account driver/executor retest](context-evidence/public-pilot-system-account-live-20261016.json).
 
 ## 2 Prevent damage or excessive access
 
@@ -99,7 +101,7 @@ RDT access follows the authenticated AD principal through Kerberos and Livy/Spar
 flowchart TB
  A[Named pilot user] --> X[Dedicated non-root public-data runtime - target]
  X --> W[Clean private workspace and results]
- X --> K[Private system-account cache - authentication pending]
+ X --> K[Private system ticket - canary verified]
  K --> P[da-agent-system-user]
  P --> D[Sandbox-only authorization - acceptance pending]
  D --> Q[sandbox_da_agent_public_data - intended read and write]
@@ -107,7 +109,7 @@ flowchart TB
  T[Internal data only after separate approval] --> V[Least-privilege source access]
  T --> O[Separate writable results scope]
  classDef pending fill:#78350f,stroke:#fbbf24,color:#ffffff
- class K,D,N pending
+ class D,N pending
 ```
 
 ### Source protection in the public-data pilot and later internal use
@@ -115,11 +117,11 @@ flowchart TB
 | Source-protection condition | Current position |
 |---|---|
 | Dedicated non-admin execution | Implemented for main private DSH runtimes; DSH2/DSH3 still need migration. |
-| Public sandbox read/write, no unrelated data access | Intended for `da-agent-system-user`; AD account existence is verified, but its sandbox-only effective rights and authentication are not yet accepted. |
+| Public sandbox read/write, no unrelated data access | Intended for `da-agent-system-user`; authentication and Livy/Spark identity propagation are verified; its sandbox-only effective rights are not accepted, and the target was not visible in the checked catalog. |
 | Internal source protection | Internal data is outside this initial pilot. Later use requires approval and an explicit source/results permission design; do not silently inherit broad personal rights into the pilot. |
 | Results confined to approved storage | DSH provides isolated working areas. Datalake writes must also stay within the approved public sandbox/results scope. |
 
-**To qualify this pilot:** authenticate the system account through the approved private process, confirm that its effective Hive/HDFS and sandbox-application roles grant the intended public-sandbox access, and test permitted sandbox reads/writes on disposable public fixtures. The data owner must also provide a safe out-of-scope test target whose access is denied. Do not use genuine internal records for that negative test or assume that one visible database proves exclusivity. Keep a recoverable reference copy of public test inputs so generated transformations do not destroy the experiment's baseline.
+**To qualify this pilot:** confirm the sandbox creation/catalog/path and effective Hive/HDFS and sandbox-application grants for the now-tested system identity, and test permitted sandbox reads/writes on disposable public fixtures. The data owner must also provide a safe out-of-scope test target whose access is denied. Do not use genuine internal records for that negative test or assume that one visible database proves exclusivity. Keep a recoverable reference copy of public test inputs so generated transformations do not destroy the experiment's baseline.
 
 Public-sandbox administration must not confer broader datalake administration. The system principal's credentials must stay out of the Internet environment. A shared service identity also needs human-to-job audit correlation; the current identity-propagation tests alone do not establish that correlation for all pilot users.
 
@@ -169,10 +171,12 @@ Evidence: [owner/peer access](context-evidence/legacy-owner-restoration-live-202
 
 | Control | Current disposition | What is needed to satisfy the original brief |
 |---|---|---|
-| Prevent external leakage | Local No Internet controls verified; general-platform personal-account Spark exposure was accepted, while the scoped pilot worker boundary is unqualified | Infrastructure owner restricts and tests the actual system-account driver/executor egress; the earlier general-platform exception must not be presented as offline pilot acceptance. |
-| Prevent damage or excessive access | Main runtime isolation verified; dedicated public-sandbox identity/scope not yet accepted | Authenticate `da-agent-system-user`, validate sandbox read/write and safe out-of-scope denial, and keep internal data out until separately approved. |
+| Prevent external leakage | Local No Internet controls verified; fresh system-account Spark driver/executor Internet access is confirmed | Infrastructure owner restricts the actual pilot driver/executor egress and repeats the probes; the earlier general-platform exception is not offline pilot acceptance. |
+| Prevent damage or excessive access | Main runtime isolation and system-account authentication/identity verified; exclusive public-sandbox scope not accepted | Confirm the approved sandbox catalog/path and grants, validate read/write and safe out-of-scope denial, and keep internal data out until separately approved. |
 | Keep results contained | Main authenticated routes, private data boundaries and central audit verified | Finish legacy-instance migration; define report/export handling and add endpoint controls if manual-copy prevention is required. |
 
 The environment choice, data scope and named participants should be recorded for each pilot exercise. Infrastructure owners own network enforcement; data owners own entitlements; the DSH operator owns runtime/routing/persistence; endpoint owners own device restrictions; the pilot owner decides whether residual exposure is acceptable. An accepted exception must not be labelled a technical fix.
+
+**Performance retest:** 105/105 synthetic inference responses passed at burst concurrency up to 16 and mixed input up to 120,048 tokens. At 16 concurrency, aggregate output was 214.5–229.4 tokens/sec; short replies during 120K input finished in 0.475–0.545 seconds. The sampler observed a queue peak of 12; there was no model restart or checked OOM/scheduler-error signature. Full tables are in the embedded LLM guide below. Performance acceptance is separate from closure of the security controls.
 
 The evidence linked here records specific checks on 16 October 2026. Opening or regenerating this HTML does not run new security tests or grant access to data. Detailed migration histories, raw logs, model trials and setup instructions are supporting material, not the main risk-control narrative.

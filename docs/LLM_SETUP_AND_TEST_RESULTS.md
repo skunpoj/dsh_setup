@@ -20,6 +20,50 @@ These are recorded tests, not a new benchmark performed by opening this guide. R
 
 The earlier 16 October measurements are in [the exact response/timing record](context-evidence/performance-private-live-20261016.json); the fresh review is in [the new response/timing record](context-evidence/llm-review-performance-20261016.json). Fresh isolated short replies took 0.230–0.246 seconds. The historical million-token result is [recorded separately](context-evidence/near-1m-response-chunk1024.json). None is a substitute for application-level task correctness.
 
+## Live stress retest — 16 October 2026
+
+**Passed: 105/105 synthetic responses across 18 stages**, from 19:37:31 to 19:41:27 ICT. The test used the real internal LiteLLM streaming route from Secure, its existing inference credential, temperature zero and fresh nonce prefixes. It changed no settings, created no DSH histories and read no business data. This is an inference-route test, not a DSH browser/agent or compaction test.
+
+### Concurrent bursts
+
+Each concurrency level ran three times. Every response had to contain the requested complete 1–40 sequence after whitespace normalization. Actual completion counts varied from 80 to 119 tokens because formatting varied; rates use returned token usage rather than an assumed 119 tokens. TTFT means time to first streamed content or reasoning event. Percentiles are nearest-rank values from these small samples, not service-level guarantees.
+
+| Concurrent requests | Responses verified | TTFT p95, seconds | Completion p95, seconds | Effective output tokens/sec per request | Aggregate output tokens/sec across rounds |
+|---|---|---|---|---|---|
+| 1 | 3/3 | 0.131 | 3.694 | 32.1–32.3 | 32.1–32.3 |
+| 2 | 6/6 | 0.320 | 3.700 | 32.2–34.5 | 53.8–66.1 |
+| 4 | 12/12 | 0.356 | 3.827 | 29.8–32.4 | 105.3–124.3 |
+| 8 | 24/24 | 0.856 | 5.145 | 21.5–26.8 | 168.0–179.9 |
+| 16 | 48/48 | 1.966 | 7.460 | 13.1–18.6 | 214.5–229.4 |
+
+More concurrency increased aggregate throughput while each request became slower. Sixteen is a tested burst level for these short outputs, not a promise of sixteen large contexts or sustained-load capacity. Rates include queue, prefill and network time; they are not isolated steady-state decode speed.
+
+### Short replies during larger uncached input
+
+One larger synthetic request ran alongside three sequential short probes. Returned usage verified each input size; all nine short probes returned the expected sentinel before their larger request completed.
+
+| Actual larger input tokens | Larger completion, seconds | Short completion range, seconds | Short TTFT range, seconds | Shorts finished before larger response |
+|---|---|---|---|---|
+| 24,043 | 5.223 | 0.476–0.486 | 0.159–0.169 | 3/3 |
+| 96,046 | 26.041 | 0.475–0.495 | 0.155–0.178 | 3/3 |
+| 120,048 | 35.528 | 0.475–0.545 | 0.157–0.229 | 3/3 |
+
+The sampler observed **16 running requests and a queue peak of 12**. Queueing is therefore not absent, despite the responsive short mixed-load probes. Forty-four GPU/queue samples completed without monitor errors. Minimum sampled free GPU memory was 4,592–4,594 MiB per GPU; sampled GPU utilization reached 100%. These samples do not establish the exact transient memory peak.
+
+The model pod identity and zero restart count stayed unchanged. The test interval contained no matches for the checked CUDA OOM, OutOfMemoryError, illegal-memory-access or scheduler-exception signatures. A separate post-test request returned exactly `STRESS_HEALTH_OK` in **0.256 seconds**. Running model/LiteLLM imageIDs and start times were read back; both retained zero restarts, with the existing model arguments.
+
+### Stop conditions, reproduction and limits
+
+The probe requires idle admission metrics before each stage. It stops escalation on inference errors, incorrect output, changed model pod/image/restart state, burst completion over 15 seconds, larger completion over 40 seconds, or short mixed replies over five seconds or without observed overlap. Completed/stopped stages are saved rather than overwritten. An independent readback validated all response content, finish reasons, returned token counts and model error-signature counts.
+
+```powershell
+python scripts/stress_live_inference.py --output stress-new-run.json
+```
+
+This deliberately loads the shared service; run it when idle. It is a bounded burst/mixed-load stress test, not a destructive OOM or prolonged saturation exercise. It did **not** test arbitrary tool schemas, images, complete DSH tasks, compaction, current near-1M operation or two concurrent 1M requests. The backend remains configured for 1,048,576; testing stayed within the existing 131,072-token LiteLLM budget. No limit was raised for this run.
+
+Evidence: [complete request/sampling record](context-evidence/inference-stress-20261016-live.json), [independently recalculated tables and executed probe hash](context-evidence/inference-stress-summary-20261016.json), [post-test sentinel, imageIDs and arguments](context-evidence/inference-stress-postcheck-20261016.json). Raw logs are linked supporting material, not embedded in the main risk narrative.
+
 ## Current service layout and limits
 
 `Private DSH runtime → internal LiteLLM :4000 → SGLang :8000 → shared four-H100 model`

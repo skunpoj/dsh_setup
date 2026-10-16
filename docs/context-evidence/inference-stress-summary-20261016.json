@@ -1,0 +1,173 @@
+{
+  "startedAtUTC": "2026-10-16T12:37:31.112940+00:00",
+  "finishedAtUTC": "2026-10-16T12:41:27.829116+00:00",
+  "allVerifiedRequests": 105,
+  "burstLevels": [
+    {
+      "concurrency": 1,
+      "verified": 3,
+      "p95TTFTSeconds": 0.1313,
+      "p95CompletionSeconds": 3.694,
+      "perRequestEffectiveTokensPerSecond": [
+        32.139,
+        32.345
+      ],
+      "aggregateEffectiveTokensPerSecond": [
+        32.125,
+        32.335
+      ],
+      "completionTokensRange": [
+        80,
+        119
+      ]
+    },
+    {
+      "concurrency": 2,
+      "verified": 6,
+      "p95TTFTSeconds": 0.3196,
+      "p95CompletionSeconds": 3.6995,
+      "perRequestEffectiveTokensPerSecond": [
+        32.167,
+        34.511
+      ],
+      "aggregateEffectiveTokensPerSecond": [
+        53.755,
+        66.138
+      ],
+      "completionTokensRange": [
+        80,
+        119
+      ]
+    },
+    {
+      "concurrency": 4,
+      "verified": 12,
+      "p95TTFTSeconds": 0.3563,
+      "p95CompletionSeconds": 3.8274,
+      "perRequestEffectiveTokensPerSecond": [
+        29.782,
+        32.43
+      ],
+      "aggregateEffectiveTokensPerSecond": [
+        105.341,
+        124.252
+      ],
+      "completionTokensRange": [
+        80,
+        119
+      ]
+    },
+    {
+      "concurrency": 8,
+      "verified": 24,
+      "p95TTFTSeconds": 0.8561,
+      "p95CompletionSeconds": 5.1448,
+      "perRequestEffectiveTokensPerSecond": [
+        21.486,
+        26.801
+      ],
+      "aggregateEffectiveTokensPerSecond": [
+        168.043,
+        179.909
+      ],
+      "completionTokensRange": [
+        80,
+        119
+      ]
+    },
+    {
+      "concurrency": 16,
+      "verified": 48,
+      "p95TTFTSeconds": 1.9659,
+      "p95CompletionSeconds": 7.4598,
+      "perRequestEffectiveTokensPerSecond": [
+        13.116,
+        18.571
+      ],
+      "aggregateEffectiveTokensPerSecond": [
+        214.521,
+        229.379
+      ],
+      "completionTokensRange": [
+        80,
+        119
+      ]
+    }
+  ],
+  "mixedLevels": [
+    {
+      "actualInputTokens": 24043,
+      "longSeconds": 5.2226,
+      "shortSeconds": [
+        0.4759,
+        0.486
+      ],
+      "shortTTFTSeconds": [
+        0.1586,
+        0.1689
+      ],
+      "shortFinishedBeforeLong": 3
+    },
+    {
+      "actualInputTokens": 96046,
+      "longSeconds": 26.0405,
+      "shortSeconds": [
+        0.4752,
+        0.4954
+      ],
+      "shortTTFTSeconds": [
+        0.1554,
+        0.1779
+      ],
+      "shortFinishedBeforeLong": 3
+    },
+    {
+      "actualInputTokens": 120048,
+      "longSeconds": 35.5278,
+      "shortSeconds": [
+        0.4745,
+        0.5449
+      ],
+      "shortTTFTSeconds": [
+        0.1566,
+        0.2291
+      ],
+      "shortFinishedBeforeLong": 3
+    }
+  ],
+  "peakSampledRunning": 16.0,
+  "peakSampledQueued": 12.0,
+  "gpuSamples": {
+    "0": {
+      "maxSampledUsedMiB": 90728,
+      "minSampledFreeMiB": 4592,
+      "maxSampledUtilizationPercent": 100
+    },
+    "1": {
+      "maxSampledUsedMiB": 90726,
+      "minSampledFreeMiB": 4594,
+      "maxSampledUtilizationPercent": 100
+    },
+    "2": {
+      "maxSampledUsedMiB": 90726,
+      "minSampledFreeMiB": 4594,
+      "maxSampledUtilizationPercent": 100
+    },
+    "3": {
+      "maxSampledUsedMiB": 90726,
+      "minSampledFreeMiB": 4594,
+      "maxSampledUtilizationPercent": 100
+    }
+  },
+  "sampleCount": 44,
+  "monitorErrors": 0,
+  "newModelErrorSignatureCounts": {
+    "CUDA out of memory": 0,
+    "OutOfMemoryError": 0,
+    "illegal memory access": 0,
+    "Scheduler exception": 0
+  },
+  "modelPodUnchanged": true,
+  "executedProbeSHA256": "6ff949c4e1f7f3a78126e0e09a16b1ad2da2bbd591510fa1cbcda9c88e44fb27",
+  "scope": "Synthetic streaming LiteLLM calls from Secure; not DSH browser/agent, near-1M, sustained saturation or SLA acceptance"
+}

@@ -50,6 +50,105 @@
 </tr>
 </tbody></table>
 <p>The earlier 16 October measurements are in <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/performance-private-live-20261016.json">the exact response/timing record</a>; the fresh review is in <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/llm-review-performance-20261016.json">the new response/timing record</a>. Fresh isolated short replies took 0.230–0.246 seconds. The historical million-token result is <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/near-1m-response-chunk1024.json">recorded separately</a>. None is a substitute for application-level task correctness.</p>
+<h2>Live stress retest — 16 October 2026</h2>
+<p><strong>Passed: 105/105 synthetic responses across 18 stages</strong>, from 19:37:31 to 19:41:27 ICT. The test used the real internal LiteLLM streaming route from Secure, its existing inference credential, temperature zero and fresh nonce prefixes. It changed no settings, created no DSH histories and read no business data. This is an inference-route test, not a DSH browser/agent or compaction test.</p>
+<h3>Concurrent bursts</h3>
+<p>Each concurrency level ran three times. Every response had to contain the requested complete 1–40 sequence after whitespace normalization. Actual completion counts varied from 80 to 119 tokens because formatting varied; rates use returned token usage rather than an assumed 119 tokens. TTFT means time to first streamed content or reasoning event. Percentiles are nearest-rank values from these small samples, not service-level guarantees.</p>
+<table>
+<thead>
+<tr>
+<th>Concurrent requests</th>
+<th>Responses verified</th>
+<th>TTFT p95, seconds</th>
+<th>Completion p95, seconds</th>
+<th>Effective output tokens/sec per request</th>
+<th>Aggregate output tokens/sec across rounds</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>3/3</td>
+<td>0.131</td>
+<td>3.694</td>
+<td>32.1–32.3</td>
+<td>32.1–32.3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>6/6</td>
+<td>0.320</td>
+<td>3.700</td>
+<td>32.2–34.5</td>
+<td>53.8–66.1</td>
+</tr>
+<tr>
+<td>4</td>
+<td>12/12</td>
+<td>0.356</td>
+<td>3.827</td>
+<td>29.8–32.4</td>
+<td>105.3–124.3</td>
+</tr>
+<tr>
+<td>8</td>
+<td>24/24</td>
+<td>0.856</td>
+<td>5.145</td>
+<td>21.5–26.8</td>
+<td>168.0–179.9</td>
+</tr>
+<tr>
+<td>16</td>
+<td>48/48</td>
+<td>1.966</td>
+<td>7.460</td>
+<td>13.1–18.6</td>
+<td>214.5–229.4</td>
+</tr>
+</tbody></table>
+<p>More concurrency increased aggregate throughput while each request became slower. Sixteen is a tested burst level for these short outputs, not a promise of sixteen large contexts or sustained-load capacity. Rates include queue, prefill and network time; they are not isolated steady-state decode speed.</p>
+<h3>Short replies during larger uncached input</h3>
+<p>One larger synthetic request ran alongside three sequential short probes. Returned usage verified each input size; all nine short probes returned the expected sentinel before their larger request completed.</p>
+<table>
+<thead>
+<tr>
+<th>Actual larger input tokens</th>
+<th>Larger completion, seconds</th>
+<th>Short completion range, seconds</th>
+<th>Short TTFT range, seconds</th>
+<th>Shorts finished before larger response</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>24,043</td>
+<td>5.223</td>
+<td>0.476–0.486</td>
+<td>0.159–0.169</td>
+<td>3/3</td>
+</tr>
+<tr>
+<td>96,046</td>
+<td>26.041</td>
+<td>0.475–0.495</td>
+<td>0.155–0.178</td>
+<td>3/3</td>
+</tr>
+<tr>
+<td>120,048</td>
+<td>35.528</td>
+<td>0.475–0.545</td>
+<td>0.157–0.229</td>
+<td>3/3</td>
+</tr>
+</tbody></table>
+<p>The sampler observed <strong>16 running requests and a queue peak of 12</strong>. Queueing is therefore not absent, despite the responsive short mixed-load probes. Forty-four GPU/queue samples completed without monitor errors. Minimum sampled free GPU memory was 4,592–4,594 MiB per GPU; sampled GPU utilization reached 100%. These samples do not establish the exact transient memory peak.</p>
+<p>The model pod identity and zero restart count stayed unchanged. The test interval contained no matches for the checked CUDA OOM, OutOfMemoryError, illegal-memory-access or scheduler-exception signatures. A separate post-test request returned exactly <code>STRESS_HEALTH_OK</code> in <strong>0.256 seconds</strong>. Running model/LiteLLM imageIDs and start times were read back; both retained zero restarts, with the existing model arguments.</p>
+<h3>Stop conditions, reproduction and limits</h3>
+<p>The probe requires idle admission metrics before each stage. It stops escalation on inference errors, incorrect output, changed model pod/image/restart state, burst completion over 15 seconds, larger completion over 40 seconds, or short mixed replies over five seconds or without observed overlap. Completed/stopped stages are saved rather than overwritten. An independent readback validated all response content, finish reasons, returned token counts and model error-signature counts.</p>
+<pre><code class="language-powershell">python scripts/stress_live_inference.py --output stress-new-run.json
+</code></pre>
+<p>This deliberately loads the shared service; run it when idle. It is a bounded burst/mixed-load stress test, not a destructive OOM or prolonged saturation exercise. It did <strong>not</strong> test arbitrary tool schemas, images, complete DSH tasks, compaction, current near-1M operation or two concurrent 1M requests. The backend remains configured for 1,048,576; testing stayed within the existing 131,072-token LiteLLM budget. No limit was raised for this run.</p>
+<p>Evidence: <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-20261016-live.json">complete request/sampling record</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-summary-20261016.json">independently recalculated tables and executed probe hash</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/inference-stress-postcheck-20261016.json">post-test sentinel, imageIDs and arguments</a>. Raw logs are linked supporting material, not embedded in the main risk narrative.</p>
 <h2>Current service layout and limits</h2>
 <p><code>Private DSH runtime → internal LiteLLM :4000 → SGLang :8000 → shared four-H100 model</code></p>
 <p>The Kubernetes deployment is named <code>vllm-deepseek-v4-1-flash</code> for compatibility, but its process runs <strong>SGLang</strong>. The Service remains <code>vllm-deepseek-v4-flash</code>.</p>
