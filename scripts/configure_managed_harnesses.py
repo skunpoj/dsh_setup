@@ -27,7 +27,8 @@ def patch(source):
         if text.count(before) != 1:
             raise ValueError('TrueForge policy target is not unique')
         text = text.replace(before, after)
-    return "import {managedStore} from '/opt/dsh/container/managed_trueforge_store.mjs';\n" + text
+    return ("import {managedStore} from '/opt/dsh/container/managed_trueforge_store.mjs';\n"
+            "process.env.STANDALONE = 'true';\n" + text)
 
 if __name__ == '__main__':
     MAIN.write_text(patch(MAIN.read_bytes()), encoding='utf8')
