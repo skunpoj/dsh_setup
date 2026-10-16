@@ -2,7 +2,9 @@ name: DSH upstream candidate
 on:
   push:
     branches: [main]
-    paths: [.github/workflows/upstream-candidate.yml, scripts/check_upstream.py]
+    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**']
+  pull_request:
+    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**']
   schedule:
     - cron: '17 2 * * *'
   workflow_dispatch:
@@ -14,54 +16,115 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: dsh-upstream-candidate
+  group: dsh-upstream-${{ github.event.pull_request.number || 'candidate' }}
   cancel-in-progress: false
 jobs:
-  candidate:
+  qualify:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      candidate: ${{ steps.detect.outputs.candidate }}
+      needs_update: ${{ steps.detect.outputs.needs_update }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Detect official release and validate input
+        id: detect
+        env:
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p candidate-evidence
+          python3 -m unittest discover -s tests -p test_upstream_check.py
+          node tests/test_upstream_contract.js
+          if [ "$EVENT_NAME" = pull_request ]; then
+            CANDIDATE_VERSION=$(sed -n 's/^ARG DSH_VERSION=//p' Dockerfile)
+          fi
+          args=()
+          if [ -n "$CANDIDATE_VERSION" ]; then args=(--candidate "$CANDIDATE_VERSION"); fi
+          python3 scripts/check_upstream.py --output candidate-evidence/upstream.json "${args[@]}"
+          python3 - <<'PY'
+          import json,os
+          d=json.load(open('candidate-evidence/upstream.json'))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              f.write('candidate='+d['candidateVersion']+'\n')
+              f.write('needs_update='+str(d['candidateChangeRequired']).lower()+'\n')
+          PY
+      - name: Build candidate with reviewed upstream patch contracts
+        env:
+          CANDIDATE: ${{ steps.detect.outputs.candidate }}
+        run: |
+          set -euo pipefail
+          docker build --progress=plain --build-arg "DSH_VERSION=$CANDIDATE" -t dsh-upstream-candidate . 2>&1 | tee candidate-evidence/build.log
+          docker inspect --format='{"imageId":"{{.Id}}"}' dsh-upstream-candidate > candidate-evidence/image.json
+      - name: Test actual installed package and disposable web runtime
+        env:
+          CANDIDATE: ${{ steps.detect.outputs.candidate }}
+        run: |
+          set -euo pipefail
+          docker run --rm --network none --user 10001:10001 --cap-drop ALL --security-opt no-new-privileges --entrypoint node -w /opt/dsh dsh-upstream-candidate scripts/verify_installed_candidate.js "$CANDIDATE" | tee candidate-evidence/installed-package.json
+          docker run --rm --network none --user 10001:10001 --cap-drop ALL --security-opt no-new-privileges --entrypoint node -w /opt/dsh dsh-upstream-candidate scripts/smoke_candidate_runtime.js | tee candidate-evidence/runtime-smoke.json
+      - name: Test deployment overlays
+        run: |
+          set -euo pipefail
+          for test in test_auth_proxy_internet test_environment_routing test_user_isolation_routing test_internal_model_catalog test_proxy_identity_headers test_upstream_contract; do
+            docker run --rm --network none --entrypoint node -w /opt/dsh dsh-upstream-candidate "tests/$test.js" 2>&1 | tee "candidate-evidence/$test.log"
+          done
+          docker run --rm --network none --entrypoint python3 -w /opt/dsh dsh-upstream-candidate -m unittest discover -s tests -p test_package_promotion.py 2>&1 | tee candidate-evidence/package-promotion.log
+          python3 -m venv /tmp/dsh-test-venv
+          /tmp/dsh-test-venv/bin/pip install PyYAML==6.0.3
+          /tmp/dsh-test-venv/bin/python -m unittest discover -s tests -p 'test_*.py' 2>&1 | tee candidate-evidence/python-tests.log
+      - name: Verify admin dashboard browser behavior
+        env:
+          DSH_PLAYWRIGHT: /tmp/dsh-browser/node_modules/playwright
+          DSH_ADMIN_QA_OUTPUT: candidate-evidence/browser
+          DSH_TEST_EVIDENCE_OUTPUT: candidate-evidence/admin-dashboard.json
+        run: |
+          set -euo pipefail
+          npm install --prefix /tmp/dsh-browser --ignore-scripts playwright@1.62.1
+          /tmp/dsh-browser/node_modules/.bin/playwright install --with-deps chromium
+          node tests/test_admin_dashboard.js
+      - name: Write qualification summary
+        if: always()
+        env:
+          CANDIDATE: ${{ steps.detect.outputs.candidate }}
+          RESULT: ${{ job.status }}
+        run: |
+          printf '## DSH candidate %s\n\nResult: %s\n\nSource: %s\n\nNo Production deployment, image publication, shared histories or model calls. A passing candidate still requires copied-state, browser/WebSocket, real compaction and infrastructure-boundary acceptance before release.\n' "$CANDIDATE" "$RESULT" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain detection, image and test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dsh-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+          path: candidate-evidence/
+          retention-days: 30
+  propose:
+    needs: qualify
+    if: github.event_name != 'pull_request' && needs.qualify.outputs.needs_update == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
       pull-requests: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Check official release channels
-        env:
-          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
-        run: |
-          python3 -m unittest discover -s tests -p test_upstream_check.py
-          args=()
-          if [ -n "$CANDIDATE_VERSION" ]; then args=(--candidate "$CANDIDATE_VERSION"); fi
-          python3 scripts/check_upstream.py --output /tmp/upstream.json "${args[@]}"
-          python3 - <<'PY'
-          import json,os
-          d=json.load(open('/tmp/upstream.json'))
-          with open(os.environ['GITHUB_ENV'],'a') as f:
-              f.write('CANDIDATE='+d['candidateVersion']+'\n')
-              f.write('NEEDS_UPDATE='+str(d['candidateChangeRequired']).lower()+'\n')
-          PY
-      - name: Build and test isolated candidate
-        if: env.NEEDS_UPDATE == 'true'
-        run: |
-          docker build --build-arg "DSH_VERSION=$CANDIDATE" -t dsh-upstream-candidate .
-          docker run --rm --entrypoint node -w /opt/dsh dsh-upstream-candidate tests/test_auth_proxy_internet.js
-          docker run --rm --entrypoint node -w /opt/dsh dsh-upstream-candidate tests/test_environment_routing.js
-          docker run --rm --entrypoint node -w /opt/dsh dsh-upstream-candidate tests/test_user_isolation_routing.js
-          docker run --rm --entrypoint node -w /opt/dsh dsh-upstream-candidate tests/test_internal_model_catalog.js
-          docker run --rm --entrypoint python3 -w /opt/dsh dsh-upstream-candidate -m unittest discover -s tests -p test_package_promotion.py
-      - name: Propose reviewed package pin
-        if: env.NEEDS_UPDATE == 'true'
+      - name: Propose tested pin without overwriting existing candidates
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          CANDIDATE: ${{ needs.qualify.outputs.candidate }}
         run: |
+          set -euo pipefail
           branch="automation/dsh-$CANDIDATE"
           existing=$(gh pr list --head "$branch" --state open --json number --jq 'length')
-          if [ "$existing" != 0 ]; then echo 'Candidate PR already open'; exit 0; fi
+          if [ "$existing" != 0 ]; then echo 'Existing candidate PR retained'; exit 0; fi
           if git ls-remote --exit-code origin "refs/heads/$branch" >/dev/null 2>&1; then
-            echo 'Existing candidate branch retained; review it manually'; exit 1
+            echo 'Existing candidate branch retained; review manually'; exit 1
           fi
           python3 scripts/check_upstream.py --candidate "$CANDIDATE" --prepare-candidate --output /tmp/candidate.json
           git checkout -b "$branch"
@@ -71,11 +134,5 @@ jobs:
           git commit -m "Prepare DSH $CANDIDATE candidate"
           gh auth setup-git
           git push origin "$branch"
-          printf '%s\n' 'Candidate image and local routing/catalog/package tests passed. This does not establish copied-state migration, browser behavior, runtime isolation or Production acceptance. Complete the documented canary gates before merge/deployment.' > /tmp/pr-body.txt
+          printf 'Official package candidate %s passed the upstream target contracts, actual installed-module checks, disposable web startup/RPC/Host/auth checks and local overlay tests.\n\nEvidence: %s/%s/actions/runs/%s\n\nSource tested: %s. No auto-merge or Production deployment. Complete copied-state migration, real browser/WebSocket/tool/compaction, network/user boundaries, restart and rollback gates before release.\n' "$CANDIDATE" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_SHA" > /tmp/pr-body.txt
           gh pr create --head "$branch" --base main --title "Prepare DSH $CANDIDATE candidate" --body-file /tmp/pr-body.txt
-      - name: Save detection evidence
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: upstream-detection
-          path: /tmp/upstream.json

@@ -1,0 +1,17 @@
+{
+  "scope": "Isolated existing pinned baseline image, disposable state, deny-all network, no credentials or Production storage mounted",
+  "tests": [
+    {
+      "test": "verify_installed_candidate.js",
+      "exitCode": 0,
+      "stdout": "{\"installedVersion\":\"0.2.0-rc.2\",\"actualModulesChecked\":3,\"syntax\":true,\"webComposition\":true,\"scope\":\"Installed package checks; no inference, user history or Production access\"}\n",
+      "stderr": ""
+    },
+    {
+      "test": "smoke_candidate_runtime.js",
+      "exitCode": 0,
+      "stdout": "{\"actualWebStartup\":true,\"sessionList\":true,\"internalModelCatalog\":true,\"anonymousRpcDenied\":true,\"untrustedHostDenied\":true,\"disposableState\":true,\"inferenceRequested\":false}\n",
+      "stderr": ""
+    }
+  ]
+}

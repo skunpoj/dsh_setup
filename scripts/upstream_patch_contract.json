@@ -1,0 +1,66 @@
+{
+  "baselineVersion": "0.2.0-rc.2",
+  "policy": "Refuse any changed patch target; hashes must be source-reviewed before accepting a new contract.",
+  "targets": [
+    {
+      "path": "dsh-api-session-controller/lib/index.js",
+      "packageVersion": "0.2.0-rc.2",
+      "sha256": "fb0f7b96130f595db20809eeb77a195b05f4a039f931d1e67692f1f74a4dd269",
+      "registryIntegrity": "sha512-WDmk1aWOHbzIKRRt7rtHDxSupw/XLB+BgMyKHlzB7QGinXrK/Dnht6JIdgE1iSShnf1RNANGAGh2G94VzDpl5Q=="
+    },
+    {
+      "path": "dsh-attachment-local/lib/index.js",
+      "packageVersion": "0.2.0-rc.2",
+      "sha256": "cd39685581b4573a453c6126f8ce73da0bf1257c378827ebb431d6d4064f7662",
+      "registryIntegrity": "sha512-VDyHGvKoN59D+3t3rwkZYNFJJJ1PbCV/6z9ngL5lErd1H98NqmFqFzGgGypGPvBGdmi42ckhVldBPq8ZJWzKcA=="
+    },
+    {
+      "path": "dsh-base/cordis.patch.yml",
+      "packageVersion": "0.2.0-rc.2",
+      "sha256": "9c2be64f46a193eff3cca190c26e697e8e8eee25c9b40149dfdb56f8142c252d",
+      "registryIntegrity": "sha512-AclHClefnPmUe2qoPrKMUvauA/KelYevYlxFdHLZGcPRqrDH+D21HyrwJmj4f7Iu5OO0IqfjB4zBOkwMp5h1ug=="
+    },
+    {
+      "path": "dsh-client-connection/lib/client.js",
+      "packageVersion": "0.2.0-rc.2",
+      "sha256": "0fbb93fa2382bb66919767f69c909585c6255486f9536f9232231edaeac8c4e6",
+      "registryIntegrity": "sha512-eL66YSZ0+HlWRzAPGU8jtCLd322WXBoMGN1g1OsM5T7Skqbbo9hSwV1FO3Lm0IcMZR3Y07sGPQBwZwf/l66T3w=="
+    },
+    {
+      "path": "dsh-client-ui-model-selection/lib/client.js",
+      "packageVersion": "0.2.0-rc.2",
+      "sha256": "2ca82227074f2d78f15588364368d27e4d58b1abcd7f9fc01f368fab64bc6696",
+      "registryIntegrity": "sha512-fL6Iyirvk4xOMjbioguxv3E/iAf4AlfqnA9WhEPwdK/0wV7StMKhuAcZkbz2o3kEFHBE98yroyzrbM//yJv4ow=="
+    },
+    {
+      "path": "dsh-client-ui-settings-models/lib/client.js",
+      "packageVersion": "0.2.0-rc.2",
+      "sha256": "7674ed0ba2eef60fa7db91b4bf8cea4dc23e1f0a2f3dd1e6a2a67ad4c0d005fa",
+      "registryIntegrity": "sha512-vZVCHW1PYaPOhlunGL771e2WfkN023CTvZ7ZeiTWX6vkiDloUPCAMCjCl0e/xkbtgSMGvVjquuqGluwxqqIShQ=="
+    },
+    {
+      "path": "dsh-client-ui-settings/lib/client.js",
+      "packageVersion": "0.2.0-rc.2",
+      "sha256": "2ac7f186165c5a8ec2cd90045cf74693e5d3518ec90cd429951360d79754aa94",
+      "registryIntegrity": "sha512-Kyho8FvRGYb7Ok1t7T429d4Dj/XF8+tE/+MX6T1s41RkXCe7v0sP89i4DUMo6OeUxyE+/uGoAVa5QZXY4O/y+g=="
+    },
+    {
+      "path": "dsh-llm-deepseek/lib/index.js",
+      "packageVersion": "0.2.0-rc.2",
+      "sha256": "226e2047b843f954d8478207613f3e44448671c6f98f8edee77008d0fe005484",
+      "registryIntegrity": "sha512-Vk0oz0qAXYLC/tKoGfhRioank4FNX0Xdx8oDYduKL1HDf2tO72X+Nrq7hZaJp9nwvXCcg5TnPRIvE8ETZ98C5g=="
+    },
+    {
+      "path": "dsh-llm-pi-ai/lib/index.js",
+      "packageVersion": "0.2.0-rc.2",
+      "sha256": "d46dbc30aeb3414190000e6f8aeaaf994246b5e5c651de07639f4a7e92de37ef",
+      "registryIntegrity": "sha512-8DxCwQNhfQwqNQ6khxyDSh6Pba9PjpnNQqvAz29SF/V86ClZNH5xZuqCdNfU8E426Ec6wti5oUtM+uKohMAe3A=="
+    },
+    {
+      "path": "dsh-system-prompt/lib/index.js",
+      "packageVersion": "0.2.0-rc.2",
+      "sha256": "ff422afac6ba85f89afa985d921aed0b603feb354a05a549c48eae04cf0d2f57",
+      "registryIntegrity": "sha512-ZZNk2gkXFV8CIT0IOZXS+pFaxNVJaRknYyH2vc4ZgZAiHKT+RqUYNr8e1F5Kp0AaN0DNlcTkjOGP5MCxeXfDjg=="
+    }
+  ]
+}

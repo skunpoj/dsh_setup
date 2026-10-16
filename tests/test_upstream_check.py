@@ -12,11 +12,12 @@ upstream=importlib.util.module_from_spec(spec);spec.loader.exec_module(upstream)
 
 
 class UpstreamCheckTests(unittest.TestCase):
-    def run_check(self,extra=()):
+    def run_check(self,extra=(),package_override=None):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);docker=root/'Dockerfile';docker.write_text('ARG DSH_VERSION=0.2.0-rc.2\n')
             def get(url,timeout):
-                value={'latest':'0.2.0-rc.2','alpha':'0.2.1-alpha.4'} if url.endswith('/dist-tags') else {'version':url.rsplit('/',1)[1],'dist':{'integrity':'sha512-fixture'}}
+                value={'latest':'0.2.0-rc.2','alpha':'0.2.1-alpha.4'} if url.endswith('/dist-tags') else {'name':'@deepseek-ai/dsh','version':url.rsplit('/',1)[1],'dist':{'integrity':'sha512-'+'A'*86+'=='}}
+                if not url.endswith('/dist-tags') and package_override:value.update(package_override)
                 return contextlib.closing(io.BytesIO(json.dumps(value).encode()))
             with patch.object(upstream,'ROOT',root),patch.object(upstream.urllib.request,'urlopen',side_effect=get),patch.object(upstream.subprocess,'check_output',return_value='a'*40+'\trefs/heads/master\n'),patch('sys.argv',['check','--output',str(root/'result.json'),*extra]),contextlib.redirect_stdout(io.StringIO()):
                 upstream.main()
@@ -33,6 +34,18 @@ class UpstreamCheckTests(unittest.TestCase):
 
     def test_shell_payload_version_rejected(self):
         with self.assertRaises(ValueError):self.run_check(['--candidate','1.2.3;echo unsafe'])
+
+    def test_wrong_package_identity_refused(self):
+        with self.assertRaisesRegex(ValueError,'package identity'):
+            self.run_check(package_override={'name':'other-package'})
+
+    def test_missing_integrity_refused(self):
+        with self.assertRaisesRegex(ValueError,'SHA512'):
+            self.run_check(package_override={'dist':{}})
+
+    def test_registry_version_mismatch_refused(self):
+        with self.assertRaisesRegex(ValueError,'version mismatch'):
+            self.run_check(package_override={'version':'9.9.9'})
 
 
 if __name__=='__main__':unittest.main()

@@ -21,8 +21,12 @@ def main():
     ap.add_argument('--candidate',help='Explicit preview override; default tracks npm latest')
     ap.add_argument('--prepare-candidate',action='store_true')
     args=ap.parse_args()
+    if args.candidate and not VERSION.fullmatch(args.candidate):
+        raise ValueError('Invalid candidate version')
     docker=ROOT/'Dockerfile';text=docker.read_text(encoding='utf-8')
-    baseline=re.search(r'^ARG DSH_VERSION=(\S+)$',text,re.M).group(1)
+    pins=re.findall(r'^ARG DSH_VERSION=(\S+)$',text,re.M)
+    if len(pins)!=1 or not VERSION.fullmatch(pins[0]):raise ValueError('Expected one valid Dockerfile package pin')
+    baseline=pins[0]
     with urllib.request.urlopen('https://registry.npmjs.org/-/package/@deepseek-ai/dsh/dist-tags',timeout=25) as response:
         channels=json.load(response)
     refs=subprocess.check_output(['git','ls-remote','https://github.com/deepseek-ai/deepseek-harness.git',
@@ -33,10 +37,14 @@ def main():
     with urllib.request.urlopen('https://registry.npmjs.org/@deepseek-ai/dsh/'+candidate,timeout=25) as response:
         package=json.load(response)
     if package['version']!=candidate:raise ValueError('Registry version mismatch')
+    if package.get('name')!='@deepseek-ai/dsh':raise ValueError('Unexpected registry package identity')
+    integrity=package.get('dist',{}).get('integrity','')
+    if not re.fullmatch(r'sha512-[A-Za-z0-9+/]{86}==',integrity):raise ValueError('Missing or invalid published SHA512 integrity')
     record={'checkedAtUTC':datetime.now(timezone.utc).isoformat(),'officialRepository':'deepseek-ai/deepseek-harness',
         'officialMaster':master,'npmChannels':channels,'sourcePackagePin':baseline,'candidateVersion':candidate,
         'defaultChannelUpdateAvailable':channels['latest']!=baseline,'candidateChangeRequired':candidate!=baseline,
-        'candidateRegistryIntegrity':package.get('dist',{}).get('integrity'),'productionChanged':False,
+        'candidateRegistryIntegrity':integrity,'candidateSourceGitHead':package.get('gitHead'),
+        'candidateLicense':package.get('license'),'productionChanged':False,
         'automationPolicy':'Detect releases, test candidate, propose package-pin PR; no auto-merge or Production deployment'}
     if args.prepare_candidate:
         docker.write_text(re.sub(r'^ARG DSH_VERSION=\S+$','ARG DSH_VERSION='+candidate,text,flags=re.M),encoding='utf-8')

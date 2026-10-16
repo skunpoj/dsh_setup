@@ -1,0 +1,19 @@
+{
+  "checkedAtUTC": "2026-10-16T12:26:04.127410+00:00",
+  "officialRepository": "deepseek-ai/deepseek-harness",
+  "officialMaster": "1517a4dbca0a2789ff1d41ba439600f8547d23fa",
+  "npmChannels": {
+    "latest": "0.2.0-rc.2",
+    "next": "0.2.0-rc.2",
+    "alpha": "0.2.1-alpha.4"
+  },
+  "sourcePackagePin": "0.2.0-rc.2",
+  "candidateVersion": "0.2.0-rc.2",
+  "defaultChannelUpdateAvailable": false,
+  "candidateChangeRequired": false,
+  "candidateRegistryIntegrity": "sha512-EAJ3gPNcVt/uv8X19PMm9NkVhWgT7xXNMk0UKCVm+IQ5rpSQOcsMUa0HWlnYYVybKMsccjcRB21vVVsaXQ6IdA==",
+  "candidateSourceGitHead": null,
+  "candidateLicense": "MIT",
+  "productionChanged": false,
+  "automationPolicy": "Detect releases, test candidate, propose package-pin PR; no auto-merge or Production deployment"
+}

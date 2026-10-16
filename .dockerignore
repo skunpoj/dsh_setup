@@ -1,7 +1,6 @@
 .git
 .github
 rollback
-tests
 docs
 k8s
 *.md

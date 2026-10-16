@@ -18,7 +18,9 @@ ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh KRB5CCNAME=FILE:/state/kerberos/ccach
 COPY scripts/ /opt/dsh/scripts/
 COPY tests/ /opt/dsh/tests/
 COPY container/ /opt/dsh/container/
-RUN node /opt/dsh/scripts/configure_models.js \
+RUN node /opt/dsh/scripts/verify_upstream_contract.js \
+ && node /opt/dsh/scripts/configure_models.js \
+ && node /opt/dsh/scripts/verify_installed_candidate.js "${DSH_VERSION}" \
  && mkdir -p /opt/dsh/seed \
  && cp -a /home/dsh/.dsh /opt/dsh/seed/dsh-home \
  && install -m 0755 /opt/dsh/container/start-dsh.sh /usr/local/bin/start-dsh \

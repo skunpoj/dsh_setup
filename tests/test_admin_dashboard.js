@@ -42,7 +42,8 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
   assert((await request('GET','/','',admin)).text.includes('id="dsh-admin-dashboard"'));
   assert(!(await request('GET','/','',ordinary)).text.includes('id="dsh-admin-dashboard"'));
   const {chromium}=require(process.env.DSH_PLAYWRIGHT || 'C:/Users/skunpojt/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-  browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
+  const executablePath=process.env.DSH_BROWSER_EXECUTABLE || (process.platform==='win32'?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':undefined);
+  browser=await chromium.launch({headless:true,...(executablePath?{executablePath}:{})});
   const context=await browser.newContext({viewport:{width:1440,height:1000}});
   await context.addCookies([{name:'dsh_auth',value:admin.split('=')[1],url:`http://127.0.0.1:${port}`}]);
   const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
