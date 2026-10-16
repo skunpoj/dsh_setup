@@ -1,182 +1,174 @@
-# DSH Pilot — Controlling Data Leakage, Source Damage and Result Exposure
+# DSH — Controlling Three Security Risks
 
-The pilot assumes that the Harness, its tools and generated code can make mistakes or act beyond the intended task. Its protection therefore comes from network boundaries, execution identities, data permissions, private storage and authenticated access—not prompt instructions alone.
-
-**The objective is to limit what can go wrong enough to make this specific pilot acceptable. It is not to prove that the Harness is universally safe.**
-
-This report follows the three controls in the supplied pilot brief. It explains which environment to use, how each protection works, what the recorded tests establish and what still needs a decision or additional enforcement. The main DSH environment has deployed protections. The newly clarified pilot is **public-data-only**, using a dedicated system identity limited to one sandbox. System-account Kerberos authentication and identity propagation through Livy/Spark are now verified in an isolated temporary canary. The scoped pilot is not yet qualified: the exact sandbox was not visible under that identity, exclusive sandbox permissions are unverified, and its remote driver/executor still reached public TCP destinations.
-
-## Pilot boundary and environment choice
-
-Claude Code and TrueForge use operator-owned model settings and scoped credentials for internal inference. Recorded client tests verified that path and rejected configuration changes. These controls apply to the supplied clients; they do not create a separate code sandbox or constrain remote Spark workers.
-
-### Public-data pilot and execution identity
-
-The pilot described in the supplied operating plan uses **`da-agent-system-user`**, with read/write access only to **`sandbox_da_agent_public_data`**. Personal AD rights remain unchanged outside the pilot, but personal credentials are not the intended agent identity for this exercise. People still use named DSH logins for private workspaces and audit; the system account is the datalake execution identity, not a shared DSH web login. Only public data is permitted initially; use of internal BOT data requires a later internal approval decision. Read/write access to the disposable public sandbox is deliberate and must not be confused with unrestricted access to internal source data.
-
-| Pilot condition | Current evidence and limit |
-|---|---|
-| Dedicated system account | A fresh private Kerberos login passed. Livy owner and Spark execution user both matched `da-agent-system-user` in synthetic session 630. The temporary ticket cache was isolated from existing users; no password was written to reports or Git. |
-| Exactly one public-data sandbox | The exact name was not visible through the system account on the Hive catalog using `hdfs://botdlk-da`. This is not proof of nonexistence; creation, catalog/path or permissions may differ. The data owner must confirm the approved target and grants before read/write or exclusivity acceptance. |
-| Local execution without Internet | Main No Internet pod probes passed. Fresh system-account Spark driver and executor probes reached `github.com:443` and `1.1.1.1:443`; public DNS TCP/53 timed out. The end-to-end offline requirement remains unmet. |
-| Clear software/data terms | The running Harness package reports MIT, consistent with the [official license](https://github.com/deepseek-ai/deepseek-harness/blob/86a402200d95fecef4529d969836f1fe13c6cb0d/LICENSE). This does not clear model weights, dependencies, connected services or dataset reuse terms, and is not legal/committee approval. |
-| DA cluster resource monitoring | The DA ResourceManager API returned validated memory, vCore-allocation, container/node and running-application metrics. Pilot queue limits, alerts, retention and human-to-job correlation were not established. The DSH dashboard is not a substitute for this monitoring. |
-
-Use a **dedicated pilot runtime with a clean workspace/history and credential cache**, retaining central CIFS persistence through bounded pilot subpaths. A new working directory alone does not restrict access to legacy data already mounted in a process. Do not mount the broad legacy workspace or introduce internal datasets into this public-data exercise. Keep each human's workspace isolated even if the data-access principal is shared; correlate gateway user, runtime, Livy session and Spark application in the pilot audit design.
-
-The approval/creation workflow in the plan is still required: data-owner approval, creation through the sandbox system, and granting this principal the intended sandbox role. Account existence alone proves none of those steps. Prepare the internal-review package in parallel, with verified facts and open conditions clearly labelled; do not describe preparation as approval to use internal data.
-
-**Fresh system-account test:** metadata only; no source data was queried or modified and no permission was changed. The test-created Livy session was deleted and its absence verified. Its private ticket was destroyed and the temporary runtime removed. This verifies that identity, not every user's entitlements. See [system-account result](context-evidence/public-pilot-system-account-live-20261016.json) and [credential/runtime cleanup](context-evidence/public-pilot-system-account-cleanup-20261016.json).
-
-Evidence: [AD account lookup](context-evidence/public-pilot-system-account-directory-20261016.json), [authentication availability](context-evidence/public-pilot-auth-availability-20261016.json), [sandbox metadata check](context-evidence/public-pilot-sandbox-metadata-20261016.json), [DA metrics](context-evidence/public-pilot-da-resource-metrics-20261016.json), [license check scope](context-evidence/public-pilot-license-review-20261016.json).
-
-An analyst defines a DQ hypothesis and the permitted data scope. The agent can prepare Python or Spark code, execute it under the available identity and produce reports in that user's working area. The controls below must constrain those actions even when the generated code is wrong.
-
-| Environment | Intended use | What it can reach and store |
-|---|---|---|
-| **No Internet / Internal — default** | Public-data pilot after scope validation; internal data requires separate approval | Dedicated user workspace, history and credential state; internal inference, restricted DNS, Kerberos and the permitted Livy endpoint. Representative direct public connections are blocked. |
-| **Internet** | Obtain libraries and prepare dependency artifacts | Separate workspace/history and package incoming area. It does not mount the protected No Internet workspace. Tested datalake/KDC destinations are denied. |
-| **Remote Livy/Spark compute** | Execute distributed analysis under the authenticated principal | A separate execution boundary in the datalake platform. DSH pod policies do not govern its driver or executors. Public TCP connectivity was observed there. |
-
-The two DSH environments share the internal inference service and authentication gateway, **not writable project data, conversation history or credentials**. Switching environments requires logout and a new login. This is restricted egress, not a strict air gap: the default environment still needs approved internal connections.
-
-Only reviewed dependency artifacts should move from Internet staging to the No Internet package cache. Sensitive prompts, datasets, reports and credentials are not part of that transfer workflow. Existing users' AD/datalake permissions remain unchanged outside the scoped pilot. The public-data exercise must use its dedicated sandbox-limited principal; selecting an environment alone neither imposes that identity nor grants a data entitlement.
+The controls below limit what the Harness, its tools and generated code can reach, change and disclose. Enforcement belongs in network rules, execution identities, storage permissions and authenticated routes. A prompt asking the agent to behave safely is not an access control.
 
 ## 1 Prevent external leakage
 
-**Risk:** the Harness or generated code could transmit RDT, prompts, credentials or results to an external destination. The network control must cover every place the code executes, including remote workers.
+### Risk and control objective
 
-### What enforces the boundary
+Generated code, a tool or a dependency could send data, prompts, credentials or results to an external destination. The control objective is to block unauthorized outbound connections from every environment that executes the work, while retaining only the internal services needed for the task.
 
-The default DSH runtime is selected by the authenticated gateway and placed under a Kubernetes egress policy. That policy permits only the required internal destinations: the internal model gateway, restricted DNS, Kerberos and the allowed Livy connection. The DNS relay accepts the required internal names and rejects public/encoded test names locally. Direct public DNS and direct CoreDNS bypass probes are denied.
+### Separate execution environments
 
-Model requests use internal LiteLLM and inference-only credentials. The [mounted configuration readback](context-evidence/pilot-model-route-config-20261016.json) found 22 model entries using internal service hosts and no explicit fallback settings in the checked configuration scopes. Recorded tests denied model/key administration and a client-selected API-base override. External provider fallback must remain disabled for the pilot; this static-file check does not audit every dynamic model entry, plugin or client. These controls constrain the approved inference path, not every possible relay through an allowed internal service.
+The default **No Internet / Internal** environment runs the user's analysis and stores its protected files. Kubernetes network rules restrict its outbound destinations. Required internal connections include the model gateway, controlled DNS, Kerberos and the permitted Livy endpoint. Public connections must be denied at the network layer even when a user runs arbitrary terminal commands or generated Python code.
 
-The Internet environment is separate compute and storage. It can download packages into an incoming area, but cannot install directly into the protected workspace or modify the approved cache. An operator reviews artifacts and their hashes; the promotion helper verifies the exact bytes and publishes them to a cache that No Internet mounts read-only. Hash verification proves integrity, not that a package is harmless.
+The **Internet** environment prepares dependencies. It has separate compute, workspace, history and credential storage. It does not mount the protected No Internet workspace. The user selects an environment at login and remains routed to that environment until logout. Selecting Internet must not carry protected files, tickets or conversation history into it.
+
+The environments share internal inference and the authentication gateway. That necessary internal connectivity makes No Internet a restricted-egress environment, rather than a strict air gap.
+
+### Keep inference and dependency transfer inside defined paths
+
+Approved model clients send requests to internal LiteLLM with inference-only credentials. Operator-owned settings constrain the supplied clients' configured endpoint and model. External model fallback must remain disabled. These settings complement network enforcement: changing a client or running a different program must not make public destinations reachable from No Internet.
+
+Dependencies move through a controlled package path:
+
+1. Internet downloads artifacts into an incoming area.
+2. An operator reviews the package source, version and expected hashes.
+3. A promotion process verifies the selected bytes and copies approved artifacts into a separate cache.
+4. No Internet mounts that cache read-only and installs without contacting a public package index.
+
+Internet cannot directly install into the protected runtime or write its workspace. Hashes detect changed artifacts; package review is still necessary because a correctly hashed package can contain harmful code. Prompts, datasets, credentials and reports are not dependency artifacts and must not use this transfer path.
 
 ```mermaid
 flowchart TB
- U[Named user selects an environment] --> G[Authenticated gateway]
- G --> S[No Internet runtime - private data]
- G --> I[Internet runtime - separate staging]
- S --> M[Internal LiteLLM and shared model]
- S --> L[Permitted Livy connection]
- L --> R[Remote Spark driver and executors]
- R --> E[Public TCP reachable - containment open]
- S --> B[Direct public probes blocked]
- I --> P[Package incoming]
- P --> V[Operator review and exact-byte hash verification]
- V --> C[Approved read-only package cache]
+ U[Named user] --> G[Authenticated environment routing]
+ G --> S[No Internet - private execution and data]
+ G --> I[Internet - separate dependency staging]
+ S --> M[Internal LiteLLM and model]
+ S --> B[Direct public connections denied]
+ I --> P[Incoming packages]
+ P --> V[Operator review and hash verification]
+ V --> C[Approved read-only cache]
  C --> S
+ S --> L[Allowed Livy endpoint]
+ L --> R[Remote Spark drivers and executors]
+ R --> E[Public egress observed - remaining exposure]
  classDef exposure fill:#7f1d1d,stroke:#f87171,color:#ffffff
  class E exposure
 ```
 
-### What is verified and what remains
+### Cover remote execution as well as DSH
 
-| Recorded observation | Meaning for the risk |
-|---|---|
-| Public-domain, direct-IP and DNS-bypass probes failed from the tested No Internet workers; internal inference returned the required response | The tested local pod boundary works for those destinations. This is not an exhaustive proxy/IPv6/relay assessment. |
-| Internet workers reached package sites but failed the tested KDC, Livy and unrelated internal-service connections | Dependency preparation is separated from the tested internal data-access paths. |
-| A package was downloaded, hash-promoted, installed without an index and imported inside No Internet; cache writes were denied | The intended library-transfer path works without sharing writable workspaces. |
-| The authenticated system-account Spark driver **and executor** reached `github.com:443` and `1.1.1.1:443` | **The end-to-end Internet-denial requirement is not met.** Blocking Internet only in DSH does not contain code sent to remote Spark. |
+A Spark job executes on remote drivers and executors. The DSH pod's network rules do not follow the code onto those workers. Remote execution therefore requires its own destination restrictions, DNS/proxy controls and outbound tests. Allowing an internal Livy connection is safe only to the extent that the resulting remote execution is appropriately contained.
 
-The user previously chose to keep Livy/Spark available in the general platform with this documented exposure. That accepted operational exception does not qualify the newly clarified offline public-data pilot and is not a repaired firewall. No RDT was read or transmitted by the recorded connectivity tests.
+Livy/Spark remains available. Recorded driver and executor tests reached public TCP destinations, so complete outbound containment is not established. Closing this exposure requires the datalake infrastructure owner to restrict the actual worker network paths, or route protected jobs to a worker environment with equivalent restrictions. An accepted exception permits continued use; it does not block the connection.
 
-**To meet the original requirement:** the datalake infrastructure owner must enforce restricted egress for the actual Spark drivers/executors and retain only their necessary internal services. Acceptance must test outbound paths from each relevant execution mode, including direct IP, DNS, configured proxies and IPv6 where enabled. If that enforcement cannot be provided, sensitive remote execution needs an explicit risk decision or a restriction on its use. This report does not silently disable the retained Livy service.
+### Verification and remaining exposure
 
-Evidence: [local boundaries](context-evidence/design-consistency-live-20261016.json), [new admin runtimes](context-evidence/admin-private-network-20261016.json), [offline package workflow](context-evidence/package-workflow-live-20261016.json), [earlier personal-account Spark retest](context-evidence/remote-spark-recheck-20261016.json), [fresh system-account driver/executor retest](context-evidence/public-pilot-system-account-live-20261016.json).
+| Check | Recorded result | Control implication |
+|---|---|---|
+| Public domains, direct public IPs and DNS bypass from tested No Internet runtimes | Representative requests failed while internal inference worked | The tested local outbound boundary is enforced. |
+| Internet dependency access versus internal data-service access | Package sites were reachable; tested KDC, Livy and unrelated internal services were denied | Dependency preparation is separated from the tested data-access paths. |
+| Offline dependency installation | Download, hash promotion, offline installation and import passed; writes to the approved cache were denied | Packages can be supplied without sharing writable workspaces. |
+| Internal inference restrictions | Checked configuration used internal hosts; administration and endpoint-override requests were denied | The tested configured inference route is constrained. |
+| Remote Spark driver and executor outbound access | Public TCP connections succeeded | Remote-worker containment remains open. |
+
+Network acceptance must include each execution mode and representative domain, direct-IP, DNS, proxy and IPv6 paths where enabled. The infrastructure owner must confirm the enforced rules and repeat the checks after relevant routing or policy changes.
+
+Supporting evidence: [local network boundaries](context-evidence/design-consistency-live-20261016.json), [dependency transfer](context-evidence/package-workflow-live-20261016.json), [model-route configuration](context-evidence/pilot-model-route-config-20261016.json), [remote-worker tests](context-evidence/public-pilot-system-account-live-20261016.json).
 
 ## 2 Prevent damage or excessive access
 
-**Risk:** generated code could modify source data, delete writable content or reach unrelated resources. Denying Internet access does not prevent those actions inside an authorized internal system.
+### Risk and control objective
 
-### What enforces the boundary
+Generated code can delete writable files, change source records, use excessive resources or access unrelated systems. Internet denial does not prevent damage to internal resources. The control objective is to give execution only the identity, data scope, writable locations and resources needed for the approved task.
 
-Each main DSH user has a dedicated execution environment for each network mode. The runtime uses UID/GID 10001, disables privilege escalation, drops Linux capabilities, uses RuntimeDefault seccomp and does not mount a Kubernetes service-account token. Separate workspace, session, attachment and credential mounts prevent an ordinary user from obtaining another user's files through a shared process or filesystem. Resource limits constrain the local runtime; remote Spark resources and permissions remain a datalake responsibility.
+### Contain local code execution
 
-Projects and results belong in the user's working area. No Internet durable files/history use the mounted DA_WORKSPACE CIFS storage with bounded user paths; Internet staging uses separate storage. The approved package cache is read-only. **DA_WORKSPACE is persistence, not the source of RDT authorization and not an independent backup.**
+Each main DSH user has a dedicated runtime for each network environment. The runtime executes as a non-root identity, disables privilege escalation, drops Linux capabilities, uses RuntimeDefault seccomp and has no mounted Kubernetes service-account token. CPU and memory limits bound local resource use.
 
-RDT access follows the authenticated AD principal through Kerberos and Livy/Spark to the applicable Hive/HDFS permissions. A local DSH login is a separate identity. The personal Kerberos retest found the required service ticket and confirmed that Livy's owner matched Spark's execution user; it did not establish read-only access to an unspecified table or path.
+Workspace, session, attachment and credential mounts are limited to the user and environment. The runtime must not mount another user's directory, a broad parent containing private users, host administration paths or credentials for unrelated services. Changing the current working directory is not isolation; access must be denied by the mounted scope and effective permissions.
+
+Protected working files and durable history use bounded paths on the central CIFS storage. Internet staging uses separate storage. The package cache is read-only. Writable results belong in the user's designated working area. Central persistence keeps work available after a runtime replacement, but recovery from deletion requires a separate versioning or backup control.
+
+### Constrain data access with the execution identity
+
+Datalake jobs authenticate through Kerberos and execute through Livy/Spark under the applicable principal. Hive/HDFS and sandbox permissions determine the data that code may read or change. Each user's existing AD/datalake rights are preserved; DSH does not automatically reduce a writable entitlement to read-only.
+
+For a bounded public-data exercise, the intended execution principal is **`da-agent-system-user`**, limited to **`sandbox_da_agent_public_data`**. Read/write access is appropriate within that disposable sandbox; unrelated datasets must be inaccessible. For tasks involving protected source records, the effective identity must have read-only source access and a separate permitted result location. A read-only view is insufficient if the same credentials can bypass it and modify the underlying source.
+
+Credentials and Kerberos tickets must remain in the private No Internet credential area. A shared system principal requires correlation between the named DSH user, runtime, Livy session and Spark application so that its actions remain attributable to a person.
 
 ```mermaid
 flowchart TB
- A[Named pilot user] --> X[Dedicated non-root public-data runtime - target]
- X --> W[Clean private workspace and results]
- X --> K[Private system ticket - canary verified]
- K --> P[da-agent-system-user]
- P --> D[Sandbox-only authorization - acceptance pending]
- D --> Q[sandbox_da_agent_public_data - intended read and write]
- D --> N[Other data denied - must be verified]
- T[Internal data only after separate approval] --> V[Least-privilege source access]
- T --> O[Separate writable results scope]
+ U[Named user] --> P[Private non-root runtime]
+ P --> W[Own writable workspace and results]
+ P --> C[Private credential cache]
+ C --> K[Kerberos execution identity]
+ K --> A[Effective datalake authorization]
+ A --> D[Approved source or public sandbox]
+ A --> N[Out-of-scope access denied - test required]
+ P --> Q[CPU and memory limits]
+ D --> O[Separate result scope where required]
  classDef pending fill:#78350f,stroke:#fbbf24,color:#ffffff
- class D,N pending
+ class N pending
 ```
 
-### Source protection in the public-data pilot and later internal use
+### Verification and remaining exposure
 
-| Source-protection condition | Current position |
-|---|---|
-| Dedicated non-admin execution | Implemented for main private DSH runtimes; DSH2/DSH3 still need migration. |
-| Public sandbox read/write, no unrelated data access | Intended for `da-agent-system-user`; authentication and Livy/Spark identity propagation are verified; its sandbox-only effective rights are not accepted, and the target was not visible in the checked catalog. |
-| Internal source protection | Internal data is outside this initial pilot. Later use requires approval and an explicit source/results permission design; do not silently inherit broad personal rights into the pilot. |
-| Results confined to approved storage | DSH provides isolated working areas. Datalake writes must also stay within the approved public sandbox/results scope. |
+| Check | Recorded result | Control implication |
+|---|---|---|
+| Private runtime execution and terminal access | Non-root execution and tested user boundaries passed | Local work is separated from peer workspaces and administrative execution. |
+| Approved package cache | Write attempts were denied | Execution cannot alter the approved dependency source through that mount. |
+| System-account authentication and identity propagation | Kerberos authentication passed; Livy owner and Spark execution user matched the system principal | The tested job used the expected identity. This does not prove its full entitlement scope. |
+| Exact public sandbox and exclusive permissions | The expected sandbox was not visible in the checked catalog; permitted operations and out-of-scope denial were not accepted | Sandbox-only authorization remains unverified. |
+| Remote resource control | ResourceManager metrics were available; pilot queue limits and alerts were not established | Monitoring visibility alone does not constrain a runaway remote job. |
 
-**To qualify this pilot:** confirm the sandbox creation/catalog/path and effective Hive/HDFS and sandbox-application grants for the now-tested system identity, and test permitted sandbox reads/writes on disposable public fixtures. The data owner must also provide a safe out-of-scope test target whose access is denied. Do not use genuine internal records for that negative test or assume that one visible database proves exclusivity. Keep a recoverable reference copy of public test inputs so generated transformations do not destroy the experiment's baseline.
+Closure requires a confirmed sandbox catalog/path and effective grants, permitted reads/writes on disposable fixtures, and denied access to a safe out-of-scope fixture. For protected sources, verify denied writes without modifying genuine records. Remote jobs also require queue/resource limits and an operator response to excessive consumption. Keep a recoverable baseline for disposable test inputs and transformations.
 
-Public-sandbox administration must not confer broader datalake administration. The system principal's credentials must stay out of the Internet environment. A shared service identity also needs human-to-job audit correlation; the current identity-propagation tests alone do not establish that correlation for all pilot users.
-
-If internal RDT is approved later, establish least-privilege source access—read-only where required—and a separate writable result scope. A view alone is insufficient if execution can bypass it with broader credentials. None of these permissions or approvals is granted by this report.
-
-Evidence: [private routing and audit checks](context-evidence/owner-admin-snapshot-live-20261016.json), [identity propagation](context-evidence/remote-spark-recheck-20261016.json), [Kerberos ticket-presence check](context-evidence/kerberos-personal-ticket-check-20261016.json).
+Supporting evidence: [private routing and audit](context-evidence/owner-admin-snapshot-live-20261016.json), [execution identity and sandbox check](context-evidence/public-pilot-system-account-live-20261016.json), [remote resource metrics](context-evidence/public-pilot-da-resource-metrics-20261016.json).
 
 ## 3 Keep results contained
 
-**Risk:** reports, logs, attachments or temporary files could expose RDT to another person, or be published/exported outside the approved pilot.
+### Risk and control objective
 
-### What enforces the boundary
+Reports, conversation history, logs, attachments and temporary files can disclose data to another user or through an unintended publication route. The control objective is to keep those outputs accessible only to authorized people, with authenticated delivery and attributable access.
 
-The main gateway admits provisioned local accounts and disables self-registration. It selects the user's fixed runtime; a URL, form field or forged identity header cannot select another user's backend. Application, report and terminal traffic pass through authenticated routes. Login sessions stay in one environment, and logout revokes the gateway session.
+### Authenticate every route and isolate each user's storage
 
-Workspaces, histories, attachments and credentials are private to the user and environment. Existing legacy content remains with its confirmed owner, `thanatcc`. Admin uses fresh private runtimes and cannot read those owner histories through DSH. The owner runtime masks the reviewed peer-data subtree, old authentication/credential aliases and recovery paths. Host, cluster and storage administrators remain a privileged trust boundary.
+The gateway admits provisioned named accounts and disables self-registration. It binds the authenticated identity to a fixed private runtime. A URL, submitted username or forged identity header must not select another user's backend. Reports, files, attachments and terminal WebSockets require the same authenticated boundary as the main application.
 
-Central dashboard access is admin-only. The central access audit records time, event, user and environment—not passwords, Kerberos tickets, prompts or conversation bodies. Audit storage is outside the execution workspaces. It supports accountability, but is not a full command transcript or a tamper-proof external SIEM.
+Each user and environment has separate workspace and history storage. Ordinary users must not read peer files through file APIs, terminal commands, attachment routes or direct backend connections. Logout revokes the gateway session. Switching network environments requires a new login and must not expose the other environment's history or credentials.
+
+Data ownership and administration are separate. The owner retains access to their content; the admin dashboard provides operational oversight without granting ordinary application access to another user's histories. Cluster, host and storage administrators remain privileged identities and require separate administrative controls.
+
+### Keep audit and delivery within the approved scope
+
+The central dashboard is admin-only. Access auditing records the time, event, user and environment in storage outside execution workspaces. Passwords, tickets, prompts and conversation bodies are excluded from this access audit. These records support investigation and accountability; they are not a complete command transcript or an independently protected external audit service.
+
+Reports should be delivered through authenticated routes. Analysis must not automatically publish reports, create public links or export files to external services. Any generated application or new report-serving endpoint needs equivalent authentication and user-bound storage before it is used with protected content.
 
 ```mermaid
 flowchart TB
- U[Named pilot user] --> G[Authenticated gateway and fixed user route]
- G --> A[Own runtime - files - reports - history]
- X[Another ordinary user] --> N[Peer data and owner-history requests denied]
- AD[DSH admin] --> D[Admin dashboard and central access audit]
- AD --> P[Admin private runtime]
- AD --> B[Owner-history reads denied through DSH]
- A --> BR[Authorized browser displays results]
- BR --> M[Manual copying remains outside pod controls]
+ U[Named user] --> G[Authenticated gateway]
+ G --> R[Fixed private runtime]
+ R --> F[Own files - reports - history]
+ X[Other user] --> N[Peer routes and files denied]
+ A[Admin] --> D[Admin-only dashboard and access audit]
+ A --> P[Own private runtime]
+ F --> B[Authorized browser access]
+ B --> E[Manual copying requires endpoint controls]
  classDef boundary fill:#78350f,stroke:#fbbf24,color:#ffffff
- class M boundary
+ class E boundary
 ```
 
-### What is verified and what remains
+### Control the browser and legacy routes
 
-Recorded checks verified owner-history access, denial to other users including admin, non-admin denial of the dashboard/API and rejection of forged-role attempts. Real authenticated terminal WebSockets executed non-root commands in both owner and admin environments. Workspace/attachment markers survived replacement of the new admin runtime processes. The earlier isolated two-user acceptance also exercised synthetic report, attachment and session boundaries.
+An authorized browser can display, download or copy a result. Pod network policy does not control the user's device. Where the handling requirement prohibits those actions, managed-browser, VDI or endpoint DLP restrictions must enforce it, with explicit tests of the allowed and prohibited actions.
 
-These checks establish the tested access paths. They do not certify every historical tool action, plugin or generated application. Pilot reports must remain behind the authenticated gateway; any publication or export must be separately authorized rather than treated as an automatic outcome of analysis.
+Legacy DSH2/DSH3 instances do not provide the same private-runtime boundary: their recorded configuration uses root execution, a service-account token and multiple accounts sharing a process. They must be migrated to equivalent isolation or excluded from handling protected pilot content. A successful login on those instances does not establish containment between their users.
 
-**Browser boundary:** a person authorized to see a result can still copy, download, photograph or manually share it. Pod egress policies do not govern that person's device. If the pilot requires prevention of those actions, the endpoint owner must add managed-browser/VDI/DLP controls and verify the intended restrictions. This report does not claim those controls are deployed, and it does not disable useful downloads while presenting that as complete data-loss prevention.
+### Verification and remaining exposure
 
-**Legacy boundary:** DSH2 and DSH3 are not yet equivalent to the main deployment. They still run as root with a service-account token and three local accounts sharing each process. Basic anonymous/login/logout route checks passed, but that is not user isolation. Migration requires the pending decision on their history owners and reconciliation of live profiles/root working directories before restart. Their original data remains preserved.
-
-Evidence: [owner/peer access](context-evidence/legacy-owner-restoration-live-20261016.json), [real terminal checks](context-evidence/owner-admin-terminal-live-20261016.json), [restart persistence](context-evidence/admin-private-persistence-20261016.json), [legacy response-content review](context-evidence/legacy-auth-content-review-20261016.json).
-
-## Acceptance and remaining decisions
-
-| Control | Current disposition | What is needed to satisfy the original brief |
+| Check | Recorded result | Control implication |
 |---|---|---|
-| Prevent external leakage | Local No Internet controls verified; fresh system-account Spark driver/executor Internet access is confirmed | Infrastructure owner restricts the actual pilot driver/executor egress and repeats the probes; the earlier general-platform exception is not offline pilot acceptance. |
-| Prevent damage or excessive access | Main runtime isolation and system-account authentication/identity verified; exclusive public-sandbox scope not accepted | Confirm the approved sandbox catalog/path and grants, validate read/write and safe out-of-scope denial, and keep internal data out until separately approved. |
-| Keep results contained | Main authenticated routes, private data boundaries and central audit verified | Finish legacy-instance migration; define report/export handling and add endpoint controls if manual-copy prevention is required. |
+| Owner versus peer history access | Owner access passed; other users, including the application admin, were denied ordinary access | The tested history routes respect ownership. |
+| Dashboard and role manipulation | Non-admin dashboard/API requests and forged-role attempts were denied | The tested oversight routes are restricted. |
+| Terminal and attachment boundaries | Authenticated terminal execution and synthetic user/session/file boundary tests passed | The tested interactive paths preserve the user boundary. |
+| Runtime replacement | Workspace and attachment markers persisted in the tested replacements | The tested durable outputs survived process replacement. |
+| Authorized-device copying | No managed-browser/VDI/DLP acceptance is established | Manual copying is outside the verified pod controls. |
+| Legacy instances | Basic authentication passed; equivalent per-user containment is not established | Legacy routes must not inherit the main deployment's acceptance. |
 
-The environment choice, data scope and named participants should be recorded for each pilot exercise. Infrastructure owners own network enforcement; data owners own entitlements; the DSH operator owns runtime/routing/persistence; endpoint owners own device restrictions; the pilot owner decides whether residual exposure is acceptable. An accepted exception must not be labelled a technical fix.
+Closure requires named participant provisioning, checks of every report/file/terminal route, denial of peer and unauthenticated access, and verification that generated tools do not add unauthenticated publishing paths. Apply endpoint restrictions where required and migrate or exclude legacy execution paths. Repeat these checks after changes to authentication, routing or storage mounts.
 
-The evidence linked here records specific checks on 16 October 2026. Opening or regenerating this HTML does not run new security tests or grant access to data. Detailed migration histories, raw logs, model trials and setup instructions are supporting material, not the main risk-control narrative.
+Supporting evidence: [owner and peer access](context-evidence/legacy-owner-restoration-live-20261016.json), [terminal routes](context-evidence/owner-admin-terminal-live-20261016.json), [private-state persistence](context-evidence/admin-private-persistence-20261016.json), [legacy access review](context-evidence/legacy-auth-content-review-20261016.json).

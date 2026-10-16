@@ -20,11 +20,9 @@ try {
  assert.equal(await page.locator('html').getAttribute('lang'),'en');
  const mainHeadings=await page.locator('main > h2').allTextContents();
  assert.deepEqual(mainHeadings,[
-  'Pilot boundary and environment choice',
   '1 Prevent external leakage',
   '2 Prevent damage or excessive access',
-  '3 Keep results contained',
-  'Acceptance and remaining decisions'
+  '3 Keep results contained'
  ],'Primary report must be organized around the supplied three pilot risks');
  for(const id of ['verification-records']){
   assert.equal(await page.locator('#'+id).evaluate(e=>e.open),false,'Technical support material must be collapsed initially');
@@ -33,7 +31,7 @@ try {
  assert(!/[\u0e00-\u0e7f]/.test(narrative),'Risk report narrative must be English');
  assert.equal(await page.locator('#embedded-readme, #embedded-llm-guide').count(),0,'General setup guides must remain outside the three-risk report');
  assert.equal(await page.locator('details[id^="evidence-"]').count(),0,'Raw evidence logs must remain separate');
- assert(!/Main DSH model status|Context and performance|Live configuration clarification|Ownership correction|tokens\/second|tokens\/sec/.test(narrative),'Operational updates must not interrupt the risk-control narrative');
+ assert(!/Main DSH model status|Context and performance|Live configuration clarification|Ownership correction|Executive assessment|conflated|withdrawn|earlier request|tokens\/second|tokens\/sec/.test(narrative),'Operational updates must not interrupt the risk-control narrative');
 
  await page.waitForTimeout(1200);
  assert.equal(await page.locator('.mermaid-container svg').count(),3);
