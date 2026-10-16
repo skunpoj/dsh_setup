@@ -32,16 +32,12 @@ const evidence = [
   ['owner-admin-terminal-live-20261016.json','Authenticated terminal execution'],
   ['admin-private-persistence-20261016.json','Private-state restart persistence'],
   ['legacy-auth-content-review-20261016.json','Legacy-instance access review'],
-  ['inference-stress-summary-20261016.json','Live inference stress retest summary'],
-  ['inference-stress-20261016-live.json','Stress responses and GPU/queue samples'],
   ['public-pilot-system-account-live-20261016.json','System-account identity, sandbox and worker egress'],
   ['public-pilot-system-account-cleanup-20261016.json','Temporary credential and runtime cleanup']
 ];
 html = html.replace(/href="(?!https?:|#)([^"\s]+)"/g, (_, name) => `href="https://github.com/skunpoj/dsh_setup/blob/main/docs/${name}"`);
 const guide = marked.parse(fs.readFileSync(path.join(root,'docs/LLM_SETUP_AND_TEST_RESULTS.md'),'utf8')).replace(/href="(?!https?:|#)([^"\s]+)"/g, (_, name) => `href="https://github.com/skunpoj/dsh_setup/blob/main/docs/${name}"`);
-html += `<details id="embedded-llm-guide"><summary>LLM setup guide and verified test results</summary>${guide}</details>`;
-const readmeHtml = marked.parse(fs.readFileSync(path.join(root,'README.md'),'utf8')).replace(/href="(?!https?:|#)([^"\s]+)"/g, (_, name) => `href="https://github.com/skunpoj/dsh_setup/blob/main/${name}"`);
-html += `<details id="embedded-readme"><summary>Deployment README</summary>${readmeHtml}</details>`;
+
 html += '<details id="verification-records"><summary>Verification records — supporting technical references</summary><p>Raw logs and historical migration records stay in separate files. The risk-control narrative above is the primary report.</p><ul>';
 for (const [name,label] of evidence) html += `<li><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/${name}">${escape(label)}</a></li>`;
 html += '</ul></details>';
