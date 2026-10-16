@@ -71,8 +71,8 @@ try {
  assert.deepEqual(errors,[]);
  const setupPage=await context.newPage();
  await setupPage.goto(pathToFileURL(path.join(root,'docs/LLM_SETUP_AND_TEST_RESULTS.html')).href);
- assert((await setupPage.locator('main').innerText()).includes('measure_live_responsiveness.py'));
- assert((await setupPage.locator('h1').innerText()).includes('Setup and Verified Test Results'));
+ assert((await setupPage.locator('main').innerText()).includes('1,007,688'));
+ assert((await setupPage.locator('h1').innerText()).includes('1M Setup, Performance and Operational Limits'));
  const record={time:new Date().toISOString(),riskCentredHeadings:mainHeadings,supportingMaterialInitiallyCollapsed:true,englishNarrative:true,readmeEmbedded:true,llmGuideEmbedded:true,standaloneLlmGuide:true,rawEvidenceEmbedded:false,renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
  fs.writeFileSync(path.join(out,'html-verification.json'),JSON.stringify(record,null,2));console.log(JSON.stringify(record));
 }finally{await browser.close();}

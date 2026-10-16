@@ -14,7 +14,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--input-target', type=int, required=True)
     ap.add_argument('--output', type=Path, required=True)
-    ap.add_argument('--pod', choices=['dsh-1m-canary', 'dsh-1m-image-canary'], default='dsh-1m-canary')
+    ap.add_argument('--pod', choices=['dsh-1m-canary', 'dsh-1m-image-canary', 'dsh-1m-managed-canary'], default='dsh-1m-canary')
     args = ap.parse_args()
     if args.output.exists():
         raise ValueError('Refuse to overwrite prior evidence')

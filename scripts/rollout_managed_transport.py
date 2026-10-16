@@ -7,6 +7,7 @@ import argparse
 import copy
 import hashlib
 import json
+import uuid
 from pathlib import Path
 from promote_1m_runtimes import kube, selected, profile_init, wait
 
@@ -39,14 +40,30 @@ def main():
     args.rollback_dir.mkdir(parents=True,exist_ok=False)
     kube('apply','-f','-',source=json.dumps({'apiVersion':'v1','kind':'ConfigMap','immutable':True,'metadata':{'name':name},'data':{'managed_inference_transport.cjs':code}}))
     results=[]
+    marker='.context-transport-'+uuid.uuid4().hex
+    def persistence(n,create):
+        source="""from pathlib import Path
+import json
+paths=[Path('/workspace')/MARKER,Path('/state/attachments')/MARKER]
+for p in paths:
+ if CREATE:
+  with p.open('xb') as f:f.write(IDENTITY.encode())
+ else:
+  assert p.read_text()==IDENTITY
+  p.unlink()
+print(json.dumps({'markers':len(paths),'survived':not CREATE}))
+""".replace('MARKER',repr(marker)).replace('IDENTITY',repr(n)).replace('CREATE',repr(create))
+        return json.loads(kube('exec','-i','deploy/'+n,'--','python3','-',source=source))
     for original,new,rollback in changes:
         n=original['metadata']['name'];(args.rollback_dir/(n+'.json')).write_text(json.dumps({'original':original,'workingRollbackSpec':rollback},indent=2))
         if json.loads(kube('get','deploy',n,'-o','json'))['spec']!=original['spec']:raise RuntimeError('Concurrent deployment change')
+        persistence(n,True)
         try:
             kube('patch','deploy',n,'--type=merge','-p',json.dumps({'spec':new}));wait(n)
             result=json.loads(kube('exec','deploy/'+n,'--','node','-e',"const fs=require('fs'),crypto=require('crypto');console.log(JSON.stringify({enabled:process.env.DSH_MANAGED_TRANSPORT==='1',sha256:crypto.createHash('sha256').update(fs.readFileSync('/context-runtime/managed_inference_transport.cjs')).digest('hex')}));"))
             if not result['enabled'] or result['sha256']!=digest:raise RuntimeError('Running transport source mismatch')
-            results.append({'name':n,**result,'dataMountsPreserved':True,'restartSafeBackupInit':True});print(json.dumps({'transportAccepted':n}),flush=True)
+            durable=persistence(n,False)
+            results.append({'name':n,**result,'dataMountsPreserved':True,'restartSafeBackupInit':True,'persistence':durable});print(json.dumps({'transportAccepted':n}),flush=True)
             (args.rollback_dir/'results.json').write_text(json.dumps(results,indent=2))
         except Exception:
             kube('patch','deploy',n,'--type=merge','-p',json.dumps({'spec':rollback}));wait(n);raise
