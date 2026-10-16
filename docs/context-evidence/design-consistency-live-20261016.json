@@ -1,0 +1,717 @@
+{
+  "observedAt": "2026-10-16T11:21:57.470523+00:00",
+  "scope": "Fresh local routing/audit/network tests; no remote jobs or RDT access",
+  "legacyBefore": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "routingAndAudit": {
+    "timeUTC": "2026-10-16T11:22:03.917Z",
+    "adminLegacyCount": 80,
+    "privateLogins": 16,
+    "privateEmptyHistories": 16,
+    "legacyPageDenials": 16,
+    "ordinaryAdminDenials": 16,
+    "excludedAccountDenials": 0,
+    "auditEventsVisible": true,
+    "adminSnapshotContentVerified": true
+  },
+  "workers": [
+    {
+      "runtime": "dsh-internet",
+      "passed": true,
+      "environment": "internet",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "unrelatedInternalServiceDenied": true,
+      "datalakeFromInternetDenied": true,
+      "kdcFromInternetDenied": true
+    },
+    {
+      "runtime": "dsh-secure",
+      "passed": true,
+      "environment": "secure",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://1.1.1.1",
+          "exitCode": 28,
+          "HTTP": "000"
+        }
+      ],
+      "publicDNSLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "encodedNameLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "kerberosSRV": {
+        "rcode": 0,
+        "answers": 5
+      },
+      "directCoreDNSDenied": true,
+      "directPublicDNSDenied": true,
+      "directCoreDNSTCPDenied": true,
+      "kerberosPortReachable": true,
+      "livyAnonymousStatus": 401,
+      "kerberosChallengePresent": true
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "passed": true,
+      "environment": "internet",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "unrelatedInternalServiceDenied": true,
+      "datalakeFromInternetDenied": true,
+      "kdcFromInternetDenied": true
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "passed": true,
+      "environment": "secure",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://1.1.1.1",
+          "exitCode": 28,
+          "HTTP": "000"
+        }
+      ],
+      "publicDNSLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "encodedNameLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "kerberosSRV": {
+        "rcode": 0,
+        "answers": 5
+      },
+      "directCoreDNSDenied": true,
+      "directPublicDNSDenied": true,
+      "directCoreDNSTCPDenied": true,
+      "kerberosPortReachable": true,
+      "livyAnonymousStatus": 401,
+      "kerberosChallengePresent": true
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-internet",
+      "passed": true,
+      "environment": "internet",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "unrelatedInternalServiceDenied": true,
+      "datalakeFromInternetDenied": true,
+      "kdcFromInternetDenied": true
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-secure",
+      "passed": true,
+      "environment": "secure",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://1.1.1.1",
+          "exitCode": 28,
+          "HTTP": "000"
+        }
+      ],
+      "publicDNSLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "encodedNameLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "kerberosSRV": {
+        "rcode": 0,
+        "answers": 5
+      },
+      "directCoreDNSDenied": true,
+      "directPublicDNSDenied": true,
+      "directCoreDNSTCPDenied": true,
+      "kerberosPortReachable": true,
+      "livyAnonymousStatus": 401,
+      "kerberosChallengePresent": true
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "passed": true,
+      "environment": "internet",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "unrelatedInternalServiceDenied": true,
+      "datalakeFromInternetDenied": true,
+      "kdcFromInternetDenied": true
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "passed": true,
+      "environment": "secure",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://1.1.1.1",
+          "exitCode": 28,
+          "HTTP": "000"
+        }
+      ],
+      "publicDNSLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "encodedNameLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "kerberosSRV": {
+        "rcode": 0,
+        "answers": 5
+      },
+      "directCoreDNSDenied": true,
+      "directPublicDNSDenied": true,
+      "directCoreDNSTCPDenied": true,
+      "kerberosPortReachable": true,
+      "livyAnonymousStatus": 401,
+      "kerberosChallengePresent": true
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "passed": true,
+      "environment": "internet",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "unrelatedInternalServiceDenied": true,
+      "datalakeFromInternetDenied": true,
+      "kdcFromInternetDenied": true
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "passed": true,
+      "environment": "secure",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://1.1.1.1",
+          "exitCode": 28,
+          "HTTP": "000"
+        }
+      ],
+      "publicDNSLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "encodedNameLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "kerberosSRV": {
+        "rcode": 0,
+        "answers": 5
+      },
+      "directCoreDNSDenied": true,
+      "directPublicDNSDenied": true,
+      "directCoreDNSTCPDenied": true,
+      "kerberosPortReachable": true,
+      "livyAnonymousStatus": 401,
+      "kerberosChallengePresent": true
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "passed": true,
+      "environment": "internet",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "unrelatedInternalServiceDenied": true,
+      "datalakeFromInternetDenied": true,
+      "kdcFromInternetDenied": true
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "passed": true,
+      "environment": "secure",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://1.1.1.1",
+          "exitCode": 28,
+          "HTTP": "000"
+        }
+      ],
+      "publicDNSLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "encodedNameLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "kerberosSRV": {
+        "rcode": 0,
+        "answers": 5
+      },
+      "directCoreDNSDenied": true,
+      "directPublicDNSDenied": true,
+      "directCoreDNSTCPDenied": true,
+      "kerberosPortReachable": true,
+      "livyAnonymousStatus": 401,
+      "kerberosChallengePresent": true
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "passed": true,
+      "environment": "internet",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "unrelatedInternalServiceDenied": true,
+      "datalakeFromInternetDenied": true,
+      "kdcFromInternetDenied": true
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "passed": true,
+      "environment": "secure",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://1.1.1.1",
+          "exitCode": 28,
+          "HTTP": "000"
+        }
+      ],
+      "publicDNSLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "encodedNameLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "kerberosSRV": {
+        "rcode": 0,
+        "answers": 5
+      },
+      "directCoreDNSDenied": true,
+      "directPublicDNSDenied": true,
+      "directCoreDNSTCPDenied": true,
+      "kerberosPortReachable": true,
+      "livyAnonymousStatus": 401,
+      "kerberosChallengePresent": true
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "passed": true,
+      "environment": "internet",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "unrelatedInternalServiceDenied": true,
+      "datalakeFromInternetDenied": true,
+      "kdcFromInternetDenied": true
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "passed": true,
+      "environment": "secure",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://1.1.1.1",
+          "exitCode": 28,
+          "HTTP": "000"
+        }
+      ],
+      "publicDNSLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "encodedNameLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "kerberosSRV": {
+        "rcode": 0,
+        "answers": 5
+      },
+      "directCoreDNSDenied": true,
+      "directPublicDNSDenied": true,
+      "directCoreDNSTCPDenied": true,
+      "kerberosPortReachable": true,
+      "livyAnonymousStatus": 401,
+      "kerberosChallengePresent": true
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "passed": true,
+      "environment": "internet",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 0,
+          "HTTP": "200"
+        }
+      ],
+      "unrelatedInternalServiceDenied": true,
+      "datalakeFromInternetDenied": true,
+      "kdcFromInternetDenied": true
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "passed": true,
+      "environment": "secure",
+      "uid": 10001,
+      "actualRdtAuthenticationTested": false,
+      "internalInferenceExact": true,
+      "public": [
+        {
+          "target": "https://github.com",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://pypi.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://registry.npmjs.org",
+          "exitCode": 6,
+          "HTTP": "000"
+        },
+        {
+          "target": "https://1.1.1.1",
+          "exitCode": 28,
+          "HTTP": "000"
+        }
+      ],
+      "publicDNSLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "encodedNameLocalDenial": {
+        "rcode": 3,
+        "answers": 0
+      },
+      "kerberosSRV": {
+        "rcode": 0,
+        "answers": 5
+      },
+      "directCoreDNSDenied": true,
+      "directPublicDNSDenied": true,
+      "directCoreDNSTCPDenied": true,
+      "kerberosPortReachable": true,
+      "livyAnonymousStatus": 401,
+      "kerberosChallengePresent": true
+    }
+  ],
+  "legacyAfter": {
+    "uniqueHistories": 80,
+    "sessionFiles": 82,
+    "aggregateSHA256": "7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317"
+  },
+  "legacyUnchanged": true,
+  "localTestsPassed": true,
+  "confirmedLegacyOwner": "thanatcc",
+  "ownerAccessCorrectionPending": true,
+  "remoteSparkEvidence": "remote-spark-boundary-live-20261016.json",
+  "remoteSparkDisposition": "Previously verified public TCP access; user accepted risk and retained Livy. Not retested in this local review."
+}

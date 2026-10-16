@@ -10,6 +10,10 @@ The objective is to limit what can go wrong enough to make this specific pilot a
 
 ## 1 Executive assessment
 
+Fresh [local verification](context-evidence/design-consistency-live-20261016.json) passed all 16 private login/environment combinations, authenticated admin audit access, ordinary-user admin denial and all 18 worker network probes (9 No Internet, 9 Internet). Internal inference returned the required text and the legacy fingerprint remained unchanged. These checks do not repeat the remote Spark test or certify every user’s datalake entitlements.
+
+**Design consistency:** Per-user and per-environment separation is the intended design, but denying `thanatcc` its own legacy histories is an owner-access defect, not successful peer isolation. Historical test results labelled “admin legacy history” describe the old access route, not ownership. Other users must remain denied; `thanatcc` must regain access through owner-bounded mounts. Admin dashboard/audit authority does not transfer ownership. Remote Spark public TCP access is a recorded failed boundary retained as an accepted risk. One authenticated Spark identity test does not establish all user-specific Hive/HDFS permissions, and DSH preserves existing AD/datalake rights rather than imposing universal read-only access.
+
 **RDT uses Kerberos (`kinit`) and the datalake connection, including Livy/Spark and Hive/HDFS authorization. DA_WORKSPACE stores DSH files and history.** Mounting it is neither the source of RDT authorization nor proof of read-only RDT access. A local DSH login such as `thanatcc` is not an AD identity. The earlier request for an RDT PVC/folder conflated these independent controls and is withdrawn.
 
 | Risk | Deployed enforcement | Evidence and limit |
