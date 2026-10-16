@@ -10,6 +10,8 @@ This report follows the three controls in the supplied pilot brief. It explains 
 
 ## Pilot boundary and environment choice
 
+The managed-tools rollout adds Claude Code and TrueForge to the 20 main private runtimes. Operator-owned model settings and scoped credentials keep their configured inference on internal LiteLLM. Actual client calls and configuration refusals passed; the existing 1M DSH profiles and model pod were preserved. Claude defaults to 200K; an explicit 1M selection passed a short call but is not near-1M client acceptance. TrueForge's separate code sandbox is not enabled. These additions do not close the remote Spark or datalake authorization gaps below. See [managed-tool acceptance](MANAGED_CLAUDE_AND_TRUEFORGE.md).
+
 ### Public-data pilot and execution identity
 
 The pilot described in the supplied operating plan uses **`da-agent-system-user`**, with read/write access only to **`sandbox_da_agent_public_data`**. Personal AD rights remain unchanged outside the pilot, but personal credentials are not the intended agent identity for this exercise. People still use named DSH logins for private workspaces and audit; the system account is the datalake execution identity, not a shared DSH web login. Only public data is permitted initially; use of internal BOT data requires a later internal approval decision. Read/write access to the disposable public sandbox is deliberate and must not be confused with unrestricted access to internal source data.

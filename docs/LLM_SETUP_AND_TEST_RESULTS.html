@@ -17,7 +17,7 @@
 </thead>
 <tbody><tr>
 <td>DSH runtime</td>
-<td><code>0.2.0-rc.2</code>; image digest <code>87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3</code></td>
+<td><code>0.2.0-rc.2</code>; current managed-tools image digest <code>595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6</code>; the recorded near-1M acceptance used preceding image <code>87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3</code></td>
 </tr>
 <tr>
 <td>DSH DeepSeek aliases</td>
@@ -198,7 +198,7 @@
 <h2>Setup and controlled rollout</h2>
 <ol>
 <li>Model/overlay source: Azure <code>GPU_server/deployment/vllm/</code>. DSH/proxy: its <code>dsh-environments/</code> mirror or GitHub <code>dsh_setup</code>. Retain pinned images, reviewed hashes and existing Secret references. Do not apply legacy LiteLLM placeholder Secrets or bootstrap shared-pool YAML over private Production.</li>
-<li>Build/test the runtime in Azure pipeline 1315. Build <strong>62773</strong>, source <code>c20b31078b84604a6d1c19bfbdd59be166ff27ae</code>, produced the deployed image. Image policy/startup files were compared with source. Later documentation builds do not change the live image automatically.</li>
+<li>Build/test the runtime in Azure pipeline 1315. Initial 1M build <strong>62773</strong>, source <code>c20b31078b84604a6d1c19bfbdd59be166ff27ae</code>, produced the image used for the near-1M acceptance. The subsequent managed-tools rollout uses build <strong>62790</strong>, source <code>52bf535850c5d5c3991ebcdb3aeece776785803e</code>, while preserving all 20 numerical DSH 1M profiles and the model pod. The new Claude client defaults to 200K; its explicit 1M selection passed a short call. Neither that selection nor TrueForge 1M metadata is a near-1M client test. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/MANAGED_CLAUDE_AND_TRUEFORGE.md">managed tools</a>. Later documentation builds do not change the live image automatically.</li>
 <li>Prepare isolated synthetic storage with <code>scripts/prepare_1m_canary.py</code>; qualify actual tokenizer IDs, streaming, tools, cache handoff, compaction and mixed traffic. Synthetic envelope capture must stay off in Production.</li>
 <li>Run <code>scripts/promote_1m_proxy.py</code> in plan mode, then <code>--apply</code> with passed actual near-1M acceptance and a fresh private rollback directory. It preserves auth/database references and unrelated routes, creates immutable configuration and adds the loopback guard. Test actual inference and rejected endpoint override after replacement.</li>
 <li>Run <code>scripts/promote_1m_runtimes.py</code> in plan mode, then <code>--apply</code> with another fresh private rollback directory. It selects existing main private runtimes, requires Recreate/single-writer behavior, preserves mounts and backs up the old profile <strong>inside each private PVC</strong> before changing it. Read back imageIDs, numerical policies and effective owner/admin compositions.</li>

@@ -16,7 +16,7 @@ The earlier 128K statements described an incomplete deployment: the backend had 
 
 | Layer | Deployed policy |
 |---|---|
-| DSH runtime | `0.2.0-rc.2`; image digest `87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3` |
+| DSH runtime | `0.2.0-rc.2`; current managed-tools image digest `595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6`; the recorded near-1M acceptance used preceding image `87bc12dd5c2419e640c11358881f01709944a259498cf38a699fcc57d037e1a3` |
 | DSH DeepSeek aliases | 1,048,576 total context; maximum output 8,192 |
 | DSH transport | Provider timeout and stream-idle settings 3,600,000 ms; effective transport acceptance tested separately |
 | LiteLLM | Pinned digest `4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f`; existing inference keys and Secret references preserved |
@@ -98,7 +98,7 @@ Checks happen between agent steps. Pressure is estimated, unlike the proxy's exa
 ## Setup and controlled rollout
 
 1. Model/overlay source: Azure `GPU_server/deployment/vllm/`. DSH/proxy: its `dsh-environments/` mirror or GitHub `dsh_setup`. Retain pinned images, reviewed hashes and existing Secret references. Do not apply legacy LiteLLM placeholder Secrets or bootstrap shared-pool YAML over private Production.
-2. Build/test the runtime in Azure pipeline 1315. Build **62773**, source `c20b31078b84604a6d1c19bfbdd59be166ff27ae`, produced the deployed image. Image policy/startup files were compared with source. Later documentation builds do not change the live image automatically.
+2. Build/test the runtime in Azure pipeline 1315. Initial 1M build **62773**, source `c20b31078b84604a6d1c19bfbdd59be166ff27ae`, produced the image used for the near-1M acceptance. The subsequent managed-tools rollout uses build **62790**, source `52bf535850c5d5c3991ebcdb3aeece776785803e`, while preserving all 20 numerical DSH 1M profiles and the model pod. The new Claude client defaults to 200K; its explicit 1M selection passed a short call. Neither that selection nor TrueForge 1M metadata is a near-1M client test. See [managed tools](MANAGED_CLAUDE_AND_TRUEFORGE.md). Later documentation builds do not change the live image automatically.
 3. Prepare isolated synthetic storage with `scripts/prepare_1m_canary.py`; qualify actual tokenizer IDs, streaming, tools, cache handoff, compaction and mixed traffic. Synthetic envelope capture must stay off in Production.
 4. Run `scripts/promote_1m_proxy.py` in plan mode, then `--apply` with passed actual near-1M acceptance and a fresh private rollback directory. It preserves auth/database references and unrelated routes, creates immutable configuration and adds the loopback guard. Test actual inference and rejected endpoint override after replacement.
 5. Run `scripts/promote_1m_runtimes.py` in plan mode, then `--apply` with another fresh private rollback directory. It selects existing main private runtimes, requires Recreate/single-writer behavior, preserves mounts and backs up the old profile **inside each private PVC** before changing it. Read back imageIDs, numerical policies and effective owner/admin compositions.

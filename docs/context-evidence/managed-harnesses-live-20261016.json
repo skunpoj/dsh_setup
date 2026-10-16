@@ -1,0 +1,1276 @@
+{
+  "timeUTC": "2026-10-16T16:13:52.542153+00:00",
+  "runtimeImageDigest": "595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+  "build": {
+    "id": 62790,
+    "source": "52bf535850c5d5c3991ebcdb3aeece776785803e"
+  },
+  "runtimeCount": 20,
+  "durableMarkers": 40,
+  "modelPodUnchanged": true,
+  "modelRestartCount": 0,
+  "runtimeResults": [
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-secure",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-8c6976e5b5410415-secure",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-120fc75e04cf8e5f-internet",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-120fc75e04cf8e5f-secure",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-internet",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-156540115183048a-internet",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-secure",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-156540115183048a-secure",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-26ae784d194a5760-internet",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-26ae784d194a5760-secure",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-8205c7f83822ea35-internet",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-8205c7f83822ea35-secure",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-8a2539e2b69d9daf-internet",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-8a2539e2b69d9daf-secure",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-internet",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-8c6976e5b5410415-internet",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-ae5deb822e0d7199-internet",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-ae5deb822e0d7199-secure",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-ca8b22d0db83a22d-internet",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-ca8b22d0db83a22d-secure",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-d0b55cb0730a08ac-internet",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-u-d0b55cb0730a08ac-secure",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-internet",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-internet",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    },
+    {
+      "runtime": "dsh-secure",
+      "claude": "2.1.301 (Claude Code)",
+      "trueforge": "0.179.2",
+      "operatorPolicyWritesDenied": 2,
+      "inferenceExact": true,
+      "privateClaudeState": true,
+      "credential": {
+        "secret": "dsh-harness-secure",
+        "created": true,
+        "messagesExact": true,
+        "administrationDenied": true,
+        "otherModelDenied": true
+      },
+      "context": {
+        "models": [
+          {
+            "id": "deepseek-v4.1-flash",
+            "context": 1048576,
+            "output": 8192
+          },
+          {
+            "id": "deepseek-flash",
+            "context": 1048576,
+            "output": 8192
+          }
+        ],
+        "compaction": [
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-v4.1-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "provider": "litellm-cluster",
+            "model": "deepseek-flash",
+            "thresholdRatio": 0.875,
+            "headroomTokens": 65536,
+            "maxTokens": 8192
+          }
+        ],
+        "timeoutMs": 3600000
+      },
+      "durableMarkers": 2,
+      "imageIDs": [
+        "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+      ]
+    }
+  ],
+  "privateRouting": {
+    "timeUTC": "2026-10-16T16:02:42.961Z",
+    "legacyOwner": "thanatcc",
+    "ownerLegacyCount": 80,
+    "adminLegacyCount": 0,
+    "privateLogins": 16,
+    "privateEmptyHistories": 15,
+    "legacyPageDenials": 16,
+    "ordinaryAdminDenials": 16,
+    "excludedAccountDenials": 0,
+    "auditEventsVisible": true,
+    "adminSnapshotContentVerified": true
+  },
+  "productionClientAcceptance": {
+    "claude": {
+      "exit": 0,
+      "exact": true,
+      "seconds": 0.853,
+      "subtype": "success",
+      "isError": false
+    },
+    "operatorFilesWriteDenied": true,
+    "trueforgeModels": {
+      "data": [
+        {
+          "name": "internal-litellm/deepseek-v4.1-flash",
+          "model_id": "deepseek-v4.1-flash",
+          "provider": {
+            "name": "internal-litellm"
+          },
+          "properties": {
+            "context_length": 1048576,
+            "max_output_tokens": 8192
+          }
+        }
+      ]
+    },
+    "trueforgeMutationDenials": [
+      403,
+      403,
+      403
+    ],
+    "trueforgeTurn": {
+      "status": "done",
+      "exact": true,
+      "seconds": 0.454
+    }
+  },
+  "authenticatedAppRoute": {
+    "anonymousDenied": true,
+    "authenticatedHtmlAppShell": true,
+    "managedModelExact": true,
+    "persistedTrueforgeSessions": 1
+  },
+  "externalIngress": [
+    {
+      "modelRequested": "claude-sonnet-4-6",
+      "status": 200,
+      "modelReturned": "claude-sonnet-4-6",
+      "text": "LEGACY_SETTINGS_OK",
+      "seconds": 1.05,
+      "tlsVerification": true
+    },
+    {
+      "modelRequested": "deepseek-v4.1-flash",
+      "status": 200,
+      "modelReturned": "deepseek-v4.1-flash",
+      "text": "LEGACY_SETTINGS_OK",
+      "seconds": 0.7,
+      "tlsVerification": true
+    }
+  ],
+  "endpointOverrideRefusalStatus": 401,
+  "limitations": {
+    "claudeReportedContext": 200000,
+    "trueforgeNear1MTested": false,
+    "trueforgeSandboxEnabled": false,
+    "nestedUserNamespaceAvailable": false,
+    "legacyDSH2DSH3Changed": false,
+    "ordinaryUserAlternativeProgramsPrevented": false
+  },
+  "currentReadback": [
+    {
+      "runtime": "dsh-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+      "ready": 1
+    }
+  ],
+  "newHarnessStateRestart": {
+    "claudeSessionFilesUnchanged": 1,
+    "trueforgeAfterPodReplacement": {
+      "anonymousDenied": true,
+      "authenticatedHtmlAppShell": true,
+      "managedModelExact": true,
+      "persistedTrueforgeSessions": 1
+    }
+  },
+  "representativeNetworkTests": [
+    {
+      "environment": "secure",
+      "uid": 10001,
+      "publicTests": [
+        {
+          "url": "https://github.com",
+          "status": "000",
+          "exit": 6
+        },
+        {
+          "url": "https://registry.npmjs.org",
+          "status": "000",
+          "exit": 6
+        }
+      ]
+    },
+    {
+      "environment": "internet",
+      "uid": 10001,
+      "publicTests": [
+        {
+          "url": "https://github.com",
+          "status": "200",
+          "exit": 0
+        },
+        {
+          "url": "https://registry.npmjs.org",
+          "status": "200",
+          "exit": 0
+        }
+      ]
+    }
+  ],
+  "claudeInternetClient": {
+    "exact": true,
+    "clientReportedContext": {
+      "deepseek-v4.1-flash": 200000
+    },
+    "durationMilliseconds": 2938
+  },
+  "claudeModelSelections": [
+    {
+      "requested": "deepseek-v4.1-flash[1m]",
+      "exit": 0,
+      "exact": true,
+      "used": {
+        "deepseek-v4.1-flash[1m]": {
+          "context": 1000000,
+          "canonicalModel": "deepseek-v4.1-flash[1m]"
+        }
+      }
+    },
+    {
+      "requested": "claude-opus-4-6",
+      "exit": 0,
+      "exact": true,
+      "used": {
+        "deepseek-v4.1-flash[1m]": {
+          "context": 1000000,
+          "canonicalModel": "deepseek-v4.1-flash[1m]"
+        }
+      }
+    }
+  ],
+  "messagesGateway": {
+    "configMap": "litellm-harness-4d1ede000270",
+    "messagesUseChatCompletions": true,
+    "canonicalRouteThroughLoopbackGuard": true
+  }
+}
