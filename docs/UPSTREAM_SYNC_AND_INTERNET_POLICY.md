@@ -17,6 +17,8 @@ The installed package therefore matches the default published release channel. O
 
 Upstream describes DSH as developer-preview software with breaking changes. See the [official README](https://github.com/deepseek-ai/deepseek-harness/tree/86a402200d95fecef4529d969836f1fe13c6cb0d#developer-preview) and [safety guidance](https://github.com/deepseek-ai/deepseek-harness/blob/86a402200d95fecef4529d969836f1fe13c6cb0d/SAFETY.md).
 
+The later [stress-source CI artifact readback](context-evidence/inference-stress-source-ci-20261016.json), checked at 12:53 UTC, observed npm alpha advance to `0.2.1-alpha.5`; latest/next remained `0.2.0-rc.2`. The earlier table/channel snapshot above is retained as historical evidence. No preview was deployed.
+
 ## Automated checking and candidate patching
 
 The expanded `.github/workflows/upstream-candidate.yml` and its [tracked reference](UPSTREAM_CANDIDATE_WORKFLOW.yml) define:

@@ -64,6 +64,8 @@ This deliberately loads the shared service; run it when idle. It is a bounded bu
 
 Evidence: [complete request/sampling record](context-evidence/inference-stress-20261016-live.json), [independently recalculated tables and executed probe hash](context-evidence/inference-stress-summary-20261016.json), [post-test sentinel, imageIDs and arguments](context-evidence/inference-stress-postcheck-20261016.json). Raw logs are linked supporting material, not embedded in the main risk narrative.
 
+The [candidate CI run for the saved stress-probe sources](https://github.com/skunpoj/dsh_setup/actions/runs/38903739213) also passed. Its downloaded artifact content confirmed the build, actual startup/auth/catalog checks, all 35 Linux Python cases and the admin browser checks. These isolated candidate tests made no inference call and are separate from the live stress results above. [Artifact readback](context-evidence/inference-stress-source-ci-20261016.json).
+
 ## Current service layout and limits
 
 `Private DSH runtime → internal LiteLLM :4000 → SGLang :8000 → shared four-H100 model`
