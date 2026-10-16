@@ -3,9 +3,18 @@ import concurrent.futures
 import json
 from pathlib import Path
 import subprocess
+import argparse
 from stress_live_inference import snapshot, REQUEST
 
+ap=argparse.ArgumentParser(description=__doc__)
+ap.add_argument('--output',type=Path,default=Path('docs/context-evidence/production-1m-mixed-concurrency-20261016.json'))
+ap.add_argument('--long-record',type=Path)
+args=ap.parse_args()
+if args.output.exists():raise ValueError('Refuse to overwrite prior evidence')
 out={'before':snapshot(),'intent':'Ordinary replies during production near-1M DSH continuation','dsh':[],'apiBursts':[]}
+if args.long_record:
+    out['longStatusBefore']=json.loads(args.long_record.read_text())['status']
+    assert out['longStatusBefore']=='running'
 s="import sys;sys.argv=['probe','--deadline','90']\n"+Path(__file__).with_name('probe_dsh_1m_agent.py').read_text()
 def run(i):
     p=subprocess.run(['kubectl','-n','llm','exec','-i','dsh-1m-canary','--','python3','-'],input=s,text=True,capture_output=True,timeout=100)
@@ -20,7 +29,10 @@ for n in [2,4]:
     value=json.loads(p.stdout);assert value['allExact'];out['apiBursts'].append(value)
 out['after']=snapshot();out['modelUnchanged']=out['before']['pods']==out['after']['pods']
 assert out['modelUnchanged'] and all(r['expectedTextPresent'] and r['persistedPromptMatches'] for r in out['dsh'])
-Path('docs/context-evidence/production-1m-mixed-concurrency-20261016.json').write_text(json.dumps(out,indent=2))
+if args.long_record:
+    out['longStatusAfter']=json.loads(args.long_record.read_text())['status']
+    assert out['longStatusAfter']=='running'
+args.output.write_text(json.dumps(out,indent=2))
 print(json.dumps({'dshSeconds':[r['elapsedSeconds'] for r in out['dsh']],
     'bursts':[{'concurrency':v['plan']['concurrency'],'seconds':v['wallSeconds'],'aggregateTokensPerSecond':v['aggregateOutputTokensPerSecond']} for v in out['apiBursts']],
     'modelUnchanged':out['modelUnchanged']}))
