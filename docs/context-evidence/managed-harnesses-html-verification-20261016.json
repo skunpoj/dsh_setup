@@ -1,0 +1,32 @@
+{
+  "time": "2026-10-16T16:11:59.095Z",
+  "riskCentredHeadings": [
+    "Pilot boundary and environment choice",
+    "1 Prevent external leakage",
+    "2 Prevent damage or excessive access",
+    "3 Keep results contained",
+    "Acceptance and remaining decisions"
+  ],
+  "supportingMaterialInitiallyCollapsed": true,
+  "englishNarrative": true,
+  "readmeEmbedded": true,
+  "llmGuideEmbedded": true,
+  "standaloneLlmGuide": true,
+  "rawEvidenceEmbedded": false,
+  "renderedDiagrams": 3,
+  "initialNodesUnclipped": true,
+  "externalResourceRequests": 0,
+  "zoom": true,
+  "reset": true,
+  "fullscreen": true,
+  "copySource": true,
+  "svgExport": true,
+  "pngExport": true,
+  "pageErrors": [],
+  "pngWidth": 2010,
+  "pngHeight": 2015,
+  "fileSha256": {
+    "DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html": "07251dd5df82ba69bf1f1e91f57b4191a6da96cbb4dc80e1916a42f56dc4c96a",
+    "LLM_SETUP_AND_TEST_RESULTS.html": "c454e4ad69c99c02a63cd0ec49ac0ac1d1a2e4526f2d60f83ebc09bb7e35c2fc"
+  }
+}

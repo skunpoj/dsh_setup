@@ -1272,5 +1272,129 @@
     "configMap": "litellm-harness-4d1ede000270",
     "messagesUseChatCompletions": true,
     "canonicalRouteThroughLoopbackGuard": true
-  }
+  },
+  "sourceReadback": [
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-secure",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-internet",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-secure",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-internet",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-internet",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    },
+    {
+      "runtime": "dsh-secure",
+      "sourceFilesMatched": 4,
+      "rootOwned": true,
+      "internalEndpointExact": true
+    }
+  ],
+  "acceptanceCredentialRevoked": true,
+  "remainingAcceptanceAliasKeys": 0
 }
