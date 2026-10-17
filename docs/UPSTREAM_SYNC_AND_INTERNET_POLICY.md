@@ -29,6 +29,12 @@ An isolated CPU-only pod used the existing pinned runtime image, no service-acco
 
 This qualifies the new patches against the installed baseline dependency tree; it is not a fresh image build or Production deployment. A separate reapplication attempt was refused before changing any of the existing candidate package/profile files. All ten local JavaScript source suites passed (the installed-SDK suite used an exact read-back source), nine upstream/export Python cases passed, and all 24 JavaScript operator sources passed syntax checks. Python source compilation also passed. This is bounded regression coverage, not proof of every application behavior or dependency.
 
+### Fresh hosted build and independent artifact readback
+
+[Run 39020624138](https://github.com/skunpoj/dsh_setup/actions/runs/39020624138) passed source `efd0fe2c4de5b2266f4a74133498ab11e20769aa`. It built a fresh candidate image `sha256:6951ef293a4f7287962fd753a5fba6d0652385a5d5fc35bea1fd341e84f6a9ca`, checked the installed SDK hook and ten patch targets, and passed the real installed missing-image refusal, web startup, authenticated catalog/session RPC, anonymous/Host denial, overlay tests, all **123 Linux Python cases without skips**, five package-promotion cases and the admin-dashboard browser fixture. The artifact ZIP was downloaded, reread and matched GitHub's published SHA-256 `f20afb8437b29b9bc43d80ecf51e4fbc3b9b6f44a6edb0052fb54dbc91f054cf`; individual JSON/log contents were inspected, not just the Actions badge.
+
+The subsequent workflow-filter commit `38e0e28` adds patch-export and line-ending-policy paths; it does not change package/runtime source. This GitHub build does not push an image to the Production registry or deploy it. Its browser checks are disposable fixtures, not current users' browser sessions. The running service was not upgraded by this review.
+
 ### Update sequence
 
 1. Detect npm latest and record source/channel/integrity metadata. An explicit preview remains opt-in.

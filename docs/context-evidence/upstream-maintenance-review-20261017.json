@@ -118,5 +118,57 @@
       }
     ]
   },
-  "reapplicationRefusedWithoutChangingFiles": 24
+  "reapplicationRefusedWithoutChangingFiles": 24,
+  "freshHostedCandidate": {
+    "runId": 39020624138,
+    "sourceCommit": "efd0fe2c4de5b2266f4a74133498ab11e20769aa",
+    "conclusion": "success",
+    "imageId": "sha256:6951ef293a4f7287962fd753a5fba6d0652385a5d5fc35bea1fd341e84f6a9ca",
+    "installed": {
+      "installedVersion": "0.2.0-rc.2",
+      "actualModulesChecked": 3,
+      "syntax": true,
+      "webComposition": true,
+      "missingImageExplicitlyRejected": true,
+      "scope": "Installed package checks; no inference, user history or Production access"
+    },
+    "actualWeb": {
+      "actualWebStartup": true,
+      "sessionList": true,
+      "internalModelCatalog": true,
+      "anonymousRpcDenied": true,
+      "untrustedHostDenied": true,
+      "disposableState": true,
+      "inferenceRequested": false
+    },
+    "adminBrowser": {
+      "passed": true,
+      "timeUTC": "2026-10-17T09:20:26.359Z",
+      "gatewayOverlaySHA256": "e5d563c8f139ddbc4cdda5fd163164cfe6cf2aae1b73676a5fd26c3b55aa69e2",
+      "checks": [
+        "anonymous denied",
+        "ordinary user denied despite forged admin headers",
+        "admin access",
+        "read-only methods",
+        "secret projection",
+        "admin-only navigation",
+        "browser rendering",
+        "snapshot timestamps",
+        "DOM injection inert",
+        "missing snapshot unknown",
+        "logout revokes access",
+        "audit contains no passwords",
+        "audit schema constrained",
+        "full audit capacity denies new login and preserves archives"
+      ]
+    },
+    "pythonLinuxTests": 123,
+    "pythonLinuxSkips": 0,
+    "packagePromotionCases": 5,
+    "artifactId": 12095669638,
+    "downloadedArtifactSHA256": "f20afb8437b29b9bc43d80ecf51e4fbc3b9b6f44a6edb0052fb54dbc91f054cf",
+    "downloadMatchesGitHubDigest": true,
+    "productionDeployed": false
+  },
+  "isolatedCanaryRemoved": true
 }
