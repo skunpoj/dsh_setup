@@ -23,6 +23,9 @@ COPY tests/ /opt/dsh/tests/
 COPY container/ /opt/dsh/container/
 RUN python3 /opt/dsh/scripts/configure_managed_harnesses.py \
  && node /opt/dsh/tests/test_managed_harnesses.mjs \
+ && node /opt/dsh/tests/test_managed_inference_transport.js \
+ && node /opt/dsh/tests/test_managed_budget.js \
+ && DSH_MANAGED_TRANSPORT=1 NODE_OPTIONS='--require /opt/dsh/scripts/managed_inference_transport.cjs' node /opt/dsh/tests/test_managed_budget_hook.mjs \
  && node /opt/dsh/scripts/verify_upstream_contract.js \
  && node /opt/dsh/scripts/configure_models.js \
  && node /opt/dsh/scripts/verify_installed_candidate.js "${DSH_VERSION}" \

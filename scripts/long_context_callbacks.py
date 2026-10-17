@@ -112,7 +112,14 @@ class LongContextGuard(CustomLogger):
         previous = 0
         steps = 0
         start = time.monotonic()
+        yielded_seconds = 0
+        async def foreground_turn():
+            nonlocal yielded_seconds
+            before_step = getattr(self, 'before_warm_step', None)
+            if before_step is not None:
+                yielded_seconds += await before_step()
         if CACHE_PROBE_SECONDS:
+            await foreground_turn()
             try:
                 meta = await asyncio.to_thread(warm_prefix, ids, CACHE_PROBE_SECONDS)
             except CacheProbeMiss:
@@ -123,9 +130,11 @@ class LongContextGuard(CustomLogger):
                 return {'steps': 1, 'tokens': len(ids), 'mode': 'bounded-cache-probe',
                     'cachedTokens': meta.get('cached_tokens'),
                     'seconds': round(time.monotonic()-start, 3),
+                    'foregroundYieldSeconds': round(yielded_seconds, 3),
                     'probeSeconds': CACHE_PROBE_SECONDS}
         for end in range(WARM_STEP, len(ids)+WARM_STEP, WARM_STEP):
             end = min(end, len(ids))
+            await foreground_turn()
             meta = await asyncio.to_thread(warm_prefix, ids[:end])
             cached = meta.get('cached_tokens', 0)
             if previous and cached < previous-512:
@@ -135,7 +144,8 @@ class LongContextGuard(CustomLogger):
             await asyncio.sleep(.05)
         return {'steps': steps, 'tokens': len(ids),
                 'seconds': round(time.monotonic()-start, 3), 'stepTokens': WARM_STEP,
-                'mode': 'chunked-prefix-warming', 'probeSeconds': CACHE_PROBE_SECONDS}
+                'mode': 'chunked-prefix-warming', 'probeSeconds': CACHE_PROBE_SECONDS,
+                'foregroundYieldSeconds': round(yielded_seconds, 3)}
 
     async def acquire(self, key):
         os.makedirs('/tmp/dsh-long-admission', mode=0o700, exist_ok=True)

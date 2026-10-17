@@ -1,5 +1,45 @@
 # Shared LLM — 1M Setup, Performance and Operational Limits
 
+## Ordinary DSH responsiveness during near-1M work — 17 October 2026 ICT
+
+**Deployed and tested: foreground scheduling preserves the 1,048,576-token context limit while improving ordinary DSH responses during long preparation.** The shared forwarder uses immutable ConfigMap `litellm-interactive-cd9a424fa8e4`. The GPU model was not restarted. The subsequent SDK-budget overlay required controlled restarts of all 20 main CPU runtimes; existing history IDs and all 40 temporary workspace/state markers survived. All 82 preserved legacy session files were also rehashed and remained byte-identical. Networking and user-data ownership/mounts were preserved.
+
+### Cause and design change
+
+The saved `can u access internet` turn sent 8,985 tokens including DSH context. It took 5.17s to first text and 33.09s to deliver 114 output tokens, with no tool call or retry. Its timings alone do not identify every cause of that historical 38.3s turn. A fresh controlled DSH test reproduced long-prefill contention: the same 119-token answer took 5.63s idle but **10.63–11.64s** during approximately 264K work. Backend logs showed long prefill batches interleaving with short decoding. The streaming output rate dropped to **11.34–14.03 tokens/sec**. Earlier eight-token-marker tests understated this effect on paragraph-length answers.
+
+Ordinary requests below the existing long-admission boundary register a foreground lease until their real stream finishes. Before each bounded **2,048-token** long-prefix warming step, the forwarder lets those streams drain. Each wait is capped at **8 seconds**, after which long preparation may take a step under continuous short traffic. Classification uses the full reconstructed conversation plus output budget, not the newest message alone. A few words added to an existing >128K history still use long admission. Ordinary requests remain parallel. Completion, failure, cancellation and duplicate cleanup release ownership safely. Warm summaries record foreground yield time without prompts or credentials.
+
+The **1M total budget**, one >128K admission slot, 8,192-output ceiling, 256-token reserve, exact final-wire counting and backend cap of 16 remain unchanged. This is cooperative yielding, not GPU-kernel preemption. An in-flight prefill can still delay first text; sustained foreground traffic lengthens long preparation and can encounter existing client deadlines. Eight seconds is a per-opportunity preparation-pause limit, **not a response SLA**. State is local to the single forwarder; keep one replica with Recreate until admission is distributed.
+
+### Client budget regression found and fixed
+
+The cold near-1M mixed test ingested **1,007,685 input tokens**, but initially returned only `L`: the client SDK's character-based estimate silently capped generation at one token despite backend space remaining. This **failed answer is preserved**, not relabelled as successful capacity acceptance. A source-hash-pinned Node loader hook now leaves output budgeting to the exact fail-closed internal tokenizer **only** for the managed DeepSeek aliases/provider/origin and the true 1M catalog. Explicit smaller caller limits remain honored; unrelated providers retain their original SDK checks. An actual over-budget request was still rejected by the managed gateway with HTTP 400 and the exact 1M-budget error. Upstream SDK drift stops qualification. All 20 main runtimes received the read-only managed overlay, with original history IDs and all 40 persistence markers verified across restart. The base image and GPU process were not replaced. Future image builds now test the SDK contract; no new image was built during this rollout. The current read-only transport/budget overlay is `dsh-managed-transport-ced48d44ec3a`, on the existing pinned image.
+
+The exact frozen near-1M prompt was retested after the client fix and returned the complete marker in **6.08s**, using retained backend cache. A fresh ~264K cold DSH mixed test then passed on the final client/forwarder combination: the long turn completed in 123.62s while four paired replies completed in 5.61–6.09s. The installed Node loader hook and explicit smaller-output caps were also tested against the actual SDK. **A second cold near-1M full-answer run was not performed after this SDK correction.** The 28 near-1M-overlap short samples below were measured with the new scheduler before the client-budget correction; the separate final-configuration mixed results are also recorded in the JSON.
+
+### Actual DSH tests on the deployed change
+
+| Case | Recorded result |
+|---|---|
+| Idle, same 119-token answer | 6.60s total; 3.51s streaming |
+| 20 paired replies during the cold near-1M request | All exact and persisted; **4.05–8.63s** total; first text **0.61–5.11s** |
+| Paired streaming output rate | **36.46–36.92 tokens/sec**; includes delivery, not isolated GPU decode |
+| Eight simultaneous ordinary DSH replies | 8/8 exact and persisted in **7.66–8.68s**; long request still active |
+| Late preparation | Two simultaneous replies at each observed cached-prefix stage above 800K and 950K; all exact while long work remained active |
+| Cached near-1M retest after client fix | **1,007,685 input / 7 output**, exact persisted marker in **6.08s**, zero retries; initial cold one-token failure retained |
+| Model continuity | Same model pod UID/image, zero restarts |
+
+The 105/105 API stress sweep below predates this scheduling change; this acceptance adds actual DSH mixed-workload tests and does not repeat the 16-way API sweep. Times include agent RPC and polling overhead. Before/after ordinary prompts and their 119-token answers are identical, but the long inputs differ in length. These bounded synthetic tests do not establish a latency SLA, sixteen near-1M requests, browser-interface qualification or new analytical accuracy. The earlier realistic source/citation test remains separately recorded below. Explicit turn intervals and late-stage observations establish overlap; opening this report does not run new tests.
+
+### Reproduction, rollout and rollback
+
+Use `scripts/probe_dsh_stream_latency.py` only inside a reviewed disposable DSH runtime with ephemeral storage. It creates synthetic histories and records persisted answers, input/output usage, first-text and streaming times, retries and tool calls. Never run it in another user's runtime.
+
+`rollout_interactive_scheduling.py` defaults to a plan. Supply the reviewed current source hashes, a new private output directory and `--apply` after owned long work finishes. It checks singleton/Recreate and a free long lease, clones the current configuration, and changes only its volume reference. It preserves authentication, network settings, model deployment and user volumes. Startup/readback failure restores the old reference. For a later performance regression, finish/cancel owned tests and confirm admission is free before restoring that saved reference; then test real inference. For the managed SDK budget overlay, use `scripts/rollout_managed_budget.py` with the reviewed previous transport hash and a new private checkpoint directory. It refuses active user agents, replaces only the transport ConfigMap reference, verifies actual history IDs, two durable markers per runtime and the installed SDK hook, and restores the previous reference if that runtime fails. Do not restore older user files. No rollback was needed in this passing run.
+
+[Complete timing, overlap and policy record](https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/interactive-scheduling-acceptance-20261017.json).
+
 ## Main client acceptance and current controls — 17 October 2026 ICT
 
 **DSH, Claude Code and TrueForge can use near-1M context through the internal DeepSeek/LiteLLM route in the 20 main runtimes.** This update adds actual Claude CLI and TrueForge API tests to the previously accepted DSH result. Large client cases used disposable storage on the current runtime image against the Production inference route; configuration readback and small default-client checks then covered all 20 main runtimes. These were not twenty separate cold near-1M runs. It does not infer capacity from a model label or metadata alone.
@@ -17,7 +57,7 @@ The cold Claude/TrueForge task reads two sentinel values from the frozen reposit
 
 The common gateway caps output at **8,192 tokens**, counts complete input including system/tool structure and reserves **256 tokens**. A 1M context includes input and output. Claude's 1,000,000 client window is narrower than the backend's 1,048,576 ceiling. Full 8,192-token output near the ceiling, near-1M vision, real near-limit automatic compaction, and a fresh external-browser near-1M interaction are not qualified by these cases. TrueForge's optional code sandbox remains disabled; these tests do not enable nested namespaces or privilege.
 
-### Fresh bounded concurrency and output rate
+### Earlier 17 October API concurrency and output rate
 
 **105/105 expected outputs passed across 18 stages.** Fifteen burst stages cover three repetitions at each concurrency below; three mixed stages combine a roughly 24K, 96K or 120K input with three small requests. The numeric-output comparison ignores whitespace. These are shared-gateway API calls, not sixteen Claude/TrueForge processes or sixteen near-1M requests.
 

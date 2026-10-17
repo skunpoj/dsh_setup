@@ -153,5 +153,23 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
         self.guard.release(long)
 
 
+    async def test_warm_steps_honor_foreground_gate_and_record_wait(self):
+        guard = self.scope['LongContextGuard']()
+        self.scope['WARM_STEP'] = 1024
+        self.scope['CACHE_PROBE_SECONDS'] = 0
+        calls = []
+        async def wait_turn():
+            calls.append('foreground')
+            return .25
+        def warm(ids):
+            calls.append(len(ids))
+            return {'cached_tokens': max(0, len(ids) - 1024)}
+        guard.before_warm_step = wait_turn
+        self.scope['warm_prefix'] = warm
+        result = await guard.warm([0]*2048)
+        self.assertEqual(calls, ['foreground', 1024, 'foreground', 2048])
+        self.assertEqual(result['foregroundYieldSeconds'], .5)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -232,5 +232,45 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.sent, [])
 
 
+    async def test_ordinary_stream_holds_foreground_lane_until_closed(self):
+        self.scope['count_request'] = lambda *args: {'count': 9000, 'tokens': [1]}
+        response = await self.scope['completion'](self.request())
+        lane = self.scope['interactive']
+        self.assertEqual(lane.active, 1)
+        waiting = asyncio.create_task(lane.wait_turn())
+        await asyncio.sleep(.01)
+        self.assertFalse(waiting.done())
+        content = b''.join([b async for b in response.body_iterator])
+        self.assertIn(b'OK', content)
+        await waiting
+        self.assertEqual(lane.active, 0)
+        # Starlette background cleanup follows iterator cleanup; release once.
+        await response.background()
+        self.assertEqual(lane.active, 0)
+
+    async def test_foreground_parallelism_and_bounded_background_progress(self):
+        lane = self.scope['InteractiveLane'](maximum_pause=.02)
+        lane.enter()
+        lane.enter()
+        lane.leave()
+        self.assertEqual(lane.active, 1)
+        await asyncio.wait_for(lane.wait_turn(), timeout=.2)
+        self.assertEqual(lane.active, 1)
+        lane.leave()
+        self.assertTrue(lane.idle.is_set())
+
+    async def test_dispatch_failure_releases_ordinary_lane(self):
+        self.scope['count_request'] = lambda *args: {'count': 9000, 'tokens': [1]}
+        class Failed:
+            def __init__(self, **kwargs): pass
+            def build_request(self, *args, **kwargs): return {}
+            async def send(self, *args, **kwargs): raise RuntimeError('dispatch')
+            async def aclose(self): pass
+        self.http.AsyncClient = Failed
+        with self.assertRaises(RuntimeError):
+            await self.scope['completion'](self.request())
+        self.assertEqual(self.scope['interactive'].active, 0)
+
+
 if __name__ == '__main__':
     unittest.main()

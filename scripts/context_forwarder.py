@@ -20,7 +20,42 @@ from long_context_callbacks import CONTEXT, OUTPUT, RESERVE, TOKENIZER, LongCont
 from context_envelope import normalize_conditioning
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+class InteractiveLane:
+    """Let ordinary streams drain between bounded long-prefill steps.
+
+    Long work gets a step after at most 8s of uninterrupted foreground load;
+    this is cooperative scheduling, not GPU preemption or a latency SLA.
+    """
+    def __init__(self, maximum_pause=8):
+        self.active = 0
+        self.idle = asyncio.Event()
+        self.idle.set()
+        self.maximum_pause = maximum_pause
+
+    def enter(self):
+        self.active += 1
+        self.idle.clear()
+
+    def leave(self):
+        if self.active < 1:
+            raise RuntimeError('Interactive lane released without ownership')
+        self.active -= 1
+        if not self.active:
+            self.idle.set()
+
+    async def wait_turn(self):
+        start = time.monotonic()
+        if self.active:
+            try:
+                await asyncio.wait_for(self.idle.wait(), timeout=self.maximum_pause)
+            except asyncio.TimeoutError:
+                pass
+        return time.monotonic() - start
+
+
+interactive = InteractiveLane()
 guard = LongContextGuard()
+guard.before_warm_step = interactive.wait_turn
 BACKEND = TOKENIZER.removesuffix('/v1/tokenize')
 
 
@@ -113,7 +148,16 @@ async def completion(request: Request):
     client = None
     upstream = None
     handed_off = False
+    cleaned = False
+    ordinary_owned = False
     async def cleanup():
+        nonlocal cleaned, ordinary_owned
+        if cleaned:
+            return
+        cleaned = True
+        if ordinary_owned:
+            interactive.leave()
+            ordinary_owned = False
         try:
             if upstream is not None:
                 await upstream.aclose()
@@ -123,6 +167,9 @@ async def completion(request: Request):
         finally:
             guard.release(lease)
     try:
+        if not long:
+            interactive.enter()
+            ordinary_owned = True
         if long:
             key = uuid.uuid4().hex
             lease['metadata']['dsh_long_lease'] = key

@@ -1,0 +1,1591 @@
+{
+  "scope": "Actual disposable current-image DSH agent RPCs, synthetic prompts, production internal inference; not browser UI or SLA acceptance",
+  "before": {
+    "idle": {
+      "label": "baseline-40",
+      "sessionId": "session-7a6329b6-7c37-418d-ba12-3482c649bcac",
+      "target": 0,
+      "startUTC": 1792218556.4091566,
+      "status": "completed",
+      "endUTC": 1792218562.0354352,
+      "elapsedSeconds": 5.626278877258301,
+      "firstTextSeconds": 1.9368433952331543,
+      "streamSeconds": 3.5409998893737793,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 119,
+        "totalTokens": 7793
+      },
+      "exact": true,
+      "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+      "retries": 0,
+      "tools": 0,
+      "maxGapMs": 36,
+      "largeGapsMs": [],
+      "persistedPromptVerified": true
+    },
+    "long": {
+      "label": "baseline-long-256k",
+      "sessionId": "session-4c0fe5ce-55ef-414e-8ee5-a80553bfe328",
+      "target": 256000,
+      "startUTC": 1792218580.8148036,
+      "status": "completed",
+      "endUTC": 1792218707.6570735,
+      "elapsedSeconds": 126.84227013587952,
+      "firstTextSeconds": 126.35919642448425,
+      "streamSeconds": 0.11800003051757812,
+      "usage": {
+        "inputTokens": 263688,
+        "outputTokens": 7,
+        "totalTokens": 263695
+      },
+      "exact": true,
+      "output": "LONG_LATENCY_OK",
+      "retries": 0,
+      "tools": 0,
+      "maxGapMs": 31,
+      "largeGapsMs": [],
+      "persistedPromptVerified": true
+    },
+    "mixed": [
+      {
+        "label": "baseline-mixed-0",
+        "sessionId": "session-4dd4ae1d-8ee2-4c2a-a669-0819fea291d4",
+        "target": 0,
+        "startUTC": 1792218600.7527053,
+        "status": "completed",
+        "endUTC": 1792218611.3793838,
+        "elapsedSeconds": 10.626678466796875,
+        "firstTextSeconds": 1.9522945880889893,
+        "streamSeconds": 8.483999967575073,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 397,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 14.026402693871415,
+        "effectiveTokensPerSecond": 11.198230977987738
+      },
+      {
+        "label": "baseline-mixed-1",
+        "sessionId": "session-1e0c2a18-d9c3-4e08-9bd1-578c9ca34d70",
+        "target": 0,
+        "startUTC": 1792218618.098453,
+        "status": "completed",
+        "endUTC": 1792218629.7388067,
+        "elapsedSeconds": 11.64035415649414,
+        "firstTextSeconds": 1.8585469722747803,
+        "streamSeconds": 9.611000061035156,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 471,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 12.381645951959662,
+        "effectiveTokensPerSecond": 10.223056652757428
+      },
+      {
+        "label": "baseline-mixed-2",
+        "sessionId": "session-ac1e2478-cefc-4497-9ed8-74b00db98021",
+        "target": 0,
+        "startUTC": 1792218636.3507853,
+        "status": "completed",
+        "endUTC": 1792218647.4727626,
+        "elapsedSeconds": 11.12197732925415,
+        "firstTextSeconds": 0.49021482467651367,
+        "streamSeconds": 10.490000009536743,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 549,
+        "largeGapsMs": [
+          520,
+          520,
+          524,
+          531,
+          541,
+          546,
+          549
+        ],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 11.344137263280636,
+        "effectiveTokensPerSecond": 10.699536285422392
+      }
+    ]
+  },
+  "after": {
+    "idle": {
+      "label": "after-idle-40",
+      "sessionId": "session-ccccd6ed-66b1-4ea2-b6da-fe440a40dd1a",
+      "target": 0,
+      "startUTC": 1792218825.22701,
+      "status": "completed",
+      "endUTC": 1792218831.82696,
+      "elapsedSeconds": 6.599950313568115,
+      "firstTextSeconds": 2.6459898948669434,
+      "streamSeconds": 3.5139999389648438,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 119,
+        "totalTokens": 7793
+      },
+      "exact": true,
+      "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+      "retries": 0,
+      "tools": 0,
+      "maxGapMs": 39,
+      "largeGapsMs": [],
+      "persistedPromptVerified": true
+    },
+    "initialColdFailure": {
+      "label": "after-long-near1m",
+      "sessionId": "session-244ac6f8-e640-4af7-85e7-7cb9e8639ac0",
+      "target": 1000000,
+      "startUTC": 1792218833.3952017,
+      "status": "completed",
+      "endUTC": 1792220036.4813929,
+      "elapsedSeconds": 1203.0861914157867,
+      "firstTextSeconds": 1202.6087982654572,
+      "streamSeconds": 0.0,
+      "usage": {
+        "inputTokens": 1007685,
+        "outputTokens": 1,
+        "totalTokens": 1007686
+      },
+      "exact": false,
+      "output": "L",
+      "retries": 0,
+      "tools": 0,
+      "maxGapMs": 0,
+      "largeGapsMs": [],
+      "persistedPromptVerified": true
+    },
+    "budgetFixedCachedRetest": {
+      "label": "budget-fixed-near1m",
+      "sessionId": "session-b18ae40f-19e4-4e30-8c4e-0e67740b72cc",
+      "target": 1000000,
+      "startUTC": 1792220381.259859,
+      "status": "completed",
+      "endUTC": 1792220387.3418016,
+      "elapsedSeconds": 6.081942796707153,
+      "firstTextSeconds": 5.638140916824341,
+      "streamSeconds": 0.10800004005432129,
+      "usage": {
+        "inputTokens": 1007685,
+        "outputTokens": 7,
+        "totalTokens": 1007692
+      },
+      "exact": true,
+      "output": "LONG_LATENCY_OK",
+      "retries": 0,
+      "tools": 0,
+      "maxGapMs": 31,
+      "largeGapsMs": [],
+      "persistedPromptVerified": true
+    },
+    "finalConfigurationMixedTest": {
+      "status": "completed",
+      "shorts": [
+        {
+          "label": "final-short-0-0",
+          "sessionId": "session-a0effaf0-1cd0-40cd-8765-a7ede935be19",
+          "target": 0,
+          "startUTC": 1792220520.615226,
+          "status": "completed",
+          "endUTC": 1792220526.2279227,
+          "elapsedSeconds": 5.612696647644043,
+          "firstTextSeconds": 2.1217739582061768,
+          "streamSeconds": 3.2269999980926514,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 34,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "longActiveAfter": true
+        },
+        {
+          "label": "final-short-0-1",
+          "sessionId": "session-204190e7-1c2c-45a4-9cc4-a41c7f796262",
+          "target": 0,
+          "startUTC": 1792220520.6170108,
+          "status": "completed",
+          "endUTC": 1792220526.2290409,
+          "elapsedSeconds": 5.612030267715454,
+          "firstTextSeconds": 2.1189892292022705,
+          "streamSeconds": 3.2279999256134033,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 34,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "longActiveAfter": true
+        },
+        {
+          "label": "final-short-1-0",
+          "sessionId": "session-23663f3e-ea76-4a18-b976-a71a6cc56cc8",
+          "target": 0,
+          "startUTC": 1792220542.8813334,
+          "status": "completed",
+          "endUTC": 1792220548.9538927,
+          "elapsedSeconds": 6.072559833526611,
+          "firstTextSeconds": 2.316666603088379,
+          "streamSeconds": 3.2260000705718994,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 35,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "longActiveAfter": true
+        },
+        {
+          "label": "final-short-1-1",
+          "sessionId": "session-81a01cfe-3588-4228-a526-79dae8dd31bd",
+          "target": 0,
+          "startUTC": 1792220542.8294144,
+          "status": "completed",
+          "endUTC": 1792220548.9220514,
+          "elapsedSeconds": 6.092637062072754,
+          "firstTextSeconds": 2.3675856590270996,
+          "streamSeconds": 3.2269999980926514,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 35,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "longActiveAfter": true
+        }
+      ],
+      "long": {
+        "label": "final-long-256k",
+        "sessionId": "session-b3f135da-4fe2-4c75-89b5-27b37edc69a2",
+        "target": 256000,
+        "startUTC": 1792220500.6577978,
+        "status": "completed",
+        "endUTC": 1792220624.2771175,
+        "elapsedSeconds": 123.61931991577148,
+        "firstTextSeconds": 122.93220210075378,
+        "streamSeconds": 0.12199997901916504,
+        "usage": {
+          "inputTokens": 263689,
+          "outputTokens": 7,
+          "totalTokens": 263696
+        },
+        "exact": true,
+        "output": "LONG_LATENCY_OK",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 30,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true
+      }
+    },
+    "managedBudgetRollout": [
+      {
+        "name": "dsh-u-120fc75e04cf8e5f-internet",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-120fc75e04cf8e5f-secure",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-156540115183048a-internet",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-156540115183048a-secure",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-26ae784d194a5760-internet",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-26ae784d194a5760-secure",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-8205c7f83822ea35-internet",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-8205c7f83822ea35-secure",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-8a2539e2b69d9daf-internet",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-8a2539e2b69d9daf-secure",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-8c6976e5b5410415-internet",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-8c6976e5b5410415-secure",
+        "historyCountBefore": 3,
+        "historyCountAfter": 3,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-ae5deb822e0d7199-internet",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-ae5deb822e0d7199-secure",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-ca8b22d0db83a22d-internet",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-ca8b22d0db83a22d-secure",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-d0b55cb0730a08ac-internet",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-u-d0b55cb0730a08ac-secure",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-internet",
+        "historyCountBefore": 0,
+        "historyCountAfter": 0,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      },
+      {
+        "name": "dsh-secure",
+        "historyCountBefore": 80,
+        "historyCountAfter": 80,
+        "allHistoryIDsPreserved": true,
+        "budget": {
+          "fullBudget": 8192,
+          "explicitOne": 1
+        },
+        "persistence": {
+          "markers": 2,
+          "survived": true
+        }
+      }
+    ],
+    "long": {
+      "label": "budget-fixed-near1m",
+      "sessionId": "session-b18ae40f-19e4-4e30-8c4e-0e67740b72cc",
+      "target": 1000000,
+      "startUTC": 1792220381.259859,
+      "status": "completed",
+      "endUTC": 1792220387.3418016,
+      "elapsedSeconds": 6.081942796707153,
+      "firstTextSeconds": 5.638140916824341,
+      "streamSeconds": 0.10800004005432129,
+      "usage": {
+        "inputTokens": 1007685,
+        "outputTokens": 7,
+        "totalTokens": 1007692
+      },
+      "exact": true,
+      "output": "LONG_LATENCY_OK",
+      "retries": 0,
+      "tools": 0,
+      "maxGapMs": 31,
+      "largeGapsMs": [],
+      "persistedPromptVerified": true
+    },
+    "pairedShorts": [
+      {
+        "label": "after-pair-0-0",
+        "sessionId": "session-1bcf49b8-0a48-4515-a9d1-79a66e128e8b",
+        "target": 0,
+        "startUTC": 1792218853.636409,
+        "status": "completed",
+        "endUTC": 1792218858.7097013,
+        "elapsedSeconds": 5.073292255401611,
+        "firstTextSeconds": 1.7495908737182617,
+        "streamSeconds": 3.2239999771118164,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 61,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.91067023722649,
+        "effectiveTokensPerSecond": 23.45616889571045
+      },
+      {
+        "label": "after-pair-0-1",
+        "sessionId": "session-426bfbdd-82f7-49ce-9db0-bb11548ccb08",
+        "target": 0,
+        "startUTC": 1792218853.598573,
+        "status": "completed",
+        "endUTC": 1792218858.6858907,
+        "elapsedSeconds": 5.087317705154419,
+        "firstTextSeconds": 1.7864270210266113,
+        "streamSeconds": 3.2249999046325684,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 60,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.89922589735951,
+        "effectiveTokensPerSecond": 23.391501552857687
+      },
+      {
+        "label": "after-pair-1-0",
+        "sessionId": "session-905ed6da-570e-421a-8a00-d9c432653ff2",
+        "target": 0,
+        "startUTC": 1792218900.324015,
+        "status": "completed",
+        "endUTC": 1792218904.378149,
+        "elapsedSeconds": 4.054134130477905,
+        "firstTextSeconds": 0.608985185623169,
+        "streamSeconds": 3.263000011444092,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 48,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.469506461121554,
+        "effectiveTokensPerSecond": 29.352753552328117
+      },
+      {
+        "label": "after-pair-1-1",
+        "sessionId": "session-b0287d59-bb1d-4822-ac21-4c914fd289ff",
+        "target": 0,
+        "startUTC": 1792218900.2677307,
+        "status": "completed",
+        "endUTC": 1792218904.328201,
+        "elapsedSeconds": 4.060470342636108,
+        "firstTextSeconds": 0.664269208908081,
+        "streamSeconds": 3.2639999389648438,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 48,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.45833401508582,
+        "effectiveTokensPerSecond": 29.30694967784045
+      },
+      {
+        "label": "after-pair-2-0",
+        "sessionId": "session-fd9d10f4-c4e4-499c-ac43-20d58d5e3839",
+        "target": 0,
+        "startUTC": 1792218946.2702534,
+        "status": "completed",
+        "endUTC": 1792218952.3519273,
+        "elapsedSeconds": 6.081673860549927,
+        "firstTextSeconds": 2.3617465496063232,
+        "streamSeconds": 3.2230000495910645,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 48,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.922121678247805,
+        "effectiveTokensPerSecond": 19.566981513415058
+      },
+      {
+        "label": "after-pair-2-1",
+        "sessionId": "session-d2b13582-0958-4394-b370-4bb8b2f5c207",
+        "target": 0,
+        "startUTC": 1792218946.1433766,
+        "status": "completed",
+        "endUTC": 1792218952.2497106,
+        "elapsedSeconds": 6.106334209442139,
+        "firstTextSeconds": 2.486623525619507,
+        "streamSeconds": 3.2249999046325684,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 48,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.89922589735951,
+        "effectiveTokensPerSecond": 19.487960520731402
+      },
+      {
+        "label": "after-pair-3-0",
+        "sessionId": "session-53e38946-1fae-4c35-9d84-9cd9e6d71783",
+        "target": 0,
+        "startUTC": 1792218993.8741195,
+        "status": "completed",
+        "endUTC": 1792219000.4903114,
+        "elapsedSeconds": 6.616192102432251,
+        "firstTextSeconds": 3.0898804664611816,
+        "streamSeconds": 3.2269999980926514,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 51,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.87635577016922,
+        "effectiveTokensPerSecond": 17.986176664406873
+      },
+      {
+        "label": "after-pair-3-1",
+        "sessionId": "session-fd8ca9c3-d774-412b-920b-479e7c7957d0",
+        "target": 0,
+        "startUTC": 1792218993.9178822,
+        "status": "completed",
+        "endUTC": 1792219000.4914799,
+        "elapsedSeconds": 6.57359766960144,
+        "firstTextSeconds": 3.0451178550720215,
+        "streamSeconds": 3.2279999256134033,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 52,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.86493269586644,
+        "effectiveTokensPerSecond": 18.102720303418725
+      },
+      {
+        "label": "after-pair-4-0",
+        "sessionId": "session-32217fff-bc5b-4922-b60e-bc38bb11d2d9",
+        "target": 0,
+        "startUTC": 1792219042.1508362,
+        "status": "completed",
+        "endUTC": 1792219047.72733,
+        "elapsedSeconds": 5.576493740081787,
+        "firstTextSeconds": 2.292163848876953,
+        "streamSeconds": 3.2269999980926514,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 53,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.87635577016922,
+        "effectiveTokensPerSecond": 21.339573851696766
+      },
+      {
+        "label": "after-pair-4-1",
+        "sessionId": "session-2cd7704e-7e3f-41c2-98f9-657a3d469f96",
+        "target": 0,
+        "startUTC": 1792219042.1003647,
+        "status": "completed",
+        "endUTC": 1792219048.2034354,
+        "elapsedSeconds": 6.1030707359313965,
+        "firstTextSeconds": 2.343635320663452,
+        "streamSeconds": 3.2260000705718994,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 53,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.8877859258397,
+        "effectiveTokensPerSecond": 19.49838124919574
+      },
+      {
+        "label": "after-pair-5-0",
+        "sessionId": "session-769b4076-63f9-4a77-bd54-4dc83c90a47e",
+        "target": 0,
+        "startUTC": 1792219089.7783837,
+        "status": "completed",
+        "endUTC": 1792219095.4038718,
+        "elapsedSeconds": 5.625488042831421,
+        "firstTextSeconds": 1.9486162662506104,
+        "streamSeconds": 3.2249999046325684,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 47,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.89922589735951,
+        "effectiveTokensPerSecond": 21.153720191733786
+      },
+      {
+        "label": "after-pair-5-1",
+        "sessionId": "session-31f19ec3-f23f-41f5-9222-e4366ae93454",
+        "target": 0,
+        "startUTC": 1792219089.821592,
+        "status": "completed",
+        "endUTC": 1792219095.405307,
+        "elapsedSeconds": 5.583715200424194,
+        "firstTextSeconds": 1.9034078121185303,
+        "streamSeconds": 3.2260000705718994,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 47,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.8877859258397,
+        "effectiveTokensPerSecond": 21.31197522233218
+      },
+      {
+        "label": "after-pair-6-0",
+        "sessionId": "session-9bf52388-daad-437f-83f1-a59f3c3f0f39",
+        "target": 0,
+        "startUTC": 1792219137.0520277,
+        "status": "completed",
+        "endUTC": 1792219143.1887355,
+        "elapsedSeconds": 6.136707782745361,
+        "firstTextSeconds": 2.753972291946411,
+        "streamSeconds": 3.2239999771118164,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 54,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.91067023722649,
+        "effectiveTokensPerSecond": 19.39150505660273
+      },
+      {
+        "label": "after-pair-6-1",
+        "sessionId": "session-bd49ac84-9468-4364-b899-61ecc1e86470",
+        "target": 0,
+        "startUTC": 1792219137.0919347,
+        "status": "completed",
+        "endUTC": 1792219143.1898954,
+        "elapsedSeconds": 6.097960948944092,
+        "firstTextSeconds": 2.7120652198791504,
+        "streamSeconds": 3.2249999046325684,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 53,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.89922589735951,
+        "effectiveTokensPerSecond": 19.514719919714434
+      },
+      {
+        "label": "after-pair-7-0",
+        "sessionId": "session-ebe68736-46fe-4a34-93c2-d1a87415a6b7",
+        "target": 0,
+        "startUTC": 1792219184.8052723,
+        "status": "completed",
+        "endUTC": 1792219190.9252198,
+        "elapsedSeconds": 6.11994743347168,
+        "firstTextSeconds": 2.4667277336120605,
+        "streamSeconds": 3.2290000915527344,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 54,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.853513975212145,
+        "effectiveTokensPerSecond": 19.444611460084804
+      },
+      {
+        "label": "after-pair-7-1",
+        "sessionId": "session-ead4a33c-7776-437f-bb59-d2d985480178",
+        "target": 0,
+        "startUTC": 1792219184.8454118,
+        "status": "completed",
+        "endUTC": 1792219190.9263837,
+        "elapsedSeconds": 6.080972194671631,
+        "firstTextSeconds": 2.4285881519317627,
+        "streamSeconds": 3.2269999980926514,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 53,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "longActiveAfter": true,
+        "streamTokensPerSecond": 36.87635577016922,
+        "effectiveTokensPerSecond": 19.56923929109101
+      },
+      {
+        "label": "late-800000-0",
+        "sessionId": "session-06cdeebe-b4a5-4edf-84be-e2e25c4836e4",
+        "target": 0,
+        "startUTC": 1792219645.3883069,
+        "status": "completed",
+        "endUTC": 1792219650.9535096,
+        "elapsedSeconds": 5.565202713012695,
+        "firstTextSeconds": 2.139693260192871,
+        "streamSeconds": 3.2269999980926514,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 52,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "streamTokensPerSecond": 36.87635577016922,
+        "effectiveTokensPerSecond": 21.382868897434992
+      },
+      {
+        "label": "late-800000-1",
+        "sessionId": "session-87b227cb-300c-4b6b-b6c1-4959bb3f5369",
+        "target": 0,
+        "startUTC": 1792219645.3375165,
+        "status": "completed",
+        "endUTC": 1792219650.911801,
+        "elapsedSeconds": 5.574284791946411,
+        "firstTextSeconds": 2.190483570098877,
+        "streamSeconds": 3.2279999256134033,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 53,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "streamTokensPerSecond": 36.86493269586644,
+        "effectiveTokensPerSecond": 21.348030185312428
+      },
+      {
+        "label": "late-950000-0",
+        "sessionId": "session-946813d4-d0a1-4a7a-80e7-3fe39afd2cb8",
+        "target": 0,
+        "startUTC": 1792219935.7244854,
+        "status": "completed",
+        "endUTC": 1792219944.3569424,
+        "elapsedSeconds": 8.63245701789856,
+        "firstTextSeconds": 5.1105146408081055,
+        "streamSeconds": 3.2260000705718994,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 43,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "streamTokensPerSecond": 36.8877859258397,
+        "effectiveTokensPerSecond": 13.785183031119075
+      },
+      {
+        "label": "late-950000-1",
+        "sessionId": "session-141b1db0-3def-4272-aa43-d31b859bde97",
+        "target": 0,
+        "startUTC": 1792219935.7253356,
+        "status": "completed",
+        "endUTC": 1792219944.3577461,
+        "elapsedSeconds": 8.632410526275635,
+        "firstTextSeconds": 5.108664512634277,
+        "streamSeconds": 3.2269999980926514,
+        "usage": {
+          "inputTokens": 7674,
+          "outputTokens": 119,
+          "totalTokens": 7793
+        },
+        "exact": true,
+        "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+        "retries": 0,
+        "tools": 0,
+        "maxGapMs": 43,
+        "largeGapsMs": [],
+        "persistedPromptVerified": true,
+        "streamTokensPerSecond": 36.87635577016922,
+        "effectiveTokensPerSecond": 13.78525727405846
+      }
+    ],
+    "eightConcurrent": {
+      "concurrency": 8,
+      "startUTC": 1792218889.7562785,
+      "endUTC": 1792218901.786362,
+      "rows": [
+        {
+          "label": "after-burst8-0",
+          "sessionId": "session-2ddc23a2-28c5-49da-808c-54a53d7ef5ab",
+          "target": 0,
+          "startUTC": 1792218891.644454,
+          "status": "completed",
+          "endUTC": 1792218899.7880216,
+          "elapsedSeconds": 8.14356780052185,
+          "firstTextSeconds": 3.782546043395996,
+          "streamSeconds": 4.289000034332275,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 161,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "streamTokensPerSecond": 27.7453949749213,
+          "effectiveTokensPerSecond": 14.612759777400555
+        },
+        {
+          "label": "after-burst8-1",
+          "sessionId": "session-2e03a83f-0e6e-49ef-bf33-60001ca303d2",
+          "target": 0,
+          "startUTC": 1792218891.474318,
+          "status": "completed",
+          "endUTC": 1792218899.1311488,
+          "elapsedSeconds": 7.656830787658691,
+          "firstTextSeconds": 2.350682020187378,
+          "streamSeconds": 5.184999942779541,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 540,
+          "largeGapsMs": [
+            540
+          ],
+          "persistedPromptVerified": true,
+          "streamTokensPerSecond": 22.95081992541108,
+          "effectiveTokensPerSecond": 15.541678182545793
+        },
+        {
+          "label": "after-burst8-2",
+          "sessionId": "session-3810fed6-f135-4dd9-951f-40ae543431f0",
+          "target": 0,
+          "startUTC": 1792218891.5392716,
+          "status": "completed",
+          "endUTC": 1792218899.7140265,
+          "elapsedSeconds": 8.174755096435547,
+          "firstTextSeconds": 3.58072829246521,
+          "streamSeconds": 4.434999942779541,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 211,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "streamTokensPerSecond": 26.832018384518694,
+          "effectiveTokensPerSecond": 14.557011016989094
+        },
+        {
+          "label": "after-burst8-3",
+          "sessionId": "session-e125e496-5d4e-4632-af09-3ccc4db10764",
+          "target": 0,
+          "startUTC": 1792218891.5147207,
+          "status": "completed",
+          "endUTC": 1792218900.185135,
+          "elapsedSeconds": 8.670414447784424,
+          "firstTextSeconds": 3.9122793674468994,
+          "streamSeconds": 4.289000034332275,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 162,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "streamTokensPerSecond": 27.7453949749213,
+          "effectiveTokensPerSecond": 13.724834114522452
+        },
+        {
+          "label": "after-burst8-4",
+          "sessionId": "session-27439580-1d62-4652-8c2a-0b272a6bdfcd",
+          "target": 0,
+          "startUTC": 1792218891.542984,
+          "status": "completed",
+          "endUTC": 1792218899.7150557,
+          "elapsedSeconds": 8.172071695327759,
+          "firstTextSeconds": 3.5770158767700195,
+          "streamSeconds": 4.434000015258789,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 211,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "streamTokensPerSecond": 26.83806937088037,
+          "effectiveTokensPerSecond": 14.561790992122132
+        },
+        {
+          "label": "after-burst8-5",
+          "sessionId": "session-31fd336a-ce6e-473a-ade2-b735ab70072a",
+          "target": 0,
+          "startUTC": 1792218891.5019927,
+          "status": "completed",
+          "endUTC": 1792218900.1785662,
+          "elapsedSeconds": 8.676573753356934,
+          "firstTextSeconds": 3.9230072498321533,
+          "streamSeconds": 4.289999961853027,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 162,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "streamTokensPerSecond": 27.73892798558418,
+          "effectiveTokensPerSecond": 13.715091161872433
+        },
+        {
+          "label": "after-burst8-6",
+          "sessionId": "session-b1ca480b-5885-4fec-9d9b-92e960157787",
+          "target": 0,
+          "startUTC": 1792218891.647199,
+          "status": "completed",
+          "endUTC": 1792218900.2944372,
+          "elapsedSeconds": 8.64723825454712,
+          "firstTextSeconds": 4.0468010902404785,
+          "streamSeconds": 4.171000003814697,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 58,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "streamTokensPerSecond": 28.530328432310103,
+          "effectiveTokensPerSecond": 13.761619201069692
+        },
+        {
+          "label": "after-burst8-7",
+          "sessionId": "session-a79d32ca-8158-4974-bea8-f4d39b948dc9",
+          "target": 0,
+          "startUTC": 1792218891.6397223,
+          "status": "completed",
+          "endUTC": 1792218899.7483032,
+          "elapsedSeconds": 8.108580827713013,
+          "firstTextSeconds": 3.4792776107788086,
+          "streamSeconds": 4.436000108718872,
+          "usage": {
+            "inputTokens": 7674,
+            "outputTokens": 119,
+            "totalTokens": 7793
+          },
+          "exact": true,
+          "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "retries": 0,
+          "tools": 0,
+          "maxGapMs": 211,
+          "largeGapsMs": [],
+          "persistedPromptVerified": true,
+          "streamTokensPerSecond": 26.825968684290114,
+          "effectiveTokensPerSecond": 14.675811036289984
+        }
+      ],
+      "longStillRunningAfter": true,
+      "allExact": true
+    },
+    "lateSamples": [
+      {
+        "threshold": 800000,
+        "observedCachedPrefix": 813056,
+        "longActiveAfter": true,
+        "rows": [
+          {
+            "label": "late-800000-0",
+            "sessionId": "session-06cdeebe-b4a5-4edf-84be-e2e25c4836e4",
+            "target": 0,
+            "startUTC": 1792219645.3883069,
+            "status": "completed",
+            "endUTC": 1792219650.9535096,
+            "elapsedSeconds": 5.565202713012695,
+            "firstTextSeconds": 2.139693260192871,
+            "streamSeconds": 3.2269999980926514,
+            "usage": {
+              "inputTokens": 7674,
+              "outputTokens": 119,
+              "totalTokens": 7793
+            },
+            "exact": true,
+            "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+            "retries": 0,
+            "tools": 0,
+            "maxGapMs": 52,
+            "largeGapsMs": [],
+            "persistedPromptVerified": true,
+            "streamTokensPerSecond": 36.87635577016922,
+            "effectiveTokensPerSecond": 21.382868897434992
+          },
+          {
+            "label": "late-800000-1",
+            "sessionId": "session-87b227cb-300c-4b6b-b6c1-4959bb3f5369",
+            "target": 0,
+            "startUTC": 1792219645.3375165,
+            "status": "completed",
+            "endUTC": 1792219650.911801,
+            "elapsedSeconds": 5.574284791946411,
+            "firstTextSeconds": 2.190483570098877,
+            "streamSeconds": 3.2279999256134033,
+            "usage": {
+              "inputTokens": 7674,
+              "outputTokens": 119,
+              "totalTokens": 7793
+            },
+            "exact": true,
+            "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+            "retries": 0,
+            "tools": 0,
+            "maxGapMs": 53,
+            "largeGapsMs": [],
+            "persistedPromptVerified": true,
+            "streamTokensPerSecond": 36.86493269586644,
+            "effectiveTokensPerSecond": 21.348030185312428
+          }
+        ]
+      },
+      {
+        "threshold": 950000,
+        "observedCachedPrefix": 962560,
+        "longActiveAfter": true,
+        "rows": [
+          {
+            "label": "late-950000-0",
+            "sessionId": "session-946813d4-d0a1-4a7a-80e7-3fe39afd2cb8",
+            "target": 0,
+            "startUTC": 1792219935.7244854,
+            "status": "completed",
+            "endUTC": 1792219944.3569424,
+            "elapsedSeconds": 8.63245701789856,
+            "firstTextSeconds": 5.1105146408081055,
+            "streamSeconds": 3.2260000705718994,
+            "usage": {
+              "inputTokens": 7674,
+              "outputTokens": 119,
+              "totalTokens": 7793
+            },
+            "exact": true,
+            "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+            "retries": 0,
+            "tools": 0,
+            "maxGapMs": 43,
+            "largeGapsMs": [],
+            "persistedPromptVerified": true,
+            "streamTokensPerSecond": 36.8877859258397,
+            "effectiveTokensPerSecond": 13.785183031119075
+          },
+          {
+            "label": "late-950000-1",
+            "sessionId": "session-141b1db0-3def-4272-aa43-d31b859bde97",
+            "target": 0,
+            "startUTC": 1792219935.7253356,
+            "status": "completed",
+            "endUTC": 1792219944.3577461,
+            "elapsedSeconds": 8.632410526275635,
+            "firstTextSeconds": 5.108664512634277,
+            "streamSeconds": 3.2269999980926514,
+            "usage": {
+              "inputTokens": 7674,
+              "outputTokens": 119,
+              "totalTokens": 7793
+            },
+            "exact": true,
+            "output": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+            "retries": 0,
+            "tools": 0,
+            "maxGapMs": 43,
+            "largeGapsMs": [],
+            "persistedPromptVerified": true,
+            "streamTokensPerSecond": 36.87635577016922,
+            "effectiveTokensPerSecond": 13.78525727405846
+          }
+        ]
+      }
+    ]
+  },
+  "policy": {
+    "context": 1048576,
+    "ordinaryThreshold": 131072,
+    "longAdmissionSlots": 1,
+    "backendRunningCap": 16,
+    "warmStepTokens": 2048,
+    "maximumForegroundPausePerStepSeconds": 8,
+    "replicas": 1,
+    "strategy": "Recreate",
+    "distributedAdmission": false
+  },
+  "rollout": {
+    "passed": true,
+    "previousConfigMap": "litellm-admission-1449d03a3db7",
+    "configMap": "litellm-interactive-cd9a424fa8e4",
+    "context": 1048576,
+    "mountedSourceMatches": true,
+    "modelRestarted": false
+  },
+  "identity": {
+    "gatewayReplicas": 1,
+    "gatewayStrategy": "Recreate",
+    "configMap": "litellm-interactive-cd9a424fa8e4",
+    "modelUID": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+    "modelImageIDs": [
+      "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+    ],
+    "modelRestarts": [
+      0
+    ]
+  },
+  "tests": {
+    "linuxForwarderAndGuard": 23,
+    "promotion": 6,
+    "envelope": 1
+  },
+  "initialColdOutputFailurePreserved": true,
+  "acceptedSchedulingAndBudgetChecksPass": true,
+  "frozenPromptSHA256": "964c90015d9c2a56fc94c3e3112be7e56c9b340a21147b57cb003a722150607b",
+  "overBudgetRefusal": {
+    "status": 400,
+    "refused": true,
+    "seconds": 1.8268132699886337,
+    "detail": "Input exceeds 1M total-token budget; compact or reduce it.",
+    "inputSpecification": "One user message containing the two-character string space+a repeated 1060000 times; max_tokens=32",
+    "source": "Actual managed gateway HTTP response observed during this rollout"
+  },
+  "legacyFilePreservation": {
+    "checked": 82,
+    "unchanged": 82,
+    "missing": [],
+    "changed": []
+  },
+  "managedBudgetTests": [
+    {
+      "passed": true,
+      "managedOriginOnly": true,
+      "callerAbortSignalPreserved": true,
+      "otherOriginsUnchanged": true
+    },
+    {
+      "passed": true,
+      "managedExactBudget": true,
+      "explicitSmallLimitsPreserved": true,
+      "otherRoutesUnchanged": true,
+      "sourceDriftRefused": true
+    },
+    {
+      "actualInstalledLoaderHookPassed": true,
+      "managedBudget": 8192,
+      "explicitSmallCap": 1,
+      "unrelatedGuardPreserved": true
+    }
+  ],
+  "finalVerification": {
+    "disposablePodsRemoved": true,
+    "noUserVolumesMountedInTests": true,
+    "archiveDownloadAndAllFileHashesVerified": true,
+    "archives": [
+      {
+        "pod": "dsh-short-latency-review-20261017",
+        "sha256": "419da489ccaddb08af0a5abd21b27f33bb72d4b1941f5fad7247c9724f140716",
+        "files": 70
+      },
+      {
+        "pod": "dsh-short-budget-review-20261017",
+        "sha256": "9310b54bb393537dec77dc51f1d999517525d4173a32de66bb8bc20cc24e6f91",
+        "files": 12
+      }
+    ],
+    "longAdmissionFree": true,
+    "modelUIDImageAndRestartsUnchanged": true,
+    "mainRuntimesUpdated": 20,
+    "persistenceMarkersVerifiedAndRemoved": 40,
+    "postCleanupAliases": [
+      {
+        "model": "deepseek-v4.1-flash",
+        "exact": true,
+        "seconds": 0.34756043006200343
+      },
+      {
+        "model": "deepseek-flash",
+        "exact": true,
+        "seconds": 0.3298709309892729
+      }
+    ]
+  }
+}
