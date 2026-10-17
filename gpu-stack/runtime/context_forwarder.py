@@ -349,7 +349,10 @@ async def completion(request: Request):
                         'status': exc.status_code, 'message': str(exc.detail)}}).encode()+b'\n\n'
                 except asyncio.CancelledError:
                     raise
-                except Exception:
+                except Exception as exc:
+                    print(json.dumps({'event': 'dsh_context_preparation_failed',
+                        'requestId': rid, 'inputTokens': tokenized['count'],
+                        'errorType': type(exc).__name__}), flush=True)
                     yield b'data: '+json.dumps({'error': {'code': 'context_preparation_failed',
                         'message': 'Long-context preparation stopped.'}}).encode()+b'\n\n'
                 finally:

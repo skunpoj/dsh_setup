@@ -1,4 +1,6 @@
 import asyncio
+import contextlib
+import io
 import copy
 import importlib.util
 import json
@@ -264,6 +266,22 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn(b'429', content)
         self.assertEqual(self.sent, [])
 
+
+    async def test_preparation_error_diagnostic_does_not_publish_exception_content(self):
+        async def fail(_): raise RuntimeError('private-content-marker')
+        self.scope['guard'].warm = fail
+        captured = io.StringIO()
+        with contextlib.redirect_stdout(captured):
+            response = await self.scope['completion'](self.request())
+            content = b''.join([b async for b in response.body_iterator])
+        self.assertIn(b'context_preparation_failed', content)
+        self.assertNotIn(b'private-content-marker', content)
+        self.assertNotIn('private-content-marker', captured.getvalue())
+        events = [json.loads(l)for l in captured.getvalue().splitlines()]
+        event = next(e for e in events if e.get('event')=='dsh_context_preparation_failed')
+        self.assertEqual(event['errorType'], 'RuntimeError')
+        self.assertFalse(self.scope['guard'].active)
+        self.assertEqual(self.sent, [])
 
     async def test_ordinary_stream_holds_foreground_lane_until_closed(self):
         self.scope['count_request'] = lambda *args: {'count': 9000, 'tokens': [1]}

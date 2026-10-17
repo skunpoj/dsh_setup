@@ -67,7 +67,7 @@ def count_request(data, final_envelope=False):
     return result
 
 
-def warm_prefix(ids, timeout=15):
+def warm_prefix(ids, timeout=30):
     rid = 'dsh-warm-'+uuid.uuid4().hex
     base = TOKENIZER.removesuffix('/v1/tokenize')
     request = urllib.request.Request(TOKENIZER.removesuffix('/v1/tokenize')+'/generate',
@@ -135,9 +135,18 @@ class LongContextGuard(CustomLogger):
         for end in range(WARM_STEP, len(ids)+WARM_STEP, WARM_STEP):
             end = min(end, len(ids))
             await foreground_turn()
-            meta = await asyncio.to_thread(warm_prefix, ids[:end])
+            try:
+                meta = await asyncio.to_thread(warm_prefix, ids[:end])
+            except Exception as exc:
+                print(json.dumps({'event': 'dsh_warm_step_failed',
+                    'previousTokens': previous, 'targetTokens': end, 'steps': steps,
+                    'errorType': type(exc).__name__}), flush=True)
+                raise
             cached = meta.get('cached_tokens', 0)
             if previous and cached < previous-512:
+                print(json.dumps({'event': 'dsh_prefix_cache_lost',
+                    'previousTokens': previous, 'targetTokens': end,
+                    'cachedTokens': cached, 'steps': steps}), flush=True)
                 raise RuntimeError('Long prefix was evicted; defer and retry the request')
             previous = end
             steps += 1

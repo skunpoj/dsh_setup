@@ -1,5 +1,17 @@
 # Shared LLM — 1M Setup, Performance and Operational Limits
 
+## Latest allocator correction and concurrent 1M retest
+
+The revised profile passed an actual DSH turn with **1,007,697 input / 119 output tokens**, returning the complete expected answer and persisting it with **zero retries**. Whole-turn time was **1475.94 seconds**; the answer streamed in **3.54 seconds**, approximately **33.34 output tokens/second**. Streaming rate excludes preparation, queueing and agent overhead.
+
+**62/62 overlapping short DSH replies** were complete, exact and persisted, with zero retries, in **5.58–11.69 seconds** (median 7.62). Their measured output streams delivered **21.62–36.42 tokens/second**. The late eight-client cohort started after a recorded **907,264-token** prepared prefix; all eight passed in **7.09–7.63 seconds**, with the actual long turn active before and after.
+
+The final profile uses **512-token prefill chunks**, a **1,024-token prefill budget**, **two requests per prefill batch**, **separate prefill/decode**, **four decode rounds between prefills**, **eight cached-prefix tails**, static memory **0.90**, **1,048,576 total context** and a **16-running-request cap**. Short decoding remains parallel; the prefill cap is not a two-user limit. One request above 128K is admitted at a time. The extra prefix tails protect reusable context; they do not enlarge the total memory budget.
+
+The prior mixed-batch candidate failed during its late burst with a 7.95 GiB temporary sparse-attention allocation and one model restart. Smaller token chunks alone were insufficient because workspace width also grows with requests in a mixed batch. The final retest has **zero mapping warnings and zero unexpected restarts**; the failed trial remains recorded. Unrelated upstream tuning notices are not claimed fixed. **The dated sections below are historical measurements and retain their original profiles.**
+
+[Allocator design, failed trials, rollback and final measurements](GPU_ALLOCATOR_QUALIFICATION_20261017.html).
+
 ## Latest admission and cancellation correction
 
 The controlled occupied-slot retest passed: **1,007,704 input tokens**, **119 output tokens**, the full correct 1–40 answer and persisted prompt, with **0 retries**. Total DSH time was **1551.75 seconds**, including **315.74 seconds waiting for admission** and **1226.79 seconds preparing context**. The answer streamed in **3.53 seconds**, approximately **33.42 output tokens/second**. This rate excludes queueing and preparation.
@@ -278,8 +290,9 @@ Transport, tool continuation, compaction and restart/persistence checks are desc
 | Long-request admission | One request above 128K at a time in one gateway replica; one FIFO waiting position up to 1,500 seconds; excess waiters refused immediately; no Router rate-limit retries for the two guarded model groups |
 | Ordinary requests | Bypass the long-request lease and remain concurrent; queueing and slower output remain possible |
 | SGLang | Image digest `4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860`; model snapshot `dba1be0a40aa45a94ad051997016db3960a90277` |
-| Backend scheduling | Context 1M, static memory 0.90, running cap 16, chunk 1,024, maximum prefill 2,048, decode interval four, V2 fairness + V3 single-chunk-owner guard |
-| Measured cache pool | 1,179,648 token slots; one near-1M request plus smaller work, not two complete 1M contexts |
+| Backend scheduling | Context 1M, static memory 0.90, running cap 16, chunk 512, maximum prefill 1,024, eight cached-prefix tails, separate prefill/decode, prefill batch cap two, decode interval four, V2 fairness + V3 single-chunk-owner guard |
+| Measured cache pools | 1,150,208 full-context slots and 16,640 sliding-window slots; one near-1M request plus smaller work, not two complete 1M contexts |
+| Preparation controls | 2,048-token gateway extensions; two-second cold-cache probe; 30-second incremental transport deadline; at most eight seconds of foreground yielding per opportunity |
 | Automatic compaction | Ratio 0.875, headroom 65,536, summary output 8,192; normal trigger 917,504 estimated tokens |
 
 One million is **total request capacity**, not one million input plus unlimited output. With the full 8,192 output allowance, counted input must not exceed 1,040,128 after the proxy reserve. A smaller output reservation permits larger input. Near-1M text requests with DSH tool schemas and an actual write/read tool continuation are qualified for the recorded cases. Image requests above 128K are explicitly rejected because token-only prefix warming cannot reproduce image embeddings. Near-1M vision, full 8,192-token generation at near-1M input, and every possible plugin/tool result are not established.
@@ -296,7 +309,7 @@ All **nine forwarder regression tests** passed. New coverage compares counted co
 
 ## Keeping ordinary requests responsive
 
-Small prefill chunks avoid the temporary attention-memory failure seen in the older 262K experiment. V3 also prevents two requests from owning the scheduler's single chunk slot, which caused the first V2 512K assertion.
+Small prefill chunks reduce temporary attention work, but do not alone bound a mixed batch's rectangular gather. The latest profile separates prefill/decode and caps prefill batches at two requests. See the latest allocator qualification for its measured acceptance and failed experiments. V3 also prevents two requests from owning the scheduler's single chunk slot, which caused the first V2 512K assertion.
 
 That was insufficient for actual DSH: its roughly 7.5K system/tool prefix exceeds V2's interactive lane. A real short DSH request waited 368.7 seconds during uninterrupted 512K prefill while tiny API probes were fast. The final proxy prepares long prefixes in 2,048-token extensions and yields between them. Intermediate one-token outputs are discarded; they never become tool actions or conversation messages. Cache reuse is checked, and loss stops preparation instead of falling back to one blocking prefill.
 
@@ -367,7 +380,7 @@ Checks happen between agent steps. Pressure is estimated, unlike the proxy's exa
 4. Run `scripts/promote_1m_proxy.py` in plan mode, then `--apply` with passed actual near-1M acceptance and a fresh private rollback directory. It preserves auth/database references and unrelated routes, creates immutable configuration and adds the loopback guard. Test actual inference and rejected endpoint override after replacement.
 5. Run `scripts/promote_1m_runtimes.py` in plan mode, then `--apply` with another fresh private rollback directory. It selects existing main private runtimes, requires Recreate/single-writer behavior, preserves mounts and backs up the old profile **inside each private PVC** before changing it. Read back imageIDs, numerical policies and effective owner/admin compositions.
 6. For the pinned runtime used here, apply `scripts/rollout_managed_transport.py` with the passed delayed-response acceptance and a fresh private rollback directory. This adds the read-only internal-origin transport hook and repairs repeat-start backup handling. Future qualified images also preload the hook from their startup script; compare actual source hashes before changing overlays.
-7. Recheck login/logout, real terminal execution, peer-history denial, workspace markers and original session hashes; update the admin snapshot and English report from actual results. Never replace DA_WORKSPACE or reassign histories as part of a context upgrade.
+7. Recheck login/logout, real terminal execution, peer-history denial, workspace markers and original session hashes; update the admin snapshot and English report from actual results. Never replace approved central workspace storage or reassign histories as part of a context upgrade.
 
 ## Rollback and limits
 

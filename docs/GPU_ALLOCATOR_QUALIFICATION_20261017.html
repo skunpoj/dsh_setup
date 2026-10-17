@@ -1,0 +1,142 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GPU Allocator and Concurrent 1M Qualification</title><style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
+</style></head><body><main><h1>GPU allocator warnings and concurrent 1M qualification</h1>
+<h2>Latest qualification</h2>
+<p>The revised profile passed an actual DSH turn with <strong>1,007,697 input / 119 output tokens</strong>, returning the complete expected answer and persisting it with <strong>zero retries</strong>. Whole-turn time was <strong>1475.94 seconds</strong>; the answer streamed in <strong>3.54 seconds</strong>, approximately <strong>33.34 output tokens/second</strong>. Streaming rate excludes preparation, queueing and agent overhead.</p>
+<p><strong>62/62 overlapping short DSH replies</strong> were complete, exact and persisted, with zero retries, in <strong>5.58–11.69 seconds</strong> (median 7.62). Their measured output streams delivered <strong>21.62–36.42 tokens/second</strong>. The late eight-client cohort started after a recorded <strong>907,264-token</strong> prepared prefix; all eight passed in <strong>7.09–7.63 seconds</strong>, with the actual long turn active before and after.</p>
+<table>
+<thead>
+<tr>
+<th>Acceptance check</th>
+<th>Recorded result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Actual near1M DSH input / complete output</td>
+<td>1,007,697 / 119 tokens; exact known answer and saved prompt</td>
+</tr>
+<tr>
+<td>Whole long turn / output stream</td>
+<td>1475.94s / 3.54s</td>
+</tr>
+<tr>
+<td>Long output stream rate</td>
+<td>33.34 tokens/s; excludes preparation and waiting</td>
+</tr>
+<tr>
+<td>Overlapping short replies</td>
+<td>62/62 exact and persisted; zero retries; 5.58–11.69s</td>
+</tr>
+<tr>
+<td>Late eight-client burst</td>
+<td>8/8 exact; 7.09–7.63s; long turn active before/after</td>
+</tr>
+<tr>
+<td>Allocator mapping warnings / unexpected restarts</td>
+<td>0 / 0 in the final model generation</td>
+</tr>
+<tr>
+<td>Periodic GPU memory sampling</td>
+<td>48 snapshots; minimum observed free 932 MiB; not an allocation-peak guarantee</td>
+</tr>
+</tbody></table>
+<p>The complete model generation log includes startup and the test, with zero allocator mapping warnings, zero scheduler exceptions and no unexpected model restart. Actual image digest, original model runner, source hashes, service target, existing-node placement, four-GPU allocation and server limits were read back after inference. A failed preceding mixed-batch test caused one unexpected restart; it is recorded below and is not erased by the final passing generation.</p>
+<p>The same code passed 37 canonical Linux tests and 45 portable Linux tests without skips. These are overlapping canonical/portable suites, not 82 independent behaviors. Readiness and unit tests alone were not used to establish GPU acceptance.</p>
+<p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/gpu-allocator-qualification-20261017.json">Sanitized measurements and actual profile</a>. This is a bounded synthetic capacity/concurrency acceptance using a new long-prompt nonce on existing weights and services; it does not establish universal analytical accuracy, a latency SLA or two simultaneous full-million contexts.</p>
+<h2>Finding and selected approach</h2>
+<p>The preceding near1M run returned a correct answer but logged native expandable-segment memory-mapping OOM warnings. A subsequent driver readback showed approximately 10 MiB free per GPU. These messages described allocation retries; the successful turn and zero process-restart count did not make the warnings harmless or establish adequate working headroom.</p>
+<p>The warning itself was concrete: the allocator tried to map 20 MiB with only approximately 18–20 MiB free. The investigation kept the existing node and four GPUs. It did not suppress warning output, reduce the context budget, change model weights or disable ordinary concurrency.</p>
+<p>An initial experiment added a pressure guard before model forwards. When free memory was below 2 GiB and at least 256 MiB of PyTorch cache was unused, it released unused cache outside CUDA graph capture, at most once per second per worker. Actual numeric events confirmed memory release. Nevertheless, warnings recurred during the second trial. Releasing cached memory before a forward does not reserve sufficient space for peak allocations inside that forward. The experiment therefore failed the warning-free acceptance gate and was removed; it is not included in the default portable deployment.</p>
+<p>The replacement uses the original model runner and reduces <strong>prefill chunk size from 1,024 to 512</strong> and <strong>maximum prefill tokens from 2,048 to 1,024</strong>. It also <strong>separates prefill and decode batches</strong> and limits a prefill batch to <strong>two requests</strong>. Smaller token chunks alone proved insufficient: the pinned sparse-attention implementation builds a rectangular temporary gather using the longest sequence and the number of requests in the batch. Mixing many short decoding requests with a near1M prefill expanded that workspace to 7.95 GiB, exceeding the recorded 4.11 GiB free even after cache reclamation.</p>
+<p>These limits do not reduce the maximum conversation length: the server still accepts <strong>1,048,576 total context tokens</strong>, with memory fraction <strong>0.90</strong>, four-way tensor parallelism and a <strong>16-request</strong> scheduler cap. Multiple short requests can decode together; four decode rounds are scheduled between prefill batches. A two-request prefill cap is not a two-user or two-running-request limit. The existing gateway admits one request above 128K at a time, permits one bounded FIFO waiter for up to 1,500 seconds, and leaves ordinary requests concurrent. Output remains capped at 8,192 with a 256-token proxy reserve.</p>
+<p>The focused concurrency diagnostic also identified loss of a prepared prefix: after an eight-client burst, the backend reported only 6,656 cached tokens against 75,776 previously prepared tokens. The warm loop uses the same token-ID prefix, so this is a cache-reuse failure, not a changed user prompt. The pinned runtime states that prefix reuse depends on retaining the last sliding-window tokens. The preceding profile explicitly set <code>--swa-prefix-tails 0</code>, reserving no additional cached-prefix tails.</p>
+<p>The replacement therefore also reserves <strong>eight cached-prefix tails</strong> within the existing static budget. Source-based sizing estimates an additional 3,072 sliding-window slots (approximately 68.44 MiB), offset by approximately 44K full-context slots. Startup readback matched the estimate: <strong>1,150,208 full-context slots and 16,640 sliding-window slots</strong>. The startup gate requires at least 1,114,112 full-context slots for this bounded workload. This is a small rebalance of the same memory budget, not additional GPU hardware. The reserve counts cached tails, not users; the running-request cap remains 16. Configuration readback establishes the allocation, while the tests below determine operational acceptance.</p>
+<table>
+<thead>
+<tr>
+<th>Cache allocation</th>
+<th align="right">Earlier smaller-prefill profile</th>
+<th align="right">Tail-reserve profile</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Total context limit</td>
+<td align="right">1,048,576</td>
+<td align="right">1,048,576</td>
+</tr>
+<tr>
+<td>Full-context token slots</td>
+<td align="right">1,194,240</td>
+<td align="right">1,150,208</td>
+</tr>
+<tr>
+<td>Sliding-window token slots</td>
+<td align="right">13,568</td>
+<td align="right">16,640</td>
+</tr>
+<tr>
+<td>Additional cached-prefix tails</td>
+<td align="right">0</td>
+<td align="right">8</td>
+</tr>
+<tr>
+<td>Static memory fraction</td>
+<td align="right">0.90</td>
+<td align="right">0.90</td>
+</tr>
+<tr>
+<td>Running-request cap</td>
+<td align="right">16</td>
+<td align="right">16</td>
+</tr>
+</tbody></table>
+<p>The gateway still extends a prepared prefix by 2,048 tokens per operation. The model divides that work into smaller GPU chunks; the 512-token chunk and 1,024-token prefill cap are different limits from the gateway extension and the 1M conversation budget.</p>
+<p>The incremental preparation transport deadline is 30 seconds; the bounded cold-cache probe remains two seconds. Extending the earlier 15-second deadline did not prevent the focused cache loss and is not claimed as its fix. Prompt-free diagnostics now distinguish a failed warm step from an unexpectedly missing cached prefix. Large cache loss still stops preparation rather than falling back to an unbounded monolithic prefill.</p>
+<p>More batches can add preparation overhead. No speedup percentage or universal latency guarantee is inferred from the configuration. The actual measurements below distinguish whole-turn latency from streaming output rate.</p>
+<h2>Preserved failed experiments</h2>
+<table>
+<thead>
+<tr>
+<th>Trial</th>
+<th>Actual result</th>
+<th>Disposition</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cache guard, first cold DSH run</td>
+<td>Long preparation stopped, retried twice and was cancelled without its expected answer. 30/30 ordinary replies were exact and persisted, with zero retries, in 5.05–14.12 seconds. Eight concurrent replies took 9.11–9.63 seconds. 84 positive reclamation events; no mapping warning or unexpected model restart.</td>
+<td>Failed long-turn qualification. Retained as a failure, not a capacity pass.</td>
+</tr>
+<tr>
+<td>Same cache guard, fresh cold retest</td>
+<td>The mapping warning recurred three times around the recorded 727K prefix. The long turn was cancelled without an answer; it had no retry before cancellation. 44/44 ordinary replies were exact and persisted with zero retries. The model retained its identity and zero restart count.</td>
+<td>Failed warning-free acceptance. Guard removed before the smaller-prefill rollout.</td>
+</tr>
+<tr>
+<td>Smaller prefill, original runner, old preparation deadline</td>
+<td>Long preparation retried once and was cancelled without an answer. 30/30 ordinary replies passed with zero retries; the eight-client burst took 10.13–11.67 seconds. No allocator mapping warning or model restart was recorded before cancellation.</td>
+<td>Failed full-turn qualification; a warning-free partial run is not 1M acceptance.</td>
+</tr>
+<tr>
+<td>Focused 256K mixed test, diagnostic gateway</td>
+<td>Ten ordinary replies passed, but the long preparation retried after the recorded 75,776 → 6,656 cached-token drop. It was cancelled without its answer. No allocator mapping warning or model restart was recorded.</td>
+<td>Established the focused cache-loss event; the earlier generic failures are not retrospectively assigned an unverified cause.</td>
+</tr>
+<tr>
+<td>Eight cached tails, smaller prefill, mixed decode still enabled</td>
+<td>Focused 257,697-input-token run passed with 14/14 ordinary replies. The full near1M run later failed around the recorded 920K prefix during a late eight-client burst: eight mapping warnings and fatal 7.95 GiB sparse-attention workspace allocation, one unexpected container restart, no long answer. Only 2/8 late replies were complete.</td>
+<td>Failed full qualification. This exposed the batch-width multiplier and led to separate prefill/decode with a two-request prefill cap.</td>
+</tr>
+</tbody></table>
+<p>The first trial reached a recorded cached prefix of 735,232 tokens before preparation stopped. Additional foreground traffic was present, but the gateway returned only a generic preparation error. Its exact underlying cause was not established. Neither the traffic nor the cache guard is declared the cause. During the second trial the generation-wide reclamation counter reached 1,678 events, including the first trial&#39;s 84; this is explicitly a cumulative count, not a separately scoped second-run measurement.</p>
+<p>All 84 first-trial events increased measured free memory, by approximately 4.95–5.56 GiB per event. That proves real cache reclamation, not successful near1M completion or elimination of peak allocation pressure. Historical successful 1M tests belong to their recorded profiles and do not retroactively qualify either failed experiment.</p>
+<p>The investigation also checked CUDA graph sizing. The installed runner clamps capture batches to its request pool, and the recorded decode graph pool was approximately 0.602 GiB. The metadata ceiling did not establish a 512-request live workload. No graph-size change was made. Unrelated upstream kernel-tuning and deprecation notices are separate from the memory-mapping warning and are not claimed fixed.</p>
+<p>The failed mixed-batch controller initially counted zero mapping warnings because it read the replacement container&#39;s startup log after the crash. Independent retrieval of the previous container&#39;s complete generation log established eight warnings and the fatal workspace allocation. The raw controller record is preserved, with a separate correction receipt; its zero count is not used as a successful acceptance result. This is also why periodic NVML samples are not a guarantee of peak allocation headroom: the lowest sampled free value in that run was 1,608 MiB, while the actual mapping failures occurred with single-digit MiB free.</p>
+<h2>Rollout, rollback and reproduction</h2>
+<p>Before each planned model replacement, current agent activity and long-admission ownership were checked. The exact preceding specifications and immutable scheduler source were retained. A planned model-process replacement is distinct from an unexpected restart during inference. This GPU change does not migrate user storage or replace DSH user runtimes.</p>
+<p>The smaller-prefill rollout restores the unmodified model-runner source SHA-256 <code>de61e79872ecd0ad935b7517a64cefaa7e996520ddec525de42400165c92f9ae</code> from the pinned image. The existing scheduler overlays remain fail-closed on source drift. Startup/readback failure restores the saved preceding capacity-qualified profile only if this task&#39;s candidate is still active; a concurrent change is never blindly overwritten. The preceding profile retained known allocator warnings and is not described as warning-free. Do not blindly undo to the immediately previous revision: earlier revisions include the rejected cache guard and failed mixed-batch profile. Use the explicitly saved capacity-qualified specification, and recheck real inference after restoring it.</p>
+<p>The saved original rollback specification passed a fresh server-side dry-run. That validates API admission of the saved specification; it is not an executed rollback or a new inference acceptance of the fallback. The fallback retains known allocator warnings.</p>
+<p>For reproduction, use <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/../gpu-stack/README.md">the portable setup</a> and <code>gpu-stack/render.py</code> with privately supplied weights, credentials, database and site settings. The model template and structural tests pin the smaller prefill budget while preserving context and concurrency. No credentials or private cluster exports are embedded. The publication manifest records source and file hashes. On a single model node, initialization temporarily interrupts inference; qualify a candidate and retain exact rollback before switching a shared service.</p>
+<p>The acceptance uses a nonce-prefixed synthetic near1M DSH conversation with a complete known 119-token answer, persisted request/response checks, repeated short conversations and an eight-client burst. It checks capacity, allocator behavior and bounded responsiveness. It is not a new analytical-quality review, sixteen maximum-length requests, two full-million requests concurrently, or an SLA. Failed raw records and experimental source remain preserved privately; the published measurement record contains only sanitized results.</p>
+<p>References: <a href="https://docs.pytorch.org/docs/stable/notes/cuda.html#cuda-memory-management">PyTorch CUDA memory management</a> and <a href="https://github.com/sgl-project/sglang/blob/main/docs/docs/advanced_features/hyperparameter_tuning.mdx">SGLang performance tuning</a>. Runtime conclusions are tied to the pinned image, actual mounted source and recorded tests rather than inferred from current upstream documentation.</p>
+</main></body></html>

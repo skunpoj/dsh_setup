@@ -1,0 +1,235 @@
+{
+  "scope": "Existing-node actual DSH synthetic near1M capacity plus concurrent short requests; not analytical quality, two-full1M or SLA",
+  "passed": true,
+  "testStartUTC": 1792254739.4104025,
+  "testEndUTC": 1792256227.2824605,
+  "profile": {
+    "passed": true,
+    "modelReady": true,
+    "existingNodePreserved": true,
+    "gpuLimit": 4,
+    "modelUIDUnchanged": true,
+    "modelImageMatchesPinnedDigest": true,
+    "unexpectedRestarts": 0,
+    "privateServiceSelectsTestedModel": true,
+    "experimentalAllocatorHookAbsent": true,
+    "allocatorConfiguration": "expandable_segments:True",
+    "deployedFlags": {
+      "--context-length": "1048576",
+      "--mem-fraction-static": "0.90",
+      "--max-running-requests": "16",
+      "--chunked-prefill-size": "512",
+      "--max-prefill-tokens": "1024",
+      "--swa-prefix-tails": "8",
+      "--prefill-decode-interval": "4",
+      "--prefill-max-requests": "2"
+    },
+    "installedSourceSHA256": {
+      "model_runner.py": "de61e79872ecd0ad935b7517a64cefaa7e996520ddec525de42400165c92f9ae",
+      "pool_configurator.py": "4b2efeb29c7a70efcf4f406ca403bcb0ceef1f65c0f75ef6887a2eecc08c1346",
+      "scheduler.py": "fa9d8486a20c7b5a4cbabeb7fd4d67d3c5781f22f20eb16b562a88e48f6b7a36",
+      "schedule_policy.py": "2b8ca570cb475d66a3eec9834eb3a5b5dc0519a555489615f59c44d3353946ee",
+      "context_forwarder.py": "aa4b061f8b3609dffc79350bf47be646c1e715c4536655e1e7d9298332e5a9a2",
+      "long_context_callbacks.py": "685ad735d640a245a0caf0bf2ba5d91161863ac70d33c0654912fff2dd9211d9"
+    },
+    "serverProfile": {
+      "context_length": 1048576,
+      "mem_fraction_static": 0.9,
+      "max_running_requests": 16,
+      "chunked_prefill_size": 512,
+      "max_prefill_tokens": 1024,
+      "swa_prefix_tails": 8,
+      "memory_usage": {
+        "weight": 80.498,
+        "kvcache": 0,
+        "startup_available": 8.709,
+        "token_capacity": 1150208,
+        "token_capacity_swa": 16640,
+        "graph": {
+          "prefill": 0.0,
+          "decode": 0.602,
+          "target_verify": 0.0,
+          "draft_prefill": 0.0,
+          "draft_decode": 0.0,
+          "draft_extend": 0.0
+        }
+      }
+    }
+  },
+  "long": {
+    "inputTokens": 1007697,
+    "outputTokens": 119,
+    "exactCompleteKnownAnswer": true,
+    "persistedPromptVerified": true,
+    "retries": 0,
+    "elapsedSeconds": 1475.9388675689697,
+    "streamSeconds": 3.5390000343322754,
+    "streamOutputTokensPerSecond": 33.342751866422
+  },
+  "baseline": {
+    "requests": 1,
+    "allExactAndPersisted": true,
+    "retries": 0,
+    "elapsedSeconds": {
+      "minimum": 6.084729909896851,
+      "median": 6.084729909896851,
+      "maximum": 6.084729909896851
+    },
+    "firstTextSeconds": {
+      "minimum": 2.354863405227661,
+      "maximum": 2.354863405227661
+    },
+    "streamOutputTokensPerSecond": {
+      "minimum": 33.323920837757534,
+      "maximum": 33.323920837757534
+    },
+    "rateDefinition": "(output tokens - 1) / first-to-last-text stream seconds; excludes preparation and queueing"
+  },
+  "shortsDuringLong": {
+    "requests": 62,
+    "allExactAndPersisted": true,
+    "retries": 0,
+    "elapsedSeconds": {
+      "minimum": 5.584158182144165,
+      "median": 7.622645020484924,
+      "maximum": 11.687521696090698
+    },
+    "firstTextSeconds": {
+      "minimum": 1.428922414779663,
+      "maximum": 7.078128099441528
+    },
+    "streamOutputTokensPerSecond": {
+      "minimum": 21.615680089529036,
+      "maximum": 36.41975297922042
+    },
+    "rateDefinition": "(output tokens - 1) / first-to-last-text stream seconds; excludes preparation and queueing"
+  },
+  "repeatedProbes": {
+    "requests": 54,
+    "allExactAndPersisted": true,
+    "retries": 0,
+    "elapsedSeconds": {
+      "minimum": 5.584158182144165,
+      "median": 8.096089720726013,
+      "maximum": 11.687521696090698
+    },
+    "firstTextSeconds": {
+      "minimum": 1.428922414779663,
+      "maximum": 7.078128099441528
+    },
+    "streamOutputTokensPerSecond": {
+      "minimum": 21.839718204513538,
+      "maximum": 36.41975297922042
+    },
+    "rateDefinition": "(output tokens - 1) / first-to-last-text stream seconds; excludes preparation and queueing"
+  },
+  "scheduledBursts": [
+    {
+      "requests": 8,
+      "allExactAndPersisted": true,
+      "retries": 0,
+      "elapsedSeconds": {
+        "minimum": 9.637866735458374,
+        "median": 9.688953876495361,
+        "maximum": 10.156168937683105
+      },
+      "firstTextSeconds": {
+        "minimum": 4.454102516174316,
+        "maximum": 5.430387258529663
+      },
+      "streamOutputTokensPerSecond": {
+        "minimum": 23.105540904611516,
+        "maximum": 27.869627043852294
+      },
+      "rateDefinition": "(output tokens - 1) / first-to-last-text stream seconds; excludes preparation and queueing",
+      "wholeCohortSeconds": 10.5725736618042,
+      "wholeCohortEffectiveOutputTokensPerSecond": 90.04430051306373
+    },
+    {
+      "requests": 8,
+      "allExactAndPersisted": true,
+      "retries": 0,
+      "elapsedSeconds": {
+        "minimum": 11.11226201057434,
+        "median": 11.424205541610718,
+        "maximum": 11.687521696090698
+      },
+      "firstTextSeconds": {
+        "minimum": 6.211273908615112,
+        "maximum": 7.078128099441528
+      },
+      "streamOutputTokensPerSecond": {
+        "minimum": 25.30017134034896,
+        "maximum": 27.856467965008527
+      },
+      "rateDefinition": "(output tokens - 1) / first-to-last-text stream seconds; excludes preparation and queueing",
+      "wholeCohortSeconds": 11.77387547492981,
+      "wholeCohortEffectiveOutputTokensPerSecond": 80.85697882800781
+    }
+  ],
+  "lateBurst": {
+    "requests": 8,
+    "allExactAndPersisted": true,
+    "retries": 0,
+    "elapsedSeconds": {
+      "minimum": 7.091245889663696,
+      "median": 7.6119145154953,
+      "maximum": 7.6348559856414795
+    },
+    "firstTextSeconds": {
+      "minimum": 1.4962749481201172,
+      "maximum": 3.0841665267944336
+    },
+    "streamOutputTokensPerSecond": {
+      "minimum": 21.615680089529036,
+      "maximum": 28.001898522512025
+    },
+    "rateDefinition": "(output tokens - 1) / first-to-last-text stream seconds; excludes preparation and queueing",
+    "wholeCohortSeconds": 7.827331066131592,
+    "wholeCohortEffectiveOutputTokensPerSecond": 121.62510975410876,
+    "observedCachedPrefixBefore": 907264,
+    "longActiveBeforeAndAfter": true
+  },
+  "modelLog": {
+    "completeStartupPresent": true,
+    "sha256": "7edafab0b9e686aacd99673600d84f14a2a19f09fb8ff35282b6f4dbc9961299",
+    "lines": 3648,
+    "allocatorMappingWarnings": 0,
+    "schedulerExceptions": 0,
+    "unexpectedRestarts": 0
+  },
+  "memorySnapshots": {
+    "samples": 48,
+    "minimumSampledFreeMiB": 932,
+    "scope": "Periodic NVML snapshots, not a peak-allocation guarantee"
+  },
+  "rollbackValidation": {
+    "serverDryRunAccepted": true,
+    "actualRollbackExecuted": false,
+    "savedSnapshotSHA256": "892d83439a157bb79b1340233e37206ccf521ebd6edd365b2d2df908b468d26a",
+    "scope": "Original capacity-qualified profile, with known allocator warnings; not a warning-free fallback",
+    "sourceReadbackRetained": true
+  },
+  "failedMixedBatchTrial": {
+    "scope": "Actual failed model generation, independently read previous-container log after restart",
+    "controllerWarningFieldIsIncomplete": true,
+    "reason": "Controller read replacement container startup; previous log retained separately",
+    "mappingWarningCount": 8,
+    "fatalWorkspaceAllocationGiB": 7.95,
+    "reportedFreeGiB": 4.11,
+    "unexpectedRestarts": 1,
+    "fullAnswerReceived": false,
+    "logSha256": "41d2cd87baafa53165266b9fb2a1a64eaa9d2440dbd863bf7c1b5adc6636708c",
+    "logLines": 5201,
+    "lateBurstExact": 2,
+    "lateBurstTotal": 8,
+    "logSha256Utf8LF": "65dea9fd6c17e6de894582977b3b619ab0ab748bb974647d8fc597cbbf656cc1"
+  },
+  "limitations": [
+    "One near1M request admitted; short requests are concurrent.",
+    "Running cap16 is not acceptance of16 maximum contexts.",
+    "Existing cached weights and existing gateway/database; no fresh cluster acceptance.",
+    "Unrelated FP8 tuning and deprecation notices are retained, not claimed fixed.",
+    "Earlier failures and one unexpected restart remain recorded."
+  ]
+}

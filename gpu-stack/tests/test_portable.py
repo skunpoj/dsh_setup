@@ -39,8 +39,10 @@ class PortableTests(unittest.TestCase):
         c=d['spec']['template']['spec']['containers'][0]
         self.assertIn('@sha256:',c['image'])
         self.assertEqual(c['resources']['limits']['nvidia.com/gpu'],4)
+        self.assertFalse(any(v.get('subPath') in ['model_runner.py','allocator_pressure_guard.py'] for v in c['volumeMounts']))
         a=c['args']
-        for flag,value in {'--context-length':'1048576','--chunked-prefill-size':'1024','--max-prefill-tokens':'2048','--mem-fraction-static':'0.90','--max-running-requests':'16'}.items():
+        self.assertNotIn('--enable-mixed-chunk',a)
+        for flag,value in {'--context-length':'1048576','--chunked-prefill-size':'512','--max-prefill-tokens':'1024','--prefill-max-requests':'2','--mem-fraction-static':'0.90','--max-running-requests':'16','--swa-prefix-tails':'8'}.items():
             self.assertEqual(a[a.index(flag)+1],value)
         cfg=next(d['data']['config.yaml'] for d in self.docs if d['kind']=='ConfigMap' and 'config.yaml' in d['data'])
         parsed=yaml.safe_load(cfg)

@@ -1,4 +1,6 @@
 import asyncio
+import contextlib
+import io
 import json
 import os
 import sys
@@ -107,6 +109,33 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(RuntimeError, 'evicted'):
             await guard.warm([0]*8000)
         self.assertEqual(lengths, [1024, 2048])
+
+    async def test_step_deadline_and_failure_diagnostic_do_not_log_input(self):
+        self.assertEqual(self.scope['warm_prefix'].__defaults__, (30,))
+        self.assertEqual(self.scope['CACHE_PROBE_SECONDS'], 2)
+        self.scope['CACHE_PROBE_SECONDS'] = 0
+        guard = self.scope['LongContextGuard']()
+        def fail(_): raise self.scope['CacheProbeMiss']('private-content-marker')
+        self.scope['warm_prefix'] = fail
+        captured = io.StringIO()
+        with contextlib.redirect_stdout(captured), self.assertRaises(self.scope['CacheProbeMiss']):
+            await guard.warm([1234567]*2048)
+        event = json.loads(captured.getvalue())
+        self.assertEqual(event, {'event':'dsh_warm_step_failed','previousTokens':0,
+            'targetTokens':2048,'steps':0,'errorType':'CacheProbeMiss'})
+        self.assertNotIn('private-content-marker', captured.getvalue())
+        self.assertNotIn('1234567', captured.getvalue())
+
+    async def test_cache_loss_diagnostic_contains_only_numeric_progress(self):
+        self.scope['CACHE_PROBE_SECONDS'] = 0
+        self.scope['warm_prefix'] = lambda _: {'cached_tokens':0}
+        guard = self.scope['LongContextGuard']()
+        captured = io.StringIO()
+        with contextlib.redirect_stdout(captured), self.assertRaisesRegex(RuntimeError, 'evicted'):
+            await guard.warm([1234567]*4096)
+        self.assertEqual(json.loads(captured.getvalue()), {'event':'dsh_prefix_cache_lost',
+            'previousTokens':2048,'targetTokens':4096,'cachedTokens':0,'steps':1})
+        self.assertNotIn('1234567', captured.getvalue())
 
     async def test_hot_prefix_uses_one_bounded_probe_instead_of_rewarming(self):
         guard = self.scope['LongContextGuard']()
