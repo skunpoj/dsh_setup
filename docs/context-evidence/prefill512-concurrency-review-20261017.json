@@ -1,0 +1,99 @@
+{
+  "status": "failed",
+  "ordinaryCompleted": 30,
+  "ordinaryExact": 30,
+  "ordinaryPersisted": 30,
+  "ordinaryZeroRetry": 30,
+  "ordinarySeconds": [
+    5.555878639221191,
+    11.666257858276367
+  ],
+  "ordinaryStreamTokensPerSecond": [
+    22.2683524151433,
+    36.44224924594048
+  ],
+  "bursts": [
+    {
+      "requests": 8,
+      "outputTokens": 952,
+      "endToEndWindowSeconds": 11.842989921569824,
+      "aggregateEndToEndTokensPerSecond": 80.3851059829163,
+      "answerWindowSeconds": 6.784999847412109,
+      "aggregateAnswerWindowTokensPerSecond": 140.30950941923834,
+      "perRequestSeconds": [
+        10.13425087928772,
+        11.666257858276367
+      ],
+      "perRequestStreamTokensPerSecond": [
+        22.2683524151433,
+        26.522814820515123
+      ]
+    }
+  ],
+  "elapsedMinutes": 14.8,
+  "pairedReplies": {
+    "count": 22,
+    "seconds": [
+      5.555878639221191,
+      7.092371702194214
+    ],
+    "streamTokensPerSecond": [
+      33.589524513406886,
+      36.44224924594048
+    ]
+  },
+  "baseline": {
+    "elapsedSeconds": 6.078181743621826,
+    "firstTextSeconds": 2.443254232406616,
+    "streamSeconds": 3.5339999198913574,
+    "usage": {
+      "inputTokens": 7674,
+      "outputTokens": 119,
+      "totalTokens": 7793
+    },
+    "exact": true,
+    "retries": 0,
+    "streamTokensPerSecond": 33.38992718585788
+  },
+  "long": {
+    "exact": false,
+    "persistedPromptVerified": true,
+    "elapsedSeconds": 872.2483150959015,
+    "firstTextSeconds": null,
+    "streamSeconds": null,
+    "usage": {},
+    "retries": 1,
+    "outputStreamTokensPerSecond": null,
+    "disposition": "Cancelled after preparation error and one retry; no complete answer or output usage.",
+    "probeStatus": "completed"
+  },
+  "allocatorWarningLines": 0,
+  "modelUnchangedDuringTest": true,
+  "modelRestartsBefore": [
+    0
+  ],
+  "modelRestartsAfter": [
+    0
+  ],
+  "passed": false,
+  "endUTC": 1792251147.1092997,
+  "privateRecordSHA256": "1117712b2c2f117c4a432f478414e853ed3f6d553c3829a5789e2225308be4e8",
+  "scope": "Actual DSH session APIs in a disposable runtime using shared live LiteLLM and model; one intended near1M turn plus ordinary conversations.",
+  "profile": {
+    "contextTokens": 1048576,
+    "memoryFraction": 0.9,
+    "tensorParallelism": 4,
+    "runningRequestCap": 16,
+    "prefillChunk": 512,
+    "maxPrefillTokens": 1024,
+    "modelRunnerSHA256": "de61e79872ecd0ad935b7517a64cefaa7e996520ddec525de42400165c92f9ae",
+    "experimentalCacheHook": false
+  },
+  "warningLogReview": {
+    "lines": 3458,
+    "includesStartup": true,
+    "mappingOOMWarnings": 0
+  },
+  "streamRateDefinition": "(outputTokens-1)/streamSeconds; excludes preparation and first-text wait.",
+  "aggregateRateDefinition": "All burst output tokens divided by earliest-request-start to latest-request-end; answer-window rate is separately labelled."
+}

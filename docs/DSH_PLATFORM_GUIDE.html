@@ -1,6 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Platform Guide — Features, Deployments, Usage and LLM/GPU Setup</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} </style></head><body><main><h1>DSH Platform Guide — Security Controls, Features and Operations</h1><p>This guide explains DSH’s security controls, features, deployment architecture and practical usage, followed by LLM/GPU setup instructions.</p><p class="meta">Deployment inventory: 2026-10-17T09:28:22.131490+00:00.</p><nav aria-label="Contents"><a href="#guide-section-1">1 Prevent external leakage</a><a href="#guide-section-2">2 Prevent damage or excessive access</a><a href="#guide-section-3">3 Keep results contained</a><a href="#guide-section-4">Connected services and responsibilities</a><a href="#guide-section-5">Platform features and intended use</a><a href="#guide-section-6">Deployments and access points</a><a href="#guide-section-7">Example usage</a><a href="#guide-section-8">Interface screenshots</a><a href="#guide-section-9">Storage, administration and maintenance</a><a href="#guide-section-10">LLM and GPU setup</a></nav><p>DSH controls three risks: external leakage, damage or excessive access, and exposure of results. The Harness, its tools and generated code are treated as automation that can make mistakes. The application therefore enforces boundaries through network policy, private execution, scoped storage and authenticated routes rather than relying on prompt instructions.</p>
+img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} </style></head><body><main><h1>DSH Platform Guide — Security Controls, Features and Operations</h1><p>This guide explains DSH’s security controls, features, deployment architecture and practical usage, followed by LLM/GPU setup instructions.</p><p class="meta">Deployment inventory: 2026-10-17T09:28:22.131490+00:00.</p><nav aria-label="Contents"><a href="#guide-section-1">1 Prevent external leakage</a><a href="#guide-section-2">2 Prevent damage or excessive access</a><a href="#guide-section-3">3 Keep results contained</a><a href="#guide-section-4">Connected services and responsibilities</a><a href="#guide-section-5">Platform features and intended use</a><a href="#guide-section-6">Deployments and access points</a><a href="#guide-section-7">Example usage</a><a href="#guide-section-8">Interface screenshots</a><a href="#guide-section-9">Storage, administration and maintenance</a><a href="#guide-section-10">LLM and GPU setup</a></nav><h1>DSH Platform Guide</h1>
+<p>DSH controls three risks: external leakage, damage or excessive access, and exposure of results. The Harness, its tools and generated code are treated as automation that can make mistakes. The application therefore enforces boundaries through network policy, private execution, scoped storage and authenticated routes rather than relying on prompt instructions.</p>
 <h2 id="guide-section-1">1 Prevent external leakage</h2>
 <h3>Control objective</h3>
 <p>Prevent unauthorized public connections from the No Internet execution environment while retaining only the internal services required for work. Internet access is provided through a separate environment for dependency preparation, with no automatic transfer of protected data.</p>
@@ -643,7 +644,7 @@ python scripts/rollout_admin_management.py \
 <thead>
 <tr>
 <th>Setting</th>
-<th>Reviewed model profile</th>
+<th>Live configured profile</th>
 </tr>
 </thead>
 <tbody><tr>
@@ -672,15 +673,15 @@ python scripts/rollout_admin_management.py \
 </tr>
 <tr>
 <td>Prefill work</td>
-<td><code>--chunked-prefill-size 1024</code>, <code>--max-prefill-tokens 2048</code></td>
+<td><code>--chunked-prefill-size 512</code>, <code>--max-prefill-tokens 1024</code></td>
 </tr>
 <tr>
 <td>Mixed scheduling</td>
 <td><code>--enable-mixed-chunk</code>, <code>--prefill-decode-interval 4</code></td>
 </tr>
 <tr>
-<td>Memory pressure guard</td>
-<td>Candidate under qualification: reclaim unused allocator cache below 2 GiB free, with at least 256 MiB reclaimable; at most once per second per worker</td>
+<td>Model runner</td>
+<td>Original image runner; experimental allocator-cache hook removed</td>
 </tr>
 <tr>
 <td>Model output budget</td>
@@ -692,81 +693,79 @@ python scripts/rollout_admin_management.py \
 </tr>
 </tbody></table>
 <p>One expensive request above the managed 128K threshold is admitted at a time; ordinary requests remain concurrent. The running-request cap of 16 applies to workloads that fit the shared memory budget. The final-wire policy has one active long request plus one FIFO waiting position, with up to 1,500 seconds waiting for admission; additional long requests receive a capacity error. Ordinary work bypasses this long-request queue. Streaming keepalive comments permit cancellation before model output; they are not generated answers. Keep a single forwarder process/replica because the admission lease is not distributed.</p>
-<h3>GPU memory optimization under qualification</h3>
-<p>The candidate model runtime reclaims unused PyTorch allocator cache before a model forward when device free memory falls below 2 GiB and at least 256 MiB of cached memory is unused. Reclamation is limited to once per second per worker and is skipped during CUDA graph capture. It preserves live model tensors and the prefix/KV cache.</p>
-<p>This keeps the existing four-GPU setup, 1M context, request cap and prefill profile. The guard checks actual reclaimable memory; the trigger is not a reserved 2 GiB partition. Numeric logs record memory before and after each reclamation.</p>
-<p>The overlay checks the pinned model-runner source hash before applying the hook. Keep the compatible image and overlay together when upgrading or rolling back.</p>
-<h3>Latest GPU and concurrency results</h3>
-<p>The allocator candidate reclaimed unused memory and completed ordinary replies, but its first near-1M test did not return the expected answer. A fresh cold retest is in progress; the candidate has not completed end-to-end 1M qualification.</p>
+<h3>GPU memory and scheduling design</h3>
+<p>The model uses its original runner with <strong>512-token prefill chunks</strong> and a <strong>1,024-token maximum prefill batch</strong>. Processing smaller batches reduces the temporary work attempted in one forward pass while preserving the <strong>1,048,576-token conversation limit</strong>. The existing scheduler alternates prefill and decoding so ordinary conversations can progress during long-context preparation.</p>
+<p>The experimental allocator-cache hook is removed. Memory fraction remains <strong>0.90</strong>, tensor parallelism <strong>4</strong>, and the scheduler cap <strong>16</strong>. Managed admission permits one request above 128K at a time, with one bounded FIFO waiting position. The shared cache reports <strong>1,194,240 token slots</strong>; this is a total pool, not a separate allocation for every user.</p>
+<h3>Latest actual DSH 1M and concurrency results</h3>
+<p>The latest smaller-prefill run <strong>did not pass near-1M qualification</strong>. Preparation returned a generic error and retried once; the turn was stopped without its expected answer after <strong>872.25 seconds</strong>. The exact preparation failure remains under investigation. The model remains configured for 1M; the current profile awaits a successful near-1M reliability test.</p>
 <table>
 <thead>
 <tr>
 <th>Check</th>
-<th>Verified result</th>
+<th>Recorded result</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>Near-1M DSH attempt</td>
-<td>Expected answer incomplete; 2 retries; stopped after 861.35 seconds</td>
+<td>Near-1M turn</td>
+<td>Cancelled without its complete answer; 1 retry; no answer-stream rate available</td>
 </tr>
 <tr>
-<td>Ordinary DSH replies during the attempt</td>
-<td>30/30 correct and persisted; zero retries; 5.05–14.12 seconds</td>
+<td>Ordinary DSH replies during long work</td>
+<td><strong>30/30</strong> correct and persisted, all with zero retries; <strong>5.56–11.67 seconds</strong></td>
+</tr>
+<tr>
+<td>Repeated paired replies</td>
+<td><strong>22/22</strong> passed; <strong>5.56–7.09 seconds</strong></td>
 </tr>
 <tr>
 <td>Eight simultaneous ordinary replies</td>
-<td>All correct and persisted during long work; 9.11–9.63 seconds</td>
+<td><strong>8/8</strong> passed during long work; <strong>10.13–11.67 seconds</strong></td>
 </tr>
 <tr>
 <td>Ordinary request size</td>
-<td>7,674 input / 119 output tokens per request</td>
-</tr>
-<tr>
-<td>Ordinary answer-stream rate</td>
-<td>15.09–36.89 output tokens/sec per reply</td>
-</tr>
-<tr>
-<td>Eight-client burst answer-stream rate</td>
-<td>24.17–27.70 output tokens/sec per reply</td>
-</tr>
-<tr>
-<td>Unused-cache reclamations</td>
-<td>84 recorded events</td>
+<td><strong>7,674 input / 119 output tokens</strong> per reply</td>
 </tr>
 <tr>
 <td>Mapping-OOM warnings / unexpected model restarts</td>
-<td>0 / 0 during the test</td>
+<td><strong>0 / 0</strong> in the recorded run</td>
+</tr>
+<tr>
+<td>Second planned eight-client burst</td>
+<td>Not reached before cancellation</td>
 </tr>
 </tbody></table>
-<p>The preparation failure’s cause is under investigation. Zero mapping-OOM warnings and successful ordinary replies do not by themselves qualify the failed long request. Answer-stream rates exclude queue wait and context preparation.</p>
-<h3>Previous qualified 1M timing example</h3>
-<p>Before the allocator trial, a measured DSH request used 1,007,704 input tokens and produced 119 output tokens without retries. Its timing illustrates the difference between waiting, preparing context and generating an answer:</p>
 <table>
 <thead>
 <tr>
-<th>Stage</th>
-<th>Measured time</th>
+<th>Speed measurement</th>
+<th align="right">Output tokens/sec</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>Admission wait with an intentionally occupied slot</td>
-<td>5m16s</td>
+<td>Ordinary baseline, one conversation</td>
+<td align="right"><strong>33.39</strong> while streaming; 6.08s total</td>
 </tr>
 <tr>
-<td>Context preparation</td>
-<td>20m27s</td>
+<td>Paired conversations during long work</td>
+<td align="right"><strong>33.59–36.44 per conversation</strong> while streaming</td>
 </tr>
 <tr>
-<td>Answer stream</td>
-<td>3.53s, approximately 33.42 output tokens/sec</td>
+<td>Eight-client burst</td>
+<td align="right"><strong>22.27–26.52 per conversation</strong> while streaming</td>
 </tr>
 <tr>
-<td>Total</td>
-<td>25m52s</td>
+<td>Eight-client burst, combined full request window</td>
+<td align="right"><strong>80.39 combined</strong>, including waiting/preparation</td>
+</tr>
+<tr>
+<td>Eight-client burst, combined answer-stream window</td>
+<td align="right"><strong>140.31 combined</strong>, reconstructed from stream timestamps</td>
 </tr>
 </tbody></table>
-<p>During the same test, 46 ordinary replies completed in 4.05–9.12s. Latency varies with workload and cache state. Keep one full-length request active at a time to preserve shared capacity for ordinary work.</p>
-<p>The total budget includes messages, tools, requested output and the guard reserve. A cold million-token prompt requires substantial preparation even if the latest user sentence is short. Cached follow-ups can be faster. Time to first text, queue wait, preparation time, answer-stream rate and whole-request time are different measurements.</p>
+<p>The burst produced 952 output tokens across 11.843 seconds from first request start to last completion. Its combined answer-stream window was 6.785 seconds. These are different measurements; neither is a 100+ tokens/sec single conversation.</p>
+<p><strong>How to read the speed figures:</strong> answer-stream rate measures generated output after the first token; total elapsed time also includes preparation, waiting and delivery. Combined burst throughput divides all eight replies&#39; output tokens by the time from the first request&#39;s start to the last request&#39;s completion. It is different from the speed seen by one user.</p>
+<p>The workload requests the complete known 119-token answer through a disposable actual DSH runtime and the shared live LiteLLM/model route, then checks the persisted prompt and response. Mixed concurrency means one near-1M conversation alongside ordinary conversations; the 16-request scheduling cap does not represent sixteen full-million contexts. Cold context preparation and subsequent cached follow-ups are separate workloads.</p>
+<p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/prefill512-concurrency-review-20261017.json">Recorded measurements</a>.</p>
 <h3>1 Prepare prerequisites and a test environment</h3>
 <p>Use a reviewed test namespace and verify GPU capacity before scheduling. Install the approved NVIDIA device plugin and an enforcing network-policy implementation. The portable template requests 256 GiB host RAM and allows 512 GiB; verify actual capacity rather than assuming it is available.</p>
 <p>Stage the approved model revision in a PVC, with the expected model path under <code>/approved</code>. Verify the complete files against their approved source/revision/hash manifest. Review any model code required by <code>--trust-remote-code</code>; runtime downloads remain disabled and the model cache is read-only.</p>

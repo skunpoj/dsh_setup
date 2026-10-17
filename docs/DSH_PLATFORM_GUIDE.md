@@ -392,7 +392,7 @@ flowchart LR
 
 ### Runtime profile and context budget
 
-| Setting | Reviewed model profile |
+| Setting | Live configured profile |
 |---|---|
 | Model | DeepSeek-V4.1-Flash on the existing four-GPU node |
 | Runtime image | `lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860` |
@@ -400,53 +400,50 @@ flowchart LR
 | Total context ceiling | `--context-length 1048576` |
 | Static memory fraction | `--mem-fraction-static 0.90` |
 | Maximum running requests | `--max-running-requests 16` |
-| Prefill work | `--chunked-prefill-size 1024`, `--max-prefill-tokens 2048` |
+| Prefill work | `--chunked-prefill-size 512`, `--max-prefill-tokens 1024` |
 | Mixed scheduling | `--enable-mixed-chunk`, `--prefill-decode-interval 4` |
-| Memory pressure guard | Candidate under qualification: reclaim unused allocator cache below 2 GiB free, with at least 256 MiB reclaimable; at most once per second per worker |
+| Model runner | Original image runner; experimental allocator-cache hook removed |
 | Model output budget | At most 8,192 output tokens; final guard reserves another 256 tokens |
 | Clients | DSH/TrueForge declare 1,048,576 total; Claude's current default uses its 1,000,000-token mode |
 
 One expensive request above the managed 128K threshold is admitted at a time; ordinary requests remain concurrent. The running-request cap of 16 applies to workloads that fit the shared memory budget. The final-wire policy has one active long request plus one FIFO waiting position, with up to 1,500 seconds waiting for admission; additional long requests receive a capacity error. Ordinary work bypasses this long-request queue. Streaming keepalive comments permit cancellation before model output; they are not generated answers. Keep a single forwarder process/replica because the admission lease is not distributed.
 
-### GPU memory optimization under qualification
+### GPU memory and scheduling design
 
-The candidate model runtime reclaims unused PyTorch allocator cache before a model forward when device free memory falls below 2 GiB and at least 256 MiB of cached memory is unused. Reclamation is limited to once per second per worker and is skipped during CUDA graph capture. It preserves live model tensors and the prefix/KV cache.
+The model uses its original runner with **512-token prefill chunks** and a **1,024-token maximum prefill batch**. Processing smaller batches reduces the temporary work attempted in one forward pass while preserving the **1,048,576-token conversation limit**. The existing scheduler alternates prefill and decoding so ordinary conversations can progress during long-context preparation.
 
-This keeps the existing four-GPU setup, 1M context, request cap and prefill profile. The guard checks actual reclaimable memory; the trigger is not a reserved 2 GiB partition. Numeric logs record memory before and after each reclamation.
+The experimental allocator-cache hook is removed. Memory fraction remains **0.90**, tensor parallelism **4**, and the scheduler cap **16**. Managed admission permits one request above 128K at a time, with one bounded FIFO waiting position. The shared cache reports **1,194,240 token slots**; this is a total pool, not a separate allocation for every user.
 
-The overlay checks the pinned model-runner source hash before applying the hook. Keep the compatible image and overlay together when upgrading or rolling back.
+### Latest actual DSH 1M and concurrency results
 
-### Latest GPU and concurrency results
+The latest smaller-prefill run **did not pass near-1M qualification**. Preparation returned a generic error and retried once; the turn was stopped without its expected answer after **872.25 seconds**. The exact preparation failure remains under investigation. The model remains configured for 1M; the current profile awaits a successful near-1M reliability test.
 
-The allocator candidate reclaimed unused memory and completed ordinary replies, but its first near-1M test did not return the expected answer. A fresh cold retest is in progress; the candidate has not completed end-to-end 1M qualification.
-
-| Check | Verified result |
+| Check | Recorded result |
 |---|---|
-| Near-1M DSH attempt | Expected answer incomplete; 2 retries; stopped after 861.35 seconds |
-| Ordinary DSH replies during the attempt | 30/30 correct and persisted; zero retries; 5.05–14.12 seconds |
-| Eight simultaneous ordinary replies | All correct and persisted during long work; 9.11–9.63 seconds |
-| Ordinary request size | 7,674 input / 119 output tokens per request |
-| Ordinary answer-stream rate | 15.09–36.89 output tokens/sec per reply |
-| Eight-client burst answer-stream rate | 24.17–27.70 output tokens/sec per reply |
-| Unused-cache reclamations | 84 recorded events |
-| Mapping-OOM warnings / unexpected model restarts | 0 / 0 during the test |
+| Near-1M turn | Cancelled without its complete answer; 1 retry; no answer-stream rate available |
+| Ordinary DSH replies during long work | **30/30** correct and persisted, all with zero retries; **5.56–11.67 seconds** |
+| Repeated paired replies | **22/22** passed; **5.56–7.09 seconds** |
+| Eight simultaneous ordinary replies | **8/8** passed during long work; **10.13–11.67 seconds** |
+| Ordinary request size | **7,674 input / 119 output tokens** per reply |
+| Mapping-OOM warnings / unexpected model restarts | **0 / 0** in the recorded run |
+| Second planned eight-client burst | Not reached before cancellation |
 
-The preparation failure’s cause is under investigation. Zero mapping-OOM warnings and successful ordinary replies do not by themselves qualify the failed long request. Answer-stream rates exclude queue wait and context preparation.
+| Speed measurement | Output tokens/sec |
+|---|---:|
+| Ordinary baseline, one conversation | **33.39** while streaming; 6.08s total |
+| Paired conversations during long work | **33.59–36.44 per conversation** while streaming |
+| Eight-client burst | **22.27–26.52 per conversation** while streaming |
+| Eight-client burst, combined full request window | **80.39 combined**, including waiting/preparation |
+| Eight-client burst, combined answer-stream window | **140.31 combined**, reconstructed from stream timestamps |
 
-### Previous qualified 1M timing example
+The burst produced 952 output tokens across 11.843 seconds from first request start to last completion. Its combined answer-stream window was 6.785 seconds. These are different measurements; neither is a 100+ tokens/sec single conversation.
 
-Before the allocator trial, a measured DSH request used 1,007,704 input tokens and produced 119 output tokens without retries. Its timing illustrates the difference between waiting, preparing context and generating an answer:
 
-| Stage | Measured time |
-|---|---|
-| Admission wait with an intentionally occupied slot | 5m16s |
-| Context preparation | 20m27s |
-| Answer stream | 3.53s, approximately 33.42 output tokens/sec |
-| Total | 25m52s |
+**How to read the speed figures:** answer-stream rate measures generated output after the first token; total elapsed time also includes preparation, waiting and delivery. Combined burst throughput divides all eight replies' output tokens by the time from the first request's start to the last request's completion. It is different from the speed seen by one user.
 
-During the same test, 46 ordinary replies completed in 4.05–9.12s. Latency varies with workload and cache state. Keep one full-length request active at a time to preserve shared capacity for ordinary work.
+The workload requests the complete known 119-token answer through a disposable actual DSH runtime and the shared live LiteLLM/model route, then checks the persisted prompt and response. Mixed concurrency means one near-1M conversation alongside ordinary conversations; the 16-request scheduling cap does not represent sixteen full-million contexts. Cold context preparation and subsequent cached follow-ups are separate workloads.
 
-The total budget includes messages, tools, requested output and the guard reserve. A cold million-token prompt requires substantial preparation even if the latest user sentence is short. Cached follow-ups can be faster. Time to first text, queue wait, preparation time, answer-stream rate and whole-request time are different measurements.
+[Recorded measurements](https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/prefill512-concurrency-review-20261017.json).
 
 ### 1 Prepare prerequisites and a test environment
 
