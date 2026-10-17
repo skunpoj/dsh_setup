@@ -1,0 +1,93 @@
+import copy
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import re
+import unittest
+import yaml
+
+ROOT=Path(__file__).resolve().parents[1]
+spec=importlib.util.spec_from_file_location('portable_render', ROOT/'render.py')
+module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+
+class PortableTests(unittest.TestCase):
+    def setUp(self):
+        self.settings=json.loads((ROOT/'settings.example.json').read_text(encoding='utf-8-sig'))
+        self.docs=module.render(self.settings)
+
+    def test_eight_objects_and_private_listener(self):
+        self.assertEqual(len(self.docs),8)
+        services=[d for d in self.docs if d['kind']=='Service']
+        self.assertEqual(sorted(p['port'] for d in services for p in d['spec']['ports']),[4000,8000])
+        d=next(d for d in self.docs if d['kind']=='Deployment' and d['metadata']['name']=='local-inference')
+        self.assertEqual(d['spec']['replicas'],1)
+        self.assertEqual(d['spec']['strategy']['type'],'Recreate')
+        c=d['spec']['template']['spec']['containers'][1]
+        self.assertIn('127.0.0.1',c['command'])
+        self.assertFalse(d['spec']['template']['spec']['automountServiceAccountToken'])
+
+    def test_no_secret_objects_or_embedded_credentials(self):
+        self.assertFalse(any(d['kind']=='Secret' for d in self.docs))
+        d=next(d for d in self.docs if d['kind']=='Deployment' and d['metadata']['name']=='local-inference')
+        env=d['spec']['template']['spec']['containers'][0]['env']
+        for key in ['LITELLM_MASTER_KEY','INTERNAL_ROUTE_KEY','DATABASE_URL']:
+            self.assertIn('secretKeyRef', next(v for v in env if v['name']==key)['valueFrom'])
+
+    def test_model_source_is_pinned_and_long_budget_consistent(self):
+        d=next(d for d in self.docs if d['kind']=='Deployment' and d['metadata']['name']=='local-model')
+        c=d['spec']['template']['spec']['containers'][0]
+        self.assertIn('@sha256:',c['image'])
+        self.assertEqual(c['resources']['limits']['nvidia.com/gpu'],4)
+        a=c['args']
+        for flag,value in {'--context-length':'1048576','--chunked-prefill-size':'1024','--max-prefill-tokens':'2048','--mem-fraction-static':'0.90','--max-running-requests':'16'}.items():
+            self.assertEqual(a[a.index(flag)+1],value)
+        cfg=next(d['data']['config.yaml'] for d in self.docs if d['kind']=='ConfigMap' and 'config.yaml' in d['data'])
+        parsed=yaml.safe_load(cfg)
+        self.assertEqual([m['model_name'] for m in parsed['model_list']],module.ALIASES)
+        for policy in parsed['router_settings']['model_group_retry_policy'].values():self.assertEqual(policy['RateLimitErrorRetries'],0)
+
+    def test_egress_denies_model_and_limits_gateway(self):
+        policies={d['metadata']['name']:d['spec'] for d in self.docs if d['kind']=='NetworkPolicy'}
+        self.assertEqual(policies['local-model-boundaries']['egress'],[])
+        e=policies['local-inference-boundaries']['egress']
+        self.assertEqual(len(e),3)
+        self.assertFalse(any('ipBlock' in p for rule in e for p in rule['to']))
+        self.assertEqual(policies['local-inference-boundaries']['ingress'][0]['ports'],[{'protocol':'TCP','port':4000}])
+
+    def test_invalid_names_tags_and_unexpected_settings_refused(self):
+        for key,value in [('namespace','../private'),('modelClaim','bad/path'),('gatewayImage','image:latest'),('password','must-not-be-a-setting')]:
+            s={**self.settings,key:value}
+            with self.assertRaises(ValueError):module.render(s)
+
+    def test_namespace_and_references_are_rendered_consistently(self):
+        docs=module.render({**self.settings,'namespace':'isolated-test','modelClaim':'different-weights'})
+        self.assertTrue(all(d['metadata']['namespace']=='isolated-test' for d in docs))
+        cms={d['metadata']['name'] for d in docs if d['kind']=='ConfigMap'}
+        for d in docs:
+            if d['kind']=='Deployment':
+                for v in d['spec']['template']['spec']['volumes']:
+                    if 'configMap' in v:self.assertIn(v['configMap']['name'],cms)
+        self.assertIn('local-model.isolated-test.svc.cluster.local',yaml.safe_dump_all(docs))
+
+    def test_publication_hashes_and_canonical_source_drift(self):
+        manifest=json.loads((ROOT/'SOURCE_MANIFEST.json').read_text(encoding='utf-8'))
+        for name,expected in manifest['publicContentSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT/name).read_bytes()).hexdigest(),expected,name)
+        canonical=ROOT.parent/'scripts'
+        if canonical.exists():
+            for name,expected in manifest['sourceContentSha256'].items():
+                f=canonical/name
+                if f.exists():self.assertEqual(hashlib.sha256(f.read_text(encoding='utf-8-sig').encode()).hexdigest(),expected,'Requalify portable copy: '+name)
+
+    def test_publication_has_no_known_internal_or_credential_values(self):
+        # Check both staged source and rendered content. Report only the path/pattern, never a match value.
+        patterns=[r'github_pat_',r'kubeconfig-u-',
+                  r'(?<![0-9])(?:10|172\.(?:1[6-9]|2[0-9]|3[01])|192\.168)\.(?:[0-9]{1,3}\.){1,2}[0-9]{1,3}',
+                  r'(?i)(?:password|api_key)\s*[:=]\s*[\"\x27](?!os\.environ|must-not|DATABASE|LITELLM)[A-Za-z0-9_$-]{12,}']
+        candidates=[(f.relative_to(ROOT).as_posix(),f.read_text(encoding='utf-8-sig')) for f in ROOT.rglob('*') if f.is_file() and '__pycache__' not in str(f) and f.suffix in ['.py','.md','.json','.yaml'] and f.name!='test_portable.py']
+        candidates.append(('rendered',yaml.safe_dump_all(self.docs)))
+        for name,text in candidates:
+            for pattern in patterns:self.assertIsNone(re.search(pattern,text),name+' failed privacy pattern')
+
+if __name__=='__main__':unittest.main()

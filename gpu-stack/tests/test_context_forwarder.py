@@ -1,0 +1,278 @@
+import os
+os.environ.setdefault('DSH_TOKENIZER_URL','http://local-model.ai-workspace.svc.cluster.local:8000/v1/tokenize')
+import asyncio
+import copy
+import importlib.util
+import json
+from pathlib import Path
+import sys
+import types
+import unittest
+from unittest.mock import patch
+
+
+class Rejected(Exception):
+    def __init__(self, status_code, detail):
+        self.status_code = status_code
+        super().__init__(detail)
+
+
+class App:
+    def __init__(self, **kwargs):
+        pass
+    def get(self, path):
+        return lambda f: f
+    post = get
+
+
+class Response:
+    def __init__(self, content, status_code=200, **kwargs):
+        self.content, self.status_code = content, status_code
+
+
+class Stream:
+    def __init__(self, iterator, **kwargs):
+        self.body_iterator = iterator
+        self.background = kwargs.get('background')
+
+
+class Background:
+    def __init__(self, fn):
+        self.fn = fn
+    async def __call__(self):
+        await self.fn()
+
+
+class FakeGuard:
+    def __init__(self):
+        self.active = False
+    async def acquire(self, key):
+        self.active = True
+    async def warm(self, ids):
+        return {'steps': 2}
+    def release(self, data):
+        self.active = False
+
+
+class FakeRequest:
+    def __init__(self, data):
+        self.data = data
+    async def stream(self):
+        yield json.dumps(self.data).encode()
+    async def is_disconnected(self):
+        return False
+
+
+def load():
+    root = Path(__file__).parents[1]/'runtime'
+    spec = importlib.util.spec_from_file_location('context_envelope', root/'context_envelope.py')
+    envelope = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(envelope)
+    api = types.ModuleType('fastapi')
+    api.FastAPI, api.HTTPException, api.Request = App, Rejected, FakeRequest
+    responses = types.ModuleType('fastapi.responses')
+    responses.JSONResponse, responses.StreamingResponse = Response, Stream
+    background = types.ModuleType('starlette.background')
+    background.BackgroundTask = Background
+    tools = types.ModuleType('long_context_callbacks')
+    tools.CONTEXT, tools.OUTPUT, tools.RESERVE = 1048576, 8192, 256
+    tools.TOKENIZER = 'http://internal:8000/v1/tokenize'
+    tools.LongContextGuard = FakeGuard
+    tools.count_request = lambda d, final: {'count': 200000, 'tokens': [1, 2]}
+    http = types.ModuleType('httpx')
+    http.Timeout = lambda *a, **kw: None
+    http.TimeoutException = TimeoutError
+    scope = {}
+    with patch.dict(sys.modules, {'fastapi': api, 'fastapi.responses': responses,
+        'starlette': types.ModuleType('starlette'), 'starlette.background': background,
+        'httpx': http, 'long_context_callbacks': tools, 'context_envelope': envelope}):
+        exec((root/'context_forwarder.py').read_text(encoding='utf8'), scope)
+    return scope, http
+
+
+class ForwarderTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.scope, self.http = load()
+        self.sent, self.aborted = [], []
+        sent = self.sent
+        class Upstream:
+            status_code = 200
+            async def aiter_raw(self):
+                yield b'data: {"choices":[{"delta":{"content":"OK"}}]}\n\n'
+                yield b'data: [DONE]\n\n'
+            async def aclose(self):
+                pass
+        class Client:
+            def __init__(self, **kwargs):
+                assert kwargs['trust_env'] is False
+            def build_request(self, method, url, json):
+                sent.append(json)
+                return json
+            async def send(self, request, stream):
+                return Upstream()
+            async def aclose(self):
+                pass
+        self.http.AsyncClient = Client
+        async def abort(rid):
+            self.aborted.append(rid)
+        self.scope['abort'] = abort
+
+    def request(self, **kwargs):
+        return FakeRequest({'model': 'deepseek-v4.1-flash', 'messages': [{'role': 'user', 'content': 'test'}],
+            'stream': True, 'max_tokens': 65536, 'rid': 'do-not-abort-another-request',
+            'tools': [{'type': 'function', 'function': {'name': 'example'}}], **kwargs})
+
+    async def test_final_wire_normalization_stream_and_lease_lifetime(self):
+        response = await self.scope['completion'](self.request())
+        self.assertTrue(self.scope['guard'].active)
+        self.assertEqual(self.sent[0]['max_tokens'], 8192)
+        self.assertIs(self.sent[0]['tools'][0]['function']['strict'], False)
+        self.assertNotEqual(self.sent[0]['rid'], 'do-not-abort-another-request')
+        content = b''.join([b async for b in response.body_iterator])
+        self.assertIn(b'OK', content)
+        self.assertFalse(self.scope['guard'].active)
+        self.assertEqual(self.aborted, [self.sent[0]['rid']])
+
+    async def test_never_consumed_stream_background_still_releases(self):
+        response = await self.scope['completion'](self.request())
+        self.assertTrue(self.scope['guard'].active)
+        await response.background()
+        self.assertFalse(self.scope['guard'].active)
+
+    async def test_counted_conditioning_is_forwarded_and_exact_ids_are_warmed(self):
+        counted = []
+        warmed = []
+        exact_ids = [91, 42, 17, 63]
+        def count(data, final):
+            self.assertTrue(final)
+            counted.append(copy.deepcopy(data))
+            return {'count': 200000, 'tokens': exact_ids}
+        async def warm(ids):
+            warmed.append(list(ids))
+            return {'steps': 1}
+        self.scope['count_request'] = count
+        self.scope['guard'].warm = warm
+        response = await self.scope['completion'](self.request(
+            tool_choice='auto', reasoning_effort='low',
+            chat_template_kwargs={'enable_thinking': False},
+            tools=[{'type': 'function', 'function': {'name': 'example',
+                'strict': None, 'parameters': {'type': 'object',
+                    'properties': {'label': {'type': 'string'}}}}}]))
+        for field in ('model', 'messages', 'tools', 'tool_choice',
+                      'reasoning_effort', 'chat_template_kwargs', 'continue_final_message'):
+            self.assertEqual(counted[0][field], self.sent[0][field], field)
+        self.assertIs(counted[0]['tools'][0]['function']['strict'], False)
+        self.assertIs(counted[0]['continue_final_message'], False)
+        self.assertEqual(warmed, [exact_ids])
+        await response.background()
+
+    async def test_explicit_conditioning_is_not_replaced_by_defaults(self):
+        response = await self.scope['completion'](self.request(
+            continue_final_message=True,
+            tools=[{'type': 'function', 'function': {'name': 'example', 'strict': True}}]))
+        self.assertTrue(self.sent[0]['continue_final_message'])
+        self.assertTrue(self.sent[0]['tools'][0]['function']['strict'])
+        await response.background()
+
+    async def test_cache_handoff_deadline_aborts_only_its_own_request(self):
+        ticks = iter([0, 16])
+        self.scope['time'] = types.SimpleNamespace(monotonic=lambda: next(ticks))
+        response = await self.scope['completion'](self.request())
+        content = b''.join([b async for b in response.body_iterator])
+        self.assertIn(b'context_cache_handoff_failed', content)
+        self.assertEqual(self.aborted, [self.sent[0]['rid']])
+        self.assertNotEqual(self.aborted[0], 'do-not-abort-another-request')
+        self.assertFalse(self.scope['guard'].active)
+
+    async def test_large_nonstreaming_client_uses_guarded_internal_stream(self):
+        captured = []
+        def assemble(packets, messages):
+            captured.extend(packets)
+            return {'choices': [{'message': {'content': 'OK'}}]}
+        self.scope['assemble_response'] = assemble
+        response = await self.scope['completion'](self.request(stream=False))
+        self.assertEqual(response.content['choices'][0]['message']['content'], 'OK')
+        self.assertTrue(self.sent[0]['stream'])
+        self.assertTrue(self.sent[0]['stream_options']['include_usage'])
+        self.assertTrue(captured)
+        self.assertFalse(self.scope['guard'].active)
+
+    async def test_raw_token_warming_does_not_substitute_for_image_embeddings(self):
+        request = self.request(messages=[{'role': 'user', 'content': [
+            {'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,synthetic'}}]}])
+        with self.assertRaises(Rejected) as caught:
+            await self.scope['completion'](request)
+        self.assertEqual(caught.exception.status_code, 400)
+        self.assertEqual(self.sent, [])
+
+    async def test_unavailable_budget_never_dispatches(self):
+        def fail(*args):
+            raise ValueError('unavailable')
+        self.scope['count_request'] = fail
+        with self.assertRaises(Rejected) as caught:
+            await self.scope['completion'](self.request())
+        self.assertEqual(caught.exception.status_code, 503)
+        self.assertEqual(self.sent, [])
+
+    async def test_cancelled_client_stops_warmup_and_releases(self):
+        cancelled = []
+        async def warm(ids):
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cancelled.append(True)
+        self.scope['guard'].warm = warm
+        request = self.request()
+        async def disconnected():
+            return True
+        request.is_disconnected = disconnected
+        with self.assertRaises(Rejected) as caught:
+            await self.scope['completion'](request)
+        self.assertEqual(caught.exception.status_code, 499)
+        self.assertTrue(cancelled)
+        self.assertFalse(self.scope['guard'].active)
+        self.assertEqual(self.sent, [])
+
+
+    async def test_ordinary_stream_holds_foreground_lane_until_closed(self):
+        self.scope['count_request'] = lambda *args: {'count': 9000, 'tokens': [1]}
+        response = await self.scope['completion'](self.request())
+        lane = self.scope['interactive']
+        self.assertEqual(lane.active, 1)
+        waiting = asyncio.create_task(lane.wait_turn())
+        await asyncio.sleep(.01)
+        self.assertFalse(waiting.done())
+        content = b''.join([b async for b in response.body_iterator])
+        self.assertIn(b'OK', content)
+        await waiting
+        self.assertEqual(lane.active, 0)
+        # Starlette background cleanup follows iterator cleanup; release once.
+        await response.background()
+        self.assertEqual(lane.active, 0)
+
+    async def test_foreground_parallelism_and_bounded_background_progress(self):
+        lane = self.scope['InteractiveLane'](maximum_pause=.02)
+        lane.enter()
+        lane.enter()
+        lane.leave()
+        self.assertEqual(lane.active, 1)
+        await asyncio.wait_for(lane.wait_turn(), timeout=.2)
+        self.assertEqual(lane.active, 1)
+        lane.leave()
+        self.assertTrue(lane.idle.is_set())
+
+    async def test_dispatch_failure_releases_ordinary_lane(self):
+        self.scope['count_request'] = lambda *args: {'count': 9000, 'tokens': [1]}
+        class Failed:
+            def __init__(self, **kwargs): pass
+            def build_request(self, *args, **kwargs): return {}
+            async def send(self, *args, **kwargs): raise RuntimeError('dispatch')
+            async def aclose(self): pass
+        self.http.AsyncClient = Failed
+        with self.assertRaises(RuntimeError):
+            await self.scope['completion'](self.request())
+        self.assertEqual(self.scope['interactive'].active, 0)
+
+
+if __name__ == '__main__':
+    unittest.main()

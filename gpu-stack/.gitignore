@@ -1,0 +1,5 @@
+# Only checked-in examples and source belong here; keep site settings/output outside Git.
+settings.local.json
+rendered/
+__pycache__/
+*.pyc

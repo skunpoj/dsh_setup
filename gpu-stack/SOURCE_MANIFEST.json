@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "scope": "Sanitized portable derivative; publication is not a deployment",
+  "sourceContentSha256": {
+    "context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
+    "context_forwarder.py": "8fd5e51080e0cb1c51863a22f76003ba650c0b38f573dc503548a99fa74a617b",
+    "gateway_output_guard.py": "2ea627b6166fc28d5f2eadf24aa4710d30942642c9302315a807ab5f44567b6b",
+    "long_context_callbacks.py": "1636d5108f03bcb480467a807e0d9191d8df2dd395ffc78594f176d6dfbdf562",
+    "scheduler_chunk_guard_patch.py": "d0dddec3e5f4398c8ba99f83a4ddba4be499af9a814082b2b250276413424904",
+    "scheduler_fairness_patch.py": "e8085f7e189f234defb459956a07d16873698a0817b5ed82553ad69b532ca1bd"
+  },
+  "publicContentSha256": {
+    ".gitignore": "8b9b8c954fa313f4b150f9f460f45ab308f9cb9ecb5039e304442c0fc3355549",
+    "QUALIFICATION.md": "6ae6ee08c955f7f832a7b8d7ddf836085de9dcd3e5ca941eda3202bed107d852",
+    "README.md": "d3db3edf76b8434ead17a4e44d80008c8e5f8b65676b6ef3daa3915506382bcf",
+    "render.py": "3299ce1e6aa2d663d5201306a7b50f631f83be5bc6b3dfb52816e3bc9779b6f7",
+    "settings.example.json": "c96a052a6ee7c7434bdc344b996d6ea8090266308df488a167234ae4900ff0a5",
+    "runtime/context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
+    "runtime/context_forwarder.py": "747570cc66db97c636b10594b2d1e76260983ca3c625214570001bd401de8a57",
+    "runtime/gateway_output_guard.py": "13a4fcac8054f1546b22ae9d82e0e752a8bc3b0727f4e4323078d692b90c3947",
+    "runtime/long_context_callbacks.py": "643ae5409c4ca6f1f4de93af12b8c42a54a0aed2fe3878899b7e72dd470bc720",
+    "runtime/scheduler_chunk_guard_patch.py": "969be5549132d7723d08676e2a80719fe07799fa194164feb2065061595158fb",
+    "runtime/scheduler_fairness_patch.py": "85defa136fb9cc213d222347a8a6bf8f1c7d56b7d1374feb0711b251766f3881",
+    "templates/model.yaml": "c302954790bc5c5bf740f51f4d7014baf7173fbfa25ce59aa252d5d23043bde0",
+    "tests/test_context_forwarder.py": "bae4ca65cfe966349341cfba8efa6718f8a0406e941076ec5dfefbf8adf58076",
+    "tests/test_long_context_guard.py": "d6ca0ad178c4be416c82084da2fd216b0e0a6d52bbcb12bac09d218ffd90b5f5",
+    "tests/test_portable.py": "4fd3de7d12900004cb6ec8e686ec4059e1dddc7149f06e8dce5a0db66a586359"
+  },
+  "sourceHashNormalization": "UTF-8 text with LF newlines and no BOM"
+}

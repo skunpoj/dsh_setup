@@ -1,0 +1,203 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-model
+  namespace: ai-workspace
+  labels:
+    app: local-model
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: local-model
+  template:
+    metadata:
+      labels:
+        app: local-model
+    spec:
+      initContainers:
+      - name: verify-weights
+        image: lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860
+        command:
+        - sh
+        - -ec
+        - test -r /models/approved/config.json
+        volumeMounts:
+        - name: model-cache
+          mountPath: /models
+          readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      - name: prepare-scheduler-fairness
+        image: lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860
+        command:
+        - sh
+        - -ec
+        - 'python3 /patch/scheduler_fairness_patch.py /sgl-workspace/sglang/python/sglang/srt/managers/scheduler.py
+          /overlay/scheduler.py
+
+          python3 /patch/scheduler_chunk_guard_patch.py /sgl-workspace/sglang/python/sglang/srt/managers/schedule_policy.py
+          /overlay/schedule_policy.py'
+        volumeMounts:
+        - name: scheduler-overlay
+          mountPath: /overlay
+        - name: scheduler-patch-source
+          mountPath: /patch
+          readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      containers:
+      - name: sglang
+        image: lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860
+        command:
+        - python3
+        - -m
+        - sglang.launch_server
+        args:
+        - --model-path
+        - /models/approved
+        - --served-model-name
+        - deepseek-ai/DeepSeek-V4.1-Flash,deepseek-v4.1-flash,deepseek-v4-flash,deepseek
+        - --host
+        - 0.0.0.0
+        - --port
+        - '8000'
+        - --tp-size
+        - '4'
+        - --moe-runner-backend
+        - marlin
+        - --trust-remote-code
+        - --mem-fraction-static
+        - '0.90'
+        - --max-running-requests
+        - '16'
+        - --chunked-prefill-size
+        - '1024'
+        - --max-prefill-tokens
+        - '2048'
+        - --swa-prefix-tails
+        - '0'
+        - --context-length
+        - '1048576'
+        - --reasoning-parser
+        - deepseek-v41
+        - --tool-call-parser
+        - deepseekv41
+        - --enable-mixed-chunk
+        - --enable-metrics
+        - --prefill-decode-interval
+        - '4'
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: PYTHONUNBUFFERED
+          value: '1'
+        - name: SGLANG_ENABLE_DSV41_ENGRAM_HOST_TABLE
+          value: '1'
+        - name: SGLANG_DSV41_ENGRAM_HOST_TABLE_LAYOUT
+          value: private
+        - name: SGLANG_DSV41_ENGRAM_HOST_TABLE_PIN
+          value: '1'
+        - name: SGLANG_ENABLE_DSV41_ENGRAM_KV_PREFETCH
+          value: '1'
+        - name: SGLANG_ENABLE_DSV41_ENGRAM_DROP_PAGE_CACHE
+          value: '1'
+        - name: HF_HUB_OFFLINE
+          value: '1'
+        - name: TRANSFORMERS_OFFLINE
+          value: '1'
+        - name: HF_HOME
+          value: /models/huggingface
+        - name: NCCL_DEBUG
+          value: WARN
+        - name: PYTORCH_CUDA_ALLOC_CONF
+          value: expandable_segments:True
+        resources:
+          limits:
+            nvidia.com/gpu: 4
+            cpu: '32'
+            memory: 512Gi
+          requests:
+            nvidia.com/gpu: 4
+            cpu: '16'
+            memory: 256Gi
+        volumeMounts:
+        - name: model-cache
+          mountPath: /models
+          readOnly: true
+        - name: shm
+          mountPath: /dev/shm
+        - name: scheduler-overlay
+          mountPath: /sgl-workspace/sglang/python/sglang/srt/managers/scheduler.py
+          subPath: scheduler.py
+          readOnly: true
+        - name: scheduler-overlay
+          mountPath: /sgl-workspace/sglang/python/sglang/srt/managers/schedule_policy.py
+          subPath: schedule_policy.py
+          readOnly: true
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 15
+          failureThreshold: 120
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 30
+          timeoutSeconds: 15
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 10
+          timeoutSeconds: 15
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: model-weights
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 128Gi
+      - name: scheduler-overlay
+        emptyDir: {}
+      - name: scheduler-patch-source
+        configMap:
+          name: local-scheduler-patches
+      automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: local-model
+  namespace: ai-workspace
+  labels:
+    app: local-model
+spec:
+  ports:
+  - port: 8000
+    name: http
+    targetPort: 8000
+  selector:
+    app: local-model
+  publishNotReadyAddresses: false

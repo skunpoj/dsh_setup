@@ -1,0 +1,7 @@
+# Publication qualification
+
+The sanitized bundle passed 31 Linux unit/structural tests on 17 October 2026, with no skips. The same Windows suite passed with three POSIX file-lock tests skipped; those three were included in the Linux run. Tests cover final-payload/tool-default consistency, cancellation and lease cleanup, foreground scheduling, cache-loss refusal, output/total budgets, unsupported-route rejection, immutable image/name validation, Secret references, loopback-only forwarding, policy structure and content/source hash checks.
+
+A separate pre-publication scan checked the new bundle against known private domains, node/user/share names, private addresses and credential markers before it entered the public checkout. Only generic Kubernetes Service names, public upstream image references and public software/model identifiers remain. Source and publication hashes are in `SOURCE_MANIFEST.json`. New bundle qualification does not redact earlier repository history.
+
+This is source/template qualification. No GPU startup, model-weight integrity, database restore, network enforcement or near-1M test was performed using this generic candidate. Existing long-context/performance measurements belong to the recorded deployment and are described separately. The template requires operator-supplied model storage, database, protected Secrets, matching DNS/network policy and client qualification before use. Publishing it does not alter Production.

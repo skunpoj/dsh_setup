@@ -1,0 +1,7 @@
+{
+  "namespace": "ai-workspace",
+  "modelClaim": "model-weights",
+  "gatewayImage": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+  "credentialSecret": "local-inference-credentials",
+  "databaseSecret": "local-inference-database"
+}

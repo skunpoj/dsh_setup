@@ -1,5 +1,9 @@
 # Shared LLM — 1M Setup, Performance and Operational Limits
 
+## Portable infrastructure counterpart
+
+The [sanitized GPU/LiteLLM/1M bundle](../gpu-stack/README.md) contains reproducible candidate manifests, actual guarded routing and scheduler sources, private Secret references, prerequisites, qualification and rollback. It omits site endpoints and storage identities. It is a new portable candidate, not a new Production deployment or fresh long-context benchmark. See the [dashboard coverage map](CENTRAL_DASHBOARD_SCOPE.md) for current versus planned telemetry.
+
 ## Ordinary DSH responsiveness during near-1M work — 17 October 2026 ICT
 
 **Deployed and tested: foreground scheduling preserves the 1,048,576-token context limit while improving ordinary DSH responses during long preparation.** The shared forwarder uses immutable ConfigMap `litellm-interactive-cd9a424fa8e4`. The GPU model was not restarted. The subsequent SDK-budget overlay required controlled restarts of all 20 main CPU runtimes; existing history IDs and all 40 temporary workspace/state markers survived. All 82 preserved legacy session files were also rehashed and remained byte-identical. Networking and user-data ownership/mounts were preserved.
