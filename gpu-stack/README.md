@@ -1,5 +1,9 @@
 # Portable GPU + LiteLLM + 1M setup
 
+## Existing-node runtime acceptance
+
+A fresh, site-adapted model deployment using this pinned image/profile passed an actual **1,007,695-input-token DSH turn** and bounded mixed concurrency on 17 October 2026. The existing weight snapshot, gateway/database and a disposable DSH runtime were used. The startup progress deadline is 2,100 seconds; no extra GPU node was used. The test does not qualify a new cluster, download, private storage, or two full-1M sessions. [Results and retained limitations](../docs/FRESH_GPU_ACCEPTANCE_20261017.html).
+
 This is the public counterpart for the GPU inference portion of the deployment repository. It contains sanitized source and a renderer, not a copy of private cluster configuration. No organization endpoints, node names, private registries, credentials, user identities, central-share paths or live workload IDs are required by this bundle. Public upstream image digests and model names remain to identify the qualified software.
 
 ## Features and design

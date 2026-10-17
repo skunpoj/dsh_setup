@@ -1,5 +1,7 @@
 # DSH — Private Execution Environments and Kerberos Datalake Access
 
+**Fresh existing-node GPU acceptance, 17 October 2026:** a newly started model served **1,007,695 actual DSH input tokens**, returning the complete expected answer in **20m48s** with zero retries and no GPU restart. **80/80** bounded ordinary API replies passed; **6/6 actual DSH replies during near-1M preparation** completed in **6.61–7.14s**, with approximately **23–37 stream tokens/sec** per reply. A 16-client API burst passed in **5.51–10.08s**. One overlapping gateway reload caused five retries during a successful near-1M tool continuation; fresh short-tool and output-budget checks then passed without retries. Cancelled retained-history replays are recorded separately. [Measured results, scope and lessons](docs/FRESH_GPU_ACCEPTANCE_20261017.html).
+
 ## Setup entry points and central administration
 
 The [portable GPU + LiteLLM + 1M setup](gpu-stack/README.md) is the sanitized public counterpart for shared inference: digest-pinned model runtime, scheduler patches, exact final-payload guard, one-long-request admission, short-request fairness, Secret references and network-policy templates. It has no organization-specific endpoints, node names, storage paths or credentials. Supply private site settings outside Git, qualify the rendered candidate, and retain rollback before deployment. Existing site-specific documents/history are not redacted by this addition. The complete private infrastructure repository is not copied wholesale.

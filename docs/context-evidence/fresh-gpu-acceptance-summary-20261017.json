@@ -1,0 +1,572 @@
+{
+  "date": "2026-10-17",
+  "status": "passed",
+  "scope": "Fresh GPU model process on the existing four-GPU node using a rendered portable manifest and existing cached weights. Existing LiteLLM/database/auth remained; DSH used disposable state and the deployed managed runtime image/overlays. Not a new-cluster or new-storage installation.",
+  "modelImage": "lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+  "contextTokens": 1048576,
+  "outputCeiling": 8192,
+  "reserve": 256,
+  "runningCap": 16,
+  "prefillChunk": 1024,
+  "maximumPrefill": 2048,
+  "memoryStatic": 0.9,
+  "decodeInterval": 4,
+  "newModelProcess": true,
+  "modelRestartsDuringTests": 0,
+  "ordinaryBurstSummary": {
+    "requests": 80,
+    "exact": 80,
+    "p50Seconds": 5.229,
+    "p95Seconds": 9.9291,
+    "maxSeconds": 10.0789,
+    "effectiveOutputTokensPerSecondMin": 11.308,
+    "effectiveOutputTokensPerSecondMax": 34.055
+  },
+  "duringNear1MSummary": {
+    "requests": 48,
+    "exact": 48,
+    "p50Seconds": 5.229,
+    "p95Seconds": 6.8048,
+    "maxSeconds": 7.4594,
+    "effectiveOutputTokensPerSecondMin": 14.218,
+    "effectiveOutputTokensPerSecondMax": 33.487
+  },
+  "bursts": [
+    {
+      "label": "baseline-two",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 3.801,
+        "p95Seconds": 3.8753,
+        "maxSeconds": 3.8753,
+        "effectiveOutputTokensPerSecondMin": 30.707,
+        "effectiveOutputTokensPerSecondMax": 31.933
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 61.323
+    },
+    {
+      "label": "during-1m-1",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 5.043,
+        "p95Seconds": 5.6237,
+        "maxSeconds": 5.6237,
+        "effectiveOutputTokensPerSecondMin": 17.93,
+        "effectiveOutputTokensPerSecondMax": 21.16
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 35.37
+    },
+    {
+      "label": "during-1m-2",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 4.104,
+        "p95Seconds": 4.6922,
+        "maxSeconds": 4.6922,
+        "effectiveOutputTokensPerSecondMin": 22.752,
+        "effectiveOutputTokensPerSecondMax": 25.361
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 42.387
+    },
+    {
+      "label": "during-1m-eight-2",
+      "concurrency": 8,
+      "summary": {
+        "requests": 8,
+        "exact": 8,
+        "p50Seconds": 5.343,
+        "p95Seconds": 5.5635,
+        "maxSeconds": 5.5635,
+        "effectiveOutputTokensPerSecondMin": 21.389,
+        "effectiveOutputTokensPerSecondMax": 22.63
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 170.988
+    },
+    {
+      "label": "during-1m-3",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 4.469,
+        "p95Seconds": 4.4726,
+        "maxSeconds": 4.4726,
+        "effectiveOutputTokensPerSecondMin": 26.607,
+        "effectiveOutputTokensPerSecondMax": 26.646
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 53.198
+    },
+    {
+      "label": "during-1m-4",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 3.08,
+        "p95Seconds": 3.0822,
+        "maxSeconds": 3.0822,
+        "effectiveOutputTokensPerSecondMin": 25.956,
+        "effectiveOutputTokensPerSecondMax": 25.985
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 51.874
+    },
+    {
+      "label": "during-1m-5",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 2.977,
+        "p95Seconds": 3.5658,
+        "maxSeconds": 3.5658,
+        "effectiveOutputTokensPerSecondMin": 33.373,
+        "effectiveOutputTokensPerSecondMax": 33.487
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 55.788
+    },
+    {
+      "label": "during-1m-eight-5",
+      "concurrency": 8,
+      "summary": {
+        "requests": 8,
+        "exact": 8,
+        "p50Seconds": 5.146,
+        "p95Seconds": 5.4449,
+        "maxSeconds": 5.4449,
+        "effectiveOutputTokensPerSecondMin": 20.601,
+        "effectiveOutputTokensPerSecondMax": 23.125
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 153.223
+    },
+    {
+      "label": "during-1m-6",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 5.402,
+        "p95Seconds": 5.4051,
+        "maxSeconds": 5.4051,
+        "effectiveOutputTokensPerSecondMin": 22.016,
+        "effectiveOutputTokensPerSecondMax": 22.046
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 44.021
+    },
+    {
+      "label": "during-1m-7",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 6.139,
+        "p95Seconds": 6.1431,
+        "maxSeconds": 6.1431,
+        "effectiveOutputTokensPerSecondMin": 19.371,
+        "effectiveOutputTokensPerSecondMax": 19.395
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 38.734
+    },
+    {
+      "label": "during-1m-8",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 3.993,
+        "p95Seconds": 3.9954,
+        "maxSeconds": 3.9954,
+        "effectiveOutputTokensPerSecondMin": 29.784,
+        "effectiveOutputTokensPerSecondMax": 29.815
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 59.531
+    },
+    {
+      "label": "during-1m-9",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 3.073,
+        "p95Seconds": 3.7375,
+        "maxSeconds": 3.7375,
+        "effectiveOutputTokensPerSecondMin": 31.839,
+        "effectiveOutputTokensPerSecondMax": 33.203
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 53.211
+    },
+    {
+      "label": "during-1m-10",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 5.624,
+        "p95Seconds": 5.6265,
+        "maxSeconds": 5.6265,
+        "effectiveOutputTokensPerSecondMin": 21.15,
+        "effectiveOutputTokensPerSecondMax": 21.172
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 42.291
+    },
+    {
+      "label": "during-1m-11",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 3.145,
+        "p95Seconds": 3.7321,
+        "maxSeconds": 3.7321,
+        "effectiveOutputTokensPerSecondMin": 31.282,
+        "effectiveOutputTokensPerSecondMax": 31.886
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 53.302
+    },
+    {
+      "label": "during-1m-12",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 3.554,
+        "p95Seconds": 3.5568,
+        "maxSeconds": 3.5568,
+        "effectiveOutputTokensPerSecondMin": 22.492,
+        "effectiveOutputTokensPerSecondMax": 22.522
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 44.97
+    },
+    {
+      "label": "during-1m-13",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 6.173,
+        "p95Seconds": 6.7618,
+        "maxSeconds": 6.7618,
+        "effectiveOutputTokensPerSecondMin": 14.326,
+        "effectiveOutputTokensPerSecondMax": 17.599
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 29.419
+    },
+    {
+      "label": "during-1m-14",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 7.457,
+        "p95Seconds": 7.4594,
+        "maxSeconds": 7.4594,
+        "effectiveOutputTokensPerSecondMin": 15.953,
+        "effectiveOutputTokensPerSecondMax": 15.962
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 31.897
+    },
+    {
+      "label": "during-1m-15",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 6.216,
+        "p95Seconds": 6.8048,
+        "maxSeconds": 6.8048,
+        "effectiveOutputTokensPerSecondMin": 14.218,
+        "effectiveOutputTokensPerSecondMax": 17.488
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 29.239
+    },
+    {
+      "label": "during-1m-16",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 4.612,
+        "p95Seconds": 5.2001,
+        "maxSeconds": 5.2001,
+        "effectiveOutputTokensPerSecondMin": 19.88,
+        "effectiveOutputTokensPerSecondMax": 22.884
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 38.258
+    },
+    {
+      "label": "after-2",
+      "concurrency": 2,
+      "summary": {
+        "requests": 2,
+        "exact": 2,
+        "p50Seconds": 3.568,
+        "p95Seconds": 3.6419,
+        "maxSeconds": 3.6419,
+        "effectiveOutputTokensPerSecondMin": 32.675,
+        "effectiveOutputTokensPerSecondMax": 34.055
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 65.301
+    },
+    {
+      "label": "after-4",
+      "concurrency": 4,
+      "summary": {
+        "requests": 4,
+        "exact": 4,
+        "p50Seconds": 3.214,
+        "p95Seconds": 3.8325,
+        "maxSeconds": 3.8325,
+        "effectiveOutputTokensPerSecondMin": 29.189,
+        "effectiveOutputTokensPerSecondMax": 32.278
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 103.747
+    },
+    {
+      "label": "after-8",
+      "concurrency": 8,
+      "summary": {
+        "requests": 8,
+        "exact": 8,
+        "p50Seconds": 3.726,
+        "p95Seconds": 5.0335,
+        "maxSeconds": 5.0335,
+        "effectiveOutputTokensPerSecondMin": 21.47,
+        "effectiveOutputTokensPerSecondMax": 25.125
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 150.237
+    },
+    {
+      "label": "after-16",
+      "concurrency": 16,
+      "summary": {
+        "requests": 16,
+        "exact": 16,
+        "p50Seconds": 9.626,
+        "p95Seconds": 10.0789,
+        "maxSeconds": 10.0789,
+        "effectiveOutputTokensPerSecondMin": 11.308,
+        "effectiveOutputTokensPerSecondMax": 14.528
+      },
+      "aggregateEffectiveOutputTokensPerSecond": 181.007
+    }
+  ],
+  "dshStages": [
+    {
+      "label": "DSH-128000",
+      "elapsedSeconds": 46.1287,
+      "lastUsage": {
+        "inputTokens": 135692,
+        "outputTokens": 8,
+        "totalTokens": 135700
+      },
+      "assistantText": "DSH_LONG_CONTEXT_OK",
+      "persistedPromptMatches": true,
+      "toolFileMatches": null,
+      "retryCount": 0
+    },
+    {
+      "label": "DSH-256000",
+      "elapsedSeconds": 114.2075,
+      "lastUsage": {
+        "inputTokens": 263694,
+        "outputTokens": 8,
+        "totalTokens": 263702
+      },
+      "assistantText": "DSH_LONG_CONTEXT_OK",
+      "persistedPromptMatches": true,
+      "toolFileMatches": null,
+      "retryCount": 0
+    },
+    {
+      "label": "DSH-1000000",
+      "elapsedSeconds": 1247.8951,
+      "lastUsage": {
+        "inputTokens": 1007695,
+        "outputTokens": 8,
+        "totalTokens": 1007703
+      },
+      "assistantText": "DSH_LONG_CONTEXT_OK",
+      "persistedPromptMatches": true,
+      "toolFileMatches": null,
+      "retryCount": 0
+    },
+    {
+      "label": "tool-continuation",
+      "elapsedSeconds": 58.302,
+      "lastUsage": {
+        "inputTokens": 1008085,
+        "outputTokens": 8,
+        "totalTokens": 1008093
+      },
+      "assistantText": "DSH_TOOL_CONTEXT_OK",
+      "persistedPromptMatches": true,
+      "toolFileMatches": true,
+      "retryCount": 5
+    },
+    {
+      "label": "stable-short-tool-retest",
+      "elapsedSeconds": 16.0654,
+      "lastUsage": {
+        "inputTokens": 8080,
+        "outputTokens": 8,
+        "totalTokens": 8088
+      },
+      "assistantText": "DSH_TOOL_CONTEXT_OK",
+      "persistedPromptMatches": true,
+      "toolFileMatches": true,
+      "retryCount": 0
+    },
+    {
+      "label": "isolated-estimated-budget-test",
+      "elapsedSeconds": 16.1966,
+      "lastUsage": {
+        "inputTokens": 51431,
+        "outputTokens": 9,
+        "totalTokens": 51440
+      },
+      "assistantText": "DSH_BUDGET_FIXED",
+      "persistedPromptMatches": true,
+      "paddingSpaces": 5600000,
+      "retryCount": 0
+    }
+  ],
+  "startedUTC": "2026-10-17T07:16:30.159090+00:00",
+  "endedUTC": "2026-10-17T07:57:37.809430+00:00",
+  "rollbackPreserved": true,
+  "adaptations": [
+    "existing namespace/service labels",
+    "existing weight PVC and pinned snapshot path",
+    "existing node selector",
+    "existing served aliases"
+  ],
+  "notEstablished": [
+    "two simultaneous full-1M requests",
+    "sustained saturation or SLA",
+    "fresh model download, new database or new cluster setup",
+    "a rebuild/redeployment of every DSH client or identity/network/storage controls"
+  ],
+  "actualDSHDuringNear1M": [
+    {
+      "elapsedSeconds": 6.607877492904663,
+      "firstTextSeconds": 2.920217990875244,
+      "streamSeconds": 3.4010000228881836,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 119,
+        "totalTokens": 7793
+      },
+      "retries": 0,
+      "exact": true,
+      "persistedPromptVerified": true,
+      "longStillRunningAfterReply": true,
+      "effectiveOutputTokensPerSecond": 18.009,
+      "approximateStreamTokensPerSecond": 34.696
+    },
+    {
+      "elapsedSeconds": 6.607757091522217,
+      "firstTextSeconds": 3.123265266418457,
+      "streamSeconds": 3.3440001010894775,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 119,
+        "totalTokens": 7793
+      },
+      "retries": 0,
+      "exact": true,
+      "persistedPromptVerified": true,
+      "longStillRunningAfterReply": true,
+      "effectiveOutputTokensPerSecond": 18.009,
+      "approximateStreamTokensPerSecond": 35.287
+    },
+    {
+      "elapsedSeconds": 7.075170040130615,
+      "firstTextSeconds": 1.7844138145446777,
+      "streamSeconds": 5.105999946594238,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 119,
+        "totalTokens": 7793
+      },
+      "retries": 0,
+      "exact": true,
+      "persistedPromptVerified": true,
+      "longStillRunningAfterReply": true,
+      "effectiveOutputTokensPerSecond": 16.819,
+      "approximateStreamTokensPerSecond": 23.11
+    },
+    {
+      "elapsedSeconds": 7.085762977600098,
+      "firstTextSeconds": 1.843817949295044,
+      "streamSeconds": 5.105999946594238,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 119,
+        "totalTokens": 7793
+      },
+      "retries": 0,
+      "exact": true,
+      "persistedPromptVerified": true,
+      "longStillRunningAfterReply": true,
+      "effectiveOutputTokensPerSecond": 16.794,
+      "approximateStreamTokensPerSecond": 23.11
+    },
+    {
+      "elapsedSeconds": 7.14337158203125,
+      "firstTextSeconds": 3.698334217071533,
+      "streamSeconds": 3.2279999256134033,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 119,
+        "totalTokens": 7793
+      },
+      "retries": 0,
+      "exact": true,
+      "persistedPromptVerified": true,
+      "longStillRunningAfterReply": true,
+      "effectiveOutputTokensPerSecond": 16.659,
+      "approximateStreamTokensPerSecond": 36.555
+    },
+    {
+      "elapsedSeconds": 7.143243074417114,
+      "firstTextSeconds": 3.698453426361084,
+      "streamSeconds": 3.2279999256134033,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 119,
+        "totalTokens": 7793
+      },
+      "retries": 0,
+      "exact": true,
+      "persistedPromptVerified": true,
+      "longStillRunningAfterReply": true,
+      "effectiveOutputTokensPerSecond": 16.659,
+      "approximateStreamTokensPerSecond": 36.555
+    }
+  ],
+  "gatewayFollowupIncident": {
+    "initialToolRetryCount": 5,
+    "initialToolFailureCodes": [
+      "TRANSPORT",
+      "TRANSPORT",
+      "TRANSPORT",
+      "TIMEOUT",
+      "TIMEOUT"
+    ],
+    "coldGatewayForwarderSha256": "8fd5e51080e0cb1c51863a22f76003ba650c0b38f573dc503548a99fa74a617b",
+    "stableGatewayForwarderSha256": "0aa373dacd79c937fe45faa766761d1b5ff177f82d2bbacd912d361c4678a4f8",
+    "modelRestarted": false,
+    "stableShortToolRetestRetries": 0,
+    "retainedForkReplayStatus": "cancelled during renewed long preparation; no successful answer claimed"
+  },
+  "coreEndedUTC": "2026-10-17T07:50:14.869846+00:00",
+  "finalGatewaySourceHashes": {
+    "context_forwarder.py": "0aa373dacd79c937fe45faa766761d1b5ff177f82d2bbacd912d361c4678a4f8",
+    "long_context_callbacks.py": "1636d5108f03bcb480467a807e0d9191d8df2dd395ffc78594f176d6dfbdf562"
+  },
+  "progressDeadlineSeconds": 2100
+}

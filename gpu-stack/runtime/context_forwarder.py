@@ -20,6 +20,73 @@ from long_context_callbacks import CONTEXT, OUTPUT, RESERVE, TOKENIZER, LongCont
 from context_envelope import normalize_conditioning
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+
+_timing_clock = time.monotonic
+
+
+class RequestTiming:
+    """Content-free measurements at the final forwarding boundary.
+
+    Upstream packet timing is not GPU kernel time or browser delivery time.
+    The bounded parser observes only numeric usage and the presence of a delta;
+    packet contents are never included in emitted records.
+    """
+    def __init__(self):
+        self.started = _timing_clock()
+        self.record = {}
+        self.pending = b''
+        self.last_packet = None
+        self.finished = False
+
+    def elapsed(self):
+        return round((_timing_clock()-self.started)*1000, 3)
+
+    def packet(self, chunk):
+        now = _timing_clock()
+        self.record.setdefault('firstUpstreamByteMs', self.elapsed())
+        self.record['upstreamChunks'] = self.record.get('upstreamChunks', 0)+1
+        self.record['upstreamBytes'] = self.record.get('upstreamBytes', 0)+len(chunk)
+        if self.last_packet is not None:
+            gap = (now-self.last_packet)*1000
+            self.record['maxUpstreamGapMs'] = round(max(gap, self.record.get('maxUpstreamGapMs', 0)), 3)
+            if gap > 500:
+                self.record['upstreamGapsOver500ms'] = self.record.get('upstreamGapsOver500ms', 0)+1
+        self.last_packet = now
+        self.pending += chunk
+        if len(self.pending) > 128*1024:
+            self.pending = b''
+            self.record['timingParserOversize'] = True
+            return
+        while b'\n' in self.pending:
+            line, self.pending = self.pending.split(b'\n', 1)
+            if not line.startswith(b'data: ') or line[6:].strip() == b'[DONE]':
+                continue
+            try:
+                item = json.loads(line[6:])
+                if not isinstance(item, dict):
+                    continue
+                choices = item.get('choices')
+                if isinstance(choices, list) and any(isinstance(c, dict) and isinstance(c.get('delta'), dict) and any(
+                    c['delta'].get(k) for k in ['content', 'reasoning_content', 'tool_calls'])
+                    for c in choices):
+                    self.record.setdefault('firstUpstreamDeltaMs', self.elapsed())
+                usage = item.get('usage')
+                if isinstance(usage, dict) and type(usage.get('completion_tokens')) is int:
+                    self.record['outputTokens'] = usage['completion_tokens']
+            except (ValueError, TypeError, AttributeError):
+                pass
+
+    def finish(self):
+        if self.finished:
+            return
+        self.finished = True
+        self.pending = b''
+        try:
+            print(json.dumps({'event': 'dsh_request_timing', **self.record,
+                              'elapsedMs': self.elapsed()}), flush=True)
+        except (OSError, ValueError):
+            pass  # Diagnostic logging must never block stream/lease cleanup.
+
 class InteractiveLane:
     """Let ordinary streams drain between bounded long-prefill steps.
 
@@ -45,11 +112,17 @@ class InteractiveLane:
 
     async def wait_turn(self):
         start = time.monotonic()
-        if self.active:
+        deadline = start + self.maximum_pause
+        while self.active:
+            remaining = deadline-time.monotonic()
+            if remaining <= 0:
+                break
             try:
-                await asyncio.wait_for(self.idle.wait(), timeout=self.maximum_pause)
+                await asyncio.wait_for(self.idle.wait(), timeout=remaining)
             except asyncio.TimeoutError:
-                pass
+                break
+            # An idle notification may be stale: another foreground request
+            # can enter before this waiter resumes. Recheck the counter.
         return time.monotonic() - start
 
 
@@ -104,6 +177,7 @@ async def models():
 
 @app.post('/v1/chat/completions')
 async def completion(request: Request):
+    timing = RequestTiming()
     raw = bytearray()
     async for part in request.stream():
         raw.extend(part)
@@ -118,10 +192,15 @@ async def completion(request: Request):
     if data.get('model') not in ['deepseek-v4.1-flash', 'deepseek-flash']:
         raise HTTPException(400, 'Model is outside this context policy.')
     normalize_conditioning(data)
+    tokenize_start = _timing_clock()
+    interactive.enter()
     try:
         tokenized = await asyncio.to_thread(count_request, data, True)
     except Exception:
         raise HTTPException(503, 'Final-wire token budgeting unavailable; not dispatched.')
+    finally:
+        interactive.leave()
+    timing.record['tokenizeMs'] = round((_timing_clock()-tokenize_start)*1000, 3)
     available = CONTEXT-RESERVE-tokenized['count']
     if available < 1:
         raise HTTPException(400, 'Input exceeds 1M total-token budget; compact or reduce it.')
@@ -142,6 +221,7 @@ async def completion(request: Request):
         raise HTTPException(400, 'Large nonstreaming requests do not support raw backend debug metadata.')
     lease = {'metadata': {}}
     rid = 'dsh-final-'+uuid.uuid4().hex
+    timing.record.update(requestId=rid, inputTokens=tokenized['count'], outputBudget=data['max_tokens'], long=long)
     data['rid'] = rid
     client = None
     upstream = None
@@ -153,6 +233,7 @@ async def completion(request: Request):
         if cleaned:
             return
         cleaned = True
+        timing.finish()
         if ordinary_owned:
             interactive.leave()
             ordinary_owned = False
@@ -172,8 +253,12 @@ async def completion(request: Request):
             key = uuid.uuid4().hex
             lease['metadata']['dsh_long_lease'] = key
             async def prepare():
+                admission_start = _timing_clock()
                 await guard.acquire(key)
+                timing.record['admissionMs'] = round((_timing_clock()-admission_start)*1000, 3)
+                warm_start = _timing_clock()
                 summary = await guard.warm(tokenized['tokens'])
+                timing.record['warmMs'] = round((_timing_clock()-warm_start)*1000, 3)
                 print(json.dumps({'event': 'dsh_final_wire_warmed', **summary}), flush=True)
             try:
                 await watch_client(request, prepare())
@@ -186,10 +271,14 @@ async def completion(request: Request):
         if long and not incoming_stream:
             wire_data['stream'] = True
             wire_data['stream_options'] = {**(data.get('stream_options') or {}), 'include_usage': True}
+        dispatch_start = _timing_clock()
         upstream = await client.send(client.build_request('POST', BACKEND+'/v1/chat/completions', json=wire_data), stream=True)
+        timing.record['upstreamHeadersMs'] = round((_timing_clock()-dispatch_start)*1000, 3)
+        timing.record['upstreamStatus'] = upstream.status_code
         if upstream.status_code != 200 or (not long and not incoming_stream):
             body = await upstream.aread()
-            return JSONResponse(json.loads(body), status_code=upstream.status_code)
+            timing.record['bodyConsumed'] = True
+            return JSONResponse(json.loads(body), status_code=upstream.status_code, headers={'X-DSH-Request-ID': rid})
 
         async def stream():
             iterator = upstream.aiter_raw().__aiter__()
@@ -204,7 +293,9 @@ async def completion(request: Request):
                     try:
                         chunk = await asyncio.wait_for(anext(iterator), timeout=remaining)
                     except StopAsyncIteration:
+                        timing.record['bodyConsumed'] = True
                         break
+                    timing.packet(chunk)
                     if not first:
                         buffer += chunk
                         while b'\n' in buffer:
@@ -239,7 +330,7 @@ async def completion(request: Request):
                 return assemble_response(packets, data['messages'])
             return JSONResponse(await watch_client(request, collect()))
         handed_off = True
-        return StreamingResponse(stream(), media_type='text/event-stream', headers={'Cache-Control': 'no-cache'},
+        return StreamingResponse(stream(), media_type='text/event-stream', headers={'Cache-Control': 'no-cache', 'X-DSH-Request-ID': rid},
                                  background=BackgroundTask(cleanup))
     finally:
         if not handed_off:

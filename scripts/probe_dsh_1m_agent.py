@@ -4,6 +4,7 @@ Uses the same authenticated HTTP RPCs as the web client and validates persisted
 assistant events. Output contains synthetic results and usage, not large input.
 """
 import argparse
+import os
 import hashlib
 import http.client
 import json
@@ -18,10 +19,12 @@ def main():
     ap.add_argument('--input-target', type=int, default=0)
     ap.add_argument('--deadline', type=int, default=3000)
     ap.add_argument('--tool-test', action='store_true')
+    ap.add_argument('--budget-padding', type=int, default=0,
+                    help='Synthetic internal spaces for an estimated-versus-exact budget continuation')
     ap.add_argument('--session-id')
     args = ap.parse_args()
-    host = 'dsh.aiportal.bot.or.th'
-    token = Path('/runtime-tokens/secure').read_text()
+    host = os.environ.get('DSH_TRUSTED_HOST','workspace.example.invalid')
+    token = (Path('/runtime-tokens') / os.environ.get('DSH_ENVIRONMENT','secure')).read_text()
     conn = http.client.HTTPConnection('127.0.0.1', 3080, timeout=40)
     conn.request('GET', '/?token='+token, headers={'Host': host})
     response = conn.getresponse()
@@ -65,6 +68,12 @@ def main():
         expected = 'DSH_TOOL_CONTEXT_OK'
         prompt = ('Use the write tool to create '+str(tool_file)+' containing exactly '+marker+
             '. Use the read tool to read it back. Then reply exactly '+expected+'.')
+    if args.budget_padding:
+        if not args.session_id or args.tool_test or not 1 <= args.budget_padding <= 6000000:
+            raise ValueError('Budget padding requires an existing synthetic session and a bounded space count')
+        expected = 'DSH_BUDGET_FIXED'
+        prompt = ('Synthetic output-budget continuation. Ignore the internal spaces.\n'
+                  + ' '*args.budget_padding + '\nReply exactly '+expected+'. Do not use tools.')
     result = {'sessionId': session, 'inputTarget': args.input_target,
               'inputSha256': hashlib.sha256(prompt.encode()).hexdigest(),
               'inputBytes': len(prompt.encode()), 'expected': expected,
@@ -72,6 +81,9 @@ def main():
                   'repeats': args.input_target//4,
                   'suffix': '\nReply exactly '+expected+'. Do not use tools.'},
               'startUTC': datetime.now(timezone.utc).isoformat()}
+    if args.budget_padding:
+        result['inputSpecification'] = {'prefix':'Synthetic output-budget continuation. Ignore the internal spaces.\n',
+            'paddingSpaces':args.budget_padding,'suffix':'\nReply exactly '+expected+'. Do not use tools.'}
     catalog = rpc('session/modelCatalog', {})
     result['catalogModels'] = [m for g in catalog['groups'] for m in g['models']
         if m['id'] in ['deepseek-v4.1-flash', 'deepseek-flash']]

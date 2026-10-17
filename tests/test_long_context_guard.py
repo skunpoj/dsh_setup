@@ -4,6 +4,7 @@ import os
 import sys
 import types
 import unittest
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -14,7 +15,8 @@ class Rejected(Exception):
         super().__init__(detail)
 
 
-def load_guard():
+def load_guard(lease_directory):
+    lease_directory = Path(lease_directory).as_posix()
     logger = types.ModuleType('litellm.integrations.custom_logger')
     logger.CustomLogger = object
     api = types.ModuleType('fastapi')
@@ -26,13 +28,15 @@ def load_guard():
         modules['fcntl'] = types.SimpleNamespace()
     scope = {}
     with patch.dict(sys.modules, modules):
-        exec((Path(__file__).parents[1]/'scripts/long_context_callbacks.py').read_text(), scope)
+        exec((Path(__file__).parents[1]/'scripts/long_context_callbacks.py').read_text(encoding='utf-8').replace('/tmp/dsh-long-admission', lease_directory), scope)
     return scope
 
 
 class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
-        self.scope = load_guard()
+        lease = tempfile.TemporaryDirectory(prefix='dsh-test-admission-')
+        self.addCleanup(lease.cleanup)
+        self.scope = load_guard(lease.name)
         self.guard = self.scope['LongContextGuard']()
         self.count = 1000
         self.scope['count_request'] = lambda _: {'count': self.count, 'tokens': []}

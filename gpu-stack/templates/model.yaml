@@ -7,6 +7,7 @@ metadata:
     app: local-model
 spec:
   replicas: 1
+  progressDeadlineSeconds: 2100
   strategy:
     type: Recreate
   selector:

@@ -274,5 +274,73 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.scope['interactive'].active, 0)
 
 
+
+
+class ForegroundRaceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_new_foreground_entry_invalidates_previous_idle_wakeup(self):
+        scope, _ = load()
+        lane = scope['InteractiveLane'](maximum_pause=.5)
+        lane.enter()
+        waiting = asyncio.create_task(lane.wait_turn())
+        await asyncio.sleep(.01)
+        lane.leave()
+        lane.enter()
+        await asyncio.sleep(.02)
+        self.assertFalse(waiting.done())
+        lane.leave()
+        await asyncio.wait_for(waiting, .1)
+
+    async def test_token_counting_is_protected_and_failure_releases_lane(self):
+        scope, _ = load()
+        called = []
+        def count(*args):
+            called.append(scope['interactive'].active)
+            raise RuntimeError('tokenizer unavailable')
+        scope['count_request'] = count
+        request = FakeRequest({'model':'deepseek-v4.1-flash','messages':[{'role':'user','content':'test'}]})
+        with self.assertRaises(Rejected):
+            await scope['completion'](request)
+        self.assertEqual(called, [1])
+        self.assertEqual(scope['interactive'].active, 0)
+
+
+class TimingTests(unittest.TestCase):
+    def setUp(self):
+        self.scope, _ = load()
+        self.now = 10.0
+        self.scope['_timing_clock'] = lambda: self.now
+        self.trace = self.scope['RequestTiming']()
+
+    def test_split_sse_and_gaps_record_numbers_without_content(self):
+        wire = b'data: {"choices":[{"delta":{"content":"DO_NOT_LOG"}}]}\n\n'
+        self.trace.packet(wire[:17])
+        self.now += 1.25
+        self.trace.packet(wire[17:])
+        self.trace.packet(b'data: {"usage":{"completion_tokens":119}}\n\n')
+        with patch('builtins.print') as emit:
+            self.trace.finish()
+            self.trace.finish()
+        self.assertEqual(emit.call_count, 1)
+        serialized = emit.call_args.args[0]
+        self.assertNotIn('DO_NOT_LOG', serialized)
+        result = json.loads(serialized)
+        self.assertEqual(result['outputTokens'], 119)
+        self.assertEqual(result['maxUpstreamGapMs'], 1250)
+        self.assertEqual(result['upstreamGapsOver500ms'], 1)
+        self.assertEqual(result['firstUpstreamDeltaMs'], 1250)
+
+    def test_oversized_or_malformed_packets_do_not_break_delivery_observer(self):
+        self.trace.packet(b'x'*(128*1024+1))
+        self.assertEqual(self.trace.pending, b'')
+        self.assertTrue(self.trace.record['timingParserOversize'])
+        self.trace.packet(b'data: {invalid}\n')
+        self.trace.packet(b'data: {"choices":null}\n')
+        self.assertNotIn('firstUpstreamDeltaMs', self.trace.record)
+
+    def test_failed_diagnostic_sink_does_not_raise_during_cleanup(self):
+        with patch('builtins.print', side_effect=BrokenPipeError):
+            self.trace.finish()
+        self.assertTrue(self.trace.finished)
+
 if __name__ == '__main__':
     unittest.main()

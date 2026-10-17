@@ -1,8 +1,14 @@
 # Shared LLM — 1M Setup, Performance and Operational Limits
 
+## Fresh GPU startup and bounded 1M acceptance — 17 October 2026
+
+**Fresh existing-node GPU acceptance, 17 October 2026:** a newly started model served **1,007,695 actual DSH input tokens**, returning the complete expected answer in **20m48s** with zero retries and no GPU restart. **80/80** bounded ordinary API replies passed; **6/6 actual DSH replies during near-1M preparation** completed in **6.61–7.14s**, with approximately **23–37 stream tokens/sec** per reply. A 16-client API burst passed in **5.51–10.08s**. One overlapping gateway reload caused five retries during a successful near-1M tool continuation; fresh short-tool and output-budget checks then passed without retries. Cancelled retained-history replays are recorded separately. [Measured results, scope and lessons](FRESH_GPU_ACCEPTANCE_20261017.html).
+
+The fresh model profile uses existing cached weights and the existing authenticated gateway/database; it is not a fresh-cluster, new-download or new-storage acceptance. The cold and mixed-load measurements used the prior gateway source; the later gateway reload and follow-up tests are separately identified in the new report. The model retained its identity/image with zero restarts through the sequence. Startup took about ten minutes. The Deployment progress deadline is now 2,100 seconds, aligned above the startup-probe budget, without another model restart.
+
 ## Portable infrastructure counterpart
 
-The [sanitized GPU/LiteLLM/1M bundle](../gpu-stack/README.md) contains reproducible candidate manifests, actual guarded routing and scheduler sources, private Secret references, prerequisites, qualification and rollback. It omits site endpoints and storage identities. It is a new portable candidate, not a new Production deployment or fresh long-context benchmark. See the [dashboard coverage map](CENTRAL_DASHBOARD_SCOPE.md) for current versus planned telemetry.
+The [sanitized GPU/LiteLLM/1M bundle](../gpu-stack/README.md) contains reproducible candidate manifests, actual guarded routing and scheduler sources, private Secret references, prerequisites, qualification and rollback. It omits site endpoints and storage identities. Its initial qualification was source/template-only; the later existing-node model startup and bounded long-context acceptance are documented above. A complete fresh-cluster installation remains unqualified. See the [dashboard coverage map](CENTRAL_DASHBOARD_SCOPE.md) for current versus planned telemetry.
 
 ## Ordinary DSH responsiveness during near-1M work — 17 October 2026 ICT
 
