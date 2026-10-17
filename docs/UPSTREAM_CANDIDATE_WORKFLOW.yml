@@ -136,3 +136,4 @@ jobs:
           git push origin "$branch"
           printf 'Official package candidate %s passed the upstream target contracts, actual installed-module checks, disposable web startup/RPC/Host/auth checks and local overlay tests.\n\nEvidence: %s/%s/actions/runs/%s\n\nSource tested: %s. No auto-merge or Production deployment. Complete copied-state migration, real browser/WebSocket/tool/compaction, network/user boundaries, restart and rollback gates before release.\n' "$CANDIDATE" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_SHA" > /tmp/pr-body.txt
           gh pr create --head "$branch" --base main --title "Prepare DSH $CANDIDATE candidate" --body-file /tmp/pr-body.txt
+

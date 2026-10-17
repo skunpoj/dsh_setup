@@ -170,5 +170,11 @@
     "downloadMatchesGitHubDigest": true,
     "productionDeployed": false
   },
-  "isolatedCanaryRemoved": true
+  "isolatedCanaryRemoved": true,
+  "workflowFilterQualification": {
+    "runId": 39020636162,
+    "sourceCommit": "38e0e28c532400edbbdc8f1be13ac4968829840d",
+    "conclusion": "success",
+    "freshJobLogsRead": true
+  }
 }
