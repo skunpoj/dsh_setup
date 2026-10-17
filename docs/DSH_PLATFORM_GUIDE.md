@@ -382,14 +382,40 @@ flowchart LR
 | Maximum running requests | `--max-running-requests 16` |
 | Prefill work | `--chunked-prefill-size 1024`, `--max-prefill-tokens 2048` |
 | Mixed scheduling | `--enable-mixed-chunk`, `--prefill-decode-interval 4` |
+| Memory pressure guard | Candidate under qualification: reclaim unused allocator cache below 2 GiB free, with at least 256 MiB reclaimable; at most once per second per worker |
 | Model output budget | At most 8,192 output tokens; final guard reserves another 256 tokens |
 | Clients | DSH/TrueForge declare 1,048,576 total; Claude's current default uses its 1,000,000-token mode |
 
 One expensive request above the managed 128K threshold is admitted at a time; ordinary requests remain concurrent. The running-request cap of 16 applies to workloads that fit the shared memory budget. The final-wire policy has one active long request plus one FIFO waiting position, with up to 1,500 seconds waiting for admission; additional long requests receive a capacity error. Ordinary work bypasses this long-request queue. Streaming keepalive comments permit cancellation before model output; they are not generated answers. Keep a single forwarder process/replica because the admission lease is not distributed.
 
-### Performance example
+### GPU memory optimization under qualification
 
-A measured DSH request used 1,007,704 input tokens and produced 119 output tokens without retries. Its timing illustrates the difference between waiting, preparing context and generating an answer:
+The candidate model runtime reclaims unused PyTorch allocator cache before a model forward when device free memory falls below 2 GiB and at least 256 MiB of cached memory is unused. Reclamation is limited to once per second per worker and is skipped during CUDA graph capture. It preserves live model tensors and the prefix/KV cache.
+
+This keeps the existing four-GPU setup, 1M context, request cap and prefill profile. The guard checks actual reclaimable memory; the trigger is not a reserved 2 GiB partition. Numeric logs record memory before and after each reclamation.
+
+The overlay checks the pinned model-runner source hash before applying the hook. Keep the compatible image and overlay together when upgrading or rolling back.
+
+### Latest GPU and concurrency results
+
+The allocator candidate reclaimed unused memory and completed ordinary replies, but its first near-1M test did not return the expected answer. A fresh cold retest is in progress; the candidate has not completed end-to-end 1M qualification.
+
+| Check | Verified result |
+|---|---|
+| Near-1M DSH attempt | Expected answer incomplete; 2 retries; stopped after 861.35 seconds |
+| Ordinary DSH replies during the attempt | 30/30 correct and persisted; zero retries; 5.05–14.12 seconds |
+| Eight simultaneous ordinary replies | All correct and persisted during long work; 9.11–9.63 seconds |
+| Ordinary request size | 7,674 input / 119 output tokens per request |
+| Ordinary answer-stream rate | 15.09–36.89 output tokens/sec per reply |
+| Eight-client burst answer-stream rate | 24.17–27.70 output tokens/sec per reply |
+| Unused-cache reclamations | 84 recorded events |
+| Mapping-OOM warnings / unexpected model restarts | 0 / 0 during the test |
+
+The preparation failure’s cause is under investigation. Zero mapping-OOM warnings and successful ordinary replies do not by themselves qualify the failed long request. Answer-stream rates exclude queue wait and context preparation.
+
+### Previous qualified 1M timing example
+
+Before the allocator trial, a measured DSH request used 1,007,704 input tokens and produced 119 output tokens without retries. Its timing illustrates the difference between waiting, preparing context and generating an answer:
 
 | Stage | Measured time |
 |---|---|
