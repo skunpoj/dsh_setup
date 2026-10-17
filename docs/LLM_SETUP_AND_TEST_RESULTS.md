@@ -12,7 +12,15 @@ The earlier 128K statements described an incomplete deployment: the backend had 
 
 **Earlier qualification memory evidence:** the preceding-image cold run recorded **1,460 recovering allocator mapping warnings**, with a minimum warning-reported free memory of **9.75 MiB** while attempting a 20 MiB mapping. No checked fatal exception or model restart occurred; ordinary DSH inference still returned correctly after warnings appeared. This passing test does not establish comfortable memory headroom, unrestricted long concurrency or a service-level guarantee. [Final cold acceptance and warning summary](context-evidence/final-managed-1m-acceptance-summary-20261016.json) · [near-1M tool continuation](context-evidence/final-managed-1m-tool-continuation-20261016.json).
 
-## Citation revision — 17 October 2026 ICT
+## Generated narrative accepted without editorial repair — 17 October 2026 ICT
+
+**The unedited DSH response passed the declared source-bound task after three source-backed correction turns in DSH.** It used **1,007,329 input / 3,798 output tokens**, generating a **1,647-word narrative** and a seven-claim evidence ledger. All **15/15** answer/source/quotation checks, **52/52** narrow narrative ranges, **7/7** known source-branch regressions and the separate narrative source review passed. **Zero editorial changes** were applied to the accepted response.
+
+The actual DSH turn took **123.28s** with **0 retries**. **2** exact persisted short DSH replies completed in pairs during admitted work at **2.03–2.03s**. Model identity/restart count stayed unchanged; **4 recovering mapping warnings** still indicate tight memory margin. Cleanup/archive readback and post-cleanup inference passed.
+
+This corrects the previous gap: editorial repairs had fixed the publication while the generated narrative still cited the wrong assertions. That earlier raw response remains failed and preserved. The new checks require both a correct generated ledger and matching narrative evidence; the final source review is bound to the unmodified response hash. This is a targeted regression result, not universal model accuracy or independent security approval. [Latest generated acceptance and full output](REALISTIC_REPOSITORY_REVIEW_20261017.html) · [prior editorial publication](REALISTIC_REPOSITORY_REVIEW_PRIOR_EDITORIAL_20261017.html).
+
+## Prior editorial revision — generated response was not accepted
 
 **Reviewed publication corrected; raw model narrative acceptance NOT passed.** The same frozen 338-block source archive was rerun through the actual DSH agent with a tighter citation contract. It used **993,305 input / 4,236 output tokens** in the cold turn, which still failed quotation/range/length checks. The final response after two same-conversation corrections used **1,001,553 input / 3,108 output tokens** and produced the **1,482-word final report** in **1294.56s**. Literal values: **15/15**; complete answer/source/quotation conditions: **15/15**; narrow narrative ranges: **64/64**. The separate source review's conclusion is: **Raw narrative source acceptance NOT PASSED: two residual assertion/citation misattributions. The published reviewed version corrects these and tightens five further evidence descriptions; raw output remains unchanged.** The original failed-quality result remains preserved below and in the full report.
 

@@ -1,0 +1,227 @@
+{
+  "answers": [
+    {
+      "id": "Q01",
+      "value": "1048576",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 19,
+        "end_line": 21,
+        "quote": "CONTEXT = 1048576"
+      }
+    },
+    {
+      "id": "Q02",
+      "value": "8192",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 19,
+        "end_line": 21,
+        "quote": "OUTPUT = 8192"
+      }
+    },
+    {
+      "id": "Q03",
+      "value": "256",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 19,
+        "end_line": 21,
+        "quote": "RESERVE = 256"
+      }
+    },
+    {
+      "id": "Q04",
+      "value": "131072",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 22,
+        "end_line": 23,
+        "quote": "LONG_THRESHOLD = 131072"
+      }
+    },
+    {
+      "id": "Q05",
+      "value": "300",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 144,
+        "end_line": 153,
+        "quote": "deadline = time.monotonic() + 300"
+      }
+    },
+    {
+      "id": "Q06",
+      "value": "2048",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 26,
+        "end_line": 27,
+        "quote": "WARM_STEP = 2048"
+      }
+    },
+    {
+      "id": "Q07",
+      "value": "2",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 26,
+        "end_line": 27,
+        "quote": "CACHE_PROBE_SECONDS = 2"
+      }
+    },
+    {
+      "id": "Q08",
+      "value": "false",
+      "citation": {
+        "source_id": "S0272",
+        "start_line": 8,
+        "end_line": 12,
+        "quote": "function['strict'] = False"
+      }
+    },
+    {
+      "id": "Q09",
+      "value": "false",
+      "citation": {
+        "source_id": "S0272",
+        "start_line": 4,
+        "end_line": 5,
+        "quote": "data.setdefault('continue_final_message', False)"
+      }
+    },
+    {
+      "id": "Q10",
+      "value": "15",
+      "citation": {
+        "source_id": "S0196",
+        "start_line": 152,
+        "end_line": 153,
+        "quote": "deadline = time.monotonic()+15"
+      }
+    },
+    {
+      "id": "Q11",
+      "value": "0.875",
+      "citation": {
+        "source_id": "S0005",
+        "start_line": 30,
+        "end_line": 32,
+        "quote": "thresholdRatio: context === 1048576 ? 0.875 : 0.75"
+      }
+    },
+    {
+      "id": "Q12",
+      "value": "65536",
+      "citation": {
+        "source_id": "S0005",
+        "start_line": 31,
+        "end_line": 32,
+        "quote": "headroomTokens: 65536, maxTokens: 8192,"
+      }
+    },
+    {
+      "id": "Q13",
+      "value": "19:34",
+      "citation": {
+        "source_id": "S0087",
+        "start_line": 5,
+        "end_line": 5,
+        "quote": "returned the exact persisted answer at **1,007,689 input tokens in 19m34s**"
+      }
+    },
+    {
+      "id": "Q14",
+      "value": "sandbox_da_agent_public_data",
+      "citation": {
+        "source_id": "S0087",
+        "start_line": 7,
+        "end_line": 7,
+        "quote": "Use `da-agent-system-user` limited to read/write in `sandbox_da_agent_public_data`"
+      }
+    },
+    {
+      "id": "Q15",
+      "value": "rejected",
+      "citation": {
+        "source_id": "S0196",
+        "start_line": 104,
+        "end_line": 105,
+        "quote": "raise HTTPException(400, 'Above 128K, this warming route supports text and tools; reduce multimodal input.')"
+      }
+    }
+  ],
+  "claim_checks": [
+    {
+      "id": "ROLLBACK_HASH",
+      "claim": "The promote_1m_runtimes restore branch verifies a saved profile's SHA-256 against its stored digest before writing it back and asserting the restored bytes equal the original.",
+      "citation": {
+        "source_id": "S0010",
+        "start_line": 45,
+        "end_line": 51,
+        "quote": "if root.exists():\n original=(root/'profile.yml').read_bytes()\n assert hashlib.sha256(original).hexdigest()==(root/'sha256').read_text()"
+      }
+    },
+    {
+      "id": "MOUNT_PRESERVATION",
+      "claim": "The candidate builder asserts the new pod's volumes and the first container's volumeMounts are identical to the original specification.",
+      "citation": {
+        "source_id": "S0010",
+        "start_line": 70,
+        "end_line": 71,
+        "quote": "assert pod['volumes']==original['spec']['template']['spec']['volumes']\n    assert c['volumeMounts']==original['spec']['template']['spec']['containers'][0]['volumeMounts']"
+      }
+    },
+    {
+      "id": "CONCURRENT_EDIT_REFUSAL",
+      "claim": "During deployment the controller re-reads the live deployment and raises 'Concurrent change; refuse' if its spec no longer matches the captured original spec.",
+      "citation": {
+        "source_id": "S0010",
+        "start_line": 114,
+        "end_line": 115,
+        "quote": "current=json.loads(kube('get','deploy',name,'-o','json'))\n        if current['spec']!=original['spec']:raise RuntimeError('Concurrent change; refuse '+name)"
+      }
+    },
+    {
+      "id": "SIDECAR_INSERTION",
+      "claim": "The candidate builder appends the context-forwarder sidecar object to the pod's container list.",
+      "citation": {
+        "source_id": "S0304",
+        "start_line": 100,
+        "end_line": 100,
+        "quote": "pod['containers'].append(sidecar)"
+      }
+    },
+    {
+      "id": "TOKENIZER_CALL",
+      "claim": "count_request issues an HTTP POST of the JSON payload to the backend /v1/tokenize endpoint and parses the returned JSON.",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 44,
+        "end_line": 48,
+        "quote": "req = urllib.request.Request(TOKENIZER, data=json.dumps(payload).encode(),\n        headers={'Content-Type': 'application/json'})"
+      }
+    },
+    {
+      "id": "TRANSPORT_SCOPE",
+      "claim": "The managed-dispatcher fixture keeps other origins unchanged while it extends the managed origin's header and body timeouts to one hour.",
+      "citation": {
+        "source_id": "S0357",
+        "start_line": 11,
+        "end_line": 13,
+        "quote": "for(const origin of ['https://github.com','http://litellm.llm.svc.cluster.local:4001','http://unrelated.internal:4000']){\n  const options={origin,headersTimeout:500};dispatcher.dispatch(options,handler);assert.equal(seen.at(-1)[0],options);\n }"
+      }
+    },
+    {
+      "id": "CACHE_PROBE_ABORT",
+      "claim": "When the bounded warm request times out and the abort request is acknowledged, warm_prefix raises CacheProbeMiss rather than a generic error.",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 91,
+        "end_line": 93,
+        "quote": "if isinstance(error, TimeoutError):\n            if aborted:\n                raise CacheProbeMiss('Cold prefix probe cancelled') from error"
+      }
+    }
+  ],
+  "report_markdown": "# DSH Long-Context Route: Implementation-to-Claim Alignment\n\n## Purpose and evidence discipline\n\nThis report states what the frozen CURRENT checkout implements and confirms, and it separates four categories of claim: frozen implementation/configuration, recorded test observation, historical checkpoint, and recommendation. CURRENT means the frozen repository version at this checkout; it does not establish fresh deployed behavior, and nothing here was executed against Production. The eight-token sentinel strings used in probes confirm exactness of a reply, not accuracy of a model, and are not benchmarks. No SLA, guarantee, or two-full-1M acceptance is asserted, because the sources do not establish one.\n\nFor a 1M-context deployment the DSH callback declares `CONTEXT = 1048576`, an `OUTPUT = 8192` ceiling and a `RESERVE = 256` safety margin, with a `LONG_THRESHOLD = 131072` that separates ordinary from long admission [S0308:L19-L23]. The executable definitions, not the prose, are the authority here: the threshold is defined on the line that assigns it, and its use in the admission hook is a separate line.\n\n## Execution path and default alignment\n\nA request enters LiteLLM, is normalized for prompt-affecting conditioning defaults, is counted at the final wire, and only then reaches SGLang. `normalize_conditioning` materializes `continue_final_message` as Boolean false via `setdefault`, and sets an omitted function `strict` to Boolean false [S0272:L4-L12]. Those two settings mattered because the tokenizer materialized different defaults than chat inference: an earlier tool request counted 7,689 tokens while inference processed 7,561, so warming one token sequence could not guarantee a reusable prefix for the other [S0346:L130-L130]. The corrected final-payload match is a recorded observation, and the nine forwarder regression tests are separately labelled isolated regression tests, not a live reacceptance [S0346:L134-L136].\n\nThe user's own runtime guidance shows how the 1M route differs from the historical 128K path: all 20 main runtime profiles were read back at 1,048,576 total tokens with 8,192 output, and one long request is admitted while ordinary short work remains concurrent [S0087:L5-L5]. The callback also rejects endpoint or provider override attempts outright [S0367:L13-L14], and the loopback guard counts with the running backend tokenizer and fails closed when counting is unavailable [S0196:L88-L94]. This is configuration and executable behavior in the frozen sources, not proof of live capacity.\n\n## Admission versus ordinary concurrency\n\nLong-request admission is a single process-shared lease taken only when counted input plus bounded output exceeds 131,072 [S0308:L198-L208]. Ordinary requests do not take that lease, so they bypass it rather than waiting on it, and the wait deadline for a blocked long request is 300 seconds before a retryable 429 is raised [S0308:L144-L153]. The header states plainly that a private repository cannot be shared across independent replicas, since one lock in one replica would not enforce a global long-request limit [S0308:L3-L4].\n\nA recorded live admission check used a deliberately held admission lock rather than a fabricated GPU workload: the real authenticated gateway returned HTTP 429 after 300.36 seconds while ordinary DSH replies continued, then lease release allowed a 140,034-input-token request and oversized input returned 400 [S0346:L24-L26]. That validates admission behavior; the source explicitly notes it is not two actual near-1M GPU requests [S0346:L32-L32]. The backend running-request ceiling of 16 is an admission ceiling, not a promise that 16 maximum-length requests fit [S0346:L50-L50].\n\n## Cold, cached and conditional latency\n\nCold prefill and cached continuation are different mechanisms and should not be quoted interchangeably. On a cold miss the guard probes for a cached prefix for two bounded seconds, aborts its own probe request when that fails, and then prepares the long prefix in 2,048-token extensions with yields between them, discarding each intermediate one-token generation [S0308:L26-L27]. When the probe request is cancelled and the backend acknowledges the abort, the timeout is converted to a typed `CacheProbeMiss` rather than a generic error [S0308:L91-L93]; the fixture's own-origin abort keeps IDs server-side and never accepts a client-chosen lease identity [S0308:L194-L197].\n\nOn the transport path, the forwarder allows the long, non-streaming case to be assembled from an internal stream and imposes a 15-second first-output deadline for that guarded handoff [S0196:L152-L153]. If the deadline lapses, the stream emits a `context_cache_handoff_failed` error and the cleanup releases the lease; the recorded test separates that case from the earlier retry path [S0279:L175-L183].\n\nThe nearest recorded timings are bounded samples, not an SLA: a cold DSH run of 1,007,689 input tokens returned the exact persisted answer in 19m34s with zero retries [S0087:L5-L5], and a write/read continuation at 1,008,103 input tokens passed in 20.16 seconds [S0087:L5-L5]. The pre-rollout review retains the earlier near-1M arithmetic: a 24,047-token synthetic streamed in 4.987 seconds while three short replies finished in 0.466\u20130.588 seconds [S0346:L17-L17]. Commercial latency cannot be inferred from any of these numbers.\n\n## Compaction and the memory surface\n\nThe CURRENT 1M runtime policy selects a compaction `thresholdRatio` of 0.875 and a `headroomTokens` value of 65536, while the 128K branch keeps 0.75 [S0005:L30-L32]. The compaction expression itself is `floor(min(context \u00d7 ratio, context \u2212 reserved output \u2212 headroom))`, so the two clauses are both live [S0346:L195-L199]. The handler itself distinguishes container host RAM limits from GPU memory: the deployment requests 512Gi host memory but describes the engram tables as host-resident, while the backend is configured for 1,048,576 context with a static memory fraction of 0.90 [S0280:L133-L141][S0280:L87-L98].\n\nMemory guidance in the recorded trials is explicitly a warning, not headroom: the preceding-image cold run logged 1,460 recovering allocator mapping warnings with a minimum reported free memory of 9.75 MiB while attempting a 20 MiB mapping [S0346:L11-L11]. A later profile with the new guard is still described as having thin margins, and the qualified operating boundary admits only one request above 128K at a time with two full simultaneous 1M requests not established [S0346:L48-L50]. That distinction between container host RAM/resource limits and GPU KV/attention workspace must be preserved: the deployment's memory request is a Kubernetes resource field, whereas the GPU warnings are allocator behavior inside the model process.\n\n## Rollback, mount preservation and refusal to overwrite\n\nThe rollout controller backs up the profile inside each private PVC before startup changes it, and its restoration path verifies the saved SHA-256 and asserts the written bytes equal the retained original [S0010:L32-L54][S0010:L45-L51]. The candidate builder also asserts that the pod volumes and the container volumeMounts equal the original specification, so a rollout cannot silently repoint storage [S0010:L70-L71;L60-L72]. Before patching, the controller re-reads the deployment and refuses to proceed if the live spec no longer equals the captured original spec [S0010:L114-L115]. On failure, the exception path restores the original specification and waits for availability, but its own comment limits that boundary: it does not overwrite newer workspace or history data [S0289:L56-L56].\n\nA separate managed-transport rollout adds the context-transport overlay as an extra volume and mount, checks the loaded hook hash, and rolls back by removing the overlay spec; the test asserts that unrelated volumes, mounts and env entries remain at their original positions [S0227:L75-L87]. Smaller-surface changes follow the same pattern: the retry-policy rollout applies an immutable ConfigMap and restores the previous deployment on failure [S0354:L54-L58].\n\n## Sidecar insertion, transport scope and prior-test limits\n\nThe 1M proxy candidate appends the context-forwarder sidecar to the pod container list after stripping any prior sidecar of the same name [S0304:L47-L50][S0304:L100-L100]. The same builder keeps the existing auth/database Secret references and unrelated routes, changes only the canonical DeepSeek routes' `api_base` to the loopback guard, and sets `use_chat_completions_url_for_anthropic_messages` on the litellm_settings block [S0304:L51-L68].\n\nFor transport, the scoped dispatcher fixture confirms that only the operator-managed origin receives the one-hour header/body waits, while other origins keep their caller-supplied options unchanged; the underlying code deliberately reports that gateway and DSH ports are never app targets and that only user app ports are forwarded [S0357:L11-L13][S0240:L214-L218]. A wider statement that all egress is blocked would exceed the evidence: the egress NetworkPolicy is one declared rule set, and policies combine additively, so the excerpt establishes its own declared destinations rather than the complete effective egress boundary [S0286:L7-L53][S0286:L84-L99].\n\nHistorical checkpoints complicate any simple narrative. Older revisions and README copies still asserted a 128K user guardrail and near-98,304-token compaction start for the DeepSeek aliases [S0262:L206-L209], while the older Upstream Sync note also states the 262K OOM history and the eventual 1,000,015-token backend test [S0260:L5-L7]. Those are historical checkpoints, deliberately preserved, and the CURRENT sources now declare 1,048,576 for the same aliases [S0346:L115-L115]. The earlier successful near-1M backend test belonged to a previous scheduler profile and is not fresh proof of end-to-end DSH 1M, two simultaneous 1M sessions or near-1M fairness [S0333:L72-L72]. Prior tests also overstated coverage: the 105-response stress campaign ran at short and mixed sizes and its 16-request throughput must not be represented as 16 concurrent 1M capability [S0346:L97-L100].\n\n## Recommended verification and rollback workflow\n\nRecommended practice, distinct from anything recorded here, is to keep the four categories of evidence separate at every step. First, validate the current executable definitions in the frozen sources \u2014 the callback constants, the normalization defaults, the admission threshold and wait, the warming step and probe, and the handoff deadline \u2014 without changing any live runtime. Second, reproduce the frozen regression suites in a disposal namespace, including the forwarder alignment tests and the admission-retry router fixture, and record whether they pass [S0346:L136-L136]. Third, if a live check is authorised, use only the named disposable probe pods, capture the raw tokens from the running backend tokenizer, and preserve the exact evidence file rather than re-using an older pass [S0346:L104-L106]. Fourth, retain a compatible old image and configuration with the profile backup in the private PVC, and confirm on rollback that the saved profile hash matches before the old image starts [S0010:L45-L51]. Finally, re-read back the running image, mounted configuration and a small real client turn, because configuration, local tests, actual deployment and user-facing behavior are distinct evidence categories [S0289:L54-L56]. Do not label the route as delivered end-to-end 1M until those gates pass, and do not present any single long request as evidence that two maximum-length requests fit."
+}

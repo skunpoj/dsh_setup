@@ -1,0 +1,30 @@
+{
+  "assistantTextSHA256": "23d2d1adc4fd8cc1d957407d2381f4fb4d349655cdf1170e55041528fe2c88fe",
+  "completed": true,
+  "allMaterialClaimsReviewed": true,
+  "editorialChanges": 0,
+  "uneditedModelOutputVerified": true,
+  "findings": [
+    {
+      "id": "C1",
+      "issue": "Replica/distributed-lock note points to S0308:L50, a debug comment, instead of recorded guide S0289:L50."
+    },
+    {
+      "id": "C2",
+      "issue": "Release-hook citation S0308:L211-L226 exceeds 12 lines and its prose implies a universal lifetime guarantee beyond source inspection."
+    },
+    {
+      "id": "C3",
+      "issue": "S0260:L5-L7 discusses security scope, not the historical OOM/backend trial attributed to it."
+    },
+    {
+      "id": "C4",
+      "issue": "Threshold condition/server UUID generation, typed handoff error and warm request-ID creation require their actual branches in addition to nearby constants/deadline references."
+    },
+    {
+      "id": "C5",
+      "issue": "The held-lock-test limitation is more directly supported by S0346:L102 than the referenced L32; callback execution order is not established by the cited guard method alone."
+    }
+  ],
+  "conclusion": "Not accepted despite 15/15 answer checks and 7/7 known branch regressions; minimal DSH citation correction requested. No raw text edited."
+}

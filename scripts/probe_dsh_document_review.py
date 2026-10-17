@@ -41,11 +41,13 @@ def main():
     session = a.session_id or rpc('session/create', {'request': {'cwd': '/workspace'}})['sessionId']
     if not a.session_id:
         rpc('session/rename', {'request': {'sessionId': session, 'title': 'Repository accuracy acceptance - disposable'}})
-    baseline = rpc('session/projections', {'request': {'sessionId': session}})['asOfSeq']
+    baseline_projection = rpc('session/projections', {'request': {'sessionId': session}})
+    baseline = baseline_projection['asOfSeq']
     record = {'startUTC': datetime.now(timezone.utc).isoformat(), 'sessionId': session,
         'promptSHA256': hashlib.sha256(text.encode()).hexdigest(), 'promptBytes': len(text.encode()),
         'status': 'running', 'scope': 'Actual DSH agent, frozen repository sources, isolated ephemeral state'}
     record['continuedSession'] = bool(a.session_id)
+    record['baselineSessionStats'] = baseline_projection['values'].get('sessionStats', {})
     start = time.monotonic()
 
     def save():

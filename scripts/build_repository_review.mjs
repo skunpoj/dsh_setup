@@ -10,12 +10,13 @@ marked.use({renderer: {
   html({text}) { return escape(text); },
   image({text}) { return `<span>${escape(text || 'Image omitted')}</span>`; },
   link({href, text}) {
-    if (!/^(https?:\/\/|#)/.test(href)) return escape(text);
+    if (href !== 'REALISTIC_REPOSITORY_REVIEW_PRIOR_EDITORIAL_20261017.html' && !/^(https?:\/\/|#)/.test(href)) return escape(text);
     return `<a href="${escape(href)}" rel="noopener noreferrer">${escape(text)}</a>`;
   }
 }});
 const source = fs.readFileSync(path.join(root, 'docs/REALISTIC_REPOSITORY_REVIEW_20261017.md'), 'utf8')
   .replace(/\]\((?!https?:|#)([^)]+)\)/g, (_, name) =>
+    name === 'REALISTIC_REPOSITORY_REVIEW_PRIOR_EDITORIAL_20261017.html' ? `](${name})` :
     `](https://github.com/skunpoj/dsh_setup/blob/main/docs/${name})`);
 const shell = fs.readFileSync(path.join(root, 'docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html'), 'utf8');
 const head = shell.slice(0, shell.indexOf('<body>')).replace(/<title>.*?<\/title>/,

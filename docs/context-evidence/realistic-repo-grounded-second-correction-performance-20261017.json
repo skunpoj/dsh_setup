@@ -1,0 +1,132 @@
+{
+  "startUTC": "2026-10-17T03:47:43.078282+00:00",
+  "finishUTC": "2026-10-17T03:49:46.357082+00:00",
+  "actualClient": "DSH agent HTTP RPC on disposable current-image runtime; not Claude Code or TrueForge",
+  "usage": {
+    "inputTokens": 1003337,
+    "outputTokens": 3784,
+    "totalTokens": 1007121
+  },
+  "totalElapsedSeconds": 123.2788,
+  "clientRetryEvents": 0,
+  "retryCodes": [],
+  "persistedPromptMatches": true,
+  "promptSHA256": "0878c4dea5635e8170a4225a1a0ec7c0c19ad8bc9a946486a73a9cf76c175e5a",
+  "warming": {
+    "event": "dsh_final_wire_warmed",
+    "steps": 1,
+    "tokens": 1003337,
+    "mode": "bounded-cache-probe",
+    "cachedTokens": 1003008,
+    "seconds": 1.347,
+    "probeSeconds": 2,
+    "completionUTC": "2026-10-17T10:47:47.139503+07:00",
+    "startUTC": "2026-10-17T10:47:45.792503+07:00"
+  },
+  "preWarmingElapsedSeconds": 2.714221,
+  "firstOutputUTC": "2026-10-17T03:47:49.683000+00:00",
+  "sessionStats": {
+    "turns": 1,
+    "steps": 1,
+    "llmMs": 122775,
+    "toolMs": 0,
+    "ttftMs": 6547,
+    "ttftSteps": 1,
+    "decodeMs": 116228,
+    "decodeTokens": 3784
+  },
+  "sessionStatsCumulative": {
+    "turns": 3,
+    "steps": 3,
+    "llmMs": 2773773,
+    "toolMs": 0,
+    "ttftMs": 2413351,
+    "ttftSteps": 3,
+    "decodeMs": 360422,
+    "decodeTokens": 11622
+  },
+  "sessionStatsBaseline": {
+    "turns": 2,
+    "steps": 2,
+    "llmMs": 2650998,
+    "toolMs": 0,
+    "ttftMs": 2406804,
+    "ttftSteps": 2,
+    "decodeMs": 244194,
+    "decodeTokens": 7838
+  },
+  "sessionStatsScope": "Current turn; cumulative counters minus verified same-session baseline",
+  "shortReplies": [
+    {
+      "startUTC": "2026-10-17T03:48:20.260826+00:00",
+      "seconds": 2.027,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": true,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T03:48:20.224911+00:00",
+      "seconds": 2.033,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": true,
+      "overlapWithinLong": true
+    }
+  ],
+  "strictlyOverlappingAdmittedShortReplies": 2,
+  "admittedShortMinimumSeconds": 2.027,
+  "admittedShortMaximumSeconds": 2.033,
+  "generationShortReplies": 2,
+  "modelBefore": [
+    {
+      "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+      "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+      "containers": [
+        {
+          "restartCount": 0,
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+        }
+      ]
+    }
+  ],
+  "modelAfter": [
+    {
+      "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+      "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+      "containers": [
+        {
+          "restartCount": 0,
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+        }
+      ]
+    }
+  ],
+  "modelUnchanged": true,
+  "sharedModelLogSignaturesDuringAdmittedPhase": {
+    "CUDA out of memory": 0,
+    "OutOfMemoryError": 0,
+    "illegal memory access": 0,
+    "Scheduler exception": 0,
+    "memory mapping failed with OOM": 8
+  },
+  "minimumSampledFreeMiB": 1112,
+  "warmingLifecycleEvents": [
+    {
+      "event": "dsh_final_wire_warmed",
+      "steps": 1,
+      "tokens": 1003337,
+      "mode": "bounded-cache-probe",
+      "cachedTokens": 1003008,
+      "seconds": 1.347,
+      "probeSeconds": 2,
+      "completionUTC": "2026-10-17T10:47:47.139503+07:00",
+      "startUTC": "2026-10-17T10:47:45.792503+07:00"
+    }
+  ],
+  "interpretationLimitations": "Warm-phase attribution is correlated by exact final input count and timestamps, not a globally unique request ID. Shared-model warnings are time-window observations. Idle metric samples alone do not establish admission availability."
+}

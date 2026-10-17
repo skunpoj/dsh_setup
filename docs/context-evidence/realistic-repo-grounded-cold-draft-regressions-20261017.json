@@ -1,0 +1,94 @@
+{
+  "passed": false,
+  "checks": [
+    {
+      "id": "ROLLBACK_HASH",
+      "sourceId": "S0010",
+      "requiredLines": [
+        48,
+        50,
+        51
+      ],
+      "exactShortQuote": false,
+      "actualBranchCited": true,
+      "actualBranchCoveredInNarrative": true,
+      "passed": false
+    },
+    {
+      "id": "MOUNT_PRESERVATION",
+      "sourceId": "S0010",
+      "requiredLines": [
+        70,
+        71
+      ],
+      "exactShortQuote": false,
+      "actualBranchCited": true,
+      "actualBranchCoveredInNarrative": false,
+      "passed": false
+    },
+    {
+      "id": "CONCURRENT_EDIT_REFUSAL",
+      "sourceId": "S0304",
+      "requiredLines": [
+        151,
+        152,
+        153
+      ],
+      "exactShortQuote": false,
+      "actualBranchCited": false,
+      "actualBranchCoveredInNarrative": false,
+      "passed": false
+    },
+    {
+      "id": "SIDECAR_INSERTION",
+      "sourceId": "S0304",
+      "requiredLines": [
+        100
+      ],
+      "exactShortQuote": true,
+      "actualBranchCited": true,
+      "actualBranchCoveredInNarrative": true,
+      "passed": true
+    },
+    {
+      "id": "TOKENIZER_CALL",
+      "sourceId": "S0308",
+      "requiredLines": [
+        44,
+        47
+      ],
+      "exactShortQuote": false,
+      "actualBranchCited": true,
+      "actualBranchCoveredInNarrative": false,
+      "passed": false
+    },
+    {
+      "id": "TRANSPORT_SCOPE",
+      "sourceId": "S0357",
+      "requiredLines": [
+        5,
+        8,
+        11,
+        12
+      ],
+      "exactShortQuote": false,
+      "actualBranchCited": false,
+      "actualBranchCoveredInNarrative": false,
+      "passed": false
+    },
+    {
+      "id": "CACHE_PROBE_ABORT",
+      "sourceId": "S0308",
+      "requiredLines": [
+        91,
+        92,
+        93
+      ],
+      "exactShortQuote": false,
+      "actualBranchCited": true,
+      "actualBranchCoveredInNarrative": true,
+      "passed": false
+    }
+  ],
+  "limitations": "Known source-branch substitutions only. Passing does not establish every narrative claim or general model accuracy."
+}

@@ -1,0 +1,4 @@
+Return the ENTIRE preceding JSON, preserving all fields and wording except these TWO source-review fixes. No other rewrites, no tools:
+1. claim_checks TOKENIZER_CALL.claim must say only: "count_request builds an HTTP Request to the configured tokenizer URL, sends the JSON-encoded payload and parses the response." Keep its existing citation/quote unchanged. Validation is at L62–L67, not the cited L43–L48; do not include validation in this ledger claim.
+2. In report_markdown, the backend running-request ceiling of 16 needs [S0280:L89-L90] for the number, followed separately by [S0346:L50-L50] for the qualified operating-boundary limitation. L50 alone does not contain 16.
+Everything else, including all 15 answers, all seven IDs, exact quotes, other ledger entries, narrative paragraphs and correct citations, must remain unchanged. Return complete valid JSON, not a patch.

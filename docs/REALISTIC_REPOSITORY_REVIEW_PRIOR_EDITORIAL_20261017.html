@@ -1,0 +1,497 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH — Real Repository Accuracy and Long-Output Test</title><style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
+</style></head><body><main><h1>DSH — Real Repository Accuracy and Long-Output Test</h1>
+<h2>Citation revision and realistic rerun — 17 October 2026 ICT</h2>
+<p><strong>Reviewed publication corrected; raw model narrative acceptance NOT passed.</strong> The actual DSH agent processed <strong>993,305 input tokens</strong> and generated <strong>4,236 output tokens</strong>, in the cold revised turn. Its draft still failed acceptance: 13/15 complete answers, five overbroad narrative ranges and 2074 words. After two targeted correction turns, the same DSH conversation used <strong>1,001,553 input / 3,108 output tokens</strong>, returning the <strong>1,482-word final report</strong> in <strong>1294.56s</strong>. The final raw response passed the mechanical checks, but separate source review found two new assertion/citation misattributions. The published narrative below corrects those and tightens five further evidence descriptions in seven explicit editorial changes: <strong>1,535 reviewed words and 71 narrow citations</strong>. These edits are not presented as original model output. This is a targeted correction and regression comparison against the same frozen archive, not a general claim that the model cannot invent citations or unsupported conclusions.</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Original run</th>
+<th>Final response after two corrections</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Literal answer values</td>
+<td>7/15; 15/15 semantically correct on separate review</td>
+<td>15/15 literal</td>
+</tr>
+<tr>
+<td>Complete answer contract</td>
+<td>4/15</td>
+<td>15/15</td>
+</tr>
+<tr>
+<td>Exact short answer quotations</td>
+<td>14/15 verbatim; five over the original 200-character limit</td>
+<td>15/15 exact and within the checker limit</td>
+</tr>
+<tr>
+<td>Requested source and definition line</td>
+<td>13/15</td>
+<td>15/15</td>
+</tr>
+<tr>
+<td>Narrative citation ranges at most 12 lines</td>
+<td>57/69</td>
+<td>64/64</td>
+</tr>
+<tr>
+<td>Requested 1,400–1,800 words</td>
+<td>2,252 words</td>
+<td>1482 words</td>
+</tr>
+<tr>
+<td>Narrative/source acceptance</td>
+<td>Seven recorded source-support findings</td>
+<td>Raw narrative source acceptance NOT PASSED: two residual assertion/citation misattributions. The published reviewed version corrects these and tightens five further evidence descriptions; raw output remains unchanged.</td>
+</tr>
+</tbody></table>
+<h3>What was fixed</h3>
+<p>The review instructions now require bare canonical values, the requested CURRENT source file, actual numeric definitions, and short contiguous verbatim quotations. The narrative must distinguish frozen implementation/configuration, historical checkpoints, recorded observations and recommendations. The instructions explicitly address unsupported exclusivity/absence claims, test comments versus assertions, host RAM versus GPU workspace, historical admission gaps, additive network policies, and private routing versus bootstrap templates.</p>
+<p>The fix is to this review workflow and its acceptance checks; model weights, general DSH instructions and Production inference settings were not changed. The cold revised prompt excluded the answer key and original response. The subsequent correction retained its own cold draft in session history and received failure feedback; it was not an independent one-shot pass. Reference answers were not supplied in either request. Source content, questions and reference answers were unchanged: <strong>239 current blocks plus 99 historical revisions</strong>. CURRENT refers to frozen DSH <code>7f477341a5429c7dfe393dffe89f0cdef2887333</code> and GPU_server <code>81f42dc522f51e9e940ade181b78945984b189ce</code>, not a new live-state assertion. Historical revisions overlap and are not a million independent facts. The cold revised prompt hash is <code>95751f4074b8c7b4d2e4659d07ad95e5d92b5681bdcbaf017fa045b8a9156024</code>; reconstruction from pinned Git objects matched it.</p>
+<p>Mechanical acceptance alone cannot establish claim entailment. The separate source review is bound to raw assistant-text SHA-256 <code>6d17bec94f362edfe579c58ff44157a324d98640d24b82f4a31cb75c8d0877d2</code>. It records the original seven defects individually and reviews the revised narrative&#39;s material claims against the actual cited spans. The publication check requires both steps and the requested word range. It correctly leaves raw narrative acceptance false because the two findings remain in the unmodified raw response. The separate reviewed artifact passed its mechanical/source check after the explicit editorial corrections. This is Codex source review, not external assessor approval.</p>
+<table>
+<thead>
+<tr>
+<th>Original finding</th>
+<th>Revised source review</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>N1</td>
+<td>The universal SLA-nonexistence claim is removed; the report establishes no SLA.</td>
+</tr>
+<tr>
+<td>N2</td>
+<td>The unsupported only-shared-resource statement is absent; no exclusivity is inferred.</td>
+</tr>
+<tr>
+<td>N3</td>
+<td>The original header-test comment is not reused as proof; the new rollback misattribution is separately recorded below.</td>
+</tr>
+<tr>
+<td>N4</td>
+<td>Host-memory request/limit is cited to the actual resource fields and distinguished from GPU workspace.</td>
+</tr>
+<tr>
+<td>N5</td>
+<td>Historical backend-only and later end-to-end DSH results are distinguished; admission is not projected backwards.</td>
+</tr>
+<tr>
+<td>N6</td>
+<td>The unsupported effective-egress conclusion is absent; the report makes no new effective-network assertion.</td>
+</tr>
+<tr>
+<td>N7</td>
+<td>Conditional per-user routing, fallback and missing-map refusal are tied to executable branches.</td>
+</tr>
+</tbody></table>
+<h3>Actual runtime and responsiveness</h3>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th>Revised run</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Actual client</td>
+<td>DSH agent RPC in a disposable current-image runtime; not a manual browser, Claude Code or TrueForge test</td>
+</tr>
+<tr>
+<td>Input / output / total</td>
+<td>993,305 / 4,236 / 997,541 tokens</td>
+</tr>
+<tr>
+<td>Complete DSH turn</td>
+<td>1306.54s (21m46s)</td>
+</tr>
+<tr>
+<td>Before preparation</td>
+<td>3.14s, including request setup/tokenization and other overhead</td>
+</tr>
+<tr>
+<td>Exact-input prefix preparation</td>
+<td>1168.76s; 486 incremental steps</td>
+</tr>
+<tr>
+<td>DSH-reported output phase</td>
+<td>131.702s for 4,236 tokens</td>
+</tr>
+<tr>
+<td>Short replies strictly during admitted processing/generation</td>
+<td>20, exact and persisted, in pairs; 4.03–10.05s</td>
+</tr>
+<tr>
+<td>Short replies during generation</td>
+<td>2, included above</td>
+</tr>
+<tr>
+<td>DSH client retries</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Model identity/restarts</td>
+<td>Same pod and image; 0 restarts before and after</td>
+</tr>
+<tr>
+<td>Shared-model admitted-phase warnings</td>
+<td>1652 recovering mapping-OOM warnings; checked fatal signatures: 0</td>
+</tr>
+<tr>
+<td>Minimum sampled free GPU memory</td>
+<td>22 MiB; not a transient-minimum guarantee</td>
+</tr>
+</tbody></table>
+<p>The long-admission lease and GPU activity were checked before launch. No queue delay is inferred from GPU readiness alone. Timing differences from the first run include its separate occupied-slot/retry delay; this comparison does not establish that revised wording accelerated the model. Long preparation and output generation are distinct phases. Short responses are sampled paired requests, not sustained load or a latency SLA. Memory headroom remains tight; one long request is admitted at a time.</p>
+<p>The first correction reused 997,376 cached tokens: preparation was 2.075s and the complete turn took 93.27s. The final correction used mode <code>chunked-prefix-warming</code>, with 1190.430s preparation. Cache reuse is conditional; retaining the conversation does not guarantee the next turn will reuse its prefix quickly. The final correction&#39;s fallback cause was not established by this test. During that final turn, another 20 short replies completed correctly and persisted at 4.03–8.07s. Its shared-model window recorded 1652 recovering mapping warnings; model identity/restart count remained unchanged.</p>
+<h3>Persistence, cleanup and retained material</h3>
+<p>The actual submitted prompt matched the saved DSH conversation. User histories, ownership and mounted workspaces were not used or changed. The disposable session archive contained 86 files; downloaded bytes and SHA-256 were verified, and archive paths were restricted to session content. The test pod was removed. Ordinary authenticated inference then returned the exact expected response in 0.342s; admission availability and unchanged model identity were checked. Runtime deletion is not presented as a proof of cancellation.</p>
+<p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-cold-draft-response-20261017.json" rel="noopener noreferrer">Cold revised draft</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-cold-draft-checks-20261017.json" rel="noopener noreferrer">its failed checks</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-correction-feedback-20261017.txt" rel="noopener noreferrer">correction feedback</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-correction-performance-20261017.json" rel="noopener noreferrer">correction timing</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-runtime-comparison-20261017.json" rel="noopener noreferrer">runtime comparison</a> preserve the complete distinction between first draft and corrected response. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-first-correction-response-20261017.json" rel="noopener noreferrer">First correction response</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-first-correction-checks-20261017.json" rel="noopener noreferrer">its checks</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-first-correction-feedback-20261017.txt" rel="noopener noreferrer">feedback</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-first-correction-performance-20261017.json" rel="noopener noreferrer">timing</a> are also retained. The first correction passed all fifteen strict answer checks but still had one broad narrative range and only 1,251 words. The original final assistant response is retained without correcting its JSON/text; the narrative displayed below is the explicitly reviewed editorial version. Source citation links resolve to pinned revisions. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-original-assistant-text-20261017.txt" rel="noopener noreferrer">Original raw response</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-exact-checks-20261017.json" rel="noopener noreferrer">exact checks</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-source-review-20261017.json" rel="noopener noreferrer">source review</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-acceptance-20261017.json" rel="noopener noreferrer">combined acceptance</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-performance-20261017.json" rel="noopener noreferrer">performance</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-source-specification-20261017.json" rel="noopener noreferrer">reconstruction specification</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-cleanup-20261017.json" rel="noopener noreferrer">cleanup</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/REPOSITORY_REVIEW_CITATION_PROTOCOL.md" rel="noopener noreferrer">review protocol</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-editorial-corrections-20261017.json" rel="noopener noreferrer">seven exact editorial edits</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-reviewed-artifact-checks-20261017.json" rel="noopener noreferrer">reviewed artifact checks</a> and <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-revision-reviewed-narrative-20261017.md" rel="noopener noreferrer">reviewed Markdown</a> remain available. The original failed-quality result is retained farther below.</p>
+<h2>Reviewed narrative — seven explicit editorial corrections, not raw model output</h2>
+<h3>DSH 1M Context Guard: Execution Path, Admission, Latency and Compaction</h3>
+<h4>1. Scope and evidence classes</h4>
+<p>This review covers the frozen DSH repository at its CURRENT HEAD. Four evidence classes stay distinct: frozen implementation/configuration (executable source and manifests); recorded test observation (captured evidence and assertions); historical checkpoint (dated documents that may contradict CURRENT); and recommendation. CURRENT means the frozen repository version as supplied; it does not establish fresh deployed behavior, and this review changed and tested nothing. No benchmark or SLA is invented here. The gateway budget is defined literally in source: <code>CONTEXT = 1048576</code> <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L19-L19" rel="noopener noreferrer">S0308:L19-L19</a>, <code>OUTPUT = 8192</code> <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L20-L20" rel="noopener noreferrer">S0308:L20-L20</a>, <code>RESERVE = 256</code> <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L21-L21" rel="noopener noreferrer">S0308:L21-L21</a>, and <code>LONG_THRESHOLD = 131072</code> <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L22-L22" rel="noopener noreferrer">S0308:L22-L22</a>. Compaction values come from the runtime-policy configurator, which selects <code>thresholdRatio: context === 1048576 ? 0.875 : 0.75</code> <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/configure_runtime_context.js#L30-L33" rel="noopener noreferrer">S0005:L30-L33</a>. Prose elsewhere describing 128K budgets or a 98,304-token compaction point is a historical checkpoint, not current policy. This review establishes no SLA.</p>
+<h4>2. Execution path and the warming mismatch</h4>
+<p>The frozen path is authenticated user to private DSH runtime, then internal LiteLLM, then the two canonical DeepSeek aliases through a loopback-only guard and forwarder before SGLang <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L110-L110" rel="noopener noreferrer">S0346:L110-L110</a>. Promotion rewrites canonical routes to the loopback guard <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L54-L60" rel="noopener noreferrer">S0304:L54-L60</a> and defines the loopback <code>context-forwarder</code> sidecar <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L87-L89" rel="noopener noreferrer">S0304:L87-L89</a> and appends it to the pod container list <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L100-L100" rel="noopener noreferrer">S0304:L100-L100</a>. The alias guard rejects endpoint overrides and clamps output with <code>data[&#39;max_tokens&#39;] = min([8192]+limits)</code> <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/gateway_output_guard.py#L13-L21" rel="noopener noreferrer">S0367:L13-L21</a>. The admission guard tokenizes through the running backend, uses the configured tokenizer endpoint <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L43-L48" rel="noopener noreferrer">S0308:L43-L48</a>, validates the returned model limit and exact token IDs <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L62-L68" rel="noopener noreferrer">S0308:L62-L68</a>, and refuses dispatch when counting fails <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L180-L184" rel="noopener noreferrer">S0308:L180-L184</a>. The forwarder counts the final envelope and returns 503 if budgeting is unavailable rather than estimating <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/context_forwarder.py#L88-L91" rel="noopener noreferrer">S0196:L88-L91</a>.</p>
+<p>The recorded cause of the warming mismatch was a defaulting divergence: the tokenizer materialized an omitted tool default differently from inference, so a request counted 7,689 tokens but inference processed 7,561 <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L130-L130" rel="noopener noreferrer">S0346:L130-L130</a>. CURRENT normalizes both: <code>continue_final_message</code> defaults to false <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/context_envelope.py#L5-L5" rel="noopener noreferrer">S0272:L5-L5</a> and the omitted function <code>strict</code> is materialized as false <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/context_envelope.py#L12-L12" rel="noopener noreferrer">S0272:L12-L12</a>. The forwarder applies that normalization before counting <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/context_forwarder.py#L85-L85" rel="noopener noreferrer">S0196:L85-L85</a>; the callback counts the final envelope while preserving messages, tools and template options <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L34-L42" rel="noopener noreferrer">S0308:L34-L42</a>. Explicit caller values are preserved <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/tests/test_context_forwarder.py#L167-L173" rel="noopener noreferrer">S0279:L167-L173</a>.</p>
+<h4>3. Long-request admission versus ordinary concurrency</h4>
+<p>Admission is not a global concurrency limit. A request is long when counted input plus clamped output exceeds <code>LONG_THRESHOLD</code> <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L198-L198" rel="noopener noreferrer">S0308:L198-L198</a>. Only long requests take the shared lease; ordinary requests do not wait on it <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L1-L5" rel="noopener noreferrer">S0308:L1-L5</a>. The lease is a non-blocking <code>flock</code> with a 300-second deadline <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L144-L148" rel="noopener noreferrer">S0308:L144-L148</a>; on exhaustion the code raises an HTTP 429 carrying a retry hint <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L150-L154" rel="noopener noreferrer">S0308:L150-L154</a>. The recorded admission test held that lease deliberately and observed a real 429 while ordinary DSH replies continued, with release then allowing a 140,034-token request <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L24-L26" rel="noopener noreferrer">S0346:L24-L26</a>. Retry policy targets only the two loopback-guarded groups <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L19-L28" rel="noopener noreferrer">S0304:L19-L28</a>. Handover uses one replica and Recreate <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L44-L45" rel="noopener noreferrer">S0304:L44-L45</a>: that is an intended single-writer arrangement, not proof that overlap is impossible under all circumstances, and the record notes that multiple replicas would require distributed ownership <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/END_TO_END_1M_ROLLOUT_20261016.md#L50-L50" rel="noopener noreferrer">S0289:L50-L50</a>. Ordinary concurrency is bounded by backend arguments such as the running-request ceiling <a href="https://azuredevops.bot.or.th/BOTCollection/da_Team_DA_Board/_git/GPU_server?path=%2Fdeployment%2Fvllm%2F04-vllm-deepseek-v4-1-flash.yaml&amp;version=GC81f42dc522f51e9e940ade181b78945984b189ce&amp;line=89&amp;lineEnd=91&amp;_a=contents" rel="noopener noreferrer">S0280:L89-L90</a>.</p>
+<h4>4. Cold versus cached latency, and memory</h4>
+<p>Cold, cached and decode measurements are different quantities. The recorded cold DSH near-1M completion is 1,007,689 input tokens in 1,170.08 seconds with zero retries and no restart <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L152-L152" rel="noopener noreferrer">S0346:L152-L152</a>, and the CURRENT README records the 19m34s cold reply <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/README.md#L5-L5" rel="noopener noreferrer">S0087:L5-L5</a>. The same-session tool continuation at 1,008,103 input tokens passed in 20.16 seconds <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/README.md#L5-L5" rel="noopener noreferrer">S0087:L5-L5</a>. Cached continuation is distinct: a recorded 257,738-token follow-up returned in 2.04 seconds, labelled hot-prefix reuse <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L151-L151" rel="noopener noreferrer">S0346:L151-L151</a>. Recorded mixed-load qualification shows short replies completing in 0.477-0.613 seconds during a 120,049-token request that itself took 35.67 seconds <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L46-L46" rel="noopener noreferrer">S0346:L46-L46</a>. The recorded current-image window shows 1,132 recovering allocator warnings and a minimum warning-reported free memory of 1.75 MiB <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L48-L48" rel="noopener noreferrer">S0346:L48-L48</a>.</p>
+<p>The recovery path is layered. A bounded probe (<code>CACHE_PROBE_SECONDS = 2</code>) <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L27-L27" rel="noopener noreferrer">S0308:L27-L27</a> attempts to reuse a continuing conversation&#39;s prefix in one short call; an acknowledged timeout abort becomes <code>CacheProbeMiss</code> <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L91-L95" rel="noopener noreferrer">S0308:L91-L95</a>, which the warming routine catches before entering incremental preparation <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L115-L126" rel="noopener noreferrer">S0308:L115-L126</a>. Incremental warming then extends the prefix in <code>WARM_STEP = 2048</code> token steps <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L26-L26" rel="noopener noreferrer">S0308:L26-L26</a>, checking cache reuse after each step and failing closed if the prefix was evicted rather than repeating a monolithic prefill <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L127-L138" rel="noopener noreferrer">S0308:L127-L138</a>. That separation matters operationally: the probe is a cheap reuse test, while the stepwise loop is the actual cold-prefill mitigation, and its cost is paid in extra internal model calls rather than user-visible output.</p>
+<p>On resources, the model container sets <code>--mem-fraction-static</code> to 0.90 <a href="https://azuredevops.bot.or.th/BOTCollection/da_Team_DA_Board/_git/GPU_server?path=%2Fdeployment%2Fvllm%2F04-vllm-deepseek-v4-1-flash.yaml&amp;version=GC81f42dc522f51e9e940ade181b78945984b189ce&amp;line=87&amp;lineEnd=89&amp;_a=contents" rel="noopener noreferrer">S0280:L87-L88</a> and enables the Engram host-table offload with pinning and KV prefetch <a href="https://azuredevops.bot.or.th/BOTCollection/da_Team_DA_Board/_git/GPU_server?path=%2Fdeployment%2Fvllm%2F04-vllm-deepseek-v4-1-flash.yaml&amp;version=GC81f42dc522f51e9e940ade181b78945984b189ce&amp;line=113&amp;lineEnd=121&amp;_a=contents" rel="noopener noreferrer">S0280:L113-L120</a>; the container requests 256Gi of host memory and limits it to 512Gi <a href="https://azuredevops.bot.or.th/BOTCollection/da_Team_DA_Board/_git/GPU_server?path=%2Fdeployment%2Fvllm%2F04-vllm-deepseek-v4-1-flash.yaml&amp;version=GC81f42dc522f51e9e940ade181b78945984b189ce&amp;line=133&amp;lineEnd=142&amp;_a=contents" rel="noopener noreferrer">S0280:L133-L141</a>. That 512Gi is a container host-memory limit, not GPU memory; KV cache and temporary attention workspace are separate GPU resources. The historical failed trial records a real ~262K request failing with CUDA out-of-memory <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/CONTEXT_OPTIMIZATION_20261015.md#L18-L18" rel="noopener noreferrer">S0219:L18-L18</a>; the recorded diagnosis explains that slot arithmetic omitted temporary attention workspace <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/CONTEXT_OPTIMIZATION_20261015.md#L41-L42" rel="noopener noreferrer">S0219:L41-L42</a>. The observed failure row alone does not establish that diagnosis, so both are cited.</p>
+<h4>5. Compaction and prior-test limits</h4>
+<p>The 1M compaction policy yields a normal calculated trigger of 917,504 estimated tokens <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L195-L199" rel="noopener noreferrer">S0346:L195-L199</a>. That is a configuration calculation, not a fresh successful compaction of a historical session. Pressure is estimated between agent steps while the proxy counts exactly on the final wire, and a large single tool result may reach the request guard before auto-compaction, in which case overflow is refused <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L201-L201" rel="noopener noreferrer">S0346:L201-L201</a>. A recorded fixture with a lowered trigger exercised the real automatic path and validated summary persistence and recall, explicitly without certifying every historical session <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/END_TO_END_1M_ROLLOUT_20261016.md#L60-L60" rel="noopener noreferrer">S0289:L60-L60</a>.</p>
+<p>Prior tests state their own limits. The older 105-response stress campaign belongs to the 128K baseline; its 16-request throughput must not be read as 16 concurrent 1M capability <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/END_TO_END_1M_ROLLOUT_20261016.md#L68-L68" rel="noopener noreferrer">S0289:L68-L68</a>. The historical backend-only 1,000,015-token success belongs to an earlier scheduler profile and is not proof of end-to-end DSH operation <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L68-L68" rel="noopener noreferrer">S0346:L68-L68</a>. Later recorded end-to-end DSH passes do exist and are cited above, but the current record still lists unqualified items: sustained soak, two full concurrent 1M requests, full output at near-maximum input, near-1M vision and semantic-quality assessment <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L106-L106" rel="noopener noreferrer">S0346:L106-L106</a>. The recorded transport retest used a delayed synthetic endpoint without GPU inference <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L187-L187" rel="noopener noreferrer">S0346:L187-L187</a>, and the recorded 429 validated admission behavior rather than two real near-1M GPU requests <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L102-L102" rel="noopener noreferrer">S0346:L102-L102</a>.</p>
+<h4>6. Routing, reconciliation and operational workflow</h4>
+<p>Private routing is conditional in CURRENT implementation, not merely diagrammed. When a provisioned per-user target file is present, each identity and per-environment target is validated for host, port and token path <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/auth_proxy.js#L103-L112" rel="noopener noreferrer">S0240:L103-L112</a>; selection then returns that fixed target for the authenticated identity and environment <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/auth_proxy.js#L115-L123" rel="noopener noreferrer">S0240:L115-L123</a>. When that file is absent the code falls back to the environment-wide default targets <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/auth_proxy.js#L122-L122" rel="noopener noreferrer">S0240:L122-L122</a>. A missing identity or environment mapping is refused at login <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/auth_proxy.js#L787-L790" rel="noopener noreferrer">S0240:L787-L790</a>. A published diagram is not verification of live routing.</p>
+<p>The admission guard and the forwarder also impose different deadlines on the same long request, and they should not be conflated. The forwarder applies a 15-second first-output deadline during long-context cache handoff <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/context_forwarder.py#L152-L152" rel="noopener noreferrer">S0196:L152-L152</a>, while the client-side transport waits are governed separately by a test fixture that asserts one-hour header/body timeouts for the managed origin and unchanged options for its listed unrelated origins <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/tests/test_managed_inference_transport.js#L5-L12" rel="noopener noreferrer">S0357:L5-L12</a>. A client transport timeout therefore does not by itself describe handoff behavior, and a successful handoff does not prove the client deadline was exercised. The compaction and admission settings are declared configuration; only a recorded run shows behavior.</p>
+<p>Operationally, promotion is single-writer: the runtime controller requires <code>Recreate</code> and a single replica <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_runtimes.py#L62-L62" rel="noopener noreferrer">S0010:L62-L62</a>. The gateway candidate requires one replica <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L40-L45" rel="noopener noreferrer">S0304:L40-L45</a>; a separate readback refuses deployment if its current specification changed after planning <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L151-L153" rel="noopener noreferrer">S0304:L151-L153</a>. Promotion requires actual near-1M acceptance evidence before applying <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L140-L147" rel="noopener noreferrer">S0304:L140-L147</a>. The candidate asserts that its volume specifications and mount list are unchanged <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_runtimes.py#L70-L71" rel="noopener noreferrer">S0010:L70-L71</a>. Separately, the rollback initializer verifies the saved profile hash, replaces the profile and reads it back for byte equality <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_runtimes.py#L46-L51" rel="noopener noreferrer">S0010:L46-L51</a>. The backup branch saves profile bytes, hash and readback <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_runtimes.py#L39-L43" rel="noopener noreferrer">S0010:L39-L43</a>, and the initializer mounts the existing state volume <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_runtimes.py#L55-L58" rel="noopener noreferrer">S0010:L55-L58</a>. This is implemented behavior and recommended procedure from source review, not a fresh executed test, and it cannot guarantee against overwriting newer data in every failure mode.</p>
+<p>Post-cutover verification should distinguish declared settings from observed behavior. The promotion path does check the persisted ConfigMap content against the intended data and confirms the mounted configuration name <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L156-L161" rel="noopener noreferrer">S0304:L156-L161</a>. Separate assertions in the promotion code require an exact inference response and rejection of a client endpoint override <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L169-L175" rel="noopener noreferrer">S0304:L169-L175</a>. Reading back the running image ID is not performed by those spans and is therefore stated here as a recommendation rather than a verified step. Historical 128K statements describe an earlier deployment in which the backend ceiling had been raised while product guardrails remained lower <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L9-L9" rel="noopener noreferrer">S0346:L9-L9</a>; the current executable budget is 1,048,576 <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L19-L19" rel="noopener noreferrer">S0308:L19-L19</a>. Where evidence is insufficient, the correct statement is that the claim is not established.</p>
+<h2>Original run — preserved result and limitations</h2>
+<h2>DSH — Real Repository Accuracy and Long-Output Test</h2>
+<h3>Result and operational meaning</h3>
+<p><strong>Completed real DSH execution; accurate targeted fact values; citation and narrative acceptance NOT passed.</strong> The local DeepSeek service processed <strong>992,638 input tokens</strong> and produced <strong>4,767 output tokens</strong>, including a <strong>2,252-word engineering review</strong>. This is materially more useful than an eight-token sentinel, but the result also demonstrates why generated source citations need independent checking.</p>
+<p>All <strong>15 intended factual values</strong> match the frozen sources after manual interpretation of equivalent units, Boolean wording and time formats. This is not the same as following the complete output contract. The unchanged automated exact-match checker found <strong>7/15 literal value matches</strong> and <strong>4/15 answers satisfying every literal value, requested-source, supporting-line and quotation condition</strong>. Unit-annotated correct answers such as <code>256 tokens</code> are counted differently by the literal checker; those are not factual errors. The separate manual review does not rewrite or turn the original exact-match result into a pass.</p>
+<p>The generated narrative contains unsupported or inadequately cited conclusions. It is retained below for inspection, <strong>not adopted as verified operational guidance</strong>. This one task does not establish arbitrary million-token reasoning accuracy or a complete code/security audit.</p>
+<h3>Actual path, sources and test method</h3>
+<p>The client was the <strong>actual DSH agent</strong> using its HTTP RPCs in a disposable current-image runtime, authenticated through its local launch-token exchange. The path was DSH → internal LiteLLM → final-wire guard → SGLang on the existing four-GPU model. This was not a manual browser-interface test, Claude Code run or TrueForge run. No code-execution tools were requested: the source material was supplied inline, while DSH&#39;s tool definitions still formed part of its model envelope.</p>
+<p>The corpus contained <strong>239 current source blocks and 99 labelled historical document revisions</strong>, drawn from DSH <code>7f477341a5429c7dfe393dffe89f0cdef2887333</code> and GPU_server <code>81f42dc522f51e9e940ade181b78945984b189ce</code>. Identical complete files were deduplicated. Generated HTML/assets and raw synthetic test prompts were excluded. Recognized credential-shaped token/assignment patterns were redacted. The complete corpus stays in the retained local test artifacts; the pinned source specification and input hash allow reconstruction without adding the full corpus to Git.</p>
+<p>Historical revisions deliberately overlap: this was a realistic implementation/change-history audit, not a million independent new facts. Reference source blocks occur near 1%, 31%, 62%, 87% and 92% of the prompt by character position; these are not exact tokenizer positions. The answer key was prepared before model output and was not included in the prompt. The model was asked for 15 source-backed values, exact quotations no longer than 200 characters, narrow citations, and a 1,400–1,800-word report using at least eight source blocks. Its actual 2,252-word report exceeded that requested range.</p>
+<p>The submitted prompt SHA-256 is <code>ffbbb9b15242c42275f2e81d616385a51d22d2af4ee336e34cff9b81c659e738</code>. The retained prompt was reconstructed from pinned Git objects and matched this hash. DSH&#39;s saved conversation was read back and its user prompt matched the submitted content.</p>
+<h3>Time, concurrency and memory</h3>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th>Actual recorded result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Input / output / total</td>
+<td>992,638 / 4,767 / 997,405 tokens</td>
+</tr>
+<tr>
+<td>Complete DSH turn</td>
+<td><strong>2,379.02 seconds — 39m39s</strong>, including admission wait and retries</td>
+</tr>
+<tr>
+<td>Before warming began</td>
+<td>Approximately <strong>1,065.25s — 17m45s</strong>, including capacity wait, client retries, tokenization and other overhead</td>
+</tr>
+<tr>
+<td>Exact-input prefix preparation</td>
+<td><strong>1,163.40s — 19m23s</strong>, 485 incremental steps</td>
+</tr>
+<tr>
+<td>DSH-reported output phase</td>
+<td><strong>147.524s</strong> for 4,767 tokens; approximately <strong>32.31 output tokens/s</strong> in this one run</td>
+</tr>
+<tr>
+<td>Short replies strictly overlapping admitted processing/generation</td>
+<td><strong>18</strong>, correct and persisted, <strong>4.03–10.05s</strong>, in pairs</td>
+</tr>
+<tr>
+<td>Short replies during output generation itself</td>
+<td><strong>2</strong>, included in the 18 above</td>
+</tr>
+<tr>
+<td>All short replies in the observation window</td>
+<td><strong>36</strong>; the other 18 occurred before admission and are not counted as admitted-load evidence</td>
+</tr>
+<tr>
+<td>Post-long idle pair</td>
+<td><strong>2.03s each</strong>, correct and persisted; separate from the overlap count</td>
+</tr>
+<tr>
+<td>DSH-side capacity retries</td>
+<td><strong>3</strong>; the successful attempt followed them</td>
+</tr>
+<tr>
+<td>Model continuity</td>
+<td>Same model pod/image, <strong>zero restarts</strong></td>
+</tr>
+<tr>
+<td>Admitted-phase shared-model log window</td>
+<td><strong>1,356 recovering mapping-OOM warnings</strong>; zero matches for checked fatal CUDA OOM, OutOfMemoryError, illegal-memory or scheduler-exception signatures</td>
+</tr>
+<tr>
+<td>Minimum sampled GPU free memory</td>
+<td><strong>12 MiB</strong>; sampling does not establish the transient minimum</td>
+</tr>
+</tbody></table>
+<p>Preparation is correlated to the forwarding lifecycle event by exact final input count and timing, not a globally unique request ID. Output-phase throughput is a bounded observation, not a sustained decode benchmark or SLA. The initial single short baseline took 4.07s; it is not a controlled two-request baseline, so no causal percentage slowdown is inferred.</p>
+<h3>Setup failure, queue behavior and test-harness correction</h3>
+<p>The first setup attempt stopped after about 37 seconds when an oversized <code>kubectl exec</code> helper argument received <strong>HTTP 414 from the control-plane ingress</strong>. This was a test-helper transport failure, not a DSH inference answer. The helper is now uploaded as a file rather than passed in a large URI argument.</p>
+<p>Deleting that disposable runtime did <strong>not</strong> establish upstream cancellation. The subsequent review observed a held long-admission slot, while shared warming continued. A lifecycle event consistent with the interrupted preparation reported 992,606 tokens and 1,157.851s. Because the logs lack a unique request binding, the report does not assert stronger ownership attribution than the timing/count correlation supports.</p>
+<p>The subsequent fresh-prefix review received three capacity-busy 429s and retried through <strong>DSH&#39;s own client policy</strong>. This is distinct from the already-disabled LiteLLM Router rate-limit retries. When the slot was released, the current review was admitted and its new prefix was prepared. The earlier prefix-progress observations alone did not establish which request owned the slot; that interpretation was corrected during the run.</p>
+<p>The harness now checks <strong>both the actual admission lease and GPU running/queue metrics</strong> before launching a future review. Warming yields can show zero GPU requests while the long lease is still held. A live nonblocking lease check and three regression tests verify that this state is rejected. Full end-to-end cancellation across DSH, LiteLLM and the guard remains a separate verification requirement; runtime deletion alone must not be presented as confirmed inference cancellation.</p>
+<h3>Answer and citation results</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Result and interpretation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Intended factual values, manual source check</td>
+<td><strong>15/15 correct</strong> after equivalent-unit/time interpretation</td>
+</tr>
+<tr>
+<td>Literal value strings, original checker</td>
+<td><strong>7/15</strong>; this deliberately strict comparison penalizes unit annotations</td>
+</tr>
+<tr>
+<td>All strict answer conditions together</td>
+<td><strong>4/15</strong>; retained as failed, not silently relaxed</td>
+</tr>
+<tr>
+<td>Answer quotations literally within cited lines</td>
+<td><strong>14/15</strong>; Q11 changes the source text</td>
+</tr>
+<tr>
+<td>Answer quotations within requested 200-character limit</td>
+<td><strong>10/15</strong>; Q08, Q11, Q12, Q13 and Q15 exceed it</td>
+</tr>
+<tr>
+<td>Requested source and reference definition-line selection</td>
+<td><strong>13/15</strong>; Q04 omits the numeric definition, Q13 uses a different current file</td>
+</tr>
+<tr>
+<td>Narrative citation ranges pointing to existing source lines</td>
+<td><strong>69/69</strong></td>
+</tr>
+<tr>
+<td>Narrative ranges within requested maximum of 12 lines</td>
+<td><strong>57/69</strong>; 12 are broader</td>
+</tr>
+<tr>
+<td>Narrative support</td>
+<td><strong>Not fully accepted</strong>; valid line locations do not establish that every attached claim is supported</td>
+</tr>
+</tbody></table>
+<p>The one non-verbatim quotation is Q11: it changes <code>for (const model of aliases)</code> to <code>for model of aliases)</code>. Its reported value <code>0.875</code> is correct, but the purported quotation is not. Q04 cites the condition using <code>LONG_THRESHOLD</code> without its numeric definition; Q13 gives the right recorded duration from a different current guide instead of the requested README and uses <code>19m34s</code> rather than <code>19:34</code>.</p>
+<h4>Original exact-match answer table</h4>
+<p>This table preserves the model values and original checker outcomes. A <code>No</code> does not automatically mean the intended factual value is wrong; the separate categories above explain the failures.</p>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Original model value</th>
+<th>Reference value</th>
+<th>All strict conditions met?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Q01</td>
+<td>1048576</td>
+<td>1048576</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Q02</td>
+<td>8192</td>
+<td>8192</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Q03</td>
+<td>256 tokens</td>
+<td>256</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Q04</td>
+<td>count + data[&#39;max_tokens&#39;] &gt; LONG_THRESHOLD (131072)</td>
+<td>131072</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Q05</td>
+<td>300 seconds</td>
+<td>300</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Q06</td>
+<td>2048 token IDs (WARM_STEP = 2048)</td>
+<td>2048</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Q07</td>
+<td>2 seconds</td>
+<td>2</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Q08</td>
+<td>false (strict: false)</td>
+<td>false</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Q09</td>
+<td>False</td>
+<td>false</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Q10</td>
+<td>15 seconds</td>
+<td>15</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Q11</td>
+<td>0.875</td>
+<td>0.875</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Q12</td>
+<td>65536</td>
+<td>65536</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Q13</td>
+<td>19m34s</td>
+<td>19:34</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Q14</td>
+<td>sandbox_da_agent_public_data</td>
+<td>sandbox_da_agent_public_data</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Q15</td>
+<td>rejected</td>
+<td>rejected</td>
+<td>No</td>
+</tr>
+</tbody></table>
+<h4>Source-review findings in the generated narrative</h4>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Problem</th>
+<th>Required correction</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>N1</td>
+<td>The generated statement that no approved corporate SLA exists goes beyond the supplied evidence.</td>
+<td>No approved SLA was supplied or established by this review; absence in the corpus is not proof of nonexistence.</td>
+</tr>
+<tr>
+<td>N2</td>
+<td>The report calls the shared model the only shared writable-adjacent resource. That exclusivity is unsupported.</td>
+<td>Describe specific isolation boundaries; the architecture also includes shared gateway, audit and central-storage infrastructure.</td>
+</tr>
+<tr>
+<td>N3</td>
+<td>S0273:L1 is a test-file comment, not the asserted exactly-one-identity-header check.</td>
+<td>Cite the actual assertions, not a comment as proof of a test result.</td>
+</tr>
+<tr>
+<td>N4</td>
+<td>The 512Gi container memory claim cites S0280:L87-L98, which contains model arguments, not the memory resource limit.</td>
+<td>The resource limit is at L137; distinguish host/container RAM from GPU attention workspace.</td>
+</tr>
+<tr>
+<td>N5</td>
+<td>The reconciliation says one-long admission was unchanged from the 128K checkpoint. S0002:L7 instead says product admission remained to be implemented.</td>
+<td>The current one-long admission policy is verified in current source; do not project it backwards into that checkpoint.</td>
+</tr>
+<tr>
+<td>N6</td>
+<td>A single NetworkPolicy excerpt is treated as proof that every other egress path is denied.</td>
+<td>Effective Kubernetes egress is the union of applicable policies; configuration excerpts alone do not establish the deployed complete boundary.</td>
+</tr>
+<tr>
+<td>N7</td>
+<td>The execution description leans on bootstrap shared-pool defaults without explaining the current per-user target mapping.</td>
+<td>Use getEnvironmentTarget and the configured per-user mapping to explain private routing; distinguish bootstrap templates from deployed topology.</td>
+</tr>
+</tbody></table>
+<p>These findings are a Codex source-based assessment, not DeepSeek grading itself or a human assessor sign-off. The original response is not patched to hide them. The predeclared narrative rubric records four criteria met, three partially met and one not met; no calibrated general accuracy percentage is inferred from that rubric.</p>
+<h3>Persistence, cleanup and reproducibility</h3>
+<p>The disposable runtime mounted no user workspace/history PVCs. Its <strong>78 session files</strong> were archived, downloaded, hash-verified and independently listed inside the archive. Archive SHA-256: <code>ddb3f0415f6c5b7ef9656a64ec6e15aa2b4bd6e52ed6732a3301c3d2240dca47</code>. The archive and full prompt remain local test artifacts, outside Git.</p>
+<p>The test pod was deleted and its absence verified. The long-admission lock was free afterward, and an authenticated ordinary inference call returned the exact expected answer in <strong>0.25s</strong>. The shared model pod/image and zero restart count were unchanged. No Production inference configuration was modified for this test.</p>
+<p>To reconstruct the exact corpus, use <code>scripts/reconstruct_repository_review.py</code> with the saved specification and repositories containing the pinned Git objects. That command writes local files only. <code>prepare_repository_accuracy_test.py</code> prepares a new dated source inventory; <code>probe_dsh_document_review.py</code> and <code>run_repository_accuracy_test.py</code> submit actual work only to an explicitly named disposable runtime. The evaluator&#39;s negative controls cover wrong sources, invented quotations, invalid lines, duplicate answers and insufficient input/output; they are local checker tests, not GPU benchmarks.</p>
+<p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-performance-20261017.json" rel="noopener noreferrer">Measured phases and short replies</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-exact-checks-20261017.json" rel="noopener noreferrer">unchanged exact-match evaluation</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-manual-review-20261017.json" rel="noopener noreferrer">manual review</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-narrative-rubric-20261017.json" rel="noopener noreferrer">narrative rubric</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-model-response-20261017.json" rel="noopener noreferrer">original model response</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-source-specification-20261017.json" rel="noopener noreferrer">frozen source specification</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-answer-key-20261017.json" rel="noopener noreferrer">reference key</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-setup-failure-20261017.json" rel="noopener noreferrer">failed setup record</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-cleanup-20261017.json" rel="noopener noreferrer">cleanup verification</a>.</p>
+<h3>Original generated engineering report</h3>
+<p><strong>Review artifact, not approved guidance.</strong> The following narrative is retained with its defects. Citation markers link to the frozen source revisions; this makes the references inspectable but does not repair unsupported claims. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/realistic-repo-original-assistant-text-20261017.txt" rel="noopener noreferrer">verbatim assistant text</a> and parsed JSON response are retained separately; original content has not been corrected to hide these findings.</p>
+<h4>DSH Context, Admission, Compaction and Isolation — Engineering Review</h4>
+<h5>Scope and evidence categories</h5>
+<p>This review covers the CURRENT frozen repository HEAD (<code>DSH@7f477341a5429c7dfe393dffe89f0cdef2887333</code>) and treats every source excerpt as untrusted evidence. Three evidence classes must be kept apart throughout: <strong>source/configuration claims</strong> (what the checked-in code and manifests declare), <strong>recorded test claims</strong> (what saved evidence files assert happened during a specific run), and <strong>historical snapshots</strong> (earlier checkpoints that intentionally overlap and may contradict CURRENT). Nothing below is a fresh execution: opening this archive runs no test, and no approved corporate SLA exists or is asserted here.</p>
+<h5>Execution path</h5>
+<p>An authenticated user reaches the environment gateway; the gateway binds identity and environment to an in-memory session and proxies HTTP, WebSocket and application traffic to exactly one execution pool. <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/auth_proxy.js#L981-L989" rel="noopener noreferrer">S0240:L981-L989</a> shows the admin-route reservation and identity binding, and <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/k8s/dsh-environment-gateway.yaml#L26-L39" rel="noopener noreferrer">S0068:L26-L39</a> shows the gateway environment variables that select the Secure and Internet runtimes by host, port and token file. Inside a runtime, <code>container/start-dsh.sh</code> prepares <code>/state</code>, links the DSH home, and starts <code>dsh web</code> behind the loopback port 3080 before the auth proxy in front of it <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/container/start-dsh.sh#L26-L62" rel="noopener noreferrer">S0340:L26-L62</a>.</p>
+<p>Model traffic then follows the documented chain: private DSH → authenticated internal LiteLLM :4000 → loopback context guard :4001 → SGLang :8000 → shared four H100 GPUs <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L110-L110" rel="noopener noreferrer">S0346:L110-L110</a>. The loopback guard is deliberately bound to 127.0.0.1 and must never be exposed as a Service <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/context_forwarder.py#L1-L5" rel="noopener noreferrer">S0196:L1-L5</a>. Everything interesting about context policy happens at that final forwarding boundary, not in the browser.</p>
+<h5>Callback constants and the warming path</h5>
+<p>The current callback declares the whole budget explicitly: context <code>1048576</code>, output reservation <code>8192</code>, safety reserve <code>256</code>, and a long-admission threshold of <code>131072</code> <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L19-L23" rel="noopener noreferrer">S0308:L19-L23</a>. Those four numbers answer Q01–Q04 directly and are configuration, not measurement.</p>
+<p>Long-request admission is a process-shared <code>flock</code> on <code>/tmp/dsh-long-admission/active.lock</code> with a 300-second wait, after which it raises a retryable 429 <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L140-L157" rel="noopener noreferrer">S0308:L140-L157</a>. Ordinary requests never touch that lease because the lease is only acquired when <code>count + max_tokens</code> exceeds the long threshold <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L198-L201" rel="noopener noreferrer">S0308:L198-L201</a> — this is the code-level basis for the &quot;ordinary requests remain concurrent&quot; claim, and it is also why a single gateway replica is required: independent replicas would each own a separate lock file and would not enforce one shared long-request slot <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/END_TO_END_1M_ROLLOUT_20261016.md#L50-L50" rel="noopener noreferrer">S0289:L50-L50</a>.</p>
+<p>Prefix preparation has two modes. A bounded cache probe of two seconds is attempted first; on a cold miss its own request is aborted by request ID. Otherwise the prefix is extended in 2048-token steps, with reuse checked after every step and a hard failure if the previous prefix was evicted <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L26-L27" rel="noopener noreferrer">S0308:L26-L27</a><a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/long_context_callbacks.py#L104-L138" rel="noopener noreferrer">S0308:L104-L138</a>. Intermediate one-token completions are discarded and never become tool actions or conversation messages <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/END_TO_END_1M_ROLLOUT_20261016.md#L46-L46" rel="noopener noreferrer">S0289:L46-L46</a>. This is the mechanism behind the honest statement that a hot continuation can return in about two seconds while cold input throughput is a different quantity altogether <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L150-L151" rel="noopener noreferrer">S0346:L150-L151</a>.</p>
+<h5>The warming/default mismatch and its correction</h5>
+<p>The most instructive defect in this archive is a prompt mismatch that was initially mistaken for insufficient warming. An earlier tool request counted 7,689 tokens while inference processed 7,561 <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L130-L130" rel="noopener noreferrer">S0346:L130-L130</a>. The cause was that the backend tokenizer materialized an omitted <code>strict</code> default for function schemas differently from the chat inference path, so warming the counted token sequence could not guarantee a reusable prefix for the actually forwarded sequence.</p>
+<p>The CURRENT normalization closes that gap by materializing prompt-affecting defaults explicitly: <code>continue_final_message</code> defaults to <code>False</code>, and a function whose <code>strict</code> is <code>None</code> is set to <code>False</code> <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/context_envelope.py#L4-L12" rel="noopener noreferrer">S0272:L4-L12</a>. The loopback proxy applies that normalization to the final wire payload and then counts that same conditioning envelope, including messages, tools, tool choice, reasoning effort and template options <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/context_forwarder.py#L85-L89" rel="noopener noreferrer">S0196:L85-L89</a>. Forwarder regression tests now assert that counted conditioning equals forwarded conditioning, that the exact returned IDs reach warming, and that explicit caller values are preserved <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/tests/test_context_forwarder.py#L140-L173" rel="noopener noreferrer">S0279:L140-L173</a>. A fresh alignment check recorded identical prompt token IDs for a 258-token synthetic tool-schema request <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L134-L134" rel="noopener noreferrer">S0346:L134-L134</a> — a recorded test claim, not a re-derivation.</p>
+<h5>Long-request admission versus ordinary concurrency</h5>
+<p>The honest reading of the CURRENT material is that admission and concurrency are two different budgets. One request above 128K is admitted at a time; ordinary requests bypass the lease and stay concurrent, though they can still queue and slow down <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L119-L120" rel="noopener noreferrer">S0346:L119-L120</a>. The measured cache pool of 1,179,648 token slots is explicitly described as supporting one near-1M request plus smaller work, <strong>not</strong> two complete 1M contexts <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L123-L123" rel="noopener noreferrer">S0346:L123-L123</a>, and the qualified operating boundary excludes two full simultaneous 1M requests and sustained-load guarantees <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L50-L50" rel="noopener noreferrer">S0346:L50-L50</a>.</p>
+<p>A recorded live test of the admission boundary used a deliberately held lock rather than a fabricated GPU workload, producing a real authenticated 429 after 300.36 seconds while ordinary DSH replies continued, followed by successful lease release and a 400 for oversized input <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L24-L26" rel="noopener noreferrer">S0346:L24-L26</a><a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L102-L102" rel="noopener noreferrer">S0346:L102-L102</a>. The same material records that the first real 1M attempt exposed a genuine queueing defect: LiteLLM&#39;s default Router retried rate-limit responses twice and the client timed out, which was corrected by setting <code>RateLimitErrorRetries: 0</code> for only the two guarded aliases <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L28-L30" rel="noopener noreferrer">S0346:L28-L30</a>. The promotion script enforces that narrowness by refusing to proceed if the guarded model groups change <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L19-L28" rel="noopener noreferrer">S0304:L19-L28</a>.</p>
+<h5>Cold versus cached latency</h5>
+<p>Recorded DSH results separate cold prefill cost from hot-prefix cost in a way that resists optimistic summarization. The current recorded cold near-1M request returned an exact persisted reply for 1,007,689 input tokens in 1,173.92 seconds, and the follow-up write/read tool continuation at 1,008,103 input tokens completed in 20.16 seconds <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L19-L22" rel="noopener noreferrer">S0346:L19-L22</a>. Eighteen ordinary DSH replies overlapped the cold run at 4.03–12.04 seconds, and the slowest of those exceeds the earlier sub-five-second small-probe target <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L23-L23" rel="noopener noreferrer">S0346:L23-L23</a><a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L86-L86" rel="noopener noreferrer">S0346:L86-L86</a>. Under long load, short replies took 0.477–0.613 seconds at 120,049 input tokens in one bounded sample <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L46-L46" rel="noopener noreferrer">S0346:L46-L46</a>.</p>
+<p>Memory margin is recorded as thin: 1,132 recovering allocator mapping warnings with a minimum warning-reported free memory of 1.75 MiB in the current-image progressive test window, with no checked fatal CUDA/OOM or scheduler-exception signatures <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L48-L48" rel="noopener noreferrer">S0346:L48-L48</a>. Earlier qualification evidence for the preceding image recorded 1,460 such warnings and a 9.75 MiB minimum <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L11-L11" rel="noopener noreferrer">S0346:L11-L11</a>. These are recorded observations, not headroom guarantees, and they are the strongest reason not to extrapolate from a passing near-1M text case to general capacity.</p>
+<h5>Compaction</h5>
+<p>The CURRENT 1M runtime policy is configured through <code>configure_runtime_context.js</code>, which sets both aliases to the requested context, caps <code>maxTokens</code> at 8192, and installs per-model compaction policies with <code>thresholdRatio: 0.875</code> and <code>headroomTokens: 65536</code> for the 1M case <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/configure_runtime_context.js#L12-L33" rel="noopener noreferrer">S0005:L12-L33</a>. The documented formula yields <code>min(1048576 × 0.875, 1048576 − 8192 − 65536) = 917,504</code> estimated tokens <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L195-L199" rel="noopener noreferrer">S0346:L195-L199</a>.</p>
+<p>Two qualifications matter. First, compaction pressure is estimated, unlike the proxy&#39;s exact tokenizer count, and a large single tool result or attachment may reach the request guard before automatic compaction runs; overflow is then refused <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L201-L201" rel="noopener noreferrer">S0346:L201-L201</a>. Second, a code/configuration calculation is not proof of successful compaction: a lowered-threshold fixture exercised the real plugin path and verified summary persistence plus recall of a verification code, but that does not certify every historical session <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L158-L158" rel="noopener noreferrer">S0346:L158-L158</a>. Under the earlier 128K configuration the installed plugin&#39;s arithmetic produced a 57,344-token threshold rather than the widely repeated ~98,304 figure, because output reservation and headroom are subtracted <a href="https://github.com/skunpoj/dsh_setup/blob/2c206b52fe7bed07f246fbe6a7dfd8ae98ef5c99/docs/LLM_SETUP_AND_TEST_RESULTS.md#L55-L59" rel="noopener noreferrer">S0058:L55-L59</a> — a useful illustration of why historical prose about &quot;75% of 128K&quot; must not be carried into the 1M configuration.</p>
+<h5>Memory tradeoffs</h5>
+<p>The 1M budget was reached by trading allocation shape, not by adding memory. A static memory fraction of 0.92 produced a large apparent KV-slot count and then failed a real ~262K request with CUDA OOM during sparse-attention scoring; lowering the static fraction to 0.88 failed before inference because the cache layout could not initialize <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/CONTEXT_OPTIMIZATION_20261015.md#L18-L19" rel="noopener noreferrer">S0219:L18-L19</a>. The tested balance was static 0.90 with progressively smaller prefill chunks (4,096 → 2,048 → 1,024) and maximum prefill tokens reduced to 2,048 <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/CONTEXT_OPTIMIZATION_20261015.md#L42-L43" rel="noopener noreferrer">S0219:L42-L43</a>. The current manifest carries those settings, along with a 512Gi memory limit and 1M context length <a href="https://azuredevops.bot.or.th/BOTCollection/da_Team_DA_Board/_git/GPU_server?path=%2Fdeployment%2Fvllm%2F04-vllm-deepseek-v4-1-flash.yaml&amp;version=GC81f42dc522f51e9e940ade181b78945984b189ce&amp;line=87&amp;lineEnd=99&amp;_a=contents" rel="noopener noreferrer">S0280:L87-L98</a>.</p>
+<p>The KV-slot count is explicitly <em>not</em> an executable-capacity measure: temporary attention workspace, kernel loading and allocator behavior also consume GPU memory, and the older 2,185,984-slot observation did not establish that two 1M requests could run <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/CONTEXT_OPTIMIZATION_20261015.md#L41-L41" rel="noopener noreferrer">S0219:L41-L41</a>. Long context therefore remains an exceptional workload rather than a routine concurrency target <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/CONTEXT_OPTIMIZATION_20261015.md#L37-L37" rel="noopener noreferrer">S0219:L37-L37</a>.</p>
+<h5>Isolation, history and storage claims</h5>
+<p>Execution isolation contributes to the same budget conversation because the shared model is the only shared writable-adjacent resource. The gateway canonicalizes identity for both HTTP and raw WebSocket carriers so that forged or mixed-case <code>x-dsh-user</code> headers cannot reach an application <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/auth_proxy.js#L288-L302" rel="noopener noreferrer">S0240:L288-L302</a>, and a regression test asserts exactly-one canonical identity header across default and custom routes <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/tests/test_proxy_identity_headers.js#L1-L1" rel="noopener noreferrer">S0273:L1-L1</a>. The egress policy allows only the internal LiteLLM pod on TCP 4000, the internal resolver on 5353, specific KDC addresses on 88 and one Livy endpoint on 28998, with everything else denied for offline-labelled pods <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/k8s/dsh-egress-policies.yaml#L1-L53" rel="noopener noreferrer">S0286:L1-L53</a>. That is restricted egress, not an air gap, and the material repeatedly refuses to claim exhaustive leakage coverage <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L217-L217" rel="noopener noreferrer">S0346:L217-L217</a>.</p>
+<p>Legacy history handling is documented as header-only migration: only the compressed first-frame <code>cwd</code> changes, conversation event frames must remain byte-identical by SHA-256, and unmapped or colliding destinations cause refusal before mutation <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/session_cwd_migration.py#L1-L1" rel="noopener noreferrer">S0256:L1-L1</a><a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/session_cwd_migration.py#L77-L85" rel="noopener noreferrer">S0256:L77-L85</a>. The recorded aggregate for the 80 histories in 82 files is retained across process replacements <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/README.md#L53-L53" rel="noopener noreferrer">S0087:L53-L53</a>.</p>
+<h5>Limitations of prior tests</h5>
+<p>Several claims in this archive are recorded tests with bounded scope, and the source says so. Percentiles from small samples are &quot;not an SLA&quot; <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L169-L169" rel="noopener noreferrer">S0346:L169-L169</a>. The 105/105 exact-reply campaigns cover short bursts and approximately 24K/96K/120K mixed input, and the retained review explicitly warns that separate runs must not be added together as one uninterrupted benchmark <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L56-L56" rel="noopener noreferrer">S0346:L56-L56</a><a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L93-L93" rel="noopener noreferrer">S0346:L93-L93</a>. The 16-concurrency burst level is a tested level for short outputs, not a promise of sixteen large contexts <a href="https://github.com/skunpoj/dsh_setup/blob/33406ddc7033a3cf60f7d90fd1578ee1b9bc0289/docs/LLM_SETUP_AND_TEST_RESULTS.md#L39-L39" rel="noopener noreferrer">S0205:L39-L39</a>. The delayed-response transport fixture is transport evidence that uses no model inference, not a quality benchmark <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L187-L187" rel="noopener noreferrer">S0346:L187-L187</a>. Remaining coverage limits include no sustained soak, no two concurrent full 1M requests, no near-1M vision, no full 8,192-token generation near maximum input and no arbitrary million-token semantic-quality assessment <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L106-L106" rel="noopener noreferrer">S0346:L106-L106</a>.</p>
+<h5>Reconciling historical 128K statements with CURRENT</h5>
+<p>The archive contains many historical statements that DSH and LiteLLM enforce a 131,072-token total budget, an 8,192 output ceiling, a 256-token buffer and compaction around 98,304 <a href="https://github.com/skunpoj/dsh_setup/blob/242b7f7cc02c4a5b8b23423e96b0c7a8f000435e/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md#L7-L7" rel="noopener noreferrer">S0002:L7-L7</a>. Those are accurate descriptions of the earlier product baseline and are preserved as dated checkpoints, not as CURRENT behavior. CURRENT source sets the aliases to 1,048,576 total context with an 8,192 output cap <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/configure_runtime_context.js#L12-L17" rel="noopener noreferrer">S0005:L12-L17</a>, and the CURRENT README describes the same reacceptance path <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/README.md#L79-L81" rel="noopener noreferrer">S0087:L79-L81</a>. The honest reconciliation is therefore that the <em>old guardrail number is superseded</em>, while the <em>output ceiling, proxy reserve and one-long-request-at-a-time admission are unchanged</em>. No new test result is introduced by that reconciliation.</p>
+<p>Two further historical figures deserve the same treatment. The 128K-era 57,344-token compaction calculation is arithmetic on the old context, not a CURRENT threshold <a href="https://github.com/skunpoj/dsh_setup/blob/2c206b52fe7bed07f246fbe6a7dfd8ae98ef5c99/docs/LLM_SETUP_AND_TEST_RESULTS.md#L55-L59" rel="noopener noreferrer">S0058:L55-L59</a>. The historical near-1M backend successes belong to an earlier scheduler profile and are not fresh proof of current-profile near-1M behavior <a href="https://github.com/skunpoj/dsh_setup/blob/4d7cc342bf7660158925dc8b1bad0d1da5b11944/docs/LIVE_REVIEW_AND_PERFORMANCE_20261016.md#L42-L42" rel="noopener noreferrer">S0237:L42-L42</a>.</p>
+<h5>Practical operational workflow</h5>
+<ol>
+<li><strong>Read the running facts, not the prose.</strong> Read back image digests, mounted ConfigMaps and effective profiles before acting; portal scripts exist for this and explicitly avoid exporting secrets <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/review_live_status.py#L17-L31" rel="noopener noreferrer">S0234:L17-L31</a><a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/review_live_status.py#L58-L79" rel="noopener noreferrer">S0234:L58-L79</a>. Repeatedly, the source warns that a saved manifest is not evidence of live state.</li>
+<li><strong>Keep one writer per state directory.</strong> Runtime replacement uses Recreate with a single replica, and the gateway likewise runs one replica so that admission ownership is genuine <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/END_TO_END_1M_ROLLOUT_20261016.md#L50-L50" rel="noopener noreferrer">S0289:L50-L50</a><a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/rollout_runtime_hardening.py#L100-L112" rel="noopener noreferrer">S0302:L100-L112</a>.</li>
+<li><strong>Gate long-context changes on evidence that matches the change.</strong> The proxy promotion script refuses to apply without a passed near-1M acceptance whose recorded usage exceeds one million input tokens and whose model pod is unchanged <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_proxy.py#L140-L147" rel="noopener noreferrer">S0304:L140-L147</a>.</li>
+<li><strong>Preserve the rollback pair.</strong> Context promotion backs up the previous profile inside each private PVC before the image changes, and restores that profile before starting the old image <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_runtimes.py#L1-L5" rel="noopener noreferrer">S0010:L1-L5</a><a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/scripts/promote_1m_runtimes.py#L26-L44" rel="noopener noreferrer">S0010:L26-L44</a>.</li>
+<li><strong>Do not overwrite newer data during rollback.</strong> The current material states repeatedly that rollback does not overwrite newer workspace or history writes <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L217-L217" rel="noopener noreferrer">S0346:L217-L217</a>.</li>
+<li><strong>Treat warning-heavy success as provisional.</strong> Recovering allocator warnings with single-digit-megabyte reported headroom accompany passing tests and are recorded as material limitations rather than smoothed away <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/docs/LLM_SETUP_AND_TEST_RESULTS.md#L11-L11" rel="noopener noreferrer">S0346:L11-L11</a>.</li>
+<li><strong>Keep the transport fix scoped.</strong> The dispatcher override supplies one-hour header and body waits only for the operator-managed internal inference origin, leaving other origins and caller abort signals untouched <a href="https://github.com/skunpoj/dsh_setup/blob/7f477341a5429c7dfe393dffe89f0cdef2887333/tests/test_managed_inference_transport.js#L6-L13" rel="noopener noreferrer">S0357:L6-L13</a>.</li>
+</ol>
+<h5>Bottom line</h5>
+<p>CURRENT source declares a 1,048,576-token context with an 8,192 output ceiling and a 256-token reserve, one long request above 128K admitted at a time behind a 300-second bounded 429, 2,048-token incremental prefix warming with a two-second cache probe, explicit normalization of <code>continue_final_message: false</code> and <code>strict: false</code>, a 15-second first-output handoff deadline, 0.875 compaction ratio with 65,536 headroom, and rejection of above-128K multimodal image input. The recorded evidence supports near-1M <em>text</em> cases with tool schemas and a write/read continuation, at thin memory margin, and does not support an approved SLA, two-full-1M acceptance, or any claim that prior 128K-era measurements describe the current configuration. Every benchmark-shaped statement above is either a source claim or a bounded recorded claim; none is a fresh test performed by this review.</p>
+</main></body></html>

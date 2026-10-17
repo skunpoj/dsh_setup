@@ -1,0 +1,67 @@
+{
+  "assistantTextSHA256": "820431546669c68a5a642799626673e064c69a0e5eaf730bbc11ec9e6bd1f80b",
+  "completed": true,
+  "allMaterialClaimsReviewed": true,
+  "editorialChanges": 0,
+  "uneditedModelOutputVerified": true,
+  "findings": [],
+  "priorFindingChecks": {
+    "N1": {
+      "resolved": true,
+      "assessment": "No global SLA nonexistence is claimed; the report states the frozen sources establish no SLA."
+    },
+    "N2": {
+      "resolved": true,
+      "assessment": "No exclusive shared-resource claim remains."
+    },
+    "N3": {
+      "resolved": true,
+      "assessment": "Actual source assertions are distinguished from executed results; transport is explicitly a source test fixture."
+    },
+    "N4": {
+      "resolved": true,
+      "assessment": "256Gi request/512Gi host-memory limit is cited to resource fields and distinguished from GPU workspace."
+    },
+    "N5": {
+      "resolved": true,
+      "assessment": "Earlier 128K checkpoints and scheduler evidence are labelled historical; current source budgets are not projected backward."
+    },
+    "N6": {
+      "resolved": true,
+      "assessment": "No claim of effective complete egress denial is made in this long-context report."
+    },
+    "N7": {
+      "resolved": true,
+      "assessment": "No unsupported bootstrap-as-deployed topology or Git-repository isolation claim is made."
+    }
+  },
+  "reviewMethod": "Codex reviewed the complete generated narrative and ledger against the pinned source archive. All 52 narrative citations were checked, including actual code branches and recorded versus recommended scope. The final two generated changes were diffed against the preceding source-reviewed response; original captured text was never rewritten. This is source review, not external assessor approval.",
+  "reviewNotes": [
+    "The admission paragraph is supported by the combined adjacent S0308:L194-L197 and L198-L201 citations, which together cover metadata removal, threshold decision and server-generated lease creation. Neither short span is treated as standalone support for every clause in that paragraph.",
+    "Generated narrative statements about no new Production execution describe the source-only review performed by the model; the surrounding authored report separately records the actual live inference test.",
+    "Passing this assisted frozen-source task does not establish general model accuracy or a guarantee that future outputs have no citation errors."
+  ],
+  "knownResidualIssuesResolved": [
+    {
+      "id": "PROFILE_RESTORE",
+      "source": "S0010:L46-L51",
+      "resolution": "Hash verification and restored-byte equality now cite restore branch; mount comparison separately cites L70-L71."
+    },
+    {
+      "id": "PROXY_CONCURRENT_EDIT",
+      "source": "S0304:L151-L153",
+      "resolution": "Actual gateway readback/comparison/refusal is used."
+    },
+    {
+      "id": "TOKENIZER_SCOPE",
+      "source": "S0308:L43-L48",
+      "resolution": "Final ledger claim is limited to configured HTTP request and parsing; validation is separately cited in the narrative at L62-L67."
+    },
+    {
+      "id": "BACKEND_CEILING",
+      "source": "S0280:L89-L90 and S0346:L50",
+      "resolution": "Actual backend argument supports 16; qualified operating boundary separately supports the capacity limitation."
+    }
+  ],
+  "conclusion": "Accepted for this assisted frozen-source task: zero remaining source-review findings in the unedited final DSH response."
+}

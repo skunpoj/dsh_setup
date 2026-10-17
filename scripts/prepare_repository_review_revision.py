@@ -25,17 +25,31 @@ OUTPUT CONTRACT AND SOURCE DISCIPLINE — apply these rules before submitting:
 9. Before final output audit each answer's canonical value, CURRENT requested path, supporting definition line, exact quote length and range. Audit each narrative citation for entailment, not just an existing line number. If a conclusion cannot be supported, remove it or state it as a recommendation/unknown. Do not describe this self-check as independent verification.
 '''
 
+GROUNDED_NARRATIVE_RULES = '''
+NARRATIVE REGRESSION CONTRACT — source support must be correct in YOUR output:
+The previous generated draft confused mount-list assertions with profile restoration, and cited candidate construction for a later concurrent-edit check. Do not repeat those substitutions. Retrieve the actual implementation branch for each claim, not merely a nearby function or plausible comment.
+Extend the JSON object with claim_checks: [{"id":"ROLLBACK_HASH","claim":"one narrow source-backed statement","citation":{"source_id":"S0001","start_line":1,"end_line":3,"quote":"exact source fragment"}}]. Return exactly these seven unique IDs: ROLLBACK_HASH, MOUNT_PRESERVATION, CONCURRENT_EDIT_REFUSAL, SIDECAR_INSERTION, TOKENIZER_CALL, TRANSPORT_SCOPE, CACHE_PROBE_ABORT. Each claim must describe only what its cited lines establish. Quote 8–100 exact contiguous characters, range at most 12 lines.
+ROLLBACK_HASH must cite the restore branch's saved-profile hash verification AND restored-byte equality, not the separate candidate volume assertions. MOUNT_PRESERVATION must cite the candidate assertions comparing volumes and mounts. CONCURRENT_EDIT_REFUSAL must cite the later deployment readback/comparison/refusal, not candidate validation. SIDECAR_INSERTION must cite the actual container-list append, not only the sidecar object declaration. TOKENIZER_CALL must cite the HTTP request/invocation, not only validation of returned IDs. TRANSPORT_SCOPE must describe the test fixture accurately and include both managed-origin timeout assertions and its listed unrelated-origin cases; do not call this a new live test. CACHE_PROBE_ABORT must cite the timeout plus acknowledged-abort conversion to CacheProbeMiss, not merely the catch.
+In report_markdown use the same evidence consistently. If describing different mechanisms in one sentence, attach separate citations to each clause. Do not copy a claim from this instruction as evidence. Do not cite a comment as an executed assertion. For sidecar identity and insertion, cite definition and append separately. For HTTP invocation, returned-ID validation and dispatch refusal, cite each separate branch. Treat a recorded diagnosis as a recorded diagnosis, not a causal proof from a failed-trial row. Do not claim an absent SLA, exclusive sharing, guaranteed handover or guaranteed restoration under every failure mode.
+Keep the six-section narrative 1,400–1,800 words by a counter that includes headings and citation IDs. Aim at 1,500–1,650, approximately 230 prose words per section plus citations. Provide substantive explanation of execution/default alignment, admission/ordinary concurrency, cold and conditional cached latency, memory, compaction, and a recommended verification/rollback workflow. Use at least eight source blocks. Keep every answer quotation under 100 characters and all values canonical. An incomplete claim ledger, overbroad range or unsupported statement is a failure: correct it BEFORE returning. Do not claim your self-audit is independent verification.
+The entire response, including claim_checks, must fit the existing output allowance. No tools, no external calls, no invented test outcomes. Return only the complete JSON. The held-out answer key and previous responses are not provided.
+'''
+
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--baseline', type=Path, required=True)
     ap.add_argument('--output', type=Path, required=True)
+    ap.add_argument('--grounded-narrative', action='store_true')
     a = ap.parse_args()
     spec = json.loads((a.baseline/'reconstruction-specification.json').read_text(encoding='utf-8'))
     blocks = json.loads((a.baseline/'selected-sources.json').read_text(encoding='utf-8'))
     instructions = spec['instructions'] + REVISION_RULES
+    if a.grounded_narrative: instructions += GROUNDED_NARRATIVE_RULES
     # New provenance prefix prevents reuse of the previous review's initial prefix.
     prefix = 'Controlled repository-review revision 2. Frozen sources unchanged; stronger citation contract.\n'
+    if a.grounded_narrative:
+        prefix = 'Source-grounded narrative regression run 3. Preserve actual implementation-to-claim alignment.\n'
     questions = spec['questionsJSON']
     prompt = render_sources(blocks, instructions, questions, prefix)
     a.output.mkdir(parents=True, exist_ok=False)

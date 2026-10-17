@@ -26,6 +26,10 @@ def assess(result, mechanical, review):
             {'N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7'} and
             all(v.get('resolved') is True for v in review.get('priorFindingChecks', {}).values()),
     }
+    if 'narrativeRegressionPassed' in mechanical:
+        conditions['knownNarrativeRegressionsPassed'] = mechanical['narrativeRegressionPassed'] is True
+        conditions['generatedResponseUnedited'] = (review.get('editorialChanges') == 0 and
+                                                    review.get('uneditedModelOutputVerified') is True)
     return {'accepted': all(conditions.values()), 'conditions': conditions,
             'assistantTextSHA256': digest,
             'scope': 'One frozen-source task. Mechanical citation checks plus recorded source review; not general accuracy or operational/security certification.'}
@@ -36,7 +40,10 @@ def main():
     a = ap.parse_args(); p = a.directory
     load = lambda n: json.loads((p/n).read_text(encoding='utf-8'))
     review = load('manual-review.json') if (p/'manual-review.json').exists() else {}
-    value = assess(load('long-result.json'), load('accuracy-evaluation.json'), review)
+    mechanical = load('accuracy-evaluation.json')
+    if (p/'narrative-regression-checks.json').exists():
+        mechanical['narrativeRegressionPassed'] = load('narrative-regression-checks.json')['passed']
+    value = assess(load('long-result.json'), mechanical, review)
     (p/'revision-acceptance.json').write_text(json.dumps(value, indent=2), encoding='utf-8')
     print(json.dumps(value))
 

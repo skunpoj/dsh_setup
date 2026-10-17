@@ -1,0 +1,40 @@
+{
+  "assistantTextSHA256": "77856ea3a8c16f453736f00d2564075f9ccfb832aa5102a2510becaeb5a3ca39",
+  "completed": true,
+  "allMaterialClaimsReviewed": true,
+  "editorialChanges": 0,
+  "uneditedModelOutputVerified": true,
+  "findings": [
+    {
+      "id": "G1",
+      "issue": "The private-repository sharing claim cites a header about a single LiteLLM replica and its admission lock; the cited text does not discuss Git repository sharing.",
+      "source": "S0308:L3-L4"
+    },
+    {
+      "id": "G2",
+      "issue": "Narrative says host-memory request 512Gi; resource fields show request 256Gi and limit 512Gi.",
+      "source": "S0280:L133-L141"
+    },
+    {
+      "id": "G3",
+      "issue": "The 24,047-token / 4.987s comparison cites a table header, which contains no timing observation. No assertion is made that the sample could not exist elsewhere.",
+      "source": "S0346:L17"
+    },
+    {
+      "id": "G4",
+      "issue": "Five narrative ranges exceed the declared 12-line limit, and a combined citation uses unsupported nonstandard syntax.",
+      "source": "accuracy-evaluation.json and raw report"
+    },
+    {
+      "id": "G5",
+      "issue": "Six generated ledger quotations fail the short exact-quote condition. Transport range omits managed-origin assertions, and the narrative omits branches demanded by the targeted checks.",
+      "source": "narrative-regression-checks.json"
+    },
+    {
+      "id": "G6",
+      "issue": "The runtime-controller concurrent-edit citation is valid for that script but does not satisfy the targeted proxy-script regression. Correction feedback clarifies the intended proxy branch rather than labelling the equivalent runtime comparison a false fact.",
+      "source": "S0010:L114-L115 versus targeted S0304:L151-L153"
+    }
+  ],
+  "conclusion": "NOT accepted. Source-backed correction requested inside the same DSH conversation; no editorial fixes applied to raw output."
+}

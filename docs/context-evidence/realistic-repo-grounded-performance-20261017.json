@@ -1,0 +1,132 @@
+{
+  "startUTC": "2026-10-17T03:51:41.610560+00:00",
+  "finishUTC": "2026-10-17T03:53:44.893760+00:00",
+  "actualClient": "DSH agent HTTP RPC on disposable current-image runtime; not Claude Code or TrueForge",
+  "usage": {
+    "inputTokens": 1007329,
+    "outputTokens": 3798,
+    "totalTokens": 1011127
+  },
+  "totalElapsedSeconds": 123.2832,
+  "clientRetryEvents": 0,
+  "retryCodes": [],
+  "persistedPromptMatches": true,
+  "promptSHA256": "f3d9384bdb7aee950e175507bb3abddabcf12f624c8e5e5c080d6534b7e8a9bf",
+  "warming": {
+    "event": "dsh_final_wire_warmed",
+    "steps": 1,
+    "tokens": 1007329,
+    "mode": "bounded-cache-probe",
+    "cachedTokens": 1007104,
+    "seconds": 1.061,
+    "probeSeconds": 2,
+    "completionUTC": "2026-10-17T10:51:45.384699+07:00",
+    "startUTC": "2026-10-17T10:51:44.323699+07:00"
+  },
+  "preWarmingElapsedSeconds": 2.713139,
+  "firstOutputUTC": "2026-10-17T03:51:48.152000+00:00",
+  "sessionStats": {
+    "turns": 1,
+    "steps": 1,
+    "llmMs": 123156,
+    "toolMs": 0,
+    "ttftMs": 6493,
+    "ttftSteps": 1,
+    "decodeMs": 116663,
+    "decodeTokens": 3798
+  },
+  "sessionStatsCumulative": {
+    "turns": 4,
+    "steps": 4,
+    "llmMs": 2896929,
+    "toolMs": 0,
+    "ttftMs": 2419844,
+    "ttftSteps": 4,
+    "decodeMs": 477085,
+    "decodeTokens": 15420
+  },
+  "sessionStatsBaseline": {
+    "turns": 3,
+    "steps": 3,
+    "llmMs": 2773773,
+    "toolMs": 0,
+    "ttftMs": 2413351,
+    "ttftSteps": 3,
+    "decodeMs": 360422,
+    "decodeTokens": 11622
+  },
+  "sessionStatsScope": "Current turn; cumulative counters minus verified same-session baseline",
+  "shortReplies": [
+    {
+      "startUTC": "2026-10-17T03:52:22.438099+00:00",
+      "seconds": 2.0252,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": true,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T03:52:22.329763+00:00",
+      "seconds": 2.0289,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": true,
+      "overlapWithinLong": true
+    }
+  ],
+  "strictlyOverlappingAdmittedShortReplies": 2,
+  "admittedShortMinimumSeconds": 2.0252,
+  "admittedShortMaximumSeconds": 2.0289,
+  "generationShortReplies": 2,
+  "modelBefore": [
+    {
+      "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+      "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+      "containers": [
+        {
+          "restartCount": 0,
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+        }
+      ]
+    }
+  ],
+  "modelAfter": [
+    {
+      "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+      "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+      "containers": [
+        {
+          "restartCount": 0,
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+        }
+      ]
+    }
+  ],
+  "modelUnchanged": true,
+  "sharedModelLogSignaturesDuringAdmittedPhase": {
+    "CUDA out of memory": 0,
+    "OutOfMemoryError": 0,
+    "illegal memory access": 0,
+    "Scheduler exception": 0,
+    "memory mapping failed with OOM": 4
+  },
+  "minimumSampledFreeMiB": 570,
+  "warmingLifecycleEvents": [
+    {
+      "event": "dsh_final_wire_warmed",
+      "steps": 1,
+      "tokens": 1007329,
+      "mode": "bounded-cache-probe",
+      "cachedTokens": 1007104,
+      "seconds": 1.061,
+      "probeSeconds": 2,
+      "completionUTC": "2026-10-17T10:51:45.384699+07:00",
+      "startUTC": "2026-10-17T10:51:44.323699+07:00"
+    }
+  ],
+  "interpretationLimitations": "Warm-phase attribution is correlated by exact final input count and timestamps, not a globally unique request ID. Shared-model warnings are time-window observations. Idle metric samples alone do not establish admission availability."
+}

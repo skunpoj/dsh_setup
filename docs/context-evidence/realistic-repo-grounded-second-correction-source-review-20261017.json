@@ -1,0 +1,21 @@
+{
+  "assistantTextSHA256": "9a0504266f29fc04c2b315cc7c8306d0e5bef39f85e750f0a82a697b22c2dd7f",
+  "completed": true,
+  "allMaterialClaimsReviewed": true,
+  "editorialChanges": 0,
+  "uneditedModelOutputVerified": true,
+  "findings": [
+    {
+      "id": "C2-TOKENIZER",
+      "issue": "Generated TOKENIZER_CALL ledger claim adds validation of returned IDs, which its L43-L48 invocation span does not contain; validation is L62-L67."
+    },
+    {
+      "id": "C2-CEILING",
+      "issue": "Narrative attributes the number 16 to S0346:L50, which contains qualified limits but not that number; actual backend argument is S0280:L89-L90."
+    }
+  ],
+  "reviewNotes": [
+    "Admission paragraph was reviewed using its combined adjacent S0308:L194-L197 and L198-L201 citations; together these cover metadata removal, comparison and server-generated lease creation. Neither is treated as standalone support for the whole paragraph."
+  ],
+  "conclusion": "Not accepted until these two source-support issues are corrected by DSH. All other reviewed claims and mechanical checks passed; no editorial changes applied."
+}

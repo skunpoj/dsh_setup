@@ -39,6 +39,8 @@ def evaluate(result, key, blocks):
             'correctCurrentSourceAndSupportingLine': support,
             'passed': bool(correct and support and quote_ok)})
     text = report.get('report_markdown', '')
+    malformed = [token for token in re.findall(r'\[S\d+:[^\]]*\]', text)
+                 if not re.fullmatch(r'\[S\d+:L\d+(?:-L\d+)?\]', token)]
     citations = []
     for source_id, start, end in re.findall(r'\[(S\d+):L(\d+)(?:-L(\d+))?\]', text):
         source = sources.get(source_id); start, end = int(start), int(end or start)
@@ -50,7 +52,7 @@ def evaluate(result, key, blocks):
         for c in citations if c['rangeValid']})
     usage = result.get('lastUsage') or {}
     passed = (len(ids) == len(set(ids)) == len(key) and all(c['passed'] for c in checks)
-        and words >= 1000 and distinct >= 8 and bool(citations) and all(c['rangeValid'] for c in citations)
+        and words >= 1000 and distinct >= 8 and bool(citations) and not malformed and all(c['rangeValid'] for c in citations)
         and usage.get('inputTokens', 0) >= 950000 and usage.get('outputTokens', 0) >= 2000
         and result.get('persistedPromptMatches') is True and result.get('status') == 'completed')
     return {'mechanicalAcceptancePassed': passed, 'answers': checks,
@@ -59,6 +61,7 @@ def evaluate(result, key, blocks):
         'questionCount': len(key), 'reportWords': words, 'reportCitations': citations,
         'distinctReportSources': distinct, 'usage': usage,
         'distinctReportPaths': distinct_paths, 'requestedWordRangeMet': 1400 <= words <= 1800,
+        'malformedReportCitations': malformed,
         'limitations': 'Report citation ranges are mechanically checked; narrative entailment and operational conclusions require separate human/source review. This is one task-specific sample, not general accuracy.'}, report
 
 

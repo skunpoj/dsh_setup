@@ -34,6 +34,15 @@ class RevisionAcceptanceTests(unittest.TestCase):
         r, m, v = self.fixture(); m['answers'][0]['quoteCharacters'] = 170
         self.assertFalse(assess(r, m, v)['accepted'])
 
+    def test_known_narrative_failure_blocks_otherwise_complete_review(self):
+        r, m, v = self.fixture(); m['narrativeRegressionPassed'] = False
+        v.update(editorialChanges=0, uneditedModelOutputVerified=True)
+        self.assertFalse(assess(r, m, v)['accepted'])
+        m['narrativeRegressionPassed'] = True
+        self.assertTrue(assess(r, m, v)['accepted'])
+        v['editorialChanges'] = 1
+        self.assertFalse(assess(r, m, v)['accepted'])
+
     def test_all_recorded_conditions_are_required(self):
         r, m, v = self.fixture()
         self.assertTrue(assess(r, m, v)['accepted'])

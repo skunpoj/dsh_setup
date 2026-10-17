@@ -1,0 +1,9 @@
+{
+  "method": "Compare two separately captured DSH-generated replies; no local modification of either response.",
+  "answersUnchanged": true,
+  "onlyLedgerChange": "TOKENIZER_CALL.claim narrowed to actual HTTP invocation/response parsing",
+  "ledgerCitationsAndQuotesUnchanged": true,
+  "narrativeDiff": "--- \n\n+++ \n\n@@ -20,3 +20,3 @@\n\n \n-A recorded live check used a deliberately held admission lock rather than a fabricated GPU workload; the real authenticated gateway returned HTTP 429 after 300.36 seconds while ordinary DSH replies continued [S0346:L22-L26]. The source labels this as validating admission behavior and explicitly notes it is not two actual near-1M GPU requests [S0346:L102-L102]. The backend's running-request ceiling of 16 is described as an admission ceiling rather than a promise about 16 maximum-length requests [S0346:L50-L50].\n+A recorded live check used a deliberately held admission lock rather than a fabricated GPU workload; the real authenticated gateway returned HTTP 429 after 300.36 seconds while ordinary DSH replies continued [S0346:L22-L26]. The source labels this as validating admission behavior and explicitly notes it is not two actual near-1M GPU requests [S0346:L102-L102]. The backend's running-request ceiling of 16 [S0280:L89-L90] is described in the qualified operating boundary as an admission ceiling rather than a promise about 16 maximum-length requests [S0346:L50-L50].\n ",
+  "previousAssistantSHA256": "9a0504266f29fc04c2b315cc7c8306d0e5bef39f85e750f0a82a697b22c2dd7f",
+  "acceptedAssistantSHA256": "820431546669c68a5a642799626673e064c69a0e5eaf730bbc11ec9e6bd1f80b"
+}

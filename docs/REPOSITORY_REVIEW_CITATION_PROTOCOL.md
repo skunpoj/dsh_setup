@@ -16,6 +16,10 @@ Review each material claim against the actual cited lines, including historical/
 
 `assess_repository_revision.py` requires the mechanical conditions, requested word range, completed narrative review and individual disposition of the seven original findings. The review must match the original assistant-text SHA-256. Missing review, changed output or an unresolved finding prevents acceptance. The script checks the recorded review conditions; it does not replace reviewer judgment or independently prove the review was correct.
 
+The grounded-narrative mode also requires seven generated `claim_checks` entries. `evaluate_narrative_regressions.py` distinguishes restore-hash/byte checks from mount preservation, later concurrent-edit refusal from candidate construction, actual sidecar insertion from its declaration, tokenizer invocation from returned-ID validation, scoped transport assertions from a live test, and acknowledged probe-abort conversion from its catch. It checks exact short quotations, the actual supporting branch and coverage of that branch in the narrative itself. A correct ledger cannot mask the old incorrect narrative citation. These are targeted regression checks, not a general semantic verifier.
+
+Full generated-response acceptance applies only to the unedited DSH response. An editorially corrected publication is a separate artifact and cannot turn a failing generated narrative into a passing one. Any correction turn must be generated in DSH, saved separately, checked again and identified in the results. Previous failed drafts remain retained.
+
 Preserve each submitted prompt hash and original response. If editorial corrections are published, identify them as reviewed corrections rather than original model output. Report any remaining defects even when inference and fact retrieval succeed.
 
 ## Shared-service test boundaries

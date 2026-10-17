@@ -1,0 +1,9 @@
+Return the WHOLE previous JSON. Keep all 15 answers and all 7 claim_checks UNCHANGED. Make ONLY these report corrections, no new facts:
+- Replica/distributed-lock statement: replace wrong [S0308:L50-L50] with [S0289:L50-L50]; call it a recorded deployment-guide note, not code comment.
+- Long comparison and server lease creation: keep constant/metadata refs but add [S0308:L198-L201].
+- Split [S0308:L211-L226] into [S0308:L211-L218] and [S0308:L220-L226]. Describe release calls in hooks; remove the universal claim that the lease cannot outlive every response.
+- Typed handoff error needs [S0196:L175-L179] in addition to its deadline reference. Warm request-ID creation needs [S0308:L71-L76].
+- Held-lock test not two real long GPU requests: use [S0346:L102-L102], not L32.
+- Remove the clause claiming S0260:L5-L7 records 262K OOM/backend success. It actually discusses unrelated security scope. Keep the separately supported historical 128K and scheduler limitations.
+- Remove unsupported callback execution-order wording; describe only the guard's cited operations.
+Keep 1400–1800 report words, exact narrow citations, six sections. No other rewrites or extra examples. No tools. Return complete JSON, not patches. Check every reference supports its attached clause. Raw output must pass without editorial repair.

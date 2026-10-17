@@ -39,6 +39,12 @@ class CitationAcceptanceTests(unittest.TestCase):
         a = copy.deepcopy(self.answer); a['report_markdown'] += ' [S0001:L99-L100]'
         self.assertFalse(self.check(a)['mechanicalAcceptancePassed'])
 
+    def test_malformed_combined_span_cannot_hide_from_range_checks(self):
+        a = copy.deepcopy(self.answer); a['report_markdown'] += ' [S0001:L1-L1;L2-L2]'
+        value = self.check(a)
+        self.assertFalse(value['mechanicalAcceptancePassed'])
+        self.assertEqual(value['malformedReportCitations'], ['[S0001:L1-L1;L2-L2]'])
+
     def test_valid_single_line_report_citations_are_supported(self):
         a = copy.deepcopy(self.answer); a['report_markdown'] = a['report_markdown'].replace(':L1-L1]', ':L1]')
         self.assertTrue(self.check(a)['mechanicalAcceptancePassed'])
