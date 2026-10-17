@@ -1,0 +1,3244 @@
+{
+  "timeUTC": "2026-10-17T03:33:13.490392+00:00",
+  "scope": "Fresh main-runtime configuration, representative direct outbound behavior from each main runtime, local identity and mount readback; no remote job or real datalake operation",
+  "workers": [
+    {
+      "name": "dsh-internet",
+      "behavior": {
+        "uid": 10001,
+        "mode": "internet",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 35,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": false,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/packages/incoming",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "1",
+          "memory": "2Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-internet",
+        "dsh.bot.or.th/egress-mode": "online"
+      }
+    },
+    {
+      "name": "dsh-secure",
+      "behavior": {
+        "uid": 10001,
+        "mode": "secure",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 28,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": true,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh"
+          },
+          {
+            "target": "/packages/approved",
+            "options": "ro,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/state/sessions",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/dsh_storage/sessions"
+          },
+          {
+            "target": "/state/attachments",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/dsh_storage/attachments"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "1",
+          "memory": "2Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/dsh_storage/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/dsh_storage/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/dsh_storage/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/dsh_storage/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/dsh_storage/logs"
+        },
+        {
+          "mountPath": "/kerberos-config",
+          "name": "kerberos-config",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/workspace/private",
+          "name": "legacy-private-fence",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/workspace/dsh-routing",
+          "name": "legacy-private-fence",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/workspace/.state-recovery-20261015150000",
+          "name": "legacy-private-fence",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/workspace/users/.user_auth.json",
+          "name": "legacy-credential-fence",
+          "readOnly": true,
+          "subPath": "auth"
+        },
+        {
+          "mountPath": "/workspace/.git-credentials",
+          "name": "legacy-credential-fence",
+          "readOnly": true,
+          "subPath": "empty"
+        },
+        {
+          "mountPath": "/workspace/dsh_storage/.credentials.yaml",
+          "name": "legacy-credential-fence",
+          "readOnly": true,
+          "subPath": "empty"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-secure",
+        "dsh.bot.or.th/egress-mode": "offline"
+      }
+    },
+    {
+      "name": "dsh-u-120fc75e04cf8e5f-internet",
+      "behavior": {
+        "uid": 10001,
+        "mode": "internet",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 35,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": false,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/packages/incoming",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-120fc75e04cf8e5f-internet",
+        "dsh.bot.or.th/egress-mode": "online",
+        "dsh.bot.or.th/owner": "120fc75e04cf8e5f"
+      }
+    },
+    {
+      "name": "dsh-u-120fc75e04cf8e5f-secure",
+      "behavior": {
+        "uid": 10001,
+        "mode": "secure",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 28,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": true,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/120fc75e04cf8e5f/secure"
+          },
+          {
+            "target": "/state/sessions",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/120fc75e04cf8e5f/state/sessions"
+          },
+          {
+            "target": "/state/attachments",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/120fc75e04cf8e5f/state/attachments"
+          },
+          {
+            "target": "/packages/approved",
+            "options": "ro,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/120fc75e04cf8e5f/secure"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/120fc75e04cf8e5f/state/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/120fc75e04cf8e5f/state/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/120fc75e04cf8e5f/state/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/120fc75e04cf8e5f/state/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/120fc75e04cf8e5f/state/logs"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/kerberos-config",
+          "name": "kerberos-config",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-120fc75e04cf8e5f-secure",
+        "dsh.bot.or.th/egress-mode": "offline",
+        "dsh.bot.or.th/owner": "120fc75e04cf8e5f"
+      }
+    },
+    {
+      "name": "dsh-u-156540115183048a-internet",
+      "behavior": {
+        "uid": 10001,
+        "mode": "internet",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 35,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": false,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/packages/incoming",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-156540115183048a-internet",
+        "dsh.bot.or.th/egress-mode": "online",
+        "dsh.bot.or.th/owner": "156540115183048a"
+      }
+    },
+    {
+      "name": "dsh-u-156540115183048a-secure",
+      "behavior": {
+        "uid": 10001,
+        "mode": "secure",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 28,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": true,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/156540115183048a/secure"
+          },
+          {
+            "target": "/state/sessions",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/156540115183048a/state/sessions"
+          },
+          {
+            "target": "/state/attachments",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/156540115183048a/state/attachments"
+          },
+          {
+            "target": "/packages/approved",
+            "options": "ro,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/156540115183048a/secure"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/156540115183048a/state/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/156540115183048a/state/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/156540115183048a/state/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/156540115183048a/state/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/156540115183048a/state/logs"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/kerberos-config",
+          "name": "kerberos-config",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-156540115183048a-secure",
+        "dsh.bot.or.th/egress-mode": "offline",
+        "dsh.bot.or.th/owner": "156540115183048a"
+      }
+    },
+    {
+      "name": "dsh-u-26ae784d194a5760-internet",
+      "behavior": {
+        "uid": 10001,
+        "mode": "internet",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 35,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": false,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/packages/incoming",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-26ae784d194a5760-internet",
+        "dsh.bot.or.th/egress-mode": "online",
+        "dsh.bot.or.th/owner": "26ae784d194a5760"
+      }
+    },
+    {
+      "name": "dsh-u-26ae784d194a5760-secure",
+      "behavior": {
+        "uid": 10001,
+        "mode": "secure",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 28,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": true,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/26ae784d194a5760/secure"
+          },
+          {
+            "target": "/state/sessions",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/26ae784d194a5760/state/sessions"
+          },
+          {
+            "target": "/state/attachments",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/26ae784d194a5760/state/attachments"
+          },
+          {
+            "target": "/packages/approved",
+            "options": "ro,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/26ae784d194a5760/secure"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/26ae784d194a5760/state/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/26ae784d194a5760/state/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/26ae784d194a5760/state/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/26ae784d194a5760/state/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/26ae784d194a5760/state/logs"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/kerberos-config",
+          "name": "kerberos-config",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-26ae784d194a5760-secure",
+        "dsh.bot.or.th/egress-mode": "offline",
+        "dsh.bot.or.th/owner": "26ae784d194a5760"
+      }
+    },
+    {
+      "name": "dsh-u-8205c7f83822ea35-internet",
+      "behavior": {
+        "uid": 10001,
+        "mode": "internet",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 35,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": false,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/packages/incoming",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-8205c7f83822ea35-internet",
+        "dsh.bot.or.th/egress-mode": "online",
+        "dsh.bot.or.th/owner": "8205c7f83822ea35"
+      }
+    },
+    {
+      "name": "dsh-u-8205c7f83822ea35-secure",
+      "behavior": {
+        "uid": 10001,
+        "mode": "secure",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 28,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": true,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/8205c7f83822ea35/secure"
+          },
+          {
+            "target": "/state/sessions",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/8205c7f83822ea35/state/sessions"
+          },
+          {
+            "target": "/state/attachments",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/8205c7f83822ea35/state/attachments"
+          },
+          {
+            "target": "/packages/approved",
+            "options": "ro,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8205c7f83822ea35/secure"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8205c7f83822ea35/state/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8205c7f83822ea35/state/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8205c7f83822ea35/state/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8205c7f83822ea35/state/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8205c7f83822ea35/state/logs"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/kerberos-config",
+          "name": "kerberos-config",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-8205c7f83822ea35-secure",
+        "dsh.bot.or.th/egress-mode": "offline",
+        "dsh.bot.or.th/owner": "8205c7f83822ea35"
+      }
+    },
+    {
+      "name": "dsh-u-8a2539e2b69d9daf-internet",
+      "behavior": {
+        "uid": 10001,
+        "mode": "internet",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 35,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": false,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/packages/incoming",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-8a2539e2b69d9daf-internet",
+        "dsh.bot.or.th/egress-mode": "online",
+        "dsh.bot.or.th/owner": "8a2539e2b69d9daf"
+      }
+    },
+    {
+      "name": "dsh-u-8a2539e2b69d9daf-secure",
+      "behavior": {
+        "uid": 10001,
+        "mode": "secure",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 28,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": true,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/8a2539e2b69d9daf/secure"
+          },
+          {
+            "target": "/state/sessions",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/8a2539e2b69d9daf/state/sessions"
+          },
+          {
+            "target": "/state/attachments",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/8a2539e2b69d9daf/state/attachments"
+          },
+          {
+            "target": "/packages/approved",
+            "options": "ro,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8a2539e2b69d9daf/secure"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8a2539e2b69d9daf/state/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8a2539e2b69d9daf/state/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8a2539e2b69d9daf/state/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8a2539e2b69d9daf/state/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8a2539e2b69d9daf/state/logs"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/kerberos-config",
+          "name": "kerberos-config",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-8a2539e2b69d9daf-secure",
+        "dsh.bot.or.th/egress-mode": "offline",
+        "dsh.bot.or.th/owner": "8a2539e2b69d9daf"
+      }
+    },
+    {
+      "name": "dsh-u-8c6976e5b5410415-internet",
+      "behavior": {
+        "uid": 10001,
+        "mode": "internet",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 35,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": false,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/packages/incoming",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-8c6976e5b5410415-internet",
+        "dsh.bot.or.th/egress-mode": "online",
+        "dsh.bot.or.th/owner": "8c6976e5b5410415"
+      }
+    },
+    {
+      "name": "dsh-u-8c6976e5b5410415-secure",
+      "behavior": {
+        "uid": 10001,
+        "mode": "secure",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 28,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": true,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/8c6976e5b5410415/secure"
+          },
+          {
+            "target": "/state/sessions",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/8c6976e5b5410415/state/sessions"
+          },
+          {
+            "target": "/state/attachments",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/8c6976e5b5410415/state/attachments"
+          },
+          {
+            "target": "/packages/approved",
+            "options": "ro,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8c6976e5b5410415/secure"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8c6976e5b5410415/state/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8c6976e5b5410415/state/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8c6976e5b5410415/state/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8c6976e5b5410415/state/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/8c6976e5b5410415/state/logs"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/kerberos-config",
+          "name": "kerberos-config",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-8c6976e5b5410415-secure",
+        "dsh.bot.or.th/egress-mode": "offline",
+        "dsh.bot.or.th/owner": "8c6976e5b5410415"
+      }
+    },
+    {
+      "name": "dsh-u-ae5deb822e0d7199-internet",
+      "behavior": {
+        "uid": 10001,
+        "mode": "internet",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 35,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": false,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/packages/incoming",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-ae5deb822e0d7199-internet",
+        "dsh.bot.or.th/egress-mode": "online",
+        "dsh.bot.or.th/owner": "ae5deb822e0d7199"
+      }
+    },
+    {
+      "name": "dsh-u-ae5deb822e0d7199-secure",
+      "behavior": {
+        "uid": 10001,
+        "mode": "secure",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 28,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": true,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/ae5deb822e0d7199/secure"
+          },
+          {
+            "target": "/state/sessions",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/ae5deb822e0d7199/state/sessions"
+          },
+          {
+            "target": "/state/attachments",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/ae5deb822e0d7199/state/attachments"
+          },
+          {
+            "target": "/packages/approved",
+            "options": "ro,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ae5deb822e0d7199/secure"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ae5deb822e0d7199/state/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ae5deb822e0d7199/state/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ae5deb822e0d7199/state/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ae5deb822e0d7199/state/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ae5deb822e0d7199/state/logs"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/kerberos-config",
+          "name": "kerberos-config",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-ae5deb822e0d7199-secure",
+        "dsh.bot.or.th/egress-mode": "offline",
+        "dsh.bot.or.th/owner": "ae5deb822e0d7199"
+      }
+    },
+    {
+      "name": "dsh-u-ca8b22d0db83a22d-internet",
+      "behavior": {
+        "uid": 10001,
+        "mode": "internet",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 35,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": false,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/packages/incoming",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-ca8b22d0db83a22d-internet",
+        "dsh.bot.or.th/egress-mode": "online",
+        "dsh.bot.or.th/owner": "ca8b22d0db83a22d"
+      }
+    },
+    {
+      "name": "dsh-u-ca8b22d0db83a22d-secure",
+      "behavior": {
+        "uid": 10001,
+        "mode": "secure",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 28,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": true,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/ca8b22d0db83a22d/secure"
+          },
+          {
+            "target": "/state/sessions",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/ca8b22d0db83a22d/state/sessions"
+          },
+          {
+            "target": "/state/attachments",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/ca8b22d0db83a22d/state/attachments"
+          },
+          {
+            "target": "/packages/approved",
+            "options": "ro,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ca8b22d0db83a22d/secure"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ca8b22d0db83a22d/state/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ca8b22d0db83a22d/state/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ca8b22d0db83a22d/state/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ca8b22d0db83a22d/state/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/ca8b22d0db83a22d/state/logs"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/kerberos-config",
+          "name": "kerberos-config",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-ca8b22d0db83a22d-secure",
+        "dsh.bot.or.th/egress-mode": "offline",
+        "dsh.bot.or.th/owner": "ca8b22d0db83a22d"
+      }
+    },
+    {
+      "name": "dsh-u-d0b55cb0730a08ac-internet",
+      "behavior": {
+        "uid": 10001,
+        "mode": "internet",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 0,
+            "http": "200"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 35,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": false,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/packages/incoming",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "staging"
+        },
+        {
+          "mountPath": "/packages/incoming",
+          "name": "package-incoming"
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-d0b55cb0730a08ac-internet",
+        "dsh.bot.or.th/egress-mode": "online",
+        "dsh.bot.or.th/owner": "d0b55cb0730a08ac"
+      }
+    },
+    {
+      "name": "dsh-u-d0b55cb0730a08ac-secure",
+      "behavior": {
+        "uid": 10001,
+        "mode": "secure",
+        "public": [
+          {
+            "target": "https://github.com",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://pypi.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://registry.npmjs.org",
+            "exitCode": 6,
+            "http": "000"
+          },
+          {
+            "target": "https://1.1.1.1",
+            "exitCode": 28,
+            "http": "000"
+          }
+        ],
+        "internalInferencePort": true,
+        "livyPort": true,
+        "serviceAccountTokenMounted": false,
+        "mounts": [
+          {
+            "target": "/state",
+            "options": "rw,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          },
+          {
+            "target": "/workspace",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/d0b55cb0730a08ac/secure"
+          },
+          {
+            "target": "/state/sessions",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/d0b55cb0730a08ac/state/sessions"
+          },
+          {
+            "target": "/state/attachments",
+            "options": "rw,relatime",
+            "filesystem": "cifs",
+            "root": "/dsh/private/d0b55cb0730a08ac/state/attachments"
+          },
+          {
+            "target": "/packages/approved",
+            "options": "ro,relatime",
+            "filesystem": "xfs",
+            "root": "/"
+          }
+        ]
+      },
+      "podSecurityContext": {
+        "fsGroup": 10001,
+        "fsGroupChangePolicy": "OnRootMismatch",
+        "seccompProfile": {
+          "type": "RuntimeDefault"
+        }
+      },
+      "containerSecurityContext": {
+        "allowPrivilegeEscalation": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        },
+        "runAsGroup": 10001,
+        "runAsNonRoot": true,
+        "runAsUser": 10001
+      },
+      "resources": {
+        "limits": {
+          "cpu": "4",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "1Gi"
+        }
+      },
+      "automountServiceAccountToken": false,
+      "volumeMounts": [
+        {
+          "mountPath": "/state",
+          "name": "state"
+        },
+        {
+          "mountPath": "/workspace",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/d0b55cb0730a08ac/secure"
+        },
+        {
+          "mountPath": "/state/sessions",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/d0b55cb0730a08ac/state/sessions"
+        },
+        {
+          "mountPath": "/state/attachments",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/d0b55cb0730a08ac/state/attachments"
+        },
+        {
+          "mountPath": "/state/storages",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/d0b55cb0730a08ac/state/storages"
+        },
+        {
+          "mountPath": "/state/workspaces",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/d0b55cb0730a08ac/state/workspaces"
+        },
+        {
+          "mountPath": "/state/logs",
+          "name": "protected-workspace",
+          "subPath": "dsh/private/d0b55cb0730a08ac/state/logs"
+        },
+        {
+          "mountPath": "/packages/approved",
+          "name": "package-cache",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/runtime-tokens",
+          "name": "routing-tokens"
+        },
+        {
+          "mountPath": "/kerberos-config",
+          "name": "kerberos-config",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/context-runtime",
+          "name": "context-transport",
+          "readOnly": true
+        },
+        {
+          "mountPath": "/harness-credentials",
+          "name": "harness-credentials",
+          "readOnly": true
+        }
+      ],
+      "labels": {
+        "app": "dsh-u-d0b55cb0730a08ac-secure",
+        "dsh.bot.or.th/egress-mode": "offline",
+        "dsh.bot.or.th/owner": "d0b55cb0730a08ac"
+      }
+    }
+  ],
+  "networkPolicies": [
+    {
+      "name": "dsh-environment-pool-ingress",
+      "spec": {
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "dsh-environment-gateway"
+                  }
+                }
+              }
+            ],
+            "ports": [
+              {
+                "endPort": 65535,
+                "port": 1024,
+                "protocol": "TCP"
+              }
+            ]
+          }
+        ],
+        "podSelector": {
+          "matchExpressions": [
+            {
+              "key": "dsh.bot.or.th/egress-mode",
+              "operator": "In",
+              "values": [
+                "offline",
+                "online"
+              ]
+            }
+          ]
+        },
+        "policyTypes": [
+          "Ingress"
+        ]
+      }
+    },
+    {
+      "name": "dsh-internal-dns-boundary",
+      "spec": {
+        "egress": [
+          {
+            "ports": [
+              {
+                "port": 53,
+                "protocol": "UDP"
+              },
+              {
+                "port": 53,
+                "protocol": "TCP"
+              }
+            ],
+            "to": [
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "kube-system"
+                  }
+                },
+                "podSelector": {
+                  "matchLabels": {
+                    "k8s-app": "kube-dns"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "dsh.bot.or.th/egress-mode": "offline"
+                  }
+                }
+              }
+            ],
+            "ports": [
+              {
+                "port": 5353,
+                "protocol": "UDP"
+              },
+              {
+                "port": 5353,
+                "protocol": "TCP"
+              }
+            ]
+          }
+        ],
+        "podSelector": {
+          "matchLabels": {
+            "app": "dsh-internal-dns"
+          }
+        },
+        "policyTypes": [
+          "Ingress",
+          "Egress"
+        ]
+      }
+    },
+    {
+      "name": "dsh-offline-egress",
+      "spec": {
+        "egress": [
+          {
+            "ports": [
+              {
+                "port": 4000,
+                "protocol": "TCP"
+              }
+            ],
+            "to": [
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "llm"
+                  }
+                },
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "litellm"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "ports": [
+              {
+                "port": 5353,
+                "protocol": "UDP"
+              },
+              {
+                "port": 5353,
+                "protocol": "TCP"
+              }
+            ],
+            "to": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "dsh-internal-dns"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "ports": [
+              {
+                "port": 88,
+                "protocol": "TCP"
+              },
+              {
+                "port": 88,
+                "protocol": "UDP"
+              }
+            ],
+            "to": [
+              {
+                "ipBlock": {
+                  "cidr": "172.22.58.51/32"
+                }
+              },
+              {
+                "ipBlock": {
+                  "cidr": "172.29.51.222/32"
+                }
+              },
+              {
+                "ipBlock": {
+                  "cidr": "172.30.48.129/32"
+                }
+              },
+              {
+                "ipBlock": {
+                  "cidr": "172.30.48.133/32"
+                }
+              },
+              {
+                "ipBlock": {
+                  "cidr": "192.168.171.82/32"
+                }
+              }
+            ]
+          },
+          {
+            "ports": [
+              {
+                "port": 28998,
+                "protocol": "TCP"
+              }
+            ],
+            "to": [
+              {
+                "ipBlock": {
+                  "cidr": "172.22.13.104/32"
+                }
+              }
+            ]
+          }
+        ],
+        "podSelector": {
+          "matchLabels": {
+            "dsh.bot.or.th/egress-mode": "offline"
+          }
+        },
+        "policyTypes": [
+          "Egress"
+        ]
+      }
+    },
+    {
+      "name": "dsh-online-egress",
+      "spec": {
+        "egress": [
+          {
+            "ports": [
+              {
+                "port": 4000,
+                "protocol": "TCP"
+              }
+            ],
+            "to": [
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "llm"
+                  }
+                },
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "litellm"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "ports": [
+              {
+                "port": 53,
+                "protocol": "UDP"
+              },
+              {
+                "port": 53,
+                "protocol": "TCP"
+              }
+            ],
+            "to": [
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "kube-system"
+                  }
+                },
+                "podSelector": {
+                  "matchLabels": {
+                    "k8s-app": "kube-dns"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "to": [
+              {
+                "ipBlock": {
+                  "cidr": "0.0.0.0/0",
+                  "except": [
+                    "10.0.0.0/8",
+                    "172.16.0.0/12",
+                    "192.168.0.0/16",
+                    "127.0.0.0/8",
+                    "169.254.0.0/16",
+                    "100.64.0.0/10",
+                    "224.0.0.0/4"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "podSelector": {
+          "matchLabels": {
+            "dsh.bot.or.th/egress-mode": "online"
+          }
+        },
+        "policyTypes": [
+          "Egress"
+        ]
+      }
+    },
+    {
+      "name": "dsh-package-promotion-boundary",
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "dsh-package-promotion"
+          }
+        },
+        "policyTypes": [
+          "Ingress",
+          "Egress"
+        ]
+      }
+    }
+  ],
+  "gatewayCodeHashes": {
+    "dsh-gateway-source-b34ee162ec9b": {
+      "auth_proxy.js": "b34ee162ec9b29e83602fdf7e0785188c1935ce3a95eb49e43f7dda482366a94"
+    },
+    "dsh-admin-status-fcd64748a2d5": {},
+    "dsh-user-routing-989c28f96934": {}
+  },
+  "gatewayMounts": [
+    {
+      "mountPath": "/auth",
+      "name": "auth"
+    },
+    {
+      "mountPath": "/runtime-tokens/secure",
+      "name": "secure-token",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/internet",
+      "name": "internet-token",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/gateway-source",
+      "name": "gateway-source",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/admin-status",
+      "name": "admin-status",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/routing",
+      "name": "routing",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/26ae784d194a5760/secure",
+      "name": "token-26ae784d194a5760-secure",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/26ae784d194a5760/internet",
+      "name": "token-26ae784d194a5760-internet",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/d0b55cb0730a08ac/secure",
+      "name": "token-d0b55cb0730a08ac-secure",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/d0b55cb0730a08ac/internet",
+      "name": "token-d0b55cb0730a08ac-internet",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/ae5deb822e0d7199/secure",
+      "name": "token-ae5deb822e0d7199-secure",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/ae5deb822e0d7199/internet",
+      "name": "token-ae5deb822e0d7199-internet",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/ca8b22d0db83a22d/secure",
+      "name": "token-ca8b22d0db83a22d-secure",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/ca8b22d0db83a22d/internet",
+      "name": "token-ca8b22d0db83a22d-internet",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/120fc75e04cf8e5f/secure",
+      "name": "token-120fc75e04cf8e5f-secure",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/120fc75e04cf8e5f/internet",
+      "name": "token-120fc75e04cf8e5f-internet",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/156540115183048a/secure",
+      "name": "token-156540115183048a-secure",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/156540115183048a/internet",
+      "name": "token-156540115183048a-internet",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/8205c7f83822ea35/secure",
+      "name": "token-8205c7f83822ea35-secure",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/8205c7f83822ea35/internet",
+      "name": "token-8205c7f83822ea35-internet",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/8a2539e2b69d9daf/secure",
+      "name": "token-8a2539e2b69d9daf-secure",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/8a2539e2b69d9daf/internet",
+      "name": "token-8a2539e2b69d9daf-internet",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/central-audit",
+      "name": "central-audit",
+      "subPath": "dsh-admin-audit"
+    },
+    {
+      "mountPath": "/runtime-tokens/8c6976e5b5410415/secure",
+      "name": "token-8c6976e5b5410415-secure",
+      "readOnly": true
+    },
+    {
+      "mountPath": "/runtime-tokens/8c6976e5b5410415/internet",
+      "name": "token-8c6976e5b5410415-internet",
+      "readOnly": true
+    }
+  ],
+  "legacyRuntimeConfigurations": [
+    {
+      "name": "dsh-user2",
+      "securityContext": null,
+      "labels": {
+        "app": "dsh-user2"
+      }
+    },
+    {
+      "name": "dsh3",
+      "securityContext": null,
+      "labels": {
+        "app": "dsh3"
+      }
+    }
+  ],
+  "gatewayIdentityConfiguration": {
+    "routedIdentities": 9,
+    "localPasswordValuesAreStrings": true,
+    "privateRoutingConfigured": true,
+    "registrationEnabled": false
+  },
+  "gatewaySourceReview": {
+    "configMap": "dsh-gateway-source-b34ee162ec9b",
+    "localPasswordComparisonPresent": true,
+    "privateRoutingPresent": true,
+    "registrationDisabledWithPrivateRouting": true,
+    "repositorySourceMatchesAfterLineEndings": true
+  },
+  "reviewSummary": {
+    "mainRuntimeCount": 20,
+    "noInternetCount": 10,
+    "internetCount": 10,
+    "noInternetPublicProbesDenied": true,
+    "internetRegistryHttpsPositiveControls": true,
+    "allRuntimeUid": 10001,
+    "allServiceAccountTokensAbsent": true,
+    "secureWorkspaceCifsAndApprovedCacheReadOnly": true,
+    "scopeLimit": "HTTP probes do not exhaust all protocols or relay paths; remote workers and real datalake permissions were not retested."
+  }
+}

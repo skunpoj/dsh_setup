@@ -1,12 +1,20 @@
 # DSH — Controlling Three Security Risks
 
-This document explains the control design for limiting what the Harness, its tools and generated code can reach, change and disclose. It describes principles and required boundaries rather than deployment status or test results. Enforcement belongs in network rules, execution identities, storage permissions and authenticated routes. A prompt asking the agent to behave safely is not an access control.
+This document explains the control design for limiting what the Harness, its tools and generated code can reach, change and disclose. It explains the deployed control design and the remaining boundaries needed to complete it. Current implementation statements were reviewed against the main DSH deployment on 17 October 2026 ICT; historical remote-worker findings are identified separately. Detailed test logs and model-performance results remain outside this report. Enforcement belongs in network rules, execution identities, storage permissions and authenticated routes. A prompt asking the agent to behave safely is not an access control. The three risks are reduced by the deployed controls, but are not fully closed; the remaining actions and exceptions are described under each risk.
 
 ## 1 Prevent external leakage
 
 ### Risk and control objective
 
 Generated code, a tool or a dependency could send data, prompts, credentials or results to an external destination. The control objective is to block unauthorized outbound connections from every environment that executes the work, while retaining only the internal services needed for the task.
+
+### Current implementation and remaining gaps
+
+The main DSH deployment separates No Internet and Internet execution, with fixed user/environment routing and different storage mounts. No Internet workers have restricted outbound network policy; required internal inference and Livy connections remain available. Internet workers retain public connectivity for dependency preparation. The separation controls local execution paths; it is not an end-to-end air gap.
+
+The material open boundary is **remote Livy/Spark execution**. The retained remote-worker checks showed public connectivity from drivers and executors. No worker-side containment change has been applied in this review. Keeping Livy/Spark available is the user's accepted exception; acceptance does not remove the external-leakage path.
+
+To close that boundary, the datalake infrastructure owner must apply destination restrictions to the actual driver/executor network and validate them from those processes. Until then, use only approved public or non-sensitive pilot data on that path; protected-data use must not rely on the No Internet label. Shared gateway/model services and internal relays also require their own egress and administrative review: the worker policy does not automatically constrain them. Internet staging must never receive protected prompts, datasets or credentials merely because its workspace is separate.
 
 ### Separate execution environments
 
@@ -66,6 +74,14 @@ Keep network changes under operator control rather than letting generated code c
 
 Generated code can delete writable files, change source records, use excessive resources or access unrelated systems. Internet denial does not prevent damage to internal resources. The control objective is to give execution only the identity, data scope, writable locations and resources needed for the approved task.
 
+### Current implementation and remaining gaps
+
+The main user/environment runtimes are separate non-root workloads with private mounts, resource limits, disabled privilege escalation, dropped capabilities and no mounted Kubernetes management token. No Internet workspaces and durable histories use central CIFS paths; local credential state stays separate. Internet has separate workspace/state storage, and approved dependency artifacts are mounted read-only in No Internet. The legacy owner retains its original files and histories; private-user paths are masked from that broader legacy mount.
+
+These controls reduce local damage and peer access, but **they do not make writable data read-only**. Each Kerberos principal retains its existing AD/datalake permissions, as requested. A successful login does not prove a limited sandbox entitlement. The earlier system-account review did not establish exclusive rights to `sandbox_da_agent_public_data`; the target was not visible in the checked catalog, which does not prove it is absent.
+
+Closure requires the datalake owner to confirm the exact allowed sandbox and effective grants, including denial outside that scope. A protected-source task additionally needs a principal whose source permissions are genuinely read-only; existing broad personal permissions must not be described as that control. Distributed-job quotas, cancellation and alerts require separate datalake acceptance. CIFS persistence and container resource limits are deployed mechanisms, while storage-server ACL correctness, deletion recovery and remote-compute limits remain separate operational responsibilities. A non-root writable workspace is still vulnerable to deletion by its own user or generated code.
+
 ### Contain local code execution
 
 Each main DSH user has a dedicated runtime for each network environment. The runtime executes as a non-root identity, disables privilege escalation, drops Linux capabilities, uses RuntimeDefault seccomp and has no mounted Kubernetes service-account token. CPU and memory limits bound local resource use.
@@ -111,6 +127,16 @@ The key principle is to constrain effective permissions, not merely the intended
 ### Risk and control objective
 
 Reports, conversation history, logs, attachments and temporary files can disclose data to another user or through an unintended publication route. The control objective is to keep those outputs accessible only to authorized people, with authenticated delivery and attributable access.
+
+### Current implementation and remaining gaps
+
+The gateway uses provisioned local accounts, fixed private routing and disabled self-registration. Main login routes, legacy-history denial, ordinary-user denial of admin endpoints, terminal-page routing and the admin audit interface were reviewed against the current deployment. `thanatcc` owns the preserved legacy histories; the admin role provides dashboard/audit oversight and a separate private runtime, not automatic access to those histories. This review does not replace earlier synthetic cross-file, attachment and restart checks with a claim that every route was freshly retested.
+
+The gateway still uses a **local recoverable-password store**, rather than corporate SSO or demonstrated one-way password hashing. Protecting its volume and limiting administrative access reduces exposure but does not remove it. Move authentication to approved SSO or a reviewed salted password-hashing implementation, with account lifecycle, recovery, rate-limit and MFA requirements defined by the identity owner. Infrastructure administrators remain trusted privileged users; ordinary-user isolation does not constrain a cluster or storage administrator.
+
+Other open boundaries are authorized-browser downloads/copying, newly generated report servers, and the older DSH2/DSH3 deployments. These require equivalent authentication, network and storage controls before protected-content use. There is no demonstrated universal publication/DLP control over arbitrary user-written applications or Internet-environment code. Central access audit is operational visibility, not a tamper-proof command ledger; retention, off-platform protection and complete correlation to remote jobs still need an explicit operating policy.
+
+To close these gaps, keep pilot membership named and approved, secure every report/file/terminal route through user-bound authorization, reject direct bypass paths, apply required endpoint handling controls, and qualify or retire legacy instances. Prohibit automatic external publication in the workflow and enforce it at relevant network/application endpoints; a written instruction alone is insufficient. None of these actions should grant additional datalake access.
 
 ### Authenticate every route and isolate each user's storage
 
