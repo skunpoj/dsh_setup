@@ -11,8 +11,9 @@
   },
   "publicContentSha256": {
     ".gitignore": "8b9b8c954fa313f4b150f9f460f45ab308f9cb9ecb5039e304442c0fc3355549",
-    "QUALIFICATION.md": "6ae6ee08c955f7f832a7b8d7ddf836085de9dcd3e5ca941eda3202bed107d852",
-    "README.md": "d3db3edf76b8434ead17a4e44d80008c8e5f8b65676b6ef3daa3915506382bcf",
+    "ci-example.yml": "553d0999a9914ab3ceaa8e108e35851364e4bb379a82395ec740a65975e371b1",
+    "QUALIFICATION.md": "203fd4768bd458e84d3ba125ae1d6a9bdc62a425fbafd8feb9aab836f85d1679",
+    "README.md": "9a9c5cad6a6f296d4ce73af6379232254db2bf3b365a1341baee99f0bac118cc",
     "render.py": "3299ce1e6aa2d663d5201306a7b50f631f83be5bc6b3dfb52816e3bc9779b6f7",
     "settings.example.json": "c96a052a6ee7c7434bdc344b996d6ea8090266308df488a167234ae4900ff0a5",
     "runtime/context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",

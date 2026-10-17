@@ -52,3 +52,7 @@ Before changes, save private manifests, exact images, source ConfigMaps, setting
 `runtime/` is a reviewed public derivative of the deployment's forwarding/guard/scheduler source. Deliberate differences: the tokenizer URL is mandatory configuration, unrelated-provider fallback is rejected, synthetic prompt capture is removed, and organization-specific patch marker names are neutralized. Algorithm constants and patch-source hashes are retained. Regenerate/review/test these copies when canonical code changes; do not maintain divergent fixes silently. `SOURCE_MANIFEST.json` binds this publication to source-content hashes without disclosing private repository paths or endpoints.
 
 The new bundle is sanitized. Existing repository documentation/history contains site-specific deployment records; this addition does not redact that earlier material or claim repository-wide sanitization. Private settings, keys, database URLs, infrastructure addresses, storage paths and generated cluster output must stay outside Git. Existing Production remains unchanged by rendering or publishing this bundle.
+
+## CI activation
+
+`ci-example.yml` is a reviewed GitHub Actions example, not an active workflow. The publishing token cannot create/update workflow files, so an authorized repository maintainer must copy it to `.github/workflows/portable-gpu.yml` to enable automatic checks. The Linux qualification was run directly; publishing this example does not claim hosted CI passed. It runs the guard/manifest/privacy checks and rejects canonical forwarding-source drift.
