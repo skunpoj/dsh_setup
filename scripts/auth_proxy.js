@@ -468,7 +468,7 @@ function setUserInternetMode(username, mode) {
 
 function injectLogoutControl(html, isAdmin = false) {
   if (typeof html !== 'string' || html.includes('id="dsh-enterprise-logout"')) return html;
-  const control = `<a id="dsh-enterprise-logout" href="/logout" aria-label="ออกจากระบบ (Logout)" title="ออกจากระบบ (Logout)" style="position:fixed;right:18px;top:14px;z-index:2147483647;display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(148,163,184,.42);border-radius:8px;background:rgba(15,23,42,.94);color:#f8fafc;font:600 13px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.28);backdrop-filter:blur(8px)"><span aria-hidden="true">&#x21AA;</span><span>ออกจากระบบ / Logout</span></a>`;
+  const control = `<a id="dsh-enterprise-logout" href="/logout" aria-label="Logout" title="Logout" style="position:fixed;right:18px;top:14px;z-index:2147483647;display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(148,163,184,.42);border-radius:8px;background:rgba(15,23,42,.94);color:#f8fafc;font:600 13px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.28);backdrop-filter:blur(8px)"><span aria-hidden="true">&#x21AA;</span><span>Logout</span></a>`;
   const adminLink = isAdmin ? '<a id="dsh-admin-dashboard" href="/admin" style="position:fixed;right:220px;top:14px;z-index:2147483647;background:#0f172a;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 13px system-ui">Admin overview</a>' : '';
   if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}${adminLink}</body>`);
   return html + control + adminLink;

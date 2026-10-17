@@ -96,7 +96,7 @@ async function waitReady(port) {
     assert.equal(ui.status, 200);
     assert.match(ui.body, /id="dsh-enterprise-logout"/);
     assert.match(ui.body, /href="\/logout"/);
-    assert.match(ui.body, /ออกจากระบบ \/ Logout/);
+    assert.match(ui.body, /Logout/);
     assert.equal((ui.body.match(/id="dsh-enterprise-logout"/g) || []).length, 1);
 
     const logout = await request(proxyPort, 'GET', '/logout', '', onCookie);
