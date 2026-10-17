@@ -10,7 +10,7 @@ const privatePath=option('--private-inventory');
 if(privatePath&&out===path.join(root,'docs/DSH_PLATFORM_GUIDE.html'))throw Error('Private inventory must never overwrite the public portable guide');
 const snapshot=JSON.parse(fs.readFileSync(path.join(root,'docs/context-evidence/platform-deployment-inventory-20261017.json'),'utf8'));
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
-let source=fs.readFileSync(path.join(root,'docs/DSH_PLATFORM_GUIDE.md'),'utf8').replace(/^# .*\n/,'');
+let source=fs.readFileSync(path.join(root,'docs/DSH_PLATFORM_GUIDE.md'),'utf8').replace(/^# [^\r\n]*(?:\r?\n|$)/,'');
 const summary=`Inventory observed at **${snapshot.observedAtUTC}**: **${snapshot.deploymentsInMainNamespace} Deployments** in the DSH/inference namespace — **${snapshot.activeDeployments} active and ${snapshot.scaledToZeroDeployments} scaled to zero**. The active application layer includes **20 main runtimes (10 No Internet + 10 Internet)** and **2 additional owner-only runtimes**, plus shared supporting workloads. A separate CPU Ollama workload is also deployed.`;
 const table='| Workload / private runtime role | Desired | Ready | Observed state |\n|---|---:|---:|---|\n'+snapshot.workloads.map(x=>`| ${x.workload} | ${x.desired} | ${x.ready} | ${x.state} |`).join('\n');
 let details='Access examples: `https://dsh.example.com`, its `/admin`, `/terminal` and `/proxy/<approved-port>/` routes; separate `https://dsh2.example.com` and `https://dsh3.example.com` instances. These example domains are not live service addresses.';

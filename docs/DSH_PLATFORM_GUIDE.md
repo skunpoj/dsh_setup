@@ -401,7 +401,9 @@ flowchart LR
 | Static memory fraction | `--mem-fraction-static 0.90` |
 | Maximum running requests | `--max-running-requests 16` |
 | Prefill work | `--chunked-prefill-size 512`, `--max-prefill-tokens 1024` |
-| Mixed scheduling | `--enable-mixed-chunk`, `--prefill-decode-interval 4` |
+| Bounded prefill | `--prefill-max-requests 2`; mixed prefill/decode batches disabled |
+| Decode scheduling | `--prefill-decode-interval 4`; ordinary decodes remain concurrent |
+| Prefix reuse | `--swa-prefix-tails 8` |
 | Model runner | Original image runner; experimental allocator-cache hook removed |
 | Model output budget | At most 8,192 output tokens; final guard reserves another 256 tokens |
 | Clients | DSH/TrueForge declare 1,048,576 total; Claude's current default uses its 1,000,000-token mode |
@@ -410,40 +412,43 @@ One expensive request above the managed 128K threshold is admitted at a time; or
 
 ### GPU memory and scheduling design
 
-The model uses its original runner with **512-token prefill chunks** and a **1,024-token maximum prefill batch**. Processing smaller batches reduces the temporary work attempted in one forward pass while preserving the **1,048,576-token conversation limit**. The existing scheduler alternates prefill and decoding so ordinary conversations can progress during long-context preparation.
+The model uses the original runner with **512-token prefill chunks**, a **1,024-token maximum prefill batch**, and at most **two prefill requests per batch**. Prefill and decode run in separate batches: `--enable-mixed-chunk` is omitted. This bounds the long-context prefill work without forcing ordinary conversations to execute one at a time. The decode scheduler still permits parallel ordinary requests, with a running-request cap of **16**.
 
-The experimental allocator-cache hook is removed. Memory fraction remains **0.90**, tensor parallelism **4**, and the scheduler cap **16**. Managed admission permits one request above 128K at a time, with one bounded FIFO waiting position. The shared cache reports **1,194,240 token slots**; this is a total pool, not a separate allocation for every user.
+The **eight sliding-window prefix tails** reserve cache capacity for prefix reuse while other conversations run. The server reports **1,150,208 full-context token slots** and **16,640 sliding-window slots** in their respective pools. Memory fraction remains **0.90**, tensor parallelism **4**, and the maximum conversation budget remains **1,048,576 tokens**. The experimental allocator-cache hook is removed.
+
+Managed admission allows **one request above 128K active** and **one bounded FIFO waiter**. Ordinary requests bypass that long-request admission queue. The tested workload is one near-1M conversation plus up to eight simultaneous ordinary conversations; the configured cap of 16 is not sixteen full-million contexts.
 
 ### Latest actual DSH 1M and concurrency results
 
-The latest smaller-prefill run **did not pass near-1M qualification**. Preparation returned a generic error and retried once; the turn was stopped without its expected answer after **872.25 seconds**. The exact preparation failure remains under investigation. The model remains configured for 1M; the current profile awaits a successful near-1M reliability test.
+The final bounded-prefill qualification **passed**, completing at **23:57 ICT on 17 October 2026**. The complete known answer was read back from the DSH session, with the prompt preserved and no retry. Ordinary requests continued to complete during the long run.
 
 | Check | Recorded result |
 |---|---|
-| Near-1M turn | Cancelled without its complete answer; 1 retry; no answer-stream rate available |
-| Ordinary DSH replies during long work | **30/30** correct and persisted, all with zero retries; **5.56–11.67 seconds** |
-| Repeated paired replies | **22/22** passed; **5.56–7.09 seconds** |
-| Eight simultaneous ordinary replies | **8/8** passed during long work; **10.13–11.67 seconds** |
+| Near-1M DSH input and output | **1,007,697 input / 119 output tokens**, complete correct saved answer |
+| Cold near-1M elapsed time | **24m36s** (1,475.94s), including preparation and delivery |
+| Near-1M retries | **0** |
+| Near-1M answer-stream speed | **33.34 output tokens/sec** over 3.539s |
+| Ordinary replies alongside long work | **62/62** correct and persisted, all with zero retries |
+| Ordinary reply latency | **5.58–11.69s**, median **7.62s** |
+| Ordinary streaming speed | **21.62–36.42 output tokens/sec per conversation** |
 | Ordinary request size | **7,674 input / 119 output tokens** per reply |
-| Mapping-OOM warnings / unexpected model restarts | **0 / 0** in the recorded run |
-| Second planned eight-client burst | Not reached before cancellation |
+| Final-generation mapping-OOM warnings / unexpected model restarts | **0 / 0** |
 
-| Speed measurement | Output tokens/sec |
-|---|---:|
-| Ordinary baseline, one conversation | **33.39** while streaming; 6.08s total |
-| Paired conversations during long work | **33.59–36.44 per conversation** while streaming |
-| Eight-client burst | **22.27–26.52 per conversation** while streaming |
-| Eight-client burst, combined full request window | **80.39 combined**, including waiting/preparation |
-| Eight-client burst, combined answer-stream window | **140.31 combined**, reconstructed from stream timestamps |
+The 62 ordinary replies include these three eight-client cohorts; 62 is a total completed count, not a simultaneous-request count:
 
-The burst produced 952 output tokens across 11.843 seconds from first request start to last completion. Its combined answer-stream window was 6.785 seconds. These are different measurements; neither is a 100+ tokens/sec single conversation.
+| Eight-client cohort | Elapsed time per reply | Combined output tokens/sec, full request window |
+|---|---|---:|
+| Scheduled cohort 1: 8 concurrent replies | **9.64–10.16s** | **90.04** |
+| Scheduled cohort 2: 8 concurrent replies | **11.11–11.69s** | **80.86** |
+| Late cohort: 8 concurrent replies at a 907,264-token prepared prefix | **7.09–7.63s** | **121.63** |
 
+The late cohort began at a recorded **907,264-token prepared prefix**. The long turn was active both before and after that cohort. Its **121.63 combined output tokens/sec** includes waiting, preparation and delivery across all eight replies; it is not a 121.63 tokens/sec single conversation.
 
-**How to read the speed figures:** answer-stream rate measures generated output after the first token; total elapsed time also includes preparation, waiting and delivery. Combined burst throughput divides all eight replies' output tokens by the time from the first request's start to the last request's completion. It is different from the speed seen by one user.
+**Reading the speed figures:** per-conversation streaming rate is `(output tokens − 1) / first-to-last-text seconds`. Combined cohort throughput divides all eight replies' output tokens by the time from the earliest request start to the latest completion. The cold near-1M preparation time is separate from the 3.539-second answer stream.
 
-The workload requests the complete known 119-token answer through a disposable actual DSH runtime and the shared live LiteLLM/model route, then checks the persisted prompt and response. Mixed concurrency means one near-1M conversation alongside ordinary conversations; the 16-request scheduling cap does not represent sixteen full-million contexts. Cold context preparation and subsequent cached follow-ups are separate workloads.
+This test uses actual DSH session APIs in a disposable runtime through the shared live LiteLLM/model route. It verifies synthetic text capacity, saved answers and bounded mixed-workload concurrency. Existing long-answer analytical reviews and Claude Code/TrueForge acceptance remain separate tests.
 
-[Recorded measurements](https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/prefill512-concurrency-review-20261017.json).
+[Detailed qualification and retained failed experiments](https://github.com/skunpoj/dsh_setup/blob/main/docs/GPU_ALLOCATOR_QUALIFICATION_20261017.md) · [Recorded measurements](https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/gpu-allocator-qualification-20261017.json).
 
 ### 1 Prepare prerequisites and a test environment
 
