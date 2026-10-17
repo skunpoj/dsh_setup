@@ -4,3 +4,6 @@ gpu-stack/** text eol=lf
 # Exact-byte reviewed compatibility manifests must survive Windows checkouts.
 scripts/configure_models.js text eol=lf
 patches/** text eol=lf
+
+# Preserve exact workflow bytes across Windows archives and repository mirrors.
+/.github/workflows/upstream-candidate.yml -text
