@@ -10,7 +10,7 @@
 <p>The main DSH deployment separates No Internet and Internet execution, with fixed user/environment routing and different storage mounts. No Internet workers have restricted outbound network policy; required internal inference and Livy connections remain available. Internet workers retain public connectivity for dependency preparation. The separation controls local execution paths; it is not an end-to-end air gap.</p>
 <p>DSH2 and DSH3 are now restricted to their configured single login identities, <code>user2</code> and <code>user3</code>. Shared guest and cross-account logins are denied. Only the designated owner has an active password record; disabled legacy records are retained in an operator-only recovery Secret, outside execution mounts. Existing histories stay with their original instance. A dedicated network policy permits ingress-controller access to the authenticated proxy, blocks direct peer access, and retains internal inference, Kerberos and Livy connections. These legacy instances remain Internet-capable; their login page disables the No Internet choice rather than presenting a false offline boundary.</p>
 <p>The material open boundary is <strong>remote Livy/Spark execution</strong>. The local runtime policy does not block public connections from the remote drivers and executors. Worker-side containment must be enforced on the datalake platform. Keeping Livy/Spark available is the user&#39;s accepted exception; acceptance does not remove the external-leakage path.</p>
-<p>To close that boundary, the datalake infrastructure owner must apply destination restrictions to the actual driver/executor network and validate them from those processes. Until then, use only approved public or non-sensitive pilot data on that path; protected-data use must not rely on the No Internet label. Shared gateway/model services and internal relays also require their own egress and administrative review: the worker policy does not automatically constrain them. Internet staging must never receive protected prompts, datasets or credentials merely because its workspace is separate.</p>
+<p>To close that boundary, the datalake infrastructure owner must apply destination restrictions to the actual driver/executor network and validate them from those processes. Until then, use only approved public or non-sensitive pilot data on that path; protected-data use must not rely on the No Internet label. The shared gateway and inference services also have their own destination policies and filtered internal DNS. DNS accepts approved service names and a tightly constrained private-runtime service pattern in the authoritative cluster zone; it does not permit public suffixes or arbitrary external names. The gateway can reach the private execution workloads; LiteLLM can reach the approved database and local model/embedding services; model and database provider policies deny public egress. Public names are refused by the resolver rather than forwarded. Model assets must be staged before a restricted service starts. Administrative access and any additional internal relay still require review. Internet staging must never receive protected prompts, datasets or credentials merely because its workspace is separate.</p>
 <h3>Complete the leakage boundary</h3>
 <p>For protected-data work, every execution destination must enforce the same outbound restriction. Keep No Internet as default; permit only the required internal services; restrict the inference gateway and any internal relay; disable external provider fallback. Apply the rule where remote code actually runs as well as where it is submitted. A dependency-preparation environment must never receive protected workspaces, prompts or Kerberos tickets.</p>
 <p>The currently retained Livy/Spark exception is incompatible with calling the whole workflow Internet-denied. Closing it requires worker-side restrictions on the datalake platform. If those restrictions cannot be provided, protected work must not be sent to that remote path. Keeping it available for the approved public-data pilot preserves the existing decision without claiming that the leakage path disappeared.</p>
@@ -40,7 +40,13 @@
  U[Named user] --&gt; G[Authenticated environment routing]
  G --&gt; S[No Internet - private execution and data]
  G --&gt; I[Internet - separate dependency staging]
- S --&gt; M[Internal LiteLLM and model]
+ S --&gt; M[Internal LiteLLM]
+ M --&gt; LM[Local model and embedding providers]
+ LM --&gt; LE[Public egress denied]
+ DB --&gt; LE
+ M --&gt; DB[Approved internal database]
+ G --&gt; DNS[Filtered internal DNS]
+ M --&gt; DNS
  S --&gt; B[Network layer blocks public destinations]
  I --&gt; P[Incoming packages]
  P --&gt; V[Operator review and hash verification]
@@ -58,7 +64,13 @@
  U[Named user] --&gt; G[Authenticated environment routing]
  G --&gt; S[No Internet - private execution and data]
  G --&gt; I[Internet - separate dependency staging]
- S --&gt; M[Internal LiteLLM and model]
+ S --&gt; M[Internal LiteLLM]
+ M --&gt; LM[Local model and embedding providers]
+ LM --&gt; LE[Public egress denied]
+ DB --&gt; LE
+ M --&gt; DB[Approved internal database]
+ G --&gt; DNS[Filtered internal DNS]
+ M --&gt; DNS
  S --&gt; B[Network layer blocks public destinations]
  I --&gt; P[Incoming packages]
  P --&gt; V[Operator review and hash verification]

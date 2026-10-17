@@ -1,0 +1,15 @@
+{
+  "outboundProbes": [
+    {
+      "host": "1.1.1.1",
+      "port": 443,
+      "reachable": false
+    },
+    {
+      "host": "10.43.0.10",
+      "port": 53,
+      "reachable": false
+    }
+  ],
+  "localHealthStatus": 200
+}

@@ -1,0 +1,258 @@
+{
+  "timeUTC": "2026-10-17T05:08:37.134279+00:00",
+  "scope": "20 main DSH runtimes. Actual Claude CLI and TrueForge API capacity cases; legacy DSH2/DSH3 and fresh browser near-1M interaction are outside this client qualification.",
+  "policyConfigMap": "dsh-harness-policy-1456fd35454f",
+  "runningRuntimeImageDigest": "595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+  "clientCases": [
+    {
+      "client": "claude",
+      "stage": "claude-small",
+      "contextWindow": 200000,
+      "inputTokens": 1280,
+      "outputTokens": 7,
+      "seconds": 0.9974644898902625,
+      "expectedAnswerMatched": true,
+      "phase": "baseline-before-default-correction"
+    },
+    {
+      "client": "claude",
+      "stage": "claude-1m",
+      "contextWindow": 1000000,
+      "inputTokens": 987678,
+      "outputTokens": 10,
+      "seconds": 1158.8131760209799,
+      "expectedAnswerMatched": true,
+      "phase": "candidate-explicit-1m-and-hour-deadline"
+    },
+    {
+      "client": "trueforge",
+      "stage": "trueforge-small",
+      "contextWindow": 1048576,
+      "inputTokens": 624,
+      "outputTokens": 7,
+      "seconds": 0.3984309460502118,
+      "expectedAnswerMatched": true,
+      "phase": "candidate-model-specific-hour-timeouts-and-zero-retries"
+    },
+    {
+      "client": "trueforge",
+      "stage": "trueforge-1m",
+      "contextWindow": 1048576,
+      "inputTokens": 987024,
+      "outputTokens": 10,
+      "seconds": 1162.2034160930198,
+      "expectedAnswerMatched": true,
+      "phase": "candidate-model-specific-hour-timeouts-and-zero-retries"
+    }
+  ],
+  "shortSamplesDuringLong": {
+    "claude": {
+      "samples": 18,
+      "allExpected": true,
+      "minimumSeconds": 0.7537484219064936,
+      "maximumSeconds": 3.791800635983236,
+      "scope": "Gateway short requests sampled by the active client controller; not sixteen parallel full clients or strict per-event overlap instrumentation."
+    },
+    "trueforge": {
+      "samples": 18,
+      "allExpected": true,
+      "minimumSeconds": 0.7799925869330764,
+      "maximumSeconds": 4.038905863999389,
+      "scope": "Gateway short requests sampled by the active client controller; not sixteen parallel full clients or strict per-event overlap instrumentation."
+    }
+  },
+  "trueforgeBusy": {
+    "seconds": 300.60721286095213,
+    "contains429": true,
+    "bounded": true,
+    "expectedBusy": true
+  },
+  "trueforgePostBoundary": {
+    "postBoundary": {
+      "status": "completed",
+      "exact": true,
+      "seconds": 6.55146440200042,
+      "metrics": {
+        "total_input_tokens": 987047,
+        "total_output_tokens": 9,
+        "total_tokens": 987056,
+        "total_cache_read_tokens": 0,
+        "total_reasoning_tokens": 0
+      },
+      "sessionId": "01m541n9kxmvdq8e86bhwnp45r",
+      "stateStatus": "done"
+    },
+    "persistedTurns": [
+      {
+        "status": "done",
+        "expectedMarkerPersisted": true,
+        "inputTokens": 987024
+      },
+      {
+        "status": "done",
+        "expectedMarkerPersisted": true,
+        "inputTokens": 987047
+      }
+    ]
+  },
+  "crossClientClaudeShorts": [
+    {
+      "client": "claude",
+      "marker": "CROSS_CLIENT_A_OK",
+      "exact": true,
+      "seconds": 2.2309569999342784,
+      "usage": {
+        "input_tokens": 1280,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 7,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "contextWindows": [
+        1000000
+      ]
+    },
+    {
+      "client": "claude",
+      "marker": "CROSS_CLIENT_B_OK",
+      "exact": true,
+      "seconds": 2.221197475097142,
+      "usage": {
+        "input_tokens": 1280,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 7,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "contextWindows": [
+        1000000
+      ]
+    }
+  ],
+  "dshCrossClientShort": {
+    "status": "completed",
+    "elapsedSeconds": 6.0604,
+    "usage": {
+      "inputTokens": 7661,
+      "outputTokens": 8,
+      "totalTokens": 7669
+    },
+    "assistantText": "DSH_CROSS_CLIENT_OK",
+    "persistedPromptMatches": true
+  },
+  "boundedStress": {
+    "stages": 18,
+    "requests": 105,
+    "passed": 105,
+    "maximumBurstConcurrency": 16,
+    "comparison": "Burst/mixed expected output ignores whitespace; capacities compare the trimmed marker answer exactly.",
+    "scope": "Synthetic Chat Completions streaming calls; not a client-UI benchmark or sustained soak."
+  },
+  "runtimeAcceptance": {
+    "runtimes": 20,
+    "policyFilesByteMatched": 40,
+    "durableMarkerReadbacks": 40,
+    "runtimeLoginAndSessionListChecks": 20,
+    "noInternetPublicDenied": 10,
+    "internetPublicAllowed": 10
+  },
+  "cleanup": {
+    "disposablePodsAbsent": true,
+    "sessionArchivesSourceAndDownloadedHashesVerified": true,
+    "noUserPVCsMountedInTestPods": true,
+    "modelIdentityAndRestartsUnchanged": true,
+    "model": [
+      {
+        "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+        "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "longAdmissionFree": true,
+    "runtimeCanaryPostRestart": {
+      "runtimeLoginAndSessionList": true,
+      "claudeDefault1M": true,
+      "exact": true,
+      "policyWritesDenied": 2,
+      "uid": 10001,
+      "usage": {
+        "input_tokens": 1278,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 7,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard",
+        "fallback_credit": null
+      }
+    },
+    "independentPodAbsenceReadback": true,
+    "temporaryDNSServiceAbsent": true,
+    "modelUnchangedAfterResolverUpgrade": true
+  },
+  "localInputTextSHA256": "91042401a1a2261752d50dcf94556d1d6fa26cca30478fd57d982db1139402b4",
+  "inputTask": "Two marker values from the frozen repository/doc corpus; capacity/transport test, not an analytical-quality or complete recall benchmark.",
+  "memoryHeadroom": "Recovering GPU allocation warnings observed; no model identity/restart change. No unrestricted near-1M concurrency or SLA claim.",
+  "remainingOwnerControls": [
+    "Remote Spark public egress remains accepted; Livy/Spark stays available.",
+    "Sandbox-only effective grants require the datalake owner; existing per-user AD rights are preserved.",
+    "Storage deletion recovery, endpoint handling and privileged administration require their respective operating controls."
+  ],
+  "fullModelColdRestartUnderFinalEgressPolicyPerformed": false,
+  "currentDefaultVerification": "All 20 deployed main runtimes separately passed an actual default Claude request at 1,000,000 client context and byte-matched both managed policy files. Baseline 200K metadata is retained as the original finding, not current configuration.",
+  "sharedDNSConfigMap": "dsh-internal-dns-035a18925147",
+  "newUserDNS": {
+    "newPrivateServiceResolved": true,
+    "publicSuffixResolved": false,
+    "fixtureNotInStaticAllowlist": true,
+    "temporaryServiceRemoved": true
+  },
+  "finalVerifiedAtUTC": "2026-10-17T05:25:29.227253+00:00"
+}

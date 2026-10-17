@@ -30,15 +30,21 @@ The existing user/environment separation, CIFS workspace mounts, histories, Kerb
 
 TrueForge chat, its API and managed model connection are operational. Its code sandbox is **not enabled or qualified**: the restricted container refuses nested user namespaces (`unshare -Ur`, Operation not permitted), and the optional Linux sandbox dependencies are not installed. No privileged container, host socket or additional datalake access was granted. Claude's existing-pod Bash tool was exercised successfully; that does not validate TrueForge's separate sandbox.
 
-Claude Code's default reports **200,000 context tokens**. `claude --model 'deepseek-v4.1-flash[1m]'` reports **1,000,000** and returned the correct short test answer. An attempted `--model claude-opus-4-6` also resolved to the permitted DeepSeek model, rather than switching to Claude. These are client-selection tests, not near-1M inference, timeout or compaction acceptance. The old `autoCompactWindow: 1000000` example alone does not establish those behaviors. Main DSH's existing 1M profile remains unchanged; TrueForge advertises 1,048,576 from managed model metadata, but no near-1M TrueForge turn was run. Both new tools use the existing gateway's output/budget guard.
+Claude Code now defaults to **1,000,000 context tokens** through `deepseek-v4.1-flash[1m]`; explicit selection is no longer required in the 20 main runtimes. Its actual CLI case passed at **987,678 input tokens** in **1158.81s**. TrueForge declares **1,048,576** and its actual API case passed at **987,024 input tokens** in **1162.20s**. Both returned the exact requested marker answer. After the shared network/gateway handover, TrueForge retained **987,047 input tokens** and returned the exact follow-up in **6.55s**, with both responses read back from stored turns. These capacity/transport cases do not qualify near-limit compaction, long analytical accuracy or the separate code sandbox. Full results and bounded concurrency are in the [LLM guide](LLM_SETUP_AND_TEST_RESULTS.html).
 
 The external Ollama embedding example returned 1,024 values with TLS verification enabled. A subsequent loaded-model readback reported `bge-m3:latest` with `size_vram: 0`. It is unnecessary to copy `verify=False` into this working external example. This does not add a new public egress exception to No Internet runtimes.
+
+## Current policy overlay, 17 October 2026
+
+All 20 main runtimes mount operator-owned policy ConfigMap `dsh-harness-policy-1456fd35454f` on the existing pinned image. Claude API timeout is one hour; TrueForge model-specific header/body timeouts are one hour with zero model HTTP retries. The latter differ from generic outbound timeouts. Shared internal DNS/egress restrictions and one-hour, unbuffered main ingress preserve long replies. Existing No Internet/Internet boundaries, workspaces and history mounts are retained. Ordinary users cannot write either managed policy file; provider CRUD remains HTTP 403. Model/endpoint override probes were rejected. The optional TrueForge sandbox remains disabled.
+
+The 16 October installation checks below are historical; the new capacity and policy acceptance is recorded in the LLM guide. Legacy DSH2/DSH3 are outside this main-client qualification.
 
 ## Deployment and rollback
 
 Build and inspect the candidate image first. Test inference, configuration-override attempts and a real harness turn before rollout. Preserve each deployment specification and durable markers, then update one private runtime at a time. Do not reapply bootstrap manifests over live private routing. On failure restore the saved image/specification; do not restore older workspace or history content over newer writes.
 
-**Deployed:** all 20 main DSH runtimes use image digest `595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6`, produced by Azure build **62790**, source `52bf535850c5d5c3991ebcdb3aeece776785803e`. Legacy DSH2/DSH3 were not changed.
+**Initial installation, 16 October:** all 20 main DSH runtimes use image digest `595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6`, produced by Azure build **62790**, source `52bf535850c5d5c3991ebcdb3aeece776785803e`. Legacy DSH2/DSH3 were not changed.
 
 | Verification | Observed result |
 |---|---|

@@ -1,0 +1,1202 @@
+[
+  {
+    "runtime": "dsh-internet",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "internet",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-secure",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "secure",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "internet",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "secure",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-156540115183048a-internet",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "internet",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-156540115183048a-secure",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "secure",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-26ae784d194a5760-internet",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "internet",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-26ae784d194a5760-secure",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "secure",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-8205c7f83822ea35-internet",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "internet",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-8205c7f83822ea35-secure",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "secure",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "internet",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "secure",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-8c6976e5b5410415-internet",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "internet",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-8c6976e5b5410415-secure",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "secure",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-ae5deb822e0d7199-internet",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "internet",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-ae5deb822e0d7199-secure",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "secure",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "internet",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "secure",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "internet",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": true
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  },
+  {
+    "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+    "profile": {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000
+    },
+    "policy": {
+      "uid": 10001,
+      "claudeDefault": "deepseek-v4.1-flash[1m]",
+      "apiTimeout": "3600000",
+      "policyBytesMatch": true
+    },
+    "network": {
+      "mode": "secure",
+      "connections": [
+        {
+          "host": "github.com",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "reachable": false
+        },
+        {
+          "host": "litellm.llm.svc.cluster.local",
+          "port": 4000,
+          "reachable": true
+        }
+      ]
+    }
+  }
+]

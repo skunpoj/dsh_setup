@@ -1,0 +1,25 @@
+{
+  "scope": "Desired settings applied by rollout_shared_inference_boundary.py; not a standalone Deployment manifest",
+  "deployments": [
+    "dsh-environment-gateway",
+    "litellm"
+  ],
+  "dnsPolicy": "None",
+  "dnsConfig": {
+    "nameservers": [
+      "10.43.128.253"
+    ],
+    "options": [
+      {
+        "name": "ndots",
+        "value": "2"
+      }
+    ],
+    "searches": [
+      "llm.svc.cluster.local",
+      "svc.cluster.local",
+      "cluster.local"
+    ]
+  },
+  "dnsConfigMap": "dsh-internal-dns-035a18925147"
+}

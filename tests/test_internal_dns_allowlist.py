@@ -38,6 +38,13 @@ class DNSContainment(unittest.TestCase):
             result=self.module.answer(self.packet(name));self.assertEqual(struct.unpack('!H',result[2:4])[0]&15,3)
         self.assertEqual(self.forwarded,[])
 
+    def test_new_private_runtime_fqdn_can_resolve_without_a_public_wildcard(self):
+        name='dsh-u-0123456789abcdef-secure.llm.svc.cluster.local'
+        self.module.answer(self.packet(name));self.assertEqual(len(self.forwarded),1)
+        for bad in ['dsh-u-0123456789abcdef-secure',name+'.attacker.com','dsh-u-private-secret-secure.llm.svc.cluster.local','dsh-u-0123456789abcdef-secure.other.svc.cluster.local']:
+            response=self.module.answer(self.packet(bad));self.assertEqual(struct.unpack('!H',response[2:4])[0]&15,3)
+        self.assertEqual(len(self.forwarded),1)
+
     def test_allowed_query_is_rebuilt_without_client_payload_or_id(self):
         response=self.module.answer(self.packet('LiteLLM.llm.svc.cluster.local',additional=b'PRIVATE_EDNS_PAYLOAD'))
         self.assertEqual(response[:2],b'RD');self.assertEqual(len(self.forwarded),1)

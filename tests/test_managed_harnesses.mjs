@@ -5,6 +5,8 @@ const policy = JSON.parse(fs.readFileSync('/etc/claude-code/managed-settings.jso
 assert.deepEqual(policy.allowedProviders, ['customEndpoint']);
 assert.deepEqual(policy.availableModels, ['deepseek-v4.1-flash']);
 assert.equal(policy.enforceAvailableModels, true);
+assert.equal(policy.model, 'deepseek-v4.1-flash[1m]');
+assert.equal(policy.env.API_TIMEOUT_MS, '3600000');
 assert.equal(policy.availableModelsMatch, 'exact');
 assert.equal(policy.env.NODE_TLS_REJECT_UNAUTHORIZED, undefined);
 const source = fs.readFileSync('/usr/local/lib/node_modules/@truefoundry/trueforge/dist/main.js','utf8');

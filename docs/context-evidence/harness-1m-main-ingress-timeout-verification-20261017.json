@@ -1,0 +1,9 @@
+{
+  "annotations": {
+    "nginx.ingress.kubernetes.io/proxy-read-timeout": "3600",
+    "nginx.ingress.kubernetes.io/proxy-send-timeout": "3600",
+    "nginx.ingress.kubernetes.io/proxy-buffering": "off"
+  },
+  "rulesAndBackendsUnchanged": true,
+  "scope": "Main ingress only. Configuration readback, not a fresh external browser near-1M run."
+}

@@ -4,6 +4,7 @@ Rebuilds upstream questions: client EDNS data, IDs and extra sections are never
 forwarded. Unknown names are answered locally; query names are not logged.
 """
 import json
+import re
 import os
 import secrets
 import socket
@@ -14,6 +15,9 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 ALLOWED = {x.lower().rstrip('.') for x in json.loads(Path(os.environ.get('DNS_ALLOWLIST', '/config/allowed.json')).read_text(encoding='utf-8'))}
+# Only fully qualified private runtime Services; never short names or public suffixes.
+# CoreDNS must remain authoritative for cluster.local (no public fallthrough).
+PRIVATE_RUNTIME = re.compile(r'dsh-u-[a-f0-9]{16}-(?:secure|internet)\.llm\.svc\.cluster\.local\Z')
 UPSTREAM = os.environ['DNS_UPSTREAM']
 UPSTREAM_PORT = int(os.environ.get('DNS_UPSTREAM_PORT', '53'))
 LIMIT = threading.BoundedSemaphore(16)
@@ -53,7 +57,7 @@ def answer(packet):
     identifier=packet[:2] if len(packet)>=2 else b'\0\0'
     try:
         name, wire=question(packet)
-        if name not in ALLOWED:
+        if name not in ALLOWED and not PRIVATE_RUNTIME.fullmatch(name):
             COUNTS['denied']+=1
             return identifier+struct.pack('!5H',0x8183,1,0,0,0)+wire
         if not LIMIT.acquire(blocking=False):raise OSError('DNS request capacity')

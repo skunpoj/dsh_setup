@@ -1,0 +1,66 @@
+{
+  "plan": {
+    "kind": "burst",
+    "concurrency": 2,
+    "round": 1
+  },
+  "wallSeconds": 3.556,
+  "rows": [
+    {
+      "label": "burst-0",
+      "startMonotonic": 667862.970875123,
+      "endMonotonic": 667865.493055322,
+      "firstTokenSeconds": 0.3318,
+      "elapsedSeconds": 2.5222,
+      "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+      "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+      "exact": true,
+      "usage": {
+        "completion_tokens": 80,
+        "prompt_tokens": 51,
+        "total_tokens": 131,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "finishReason": "stop",
+      "contentEvents": 79,
+      "effectiveOutputTokensPerSecond": 31.719
+    },
+    {
+      "label": "burst-1",
+      "startMonotonic": 667862.970017182,
+      "endMonotonic": 667866.51956,
+      "firstTokenSeconds": 0.1289,
+      "elapsedSeconds": 3.5495,
+      "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+      "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+      "exact": true,
+      "usage": {
+        "completion_tokens": 119,
+        "prompt_tokens": 50,
+        "total_tokens": 169,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "finishReason": "stop",
+      "contentEvents": 118,
+      "effectiveOutputTokensPerSecond": 33.525
+    }
+  ],
+  "allExact": true,
+  "aggregateOutputTokensPerSecond": 55.962,
+  "summary": {
+    "requests": 2,
+    "exactReplies": 2,
+    "p50Seconds": 2.5222,
+    "p95Seconds": 3.5495,
+    "maxSeconds": 3.5495,
+    "perRequestEffectiveOutputTokensPerSecond": [
+      31.719,
+      33.525
+    ],
+    "aggregateOutputTokensPerSecond": 55.962
+  }
+}

@@ -1,0 +1,4816 @@
+{
+  "startedAtUTC": "2026-10-17T04:00:43.495959+00:00",
+  "scope": "Synthetic streaming LiteLLM calls from Secure; not DSH browser/agent, near-1M, sustained saturation or SLA acceptance",
+  "limits": {
+    "burstConcurrency": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "roundsPerLevel": 3,
+    "mixedInputTargets": [
+      24000,
+      96000,
+      120000
+    ],
+    "burstMaxSeconds": 15,
+    "mixedShortMaxSeconds": 5,
+    "mixedLongMaxSeconds": 40
+  },
+  "configurationChanged": false,
+  "stages": [
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 1,
+        "round": 1
+      },
+      "wallSeconds": 3.7038,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664359.835306921,
+          "endMonotonic": 664363.533924954,
+          "firstTokenSeconds": 0.1365,
+          "elapsedSeconds": 3.6986,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 32.174
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 32.129,
+      "summary": {
+        "requests": 1,
+        "exactReplies": 1,
+        "p50Seconds": 3.6986,
+        "p95Seconds": 3.6986,
+        "maxSeconds": 3.6986,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          32.174
+        ],
+        "aggregateOutputTokensPerSecond": 32.129
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 1,
+        "round": 2
+      },
+      "wallSeconds": 3.6905,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664369.733832688,
+          "endMonotonic": 664373.423196676,
+          "firstTokenSeconds": 0.1268,
+          "elapsedSeconds": 3.6894,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 32.255
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 32.245,
+      "summary": {
+        "requests": 1,
+        "exactReplies": 1,
+        "p50Seconds": 3.6894,
+        "p95Seconds": 3.6894,
+        "maxSeconds": 3.6894,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          32.255
+        ],
+        "aggregateOutputTokensPerSecond": 32.245
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 1,
+        "round": 3
+      },
+      "wallSeconds": 2.5106,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664378.617219158,
+          "endMonotonic": 664381.126762297,
+          "firstTokenSeconds": 0.1292,
+          "elapsedSeconds": 2.5095,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 54,
+            "total_tokens": 134,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 31.878
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 31.865,
+      "summary": {
+        "requests": 1,
+        "exactReplies": 1,
+        "p50Seconds": 2.5095,
+        "p95Seconds": 2.5095,
+        "maxSeconds": 2.5095,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          31.878
+        ],
+        "aggregateOutputTokensPerSecond": 31.865
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 2,
+        "round": 1
+      },
+      "wallSeconds": 3.5495,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664386.353074406,
+          "endMonotonic": 664388.876782861,
+          "firstTokenSeconds": 0.3328,
+          "elapsedSeconds": 2.5237,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 57,
+            "total_tokens": 137,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 31.699
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664386.351778566,
+          "endMonotonic": 664389.899663796,
+          "firstTokenSeconds": 0.1283,
+          "elapsedSeconds": 3.5479,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 51,
+            "total_tokens": 170,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 33.541
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 56.065,
+      "summary": {
+        "requests": 2,
+        "exactReplies": 2,
+        "p50Seconds": 2.5237,
+        "p95Seconds": 3.5479,
+        "maxSeconds": 3.5479,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          31.699,
+          33.541
+        ],
+        "aggregateOutputTokensPerSecond": 56.065
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 2,
+        "round": 2
+      },
+      "wallSeconds": 3.7155,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664395.214477097,
+          "endMonotonic": 664397.59839928,
+          "firstTokenSeconds": 0.1254,
+          "elapsedSeconds": 2.3839,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 48,
+            "total_tokens": 128,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 33.558
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664395.213433817,
+          "endMonotonic": 664398.927418192,
+          "firstTokenSeconds": 0.3349,
+          "elapsedSeconds": 3.714,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 32.041
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 53.56,
+      "summary": {
+        "requests": 2,
+        "exactReplies": 2,
+        "p50Seconds": 2.3839,
+        "p95Seconds": 3.714,
+        "maxSeconds": 3.714,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          33.558,
+          32.041
+        ],
+        "aggregateOutputTokensPerSecond": 53.56
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 2,
+        "round": 3
+      },
+      "wallSeconds": 2.5407,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664405.06829523,
+          "endMonotonic": 664407.457084066,
+          "firstTokenSeconds": 0.124,
+          "elapsedSeconds": 2.3888,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 55,
+            "total_tokens": 135,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 33.49
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664405.067372491,
+          "endMonotonic": 664407.60672756,
+          "firstTokenSeconds": 0.3389,
+          "elapsedSeconds": 2.5394,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 54,
+            "total_tokens": 134,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 31.504
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 62.974,
+      "summary": {
+        "requests": 2,
+        "exactReplies": 2,
+        "p50Seconds": 2.3888,
+        "p95Seconds": 2.5394,
+        "maxSeconds": 2.5394,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          33.49,
+          31.504
+        ],
+        "aggregateOutputTokensPerSecond": 62.974
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 4,
+        "round": 1
+      },
+      "wallSeconds": 3.8699,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664413.038933375,
+          "endMonotonic": 664416.905553277,
+          "firstTokenSeconds": 0.3782,
+          "elapsedSeconds": 3.8666,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 52,
+            "total_tokens": 171,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 30.776
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664413.038675367,
+          "endMonotonic": 664416.905509521,
+          "firstTokenSeconds": 0.3784,
+          "elapsedSeconds": 3.8668,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 30.775
+        },
+        {
+          "label": "burst-2",
+          "startMonotonic": 664413.038808587,
+          "endMonotonic": 664416.748253662,
+          "firstTokenSeconds": 0.1553,
+          "elapsedSeconds": 3.7094,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 52,
+            "total_tokens": 171,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 32.08
+        },
+        {
+          "label": "burst-3",
+          "startMonotonic": 664413.037638937,
+          "endMonotonic": 664416.895092576,
+          "firstTokenSeconds": 0.3785,
+          "elapsedSeconds": 3.8575,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 30.849
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 123.0,
+      "summary": {
+        "requests": 4,
+        "exactReplies": 4,
+        "p50Seconds": 3.8575,
+        "p95Seconds": 3.8668,
+        "maxSeconds": 3.8668,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          30.776,
+          30.775,
+          32.08,
+          30.849
+        ],
+        "aggregateOutputTokensPerSecond": 123.0
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 4,
+        "round": 2
+      },
+      "wallSeconds": 3.8692,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664422.359643051,
+          "endMonotonic": 664425.048376454,
+          "firstTokenSeconds": 0.3543,
+          "elapsedSeconds": 2.6887,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 52,
+            "total_tokens": 132,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 29.754
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664422.358973534,
+          "endMonotonic": 664425.048307501,
+          "firstTokenSeconds": 0.3551,
+          "elapsedSeconds": 2.6893,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 52,
+            "total_tokens": 132,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 29.747
+        },
+        {
+          "label": "burst-2",
+          "startMonotonic": 664422.359310591,
+          "endMonotonic": 664424.897778444,
+          "firstTokenSeconds": 0.1324,
+          "elapsedSeconds": 2.5385,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 49,
+            "total_tokens": 129,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 31.515
+        },
+        {
+          "label": "burst-3",
+          "startMonotonic": 664422.358050785,
+          "endMonotonic": 664426.224975585,
+          "firstTokenSeconds": 0.3549,
+          "elapsedSeconds": 3.8669,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 51,
+            "total_tokens": 170,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 30.774
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 92.785,
+      "summary": {
+        "requests": 4,
+        "exactReplies": 4,
+        "p50Seconds": 2.6887,
+        "p95Seconds": 3.8669,
+        "maxSeconds": 3.8669,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          29.754,
+          29.747,
+          31.515,
+          30.774
+        ],
+        "aggregateOutputTokensPerSecond": 92.785
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 4,
+        "round": 3
+      },
+      "wallSeconds": 3.7963,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664432.278343245,
+          "endMonotonic": 664434.833718019,
+          "firstTokenSeconds": 0.1441,
+          "elapsedSeconds": 2.5554,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 51,
+            "total_tokens": 131,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 31.307
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664432.277872076,
+          "endMonotonic": 664434.981584479,
+          "firstTokenSeconds": 0.3703,
+          "elapsedSeconds": 2.7037,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 50,
+            "total_tokens": 130,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 29.589
+        },
+        {
+          "label": "burst-2",
+          "startMonotonic": 664432.278024565,
+          "endMonotonic": 664436.065332914,
+          "firstTokenSeconds": 0.3691,
+          "elapsedSeconds": 3.7873,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 31.421
+        },
+        {
+          "label": "burst-3",
+          "startMonotonic": 664432.276832101,
+          "endMonotonic": 664436.071319161,
+          "firstTokenSeconds": 0.3712,
+          "elapsedSeconds": 3.7945,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 53,
+            "total_tokens": 172,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 31.361
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 104.838,
+      "summary": {
+        "requests": 4,
+        "exactReplies": 4,
+        "p50Seconds": 2.7037,
+        "p95Seconds": 3.7945,
+        "maxSeconds": 3.7945,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          31.307,
+          29.589,
+          31.421,
+          31.361
+        ],
+        "aggregateOutputTokensPerSecond": 104.838
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 8,
+        "round": 1
+      },
+      "wallSeconds": 4.8885,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664441.274168966,
+          "endMonotonic": 664444.672091251,
+          "firstTokenSeconds": 0.4014,
+          "elapsedSeconds": 3.3979,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 51,
+            "total_tokens": 131,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 23.544
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664441.274313383,
+          "endMonotonic": 664445.721359123,
+          "firstTokenSeconds": 0.18,
+          "elapsedSeconds": 4.447,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 26.759
+        },
+        {
+          "label": "burst-2",
+          "startMonotonic": 664441.27445706,
+          "endMonotonic": 664445.870583826,
+          "firstTokenSeconds": 0.4027,
+          "elapsedSeconds": 4.5961,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 25.891
+        },
+        {
+          "label": "burst-3",
+          "startMonotonic": 664441.274796891,
+          "endMonotonic": 664446.01051798,
+          "firstTokenSeconds": 0.6367,
+          "elapsedSeconds": 4.7357,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 52,
+            "total_tokens": 171,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 25.128
+        },
+        {
+          "label": "burst-4",
+          "startMonotonic": 664441.275103983,
+          "endMonotonic": 664444.8568072,
+          "firstTokenSeconds": 0.6365,
+          "elapsedSeconds": 3.5817,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 49,
+            "total_tokens": 129,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 22.336
+        },
+        {
+          "label": "burst-5",
+          "startMonotonic": 664441.275396553,
+          "endMonotonic": 664446.15895614,
+          "firstTokenSeconds": 0.9008,
+          "elapsedSeconds": 4.8836,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 24.367
+        },
+        {
+          "label": "burst-6",
+          "startMonotonic": 664441.275538367,
+          "endMonotonic": 664444.851789209,
+          "firstTokenSeconds": 0.6358,
+          "elapsedSeconds": 3.5763,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 50,
+            "total_tokens": 130,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 22.37
+        },
+        {
+          "label": "burst-7",
+          "startMonotonic": 664441.273257865,
+          "endMonotonic": 664444.672175128,
+          "firstTokenSeconds": 0.4037,
+          "elapsedSeconds": 3.3989,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 52,
+            "total_tokens": 132,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 23.537
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 162.83,
+      "summary": {
+        "requests": 8,
+        "exactReplies": 8,
+        "p50Seconds": 3.5817,
+        "p95Seconds": 4.8836,
+        "maxSeconds": 4.8836,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          23.544,
+          26.759,
+          25.891,
+          25.128,
+          22.336,
+          24.367,
+          22.37,
+          23.537
+        ],
+        "aggregateOutputTokensPerSecond": 162.83
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 8,
+        "round": 2
+      },
+      "wallSeconds": 5.1541,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664455.801589747,
+          "endMonotonic": 664459.395941507,
+          "firstTokenSeconds": 0.6498,
+          "elapsedSeconds": 3.5944,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 50,
+            "total_tokens": 130,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 22.257
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664455.802966108,
+          "endMonotonic": 664460.647962077,
+          "firstTokenSeconds": 0.4126,
+          "elapsedSeconds": 4.845,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 52,
+            "total_tokens": 171,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 24.561
+        },
+        {
+          "label": "burst-2",
+          "startMonotonic": 664455.801743078,
+          "endMonotonic": 664460.64779115,
+          "firstTokenSeconds": 0.4147,
+          "elapsedSeconds": 4.846,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 52,
+            "total_tokens": 171,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 24.556
+        },
+        {
+          "label": "burst-3",
+          "startMonotonic": 664455.802251282,
+          "endMonotonic": 664460.951784009,
+          "firstTokenSeconds": 0.9125,
+          "elapsedSeconds": 5.1495,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 52,
+            "total_tokens": 171,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 23.109
+        },
+        {
+          "label": "burst-4",
+          "startMonotonic": 664455.802067245,
+          "endMonotonic": 664460.45893448,
+          "firstTokenSeconds": 0.1862,
+          "elapsedSeconds": 4.6569,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 52,
+            "total_tokens": 171,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 25.554
+        },
+        {
+          "label": "burst-5",
+          "startMonotonic": 664455.802539025,
+          "endMonotonic": 664460.798159835,
+          "firstTokenSeconds": 0.6479,
+          "elapsedSeconds": 4.9956,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 53,
+            "total_tokens": 172,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 23.821
+        },
+        {
+          "label": "burst-6",
+          "startMonotonic": 664455.802828972,
+          "endMonotonic": 664460.803507442,
+          "firstTokenSeconds": 0.6485,
+          "elapsedSeconds": 5.0007,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 23.797
+        },
+        {
+          "label": "burst-7",
+          "startMonotonic": 664455.800578065,
+          "endMonotonic": 664459.213588013,
+          "firstTokenSeconds": 0.416,
+          "elapsedSeconds": 3.413,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 48,
+            "total_tokens": 128,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 23.44
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 169.573,
+      "summary": {
+        "requests": 8,
+        "exactReplies": 8,
+        "p50Seconds": 4.845,
+        "p95Seconds": 5.1495,
+        "maxSeconds": 5.1495,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          22.257,
+          24.561,
+          24.556,
+          23.109,
+          25.554,
+          23.821,
+          23.797,
+          23.44
+        ],
+        "aggregateOutputTokensPerSecond": 169.573
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 8,
+        "round": 3
+      },
+      "wallSeconds": 4.911,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664466.259743045,
+          "endMonotonic": 664471.016930957,
+          "firstTokenSeconds": 0.6564,
+          "elapsedSeconds": 4.7572,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 25.015
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664466.25870934,
+          "endMonotonic": 664470.880128425,
+          "firstTokenSeconds": 0.4172,
+          "elapsedSeconds": 4.6214,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 25.75
+        },
+        {
+          "label": "burst-2",
+          "startMonotonic": 664466.258401166,
+          "endMonotonic": 664470.880045991,
+          "firstTokenSeconds": 0.4165,
+          "elapsedSeconds": 4.6216,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 47,
+            "total_tokens": 166,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 25.748
+        },
+        {
+          "label": "burst-3",
+          "startMonotonic": 664466.25881629,
+          "endMonotonic": 664469.866701024,
+          "firstTokenSeconds": 0.6572,
+          "elapsedSeconds": 3.6079,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 52,
+            "total_tokens": 132,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 22.174
+        },
+        {
+          "label": "burst-4",
+          "startMonotonic": 664466.259139857,
+          "endMonotonic": 664469.679021176,
+          "firstTokenSeconds": 0.417,
+          "elapsedSeconds": 3.4199,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 55,
+            "total_tokens": 135,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 23.393
+        },
+        {
+          "label": "burst-5",
+          "startMonotonic": 664466.25954707,
+          "endMonotonic": 664469.861675833,
+          "firstTokenSeconds": 0.6554,
+          "elapsedSeconds": 3.6021,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 51,
+            "total_tokens": 131,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 22.209
+        },
+        {
+          "label": "burst-6",
+          "startMonotonic": 664466.259411116,
+          "endMonotonic": 664471.165460334,
+          "firstTokenSeconds": 0.9238,
+          "elapsedSeconds": 4.906,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 53,
+            "total_tokens": 172,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 24.256
+        },
+        {
+          "label": "burst-7",
+          "startMonotonic": 664466.257374301,
+          "endMonotonic": 664469.494982706,
+          "firstTokenSeconds": 0.1925,
+          "elapsedSeconds": 3.2376,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 53,
+            "total_tokens": 133,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 24.71
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 162.086,
+      "summary": {
+        "requests": 8,
+        "exactReplies": 8,
+        "p50Seconds": 3.6079,
+        "p95Seconds": 4.906,
+        "maxSeconds": 4.906,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          25.015,
+          25.75,
+          25.748,
+          22.174,
+          23.393,
+          22.209,
+          24.256,
+          24.71
+        ],
+        "aggregateOutputTokensPerSecond": 162.086
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 16,
+        "round": 1
+      },
+      "wallSeconds": 7.1643,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664477.116987821,
+          "endMonotonic": 664483.680978503,
+          "firstTokenSeconds": 0.415,
+          "elapsedSeconds": 6.564,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 18.129
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664477.117116104,
+          "endMonotonic": 664483.828959566,
+          "firstTokenSeconds": 0.6602,
+          "elapsedSeconds": 6.7118,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 47,
+            "total_tokens": 166,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 17.73
+        },
+        {
+          "label": "burst-2",
+          "startMonotonic": 664477.117556757,
+          "endMonotonic": 664482.059016839,
+          "firstTokenSeconds": 0.4143,
+          "elapsedSeconds": 4.9415,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 51,
+            "total_tokens": 131,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 16.19
+        },
+        {
+          "label": "burst-3",
+          "startMonotonic": 664477.117415584,
+          "endMonotonic": 664481.794533411,
+          "firstTokenSeconds": 0.1889,
+          "elapsedSeconds": 4.6771,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 52,
+            "total_tokens": 132,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 17.105
+        },
+        {
+          "label": "burst-4",
+          "startMonotonic": 664477.117859262,
+          "endMonotonic": 664482.338507278,
+          "firstTokenSeconds": 0.6593,
+          "elapsedSeconds": 5.2206,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 51,
+            "total_tokens": 131,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 15.324
+        },
+        {
+          "label": "burst-5",
+          "startMonotonic": 664477.117682977,
+          "endMonotonic": 664482.339011076,
+          "firstTokenSeconds": 0.6593,
+          "elapsedSeconds": 5.2213,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 50,
+            "total_tokens": 130,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 15.322
+        },
+        {
+          "label": "burst-6",
+          "startMonotonic": 664477.117995187,
+          "endMonotonic": 664484.129942295,
+          "firstTokenSeconds": 1.4052,
+          "elapsedSeconds": 7.0119,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 52,
+            "total_tokens": 171,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.971
+        },
+        {
+          "label": "burst-7",
+          "startMonotonic": 664477.118521919,
+          "endMonotonic": 664482.808292091,
+          "firstTokenSeconds": 1.4034,
+          "elapsedSeconds": 5.6898,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 51,
+            "total_tokens": 131,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 14.06
+        },
+        {
+          "label": "burst-8",
+          "startMonotonic": 664477.118382189,
+          "endMonotonic": 664482.573385869,
+          "firstTokenSeconds": 1.0657,
+          "elapsedSeconds": 5.455,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 51,
+            "total_tokens": 131,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 14.665
+        },
+        {
+          "label": "burst-9",
+          "startMonotonic": 664477.118774589,
+          "endMonotonic": 664484.1298794,
+          "firstTokenSeconds": 1.4042,
+          "elapsedSeconds": 7.0111,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 51,
+            "total_tokens": 170,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.973
+        },
+        {
+          "label": "burst-10",
+          "startMonotonic": 664477.11897413,
+          "endMonotonic": 664482.573248432,
+          "firstTokenSeconds": 1.0695,
+          "elapsedSeconds": 5.4543,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 52,
+            "total_tokens": 132,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 14.667
+        },
+        {
+          "label": "burst-11",
+          "startMonotonic": 664477.119096383,
+          "endMonotonic": 664484.275861114,
+          "firstTokenSeconds": 1.7857,
+          "elapsedSeconds": 7.1568,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 53,
+            "total_tokens": 172,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.628
+        },
+        {
+          "label": "burst-12",
+          "startMonotonic": 664477.119371227,
+          "endMonotonic": 664482.573437727,
+          "firstTokenSeconds": 1.0685,
+          "elapsedSeconds": 5.4541,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 50,
+            "total_tokens": 130,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 14.668
+        },
+        {
+          "label": "burst-13",
+          "startMonotonic": 664477.119505379,
+          "endMonotonic": 664482.987358949,
+          "firstTokenSeconds": 1.785,
+          "elapsedSeconds": 5.8679,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 50,
+            "total_tokens": 130,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 13.634
+        },
+        {
+          "label": "burst-14",
+          "startMonotonic": 664477.119609476,
+          "endMonotonic": 664482.994416248,
+          "firstTokenSeconds": 1.785,
+          "elapsedSeconds": 5.8748,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 52,
+            "total_tokens": 132,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 13.617
+        },
+        {
+          "label": "burst-15",
+          "startMonotonic": 664477.115961717,
+          "endMonotonic": 664483.675333449,
+          "firstTokenSeconds": 0.4145,
+          "elapsedSeconds": 6.5594,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 52,
+            "total_tokens": 171,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 18.142
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 211.324,
+      "summary": {
+        "requests": 16,
+        "exactReplies": 16,
+        "p50Seconds": 5.6898,
+        "p95Seconds": 7.1568,
+        "maxSeconds": 7.1568,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          18.129,
+          17.73,
+          16.19,
+          17.105,
+          15.324,
+          15.322,
+          16.971,
+          14.06,
+          14.665,
+          16.973,
+          14.667,
+          16.628,
+          14.668,
+          13.634,
+          13.617,
+          18.142
+        ],
+        "aggregateOutputTokensPerSecond": 211.324
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 16,
+        "round": 2
+      },
+      "wallSeconds": 7.664,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664489.676191785,
+          "endMonotonic": 664497.194165339,
+          "firstTokenSeconds": 1.314,
+          "elapsedSeconds": 7.518,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 15.829
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664489.676541401,
+          "endMonotonic": 664497.185318688,
+          "firstTokenSeconds": 1.3138,
+          "elapsedSeconds": 7.5088,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 15.848
+        },
+        {
+          "label": "burst-2",
+          "startMonotonic": 664489.676423895,
+          "endMonotonic": 664496.852332361,
+          "firstTokenSeconds": 0.7092,
+          "elapsedSeconds": 7.1759,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 48,
+            "total_tokens": 167,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.583
+        },
+        {
+          "label": "burst-3",
+          "startMonotonic": 664489.676618898,
+          "endMonotonic": 664497.039270654,
+          "firstTokenSeconds": 0.9816,
+          "elapsedSeconds": 7.3627,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 51,
+            "total_tokens": 170,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.163
+        },
+        {
+          "label": "burst-4",
+          "startMonotonic": 664489.676305837,
+          "endMonotonic": 664495.590587869,
+          "firstTokenSeconds": 1.6941,
+          "elapsedSeconds": 5.9143,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 49,
+            "total_tokens": 129,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 13.527
+        },
+        {
+          "label": "burst-5",
+          "startMonotonic": 664489.676761673,
+          "endMonotonic": 664497.335440541,
+          "firstTokenSeconds": 1.6934,
+          "elapsedSeconds": 7.6587,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 53,
+            "total_tokens": 172,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 15.538
+        },
+        {
+          "label": "burst-6",
+          "startMonotonic": 664489.676671096,
+          "endMonotonic": 664497.194130237,
+          "firstTokenSeconds": 1.3138,
+          "elapsedSeconds": 7.5175,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 15.83
+        },
+        {
+          "label": "burst-7",
+          "startMonotonic": 664489.677104208,
+          "endMonotonic": 664495.583100372,
+          "firstTokenSeconds": 1.6932,
+          "elapsedSeconds": 5.906,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 49,
+            "total_tokens": 129,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 13.546
+        },
+        {
+          "label": "burst-8",
+          "startMonotonic": 664489.677235846,
+          "endMonotonic": 664497.039532448,
+          "firstTokenSeconds": 0.9807,
+          "elapsedSeconds": 7.3623,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.163
+        },
+        {
+          "label": "burst-9",
+          "startMonotonic": 664489.677374034,
+          "endMonotonic": 664496.841316355,
+          "firstTokenSeconds": 0.7083,
+          "elapsedSeconds": 7.1639,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.611
+        },
+        {
+          "label": "burst-10",
+          "startMonotonic": 664489.677297259,
+          "endMonotonic": 664496.618731033,
+          "firstTokenSeconds": 0.4774,
+          "elapsedSeconds": 6.9414,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 54,
+            "total_tokens": 173,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 17.143
+        },
+        {
+          "label": "burst-11",
+          "startMonotonic": 664489.67751079,
+          "endMonotonic": 664496.618437822,
+          "firstTokenSeconds": 0.4759,
+          "elapsedSeconds": 6.9409,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 17.145
+        },
+        {
+          "label": "burst-12",
+          "startMonotonic": 664489.677648858,
+          "endMonotonic": 664494.236671012,
+          "firstTokenSeconds": 0.253,
+          "elapsedSeconds": 4.559,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 48,
+            "total_tokens": 128,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 17.548
+        },
+        {
+          "label": "burst-13",
+          "startMonotonic": 664489.677704602,
+          "endMonotonic": 664496.618757052,
+          "firstTokenSeconds": 0.4769,
+          "elapsedSeconds": 6.9411,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 55,
+            "total_tokens": 174,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 17.144
+        },
+        {
+          "label": "burst-14",
+          "startMonotonic": 664489.677817762,
+          "endMonotonic": 664496.852512252,
+          "firstTokenSeconds": 0.7076,
+          "elapsedSeconds": 7.1747,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 53,
+            "total_tokens": 172,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.586
+        },
+        {
+          "label": "burst-15",
+          "startMonotonic": 664489.67527111,
+          "endMonotonic": 664497.039558948,
+          "firstTokenSeconds": 0.9829,
+          "elapsedSeconds": 7.3643,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 53,
+            "total_tokens": 172,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.159
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 233.168,
+      "summary": {
+        "requests": 16,
+        "exactReplies": 16,
+        "p50Seconds": 7.1747,
+        "p95Seconds": 7.6587,
+        "maxSeconds": 7.6587,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          15.829,
+          15.848,
+          16.583,
+          16.163,
+          13.527,
+          15.538,
+          15.83,
+          13.546,
+          16.163,
+          16.611,
+          17.143,
+          17.145,
+          17.548,
+          17.144,
+          16.586,
+          16.159
+        ],
+        "aggregateOutputTokensPerSecond": 233.168
+      }
+    },
+    {
+      "plan": {
+        "kind": "burst",
+        "concurrency": 16,
+        "round": 3
+      },
+      "wallSeconds": 7.4364,
+      "rows": [
+        {
+          "label": "burst-0",
+          "startMonotonic": 664502.481360972,
+          "endMonotonic": 664509.198888497,
+          "firstTokenSeconds": 0.3864,
+          "elapsedSeconds": 6.7175,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 48,
+            "total_tokens": 167,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 17.715
+        },
+        {
+          "label": "burst-1",
+          "startMonotonic": 664502.481815326,
+          "endMonotonic": 664508.973751054,
+          "firstTokenSeconds": 0.1655,
+          "elapsedSeconds": 6.4919,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 18.33
+        },
+        {
+          "label": "burst-2",
+          "startMonotonic": 664502.481662266,
+          "endMonotonic": 664509.433643681,
+          "firstTokenSeconds": 0.6169,
+          "elapsedSeconds": 6.952,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 51,
+            "total_tokens": 170,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 17.117
+        },
+        {
+          "label": "burst-3",
+          "startMonotonic": 664502.482052072,
+          "endMonotonic": 664507.249435335,
+          "firstTokenSeconds": 0.3844,
+          "elapsedSeconds": 4.7674,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 50,
+            "total_tokens": 130,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 16.781
+        },
+        {
+          "label": "burst-4",
+          "startMonotonic": 664502.482463311,
+          "endMonotonic": 664509.43329093,
+          "firstTokenSeconds": 0.6172,
+          "elapsedSeconds": 6.9508,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 51,
+            "total_tokens": 170,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 17.12
+        },
+        {
+          "label": "burst-5",
+          "startMonotonic": 664502.482188468,
+          "endMonotonic": 664509.433607277,
+          "firstTokenSeconds": 0.6176,
+          "elapsedSeconds": 6.9514,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 17.119
+        },
+        {
+          "label": "burst-6",
+          "startMonotonic": 664502.482791094,
+          "endMonotonic": 664508.060328985,
+          "firstTokenSeconds": 1.2275,
+          "elapsedSeconds": 5.5775,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 49,
+            "total_tokens": 129,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 14.343
+        },
+        {
+          "label": "burst-7",
+          "startMonotonic": 664502.482604503,
+          "endMonotonic": 664509.624303214,
+          "firstTokenSeconds": 0.8944,
+          "elapsedSeconds": 7.1417,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 51,
+            "total_tokens": 170,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.663
+        },
+        {
+          "label": "burst-8",
+          "startMonotonic": 664502.483042382,
+          "endMonotonic": 664509.614304037,
+          "firstTokenSeconds": 0.8937,
+          "elapsedSeconds": 7.1313,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 53,
+            "total_tokens": 172,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.687
+        },
+        {
+          "label": "burst-9",
+          "startMonotonic": 664502.483297136,
+          "endMonotonic": 664509.624152437,
+          "firstTokenSeconds": 0.8936,
+          "elapsedSeconds": 7.1409,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 50,
+            "total_tokens": 169,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.665
+        },
+        {
+          "label": "burst-10",
+          "startMonotonic": 664502.483187941,
+          "endMonotonic": 664509.773010358,
+          "firstTokenSeconds": 1.227,
+          "elapsedSeconds": 7.2898,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 48,
+            "total_tokens": 167,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.324
+        },
+        {
+          "label": "burst-11",
+          "startMonotonic": 664502.483746732,
+          "endMonotonic": 664509.772874534,
+          "firstTokenSeconds": 1.2263,
+          "elapsedSeconds": 7.2891,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 52,
+            "total_tokens": 171,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.326
+        },
+        {
+          "label": "burst-12",
+          "startMonotonic": 664502.483379209,
+          "endMonotonic": 664509.912552923,
+          "firstTokenSeconds": 1.6179,
+          "elapsedSeconds": 7.4292,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 51,
+            "total_tokens": 170,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.018
+        },
+        {
+          "label": "burst-13",
+          "startMonotonic": 664502.483642375,
+          "endMonotonic": 664509.908033312,
+          "firstTokenSeconds": 1.6178,
+          "elapsedSeconds": 7.4244,
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 49,
+            "total_tokens": 168,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 118,
+          "effectiveOutputTokensPerSecond": 16.028
+        },
+        {
+          "label": "burst-14",
+          "startMonotonic": 664502.483845891,
+          "endMonotonic": 664508.329957055,
+          "firstTokenSeconds": 1.6177,
+          "elapsedSeconds": 5.8461,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 51,
+            "total_tokens": 131,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 13.684
+        },
+        {
+          "label": "burst-15",
+          "startMonotonic": 664502.480316711,
+          "endMonotonic": 664507.249370798,
+          "firstTokenSeconds": 0.3876,
+          "elapsedSeconds": 4.7691,
+          "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "expected": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 80,
+            "prompt_tokens": 54,
+            "total_tokens": 134,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 79,
+          "effectiveOutputTokensPerSecond": 16.775
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 235.06,
+      "summary": {
+        "requests": 16,
+        "exactReplies": 16,
+        "p50Seconds": 6.9514,
+        "p95Seconds": 7.4292,
+        "maxSeconds": 7.4292,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          17.715,
+          18.33,
+          17.117,
+          16.781,
+          17.12,
+          17.119,
+          14.343,
+          16.663,
+          16.687,
+          16.665,
+          16.324,
+          16.326,
+          16.018,
+          16.028,
+          13.684,
+          16.775
+        ],
+        "aggregateOutputTokensPerSecond": 235.06
+      }
+    },
+    {
+      "plan": {
+        "kind": "mixed",
+        "inputTarget": 24000
+      },
+      "wallSeconds": 5.3409,
+      "rows": [
+        {
+          "label": "mixed-long",
+          "startMonotonic": 664515.265239332,
+          "endMonotonic": 664520.604690496,
+          "firstTokenSeconds": 5.1573,
+          "elapsedSeconds": 5.3395,
+          "text": "MIXED_STRESS_OK",
+          "expected": "MIXED_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 8,
+            "prompt_tokens": 24047,
+            "total_tokens": 24055,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 7,
+          "effectiveOutputTokensPerSecond": 1.498
+        },
+        {
+          "label": "mixed-short-0",
+          "startMonotonic": 664515.766576993,
+          "endMonotonic": 664516.375947765,
+          "firstTokenSeconds": 0.2896,
+          "elapsedSeconds": 0.6094,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 44,
+            "total_tokens": 51,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 11.487,
+          "longStillRunningAfterReply": true
+        },
+        {
+          "label": "mixed-short-1",
+          "startMonotonic": 664516.376033003,
+          "endMonotonic": 664517.018949863,
+          "firstTokenSeconds": 0.3242,
+          "elapsedSeconds": 0.6429,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 45,
+            "total_tokens": 52,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 10.888,
+          "longStillRunningAfterReply": true
+        },
+        {
+          "label": "mixed-short-2",
+          "startMonotonic": 664517.019027961,
+          "endMonotonic": 664517.506611776,
+          "firstTokenSeconds": 0.1604,
+          "elapsedSeconds": 0.4876,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 43,
+            "total_tokens": 50,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 14.357,
+          "longStillRunningAfterReply": true
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 5.43,
+      "summary": {
+        "requests": 4,
+        "exactReplies": 4,
+        "p50Seconds": 0.6094,
+        "p95Seconds": 5.3395,
+        "maxSeconds": 5.3395,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          1.498,
+          11.487,
+          10.888,
+          14.357
+        ],
+        "aggregateOutputTokensPerSecond": 5.43
+      }
+    },
+    {
+      "plan": {
+        "kind": "mixed",
+        "inputTarget": 96000
+      },
+      "wallSeconds": 26.2751,
+      "rows": [
+        {
+          "label": "mixed-long",
+          "startMonotonic": 664526.029922327,
+          "endMonotonic": 664552.303295033,
+          "firstTokenSeconds": 26.0864,
+          "elapsedSeconds": 26.2734,
+          "text": "MIXED_STRESS_OK",
+          "expected": "MIXED_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 8,
+            "prompt_tokens": 96047,
+            "total_tokens": 96055,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 7,
+          "effectiveOutputTokensPerSecond": 0.304
+        },
+        {
+          "label": "mixed-short-0",
+          "startMonotonic": 664526.531698567,
+          "endMonotonic": 664527.090512895,
+          "firstTokenSeconds": 0.2442,
+          "elapsedSeconds": 0.5588,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 42,
+            "total_tokens": 49,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 12.527,
+          "longStillRunningAfterReply": true
+        },
+        {
+          "label": "mixed-short-1",
+          "startMonotonic": 664527.090601889,
+          "endMonotonic": 664527.561121527,
+          "firstTokenSeconds": 0.1556,
+          "elapsedSeconds": 0.4705,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 45,
+            "total_tokens": 52,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 14.877,
+          "longStillRunningAfterReply": true
+        },
+        {
+          "label": "mixed-short-2",
+          "startMonotonic": 664527.561199534,
+          "endMonotonic": 664528.035943379,
+          "firstTokenSeconds": 0.1542,
+          "elapsedSeconds": 0.4747,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 41,
+            "total_tokens": 48,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 14.745,
+          "longStillRunningAfterReply": true
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 1.104,
+      "summary": {
+        "requests": 4,
+        "exactReplies": 4,
+        "p50Seconds": 0.4747,
+        "p95Seconds": 26.2734,
+        "maxSeconds": 26.2734,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          0.304,
+          12.527,
+          14.877,
+          14.745
+        ],
+        "aggregateOutputTokensPerSecond": 1.104
+      }
+    },
+    {
+      "plan": {
+        "kind": "mixed",
+        "inputTarget": 120000
+      },
+      "wallSeconds": 35.8463,
+      "rows": [
+        {
+          "label": "mixed-long",
+          "startMonotonic": 664557.845696102,
+          "endMonotonic": 664593.689809645,
+          "firstTokenSeconds": 35.6556,
+          "elapsedSeconds": 35.8441,
+          "text": "MIXED_STRESS_OK",
+          "expected": "MIXED_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 8,
+            "prompt_tokens": 120049,
+            "total_tokens": 120057,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 7,
+          "effectiveOutputTokensPerSecond": 0.223
+        },
+        {
+          "label": "mixed-short-0",
+          "startMonotonic": 664558.347594787,
+          "endMonotonic": 664558.969897388,
+          "firstTokenSeconds": 0.3073,
+          "elapsedSeconds": 0.6223,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 43,
+            "total_tokens": 50,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 11.249,
+          "longStillRunningAfterReply": true
+        },
+        {
+          "label": "mixed-short-1",
+          "startMonotonic": 664558.969979021,
+          "endMonotonic": 664559.445918264,
+          "firstTokenSeconds": 0.1546,
+          "elapsedSeconds": 0.4759,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 41,
+            "total_tokens": 48,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 14.708,
+          "longStillRunningAfterReply": true
+        },
+        {
+          "label": "mixed-short-2",
+          "startMonotonic": 664559.446014278,
+          "endMonotonic": 664559.923256972,
+          "firstTokenSeconds": 0.1583,
+          "elapsedSeconds": 0.4772,
+          "text": "SHORT_STRESS_OK",
+          "expected": "SHORT_STRESS_OK",
+          "exact": true,
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 47,
+            "total_tokens": 54,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "finishReason": "stop",
+          "contentEvents": 6,
+          "effectiveOutputTokensPerSecond": 14.668,
+          "longStillRunningAfterReply": true
+        }
+      ],
+      "allExact": true,
+      "aggregateOutputTokensPerSecond": 0.809,
+      "summary": {
+        "requests": 4,
+        "exactReplies": 4,
+        "p50Seconds": 0.4772,
+        "p95Seconds": 35.8441,
+        "maxSeconds": 35.8441,
+        "perRequestEffectiveOutputTokensPerSecond": [
+          0.223,
+          11.249,
+          14.708,
+          14.668
+        ],
+        "aggregateOutputTokensPerSecond": 0.809
+      }
+    }
+  ],
+  "samples": [
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:00:53.300781+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 1.0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.02,
+        "sglang:full_token_usage": 0.00021701388888888888
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:00:59.131040+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:04.852080+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:09.994253+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 1.0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.02,
+        "sglang:full_token_usage": 0.00021701388888888888
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:15.424895+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:20.518641+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:25.875542+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 1.0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.04,
+        "sglang:full_token_usage": 0.00043402777777777775
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:31.813121+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:37.887056+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 47
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:43.328583+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 3.0,
+        "sglang:token_usage": 0.02,
+        "sglang:full_token_usage": 0.00021701388888888888
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 98
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 57
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 96
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 82
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:48.916595+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:54.357557+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 4.0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.07,
+        "sglang:full_token_usage": 0.0008680555555555555
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:01:59.672504+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:02:05.605581+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 3.0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.05,
+        "sglang:full_token_usage": 0.0006510416666666666
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:02:10.993912+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92848,
+          "freeMiB": 2472,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:02:16.304249+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:02:21.820688+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 6.0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.11,
+        "sglang:full_token_usage": 0.0013020833333333333
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:02:35.976172+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:02:41.405167+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 5
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:02:46.905801+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:02:52.666187+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 14.0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.25,
+        "sglang:full_token_usage": 0.0030381944444444445
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:02:58.235379+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:03.490345+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 16.0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.28,
+        "sglang:full_token_usage": 0.003472222222222222
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:08.989705+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:14.258109+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 10.0,
+        "sglang:num_queue_reqs": 3.0,
+        "sglang:token_usage": 0.23,
+        "sglang:full_token_usage": 0.0028211805555555555
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 64
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 83
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 79
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 84
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:19.883902+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 58
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 71
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:25.471512+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 92850,
+          "freeMiB": 2470,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:30.887817+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93132,
+          "freeMiB": 2188,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 93132,
+          "freeMiB": 2188,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 93132,
+          "freeMiB": 2188,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 93132,
+          "freeMiB": 2188,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:36.707414+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0,
+        "sglang:full_token_usage": 0
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93132,
+          "freeMiB": 2188,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 93132,
+          "freeMiB": 2188,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 93132,
+          "freeMiB": 2188,
+          "utilizationPercent": 29
+        },
+        {
+          "index": 3,
+          "usedMiB": 93132,
+          "freeMiB": 2188,
+          "utilizationPercent": 71
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:42.041725+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.04,
+        "sglang:full_token_usage": 0.022135416666666668
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93152,
+          "freeMiB": 2168,
+          "utilizationPercent": 92
+        },
+        {
+          "index": 1,
+          "usedMiB": 93152,
+          "freeMiB": 2168,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 93152,
+          "freeMiB": 2168,
+          "utilizationPercent": 92
+        },
+        {
+          "index": 3,
+          "usedMiB": 93152,
+          "freeMiB": 2168,
+          "utilizationPercent": 98
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:47.435331+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.04,
+        "sglang:full_token_usage": 0.04123263888888889
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93312,
+          "freeMiB": 2008,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 93312,
+          "freeMiB": 2008,
+          "utilizationPercent": 90
+        },
+        {
+          "index": 2,
+          "usedMiB": 93312,
+          "freeMiB": 2008,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 93312,
+          "freeMiB": 2008,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:52.808817+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.06,
+        "sglang:full_token_usage": 0.05772569444444445
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93392,
+          "freeMiB": 1928,
+          "utilizationPercent": 88
+        },
+        {
+          "index": 1,
+          "usedMiB": 93392,
+          "freeMiB": 1928,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 93392,
+          "freeMiB": 1928,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 93392,
+          "freeMiB": 1928,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:03:58.109324+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.07,
+        "sglang:full_token_usage": 0.07161458333333333
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93432,
+          "freeMiB": 1888,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 93432,
+          "freeMiB": 1888,
+          "utilizationPercent": 88
+        },
+        {
+          "index": 2,
+          "usedMiB": 93432,
+          "freeMiB": 1888,
+          "utilizationPercent": 88
+        },
+        {
+          "index": 3,
+          "usedMiB": 93432,
+          "freeMiB": 1888,
+          "utilizationPercent": 87
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:04:03.433928+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.08,
+        "sglang:full_token_usage": 0.08159722222222222
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 1,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 2,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 0
+        },
+        {
+          "index": 3,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 0
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:04:08.685984+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 1.0,
+        "sglang:token_usage": 0.02,
+        "sglang:full_token_usage": 0.0008680555555555555
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 90
+        },
+        {
+          "index": 1,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 93
+        },
+        {
+          "index": 2,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 96
+        },
+        {
+          "index": 3,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 90
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:04:14.078647+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.04,
+        "sglang:full_token_usage": 0.024739583333333332
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 98
+        },
+        {
+          "index": 1,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 93
+        },
+        {
+          "index": 2,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:04:19.999021+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.04,
+        "sglang:full_token_usage": 0.04470486111111111
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 90
+        },
+        {
+          "index": 1,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 99
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:04:25.783607+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.06,
+        "sglang:full_token_usage": 0.06032986111111111
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 87
+        },
+        {
+          "index": 1,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 3,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 96
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:04:31.206480+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.07,
+        "sglang:full_token_usage": 0.07421875
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 100
+        },
+        {
+          "index": 3,
+          "usedMiB": 93456,
+          "freeMiB": 1864,
+          "utilizationPercent": 85
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:04:36.651023+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.09,
+        "sglang:full_token_usage": 0.08723958333333333
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93516,
+          "freeMiB": 1804,
+          "utilizationPercent": 82
+        },
+        {
+          "index": 1,
+          "usedMiB": 93516,
+          "freeMiB": 1804,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 2,
+          "usedMiB": 93516,
+          "freeMiB": 1804,
+          "utilizationPercent": 83
+        },
+        {
+          "index": 3,
+          "usedMiB": 93516,
+          "freeMiB": 1804,
+          "utilizationPercent": 100
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:04:42.034576+00:00"
+    },
+    {
+      "metrics": {
+        "sglang:num_running_reqs": 0,
+        "sglang:num_queue_reqs": 0,
+        "sglang:token_usage": 0.1,
+        "sglang:full_token_usage": 0.09852430555555555
+      },
+      "gpus": [
+        {
+          "index": 0,
+          "usedMiB": 93596,
+          "freeMiB": 1724,
+          "utilizationPercent": 99
+        },
+        {
+          "index": 1,
+          "usedMiB": 93596,
+          "freeMiB": 1724,
+          "utilizationPercent": 81
+        },
+        {
+          "index": 2,
+          "usedMiB": 93596,
+          "freeMiB": 1724,
+          "utilizationPercent": 81
+        },
+        {
+          "index": 3,
+          "usedMiB": 93596,
+          "freeMiB": 1724,
+          "utilizationPercent": 81
+        }
+      ],
+      "pods": [
+        {
+          "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+          "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+          "containers": [
+            {
+              "restartCount": 0,
+              "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+            }
+          ]
+        }
+      ],
+      "timeUTC": "2026-10-17T04:04:47.434115+00:00"
+    }
+  ],
+  "status": "passed",
+  "before": {
+    "metrics": {
+      "sglang:num_running_reqs": 0,
+      "sglang:num_queue_reqs": 0,
+      "sglang:token_usage": 0,
+      "sglang:full_token_usage": 0
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "usedMiB": 92848,
+        "freeMiB": 2472,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 1,
+        "usedMiB": 92848,
+        "freeMiB": 2472,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 2,
+        "usedMiB": 92848,
+        "freeMiB": 2472,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 3,
+        "usedMiB": 92848,
+        "freeMiB": 2472,
+        "utilizationPercent": 0
+      }
+    ],
+    "pods": [
+      {
+        "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+        "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "timeUTC": "2026-10-17T04:00:47.280253+00:00"
+  },
+  "after": {
+    "metrics": {
+      "sglang:num_running_reqs": 0,
+      "sglang:num_queue_reqs": 0,
+      "sglang:token_usage": 0.1,
+      "sglang:full_token_usage": 0.1017795138888889
+    },
+    "gpus": [
+      {
+        "index": 0,
+        "usedMiB": 93596,
+        "freeMiB": 1724,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 1,
+        "usedMiB": 93596,
+        "freeMiB": 1724,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 2,
+        "usedMiB": 93596,
+        "freeMiB": 1724,
+        "utilizationPercent": 0
+      },
+      {
+        "index": 3,
+        "usedMiB": 93596,
+        "freeMiB": 1724,
+        "utilizationPercent": 0
+      }
+    ],
+    "pods": [
+      {
+        "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+        "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+        "containers": [
+          {
+            "restartCount": 0,
+            "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+          }
+        ]
+      }
+    ],
+    "timeUTC": "2026-10-17T04:04:52.189389+00:00"
+  },
+  "podIdentityAndRestartCountsUnchanged": true,
+  "newModelErrorSignatureCounts": {
+    "CUDA out of memory": 0,
+    "OutOfMemoryError": 0,
+    "illegal memory access": 0,
+    "Scheduler exception": 0
+  },
+  "finishedAtUTC": "2026-10-17T04:04:53.669295+00:00"
+}

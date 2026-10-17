@@ -18,7 +18,7 @@ DSH2 and DSH3 are now restricted to their configured single login identities, `u
 
 The material open boundary is **remote Livy/Spark execution**. The local runtime policy does not block public connections from the remote drivers and executors. Worker-side containment must be enforced on the datalake platform. Keeping Livy/Spark available is the user's accepted exception; acceptance does not remove the external-leakage path.
 
-To close that boundary, the datalake infrastructure owner must apply destination restrictions to the actual driver/executor network and validate them from those processes. Until then, use only approved public or non-sensitive pilot data on that path; protected-data use must not rely on the No Internet label. Shared gateway/model services and internal relays also require their own egress and administrative review: the worker policy does not automatically constrain them. Internet staging must never receive protected prompts, datasets or credentials merely because its workspace is separate.
+To close that boundary, the datalake infrastructure owner must apply destination restrictions to the actual driver/executor network and validate them from those processes. Until then, use only approved public or non-sensitive pilot data on that path; protected-data use must not rely on the No Internet label. The shared gateway and inference services also have their own destination policies and filtered internal DNS. DNS accepts approved service names and a tightly constrained private-runtime service pattern in the authoritative cluster zone; it does not permit public suffixes or arbitrary external names. The gateway can reach the private execution workloads; LiteLLM can reach the approved database and local model/embedding services; model and database provider policies deny public egress. Public names are refused by the resolver rather than forwarded. Model assets must be staged before a restricted service starts. Administrative access and any additional internal relay still require review. Internet staging must never receive protected prompts, datasets or credentials merely because its workspace is separate.
 
 ### Complete the leakage boundary
 
@@ -52,7 +52,13 @@ flowchart TB
  U[Named user] --> G[Authenticated environment routing]
  G --> S[No Internet - private execution and data]
  G --> I[Internet - separate dependency staging]
- S --> M[Internal LiteLLM and model]
+ S --> M[Internal LiteLLM]
+ M --> LM[Local model and embedding providers]
+ LM --> LE[Public egress denied]
+ DB --> LE
+ M --> DB[Approved internal database]
+ G --> DNS[Filtered internal DNS]
+ M --> DNS
  S --> B[Network layer blocks public destinations]
  I --> P[Incoming packages]
  P --> V[Operator review and hash verification]

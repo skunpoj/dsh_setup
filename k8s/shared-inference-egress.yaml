@@ -1,0 +1,155 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsh-shared-gateway-egress
+  namespace: llm
+spec:
+  podSelector:
+    matchLabels:
+      app: dsh-environment-gateway
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: dsh-internal-dns
+    - ipBlock:
+        cidr: 10.43.128.253/32
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: TCP
+      port: 5353
+    - protocol: UDP
+      port: 53
+    - protocol: UDP
+      port: 5353
+  - to:
+    - podSelector:
+        matchExpressions:
+        - key: dsh.bot.or.th/egress-mode
+          operator: In
+          values:
+          - offline
+          - online
+    - podSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values:
+          - dsh-user2
+          - dsh3
+    ports:
+    - protocol: TCP
+      port: 1
+      endPort: 65535
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsh-local-inference-egress
+  namespace: llm
+spec:
+  podSelector:
+    matchLabels:
+      app: litellm
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: dsh-internal-dns
+    - ipBlock:
+        cidr: 10.43.128.253/32
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: TCP
+      port: 5353
+    - protocol: UDP
+      port: 53
+    - protocol: UDP
+      port: 5353
+  - to:
+    - podSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values:
+          - vllm-deepseek-v4-1-flash
+          - vllm-deepseek-v4-flash
+          - vllm-glm-5-3-flash-tp4
+          - sglang-glm-5-3-flash-tp4
+          - vllm-qwen3-8-27b
+          - vllm-qwen3-8-flash-next
+          - typhoon-audio-8b
+    ports:
+    - protocol: TCP
+      port: 8000
+  - to:
+    - podSelector:
+        matchLabels:
+          app: litellm-postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ollama
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ollama
+    ports:
+    - protocol: TCP
+      port: 11434
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsh-local-model-egress
+  namespace: llm
+spec:
+  podSelector:
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+      - vllm-deepseek-v4-1-flash
+      - vllm-deepseek-v4-flash
+      - vllm-glm-5-3-flash-tp4
+      - sglang-glm-5-3-flash-tp4
+      - vllm-qwen3-8-27b
+      - vllm-qwen3-8-flash-next
+      - typhoon-audio-8b
+  policyTypes:
+  - Egress
+  egress: []
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsh-local-embedding-egress
+  namespace: ollama
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+  policyTypes:
+  - Egress
+  egress: []
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsh-local-database-egress
+  namespace: llm
+spec:
+  podSelector:
+    matchLabels:
+      app: litellm-postgres
+  policyTypes:
+  - Egress
+  egress: []

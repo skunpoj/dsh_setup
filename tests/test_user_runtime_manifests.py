@@ -49,6 +49,10 @@ class IsolationManifests(unittest.TestCase):
         self.assertFalse(any(m['mountPath'] in ('/state', '/workspace') for m in mounts))
         self.assertTrue(all(m['readOnly'] for m in mounts if m['name'].startswith('token-')))
         gateway_pod = gateway['spec']['template']['spec']
+        dns_docs = list(generator.yaml.safe_load_all((Path(__file__).resolve().parents[1] / 'k8s/dsh-internal-dns.yaml').read_text(encoding='utf-8')))
+        dns_service = next(d for d in dns_docs if d['kind'] == 'Service')
+        self.assertEqual(gateway_pod['dnsPolicy'], 'None')
+        self.assertEqual(gateway_pod['dnsConfig']['nameservers'], [dns_service['spec']['clusterIP']])
         self.assertEqual(gateway_pod['containers'][0]['command'], ['node', '/gateway-source/auth_proxy.js'])
         source_volume = next(v for v in gateway_pod['volumes'] if v['name'] == 'gateway-source')
         source_map = next(d for d in docs if d['kind'] == 'ConfigMap' and d['metadata']['name'] == source_volume['configMap']['name'])

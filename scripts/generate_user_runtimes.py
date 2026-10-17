@@ -33,6 +33,10 @@ def generate(users, image, fixture_source_pvc=None, fixture_approval_ref=None):
     container['env'].append({'name': 'DSH_USER_TARGETS_FILE', 'value': '/routing/users.json'})
     container['volumeMounts'] = [m for m in container['volumeMounts'] if m['name'] == 'auth']
     pod = gateway['spec']['template']['spec']
+    # Shared egress permits only the filtered resolver; keep generated gateways compatible.
+    dns = json.loads((root / 'k8s/shared-inference-dns-settings.json').read_text(encoding='utf-8'))
+    pod['dnsPolicy'] = dns['dnsPolicy']
+    pod['dnsConfig'] = copy.deepcopy(dns['dnsConfig'])
     pod['automountServiceAccountToken'] = False
     pod['volumes'] = [v for v in pod['volumes'] if v['name'] == 'auth']
     container['volumeMounts'].append({'name': 'routing', 'mountPath': '/routing', 'readOnly': True})

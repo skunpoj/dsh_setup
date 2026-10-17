@@ -1,0 +1,32 @@
+[
+  {
+    "mode": "secure",
+    "connections": [
+      {
+        "host": "vllm-deepseek-v4-flash.llm.svc.cluster.local",
+        "port": 8000,
+        "reachable": false
+      },
+      {
+        "host": "litellm.llm.svc.cluster.local",
+        "port": 4000,
+        "reachable": true
+      }
+    ]
+  },
+  {
+    "mode": "internet",
+    "connections": [
+      {
+        "host": "vllm-deepseek-v4-flash.llm.svc.cluster.local",
+        "port": 8000,
+        "reachable": false
+      },
+      {
+        "host": "litellm.llm.svc.cluster.local",
+        "port": 4000,
+        "reachable": true
+      }
+    ]
+  }
+]

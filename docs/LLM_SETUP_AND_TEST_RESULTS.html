@@ -1,7 +1,97 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shared LLM — Setup and Verified Test Results</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
 </style></head><body><main><h1>Shared LLM — 1M Setup, Performance and Operational Limits</h1>
-<h2>Current answer</h2>
+<h2>Main client acceptance and current controls — 17 October 2026 ICT</h2>
+<p><strong>DSH, Claude Code and TrueForge can use near-1M context through the internal DeepSeek/LiteLLM route in the 20 main runtimes.</strong> This update adds actual Claude CLI and TrueForge API tests to the previously accepted DSH result. Large client cases used disposable storage on the current runtime image against the Production inference route; configuration readback and small default-client checks then covered all 20 main runtimes. These were not twenty separate cold near-1M runs. It does not infer capacity from a model label or metadata alone.</p>
+<table>
+<thead>
+<tr>
+<th>Client</th>
+<th align="right">Configured total context</th>
+<th>Actual capacity case</th>
+<th align="right">Measured elapsed time</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Main DSH</td>
+<td align="right">1,048,576</td>
+<td>Previously accepted unedited repository review: 1,007,329 input / 3,798 output; 1,647-word narrative</td>
+<td align="right">123.28s cached correction after three source-backed correction turns; the initial 1,342.61s cold draft failed narrative checks</td>
+</tr>
+<tr>
+<td>Claude Code 2.1.301</td>
+<td align="right">1,000,000 client window via default <code>[1m]</code> mode</td>
+<td><strong>987,678 input / 10 output</strong>, exact two-marker answer</td>
+<td align="right"><strong>1158.81s</strong></td>
+</tr>
+<tr>
+<td>TrueForge 0.179.2</td>
+<td align="right">1,048,576</td>
+<td><strong>987,024 input / 10 output</strong>, exact two-marker answer</td>
+<td align="right"><strong>1162.20s</strong></td>
+</tr>
+<tr>
+<td>TrueForge retained conversation after network/gateway handover</td>
+<td align="right">1,048,576</td>
+<td><strong>987,047 input / 9 output</strong>, exact follow-up, both turns read back from storage</td>
+<td align="right"><strong>6.55s</strong></td>
+</tr>
+</tbody></table>
+<p>The cold Claude/TrueForge task reads two sentinel values from the frozen repository/document archive. It verifies request capacity and transport; its ten-token answer is not a long analytical-quality test. DSH&#39;s separate 1,647-word source/citation review supplies the longer-output task evidence. The cold runs spend most elapsed time preparing the large input in bounded chunks. The fast retained-conversation case demonstrates cache reuse for that case; different or evicted prefixes can require preparation again. Do not interpret ten output tokens divided by nineteen minutes as GPU decoding throughput.</p>
+<p><strong>Defaults and deadlines corrected:</strong> all 20 main runtimes now select Claude&#39;s <code>deepseek-v4.1-flash[1m]</code> by default, with a one-hour API deadline. TrueForge now sets its <strong>model-specific</strong> headers/body deadlines to one hour and model HTTP retries to zero; generic outbound timeouts alone did not cover model calls. A real second long TrueForge request received the busy error after <strong>300.61s</strong> while the first long request continued. Main ingress read/send deadlines are one hour and response buffering is off. Its hosts/backends are unchanged. These are operator-owned read-only settings on the existing runtime image, through <code>dsh-harness-policy-1456fd35454f</code>; no GPU-model reload was needed.</p>
+<p>The common gateway caps output at <strong>8,192 tokens</strong>, counts complete input including system/tool structure and reserves <strong>256 tokens</strong>. A 1M context includes input and output. Claude&#39;s 1,000,000 client window is narrower than the backend&#39;s 1,048,576 ceiling. Full 8,192-token output near the ceiling, near-1M vision, real near-limit automatic compaction, and a fresh external-browser near-1M interaction are not qualified by these cases. TrueForge&#39;s optional code sandbox remains disabled; these tests do not enable nested namespaces or privilege.</p>
+<h3>Fresh bounded concurrency and output rate</h3>
+<p><strong>105/105 expected outputs passed across 18 stages.</strong> Fifteen burst stages cover three repetitions at each concurrency below; three mixed stages combine a roughly 24K, 96K or 120K input with three small requests. The numeric-output comparison ignores whitespace. These are shared-gateway API calls, not sixteen Claude/TrueForge processes or sixteen near-1M requests.</p>
+<table>
+<thead>
+<tr>
+<th>Concurrent ordinary requests</th>
+<th align="right">Passed burst calls</th>
+<th align="right">Effective output tokens/sec per request</th>
+<th align="right">Aggregate output tokens/sec</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td align="right">3/3</td>
+<td align="right">31.88–32.26</td>
+<td align="right">31.86–32.24</td>
+</tr>
+<tr>
+<td>2</td>
+<td align="right">6/6</td>
+<td align="right">31.50–33.56</td>
+<td align="right">53.56–62.97</td>
+</tr>
+<tr>
+<td>4</td>
+<td align="right">12/12</td>
+<td align="right">29.59–32.08</td>
+<td align="right">92.78–123.00</td>
+</tr>
+<tr>
+<td>8</td>
+<td align="right">24/24</td>
+<td align="right">22.17–26.76</td>
+<td align="right">162.09–169.57</td>
+</tr>
+<tr>
+<td>16</td>
+<td align="right">48/48</td>
+<td align="right">13.53–18.33</td>
+<td align="right">211.32–235.06</td>
+</tr>
+</tbody></table>
+<p>Rates include queue, prefill and networking; they are not isolated GPU decode speed or an SLA. After the final network handover, two further ordinary requests passed at <strong>31.72 / 33.53 output tokens/sec each</strong>, <strong>55.96 aggregate</strong>, in <strong>2.52 / 3.55s</strong>. During TrueForge&#39;s active cold run, two actual Claude processes returned exact replies in <strong>2.22 / 2.23s</strong>, and an actual DSH conversation returned its exact persisted reply in <strong>6.06s</strong>, including polling. The long-run monitor also recorded 18 small gateway samples alongside Claude and 18 alongside TrueForge; their samples are reported separately from strict event-level overlap instrumentation.</p>
+<p><strong>Operating rule:</strong> backend running cap <strong>16</strong>, but only <strong>one request above 128K</strong> is admitted at a time. A second waits up to 300 seconds per gateway attempt, then receives a busy error. The real TrueForge busy case is qualified above; client-wide retry behavior is not a universal 300-second SLA. Short requests remain schedulable; token usage and temporary attention memory still constrain throughput. Keep the shared forwarder at <strong>one replica with Recreate</strong>: its admission file lock is local to that process/pod. Scaling it requires a genuinely shared admission mechanism first. Recovering GPU allocation warnings were observed; memory remains tight.</p>
+<h3>Local risk-control changes and safe setup</h3>
+<p>The 20 runtime profiles and 40 managed policy files were read back; all match the intended values/bytes. Forty workspace/state markers survived their controlled replacements. Actual runtime login/session-list and default Claude calls passed. These are runtime-launch/RPC checks, not fresh human-password login tests. The public TLS login page remains available with No Internet as default.</p>
+<p>No Internet public-domain/direct-IP probes failed from all ten corresponding runtimes; all ten Internet runtimes retained public connectivity. Both environments reach LiteLLM but cannot directly reach the GPU backend. The shared gateway and LiteLLM now use approved internal DNS names plus a strict <code>dsh-u-&lt;16 hex&gt;-secure/internet.llm.svc.cluster.local</code> rule for newly provisioned runtimes, and service-specific egress policies; public DNS and public TCP probes failed. Model, embedding and database providers have deny-egress policies. Required private application, database, model and embedding behavior passed; no model restart occurred. Existing AD/datalake permissions and Livy/Spark availability were preserved.</p>
+<p>Use <code>scripts/rollout_harness_context_policy.py</code> with an explicit main-runtime allowlist and a new private rollback directory, first as a plan and then with <code>--apply</code>. If the existing resolver source differs from the reviewed new source, upgrade it first with <code>refresh_internal_dns_policy.py</code> and the expected current-source SHA-256; an unexpected source hash stops the rollout. Use <code>scripts/rollout_shared_inference_boundary.py</code> to extend the explicit internal DNS list, permit its callers, change shared-service DNS, and only then apply egress policies. Each run needs a new private checkpoint directory outside Git. <strong>Do not apply the shared egress YAML before configuring filtered DNS.</strong> <code>k8s/shared-inference-dns-settings.json</code> records the desired pod DNS settings; it is not a standalone Deployment manifest. The existing bootstrap templates must not be reapplied over private ownership/routing. Old resolver ConfigMaps remain for existing Kerberos mounts and rollback. Newly approved private runtimes resolve through the narrow fully qualified naming rule; short unqualified names and appended public suffixes are not dynamically permitted. Generated gateway manifests also inherit filtered DNS settings, so a future reviewed user cutover does not silently revert to unrestricted DNS. CoreDNS was checked as authoritative for the private cluster zone. A temporary new Service demonstrated resolution without a static allowlist addition, then was removed. <code>refresh_internal_dns_policy.py</code> requires the reviewed current resolver hash for future source upgrades; it replaces only resolver configuration and saves a private checkpoint.</p>
+<p>The network rollback procedure is <code>scripts/rollback_shared_inference_boundary.py</code> with the saved checkpoint directory; it defaults to inspection, and <code>--apply</code> restores only the recorded DNS/network changes. It does not restore user files or restart the GPU model. Per-runtime policy rollback uses that runtime&#39;s saved deployment specification. These recovery artifacts are prepared; an actual network rollback was not required. Model assets must be staged before a provider starts; a clean GPU-model restart under the final egress policy was not performed in this rollout.</p>
+<p><strong>Scope still matters:</strong> remote Spark worker egress remains the explicitly retained exception. Sandbox-only grants, protected-source write restrictions, deletion recovery and endpoint/privileged-user handling need the relevant owners; preserving existing AD permissions cannot be called enforced read-only access. Legacy DSH2/DSH3 have a separate migration/acceptance scope and are not included in this 20-runtime client qualification. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">three-risk report</a> explains these controls without embedding benchmark logs.</p>
+<p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/harness-1m-acceptance-summary-20261017.json">Scoped client/control summary</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/harness-1m-bounded-stress-20261017.json">bounded stress record</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/harness-1m-final-runtime-readback-20261017.json">final runtime readback</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/harness-1m-trueforge-post-boundary-and-persistence-20261017.json">post-handover TrueForge persistence</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/harness-1m-cleanup-final-verification-20261017.json">cleanup and unchanged model</a>.</p>
+<h2>Earlier settings audit — before the new client tests</h2>
 <p><strong>Settings reconciled with live deployment, 17 October 2026 ICT:</strong> fresh readback checked all 20 main profiles and running image IDs, compaction policies, provider timeouts, the gateway&#39;s single-replica/Recreate strategy and targeted retry policies, installed forwarding-source hashes, and the model arguments. They match the architecture table below. A fresh authenticated request returned the exact expected reply. Historical performance/quality tests remain dated saved observations; they were not rerun during this documentation audit. This is not a fresh verification of every platform security/storage feature. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/documentation-live-settings-review-20261017.json">Live settings readback</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/documentation-result-reconciliation-20261017.json">test-record reconciliation</a>.</p>
 <p>The main <strong>DSH → LiteLLM → SGLang</strong> route supports <strong>1,048,576 total tokens</strong>, with an 8,192 output ceiling and a 256-token reserve. All 20 main DSH runtime profiles were read back, and the current managed-tools image was qualified using a temporary DSH runtime with isolated synthetic storage against the Production inference service.</p>
 <p>The earlier clean current-image cold DSH capacity request used <strong>1,007,689 input + 8 output tokens</strong>, returned the exact persisted answer in <strong>1,173.92 seconds (19m34s)</strong>, while 18 ordinary DSH replies completed in pairs during the long run. After the gateway retry correction, a real write/read tool continuation used <strong>1,008,103 input tokens</strong> and passed in <strong>20.16 seconds</strong>. This qualifies the recorded main DSH cases, not the separate Claude Code or TrueForge clients.</p>
@@ -304,7 +394,7 @@
 </tbody></table>
 <p>The queue tests found a real failure: two hidden Router retries extended a nominal 300-second admission wait beyond the client&#39;s timeout. After the targeted retry correction, an installed-Router fixture verified one attempt for each guarded alias and three for an unrelated group. A deliberately held admission lease then produced a real authenticated 429 at 300.36s; short DSH requests continued, lease release allowed a 140,034-token request, and overflow returned 400. This verifies admission behavior, not two actual near-1M GPU requests. The external 429 did not include a <code>Retry-After</code> header.</p>
 <p>Transport, tool continuation, compaction and restart/persistence checks are described in their dedicated sections below. The 315-second delayed endpoint is a transport fixture, the low-threshold compaction run is a functional fixture, and the Router loopback endpoint is a retry fixture. None should be counted as a GPU stress benchmark.</p>
-<p><strong>Remaining coverage limits:</strong> no sustained soak/saturation test, two full concurrent 1M requests, full 8,192-token output near maximum input, near-1M vision, near-1M Claude Code/TrueForge run, or arbitrary long-document recall/semantic-quality assessment. Recovering allocation warnings remain material. Short-request responsiveness is measured, not guaranteed. A further live test must save a new record and identify the exact runtime, route and scheduler rather than inheriting an older pass.</p>
+<p><strong>Remaining coverage limits:</strong> no sustained soak/saturation test, two full concurrent 1M requests, full 8,192-token output near maximum input, near-1M vision, arbitrary long-document recall/semantic-quality assessment beyond the declared tasks. Recovering allocation warnings remain material. Short-request responsiveness is measured, not guaranteed. A further live test must save a new record and identify the exact runtime, route and scheduler rather than inheriting an older pass.</p>
 <h2>Architecture and limits</h2>
 <p><code>Authenticated user → private DSH → authenticated internal LiteLLM :4000 → loopback context guard :4001 → SGLang :8000 → shared four H100 GPUs</code></p>
 <table>
@@ -502,7 +592,7 @@
 <h2>Setup and controlled rollout</h2>
 <ol>
 <li>Model/overlay source: Azure <code>GPU_server/deployment/vllm/</code>. DSH/proxy: its <code>dsh-environments/</code> mirror or GitHub <code>dsh_setup</code>. Retain pinned images, reviewed hashes and existing Secret references. Do not apply legacy LiteLLM placeholder Secrets or bootstrap shared-pool YAML over private Production.</li>
-<li>Build/test the runtime in Azure pipeline 1315. Initial 1M build <strong>62773</strong>, source <code>c20b31078b84604a6d1c19bfbdd59be166ff27ae</code>, produced the image used for the near-1M acceptance. The subsequent managed-tools rollout uses build <strong>62790</strong>, source <code>52bf535850c5d5c3991ebcdb3aeece776785803e</code>, while preserving all 20 numerical DSH 1M profiles and the model pod. The new Claude client defaults to 200K; its explicit 1M selection passed a short call. Neither that selection nor TrueForge 1M metadata is a near-1M client test. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/MANAGED_CLAUDE_AND_TRUEFORGE.md">managed tools</a>. Later documentation builds do not change the live image automatically.</li>
+<li>Build/test the runtime in Azure pipeline 1315. Initial 1M build <strong>62773</strong>, source <code>c20b31078b84604a6d1c19bfbdd59be166ff27ae</code>, produced the image used for the near-1M acceptance. The subsequent managed-tools rollout uses build <strong>62790</strong>, source <code>52bf535850c5d5c3991ebcdb3aeece776785803e</code>, while preserving all 20 numerical DSH 1M profiles and the model pod. The 17 October operator policy overlay now defaults Claude to 1M and sets one-hour model deadlines; actual Claude/TrueForge capacity cases and current runtime readback are recorded above. The running image is unchanged, so pin the policy overlay with it rather than inferring effective settings from the image alone. See <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/MANAGED_CLAUDE_AND_TRUEFORGE.md">managed tools</a>. Later documentation builds do not change the live image automatically.</li>
 <li>Prepare isolated synthetic storage with <code>scripts/prepare_1m_canary.py</code>; qualify actual tokenizer IDs, streaming, tools, cache handoff, compaction and mixed traffic. Synthetic envelope capture must stay off in Production.</li>
 <li>Run <code>scripts/promote_1m_proxy.py</code> in plan mode, then <code>--apply</code> with passed actual near-1M acceptance and a fresh private rollback directory. It preserves auth/database references and unrelated routes, creates immutable configuration and adds the loopback guard. Test actual inference and rejected endpoint override after replacement.</li>
 <li>Run <code>scripts/promote_1m_runtimes.py</code> in plan mode, then <code>--apply</code> with another fresh private rollback directory. It selects existing main private runtimes, requires Recreate/single-writer behavior, preserves mounts and backs up the old profile <strong>inside each private PVC</strong> before changing it. Read back imageIDs, numerical policies and effective owner/admin compositions.</li>

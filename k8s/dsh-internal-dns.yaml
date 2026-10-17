@@ -89,7 +89,7 @@ spec:
       volumes:
       - configMap:
           defaultMode: 420
-          name: dsh-internal-dns-369567dbcddb
+          name: dsh-internal-dns-035a18925147
         name: config
 ---
 apiVersion: v1
@@ -120,29 +120,91 @@ spec:
   type: ClusterIP
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dsh-internal-dns-035a18925147
+  namespace: llm
+immutable: true
 data:
   allowed.json: '["_kerberos._tcp.bot.or.th", "_kerberos._udp.bot.or.th", "bot-dc-p1.bot.or.th",
     "bot-dc-p2.bot.or.th", "bot-dc-p3.bot.or.th", "bot-dc-p4.bot.or.th", "botdlk-gw3-p1.bot.or.th",
-    "litellm", "litellm.llm", "litellm.llm.svc", "litellm.llm.svc.cluster.local",
-    "workspace.bot.or.th"]'
+    "dsh", "dsh-environment-gateway", "dsh-environment-gateway.llm", "dsh-environment-gateway.llm.svc",
+    "dsh-environment-gateway.llm.svc.cluster.local", "dsh-internal-dns", "dsh-internal-dns.llm",
+    "dsh-internal-dns.llm.svc", "dsh-internal-dns.llm.svc.cluster.local", "dsh-internet",
+    "dsh-internet.llm", "dsh-internet.llm.svc", "dsh-internet.llm.svc.cluster.local",
+    "dsh-secure", "dsh-secure.llm", "dsh-secure.llm.svc", "dsh-secure.llm.svc.cluster.local",
+    "dsh-u-120fc75e04cf8e5f-internet", "dsh-u-120fc75e04cf8e5f-internet.llm", "dsh-u-120fc75e04cf8e5f-internet.llm.svc",
+    "dsh-u-120fc75e04cf8e5f-internet.llm.svc.cluster.local", "dsh-u-120fc75e04cf8e5f-secure",
+    "dsh-u-120fc75e04cf8e5f-secure.llm", "dsh-u-120fc75e04cf8e5f-secure.llm.svc",
+    "dsh-u-120fc75e04cf8e5f-secure.llm.svc.cluster.local", "dsh-u-156540115183048a-internet",
+    "dsh-u-156540115183048a-internet.llm", "dsh-u-156540115183048a-internet.llm.svc",
+    "dsh-u-156540115183048a-internet.llm.svc.cluster.local", "dsh-u-156540115183048a-secure",
+    "dsh-u-156540115183048a-secure.llm", "dsh-u-156540115183048a-secure.llm.svc",
+    "dsh-u-156540115183048a-secure.llm.svc.cluster.local", "dsh-u-26ae784d194a5760-internet",
+    "dsh-u-26ae784d194a5760-internet.llm", "dsh-u-26ae784d194a5760-internet.llm.svc",
+    "dsh-u-26ae784d194a5760-internet.llm.svc.cluster.local", "dsh-u-26ae784d194a5760-secure",
+    "dsh-u-26ae784d194a5760-secure.llm", "dsh-u-26ae784d194a5760-secure.llm.svc",
+    "dsh-u-26ae784d194a5760-secure.llm.svc.cluster.local", "dsh-u-8205c7f83822ea35-internet",
+    "dsh-u-8205c7f83822ea35-internet.llm", "dsh-u-8205c7f83822ea35-internet.llm.svc",
+    "dsh-u-8205c7f83822ea35-internet.llm.svc.cluster.local", "dsh-u-8205c7f83822ea35-secure",
+    "dsh-u-8205c7f83822ea35-secure.llm", "dsh-u-8205c7f83822ea35-secure.llm.svc",
+    "dsh-u-8205c7f83822ea35-secure.llm.svc.cluster.local", "dsh-u-8a2539e2b69d9daf-internet",
+    "dsh-u-8a2539e2b69d9daf-internet.llm", "dsh-u-8a2539e2b69d9daf-internet.llm.svc",
+    "dsh-u-8a2539e2b69d9daf-internet.llm.svc.cluster.local", "dsh-u-8a2539e2b69d9daf-secure",
+    "dsh-u-8a2539e2b69d9daf-secure.llm", "dsh-u-8a2539e2b69d9daf-secure.llm.svc",
+    "dsh-u-8a2539e2b69d9daf-secure.llm.svc.cluster.local", "dsh-u-8c6976e5b5410415-internet",
+    "dsh-u-8c6976e5b5410415-internet.llm", "dsh-u-8c6976e5b5410415-internet.llm.svc",
+    "dsh-u-8c6976e5b5410415-internet.llm.svc.cluster.local", "dsh-u-8c6976e5b5410415-secure",
+    "dsh-u-8c6976e5b5410415-secure.llm", "dsh-u-8c6976e5b5410415-secure.llm.svc",
+    "dsh-u-8c6976e5b5410415-secure.llm.svc.cluster.local", "dsh-u-ae5deb822e0d7199-internet",
+    "dsh-u-ae5deb822e0d7199-internet.llm", "dsh-u-ae5deb822e0d7199-internet.llm.svc",
+    "dsh-u-ae5deb822e0d7199-internet.llm.svc.cluster.local", "dsh-u-ae5deb822e0d7199-secure",
+    "dsh-u-ae5deb822e0d7199-secure.llm", "dsh-u-ae5deb822e0d7199-secure.llm.svc",
+    "dsh-u-ae5deb822e0d7199-secure.llm.svc.cluster.local", "dsh-u-ca8b22d0db83a22d-internet",
+    "dsh-u-ca8b22d0db83a22d-internet.llm", "dsh-u-ca8b22d0db83a22d-internet.llm.svc",
+    "dsh-u-ca8b22d0db83a22d-internet.llm.svc.cluster.local", "dsh-u-ca8b22d0db83a22d-secure",
+    "dsh-u-ca8b22d0db83a22d-secure.llm", "dsh-u-ca8b22d0db83a22d-secure.llm.svc",
+    "dsh-u-ca8b22d0db83a22d-secure.llm.svc.cluster.local", "dsh-u-d0b55cb0730a08ac-internet",
+    "dsh-u-d0b55cb0730a08ac-internet.llm", "dsh-u-d0b55cb0730a08ac-internet.llm.svc",
+    "dsh-u-d0b55cb0730a08ac-internet.llm.svc.cluster.local", "dsh-u-d0b55cb0730a08ac-secure",
+    "dsh-u-d0b55cb0730a08ac-secure.llm", "dsh-u-d0b55cb0730a08ac-secure.llm.svc",
+    "dsh-u-d0b55cb0730a08ac-secure.llm.svc.cluster.local", "dsh-user2", "dsh-user2.llm",
+    "dsh-user2.llm.svc", "dsh-user2.llm.svc.cluster.local", "dsh.llm", "dsh.llm.svc",
+    "dsh.llm.svc.cluster.local", "dsh3", "dsh3.llm", "dsh3.llm.svc", "dsh3.llm.svc.cluster.local",
+    "litellm", "litellm-postgres", "litellm-postgres.llm", "litellm-postgres.llm.svc",
+    "litellm-postgres.llm.svc.cluster.local", "litellm.llm", "litellm.llm.svc", "litellm.llm.svc.cluster.local",
+    "ollama.ollama", "ollama.ollama.svc", "ollama.ollama.svc.cluster.local", "sglang-glm-5-3-flash",
+    "sglang-glm-5-3-flash.llm", "sglang-glm-5-3-flash.llm.svc", "sglang-glm-5-3-flash.llm.svc.cluster.local",
+    "typhoon-audio-8b", "typhoon-audio-8b.llm", "typhoon-audio-8b.llm.svc", "typhoon-audio-8b.llm.svc.cluster.local",
+    "vllm-deepseek-v4-flash", "vllm-deepseek-v4-flash.llm", "vllm-deepseek-v4-flash.llm.svc",
+    "vllm-deepseek-v4-flash.llm.svc.cluster.local", "vllm-glm-5-3-flash", "vllm-glm-5-3-flash.llm",
+    "vllm-glm-5-3-flash.llm.svc", "vllm-glm-5-3-flash.llm.svc.cluster.local", "vllm-llama2-7b",
+    "vllm-llama2-7b.llm", "vllm-llama2-7b.llm.svc", "vllm-llama2-7b.llm.svc.cluster.local",
+    "vllm-qwen3-35b", "vllm-qwen3-35b.llm", "vllm-qwen3-35b.llm.svc", "vllm-qwen3-35b.llm.svc.cluster.local",
+    "vllm-qwen3-8-27b", "vllm-qwen3-8-27b.llm", "vllm-qwen3-8-27b.llm.svc", "vllm-qwen3-8-27b.llm.svc.cluster.local",
+    "vllm-qwen3-8-flash-next", "vllm-qwen3-8-flash-next.llm", "vllm-qwen3-8-flash-next.llm.svc",
+    "vllm-qwen3-8-flash-next.llm.svc.cluster.local", "workspace.bot.or.th"]'
   krb5.conf: "[libdefaults]\n default_realm = BOT.OR.TH\n dns_lookup_realm = false\n\
     \ dns_lookup_kdc = true\n rdns = false\n dns_canonicalize_hostname = false\n[domain_realm]\n\
     \ .bot.or.th = BOT.OR.TH\n bot.or.th = BOT.OR.TH\n"
   resolver.py: "\"\"\"Non-forwarding-by-default DNS relay for explicitly named internal\
     \ services.\n\nRebuilds upstream questions: client EDNS data, IDs and extra sections\
     \ are never\nforwarded. Unknown names are answered locally; query names are not\
-    \ logged.\n\"\"\"\nimport json\nimport os\nimport secrets\nimport socket\nimport\
-    \ socketserver\nimport struct\nimport threading\nfrom http.server import BaseHTTPRequestHandler,\
-    \ HTTPServer\nfrom pathlib import Path\n\nALLOWED = {x.lower().rstrip('.') for\
-    \ x in json.loads(Path(os.environ.get('DNS_ALLOWLIST', '/config/allowed.json')).read_text(encoding='utf-8'))}\n\
-    UPSTREAM = os.environ['DNS_UPSTREAM']\nUPSTREAM_PORT = int(os.environ.get('DNS_UPSTREAM_PORT',\
-    \ '53'))\nLIMIT = threading.BoundedSemaphore(16)\nCOUNTS = {'allowed': 0, 'denied':\
-    \ 0, 'errors': 0}\n\n\ndef question(packet):\n    if len(packet) < 12 or len(packet)\
-    \ > 512:\n        raise ValueError('Invalid query length')\n    _, flags, count,\
-    \ _, _, _ = struct.unpack('!6H', packet[:12])\n    if flags & 0xF800 or count\
-    \ != 1:\n        raise ValueError('Unsupported query')\n    position = 12\n  \
-    \  labels = []\n    while True:\n        length = packet[position];position +=\
-    \ 1\n        if not length:break\n        if length > 63 or position + length\
+    \ logged.\n\"\"\"\nimport json\nimport re\nimport os\nimport secrets\nimport socket\n\
+    import socketserver\nimport struct\nimport threading\nfrom http.server import\
+    \ BaseHTTPRequestHandler, HTTPServer\nfrom pathlib import Path\n\nALLOWED = {x.lower().rstrip('.')\
+    \ for x in json.loads(Path(os.environ.get('DNS_ALLOWLIST', '/config/allowed.json')).read_text(encoding='utf-8'))}\n\
+    # Only fully qualified private runtime Services; never short names or public suffixes.\n\
+    # CoreDNS must remain authoritative for cluster.local (no public fallthrough).\n\
+    PRIVATE_RUNTIME = re.compile(r'dsh-u-[a-f0-9]{16}-(?:secure|internet)\\.llm\\\
+    .svc\\.cluster\\.local\\Z')\nUPSTREAM = os.environ['DNS_UPSTREAM']\nUPSTREAM_PORT\
+    \ = int(os.environ.get('DNS_UPSTREAM_PORT', '53'))\nLIMIT = threading.BoundedSemaphore(16)\n\
+    COUNTS = {'allowed': 0, 'denied': 0, 'errors': 0}\n\n\ndef question(packet):\n\
+    \    if len(packet) < 12 or len(packet) > 512:\n        raise ValueError('Invalid\
+    \ query length')\n    _, flags, count, _, _, _ = struct.unpack('!6H', packet[:12])\n\
+    \    if flags & 0xF800 or count != 1:\n        raise ValueError('Unsupported query')\n\
+    \    position = 12\n    labels = []\n    while True:\n        length = packet[position];position\
+    \ += 1\n        if not length:break\n        if length > 63 or position + length\
     \ > len(packet):raise ValueError('Invalid name')\n        labels.append(packet[position:position+length].decode('ascii').lower());position\
     \ += length\n    if position + 4 > len(packet):raise ValueError('Missing query\
     \ type')\n    kind, klass = struct.unpack('!HH', packet[position:position+4])\n\
@@ -153,8 +215,9 @@ data:
     \        if not part:raise OSError('Incomplete DNS frame')\n        result+=part\n\
     \    return result\n\n\ndef answer(packet):\n    identifier=packet[:2] if len(packet)>=2\
     \ else b'\\0\\0'\n    try:\n        name, wire=question(packet)\n        if name\
-    \ not in ALLOWED:\n            COUNTS['denied']+=1\n            return identifier+struct.pack('!5H',0x8183,1,0,0,0)+wire\n\
-    \        if not LIMIT.acquire(blocking=False):raise OSError('DNS request capacity')\n\
+    \ not in ALLOWED and not PRIVATE_RUNTIME.fullmatch(name):\n            COUNTS['denied']+=1\n\
+    \            return identifier+struct.pack('!5H',0x8183,1,0,0,0)+wire\n      \
+    \  if not LIMIT.acquire(blocking=False):raise OSError('DNS request capacity')\n\
     \        try:\n            nonce=secrets.token_bytes(2)\n            query=nonce+struct.pack('!5H',0x0100,1,0,0,0)+wire\n\
     \            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as upstream:\n\
     \                upstream.settimeout(2);upstream.connect((UPSTREAM,UPSTREAM_PORT));upstream.send(query);response=upstream.recv(4096)\n\
@@ -186,11 +249,6 @@ data:
     class TCPServer(BoundedThreads,socketserver.TCPServer):pass\n\n\nif __name__=='__main__':\n\
     \    for cls,handler in [(UDPServer,UDP),(TCPServer,TCP)]:\n        server=cls(('0.0.0.0',5353),handler);threading.Thread(target=server.serve_forever,daemon=True).start()\n\
     \    HTTPServer(('0.0.0.0',8080),Health).serve_forever()\n"
-immutable: true
-kind: ConfigMap
-metadata:
-  name: dsh-internal-dns-369567dbcddb
-  namespace: llm
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -221,6 +279,19 @@ spec:
       protocol: UDP
     - port: 5353
       protocol: TCP
+  - from:
+    - podSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values:
+          - litellm
+          - dsh-environment-gateway
+    ports:
+    - protocol: UDP
+      port: 5353
+    - protocol: TCP
+      port: 5353
   podSelector:
     matchLabels:
       app: dsh-internal-dns

@@ -1,0 +1,39 @@
+[
+  {
+    "component": "litellm",
+    "exit": 0,
+    "result": {
+      "connections": [
+        {
+          "host": "1.1.1.1",
+          "port": 443,
+          "connected": false
+        },
+        {
+          "host": "vllm-deepseek-v4-flash.llm.svc.cluster.local",
+          "port": 8000,
+          "connected": true
+        },
+        {
+          "host": "litellm-postgres.llm.svc.cluster.local",
+          "port": 5432,
+          "connected": true
+        }
+      ],
+      "publicNameResolved": false
+    },
+    "errorType": null
+  },
+  {
+    "component": "gateway",
+    "exit": 0,
+    "result": {
+      "publicTCP": false,
+      "publicNameResolved": false,
+      "privateSecure": true,
+      "privateInternet": true,
+      "testedServicePort": 3081
+    },
+    "note": "Initial probe used nonexistent Service port 3080; original retained. Verified actual port 3081."
+  }
+]
