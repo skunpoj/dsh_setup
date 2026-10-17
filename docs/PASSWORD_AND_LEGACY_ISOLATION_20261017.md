@@ -15,7 +15,7 @@ The three-risk explanation is in [the risk report](DSH_RDT_PILOT_SECURITY_CONTRO
 - `/workspace` retains its original private local persistent claim. Complete HOME/session state is mounted from `.legacy-home-v2` on that claim; it survives replacement directly. It is not a new CIFS migration, shared workspace or backup.
 - Authentication uses a separate container/PID namespace and private `dsh-legacy-auth-user2` / `dsh-legacy-auth-user3` PVC. Execution never mounts this PVC or its seed Secret. Loopback connects the authenticated proxy to DSH; network policy blocks peer bypass and permits the ingress controller.
 - Password records use scrypt N=32768/r=8/p=1, random salt, constant-time comparison, bounded verification concurrency and atomic mode-0600 persistence. An initial Secret seeds only an absent store. Password changes persist without being reset on restart.
-- Existing passwords were preserved. Known factory values still require private rotation; a hash does not make a known password safe. Kubernetes Secrets require protected RBAC and cluster encryption/backup policy; base64 is not encryption.
+- By explicit owner decision, current passwords stay unchanged until their owners change them privately through the existing password-change flow. No operator reset or automatic rotation is scheduled. Owners must not disclose new passwords in chat or reports. Known/default-password exposure remains until owners act; a hash does not make a known password safe. Kubernetes Secrets require protected RBAC and cluster encryption/backup policy; base64 is not encryption.
 
 ## Environments and audit
 
@@ -50,4 +50,4 @@ Observed corrections retained for future maintenance:
 
 ## Remaining decisions
 
-Private rotation of legacy factory passwords and retirement of historical credential copies remain pending. Corporate identity/MFA/recovery, storage-server ACL/recovery policy, immutable audit retention, browser handling/DLP, remote-job correlation and remote Spark egress are separate controls. The risk report describes each at its relevant boundary; no additional data access is authorized.
+The password policy is decided: preserve current passwords until owners change them privately. Owner-performed changes remain outstanding; this is not a pending request for operator rotation approval. Retirement of historical credential copies remains a separate operator task. Corporate identity/MFA/recovery, storage-server ACL/recovery policy, immutable audit retention, browser handling/DLP, remote-job correlation and remote Spark egress are separate controls. The risk report describes each at its relevant boundary; no additional data access is authorized.
