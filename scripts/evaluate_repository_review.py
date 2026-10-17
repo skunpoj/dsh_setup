@@ -35,6 +35,7 @@ def evaluate(result, key, blocks):
         checks.append({'id': expected['id'], 'value': answer.get('value'),
             'expectedValue': expected['expectedValue'], 'correct': correct,
             'citationRangeValid': bounded, 'quoteExact': quote_ok,
+            'quoteCharacters': len(quote) if isinstance(quote, str) else None,
             'correctCurrentSourceAndSupportingLine': support,
             'passed': bool(correct and support and quote_ok)})
     text = report.get('report_markdown', '')

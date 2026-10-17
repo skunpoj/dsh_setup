@@ -1,0 +1,36 @@
+{
+  "testPodAbsent": true,
+  "sessionArchive": {
+    "sha256": "0080ea4dc054473f438d6bc2a0ec58dc016c9f4dfc58f0b718a0b7694f7b9c03",
+    "sessionFiles": 86,
+    "bytes": 1955768,
+    "downloadHashVerified": true,
+    "downloadedArchiveRegularFiles": 86,
+    "archivePathsRestrictedToSessions": true
+  },
+  "postCleanupInference": {
+    "exact": true,
+    "seconds": 0.34220277005806565,
+    "usage": {
+      "completion_tokens": 8,
+      "prompt_tokens": 12,
+      "total_tokens": 20
+    }
+  },
+  "admissionAvailable": true,
+  "admissionAvailableBeforeDeletion": true,
+  "modelUnchanged": true,
+  "model": [
+    {
+      "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+      "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+      "containers": [
+        {
+          "restartCount": 0,
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+        }
+      ]
+    }
+  ],
+  "scope": "Only completed disposable runtime removed; no user volumes or shared inference configuration changed."
+}

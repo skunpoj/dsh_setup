@@ -1,0 +1,291 @@
+{
+  "startUTC": "2026-10-17T00:22:14.536340+00:00",
+  "finishUTC": "2026-10-17T00:43:49.097340+00:00",
+  "actualClient": "DSH agent HTTP RPC on disposable current-image runtime; not Claude Code or TrueForge",
+  "usage": {
+    "inputTokens": 1001553,
+    "outputTokens": 3108,
+    "totalTokens": 1004661
+  },
+  "totalElapsedSeconds": 1294.561,
+  "clientRetryEvents": 0,
+  "retryCodes": [],
+  "persistedPromptMatches": true,
+  "promptSHA256": "90695858d7c30d6a6fc2ffc18b1d9d990adacc2e035390e0cb580bc945ba0eb9",
+  "warming": {
+    "event": "dsh_final_wire_warmed",
+    "steps": 490,
+    "tokens": 1001553,
+    "seconds": 1190.43,
+    "stepTokens": 2048,
+    "mode": "chunked-prefix-warming",
+    "probeSeconds": 2,
+    "completionUTC": "2026-10-17T07:42:07.753202+07:00",
+    "startUTC": "2026-10-17T07:22:17.323202+07:00"
+  },
+  "preWarmingElapsedSeconds": 2.786862,
+  "firstOutputUTC": "2026-10-17T00:42:10.145000+00:00",
+  "sessionStats": {
+    "turns": 3,
+    "steps": 3,
+    "llmMs": 2691346,
+    "toolMs": 0,
+    "ttftMs": 2377159,
+    "ttftSteps": 3,
+    "decodeMs": 314187,
+    "decodeTokens": 10115
+  },
+  "shortReplies": [
+    {
+      "startUTC": "2026-10-17T00:22:53.154930+00:00",
+      "seconds": 4.0323,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:22:53.074089+00:00",
+      "seconds": 4.0331,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:25:05.717563+00:00",
+      "seconds": 6.0361,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:25:05.627370+00:00",
+      "seconds": 4.0338,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:27:18.488258+00:00",
+      "seconds": 6.0372,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:27:18.450752+00:00",
+      "seconds": 4.0374,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:29:32.408404+00:00",
+      "seconds": 8.0361,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:29:32.374329+00:00",
+      "seconds": 6.0354,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:31:48.404877+00:00",
+      "seconds": 6.046,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:31:48.412402+00:00",
+      "seconds": 4.0457,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:34:02.282784+00:00",
+      "seconds": 6.0372,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:34:02.322301+00:00",
+      "seconds": 8.0352,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:36:17.921570+00:00",
+      "seconds": 4.0351,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:36:17.976268+00:00",
+      "seconds": 8.044,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:38:33.643043+00:00",
+      "seconds": 8.0412,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:38:33.570619+00:00",
+      "seconds": 4.0389,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:40:50.940126+00:00",
+      "seconds": 8.0657,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:40:50.939039+00:00",
+      "seconds": 4.0597,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": false,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:43:05.899971+00:00",
+      "seconds": 6.0367,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": true,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:43:05.868661+00:00",
+      "seconds": 6.0364,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": true,
+      "overlapWithinLong": true
+    }
+  ],
+  "strictlyOverlappingAdmittedShortReplies": 20,
+  "admittedShortMinimumSeconds": 4.0323,
+  "admittedShortMaximumSeconds": 8.0657,
+  "generationShortReplies": 2,
+  "modelBefore": [
+    {
+      "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+      "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+      "containers": [
+        {
+          "restartCount": 0,
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+        }
+      ]
+    }
+  ],
+  "modelAfter": [
+    {
+      "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+      "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+      "containers": [
+        {
+          "restartCount": 0,
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+        }
+      ]
+    }
+  ],
+  "modelUnchanged": true,
+  "sharedModelLogSignaturesDuringAdmittedPhase": {
+    "CUDA out of memory": 0,
+    "OutOfMemoryError": 0,
+    "illegal memory access": 0,
+    "Scheduler exception": 0,
+    "memory mapping failed with OOM": 1652
+  },
+  "minimumSampledFreeMiB": 30,
+  "warmingLifecycleEvents": [
+    {
+      "event": "dsh_final_wire_warmed",
+      "steps": 490,
+      "tokens": 1001553,
+      "seconds": 1190.43,
+      "stepTokens": 2048,
+      "mode": "chunked-prefix-warming",
+      "probeSeconds": 2,
+      "completionUTC": "2026-10-17T07:42:07.753202+07:00",
+      "startUTC": "2026-10-17T07:22:17.323202+07:00"
+    }
+  ],
+  "interpretationLimitations": "Warm-phase attribution is correlated by exact final input count and timestamps, not a globally unique request ID. Shared-model warnings are time-window observations. Idle metric samples alone do not establish admission availability."
+}

@@ -1,0 +1,155 @@
+{
+  "answers": [
+    {
+      "id": "Q01",
+      "value": "1048576",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 19,
+        "end_line": 19,
+        "quote": "CONTEXT = 1048576"
+      }
+    },
+    {
+      "id": "Q02",
+      "value": "8192",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 20,
+        "end_line": 20,
+        "quote": "OUTPUT = 8192"
+      }
+    },
+    {
+      "id": "Q03",
+      "value": "256",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 21,
+        "end_line": 21,
+        "quote": "RESERVE = 256"
+      }
+    },
+    {
+      "id": "Q04",
+      "value": "131072",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 22,
+        "end_line": 22,
+        "quote": "LONG_THRESHOLD = 131072"
+      }
+    },
+    {
+      "id": "Q05",
+      "value": "300",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 144,
+        "end_line": 144,
+        "quote": "deadline = time.monotonic() + 300"
+      }
+    },
+    {
+      "id": "Q06",
+      "value": "2048",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 26,
+        "end_line": 26,
+        "quote": "WARM_STEP = 2048"
+      }
+    },
+    {
+      "id": "Q07",
+      "value": "2",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 27,
+        "end_line": 27,
+        "quote": "CACHE_PROBE_SECONDS = 2"
+      }
+    },
+    {
+      "id": "Q08",
+      "value": "false",
+      "citation": {
+        "source_id": "S0272",
+        "start_line": 12,
+        "end_line": 12,
+        "quote": "function['strict'] = False"
+      }
+    },
+    {
+      "id": "Q09",
+      "value": "false",
+      "citation": {
+        "source_id": "S0272",
+        "start_line": 5,
+        "end_line": 5,
+        "quote": "data.setdefault('continue_final_message', False)"
+      }
+    },
+    {
+      "id": "Q10",
+      "value": "15",
+      "citation": {
+        "source_id": "S0196",
+        "start_line": 152,
+        "end_line": 152,
+        "quote": "deadline = time.monotonic()+15"
+      }
+    },
+    {
+      "id": "Q11",
+      "value": "0.875",
+      "citation": {
+        "source_id": "S0005",
+        "start_line": 31,
+        "end_line": 31,
+        "quote": "thresholdRatio: context === 1048576 ? 0.875 : 0.75"
+      }
+    },
+    {
+      "id": "Q12",
+      "value": "65536",
+      "citation": {
+        "source_id": "S0005",
+        "start_line": 32,
+        "end_line": 32,
+        "quote": "headroomTokens: 65536, maxTokens: 8192"
+      }
+    },
+    {
+      "id": "Q13",
+      "value": "19:34",
+      "citation": {
+        "source_id": "S0087",
+        "start_line": 5,
+        "end_line": 5,
+        "quote": "1,007,689 input tokens in 19m34s"
+      }
+    },
+    {
+      "id": "Q14",
+      "value": "sandbox_da_agent_public_data",
+      "citation": {
+        "source_id": "S0087",
+        "start_line": 7,
+        "end_line": 7,
+        "quote": "limited to read/write in `sandbox_da_agent_public_data`"
+      }
+    },
+    {
+      "id": "Q15",
+      "value": "rejected",
+      "citation": {
+        "source_id": "S0196",
+        "start_line": 105,
+        "end_line": 105,
+        "quote": "raise HTTPException(400, 'Above 128K, this warming route supports text and tools; reduce multimodal input.')"
+      }
+    }
+  ],
+  "report_markdown": "# DSH 1M Context Guard: Execution Path, Admission, Latency and Compaction\n\n## 1. Scope and evidence classes\n\nThis correction covers the frozen DSH repository at its CURRENT HEAD. Four evidence classes stay distinct throughout: frozen implementation/configuration (executable source and manifests); recorded test observation (captured evidence and assertions); historical checkpoint (dated documents that may contradict CURRENT); and recommendation. CURRENT means the frozen repository version as supplied; it does not establish fresh deployed behavior, and this review changed and tested nothing. No benchmark or SLA is invented here. The gateway budget is defined literally in source: `CONTEXT = 1048576` [S0308:L19-L19], `OUTPUT = 8192` [S0308:L20-L20], `RESERVE = 256` [S0308:L21-L21], and `LONG_THRESHOLD = 131072` [S0308:L22-L22]. Compaction values come from the runtime-policy configurator, which selects `thresholdRatio: context === 1048576 ? 0.875 : 0.75` [S0005:L30-L33] with headroom and summary output stated on the following line. Prose elsewhere that describes 128K budgets or a 98,304-token compaction point is a historical checkpoint, not the current policy.\n\n## 2. Execution path and the warming mismatch\n\nThe frozen path is authenticated user to private DSH runtime, then the internal LiteLLM gateway, then the two canonical DeepSeek aliases through a loopback-only guard and forwarder before SGLang [S0346:L110-L110]. Promotion rewrites canonical routes to the loopback guard and appends the `context-forwarder` sidecar [S0304:L54-L60]. The alias guard rejects endpoint overrides and clamps output with `data['max_tokens'] = min([8192]+limits)` [S0367:L13-L21]. The admission guard tokenizes through the running backend, requires the returned model limit to equal `CONTEXT`, requires exact token IDs, and refuses dispatch on failure [S0308:L62-L68]. The forwarder counts the final envelope and returns 503 if budgeting is unavailable rather than estimating [S0196:L88-L91].\n\nThe recorded cause of the warming mismatch was a defaulting divergence: the tokenizer materialized an omitted tool default differently from inference, so a request counted 7,689 tokens but inference processed 7,561, and warming the wrong ID sequence could not reuse a prefix [S0346:L130-L130]. CURRENT normalizes both: `continue_final_message` defaults to false [S0272:L5-L5] and the omitted function `strict` is materialized as false [S0272:L12-L12]. The forwarder calls that normalization on the inbound payload before counting [S0196:L85-L85], and the callback counts with the final envelope while preserving messages, tools and template options [S0308:L34-L42]. Explicit caller values are preserved rather than overwritten [S0279:L167-L173].\n\n## 3. Long-request admission versus ordinary concurrency\n\nAdmission is not a global concurrency limit. A request is long when counted input plus clamped output exceeds `LONG_THRESHOLD` [S0308:L198-L198]. Only long requests take the shared lease; the module states that ordinary requests do not wait on that lock [S0308:L1-L5]. The lease is a non-blocking `flock` with a 300-second deadline, then a retryable 429 [S0308:L144-L148]. The recorded live admission test held that lease deliberately: a real long call returned 429 at about 300 seconds while ordinary DSH replies continued, and release allowed a 140,034-token request [S0346:L24-L26]. The retry policy is narrow, targeting only the two loopback-guarded groups [S0304:L19-L28]. Handover uses one replica and Recreate [S0304:L44-L45]; that is an intended single-writer arrangement, not proof that overlap is impossible in every circumstance, and the record notes that multiple replicas would require distributed ownership [S0289:L50-L50]. Ordinary concurrency is bounded by backend arguments such as `--max-running-requests 16` and the prefill chunk settings [S0280:L89-L94].\n\n## 4. Cold versus cached latency, and memory\n\nCold, cached and decode measurements are different quantities. The recorded cold DSH near-1M completion is 1,007,689 input tokens in 1,170.08 seconds with zero retries and no restart [S0346:L152-L152], and the CURRENT README records the 19m34s cold reply [S0087:L5-L5]. The same-session tool continuation at 1,008,103 input tokens passed in 20.16 seconds [S0087:L5-L5]. Cached continuation is distinct: a recorded 257,738-token follow-up returned in 2.04 seconds, labelled hot-prefix reuse rather than cold throughput [S0346:L151-L151]. Recorded mixed-load qualification shows short replies completing in 0.477-0.613 seconds during a 120,049-token request that itself took 35.67 seconds [S0346:L46-L46]. The recorded current-image window shows 1,132 recovering allocator warnings and a minimum warning-reported free memory of 1.75 MiB, with no fatal OOM signature and no restart; that is observation, not headroom assurance [S0346:L48-L48].\n\nOn resources, the model container sets `--mem-fraction-static` to 0.90 [S0280:L87-L88] and enables the Engram host-table offload with pinning and KV prefetch [S0280:L113-L120]; the container requests 256Gi of host memory and limits it to 512Gi [S0280:L133-L141]. That 512Gi is a container host-memory limit, not GPU memory; KV cache and temporary attention workspace are separate GPU resources. Historical engineering records explain why margin is fragile: an earlier 0.92 profile failed a real ~262K request with CUDA OOM because slot arithmetic excluded temporary attention workspace [S0219:L18-L18], while reducing static memory too far also failed to initialize the cache layout [S0219:L19-L19].\n\n## 5. Compaction and prior-test limits\n\nThe 1M compaction policy yields a normal calculated trigger of 917,504 estimated tokens [S0346:L195-L199]. That is a configuration calculation, not a fresh successful compaction of a historical session. Pressure is estimated between agent steps, while the proxy counts exactly on the final wire, and a large single tool result may reach the request guard before auto-compaction, in which case overflow is refused [S0346:L201-L201]. A recorded fixture with a lowered trigger exercised the real automatic path and validated summary persistence and recall, explicitly without certifying every historical session [S0289:L60-L60].\n\nPrior tests state their own limits. The older 105-response stress campaign belongs to the 128K baseline and its 16-request throughput must not be read as 16 concurrent 1M capability [S0289:L68-L68]. The historical backend-only 1,000,015-token success belongs to an earlier scheduler profile; it is not proof of end-to-end DSH operation [S0346:L68-L68]. Later recorded end-to-end DSH passes do exist and are cited above, but the current record still lists unqualified items: sustained soak, two full concurrent 1M requests, full output at near-maximum input, near-1M vision and semantic-quality assessment [S0346:L106-L106]. The recorded transport retest used a delayed synthetic endpoint without GPU inference [S0346:L187-L187], and the recorded 429 validated admission behavior rather than two real near-1M GPU requests [S0346:L102-L102]. An exact short sentinel returned by these paths demonstrates transport and budgeting, not accuracy.\n\n## 6. Routing, reconciliation and operational workflow\n\nPrivate routing is conditional in CURRENT implementation, not merely diagrammed. When a provisioned per-user target file is present, the gateway validates each identity and per-environment target and selects a fixed host, port and token file; a missing identity or environment mapping returns no target and the login is refused [S0240:L115-L123]. A separate fallback map exists for the single-pod case when that file is absent [S0240:L81-L94]. A published diagram is not verification of live routing.\n\nOperationally, promotion is single-writer: the runtime controller requires `Recreate` and copies are made before startup changes [S0010:L62-L67]. The gateway promotion requires one replica and refuses to proceed if concurrent edits are found [S0304:L40-L50]. Promotion requires actual near-1M acceptance evidence before applying [S0304:L140-L147], and rollback retains the prior profile and configuration without overwriting newer data [S0010:L1-L5]. Post-cutover verification should read back the running image and mounted configuration and confirm exact inference and rejected endpoint overrides [S0304:L156-L161].\n\nHistorical 128K statements describe an earlier deployment in which the backend ceiling had been raised while product guardrails remained lower [S0346:L9-L9]; the current executable budget is 1,048,576 [S0308:L19-L19]. This review establishes no SLA and makes no new production claim; where evidence is insufficient, the correct statement is that the claim is not established."
+}

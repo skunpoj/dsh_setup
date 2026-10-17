@@ -1,0 +1,155 @@
+{
+  "answers": [
+    {
+      "id": "Q01",
+      "value": "1048576",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 19,
+        "end_line": 19,
+        "quote": "CONTEXT = 1048576"
+      }
+    },
+    {
+      "id": "Q02",
+      "value": "8192",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 20,
+        "end_line": 20,
+        "quote": "OUTPUT = 8192"
+      }
+    },
+    {
+      "id": "Q03",
+      "value": "256",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 21,
+        "end_line": 21,
+        "quote": "RESERVE = 256"
+      }
+    },
+    {
+      "id": "Q04",
+      "value": "131072",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 22,
+        "end_line": 22,
+        "quote": "LONG_THRESHOLD = 131072"
+      }
+    },
+    {
+      "id": "Q05",
+      "value": "300",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 144,
+        "end_line": 144,
+        "quote": "deadline = time.monotonic() + 300"
+      }
+    },
+    {
+      "id": "Q06",
+      "value": "2048",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 26,
+        "end_line": 26,
+        "quote": "WARM_STEP = 2048"
+      }
+    },
+    {
+      "id": "Q07",
+      "value": "2",
+      "citation": {
+        "source_id": "S0308",
+        "start_line": 27,
+        "end_line": 27,
+        "quote": "CACHE_PROBE_SECONDS = 2"
+      }
+    },
+    {
+      "id": "Q08",
+      "value": "false",
+      "citation": {
+        "source_id": "S0272",
+        "start_line": 9,
+        "end_line": 12,
+        "quote": "if isinstance(function, dict) and function.get('strict') is None:\n                # The pinned TokenizeRequest converter materializes this\n                # default. Forward it too so actual prompt IDs are identical.\n                function['strict'] = False"
+      }
+    },
+    {
+      "id": "Q09",
+      "value": "false",
+      "citation": {
+        "source_id": "S0272",
+        "start_line": 5,
+        "end_line": 5,
+        "quote": "data.setdefault('continue_final_message', False)"
+      }
+    },
+    {
+      "id": "Q10",
+      "value": "15",
+      "citation": {
+        "source_id": "S0196",
+        "start_line": 152,
+        "end_line": 152,
+        "quote": "deadline = time.monotonic()+15"
+      }
+    },
+    {
+      "id": "Q11",
+      "value": "0.875",
+      "citation": {
+        "source_id": "S0005",
+        "start_line": 31,
+        "end_line": 31,
+        "quote": "provider: 'litellm-cluster', model, thresholdRatio: context === 1048576 ? 0.875 : 0.75,"
+      }
+    },
+    {
+      "id": "Q12",
+      "value": "65536",
+      "citation": {
+        "source_id": "S0005",
+        "start_line": 32,
+        "end_line": 32,
+        "quote": "headroomTokens: 65536, maxTokens: 8192,"
+      }
+    },
+    {
+      "id": "Q13",
+      "value": "19:34",
+      "citation": {
+        "source_id": "S0087",
+        "start_line": 5,
+        "end_line": 5,
+        "quote": "A temporary DSH runtime on the current managed-tools image returned the exact persisted answer at **1,007,689 input tokens in 19m34s**."
+      }
+    },
+    {
+      "id": "Q14",
+      "value": "sandbox_da_agent_public_data",
+      "citation": {
+        "source_id": "S0087",
+        "start_line": 7,
+        "end_line": 7,
+        "quote": "**Public-data pilot target:** Use `da-agent-system-user` limited to read/write in `sandbox_da_agent_public_data`, with clean pilot-only mounts and no internal BOT data until separate approval."
+      }
+    },
+    {
+      "id": "Q15",
+      "value": "rejected",
+      "citation": {
+        "source_id": "S0196",
+        "start_line": 101,
+        "end_line": 105,
+        "quote": "non_text = any(isinstance(m.get('content'), list) and any(\n        isinstance(part, dict) and part.get('type') != 'text' for part in m['content'])\n        for m in data['messages'] if isinstance(m, dict))\n    if long and non_text:\n        raise HTTPException(400, 'Above 128K, this warming route supports text and tools; reduce multimodal input.')"
+      }
+    }
+  ],
+  "report_markdown": "# DSH 1M Context Guard: Execution Path, Admission, Latency and Compaction\n\n## 1. Scope, evidence classes and method\n\nThis review covers the frozen DSH repository at its CURRENT HEAD. Evidence falls into four classes, kept distinct throughout: (a) frozen implementation and configuration (executable source, manifests, ConfigMaps); (b) recorded test observation (captured transcripts, evidence JSON, test assertions); (c) historical checkpoint (dated documents that overlap and may contradict CURRENT); and (d) recommendation. CURRENT means the frozen repository version as supplied; it does not establish fresh deployed behavior, and nothing in this review changed or tested any Production system. No benchmark, SLA, or acceptance result is invented here.\n\nConfiguration claims are drawn from executable definitions. The gateway budget is literally defined in the current long-context callback: `CONTEXT = 1048576`, `OUTPUT = 8192`, `RESERVE = 256`, `LONG_THRESHOLD = 131072` [S0308:L19-L22]. Compaction values are read from the runtime-policy configurator, not from prose: the 1M branch selects `thresholdRatio: context === 1048576 ? 0.875 : 0.75` with `headroomTokens: 65536, maxTokens: 8192` [S0005:L30-L33]. Prose statements elsewhere that describe 128K budgets, or a 98,304-token compaction point, are historical checkpoints describing an earlier product guardrail and must not be presented as the current runtime policy.\n\n## 2. Execution path\n\nThe frozen request path is: an authenticated user reaches a private DSH runtime; the runtime calls the internal LiteLLM gateway; LiteLLM routes the two canonical DeepSeek aliases through a loopback-only context guard and a loopback forwarder before SGLang and the shared four-GPU model [S0346:L110-L110]. The promotion script describes the same topology concretely: canonical routes are rewritten to `http://127.0.0.1:4001/v1` and a `context-forwarder` sidecar is appended to the gateway pod [S0304:L54-L60][S0304:L87-L89]. The forwarder binds on loopback only and is never exposed as a Service [S0196:L1-L4].\n\nTwo cooperating guards exist. `gateway_output_guard.py` is the alias/output guard: it rejects `api_base`, `base_url` and `custom_llm_provider` overrides, requires Chat Completions messages, drops `max_completion_tokens`, and sets `max_tokens = min([8192]+limits)` [S0367:L13-L21]. `long_context_callbacks.py` is the admission and exact-budgeting guard: it tokenizes through the running backend `/v1/tokenize`, requires the returned `max_model_len` to equal `CONTEXT`, requires exact token IDs, and refuses dispatch when counting fails [S0308:L34-L68]. The forwarder repeats exact counting on the final wire envelope and refuses dispatch if the tokenizer is unavailable, returning 503 rather than silently estimating [S0196:L88-L91].\n\n## 3. Cause of the warming/default mismatch\n\nThe recorded engineering record identifies the original failure precisely: the tokenizer materialized an omitted function `strict` default differently from chat inference, so a request counted 7,689 tokens while inference processed 7,561; warming the former ID sequence could not produce a reusable prefix for the latter [S0346:L130-L130]. The recorded failing 500K trial is preserved: warmup completed but the final chat had zero cached tokens and repeated full prefill [S0289:L24-L24].\n\nThe CURRENT fix is to normalize prompt-affecting defaults on both paths before tokenization, in `context_envelope.py`: `continue_final_message` is defaulted to false, and an omitted function `strict` is materialized as `False` [S0272:L5-L12]. The forwarder calls `normalize_conditioning(data)` on the inbound payload before counting and before dispatch [S0196:L85-L85], and the callback counts with `final_envelope=True`, which preserves messages, tools, tool choice, reasoning effort, continuation and template kwargs while removing only SSE output controls [S0308:L34-L42]. The recorded before/after comparison reports that explicit normalization made all prompt IDs identical [S0346:L130-L130]. A recorded isolated alignment check counted 258 tokens, used 258 input tokens and exposed identical prompt token IDs; the source itself labels this a fresh alignment check rather than another capacity test [S0346:L134-L134]. Explicit caller values are preserved rather than replaced by defaults [S0279:L167-L173].\n\n## 4. Long-request admission versus ordinary concurrency\n\nAdmission is deliberately not a global concurrency limit. A request is \"long\" when its counted input plus clamped output exceeds `LONG_THRESHOLD = 131072` [S0308:L198-L198]. Only such requests acquire the single process-shared lease; ordinary requests never wait on that lock, as the module docstring states and the code implements [S0308:L1-L5]. The lease is a `flock` on `/tmp/dsh-long-admission/active.lock`, acquired non-blocking with a 300-second deadline, after which it raises HTTP 429 with `Retry-After: 30` [S0308:L140-L157].\n\nThe recorded live admission test used a deliberately held lease rather than a fabricated GPU workload: a real authenticated long call returned 429 after about 300 seconds while ordinary DSH replies continued, lease release then allowed a 140,034-token request, and oversized input returned 400 [S0346:L24-L26][S0346:L102-L102]. The recorded Router integration fixture observed three attempts before the retry policy change and one afterward for the guarded aliases, with an unrelated group still making three [S0346:L30-L30]. The retry policy is defined narrowly: only model groups whose `api_base` is the loopback guard get `RateLimitErrorRetries = 0`, and the function refuses to proceed if the guarded set is not exactly the two DeepSeek aliases [S0304:L19-L28]. Gateway handover uses `Recreate` so two admission owners never overlap [S0304:L44-L45]. This is a one-replica design; the record explicitly notes that scaling replicas would require distributed ownership [S0289:L50-L50].\n\nOrdinary concurrency is bounded elsewhere by the backend: SGLang runs with `--max-running-requests 16`, `--chunked-prefill-size 1024`, `--max-prefill-tokens 2048` and `--prefill-decode-interval 4` [S0280:L89-L106]. The recorded qualification states that one request above 128K is admitted at a time while ordinary requests remain concurrent, and that this is not a promise of two full simultaneous 1M requests [S0346:L50-L50]. The measured cache pool of 1,179,648 slots is recorded as not fitting two complete 1M contexts [S0346:L123-L123].\n\n## 5. Cold versus cached latency\n\nLatency in this design splits into cold prefill, prefix reuse, and decode throughput -- three different quantities that the source repeatedly warns against conflating. The recorded cold DSH near-1M completion is 1,007,689 input tokens in 1,170.08 seconds with zero retries and no model restart, and the CURRENT README records the reacceptance at 19m34s [S0346:L152-L152][S0087:L5-L5]. The same-session tool continuation at 1,008,103 input tokens passed in 20.16 seconds [S0087:L5-L5]. Cached continuation is fundamentally different: the record shows a 257,738-token follow-up returning in 2.04 seconds, explicitly labelled hot-prefix reuse rather than cold throughput [S0346:L151-L151].\n\nShort-request responsiveness during long work is its own measurement. Recorded mixed-load qualification shows short replies completing in 0.477-0.613 seconds during a 120,049-token request whose own completion took 35.67 seconds [S0346:L46-L46]. All 105 recorded bounded burst/mixed replies passed across distinct campaigns, but the record states each campaign's stages must not be summed into one uninterrupted benchmark [S0346:L36-L36][S0346:L93-L93]. Memory margin is explicitly thin: the current-image progressive window recorded 1,132 recovering allocator mapping warnings with a minimum warning-reported free memory of 1.75 MiB, with no checked fatal OOM signature and no restart [S0346:L48-L48]. That is recorded observation, not a guarantee of headroom.\n\n## 6. Compaction\n\nThe 1M compaction policy is `thresholdRatio 0.875`, `headroomTokens 65536`, summary output 8,192, giving a normal calculated trigger of 917,504 estimated tokens [S0346:L195-L199]. That arithmetic is reproduced here only because the source states it; it is a configuration calculation, not a fresh successful compaction of a real historical session. The configurator derives the ratio by context size, so the 1M branch is distinct from the 0.75 branch used for the smaller budget [S0005:L30-L33].\n\nTwo operational caveats follow from the code, not from speculation. First, compaction pressure is estimated between agent steps, whereas the proxy counts exactly on the final wire [S0346:L201-L201]. Second, a large single input or tool result can reach the request guard before auto-compaction runs, and overflow is refused rather than silently truncated [S0346:L201-L201]. The recorded compaction fixture exercised the real automatic path with a lowered trigger: summary persisted, the verification code survived, recall succeeded and the end record had no error; the record explicitly limits this to the fixture and does not certify every historical session [S0289:L60-L60].\n\n## 7. Memory tradeoffs\n\nThe design trades memory aggressively. The backend runs `--mem-fraction-static 0.90` with the Engram host-table offload and KV prefetch enabled, requesting a 512Gi memory limit [S0280:L87-L88][S0280:L133-L141]. Recorded engineering history shows why headroom is fragile: an earlier 0.92 profile failed a real ~262K-token request with CUDA OOM despite an apparently large KV-slot count, because the slot arithmetic excluded temporary attention workspace [S0219:L18-L18][S0219:L41-L41]. Reducing static memory too far also failed -- the 256K startup at 0.88 could not initialize the required cache layout [S0219:L19-L19]. The recorded dual-480K run completed both requests but left negligible transient headroom, and the source treats this as completion under management rather than proof of unrestricted parallel capacity [S0219:L29-L29]. Note also that container resource limits and GPU memory are different resources; the 8Gi limit on DSH runtime pods [S0060:L189-L195] says nothing about KV cache or attention workspace on the model node.\n\n## 8. Limitations of prior tests\n\nThe retained records state their own limits and those statements should govern. The older 105-response 128K stress campaign belongs to the 128K product baseline; its 16-request throughput must not be represented as 16 concurrent 1M capability [S0289:L68-L68]. The recorded near-1M backend success belongs to an earlier scheduler profile and does not qualify current V2 near-1M fairness, two concurrent 1M requests, or end-to-end DSH 1M [S0346:L50-L50]. The recorded transport retest at 315 seconds used a delayed synthetic endpoint with no GPU inference and is labelled transport evidence, not an inference benchmark [S0346:L187-L187]. The recorded admission 429 validated admission behavior, not two actual near-1M GPU requests [S0346:L102-L102]. The remaining coverage list explicitly excludes sustained soak, two full concurrent 1M requests, full 8,192-token output at near-maximum input, near-1M vision, and semantic-quality assessment [S0346:L106-L106].\n\nThere is one further evidentiary caveat worth stating plainly: an eight-token sentinel echoed exactly proves the transport and budget path returned the requested string. It is not an accuracy benchmark, and no accuracy claim should be built on it. Likewise, a source review cannot substitute for a live acceptance run.\n\n## 9. Limitations of prior historical statements\n\nHistorical documents in the archive state 131,072-token user budgets, compaction \"around 98,304 tokens\", and no end-to-end 1M DSH access [S0002:L7-L7]. Those are dated checkpoints describing an earlier deployment in which the backend ceiling had been raised while the product guardrails remained lower [S0346:L9-L9]. The CURRENT executable definitions instead set `CONTEXT = 1048576` in the guard [S0308:L19-L19] and select 0.875/65,536 for the 1M runtime [S0005:L30-L33]. The correct reconciliation is that the 128K statements are historical, not current, and that the current configuration is a declared budget rather than a fresh verification of deployed behavior. Nothing here should be read as an approved corporate SLA; the source archive contains no approved SLA, and its absence from the supplied material does not prove that none exists elsewhere.\n\n## 10. Practical operational workflow\n\nThe frozen tooling implies a defensible operational sequence. First, save rollback: the runtime promotion requires single-writer `Recreate`, preserves all volumes and mounts, and backs up the prior profile inside each private PVC before changing it [S0010:L62-L71][S0227:L59-L73]. The gateway promotion requires one replica, preserves existing Secret references and unrelated routes, and refuses to proceed on concurrent edits [S0304:L40-L50][S0304:L151-L153]. Second, qualify before dispatch: the proxy is promoted only against actual near-1M acceptance evidence including persisted prompt match and input token count at or above one million [S0304:L140-L147]. Third, verify live behavior after cutover rather than trusting the manifest: read back the running image ID, the mounted configuration, an actual exact inference response and rejection of a client endpoint override [S0304:L156-L186]. Fourth, preserve uncertainty in reporting: record which claims are configuration, which are isolated tests, and which are live observations, and do not upgrade a recorded sample into a service-level guarantee.\n\n## 11. Residual uncertainty and disposition\n\nCURRENT establishes the declared 1M budget, the exact-counting guard, the single long-request lease, the 0.875/65,536 compaction policy, and the rejection of above-128K multimodal input [S0196:L101-L105]. It does not establish fresh deployed behavior, two full concurrent 1M contexts, sustained throughput, or a latency SLA. The memory evidence shows thin margin during recorded runs. Where the supplied evidence does not establish a claim, this review states that it is not established rather than inferring a positive result. The appropriate disposition is to treat the current configuration as frozen implementation evidence, to treat the recorded tests as bounded samples with their stated limits, and to require a new controlled acceptance run with its own saved record before making any broader production claim."
+}

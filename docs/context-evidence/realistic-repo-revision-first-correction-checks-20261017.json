@@ -1,0 +1,497 @@
+{
+  "mechanicalAcceptancePassed": false,
+  "answers": [
+    {
+      "id": "Q01",
+      "value": "1048576",
+      "expectedValue": "1048576",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 17,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q02",
+      "value": "8192",
+      "expectedValue": "8192",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 13,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q03",
+      "value": "256",
+      "expectedValue": "256",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 13,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q04",
+      "value": "131072",
+      "expectedValue": "131072",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 23,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q05",
+      "value": "300",
+      "expectedValue": "300",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 33,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q06",
+      "value": "2048",
+      "expectedValue": "2048",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 16,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q07",
+      "value": "2",
+      "expectedValue": "2",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 23,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q08",
+      "value": "false",
+      "expectedValue": "false",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 26,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q09",
+      "value": "false",
+      "expectedValue": "false",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 48,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q10",
+      "value": "15",
+      "expectedValue": "15",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 30,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q11",
+      "value": "0.875",
+      "expectedValue": "0.875",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 50,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q12",
+      "value": "65536",
+      "expectedValue": "65536",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 38,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q13",
+      "value": "19:34",
+      "expectedValue": "19:34",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 32,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q14",
+      "value": "sandbox_da_agent_public_data",
+      "expectedValue": "sandbox_da_agent_public_data",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 55,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    },
+    {
+      "id": "Q15",
+      "value": "rejected",
+      "expectedValue": "rejected",
+      "correct": true,
+      "citationRangeValid": true,
+      "quoteExact": true,
+      "quoteCharacters": 108,
+      "correctCurrentSourceAndSupportingLine": true,
+      "passed": true
+    }
+  ],
+  "correctValues": 15,
+  "supportedAnswerCitations": 15,
+  "questionCount": 15,
+  "reportWords": 1251,
+  "reportCitations": [
+    {
+      "sourceId": "S0308",
+      "start": 19,
+      "end": 19,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0308",
+      "start": 20,
+      "end": 20,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0308",
+      "start": 21,
+      "end": 21,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0308",
+      "start": 22,
+      "end": 22,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0005",
+      "start": 30,
+      "end": 33,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 110,
+      "end": 110,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0304",
+      "start": 54,
+      "end": 60,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0367",
+      "start": 13,
+      "end": 21,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0308",
+      "start": 62,
+      "end": 68,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0196",
+      "start": 88,
+      "end": 91,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 130,
+      "end": 130,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0272",
+      "start": 5,
+      "end": 5,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0272",
+      "start": 12,
+      "end": 12,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0196",
+      "start": 85,
+      "end": 85,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0308",
+      "start": 34,
+      "end": 42,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0279",
+      "start": 167,
+      "end": 173,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0308",
+      "start": 198,
+      "end": 198,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0308",
+      "start": 1,
+      "end": 5,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0308",
+      "start": 144,
+      "end": 148,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 24,
+      "end": 26,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0304",
+      "start": 19,
+      "end": 28,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0304",
+      "start": 44,
+      "end": 45,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0289",
+      "start": 50,
+      "end": 50,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0280",
+      "start": 89,
+      "end": 94,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 152,
+      "end": 152,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0087",
+      "start": 5,
+      "end": 5,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0087",
+      "start": 5,
+      "end": 5,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 151,
+      "end": 151,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 46,
+      "end": 46,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 48,
+      "end": 48,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0280",
+      "start": 87,
+      "end": 88,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0280",
+      "start": 113,
+      "end": 120,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0280",
+      "start": 133,
+      "end": 141,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0219",
+      "start": 18,
+      "end": 18,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0219",
+      "start": 19,
+      "end": 19,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 195,
+      "end": 199,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 201,
+      "end": 201,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0289",
+      "start": 60,
+      "end": 60,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0289",
+      "start": 68,
+      "end": 68,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 68,
+      "end": 68,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 106,
+      "end": 106,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 187,
+      "end": 187,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 102,
+      "end": 102,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0240",
+      "start": 115,
+      "end": 123,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0240",
+      "start": 81,
+      "end": 94,
+      "rangeValid": false
+    },
+    {
+      "sourceId": "S0010",
+      "start": 62,
+      "end": 67,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0304",
+      "start": 40,
+      "end": 50,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0304",
+      "start": 140,
+      "end": 147,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0010",
+      "start": 1,
+      "end": 5,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0304",
+      "start": 156,
+      "end": 161,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0346",
+      "start": 9,
+      "end": 9,
+      "rangeValid": true
+    },
+    {
+      "sourceId": "S0308",
+      "start": 19,
+      "end": 19,
+      "rangeValid": true
+    }
+  ],
+  "distinctReportSources": 14,
+  "usage": {
+    "inputTokens": 998118,
+    "outputTokens": 2771,
+    "totalTokens": 1000889
+  },
+  "distinctReportPaths": 14,
+  "requestedWordRangeMet": false,
+  "limitations": "Report citation ranges are mechanically checked; narrative entailment and operational conclusions require separate human/source review. This is one task-specific sample, not general accuracy."
+}

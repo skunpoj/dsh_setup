@@ -14,6 +14,7 @@ def main():
     ap.add_argument('--prompt', required=True, type=Path)
     ap.add_argument('--output', required=True, type=Path)
     ap.add_argument('--deadline', type=int, default=3300)
+    ap.add_argument('--session-id', help='Continue only the retained disposable review session')
     a = ap.parse_args()
     if not str(a.prompt).startswith('/tmp/realistic-review/'):
         raise ValueError('Disposable test input required')
@@ -37,12 +38,14 @@ def main():
             raise RuntimeError('DSH review RPC failed: '+method)
         return value['result']['value']
 
-    session = rpc('session/create', {'request': {'cwd': '/workspace'}})['sessionId']
-    rpc('session/rename', {'request': {'sessionId': session, 'title': 'Repository accuracy acceptance - disposable'}})
+    session = a.session_id or rpc('session/create', {'request': {'cwd': '/workspace'}})['sessionId']
+    if not a.session_id:
+        rpc('session/rename', {'request': {'sessionId': session, 'title': 'Repository accuracy acceptance - disposable'}})
     baseline = rpc('session/projections', {'request': {'sessionId': session}})['asOfSeq']
     record = {'startUTC': datetime.now(timezone.utc).isoformat(), 'sessionId': session,
         'promptSHA256': hashlib.sha256(text.encode()).hexdigest(), 'promptBytes': len(text.encode()),
         'status': 'running', 'scope': 'Actual DSH agent, frozen repository sources, isolated ephemeral state'}
+    record['continuedSession'] = bool(a.session_id)
     start = time.monotonic()
 
     def save():

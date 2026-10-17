@@ -1,0 +1,56 @@
+{
+  "assistantTextSHA256": "6d17bec94f362edfe579c58ff44157a324d98640d24b82f4a31cb75c8d0877d2",
+  "completed": true,
+  "allMaterialClaimsReviewed": true,
+  "reviewMethod": "Codex compared the full generated narrative and its 64 cited spans with the frozen source text, with additional adjacent implementation lines for missing support; not external assessor approval.",
+  "priorFindingChecks": {
+    "N1": {
+      "resolved": true,
+      "assessment": "The universal SLA-nonexistence claim is removed; the report establishes no SLA."
+    },
+    "N2": {
+      "resolved": true,
+      "assessment": "The unsupported only-shared-resource statement is absent; no exclusivity is inferred."
+    },
+    "N3": {
+      "resolved": true,
+      "assessment": "The original header-test comment is not reused as proof; the new rollback misattribution is separately recorded below."
+    },
+    "N4": {
+      "resolved": true,
+      "assessment": "Host-memory request/limit is cited to the actual resource fields and distinguished from GPU workspace."
+    },
+    "N5": {
+      "resolved": true,
+      "assessment": "Historical backend-only and later end-to-end DSH results are distinguished; admission is not projected backwards."
+    },
+    "N6": {
+      "resolved": true,
+      "assessment": "The unsupported effective-egress conclusion is absent; the report makes no new effective-network assertion."
+    },
+    "N7": {
+      "resolved": true,
+      "assessment": "Conditional per-user routing, fallback and missing-map refusal are tied to executable branches."
+    }
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "issue": "Profile rollback hash/byte restoration is attributed to S0010:L70-L71, which assert only unchanged volumes and mounts.",
+      "correctSupport": "S0010:L46-L51; mount assertions remain L70-L71."
+    },
+    {
+      "id": "F2",
+      "issue": "Concurrent-edit refusal is attributed to S0304:L40-L50, which covers candidate construction but not the comparison.",
+      "correctSupport": "S0304:L151-L153."
+    }
+  ],
+  "conclusion": "Raw narrative source acceptance NOT PASSED: two residual assertion/citation misattributions. The published reviewed version corrects these and tightens five further evidence descriptions; raw output remains unchanged.",
+  "reviewedVersion": {
+    "markdownSHA256": "54e8706aac01c353a0d91e57f4f3673f22630978fc9cf66619fc71c58e5835d3",
+    "allMaterialClaimsReviewed": true,
+    "remainingFindings": [],
+    "editorialChanges": 7,
+    "scope": "Corrected source-grounded publication, not proof the model autonomously passed narrative acceptance."
+  }
+}

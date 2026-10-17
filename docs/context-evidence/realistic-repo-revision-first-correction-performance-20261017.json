@@ -1,0 +1,111 @@
+{
+  "startUTC": "2026-10-17T00:19:07.755882+00:00",
+  "finishUTC": "2026-10-17T00:20:41.024582+00:00",
+  "actualClient": "DSH agent HTTP RPC on disposable current-image runtime; not Claude Code or TrueForge",
+  "usage": {
+    "inputTokens": 998118,
+    "outputTokens": 2771,
+    "totalTokens": 1000889
+  },
+  "totalElapsedSeconds": 93.2687,
+  "clientRetryEvents": 0,
+  "retryCodes": [],
+  "persistedPromptMatches": true,
+  "promptSHA256": "bc70da578b255301aa176de84ccf89a5eb344d8aa6c35901ba55e6664152a275",
+  "warming": {
+    "event": "dsh_final_wire_warmed",
+    "steps": 1,
+    "tokens": 998118,
+    "mode": "bounded-cache-probe",
+    "cachedTokens": 997376,
+    "seconds": 2.075,
+    "probeSeconds": 2,
+    "completionUTC": "2026-10-17T07:19:12.570082+07:00",
+    "startUTC": "2026-10-17T07:19:10.495082+07:00"
+  },
+  "preWarmingElapsedSeconds": 2.7392,
+  "firstOutputUTC": "2026-10-17T00:19:15.367000+00:00",
+  "sessionStats": {
+    "turns": 2,
+    "steps": 2,
+    "llmMs": 1398483,
+    "toolMs": 0,
+    "ttftMs": 1181607,
+    "ttftSteps": 2,
+    "decodeMs": 216876,
+    "decodeTokens": 7007
+  },
+  "shortReplies": [
+    {
+      "startUTC": "2026-10-17T00:19:47.084538+00:00",
+      "seconds": 2.0307,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": true,
+      "overlapWithinLong": true
+    },
+    {
+      "startUTC": "2026-10-17T00:19:47.281492+00:00",
+      "seconds": 2.028,
+      "correct": true,
+      "persisted": true,
+      "longRunningAfterPair": true,
+      "phase": "during-preparation-or-generation",
+      "duringGeneration": true,
+      "overlapWithinLong": true
+    }
+  ],
+  "strictlyOverlappingAdmittedShortReplies": 2,
+  "admittedShortMinimumSeconds": 2.028,
+  "admittedShortMaximumSeconds": 2.0307,
+  "generationShortReplies": 2,
+  "modelBefore": [
+    {
+      "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+      "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+      "containers": [
+        {
+          "restartCount": 0,
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+        }
+      ]
+    }
+  ],
+  "modelAfter": [
+    {
+      "uid": "7b81db57-ce7f-4335-a36d-8655e999e62c",
+      "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+      "containers": [
+        {
+          "restartCount": 0,
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860"
+        }
+      ]
+    }
+  ],
+  "modelUnchanged": true,
+  "sharedModelLogSignaturesDuringAdmittedPhase": {
+    "CUDA out of memory": 0,
+    "OutOfMemoryError": 0,
+    "illegal memory access": 0,
+    "Scheduler exception": 0,
+    "memory mapping failed with OOM": 0
+  },
+  "minimumSampledFreeMiB": 530,
+  "warmingLifecycleEvents": [
+    {
+      "event": "dsh_final_wire_warmed",
+      "steps": 1,
+      "tokens": 998118,
+      "mode": "bounded-cache-probe",
+      "cachedTokens": 997376,
+      "seconds": 2.075,
+      "probeSeconds": 2,
+      "completionUTC": "2026-10-17T07:19:12.570082+07:00",
+      "startUTC": "2026-10-17T07:19:10.495082+07:00"
+    }
+  ],
+  "interpretationLimitations": "Warm-phase attribution is correlated by exact final input count and timestamps, not a globally unique request ID. Shared-model warnings are time-window observations. Idle metric samples alone do not establish admission availability."
+}

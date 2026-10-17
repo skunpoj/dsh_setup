@@ -1,0 +1,42 @@
+{
+  "provenance": "Codex editorial correction after raw model source review; not another model response",
+  "originalAssistantSHA256": "6d17bec94f362edfe579c58ff44157a324d98640d24b82f4a31cb75c8d0877d2",
+  "reviewedMarkdownSHA256": "54e8706aac01c353a0d91e57f4f3673f22630978fc9cf66619fc71c58e5835d3",
+  "edits": [
+    {
+      "before": "appends the `context-forwarder` sidecar container [S0304:L87-L89]",
+      "after": "defines the loopback `context-forwarder` sidecar [S0304:L87-L89] and appends it to the pod container list [S0304:L100-L100]",
+      "reason": "Separate the sidecar definition from the actual append operation."
+    },
+    {
+      "before": "requires the returned model limit to equal `CONTEXT`, requires exact token IDs, and refuses dispatch on failure [S0308:L62-L68]",
+      "after": "uses the configured tokenizer endpoint [S0308:L43-L48], validates the returned model limit and exact token IDs [S0308:L62-L68], and refuses dispatch when counting fails [S0308:L180-L184]",
+      "reason": "Cite invocation, validation and refusal separately."
+    },
+    {
+      "before": "on a cold miss the code raises the probe-miss path and falls through to incremental warming [S0308:L115-L126]",
+      "after": "an acknowledged timeout abort becomes `CacheProbeMiss` [S0308:L91-L95], which the warming routine catches before entering incremental preparation [S0308:L115-L126]",
+      "reason": "Attach the exception conversion to its actual branch, in addition to the catch."
+    },
+    {
+      "before": "the managed dispatcher's one-hour header and body timeouts for the operator-managed origin only [S0357:L8-L8]",
+      "after": "a test fixture that asserts one-hour header/body timeouts for the managed origin and unchanged options for its listed unrelated origins [S0357:L5-L12]",
+      "reason": "Scope the fixture to its assertions; do not imply a new live measurement."
+    },
+    {
+      "before": "The gateway promotion requires one replica and refuses to proceed if concurrent edits are found [S0304:L40-L50]",
+      "after": "The gateway candidate requires one replica [S0304:L40-L45]; a separate readback refuses deployment if its current specification changed after planning [S0304:L151-L153]",
+      "reason": "The original citation did not contain the concurrent-edit comparison."
+    },
+    {
+      "before": "Rollback preservation is implemented: the profile-restore initializer asserts the retained backup hash and asserts the restored profile bytes equal the original [S0010:L70-L71], with the backup written inside the private PVC before startup changes it [S0010:L39-L43].",
+      "after": "The candidate asserts that its volume specifications and mount list are unchanged [S0010:L70-L71]. Separately, the rollback initializer verifies the saved profile hash, replaces the profile and reads it back for byte equality [S0010:L46-L51]. The backup branch saves profile bytes, hash and readback [S0010:L39-L43], and the initializer mounts the existing state volume [S0010:L55-L58].",
+      "reason": "The raw answer cited mount-preservation assertions as proof of profile restoration; cite each distinct mechanism correctly."
+    },
+    {
+      "before": "Separate recorded checks assert an exact live response and rejection of a client endpoint override",
+      "after": "Separate assertions in the promotion code require an exact inference response and rejection of a client endpoint override",
+      "reason": "Distinguish assertions present in source from a newly executed verification."
+    }
+  ]
+}

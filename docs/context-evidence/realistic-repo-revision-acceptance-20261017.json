@@ -1,0 +1,15 @@
+{
+  "accepted": false,
+  "conditions": {
+    "mechanicalChecksPassed": true,
+    "requestedWordRangeMet": true,
+    "revisionQuoteLimitMet": true,
+    "reviewBoundToActualOutput": true,
+    "sourceReviewCompleted": true,
+    "noUnresolvedSourceFindings": false,
+    "allMaterialClaimsReviewed": true,
+    "priorDefectsIndividuallyReviewed": true
+  },
+  "assistantTextSHA256": "6d17bec94f362edfe579c58ff44157a324d98640d24b82f4a31cb75c8d0877d2",
+  "scope": "One frozen-source task. Mechanical citation checks plus recorded source review; not general accuracy or operational/security certification."
+}

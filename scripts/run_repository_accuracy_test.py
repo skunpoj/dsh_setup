@@ -21,8 +21,10 @@ def require_idle(state, admission_available):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--directory', type=Path, required=True)
-    ap.add_argument('--pod', required=True); a = ap.parse_args()
-    if a.pod != 'dsh-realistic-1m-test-20261017': raise ValueError('Disposable runtime required')
+    ap.add_argument('--pod', required=True)
+    ap.add_argument('--session-id'); a = ap.parse_args()
+    if a.pod not in {'dsh-realistic-1m-test-20261017', 'dsh-realistic-1m-revision-20261017'}:
+        raise ValueError('Disposable runtime required')
     root = Path(__file__).resolve().parents[1]; out = a.directory
 
     def remote(code, timeout=60, stdin=None):
@@ -60,7 +62,11 @@ print(json.dumps({'available':available}))
         p = out/'controller.tmp'; p.write_text(json.dumps(record, indent=2), encoding='utf-8')
         p.replace(out/'controller.json')
     save()
-    pid = remote("import subprocess;f=open('/tmp/realistic-review/probe.log','w');p=subprocess.Popen(['python3','/tmp/realistic-review/probe.py','--prompt','/tmp/realistic-review/prompt.txt','--output','/tmp/realistic-review/long-result.json'],stdin=subprocess.DEVNULL,stdout=f,stderr=f,start_new_session=True);print(p.pid)").strip()
+    command = ['python3', '/tmp/realistic-review/probe.py', '--prompt',
+               '/tmp/realistic-review/prompt.txt', '--output', '/tmp/realistic-review/long-result.json']
+    if a.session_id: command += ['--session-id', a.session_id]
+    pid = remote("import subprocess;f=open('/tmp/realistic-review/probe.log','w');p=subprocess.Popen("+
+        repr(command)+",stdin=subprocess.DEVNULL,stdout=f,stderr=f,start_new_session=True);print(p.pid)").strip()
     record['remoteProbePID'] = pid; save()
     def short():
         # Kubernetes exec encodes -c arguments in its request URI. Keep it short;
