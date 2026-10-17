@@ -22,13 +22,17 @@ try {
  assert.deepEqual(mainHeadings,[
   '1 Prevent external leakage',
   '2 Prevent damage or excessive access',
-  '3 Keep results contained'
+  '3 Keep results contained',
+  'External dependencies and agreed scope limits'
  ],'Primary report must be organized around the supplied three pilot risks');
  const narrative=await page.locator('main').evaluate(main=>{const copy=main.cloneNode(true);copy.querySelectorAll('details[id^="evidence-"]').forEach(node=>node.remove());return copy.textContent;});
  assert(!/[\u0e00-\u0e7f]/.test(narrative),'Risk report narrative must be English');
  assert.equal(await page.locator('#embedded-readme, #embedded-llm-guide').count(),0,'General setup guides must remain outside the three-risk report');
- assert.equal(await page.getByRole('heading',{name:'Current implementation and remaining gaps',exact:true}).count(),3,'Each risk must distinguish deployed controls from remaining gaps');
- for(const boundary of ['remote Livy/Spark execution','salted scrypt password records','existing AD/datalake permissions','DSH2/DSH3','accepted exception']) {
+ assert.equal(await page.getByRole('heading',{name:'Current implementation and remaining gaps',exact:true}).count(),0,'Do not mix operational gap diaries into each risk');
+ assert(narrative.includes('reviewed DSH application controls are implemented'));
+ assert(narrative.includes('No DSH-imposed universal read-only policy is required'));
+ assert(narrative.includes('previously accepted remote-egress exception'));
+ for(const boundary of ['Remote Livy/Spark execution','salted scrypt password records','Existing personal and system-account entitlements','DSH2 and DSH3','accepted remote-egress exception']) {
   assert(narrative.includes(boundary),`Missing risk boundary: ${boundary}`);
  }
 
@@ -72,6 +76,6 @@ try {
  await setupPage.goto(pathToFileURL(path.join(root,'docs/LLM_SETUP_AND_TEST_RESULTS.html')).href);
  assert((await setupPage.locator('main').innerText()).includes(acceptedInput));
  assert((await setupPage.locator('h1').innerText()).includes('1M Setup, Performance and Operational Limits'));
- const record={time:new Date().toISOString(),riskCentredHeadings:mainHeadings,designOnly:false,currentImplementationAndGapsIncluded:true,supportingEvidenceIncluded:false,englishNarrative:true,readmeEmbedded:false,llmGuideEmbedded:false,standaloneLlmGuide:true,rawEvidenceEmbedded:false,renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
+ const record={time:new Date().toISOString(),riskCentredHeadings:mainHeadings,designOnly:false,localControlsAndExternalResponsibilitiesSeparated:true,supportingEvidenceIncluded:false,englishNarrative:true,readmeEmbedded:false,llmGuideEmbedded:false,standaloneLlmGuide:true,rawEvidenceEmbedded:false,renderedDiagrams:3,initialNodesUnclipped:true,externalResourceRequests:external.length,zoom:true,reset:true,fullscreen:true,copySource:copySucceeded,svgExport:true,pngExport:true,pageErrors:errors,pngWidth:png.readUInt32BE(16),pngHeight:png.readUInt32BE(20)};
  fs.writeFileSync(path.join(out,'html-verification.json'),JSON.stringify(record,null,2));console.log(JSON.stringify(record));
 }finally{await browser.close();}

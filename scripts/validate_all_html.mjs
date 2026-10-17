@@ -37,7 +37,7 @@ try{
   }
   if(name.endsWith('/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html')){
    const headings=await page.locator('main > h2').allTextContents();
-   assert.deepEqual(headings,['1 Prevent external leakage','2 Prevent damage or excessive access','3 Keep results contained']);
+   assert.deepEqual(headings,['1 Prevent external leakage','2 Prevent damage or excessive access','3 Keep results contained','External dependencies and agreed scope limits']);
    assert.equal(await page.locator('#embedded-llm-guide, #embedded-readme, details[id^="evidence-"]').count(),0);
   }
   if(errors.length||external.length)record.failures.push({name,errors,unexpectedExternalResources:external});

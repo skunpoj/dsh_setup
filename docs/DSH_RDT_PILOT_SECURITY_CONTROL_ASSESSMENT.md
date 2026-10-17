@@ -1,51 +1,32 @@
 # DSH — Controlling Three Security Risks
 
-This report explains how three risks are controlled: external leakage, damage or excessive access, and exposure of results. DSH, Claude Code and TrueForge are treated as untrusted automation: a model, tool, dependency or generated program can make a mistake. Infrastructure and effective permissions must contain that mistake. Client settings and prompt instructions support those boundaries; they cannot replace them.
+DSH controls three risks: external leakage, damage or excessive access, and exposure of results. The Harness, its tools and generated code are treated as automation that can make mistakes. The application therefore enforces boundaries through network policy, private execution, scoped storage and authenticated routes rather than relying on prompt instructions.
 
-The default No Internet environment is the protected working environment. Internet is a separate dependency-preparation environment, not a second route to protected data. The design keeps identities, workspaces, histories and credentials private, while sharing internal inference. Each section explains the boundary, the mechanism that enforces it and the action needed to complete it. An accepted exception is an exposure retained by decision, not a technically closed risk. Performance measurements and test records belong in the separate LLM guide.
+**Scope conclusion:** the agreed DSH-controlled measures described below are implemented, with their defined acceptance checks completed in the recorded deployment review. No unresolved local failure was identified by those checks. This is completion of the reviewed application scope, not a guarantee against every attack, mistake or future regression. External dependencies and deliberate scope limits are consolidated in the final section; they are not presented as unfinished DSH implementation.
+
+This report explains the design and responsibility boundaries. Detailed measurements, test histories and recovery procedures remain in separate operational documents. This revision does not perform a new deployment or security test.
 
 ## 1 Prevent external leakage
 
-### Risk and control objective
+### Control objective
 
-Generated code, a tool or a dependency could send data, prompts, credentials or results to an external destination. The control objective is to block unauthorized outbound connections from every environment that executes the work, while retaining only the internal services needed for the task.
+Prevent unauthorized public connections from the No Internet execution environment while retaining only the internal services required for work. Internet access is provided through a separate environment for dependency preparation, with no automatic transfer of protected data.
 
-### Current implementation and remaining gaps
+### Separate execution and network boundaries
 
-The main DSH deployment separates No Internet and Internet execution, with fixed user/environment routing and different storage mounts. No Internet workers have restricted outbound network policy; required internal inference and Livy connections remain available. Internet workers retain public connectivity for dependency preparation. The separation controls local execution paths; it is not an end-to-end air gap.
+No Internet / Internal is the default login choice. Each main user has a private runtime for this environment and a different private Internet runtime. Authentication fixes the user/environment route for the login session. Switching environments requires logout and a new login; a submitted username, routing header or changed selection cannot choose another user's backend.
 
-DSH2 and DSH3 are now restricted to their configured single login identities, `user2` and `user3`. Shared guest and cross-account logins are denied. Only the designated owner has an active password record; disabled legacy records are retained in an operator-only recovery Secret, outside execution mounts. Existing histories stay with their original instance. A dedicated network policy permits ingress-controller access to the authenticated proxy, blocks direct peer access, and retains internal inference, Kerberos and Livy connections. These legacy instances remain Internet-capable; their login page disables the No Internet choice rather than presenting a false offline boundary.
+No Internet has a restricted outbound network policy. Its approved paths include internal inference, controlled DNS and permitted authentication or job-submission services. Public-domain and direct-IP connectivity are restricted at the network layer, including commands launched from the terminal. The runtime has no Kubernetes management token with which to change its own policy.
 
-The material open boundary is **remote Livy/Spark execution**. The local runtime policy does not block public connections from the remote drivers and executors. Worker-side containment must be enforced on the datalake platform. Keeping Livy/Spark available is the user's accepted exception; acceptance does not remove the external-leakage path.
+The Internet environment has separate compute, workspace, histories and credentials. It does not mount protected No Internet working data. Its public connectivity supports dependency preparation; it is not an alternate processing route for protected prompts, tickets, datasets or reports. The shared internal gateway and inference services do not merge user workspaces. This architecture provides restricted egress, rather than a strict air gap.
 
-To close that boundary, the datalake infrastructure owner must apply destination restrictions to the actual driver/executor network and validate them from those processes. Until then, use only approved public or non-sensitive pilot data on that path; protected-data use must not rely on the No Internet label. The shared gateway and inference services also have their own destination policies and filtered internal DNS. DNS accepts approved service names and a tightly constrained private-runtime service pattern in the authoritative cluster zone; it does not permit public suffixes or arbitrary external names. The gateway can reach the private execution workloads; LiteLLM can reach the approved database and local model/embedding services; model and database provider policies deny public egress. Public names are refused by the resolver rather than forwarded. Model assets must be staged before a restricted service starts. Administrative access and any additional internal relay still require review. Internet staging must never receive protected prompts, datasets or credentials merely because its workspace is separate.
+The gateway, LiteLLM, local model providers and supporting database have their own destination restrictions. Filtered internal DNS serves approved internal names rather than forwarding arbitrary public lookups. Supplied model clients use internal LiteLLM with model-scoped credentials and operator-owned configuration; external model fallback is disabled for the managed route. Client configuration complements infrastructure enforcement and does not replace it.
 
-### Complete the leakage boundary
+### Transfer dependencies without sharing protected workspaces
 
-For protected-data work, every execution destination must enforce the same outbound restriction. Keep No Internet as default; permit only the required internal services; restrict the inference gateway and any internal relay; disable external provider fallback. Apply the rule where remote code actually runs as well as where it is submitted. A dependency-preparation environment must never receive protected workspaces, prompts or Kerberos tickets.
+The Internet environment downloads package artifacts into an incoming area. An operator reviews their source, version and expected hashes. A controlled promotion process verifies selected bytes and places approved artifacts in a separate cache. No Internet mounts that cache read-only and installs without a public package index.
 
-The currently retained Livy/Spark exception is incompatible with calling the whole workflow Internet-denied. Closing it requires worker-side restrictions on the datalake platform. If those restrictions cannot be provided, protected work must not be sent to that remote path. Keeping it available for the approved public-data pilot preserves the existing decision without claiming that the leakage path disappeared.
-
-### Separate execution environments
-
-The default **No Internet / Internal** environment runs the user's analysis and stores its protected files. Kubernetes network rules restrict its outbound destinations. Required internal connections include the model gateway, controlled DNS, Kerberos and the permitted Livy endpoint. Public connections must be denied at the network layer even when a user runs arbitrary terminal commands or generated Python code.
-
-The **Internet** environment prepares dependencies. It has separate compute, workspace, history and credential storage. It does not mount the protected No Internet workspace. The user selects an environment at login and remains routed to that environment until logout. Selecting Internet must not carry protected files, tickets or conversation history into it.
-
-User identity and environment are separate routing decisions: each main user receives a private No Internet runtime and a different private Internet runtime. A session is pinned to one of those runtimes; changing the radio selection in a request cannot expose the other runtime after login. The environments share internal inference and the authentication gateway. That necessary internal connectivity makes No Internet a restricted-egress environment, rather than a strict air gap.
-
-### Keep inference and dependency transfer inside defined paths
-
-Approved model clients send requests to internal LiteLLM with inference-only credentials. Operator-owned settings constrain the supplied clients' configured endpoint and model. External model fallback must remain disabled. These settings complement network enforcement: changing a client or running a different program must not make public destinations reachable from No Internet.
-
-Dependencies move through a controlled package path:
-
-1. Internet downloads artifacts into an incoming area.
-2. An operator reviews the package source, version and expected hashes.
-3. A promotion process verifies the selected bytes and copies approved artifacts into a separate cache.
-4. No Internet mounts that cache read-only and installs without contacting a public package index.
-
-Internet cannot directly install into the protected runtime or write its workspace. Hashes detect changed artifacts; package review is still necessary because a correctly hashed package can contain harmful code. Prompts, datasets, credentials and reports are not dependency artifacts and must not use this transfer path.
+Internet cannot directly install into the protected runtime or modify its workspace. Prompts, datasets, credentials, histories and reports are not dependency artifacts and must not use this transfer path. Hash verification establishes artifact integrity; package approval remains necessary because an intact package can still contain harmful code.
 
 ```mermaid
 flowchart TB
@@ -69,59 +50,42 @@ flowchart TB
  Z --> L[Allowed Livy endpoint]
  S --> L[Allowed Livy endpoint]
  L --> R[Remote Spark drivers and executors]
- R --> E[Separate worker network restrictions required]
+ R --> E[Remote platform network policy]
  classDef exposure fill:#7f1d1d,stroke:#f87171,color:#ffffff
  class E exposure
 ```
 
-### Cover remote execution as well as DSH
+### Keep environment choices explicit
 
-A Spark job executes on remote drivers and executors. The DSH pod's network rules do not follow the code onto those workers. Remote execution therefore requires its own destination restrictions and DNS/proxy controls. An internal Livy connection is an execution path into another platform, so its drivers and executors must be included in the network design.
+Legacy DSH2 and DSH3 are owner-only Internet-capable instances. They do not offer a misleading No Internet choice. Their authenticated proxies and ingress restrictions prevent direct peer access, while retaining their intended internal inference and permitted service connections. Protected offline work uses the designated No Internet environment.
 
-The same principle applies to any remote tool, notebook server or job runner: the component that executes code needs its own egress boundary. DSH restrictions cannot substitute for a firewall on a downstream platform. The datalake infrastructure owner controls worker destinations; the DSH operator controls the local runtime and which remote endpoints it may contact.
-
-### Allow only necessary internal services
-
-Use a default-deny policy and explicit destinations and ports. DNS should resolve only the names required by the environment, and alternative DNS, proxies and relay services must not create an unintended route outside the boundary. Approved internal services must themselves have an appropriate trust and outbound policy; an allowed internal endpoint can otherwise become an indirect path to the Internet.
-
-Keep network changes under operator control rather than letting generated code change policy labels, routing or firewall rules. The execution identity should have no Kubernetes management credential. Dependency downloads, internal inference and distributed analysis remain distinct flows with separate permissions and owners.
-
+An internal connection to another platform does not grant administration of that platform. If a submitted command executes remotely, that platform applies its own permissions and network rules; this responsibility is separated in the final section.
 
 ## 2 Prevent damage or excessive access
 
-### Risk and control objective
+### Control objective
 
-Generated code can delete writable files, change source records, use excessive resources or access unrelated systems. Internet denial does not prevent damage to internal resources. The control objective is to give execution only the identity, data scope, writable locations and resources needed for the approved task.
+Contain local execution and prevent peer or administrative access beyond the selected user's environment. Preserve existing permissions on connected platforms instead of silently granting broader access or imposing an unrequested replacement authorization policy.
 
-### Current implementation and remaining gaps
+### Run tools within a private, restricted workload
 
-For the main service, user isolation means separate execution processes and separately mounted workspaces, sessions, attachments and credentials—not merely different folders in a shared process. The main user/environment runtimes are separate non-root workloads with private mounts, resource limits, disabled privilege escalation, dropped capabilities and no mounted Kubernetes management token. No Internet workspaces and durable histories use central CIFS paths; local credential state stays separate. Internet has separate workspace/state storage, and approved dependency artifacts are mounted read-only in No Internet. The legacy owner retains its original files and histories; private-user paths are masked from that broader legacy mount.
+Each main user/environment has a separate execution process with bounded workspace, session, attachment and credential mounts. Isolation is enforced through the workload and mounted scope, rather than merely choosing different folders in one shared process. Broad parent directories containing other users' data and host-management interfaces are not exposed to ordinary execution.
 
-These controls reduce local damage and peer access, but **they do not make writable data read-only**. Each Kerberos principal retains its existing AD/datalake permissions, as requested. A successful login does not prove a limited sandbox entitlement. Exclusive rights to `sandbox_da_agent_public_data` have not been established for the system account. The effective catalog, HDFS and sandbox grants must define that boundary before it is used as a restricted identity.
+The workloads execute as non-root, disable privilege escalation, drop Linux capabilities, use RuntimeDefault seccomp and have no mounted Kubernetes management token. CPU and memory limits constrain local resource use. Legacy instances similarly use restricted non-root execution with a designated owner account.
 
-Closure requires the datalake owner to confirm the exact allowed sandbox and effective grants, including denial outside that scope. A protected-source task additionally needs a principal whose source permissions are genuinely read-only; existing broad personal permissions must not be described as that control. Distributed-job quotas, cancellation and alerts require separate datalake acceptance. CIFS persistence and container resource limits are deployed mechanisms, while storage-server ACL correctness, deletion recovery and remote-compute limits remain separate operational responsibilities. A non-root writable workspace is still vulnerable to deletion by its own user or generated code.
+DSH, Claude Code and TrueForge inherit the selected runtime's identity, mounts and network policy. Installing a tool does not grant a privileged container, host socket or another user's credentials. TrueForge's optional nested sandbox remains disabled under the current restrictions; its absence is an agreed capability limit, not a reason to weaken the container boundary.
 
-### Apply the same boundary to every client
+### Preserve private work and bounded write access
 
-DSH, Claude Code and TrueForge run within the authenticated user's selected environment and must inherit its identity, mounts and network policy. Installing another harness must not add a host socket, privileged container, broad volume or cluster-management token. Claude tool execution remains inside the private workload. TrueForge's optional nested sandbox must remain disabled until it can run under the existing restrictions or an independently contained worker; enabling privilege merely to make it start would weaken containment.
+Protected working files and durable histories use bounded central CIFS paths. Internet workspaces and histories remain separate. Credentials and profiles remain in their designated private state locations, while approved dependency artifacts are read-only. Generated outputs belong in the user's designated writable working area.
 
-A larger context window changes model capacity, not authorization. A near-1M prompt must still contain only data that the selected user and environment may access. Model endpoint allowlists and operator-owned configuration constrain the supplied clients; infrastructure must also constrain alternative programs a user can execute.
+Existing histories and files retain their ownership. An explicitly authorized support copy is independent and does not reassign the source, expose a shared parent directory or establish ongoing synchronization. Persistence across runtime replacement is part of the application design; independent recovery from authorized or accidental deletion is a separate storage-service responsibility.
 
-### Contain local code execution
+### Use connected services under existing authorization
 
-Each main DSH user has a dedicated runtime for each network environment. The runtime executes as a non-root identity, disables privilege escalation, drops Linux capabilities, uses RuntimeDefault seccomp and has no mounted Kubernetes service-account token. CPU and memory limits bound local resource use.
+Datalake connections authenticate with the applicable Kerberos principal. DSH does not expand that principal's permissions, grant administration of the datalake or redefine its dataset scope. Submitted commands remain subject to that platform's authorization and execution controls. Existing personal and system-account entitlements are preserved as agreed.
 
-Workspace, session, attachment and credential mounts are limited to the user and environment. The runtime must not mount another user's directory, a broad parent containing private users, host administration paths or credentials for unrelated services. Changing the current working directory is not isolation; access must be denied by the mounted scope and effective permissions.
-
-Protected working files and durable history use bounded paths on the central CIFS storage. Internet staging uses separate storage. The package cache is read-only. Writable results belong in the user's designated working area. Central persistence keeps work available after a runtime replacement, but recovery from deletion requires a separate versioning or backup control.
-
-### Constrain data access with the execution identity
-
-Datalake jobs authenticate through Kerberos and execute through Livy/Spark under the applicable principal. Hive/HDFS and sandbox permissions determine the data that code may read or change. Each user's existing AD/datalake rights are preserved; DSH does not automatically reduce a writable entitlement to read-only.
-
-For a bounded public-data exercise, the intended execution principal is **`da-agent-system-user`**, limited to **`sandbox_da_agent_public_data`**. Read/write access is appropriate within that disposable sandbox; unrelated datasets must be inaccessible. For tasks involving protected source records, the effective identity must have read-only source access and a separate permitted result location. A read-only view is insufficient if the same credentials can bypass it and modify the underlying source.
-
-Credentials and Kerberos tickets must remain in the private No Internet credential area. A shared system principal requires correlation between the named DSH user, runtime, Livy session and Spark application so that its actions remain attributable to a person.
+A generated command can still make a mistake within permissions already granted. Tasks should therefore separate original inputs from outputs and review destructive operations where appropriate. If a particular exercise requires sandbox-only or read-only access, the relevant platform owner provisions that entitlement; it is not a universal missing DSH feature.
 
 ```mermaid
 flowchart TB
@@ -130,58 +94,39 @@ flowchart TB
  P --> C[Private credential cache]
  C --> K[Kerberos execution identity]
  K --> A[Effective datalake authorization]
- A --> D[Approved source or public sandbox]
- A --> N[Authorization denies unrelated data]
+ A --> D[Permitted datasets or sandbox]
+ A --> N[Existing platform permissions]
  P --> Q[CPU and memory limits]
- D --> O[Separate result scope where required]
+ D --> O[Task-designated result location]
  classDef pending fill:#78350f,stroke:#fbbf24,color:#ffffff
  class N pending
 ```
 
-### Bound resource use and recover from mistakes
+### Bound shared resources
 
-Count the complete model request, reserve an output budget and admit expensive work only when capacity is available. Use bounded waiting and a clear busy response; do not silently replay an expensive request. Keep smaller requests schedulable while long work progresses. This limits shared-resource pressure, but does not grant data access or guarantee response time.
-
-Local CPU and memory limits protect the application host, but distributed jobs need datalake queue limits, executor limits, timeouts and cancellation controls. Resource monitoring should connect a named user and submitted job to its consumption so an operator can stop excessive work without affecting unrelated users.
-
-Separate original inputs from generated outputs. Preserve a recoverable baseline for experiments, restrict deletion where practical and apply versioning or backups according to the data's recovery requirements. A mounted central share provides persistence; it does not prevent code with write permission from overwriting or deleting content.
-
-Legacy instances now use a prebuilt non-root runtime. Owner-only login and a non-root identity remain separate controls: neither alone proves that every stored file, tool or application route has the correct scope. Any startup/storage migration must reconcile existing state and preserve ownership before the endpoint is qualified; changing only the container UID can hide histories or break writes.
-
-The key principle is to constrain effective permissions, not merely the intended task. A non-root container can still damage files it may write, and a correctly authenticated job can still misuse broad data permissions. Network isolation, local execution restrictions and datalake authorization must work together.
-
+The inference route counts the complete request, reserves output capacity and controls admission of expensive work. Long requests use bounded waiting and an explicit busy response while shorter work remains schedulable. This manages shared capacity; it does not guarantee a response time or change data authorization. Local process limits and shared inference scheduling are DSH controls; remote job queues remain under the platform that executes those jobs.
 
 ## 3 Keep results contained
 
-### Risk and control objective
+### Control objective
 
-Reports, conversation history, logs, attachments and temporary files can disclose data to another user or through an unintended publication route. The control objective is to keep those outputs accessible only to authorized people, with authenticated delivery and attributable access.
+Keep histories, reports, files, attachments and terminal access within authorized user routes. Separate operational oversight from automatic access to user content.
 
-### Current implementation and remaining gaps
+### Authenticate access and bind it to private storage
 
-The gateway uses provisioned local accounts, fixed private routing and disabled self-registration. Main login routes, legacy-history denial, ordinary-user denial of admin endpoints, terminal-page routing and the admin audit interface were reviewed against the current deployment. `thanatcc` owns the preserved legacy histories; the admin role provides dashboard/audit oversight and a separate private runtime, not automatic access to those histories. This review does not replace earlier synthetic cross-file, attachment and restart checks with a claim that every route was freshly retested.
+The gateway admits provisioned named accounts, disables self-registration and binds each authenticated user to the assigned runtime. Reports, files, attachments and terminal WebSockets use the authenticated boundary. Server-side identity and route checks reject forged roles, peer-runtime selection and direct bypass paths.
 
-The main gateway and both legacy authentication processes now use **salted scrypt password records** instead of plaintext account values. Each password has a random salt; verification uses a constant-time key comparison, with bounded concurrent derivations. Account files are atomically replaced with owner-only permissions. Existing passwords and account names were preserved, and failed verification does not reveal a stored password. This changes password storage, not the strength of an existing password or the identity of its owner.
+Each user/environment has separate working files and history storage. Switching environments does not automatically transfer content or credentials. Logout invalidates the gateway session. Legacy instances admit only their designated owners; shared guest and cross-account logins are disabled.
 
-Corporate SSO/MFA, password recovery/lifecycle policy and credential rotation remain separate identity controls. The repository bootstrap templates no longer create factory-password accounts. Active legacy startup commands and environment no longer carry bootstrap passwords. Each authentication sidecar has a private hashed account volume; the harness cannot read that store. A protected Secret seeds an absent store without resetting a changed password on restart. Historical rollback material remains restricted to the operator. By explicit owner decision, current passwords remain unchanged until each owner changes their password privately through the authenticated password-change flow. No operator reset or automatic rotation is scheduled. Owners must not send replacement passwords through chat, reports or logs. The exposure from a known or default password remains until its owner changes it; salted hashing protects stored records but does not neutralize a known password. Retiring historical credential copies remains an operator lifecycle task. Infrastructure administrators remain trusted privileged users; ordinary-user isolation does not constrain a cluster or storage administrator.
+Account stores use salted scrypt password records and bounded verification. Authentication records are stored outside execution workspaces, with protected account volumes and operator-only recovery material. Supplied bootstrap configuration does not create factory-password accounts. Users can change passwords through the authenticated flow; startup does not overwrite a changed password.
 
-Other open boundaries are authorized-browser downloads/copying and newly generated report servers. DSH2/DSH3 now have owner-only authentication, non-root private execution, protected account storage and authenticated terminal access. They remain Internet-only instances, not protected No Internet environments. There is no universal publication/DLP control over arbitrary user-written applications or Internet-environment code. Central access audit provides operational visibility, not a tamper-proof command ledger; retention, off-platform protection and full remote-job correlation still need an operating policy. Legacy audit exporters read only their protected access-log subdirectory and write a bounded, sanitized projection into separate central folders. The main admin dashboard merges these records and displays projection freshness; account credentials, prompts and command bodies are excluded.
+### Centralize oversight without merging user content
 
-To close these gaps, keep pilot membership named and approved, secure every report/file/terminal route through user-bound authorization, reject direct bypass paths, apply required endpoint handling controls, and qualify or retire legacy instances. Prohibit automatic external publication in the workflow and enforce it at relevant network/application endpoints; a written instruction alone is insufficient. None of these actions should grant additional datalake access.
+The admin-only dashboard combines operational information and access events. Administrative visibility does not automatically grant access to another user's conversations or files. Any authorized support copy remains in a separate private store and preserves the original owner's records.
 
-### Authenticate every route and isolate each user's storage
+Access auditing records relevant events, user, environment and time outside execution workspaces. It excludes passwords, Kerberos tickets and conversation bodies. Legacy exporters read only their access-log scope and write a bounded central projection. Execution users do not receive the account or audit stores. Required gateway auditing fails closed when an access event cannot be persisted.
 
-The gateway admits provisioned named accounts and disables self-registration. It binds the authenticated identity to a fixed private runtime. A URL, submitted username or forged identity header must not select another user's backend. Reports, files, attachments and terminal WebSockets require the same authenticated boundary as the main application.
-
-Each user and environment has separate workspace and history storage. Ordinary users must not read peer files through file APIs, terminal commands, attachment routes or direct backend connections. Logout revokes the gateway session. Switching network environments requires a new login and must not expose the other environment's history or credentials.
-
-Data ownership and administration are separate. The owner retains access to their content; the admin dashboard provides operational oversight without automatically granting application access to another user's histories. An explicitly authorized support copy belongs in a separate private store; it must not change the original owner's records, expose a shared parent directory or create continuing synchronization without authorization. Cluster, host and storage administrators remain privileged identities and require separate administrative controls.
-
-### Keep audit and delivery within the approved scope
-
-The main central dashboard is admin-only. It separates operational oversight from ownership of conversations and files. The dashboard displays an explicitly dated operator snapshot plus current gateway account/session/audit information; refreshing it is not a new infrastructure health test. Main-gateway access auditing records login success/failure, logout, runtime HTTP access, admin denials and terminal/application WebSocket opening, with time, event, user and environment in storage outside execution workspaces. Passwords, tickets, prompts and conversation bodies are excluded from this access audit. These records support investigation and accountability; they are not a complete terminal-command transcript, model conversation archive or independently protected external audit service. Ordinary execution users receive neither the main audit mount nor the legacy account/audit volume. Each legacy exporter mounts only its audit subdirectory read-only and its own central projection folder writable; it shares the instance network and is a trusted operator component, not an independent network sandbox. The central dashboard combines main access events with recent legacy events; its main browser-session count does not count legacy sessions. The audit boundary also fails closed when it cannot persist a required access event, rather than silently admitting unlogged work.
-
-Reports should be delivered through authenticated routes. Analysis must not automatically publish reports, create public links or export files to external services. Any generated application or new report-serving endpoint needs equivalent authentication and user-bound storage before it is used with protected content.
+The dashboard distinguishes timestamped infrastructure snapshots from current gateway information. Refreshing a snapshot is not a new infrastructure test. Access logs support accountability; a full command recorder, conversation archive and independent audit-retention service are separate capabilities.
 
 ```mermaid
 flowchart TB
@@ -200,16 +145,24 @@ flowchart TB
  class E boundary
 ```
 
-### Control the browser and legacy routes
+### Deliver generated results through the same boundary
 
-An authorized browser can display, download or copy a result. Pod network policy does not control the user's device. Where the handling requirement prohibits those actions, managed-browser, VDI or endpoint DLP restrictions must enforce it, according to the required data-handling policy.
+Working reports, charts, temporary files and generated applications remain in the private environment. Server-side file access uses the authenticated identity rather than a submitted owner name or arbitrary filesystem path. Exposing a new application requires the same authenticated proxy and user-bound storage; it does not justify a new public bypass route.
 
-Every application instance, including a legacy runtime or separately launched report server, needs the same user, network and storage boundaries before it handles protected content. A separate hostname or a successful login does not isolate users who share one process and broad filesystem access.
+The managed workflow does not automatically publish protected results externally. The No Internet environment's network policy blocks direct public transmission from its execution runtime. Internet-capable tools must not be represented as having the same offline restriction. Authorized viewing and downloading are normal application functions; additional restrictions on what a person copies require an explicit handling policy and endpoint controls.
 
-### Keep containment consistent across the full workflow
+## External dependencies and agreed scope limits
 
-Apply authorization when a file is created, listed, opened, downloaded or served by a generated application. Bind the request to the authenticated user on the server; do not trust a submitted owner name or a client-selected filesystem path. Restrict direct access to runtime ports so the gateway cannot be bypassed.
+The following items define responsibility and intended use. They do not constitute outstanding implementation of the local DSH controls, and categorizing them here does not make their exposure disappear.
 
-Temporary files, exported charts and application logs should stay in the same private scope as the underlying analysis. Use appropriate retention and cleanup, avoid recording credentials or unnecessary sensitive content, and ensure temporary download links do not become public or permanent access paths.
+| Boundary | Responsibility and agreed treatment |
+|---|---|
+| Remote Livy/Spark execution | The datalake platform controls its drivers, executors, job limits and outbound network. DSH restricts its local submission path but does not administer those machines. Livy/Spark remains available under the previously accepted remote-egress exception. Restricted local egress must not be described as a guarantee about a remote worker. |
+| Dataset and sandbox authorization | The platform's existing Kerberos/AD and data permissions remain authoritative. No DSH-imposed universal read-only policy is required. A sandbox-only or read-only entitlement is confirmed by its owner when that specific usage claim is needed. |
+| Authorized browser handling | Viewing, copying and downloading by an authorized person are distinct from peer access or unauthorized publication. Device restrictions, managed browsers or DLP apply only where required by the organization's handling policy. |
+| Identity lifecycle | Corporate SSO/MFA and organization-wide recovery policies are outside the agreed local-account deployment. Owner-managed password changes are provided. By explicit decision, automatic operator rotation is not scheduled; a known password remains usable until changed. This is a retained operational choice, not evidence that hashing neutralizes a known password. |
+| Storage recovery and infrastructure administration | Central storage provides persistence. Storage-server ACL administration, independent backups and disaster recovery belong to that service. Cluster, host and storage administrators remain trusted privileged operators. |
+| Audit-service extensions | Current central access logging and dashboard oversight are included. Complete command/body capture, remote-job correlation and independently retained audit archives are additional integrations requiring a defined policy; they are not claimed as current features. |
+| Deliberately Internet-capable environments | Internet staging and the legacy Internet instances retain their intended public connectivity. They are not protected No Internet environments and must not be used as an automatic bridge for protected content. |
 
-Keep operational oversight separate from access to user content. Administrative exceptions should be narrow, attributable and governed by an explicit support process. Network controls prevent unauthorized machine-to-machine transmission; authentication and private storage prevent peer access; endpoint handling controls govern what an authorized person can take away. Each addresses a different part of result containment.
+**Completion rule:** the reviewed DSH application controls are implemented and their recorded acceptance checks are complete. Keep them maintained through controlled upgrades and regression checks. A new requirement, failed test or discovered bypass reopens the affected local item; an external dependency remains assigned to its owner rather than silently being declared fixed. This report introduces no new data access, mandatory datalake permission change, credential rotation or platform restriction.
