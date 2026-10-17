@@ -11,15 +11,14 @@ if(privatePath&&out===path.join(root,'docs/DSH_PLATFORM_GUIDE.html'))throw Error
 const snapshot=JSON.parse(fs.readFileSync(path.join(root,'docs/context-evidence/platform-deployment-inventory-20261017.json'),'utf8'));
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 let source=fs.readFileSync(path.join(root,'docs/DSH_PLATFORM_GUIDE.md'),'utf8').replace(/^# .*\n/,'');
-const summary=`Inventory observed at **${snapshot.observedAtUTC}**: **${snapshot.deploymentsInMainNamespace} Deployments** in the DSH/inference namespace — **${snapshot.activeDeployments} active and ${snapshot.scaledToZeroDeployments} scaled to zero**. The active application layer includes **20 main runtimes (10 No Internet + 10 Internet)** and **2 legacy owner-only runtimes**, plus shared supporting workloads. A separate CPU Ollama workload is also deployed.`;
+const summary=`Inventory observed at **${snapshot.observedAtUTC}**: **${snapshot.deploymentsInMainNamespace} Deployments** in the DSH/inference namespace — **${snapshot.activeDeployments} active and ${snapshot.scaledToZeroDeployments} scaled to zero**. The active application layer includes **20 main runtimes (10 No Internet + 10 Internet)** and **2 additional owner-only runtimes**, plus shared supporting workloads. A separate CPU Ollama workload is also deployed.`;
 const table='| Workload / private runtime role | Desired | Ready | Observed state |\n|---|---:|---:|---|\n'+snapshot.workloads.map(x=>`| ${x.workload} | ${x.desired} | ${x.ready} | ${x.state} |`).join('\n');
 let details='Access examples: `https://dsh.example.com`, its `/admin`, `/terminal` and `/proxy/<approved-port>/` routes; separate `https://dsh2.example.com` and `https://dsh3.example.com` instances. These example domains are not live service addresses.';
 if(privatePath){
  const site=JSON.parse(fs.readFileSync(privatePath,'utf8'));
- details='### Private-site deployment and ingress inventory\n\nSite access addresses and workload mappings are listed below.\n\n';
- details+='| Actual deployment | Desired / ready |\n|---|---|\n'+site.deployments.map(d=>`| \`${d.name}\` | ${d.desired} / ${d.ready} |`).join('\n');
- details+='\n\n| Configured ingress | Hostnames | Backend path mapping |\n|---|---|---|\n'+site.ingresses.map(i=>`| ${i.name} | ${i.hosts.map(h=>`[${h}](https://${h})`).join('<br>')} | ${i.services.map(s=>`${s.path} → ${s.name}`).join('<br>')} |`).join('\n');
- details+='\n\nUse the main DSH gateway for normal user work and managed LiteLLM for model access. Use authenticated application routes and managed inference keys. Direct-model access is restricted to operators.';
+ const main=site.ingresses.flatMap(i=>i.hosts).find(h=>h.startsWith('dsh.'));
+ if(!main || !/^[a-zA-Z0-9.-]+$/.test(main))throw Error('Main DSH access hostname missing');
+ details=`Open [DSH](https://${main}) and choose your working environment. Administrators use [Admin overview](https://${main}/admin); the authenticated [web terminal](https://${main}/terminal) opens inside your private environment.`;
 }
 source=source.replace('DEPLOYMENT_SUMMARY',summary).replace('PUBLIC_DEPLOYMENT_TABLE',table).replace('SITE_DEPLOYMENT_DETAILS',details);
 let append=marked.parse(source);

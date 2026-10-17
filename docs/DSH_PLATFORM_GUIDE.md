@@ -41,8 +41,8 @@ flowchart TB
  P --> V[Operator review and hash verification]
  V --> C[Approved read-only cache]
  C --> S
- X[Legacy hostname] --> Y[Owner-only authentication]
- Y --> Z[Legacy Internet workload]
+ X[Additional DSH hostname] --> Y[Owner-only authentication]
+ Y --> Z[Owner Internet workload]
  Z --> L[Allowed Livy endpoint]
  S --> L[Allowed Livy endpoint]
  L --> R[Remote Spark drivers and executors]
@@ -53,7 +53,7 @@ flowchart TB
 
 ### Keep environment choices explicit
 
-Legacy DSH2 and DSH3 are owner-only Internet-capable instances. The No Internet choice is disabled on these instances. Their authenticated proxies and ingress restrictions prevent direct peer access, while retaining their intended internal inference and permitted service connections. Protected offline work uses the designated No Internet environment.
+DSH2 and DSH3 are owner-only Internet-capable instances. The No Internet choice is disabled on these instances. Their authenticated proxies and ingress restrictions prevent direct peer access, while retaining their intended internal inference and permitted service connections. Protected offline work uses the designated No Internet environment.
 
 An internal connection to another platform does not grant administration of that platform. If a submitted command executes remotely, that platform applies its own permissions and network rules; this responsibility is separated in the final section.
 
@@ -67,7 +67,7 @@ Contain local execution and prevent peer or administrative access beyond the sel
 
 Each main user/environment has a separate execution process with bounded workspace, session, attachment and credential mounts. Isolation is enforced through the workload and mounted scope, rather than merely choosing different folders in one shared process. Broad parent directories containing other users' data and host-management interfaces are not exposed to ordinary execution.
 
-The workloads execute as non-root, disable privilege escalation, drop Linux capabilities, use RuntimeDefault seccomp and have no mounted Kubernetes management token. CPU and memory limits constrain local resource use. Legacy instances similarly use restricted non-root execution with a designated owner account.
+The workloads execute as non-root, disable privilege escalation, drop Linux capabilities, use RuntimeDefault seccomp and have no mounted Kubernetes management token. CPU and memory limits constrain local resource use. Additional instances similarly use restricted non-root execution with a designated owner account.
 
 DSH, Claude Code and TrueForge inherit the selected runtime's identity, mounts and network policy. Installing a tool does not grant a privileged container, host socket or another user's credentials. TrueForge's optional nested sandbox is disabled. Its ordinary tools run within the selected runtime's existing restrictions.
 
@@ -112,7 +112,7 @@ Keep histories, reports, files, attachments and terminal access within authorize
 
 The gateway admits provisioned named accounts, disables self-registration and binds each authenticated user to the assigned runtime. Reports, files, attachments and terminal WebSockets use the authenticated boundary. Server-side identity and route checks reject forged roles, peer-runtime selection and direct bypass paths.
 
-Each user/environment has separate working files and history storage. Switching environments does not automatically transfer content or credentials. Logout invalidates the gateway session. Legacy instances admit only their designated owners; shared guest and cross-account logins are disabled.
+Each user/environment has separate working files and history storage. Switching environments does not automatically transfer content or credentials. Logout invalidates the gateway session. Additional instances admit only their designated owners; shared guest and cross-account logins are disabled.
 
 Account stores use salted scrypt password records and bounded verification. Authentication records are stored outside execution workspaces, with protected account volumes and operator-only recovery material. Supplied bootstrap configuration does not create factory-password accounts. Users can change passwords through the authenticated flow; startup does not overwrite a changed password.
 
@@ -120,7 +120,7 @@ Account stores use salted scrypt password records and bounded verification. Auth
 
 The admin-only dashboard combines operational information and access events. Administrative visibility does not automatically grant access to another user's conversations or files. Any authorized support copy remains in a separate private store and preserves the original owner's records.
 
-Access auditing records relevant events, user, environment and time outside execution workspaces. It excludes passwords, Kerberos tickets and conversation bodies. Legacy exporters read only their access-log scope and write a bounded central projection. Execution users do not receive the account or audit stores. Required gateway auditing fails closed when an access event cannot be persisted.
+Access auditing records relevant events, user, environment and time outside execution workspaces. It excludes passwords, Kerberos tickets and conversation bodies. Instance exporters read only their access-log scope and write a bounded central projection. Execution users do not receive the account or audit stores. Required gateway auditing fails closed when an access event cannot be persisted.
 
 The dashboard distinguishes timestamped infrastructure snapshots from current gateway information. Refresh reloads the saved snapshot. Access logs support accountability; a full command recorder, conversation archive and independent audit-retention service are separate capabilities.
 
@@ -132,7 +132,7 @@ flowchart TB
  X[Other user] --> N[Peer routes and files denied]
  A[Admin] --> D[Admin-only dashboard and access audit]
  A --> P[Own private runtime]
- LA[Protected legacy access logs] --> EX[Read-only log exporter]
+ LA[Protected instance access logs] --> EX[Read-only log exporter]
  EX --> CP[Bounded central access projection]
  CP --> D
  F --> B[Authorized browser access]
@@ -159,7 +159,7 @@ Use these responsibility boundaries when planning connected services, data acces
 | Identity lifecycle | Authentication uses local accounts with an authenticated password-change flow. Corporate SSO/MFA and organization-wide recovery require separate integration. Change any exposed or known password; hashing protects stored records, not a password already known to someone else. |
 | Storage recovery and infrastructure administration | Central storage provides persistence. Storage-server ACL administration, independent backups and disaster recovery belong to that service. Cluster, host and storage administrators remain trusted privileged operators. |
 | Audit-service extensions | Current central access logging and dashboard oversight are included. Complete command/body capture, remote-job correlation and independently retained audit archives require additional collectors and an operating policy. |
-| Deliberately Internet-capable environments | Internet staging and the legacy Internet instances retain their intended public connectivity. They are not protected No Internet environments and must not be used as an automatic bridge for protected content. |
+| Deliberately Internet-capable environments | Internet staging and the additional Internet instances retain their intended public connectivity. They are not protected No Internet environments and must not be used as an automatic bridge for protected content. |
 
 ## Platform features and intended use
 
@@ -169,7 +169,7 @@ The main interface is the DSH web workspace. Claude Code and TrueForge are optio
 |---|---|---|
 | Named local login | Sign in with a provisioned account; change your password through the login page | Local DSH identity is separate from AD. Self-registration is disabled; corporate SSO/MFA is not included. |
 | Environment selection | No Internet / Internal is the default; Internet is a separate login choice | Logout and sign in again to change environment. Project files, histories and credentials are not automatically transferred. |
-| Private user execution | Work in the assigned runtime and its mounted workspace | Main users have separate runtimes in both environments. Legacy instances are owner-only Internet environments. |
+| Private user execution | Work in the assigned runtime and its mounted workspace | Main users have separate runtimes in both environments. Additional instances are owner-only Internet environments. |
 | Web chat and task execution | Ask DSH to inspect code, edit files, explain documents and run available tools | Commands run with the runtime's non-root permissions. Review consequential changes; model output is not automatically correct. |
 | Workspaces and projects | Keep repositories, scripts and results under `/workspace` | The selected environment's mounts define what is visible. A folder name alone is not the isolation mechanism. |
 | Persistent history and attachments | Reopen sessions and use their associated files | Workspace, session and attachment stores persist according to their mounts. Credential/profile state has a separate scope. |
@@ -181,7 +181,7 @@ The main interface is the DSH web workspace. Claude Code and TrueForge are optio
 | TrueForge | Start `trueforge`, then open its authenticated port-3000 app route | Private client state and managed internal model. Optional nested code sandbox is disabled. |
 | Offline dependency preparation | Download in Internet, approve artifacts, install from the read-only cache in No Internet | Python/npm helpers exist. Native/OS dependencies may need a qualified runtime-image build; the package cache is not a shared writable workspace. |
 | Kerberos and datalake connection | Authenticate privately using the intended principal and configured client | Existing platform permissions remain authoritative. Local DSH login and central storage do not grant data access. |
-| Admin overview and access audit | Admin opens the dashboard; views current gateway values and dated infrastructure observations | Admin-only oversight. No automatic ownership of user content, complete command transcript, live GPU dashboard or unlimited archive. |
+| Central dashboard and user management | Admin reviews accounts, private environments, browser sessions and access events; creates provisioned accounts, enables/disables access and signs users out | User files and history remain intact. Creating execution environments and granting administrator roles remain operator actions. |
 | Plugins and upstream tools | Use approved installed DSH plugins/tools within the same runtime | The upstream plugin architecture is available; each optional integration needs its own configuration and qualification. |
 | Upstream maintenance | Detect releases, verify patch contracts, build and test candidates | Default follows the official npm latest channel. Reviewed compatibility patches and deployment overlays are separate; no automatic Production merge. |
 | Operations and rollback | Preserve specifications, image/source digests and mounted data before change | Restore compatible configuration on regression; never overwrite newer work with an older history copy. |
@@ -315,25 +315,21 @@ The login screenshots show the live interfaces. Dashboard screenshots use demons
 
 No Internet / Internal is selected by default.
 
-### Legacy owner-only Internet deployments
+### Central dashboard and user management
 
-![Live DSH2 login with No Internet disabled](images/platform/live-legacy2-login.png)
+Open **Admin overview** from DSH, or sign in as an administrator and open `/admin`.
 
-DSH2 live login capture. No Internet is unavailable on this legacy instance; Internet is selected.
+![Central dashboard and account-management interface with demonstration accounts](images/platform/admin-user-management.png)
 
-![Live DSH3 login with No Internet disabled](images/platform/live-legacy3-login.png)
+Dashboard interface with demonstration accounts. The account table shows each user's role, enabled status, assigned environments and active browser sessions.
 
-DSH3 is an owner-only Internet instance; No Internet is disabled.
+1. **Review accounts:** inspect the account table and environment assignments. Current account/session information is read from the gateway; infrastructure panels show their observation time.
+2. **Create an account:** choose an identity whose private No Internet and Internet runtimes have already been provisioned, enter an initial password of at least 12 characters, and select **Create account**. The new user changes their password privately through the sign-in page. If no identity is available, an operator provisions its private runtimes first.
+3. **Disable or enable access:** select **Disable** or **Enable** beside an ordinary account. Disabling prevents new logins and ends its active gateway sessions and WebSocket connections. Its workspace and histories are preserved.
+4. **Sign a user out:** select **Sign out** to revoke current gateway sessions and close browser/terminal WebSocket connections. This does not disable the account or cancel a tool already running in its private runtime.
+5. **Review activity:** open **Central access audit** to inspect login, access and account-management events. Management events identify the administrator and affected account.
 
-### Admin overview and limits
-
-![Synthetic admin overview rendered by the real gateway code](images/platform/admin-dashboard-fixture.png)
-
-Synthetic dashboard example: accounts, private routing and infrastructure snapshot panels.
-
-![Synthetic dashboard model-limit and access-audit panels](images/platform/admin-dashboard-details-fixture.png)
-
-Synthetic dashboard example: model budgets, recorded performance and access audit.
+Administrator accounts and roles are maintained by the operator. The dashboard does not grant datalake permissions or expose stored passwords, Kerberos credentials or conversation contents.
 
 ## Storage, administration and maintenance
 
@@ -341,13 +337,37 @@ Synthetic dashboard example: model budgets, recorded performance and access audi
 
 `/workspace` is the working location presented to each runtime; its backing PVC/subpath defines the durable store. Main No Internet project data and durable DSH histories use scoped central CIFS mounts. Credentials and profiles remain in private state locations. Internet workspaces/state remain separate, and the approved cache is mounted read-only where needed. Consult the runtime’s mount configuration for its backing storage.
 
-DSH sessions/attachments and managed-client state are distinct stores. Claude uses its persistent private state; TrueForge uses its private application state. Legacy client `/state` wiring can alias its existing owner-only durable home rather than creating another shared tree. Do not replace a working mount without stopped-writer reconciliation and preservation of newer writes.
+DSH sessions/attachments and managed-client state are distinct stores. Claude uses its persistent private state; TrueForge uses its private application state. Instance client `/state` wiring can alias its existing owner-only durable home rather than creating another shared tree. Do not replace a working mount without stopped-writer reconciliation and preservation of newer writes.
 
 ### User and audit administration
 
-Operators provision accounts and private runtime mappings through the identity and routing procedure. The dashboard provides the access summary. Password hashing, private mounts and fixed routing are separate controls. Disable/deprovision access through the reviewed identity/routing procedure while preserving ownership and retention requirements. Do not copy one user's history to all accounts.
+Operators provision private runtime mappings through the identity and routing procedure. Administrators then manage provisioned local accounts through the dashboard. Account changes require an authenticated administrator session and a session-bound management token; ordinary users and cross-origin requests cannot perform these actions. Passwords are stored as salted scrypt records. Disabling access preserves ownership, files and histories; removing workloads or data is a separate operator procedure.
 
-The access audit records bounded metadata such as time, event, user and environment. It is not a terminal-command recorder or an archive of all prompts/responses. Legacy access projections and main gateway events are combined under the admin boundary. Retention capacity, off-platform archival and remote-job correlation need the defined operational policy.
+The access audit records bounded metadata such as time, event, user and environment. It is not a terminal-command recorder or an archive of all prompts/responses. Additional-instance access projections and main gateway events are combined under the admin boundary. Retention capacity, off-platform archival and remote-job correlation need the defined operational policy.
+
+### Deploy dashboard changes
+
+Run the account-management and existing dashboard regression suites before replacing the gateway:
+
+```sh
+node tests/test_admin_users.js
+node tests/test_admin_dashboard.js
+```
+
+Use a new private rollback directory and the SHA-256 of the currently mounted gateway source. First inspect the plan, then repeat with `--apply` for the reviewed handover:
+
+```sh
+python scripts/rollout_admin_management.py \
+  --output /private/admin-management-rollout \
+  --expected-source-sha256 <current-mounted-source-sha256>
+
+python scripts/rollout_admin_management.py \
+  --output /private/admin-management-rollout \
+  --expected-source-sha256 <current-mounted-source-sha256> \
+  --apply
+```
+
+The rollout replaces only the authentication gateway, preserves account content and checks the mounted source and authentication behavior. Users sign in again after the gateway reload. Inference services, private execution pods and history mounts are not replaced. On failed checks, the procedure restores the previous deployment configuration without restoring older account or history data.
 
 ### Updates and rollback
 

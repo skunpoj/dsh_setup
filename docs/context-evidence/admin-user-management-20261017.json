@@ -1,0 +1,34 @@
+{
+  "timeUTC": "2026-10-17T15:02:51.284321+00:00",
+  "gatewaySourceSHA256": "dc8675679d3ab6a829ec537aeeea59aac18d3ec827e37d2ac551d117f8fb235a",
+  "modelOrRuntimeRestartRequested": false,
+  "beforeAccounts": 9,
+  "liveAuthChecks": {
+    "wrongPasswordDenied": true,
+    "unmappedRuntimeDenied": true,
+    "passwordChangePersisted": true,
+    "oversizedPasswordDenied": true,
+    "oversizedFormDenied": true,
+    "syntheticIdentityReceivedRuntime": false
+  },
+  "status": "passed",
+  "accountContentPreserved": true,
+  "configMap": "dsh-gateway-users-dc8675679d3a",
+  "positiveAdminFlow": "Disposable-account browser/HTTP suite; not a live administrator login",
+  "anonymousAdminRoutesDenied": true,
+  "disposableAccountAcceptance": [
+    "admin-only and forged-role denial",
+    "CSRF/origin denial",
+    "create only for provisioned private runtime pairs",
+    "hashed initial password",
+    "enable/disable persistence",
+    "active WebSocket closure and session revocation",
+    "administrator-account protection",
+    "browser create/enable/disable controls",
+    "actor and subject audit",
+    "three responsive dashboard widths"
+  ],
+  "platformGuideViewportChecks": 6,
+  "screenshotScope": "Demonstration accounts rendered by the tested gateway code",
+  "liveAdministratorBrowserLoginVerified": false
+}

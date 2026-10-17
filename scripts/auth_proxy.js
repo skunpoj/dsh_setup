@@ -20,7 +20,7 @@ const ADMIN_USERS = new Set((process.env.DSH_ADMIN_USERS || 'admin').split(',').
 const ADMIN_SUMMARY_FILE = process.env.DSH_ADMIN_SUMMARY_FILE || '/admin-status/summary.json';
 const AUDIT_DIR = process.env.DSH_AUDIT_DIR || `${USER_ROOT}/audit`;
 let auditFailures = 0;
-function auditEvent(event, actor, mode) {
+function auditEvent(event, actor, mode, subject) {
   try {
     fs.mkdirSync(AUDIT_DIR, { recursive: true, mode: 0o700 });
     const file = `${AUDIT_DIR}/events.jsonl`;
@@ -32,12 +32,13 @@ function auditEvent(event, actor, mode) {
     }
     const user = typeof actor === 'string' && /^[a-zA-Z0-9_.-]{1,30}$/.test(actor) ? actor : 'unidentified';
     fs.appendFileSync(file, JSON.stringify({ time: new Date().toISOString(), event, user,
-      environment: normalizeInternetMode(mode) === 'on' ? 'internet' : 'secure' }) + '\n', { mode: 0o600 });
+      environment: normalizeInternetMode(mode) === 'on' ? 'internet' : 'secure',
+      ...(subject && /^[a-z0-9_.-]{3,30}$/.test(subject) ? {subject} : {}) }) + '\n', { mode: 0o600 });
     return true;
   } catch { auditFailures++; console.error('[AUDIT] Could not persist security event'); return false; }
 }
 function recentAudit() {
-  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket']);
+  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket','account.create','account.enable','account.disable','account.revoke']);
   const rows=[];
   for(const file of [`${AUDIT_DIR}/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh2/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh3/events.jsonl`]) {
     try {
@@ -46,7 +47,8 @@ function recentAudit() {
         try {
           const r=JSON.parse(line);
           if(!events.has(r.event)||typeof r.time!=='string'||!Number.isFinite(Date.parse(r.time))||! /^[a-zA-Z0-9_.-]{1,30}$/.test(r.user)||!['secure','internet','legacy-dsh2/internet','legacy-dsh3/internet'].includes(r.environment)) continue;
-          rows.push({time:r.time,event:r.event,user:r.user,environment:r.environment});
+          rows.push({time:r.time,event:r.event,user:r.user,environment:r.environment,
+            ...(r.event.startsWith('account.') && typeof r.subject === 'string' && /^[a-z0-9_.-]{3,30}$/.test(r.subject) ? {subject:r.subject} : {})});
         } catch {}
       }
     } catch {}
@@ -89,14 +91,20 @@ function renderAdminDashboard() {
 <style>body{font:16px/1.6 system-ui;background:#f1f5f9;color:#172033;margin:0}main{max-width:1100px;margin:auto;padding:32px}a{color:#075985}header{display:flex;gap:24px;align-items:center;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}section{background:white;border:1px solid #cbd5e1;border-radius:12px;padding:20px;margin:18px 0}h1,h2{line-height:1.2}strong{font-size:24px}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0}.muted{color:#475569}.notice{border-left:5px solid #d97706}button{padding:8px 16px;cursor:pointer}</style>
 <main><header><h1>DSH Admin overview</h1><a href="/">Back to DSH</a><a href="/logout">Logout</a><button id="refresh">Refresh</button></header><p id="error" role="alert"></p><p id="time" class="muted"></p>
 <div class="cards"><section>Registered accounts<br><strong id="accounts">—</strong></section><section>Main gateway browser sessions<br><strong id="sessions">—</strong><div id="sessionDetail"></div></section><section>User routing<br><strong id="routing">—</strong></section></div>
+<section><h2>User management</h2><p>Manage access to existing private runtimes. Disabling an account preserves its files and history. Sign out closes browser and terminal connections; it does not cancel already-running tools.</p><p id="userMessage" role="status"></p><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Role</th><th>Status</th><th>Environments</th><th>Sessions</th><th>Actions</th></tr></thead><tbody id="users"></tbody></table></div><form id="createUser"><h3>Create a provisioned account</h3><label>Identity <select id="newUser" required></select></label> <label>Initial password <input id="newPassword" type="password" minlength="12" maxlength="1024" autocomplete="new-password" required></label> <button id="createButton">Create account</button></form><p id="provisionHelp">New identities require operator-provisioned private environments. Administrator roles are managed by the operator.</p></section>
 <section class="notice"><h2>Evidence freshness</h2><p id="freshness"></p><p>Account/session counts and routing are current gateway values. Environment health, storage, limits and performance below are an operator-recorded snapshot, not live monitoring. Browser logins are not unique users or model requests.</p></section>
 <section><h2>Execution environments</h2><div style="overflow:auto"><table><thead><tr><th>Environment</th><th>Recorded readiness</th><th>Storage</th><th>Recorded network behavior</th></tr></thead><tbody id="environments"></tbody></table></div></section>
-<section><h2>Model limits</h2><p id="model"></p><p class="muted">A concurrency ceiling does not guarantee that many maximum-length requests fit.</p></section><section><h2>Recorded performance</h2><ul id="performance"></ul></section><section><h2>Central access audit</h2><p id="audit"></p><a href="/api/admin/audit">Read recent access events</a></section><section class="notice"><h2>Remaining controls</h2><ul id="gaps"></ul></section><p class="muted">Read-only overview. No passwords, cookies, conversation contents or source records are displayed.</p></main>
+<section><h2>Model limits</h2><p id="model"></p><p class="muted">A concurrency ceiling does not guarantee that many maximum-length requests fit.</p></section><section><h2>Recorded performance</h2><ul id="performance"></ul></section><section><h2>Central access audit</h2><p id="audit"></p><a href="/api/admin/audit">Read recent access events</a></section><section class="notice"><h2>Remaining controls</h2><ul id="gaps"></ul></section><p class="muted">Stored passwords, cookies and conversation contents are never displayed.</p></main>
 <script>
 const put=(id,value)=>document.getElementById(id).textContent=value;
+let managementToken='';
+async function userAction(action,user,password){try{const body=new URLSearchParams({action,user});if(password)body.set('password',password);const r=await fetch('/api/admin/users',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':managementToken},body});const d=await r.json();if(!r.ok)throw Error(d.error||'Account update failed.');put('userMessage',action+' completed for '+user+'.');await refreshUsers();await refresh();}catch(e){put('userMessage',e.message);}}
+async function refreshUsers(){try{const r=await fetch('/api/admin/users',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('User management unavailable.');const d=await r.json();managementToken=d.csrfToken;const root=document.getElementById('users');root.replaceChildren();for(const u of d.users){const tr=document.createElement('tr');for(const value of [u.user,u.role,u.enabled?'Enabled':'Disabled',u.environments.join(', '),u.sessions]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(u.role!=='Administrator'){for(const action of [u.enabled?'disable':'enable','revoke']){const b=document.createElement('button');b.type='button';b.textContent=action==='revoke'?'Sign out':action==='disable'?'Disable':'Enable';b.addEventListener('click',()=>{if(confirm(b.textContent+' '+u.user+'?'))userAction(action,u.user);});td.append(b);}}else td.textContent='Operator-managed';tr.append(td);root.append(tr);}const select=document.getElementById('newUser');select.replaceChildren();for(const user of d.provisionedIdentities){const opt=document.createElement('option');opt.value=user;opt.textContent=user;select.append(opt);}document.getElementById('createButton').disabled=!d.provisionedIdentities.length;}catch(e){put('userMessage',e.message);}}
+document.getElementById('createUser').addEventListener('submit',e=>{e.preventDefault();const field=document.getElementById('newPassword');const password=field.value;field.value='';userAction('create',document.getElementById('newUser').value,password);});
 function list(id,values){const root=document.getElementById(id);root.replaceChildren();for(const value of values){const li=document.createElement('li');li.textContent=value;root.append(li);}}
 async function refresh(){try{const r=await fetch('/api/admin/summary',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('Admin access unavailable ('+r.status+').');const d=await r.json();put('error','');put('time','Gateway read at '+d.generatedAt);put('accounts',d.registeredAccounts);put('sessions',d.activeBrowserSessions.secure+d.activeBrowserSessions.internet);put('sessionDetail','No Internet: '+d.activeBrowserSessions.secure+' · Internet: '+d.activeBrowserSessions.internet);put('routing',d.privateUserRouting?'Per user':'Shared pools');put('freshness',d.snapshot.observedAt?'Snapshot observed at '+d.snapshot.observedAt+'. Refresh does not rerun infrastructure tests.':'No snapshot available. Infrastructure status is unknown.');const root=document.getElementById('environments');root.replaceChildren();for(const e of d.snapshot.environments){const tr=document.createElement('tr');for(const text of [e.name,e.ready?'Ready at observation':'Not verified ready',e.storage,e.network]){const td=document.createElement('td');td.textContent=text;tr.append(td);}root.append(tr);}const m=d.snapshot.model;put('model',m?'Backend context: '+m.backendContext+' tokens · DSH/LiteLLM budget: '+m.userContext+' tokens · Running-request ceiling: '+m.concurrencyCeiling:'No recorded limits.');list('performance',d.snapshot.performance);list('gaps',d.snapshot.gaps);}catch(e){put('error',e.message);}}
 document.getElementById('refresh').addEventListener('click',refresh);refresh().then(async()=>{try{const r=await fetch('/api/admin/summary',{cache:'no-store'});const d=await r.json();put('audit','Recent main/legacy access events: '+d.audit.recentEvents+' · Write failures since gateway start: '+d.audit.failuresSinceStart+' · Legacy projection observed at: '+(d.audit.legacy?.observedAt||'not available'));}catch{put('audit','Audit status unavailable.');}});
+document.getElementById('refresh').addEventListener('click',refreshUsers);refreshUsers();
 </script></html>`;
 }
 
@@ -177,6 +185,20 @@ function stripAuthCookies(cookieHeader) {
 // In-memory sessions
 const SESSIONS = new Map();
 const cachedDshAuthCookies = new Map();
+const USER_SOCKETS = new Map();
+function accountEnabled(user) { const users=loadUsers(); return Object.hasOwn(users,user) && users[user].disabled !== true; }
+function revokeUserSessions(user) {
+  for (const [sid, session] of SESSIONS) if (session.user === user) SESSIONS.delete(sid);
+  for (const socket of USER_SOCKETS.get(user) || []) socket.destroy();
+  USER_SOCKETS.delete(user);
+}
+function adminAccounts() {
+  const users=loadUsers();
+  return Object.keys(users).sort().map(user=>({user, enabled:users[user].disabled!==true,
+    role:ADMIN_USERS.has(user)?'Administrator':'User',
+    environments:USER_TARGETS ? ['secure','internet'].filter(mode=>Object.hasOwn(USER_TARGETS,user)&&USER_TARGETS[user][mode]) : ['instance'],
+    sessions:[...SESSIONS.values()].filter(s=>s.user===user).length}));
+}
 
 // --- DYNAMIC APP GATEWAY HELPERS (OPTION 1 & OPTION 2) ---
 function resolvePortAlias(alias) {
@@ -821,7 +843,7 @@ const server = http.createServer((req, res) => {
       const internet = normalizeInternetMode(params.get('internet'));
 
       USERS = loadUsers();
-      if ((!LEGACY_OWNER || username === LEGACY_OWNER) && await verifyPassword(password, USERS[username])) {
+      if ((!LEGACY_OWNER || username === LEGACY_OWNER) && USERS[username]?.disabled !== true && await verifyPassword(password, USERS[username]) && accountEnabled(username)) {
         if (!getEnvironmentTarget(internet, username)) {
           res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
           return res.end('No dedicated runtime provisioned for this identity and environment.');
@@ -936,11 +958,13 @@ const server = http.createServer((req, res) => {
       }
 
       USERS = loadUsers();
-      if ((LEGACY_OWNER && username !== LEGACY_OWNER) || !await verifyPassword(oldPassword, USERS[username])) {
+      if ((LEGACY_OWNER && username !== LEGACY_OWNER) || USERS[username]?.disabled === true || !await verifyPassword(oldPassword, USERS[username])) {
         res.writeHead(401, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(renderAuthPage({ tab: 'change', errorMsg: 'ชื่อผู้ใช้งานหรือรหัสผ่านเดิมไม่ถูกต้อง' }));
       }
 
+      USERS = loadUsers();
+      if (USERS[username]?.disabled === true) { res.writeHead(403); return res.end('Account disabled.'); }
       USERS[username] = hashPassword(newPassword);
       if (saveUsers(USERS)) {
         console.log(`[AUTH-PROXY] Successfully changed password for user: ${username}`);
@@ -1002,6 +1026,7 @@ const server = http.createServer((req, res) => {
     }
   }
 
+  if (authenticated && !accountEnabled(sessionUser)) { revokeUserSessions(sessionUser); authenticated=false; }
   if (!authenticated) {
     const tab = parsedUrl.query.tab || 'login';
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -1009,10 +1034,54 @@ const server = http.createServer((req, res) => {
   }
 
   // Reserve admin routes before any app forwarding or environment lookup.
-  if (parsedUrl.pathname === '/admin' || parsedUrl.pathname === '/api/admin/summary' || parsedUrl.pathname === '/api/admin/audit') {
+  if (parsedUrl.pathname === '/admin' || parsedUrl.pathname.startsWith('/api/admin/')) {
     const headers = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer' };
     if (!ADMIN_USERS.has(sessionUser)) { auditEvent('admin.denied', sessionUser, activeSession.internet); res.writeHead(403, headers); return res.end('Administrator access required.'); }
+    if (parsedUrl.pathname === '/api/admin/users') {
+      const reply=(status,data)=>{res.writeHead(status,{...headers,'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(data));};
+      if(req.method==='GET') {
+        activeSession.adminCsrf ||= crypto.randomBytes(32).toString('hex');
+        return reply(200,{users:adminAccounts(),csrfToken:activeSession.adminCsrf,
+          provisionedIdentities:USER_TARGETS ? Object.keys(USER_TARGETS).filter(u=>!ADMIN_USERS.has(u)&&!Object.hasOwn(loadUsers(),u)&&USER_TARGETS[u].secure&&USER_TARGETS[u].internet).sort() : []});
+      }
+      if(req.method!=='POST') return reply(405,{error:'Use GET or POST.'});
+      if(!activeSession.adminCsrf || req.headers['x-dsh-admin-csrf']!==activeSession.adminCsrf) return reply(403,{error:'Invalid management token.'});
+      if(req.headers.origin) {
+        let expected=process.env.DSH_TRUSTED_HOST || req.headers.host;
+        try { if(new URL(req.headers.origin).host!==expected) return reply(403,{error:'Cross-origin management denied.'}); }
+        catch { return reply(403,{error:'Invalid origin.'}); }
+      }
+      if(!String(req.headers['content-type']||'').startsWith('application/x-www-form-urlencoded')) return reply(415,{error:'Form encoding required.'});
+      let body='',tooLarge=false;
+      req.on('data',chunk=>{if(tooLarge)return;body+=chunk;if(Buffer.byteLength(body)>4096){tooLarge=true;reply(413,{error:'Request too large.'});}});
+      req.on('end',()=>{
+        if(tooLarge)return;
+        try {
+          if(!accountEnabled(sessionUser) || ![...SESSIONS.values()].includes(activeSession)) return reply(403,{error:'Session expired.'});
+          const fields=new URLSearchParams(body),user=fields.get('user')||'',action=fields.get('action');
+          if(!/^[a-z0-9_.-]{3,30}$/.test(user)||!['create','enable','disable','revoke'].includes(action)) return reply(400,{error:'Invalid account or action.'});
+          const users=loadUsers();
+          if(ADMIN_USERS.has(user)) return reply(409,{error:'Administrator accounts are maintained by the operator.'});
+          if(action==='create') {
+            if(Object.hasOwn(users,user))return reply(409,{error:'Account already exists.'});
+            if(!USER_TARGETS || !Object.hasOwn(USER_TARGETS,user) || !USER_TARGETS[user].secure || !USER_TARGETS[user].internet) return reply(409,{error:'Provision both private environments before creating this account.'});
+            const password=fields.get('password')||'';
+            if(password.length<12||Buffer.byteLength(password)>1024||password!==password.trim())return reply(400,{error:'Use a password of 12 or more characters without surrounding spaces.'});
+            users[user]=hashPassword(password);
+          } else {
+            if(!Object.hasOwn(users,user))return reply(404,{error:'Account not found.'});
+            if(action==='enable'||action==='disable')users[user]={...users[user],disabled:action==='disable'};
+          }
+          if(!auditEvent('account.'+action,sessionUser,activeSession.internet,user))return reply(503,{error:'Audit storage unavailable.'});
+          if(action!=='revoke'&&!saveUsers(users))return reply(500,{error:'Account update could not be saved.'});
+          if(action==='disable'||action==='revoke')revokeUserSessions(user);
+          return reply(200,{updated:true,user,action});
+        } catch {return reply(500,{error:'Account management unavailable.'});}
+      });
+      return;
+    }
+    if(!['/admin','/api/admin/summary','/api/admin/audit'].includes(parsedUrl.pathname)){res.writeHead(404,headers);return res.end('Unknown admin endpoint.');}
     if (req.method !== 'GET') { res.writeHead(405, { ...headers, Allow: 'GET' }); return res.end('Read-only endpoint.'); }
     const api = parsedUrl.pathname !== '/admin';
     res.writeHead(200, { ...headers, 'Content-Type': api ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8' });
@@ -1143,10 +1212,15 @@ server.on('upgrade', (req, socket, head) => {
     }
   }
 
+  if (authenticated && !accountEnabled(activeSession.user)) authenticated=false;
   if (!authenticated) {
     socket.destroy();
     return;
   }
+
+  const userSockets=USER_SOCKETS.get(activeSession.user)||new Set();
+  USER_SOCKETS.set(activeSession.user,userSockets);userSockets.add(socket);
+  socket.once('close',()=>{userSockets.delete(socket);if(!userSockets.size && USER_SOCKETS.get(activeSession.user)===userSockets)USER_SOCKETS.delete(activeSession.user);});
 
   const internetMode = normalizeInternetMode(activeSession && activeSession.internet);
   const environmentTarget = getEnvironmentTarget(internetMode, activeSession.user);
