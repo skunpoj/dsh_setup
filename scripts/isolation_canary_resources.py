@@ -56,7 +56,18 @@ def build(namespace, image):
                 container['volumeMounts'].append({'name': 'test-identities', 'mountPath': '/test-identities', 'readOnly': True})
                 for e in container['env']:
                     if e['name'] == 'DSH_USER_STORE_PATH':
-                        e['value'] = '/test-identities/users.json'
+                        e['value'] = '/auth/users.json'
+                # Secret-mounted fixture credentials are read-only. Seed a
+                # distinct writable salted store before the real gateway starts.
+                # The probe keeps its original credentials only in the Secret.
+                pod.setdefault('initContainers', []).append({
+                    'name': 'synthetic-hashed-auth', 'image': image,
+                    'command': ['node', '-e', "const fs=require('fs');const h=require('/synthetic-tests/password_store.js');const p='/auth/users.json';if(!fs.existsSync(p))h.writeAtomicUsers(p,h.migrateUsers(JSON.parse(fs.readFileSync('/test-identities/users.json','utf8'))));"],
+                    'securityContext': {'runAsUser': 10001, 'runAsGroup': 10001,
+                                        'runAsNonRoot': True, 'allowPrivilegeEscalation': False,
+                                        'capabilities': {'drop': ['ALL']}},
+                    'volumeMounts': [dict(m) for m in container['volumeMounts']
+                                     if m['name'] in {'auth', 'test-identities', 'test-scripts'}]})
                 continue
             owner = d['spec']['template']['metadata']['labels']['dsh.bot.or.th/owner']
             mode = next(e['value'] for e in container['env'] if e['name'] == 'DSH_ENVIRONMENT')

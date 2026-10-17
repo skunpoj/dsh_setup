@@ -175,7 +175,7 @@ The gateway admits provisioned named accounts and disables self-registration. It
 
 Each user and environment has separate workspace and history storage. Ordinary users must not read peer files through file APIs, terminal commands, attachment routes or direct backend connections. Logout revokes the gateway session. Switching network environments requires a new login and must not expose the other environment's history or credentials.
 
-Data ownership and administration are separate. The owner retains access to their content; the admin dashboard provides operational oversight without granting ordinary application access to another user's histories. Cluster, host and storage administrators remain privileged identities and require separate administrative controls.
+Data ownership and administration are separate. The owner retains access to their content; the admin dashboard provides operational oversight without automatically granting application access to another user's histories. An explicitly authorized support copy belongs in a separate private store; it must not change the original owner's records, expose a shared parent directory or create continuing synchronization without authorization. Cluster, host and storage administrators remain privileged identities and require separate administrative controls.
 
 ### Keep audit and delivery within the approved scope
 

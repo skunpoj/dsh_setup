@@ -1,0 +1,128 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Deployment, Persistence and Functional Review</title><style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
+</style></head><body><main><h1>Deployment, persistence and functional review</h1>
+<p>This review records the controlled replacement of the DSH application runtimes and tests of the resulting behavior. It keeps operational evidence separate from the <a href="DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">three-risk control design</a>. Passing these checks does not remove an explicitly retained remote-execution exposure or establish every user&#39;s data permissions.</p>
+<h2>What was replaced</h2>
+<p>Twenty main DSH runtimes were replaced sequentially using their qualified pinned application image and existing read-only policy overlays. Each replacement required an idle agent check, a saved deployment specification, before/after file fingerprints, original history IDs and two temporary durable markers. Images, volume claims, mount paths, ownership and network policies were preserved. This was a process redeployment, not a new application-image build or storage migration.</p>
+<p>The environment gateway, internal resolver and both owner-only legacy instances were also replaced. Gateway account/settings bytes survived. Legacy owner login, history listing, logout and real terminal WebSocket execution passed after replacement. The gateway source and managed inference transport were compared with repository contents; image digests and effective client policy were read back from the running workloads.</p>
+<p>The broader review then found that DSH2/DSH3 advertised 1M without the qualified SDK output-budget loader. Their installed SDK reduced a high-character input&#39;s output allowance to one token. Both received the same immutable managed transport as the main service. Their installed clients also needed the managed policy and a dedicated model-scoped credential. The legacy harness rollout attaches those read-only settings and credentials without modifying account passwords or data permissions. <code>/state</code> for those clients is an alias of the same existing owner-only durable home volume, not replacement storage or a move of DSH histories; DSH&#39;s existing history path remains unchanged. Full-size legacy-specific 1M requests are not inferred from a configuration label.</p>
+<p>The fresh GPU startup and near-1M experiment is recorded separately in <a href="FRESH_GPU_ACCEPTANCE_20261017.html">fresh model acceptance</a>. That coordinated test used the existing node, four GPUs and cached weights. The broader CPU rollout did not restart the GPU process, replace the database or rebuild unrelated infrastructure.</p>
+<h2>Data and history preservation</h2>
+<p>Across the twenty main runtimes, <strong>31,897 regular files and 10,257,934,187 original bytes</strong> were checked, with no content failures. Original history IDs remained present: the legacy owner retained <strong>80 histories</strong>, and the separately authorized admin copy retained <strong>83 histories</strong> including its pre-existing records. Owner data was not reassigned. The two legacy runtime checks verified another <strong>6,732</strong> and <strong>4,551</strong> files.</p>
+<p>The fingerprints cover mounted workspaces, session files and attachments. Lock files are excluded; symlinks are checked as links without following them into unrelated storage. Append-only growth is distinguished from a changed original prefix. These checkpoints verify preservation across this replacement; they are not an independent backup, deletion-recovery service or proof of every historical conversation&#39;s future tool resumption. Private paths and conversation contents are not published in the summary.</p>
+<h2>Functional coverage</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Actual verification</th>
+<th>Scope boundary</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>User and environment isolation</td>
+<td>Two synthetic users, four private runtimes: own report/attachment/history access, peer and opposite-environment denial, forged HTTP/WebSocket identity denial, registration denial, non-root terminal commands; repeated after all four workers were replaced</td>
+<td>Synthetic identities and fixtures; no personal credentials or real source-data authorization inferred</td>
+</tr>
+<tr>
+<td>Main authentication</td>
+<td>Deployed password verification, password change and persisted verifier, wrong/oversized input refusal, missing-runtime denial, login-page content and default No Internet choice</td>
+<td>The temporary unmapped identity received no runtime; existing account passwords were not reset</td>
+</tr>
+<tr>
+<td>Legacy access</td>
+<td>Both existing owners logged in and opened real history listings; guest/cross-account denial, logout revocation and terminal WebSocket execution passed after restart</td>
+<td>Legacy instances remain Internet-only</td>
+</tr>
+<tr>
+<td>Network boundaries</td>
+<td>All <strong>10 No Internet</strong> workers blocked representative domain/direct-IP public probes while internal inference, approved DNS and Kerberos/Livy paths remained available. All <strong>10 Internet</strong> workers retained intended public access and denied the tested unrelated internal paths</td>
+<td>Local worker boundary; remote Spark egress is a separate accepted exception</td>
+</tr>
+<tr>
+<td>Offline dependencies</td>
+<td>Hash-verified promotion of the existing reviewed wheel, no-overwrite/path/symlink checks, <code>--no-index</code> installation, exact import and denied writes to the approved cache</td>
+<td>Existing pinned artifact reused; no new arbitrary package approval or malware guarantee</td>
+</tr>
+<tr>
+<td>DSH inference</td>
+<td>Exact persisted replies and prompt readback during a 263K request; paired, eight-way and sixteen-way ordinary requests</td>
+<td>Actual DSH RPC/persisted events, not a fresh external-browser interaction</td>
+</tr>
+<tr>
+<td>Claude Code and TrueForge</td>
+<td>Installed managed-policy/budget tests and exact replies from both actual clients</td>
+<td>Fresh ordinary replies; their prior near-1M capacity records remain separately scoped</td>
+</tr>
+<tr>
+<td>Compaction</td>
+<td>A lowered-threshold fixture persisted a summary and recalled the verification code correctly through three turns</td>
+<td>The production threshold was unchanged. One redundant non-reducing summary was safely refused; this is not near-limit automatic-compaction acceptance</td>
+</tr>
+<tr>
+<td>Dashboard and gateway behavior</td>
+<td>Source regression tests cover admin/ordinary/anonymous routes, forged roles, DOM rendering, read-only methods, audit bounds and logout; real gateway hash/password behavior checked after restart</td>
+<td>Dashboard infrastructure values remain a dated snapshot; these tests do not turn Refresh into live GPU monitoring</td>
+</tr>
+<tr>
+<td>Documentation</td>
+<td>All tracked HTML reports rendered at desktop, tablet and phone sizes; diagram controls/export tested separately</td>
+<td>Saved-document QA is not a fresh security scan or live application acceptance</td>
+</tr>
+</tbody></table>
+<h2>Mixed-load performance</h2>
+<p>The current-source DSH request counted <strong>263,691 input tokens</strong>, returned the complete expected reply and persisted it in <strong>274.01 seconds</strong>, with <strong>zero retries</strong>. The full 1,048,576-token ceiling, 8,192 output ceiling and 256-token reserve remained in place. One expensive request is admitted at a time; ordinary work remains concurrent.</p>
+<table>
+<thead>
+<tr>
+<th>Actual DSH workload</th>
+<th align="right">Complete reply</th>
+<th align="right">First text</th>
+<th align="right">Approximate streaming output rate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Eight replies in pairs during long work</td>
+<td align="right">4.58–5.57 s</td>
+<td align="right">0.96–1.33 s</td>
+<td align="right">28.76–36.29 tokens/s per request</td>
+</tr>
+<tr>
+<td>Eight simultaneous replies</td>
+<td align="right">6.59–6.62 s</td>
+<td align="right">1.85–2.36 s</td>
+<td align="right">26.55–28.35 tokens/s per request</td>
+</tr>
+<tr>
+<td>Sixteen simultaneous replies</td>
+<td align="right">10.26–12.01 s</td>
+<td align="right">3.18–4.74 s</td>
+<td align="right">16.84–17.49 tokens/s per request</td>
+</tr>
+</tbody></table>
+<p>Each numerical reply contains 119 output tokens and was checked against the complete expected sequence. Streaming rate uses <code>(output tokens − 1) / first-to-last text interval</code>; it excludes first-token wait. The sixteen-request burst delivered <strong>134.20 aggregate effective output tokens/s</strong> across its full <strong>14.19-second</strong> operator-observed wall interval, including client-launch overhead. Two additional natural-language replies correctly distinguished configured tools from verified connectivity. The worst recorded paired stream gap was <strong>779 ms</strong>: scheduling improves opportunities, not uninterrupted decoding or a latency guarantee.</p>
+<p>The final current-source DSH capacity retest counted <strong>1,007,702 input / 119 output tokens</strong>, returned the complete expected 1–40 sequence and persisted it in <strong>2088.27 seconds</strong>, with <strong>2 retries</strong>. <strong>60 ordinary DSH replies</strong> completed exactly alongside the active long turn in <strong>5.06–8.66 seconds</strong>. This is capacity/transport/output-budget acceptance, not a new realistic analytical-quality review or two-full-1M test. The successful attempt included 243.67 seconds of admission wait and 1,227.76 seconds of preparation; the answer then streamed in 3.51 seconds (approximately 33.65 output tokens/second). The whole-turn duration also includes the preceding busy retries. These are different measures, not 34 minutes of decoding. The original combined zero-retry/latency gate did not pass and its raw result is retained. The long turn encountered occupied admission capacity before retrying; these timings include that wait. A correct eventual answer is not relabelled as a zero-retry cold run.</p>
+<p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/deployment-functional-review-20261017.json">Sanitized measurements</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/SHORT_RESPONSE_TRACE_20261017.md">Detailed short-response tracing lessons</a></p>
+<h2>Failures, corrections and lessons retained</h2>
+<ol>
+<li><strong>Historical slow reply versus reproduced cause.</strong> The old 38-second reply lacks a matching retained server trace. Fresh direct-backend measurements reproduced long-prefill interference, while matched forwarding/DSH timing records distinguish upstream arrival from delivery. Do not retroactively assert the exact cause of an untraced historical turn.</li>
+<li><strong>Foreground wake-up race.</strong> A waiter could observe an idle event that a new foreground request had already invalidated. Rechecking active foreground work within the same bounded deadline closes that race. Tokenization itself now holds a temporary foreground lease. Long work retains its opportunities; the context ceiling was not reduced.</li>
+<li><strong>A queued request is not actively preparing a prompt.</strong> An earlier 263K test encountered the 300-second admission deadline, retried once in DSH and eventually returned correctly after 526.31 seconds. Its original record is retained. It is not retry-free acceptance, and short requests overlapping that interval must not automatically be attributed to that queued prompt&#39;s GPU work.</li>
+<li><strong>A successful test harness flag can be too broad.</strong> That earlier runner did not include long-request retries in its aggregate pass condition. The subsequent acceptance requires zero long retries. Saved individual retry counts take precedence over the older aggregate flag.</li>
+<li><strong>Fixture authentication must match deployed storage.</strong> An old isolation fixture pointed the mutable password store at a read-only Secret. The corrected fixture seeds salted records into a distinct writable synthetic auth volume; the original Secret remains read-only. The initial failed fixture was isolated from Production.</li>
+<li><strong>Installed policy overlays matter.</strong> A disposable pod copied from an older specification omitted the newer managed-client policy mounts. Its base-image Claude default was therefore not the effective main-service default. The current-overlay canary and all twenty live defaults were checked; the initial diagnostic is retained rather than treated as a Production regression.</li>
+<li><strong>Qualification dependencies are different from application dependencies.</strong> The runtime does not include the operator&#39;s Python YAML test dependency. The full Python suite ran in the existing Linux qualification environment instead. Installed SDK/client tests ran in the actual runtime. Missing Windows/Linux paths are not application failures.</li>
+<li><strong>Choose the replacement pod, not the first list entry.</strong> The gateway verifier initially selected an old terminating pod and restored the saved specification conservatively. Selecting a non-terminating, ready replacement with a different UID resolved the harness issue; the subsequent content/auth checks passed. The rollback did not overwrite data.</li>
+<li><strong>Compaction must reduce context.</strong> At the artificial 2% threshold, a second summary would have increased a small shadowed range from 472 to 476 estimated tokens. DSH refused that redundant operation; the earlier summary and all three exact replies remained intact. Retain this distinction from an exception that prevents a user turn from completing.</li>
+<li><strong>Coordinate the complete agent turn.</strong> A GPU or gateway maintenance boundary must account for tool continuations and client work between individual HTTP requests. The related fresh-GPU report retains a retry-bearing tool continuation interrupted by a gateway handover. A free long-request lease alone does not establish that every agent is idle.</li>
+<li><strong>A profile label does not install its supporting loader.</strong> The legacy profiles declared 1M but the installed SDK still returned a one-token allowance for the high-character fixture. The qualified transport overlay corrects budgeting only for the managed internal aliases and leaves explicit smaller caller caps intact. Legacy client policy/credential/state wiring is verified separately from that DSH loader.</li>
+<li><strong>A mounted Secret is not necessarily readable by a non-root process.</strong> The initial legacy harness mount used mode 0440 without a pod fsGroup and the actual client failed with EACCES. The corrected 0444 projection is mounted read-only only in that owner&#39;s execution container; auth and audit containers do not receive the volume. It does not make the key writable or mount it in another user&#39;s runtime. This avoids a volume-wide ownership change to existing data. Actual key reads, denied writes and client calls are release checks; file existence alone was insufficient.</li>
+</ol>
+<p>The admin dashboard snapshot was refreshed after the tests and its mounted JSON was read back exactly. It now shows the current main/legacy boundaries and queue-bearing final result; the old shared-root legacy statement was removed. Gateway password and missing-runtime refusal checks passed after replacement. A positive live admin-browser login was not repeated; admin role/rendering coverage is from the separate regression fixture. All 26 requested active deployments were Ready at final readback. The model UID/image and zero restart count were unchanged. Four allowlisted disposable test pods were removed only after their synthetic session archives were downloaded, reread and independently hash-verified.</p>
+<h2>Risk-control conclusion</h2>
+<p>The seven HTML documents have different roles: the three-risk design, LLM setup/results, this deployment review, fresh-GPU acceptance, BrowserCode comparison, accepted realistic repository review and its preserved earlier editorial version. Historical or frozen-source reports remain recorded evidence, not current configuration dashboards. All seven are rendered in three viewport sizes; that does not reaccept their historical tests or change their original output.</p>
+<p>The <a href="DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html">risk report</a> remains organized around external leakage, damage/excessive access and result exposure, with control mechanisms and responsibilities. It does not embed test logs, migration diaries or performance tables into that narrative.</p>
+<p>The application rollout preserves private execution, central persistence, named authentication and local restricted egress. It does <strong>not</strong> close the accepted remote Livy/Spark public-egress path, establish sandbox-only datalake grants, replace existing AD rights with read-only access, provide endpoint DLP, rotate owner-retained passwords or create independent storage recovery. Those boundaries cannot be closed by editing a report or restarting the application.</p>
+<p>Rollback specifications and private fingerprints are retained. On regression, restore the reviewed workload/policy specification, compare actual content and retain newer writes; do not copy an older local tree over the mounted central workspace. Disposable test histories are archived and independently hash-checked before their pods are removed.</p>
+<p>To rebuild this review, set <code>DSH_DOC_NODE_MODULES</code> to the installed Node dependencies containing <code>marked</code> and <code>playwright</code>, then run <code>node scripts/build_deployment_review.mjs</code>. Run <code>node scripts/validate_all_html.mjs OUTPUT_DIRECTORY</code> for the complete saved-document check; <code>DSH_DOC_BROWSER</code> may select an installed Chromium-family browser. The separate diagram/export test remains <code>node scripts/test_security_walkthrough.mjs</code>.</p>
+</main></body></html>

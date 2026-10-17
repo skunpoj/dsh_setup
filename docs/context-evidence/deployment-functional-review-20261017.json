@@ -1,0 +1,307 @@
+{
+  "formatVersion": 1,
+  "recordedUTC": 1792227430.0731974,
+  "scope": "Actual CPU redeployment, preservation and bounded functional tests; no universal risk closure or SLA",
+  "mainRuntimesReplaced": 20,
+  "durableMarkersSurvived": 40,
+  "originalFilesVerified": 31897,
+  "originalBytesVerified": 10257934187,
+  "contentFailures": 0,
+  "ownerHistories": 80,
+  "adminIndependentHistories": 83,
+  "originalIDsPreserved": true,
+  "legacy": [
+    {
+      "podReplaced": true,
+      "status": "passed",
+      "filesVerified": 6732,
+      "originalBytesVerified": 2934409292,
+      "authenticatedHistory": true,
+      "terminalExecuted": true
+    },
+    {
+      "podReplaced": true,
+      "status": "passed",
+      "filesVerified": 4551,
+      "originalBytesVerified": 473595433,
+      "authenticatedHistory": true,
+      "terminalExecuted": true
+    }
+  ],
+  "syntheticIsolation": {
+    "beforeRestart": {
+      "time": "2026-10-17T08:04:45.596Z",
+      "phase": "create",
+      "ownReports": 4,
+      "ownAttachmentFiles": 4,
+      "spoofedHeadersRejected": 4,
+      "ownSessionPages": 4,
+      "crossUserHistoryDenied": 4,
+      "crossEnvironmentHistoryDenied": 4,
+      "terminalCommands": 4,
+      "anonymousDenials": 4,
+      "websocketSpoofingDenied": 4,
+      "registrationDenied": true,
+      "sessionsCreated": 4
+    },
+    "afterRestart": {
+      "time": "2026-10-17T08:05:42.227Z",
+      "phase": "verify",
+      "ownReports": 4,
+      "ownAttachmentFiles": 4,
+      "spoofedHeadersRejected": 4,
+      "ownSessionPages": 4,
+      "crossUserHistoryDenied": 4,
+      "crossEnvironmentHistoryDenied": 4,
+      "terminalCommands": 4,
+      "anonymousDenials": 4,
+      "websocketSpoofingDenied": 4
+    },
+    "legacyByteIdentical": true,
+    "cleanup": {
+      "candidateDeploymentsStopped": true,
+      "temporarySecretsRemoved": true,
+      "candidatePodsTerminated": true
+    }
+  },
+  "network": {
+    "workers": 20,
+    "noInternetWorkers": 10,
+    "internetWorkers": 10,
+    "allWorkerChecksPassed": true,
+    "realDatalakeAuthorizationTested": false,
+    "remoteSparkEgress": "Previously accepted exposure; not closed by these local tests"
+  },
+  "clients": [
+    {
+      "client": "claude",
+      "exact": true,
+      "seconds": 1.1792029530042782
+    },
+    {
+      "client": "trueforge",
+      "exact": true,
+      "seconds": 0.4551652349764481
+    }
+  ],
+  "legacyClients": [
+    {
+      "runtime": "dsh-user2",
+      "clients": [
+        {
+          "client": "claude",
+          "exact": true,
+          "seconds": 1.5458317690063268,
+          "sessionId": null
+        },
+        {
+          "client": "trueforge",
+          "exact": true,
+          "seconds": 3.319507204927504,
+          "sessionId": "01m54gh68cs49t5a3yqvn8y46x"
+        }
+      ],
+      "authenticatedAppProxy": true,
+      "anonymousAppDenied": true,
+      "privateTrueForgeDatabase": true
+    },
+    {
+      "runtime": "dsh3",
+      "clients": [
+        {
+          "client": "claude",
+          "exact": true,
+          "seconds": 0.9723106269957498,
+          "sessionId": null
+        },
+        {
+          "client": "trueforge",
+          "exact": true,
+          "seconds": 3.6221168449847028,
+          "sessionId": "01m54gmbza21ht70ndead85xx9"
+        }
+      ],
+      "authenticatedAppProxy": true,
+      "anonymousAppDenied": true,
+      "privateTrueForgeDatabase": true
+    }
+  ],
+  "legacyClientPersistence": [
+    {
+      "runtime": "dsh-user2",
+      "priorSyntheticConversationPreserved": true,
+      "serverProcessReplaced": true,
+      "otherLegacyUserSyntheticSessionDenied": true,
+      "privateStateOnExistingHome": true
+    },
+    {
+      "runtime": "dsh3",
+      "priorSyntheticConversationPreserved": true,
+      "serverProcessReplaced": true,
+      "otherLegacyUserSyntheticSessionDenied": true,
+      "privateStateOnExistingHome": true
+    }
+  ],
+  "legacyFinalOriginalFilesVerified": [
+    6732,
+    4551
+  ],
+  "compaction": {
+    "scope": "Artificial2% threshold fixture; not near1M automatic compaction acceptance",
+    "summaryPersisted": true,
+    "summaryRetainedCode": true,
+    "threeTurnsExact": true,
+    "successfulCompactionCompletions": 1,
+    "redundantNonReducingSummaryRefusals": [
+      "summary is not smaller than the shadowed content (476 estimated framed tokens >= 472)"
+    ],
+    "originalStrictHarnessRejectedAllEndErrorAssertion": true,
+    "productionThresholdUnchanged": 0.875,
+    "passedForStatedScope": true
+  },
+  "packageWorkflow": {
+    "status": "passed",
+    "offlineInstallation": {
+      "exactImportResult": "OFFLINE_PACKAGE_OK",
+      "installedWithNoIndex": true,
+      "approvedWheelHashMatches": true,
+      "approvedWriteDenied": true,
+      "temporaryVenvRemovedOnExit": true
+    },
+    "reusedReviewedArtifact": true
+  },
+  "mixed263K": {
+    "elapsedSeconds": 274.0109474658966,
+    "usage": {
+      "inputTokens": 263691,
+      "outputTokens": 7,
+      "totalTokens": 263698
+    },
+    "exact": true,
+    "retries": 0,
+    "persistedPromptVerified": true
+  },
+  "paired": {
+    "requests": 8,
+    "allExact": true,
+    "retryCount": 0,
+    "elapsedSecondsRange": [
+      4.576123476028442,
+      5.57234525680542
+    ],
+    "firstTextSecondsRange": [
+      0.955132007598877,
+      1.3322594165802002
+    ],
+    "streamOutputTokensPerSecondRange": [
+      28.75944483044534,
+      36.28536181081398
+    ],
+    "maximumTextEventGapMs": 779
+  },
+  "eightConcurrent": {
+    "requests": 8,
+    "allExact": true,
+    "retryCount": 0,
+    "elapsedSecondsRange": [
+      6.588018894195557,
+      6.62356424331665
+    ],
+    "firstTextSecondsRange": [
+      1.8477494716644287,
+      2.360656261444092
+    ],
+    "streamOutputTokensPerSecondRange": [
+      26.552655231337642,
+      28.351754367221787
+    ],
+    "maximumTextEventGapMs": 220
+  },
+  "sixteenConcurrent": {
+    "requests": 16,
+    "allExact": true,
+    "retryCount": 0,
+    "elapsedSecondsRange": [
+      10.255734920501709,
+      12.006409406661987
+    ],
+    "firstTextSecondsRange": [
+      3.1837828159332275,
+      4.74096155166626
+    ],
+    "streamOutputTokensPerSecondRange": [
+      16.840302627932818,
+      17.491846886925238
+    ],
+    "maximumTextEventGapMs": 276
+  },
+  "sixteenBurstWallSeconds": 14.187981367111206,
+  "sixteenAggregateEffectiveOutputTokensPerSecond": 134.19808997026266,
+  "finalNear1M": {
+    "elapsedSeconds": 2088.2706320285797,
+    "usage": {
+      "inputTokens": 1007702,
+      "outputTokens": 119,
+      "totalTokens": 1007821
+    },
+    "exact": true,
+    "retries": 2,
+    "persistedPromptVerified": true
+  },
+  "finalNear1MStrictZeroRetryAndLatencyGatePassed": false,
+  "finalNear1MShorts": {
+    "requests": 60,
+    "allExact": true,
+    "retryCount": 0,
+    "elapsedSecondsRange": [
+      5.059753656387329,
+      8.65761113166809
+    ],
+    "firstTextSecondsRange": [
+      1.6963427066802979,
+      5.226130962371826
+    ],
+    "streamOutputTokensPerSecondRange": [
+      32.44432149495853,
+      36.57780453150492
+    ],
+    "maximumTextEventGapMs": 221
+  },
+  "finalTiming": {
+    "admissionWaitSeconds": 243.668132,
+    "preparationSeconds": 1227.756513,
+    "successfulAttemptElapsedSeconds": 1480.141421,
+    "answerStreamSeconds": 3.506999969482422,
+    "approximateStreamOutputTokensPerSecond": 33.64699202361697
+  },
+  "model": {
+    "context": 1048576,
+    "outputCeiling": 8192,
+    "reserve": 256,
+    "runningCap": 16,
+    "oneLongAdmissionAtATime": true,
+    "forwarderSourceSHA256": "0aa373dacd79c937fe45faa766761d1b5ff177f82d2bbacd912d361c4678a4f8",
+    "modelRestarts": [
+      0
+    ],
+    "freshGpuAcceptance": "FRESH_GPU_ACCEPTANCE_20261017.html"
+  },
+  "regressions": {
+    "pythonLinux": 120,
+    "pythonLinuxSkips": 0,
+    "javascriptSourceSuites": 10,
+    "installedClientSuites": 3,
+    "portableLinuxTests": 36
+  },
+  "remainingBoundaries": [
+    "Remote Spark public egress remains accepted",
+    "Real dataset/sandbox grants remain the datalake authority",
+    "Owner-kept passwords are unchanged",
+    "Browser downloads/manual sharing require endpoint governance",
+    "No independent storage deletion-recovery service added",
+    "No two-full-1M concurrency or universal analytical-quality acceptance"
+  ],
+  "dashboardSnapshotMountedContentMatched": true,
+  "disposableTestPodsArchivedAndRemoved": 4,
+  "finalStatusReadyDeployments": 26
+}

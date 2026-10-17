@@ -1,5 +1,15 @@
 # Managed Claude Code and TrueForge in DSH
 
+## Legacy owner-only instances
+
+The broader deployment review also wires the installed clients in DSH2/DSH3 to dedicated model-scoped credentials and the same read-only managed policy used by the main service. Their DSH workers receive the qualified transport/output-budget loader; a 1M profile label alone had left the old SDK's character-based one-token clamp active. The loader preserves explicit smaller caller caps and unrelated routes.
+
+Legacy `/state` is an additional mount of that owner's existing private home volume, used for durable TrueForge state. It does not replace a workspace mount, copy histories or grant another account access. Existing DSH histories remain at their original path. Only the execution worker mounts its read-only inference credential. The legacy pod does not apply a volume-wide fsGroup change; its projected key uses mode0444 inside that worker-only mount so UID10001 can read it. Auth/audit containers have no such mount. File reads and denied write-open attempts are checked before acceptance.
+
+Fresh ordinary Claude/TrueForge replies, authenticated app API access and anonymous denial are recorded in the [deployment review](DEPLOYMENT_AND_FUNCTION_REVIEW_20261017.html). These are not separate full-size legacy1M or browser-SPA acceptance runs. Both legacy instances remain Internet-only; installing another client does not create a No Internet boundary.
+
+For an eligible legacy instance, prepare `scripts/rollout_legacy_context_transport.py` and `scripts/rollout_legacy_harnesses.py` without `--apply`, then review the candidate. The apply path requires an idle agent, saves the exact specification, checks immutable source and effective policy, and restores the old specification on its verification failure. Final qualification still requires owner login/logout/history/terminal tests, original-file comparison and actual client calls. Do not blindly rerun initial provisioning on an already configured instance.
+
 ## Purpose and scope
 
 Install both tools in the prebuilt DSH Kubernetes image, including No Internet runtimes. No laptop configuration is changed. Installation at image build time avoids requiring Internet access during restart.

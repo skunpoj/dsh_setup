@@ -42,6 +42,24 @@ class CanaryResources(unittest.TestCase):
             with self.assertRaises(ValueError):
                 canary.validate(docs, self.namespace, 'dsh-isolation-tests/' + self.namespace)
 
+    def test_gateway_migrates_fixture_credentials_out_of_readonly_secret(self):
+        gateway = next(d for d in self.docs if d['kind'] == 'Deployment'
+                       and d['metadata']['name'] == 'dsh-environment-gateway')
+        pod = gateway['spec']['template']['spec']
+        container = pod['containers'][0]
+        store = next(e['value'] for e in container['env']
+                     if e['name'] == 'DSH_USER_STORE_PATH')
+        self.assertEqual(store, '/auth/users.json')
+        auth = next(m for m in container['volumeMounts'] if m['mountPath'] == '/auth')
+        self.assertFalse(auth.get('readOnly', False))
+        seed = next(c for c in pod['initContainers']
+                    if c['name'] == 'synthetic-hashed-auth')
+        source = next(m for m in seed['volumeMounts']
+                      if m['mountPath'] == '/test-identities')
+        self.assertTrue(source['readOnly'])
+        self.assertIn('migrateUsers', seed['command'][2])
+        self.assertIn('writeAtomicUsers', seed['command'][2])
+
 
 if __name__ == '__main__':
     unittest.main()

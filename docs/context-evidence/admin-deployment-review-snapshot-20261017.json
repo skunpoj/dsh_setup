@@ -1,0 +1,49 @@
+{
+  "observedAt": "2026-10-17T08:57:29.555527+00:00",
+  "environments": [
+    {
+      "name": "No Internet: 10 main runtimes",
+      "ready": true,
+      "storage": "Existing central workspace and durable histories preserved; separate user/environment mounts.",
+      "network": "All 10 workers: representative public domain/direct-IP denial and internal inference passed."
+    },
+    {
+      "name": "Internet: 10 main runtimes",
+      "ready": true,
+      "storage": "Separate user/environment workspace and history mounts preserved.",
+      "network": "All 10 workers: public HTTPS works; tested private datalake/Kerberos paths denied."
+    },
+    {
+      "name": "Legacy DSH2",
+      "ready": true,
+      "storage": "Existing private owner home and 8 histories retained; non-root owner-only runtime.",
+      "network": "Internet environment; authenticated terminal and protected client routes tested. Model bypass blocked."
+    },
+    {
+      "name": "Legacy DSH3",
+      "ready": true,
+      "storage": "Existing private owner home and 1 history retained; non-root owner-only runtime.",
+      "network": "Internet environment; authenticated terminal and protected client routes tested. Model bypass blocked."
+    }
+  ],
+  "model": {
+    "backendContext": 1048576,
+    "userContext": 1048576,
+    "concurrencyCeiling": 16
+  },
+  "performance": [
+    "Current actual DSH near-1M: 1007702 input / 119 output, complete persisted answer, 2088.27s whole turn including two busy retries. Original zero-retry gate failed.",
+    "Successful long attempt: 243.67s admission wait, 1227.76s preparation; answer streamed in 3.51s, approximately 33.65 output tokens/sec.",
+    "60/60 ordinary replies alongside the active long turn: 5.06-8.66s, no retries. Queue and preparation periods both included.",
+    "263691-token DSH request: 274.01s, exact persisted answer, zero retries. Sixteen concurrent ordinary DSH requests: all exact, 10.26-12.01s; aggregate effective output 134.20 tokens/sec.",
+    "One request above 128K admitted at a time. Total context 1048576, output ceiling8192, reserve256. Compaction fixture summarized and recalled; redundant nonreducing summary safely refused."
+  ],
+  "gaps": [
+    "Remote Spark public egress remains explicitly accepted; Livy/Spark stays available. Local pod policy does not control remote workers.",
+    "Existing AD/datalake permissions are preserved; no new dataset authorization or universal read-only guarantee.",
+    "Legacy clients passed ordinary calls and persisted state; no separate full-size 1M stress test for each legacy instance.",
+    "Browser copying/downloads require endpoint governance. Administrators remain trusted.",
+    "GPU memory remains tight; two full simultaneous 1M requests, near-1M vision and universal analytical quality are not qualified.",
+    "Central storage is not an independent deletion-recovery backup. Dashboard refresh reads this timestamped snapshot; it does not rerun tests."
+  ]
+}

@@ -1,7 +1,9 @@
 """Replace only the read-only admin snapshot; preserve private routing and audit.
 
-Requires a reviewed JSON snapshot and uses existing credentials only inside the
-gateway to verify returned content. Restores the prior spec on regression.
+Requires a reviewed JSON snapshot. Verifies mounted content and the deployed
+hashed-auth boundary with a temporary unmapped identity; it does not recover
+passwords from salted verifiers or claim a fresh positive admin-browser login.
+Restores the prior spec on regression.
 """
 import argparse
 import hashlib
@@ -43,9 +45,11 @@ def main():
         kube('rollout','status','deploy/dsh-environment-gateway','--timeout=180s')
         actual=json.loads(kube('exec','deploy/dsh-environment-gateway','--','cat','/admin-status/summary.json'))
         assert actual==snapshot
-        verify=(ROOT/'scripts/verify_private_routing_live.js').read_text(encoding='utf-8')
+        verify=(ROOT/'scripts/verify_hashed_gateway_live.js').read_text(encoding='utf-8')
         record['accessVerification']=json.loads(kube('exec','-i','deploy/dsh-environment-gateway','--','node','-',data=verify))
         record['mountedContentMatches']=True
+        record['positiveLiveAdminBrowserLoginVerified']=False
+        record['adminRoleAndRenderingCoverage']='Separate source regression suite; not a password-derived live login'
         record['status']='passed'
     except Exception as e:
         record['status']='failed';record['error']=str(e)
