@@ -234,15 +234,24 @@ spec:
         - name: DEEPSEEK_BASE_URL
           value: http://litellm.llm.svc.cluster.local:4000/v1
         - name: DEEPSEEK_API_KEY
-          value: sk-9d39851f559a86336c7c45f9cf18867ab24e2faa4ce70702
+          valueFrom:
+            secretKeyRef:
+              name: dsh-inference-client
+              key: api-key
         - name: OPENAI_BASE_URL
           value: http://litellm.llm.svc.cluster.local:4000/v1
         - name: OPENAI_API_KEY
-          value: sk-9d39851f559a86336c7c45f9cf18867ab24e2faa4ce70702
+          valueFrom:
+            secretKeyRef:
+              name: dsh-inference-client
+              key: api-key
         - name: LITELLM_API_BASE
           value: http://litellm.llm.svc.cluster.local:4000/v1
         - name: LITELLM_API_KEY
-          value: sk-9d39851f559a86336c7c45f9cf18867ab24e2faa4ce70702
+          valueFrom:
+            secretKeyRef:
+              name: dsh-inference-client
+              key: api-key
         - name: DSH_TRUSTED_HOST
           value: dsh.aiportal.bot.or.th
         - name: DSH_COOKIE_NAME
