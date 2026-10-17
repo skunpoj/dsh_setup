@@ -1,0 +1,102 @@
+{
+  "recordedUTC": 1792230115.389161,
+  "scope": "Actual DSH near1M following a simulated occupied admission lease; not two near1M GPU requests or an SLA",
+  "passed": true,
+  "long": {
+    "elapsedSeconds": 1551.7474789619446,
+    "firstTextSeconds": 1547.6798257827759,
+    "streamSeconds": 3.5309998989105225,
+    "usage": {
+      "inputTokens": 1007704,
+      "outputTokens": 119,
+      "totalTokens": 1007823
+    },
+    "exact": true,
+    "retries": 0,
+    "persistedPromptVerified": true
+  },
+  "timing": {
+    "event": "dsh_request_timing",
+    "tokenizeMs": 2099.553,
+    "requestId": "dsh-final-4515844e14f5467d98c98de257dadbcf",
+    "inputTokens": 1007704,
+    "outputBudget": 8192,
+    "long": true,
+    "admissionState": "acquired",
+    "admissionQueue": {
+      "queued": true,
+      "waitBudgetSeconds": 1500
+    },
+    "admissionMs": 315744.717,
+    "warmMs": 1226787.988,
+    "upstreamHeadersMs": 2303.595,
+    "upstreamStatus": 200,
+    "firstUpstreamByteMs": 1546951.625,
+    "upstreamChunks": 122,
+    "upstreamBytes": 38169,
+    "maxUpstreamGapMs": 284.216,
+    "firstUpstreamDeltaMs": 1546951.764,
+    "outputTokens": 119,
+    "bodyConsumed": true,
+    "elapsedMs": 1550770.71
+  },
+  "ordinary": {
+    "requests": 46,
+    "allExact": true,
+    "retries": 0,
+    "secondsMinMedianMax": [
+      4.054370164871216,
+      5.592882871627808,
+      9.124157428741455
+    ]
+  },
+  "ordinaryDuringOwnedHold": {
+    "requests": 8,
+    "allExact": true,
+    "retries": 0,
+    "secondsMinMax": [
+      4.054370164871216,
+      4.1136720180511475
+    ]
+  },
+  "ordinaryAfterHoldDuringLongWork": {
+    "requests": 38,
+    "allExact": true,
+    "retries": 0,
+    "secondsMinMax": [
+      5.067535400390625,
+      9.124157428741455
+    ]
+  },
+  "queueOverflow": {
+    "boundary": "loopback final-wire guard",
+    "status": 429,
+    "body": "{\"detail\":\"Long-context waiting queue full; retry later.\"}",
+    "elapsed": 0.342343807220459
+  },
+  "actualCancellation": {
+    "inputTokens": 147674,
+    "accepted": true,
+    "releaseObservedSeconds": 1.4753000736236572
+  },
+  "waitingCancellation": {
+    "inputTokens": 147673,
+    "accepted": true,
+    "cleanedWhileWaiting": true,
+    "totalForwarderSeconds": 9.893827
+  },
+  "allocatorMemoryMappingOOMWarningLines": 1604,
+  "allocatorWarningsObserved": true,
+  "modelUnchanged": true,
+  "modelRestarts": 0,
+  "liveSourceSHA256": {
+    "context_forwarder.py": "a4149f581a1da1ad3b8083be0ac40c833ef1a679c4c7247f242fd6e37c4398cf",
+    "long_context_callbacks.py": "4300d65bc24bf4ef84c84aa69a1b2d0c3b68c154cdea33f9d0c49dde117ac8b0"
+  },
+  "linuxTargetedTests": 68,
+  "portableTests": 42,
+  "legacyCallbackDefaultSeconds": 300,
+  "finalWireWaitBudgetSeconds": 1500,
+  "maximumWaitingLongRequests": 1,
+  "invalidFixtureRunsExcluded": 2
+}

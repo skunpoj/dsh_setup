@@ -192,6 +192,8 @@ async def completion(request: Request):
     if data.get('model') not in ['deepseek-v4.1-flash', 'deepseek-flash']:
         raise HTTPException(400, 'Model is outside this context policy.')
     normalize_conditioning(data)
+    if os.environ.get('DSH_CAPTURE_SYNTHETIC_ENVELOPE') == '1':
+        Path('/tmp/dsh-synthetic-envelope.json').write_text(json.dumps(data))
     tokenize_start = _timing_clock()
     interactive.enter()
     try:
@@ -254,31 +256,38 @@ async def completion(request: Request):
             lease['metadata']['dsh_long_lease'] = key
             async def prepare():
                 admission_start = _timing_clock()
-                await guard.acquire(key)
+                timing.record['admissionState'] = 'waiting'
+                print(json.dumps({'event': 'dsh_long_admission_started', 'requestId': rid,
+                                  'inputTokens': tokenized['count'], 'waitBudgetSeconds': 1500}), flush=True)
+                admission = await guard.acquire(key, wait_seconds=1500, max_waiters=1)
+                timing.record['admissionState'] = 'acquired'
+                timing.record['admissionQueue'] = admission
                 timing.record['admissionMs'] = round((_timing_clock()-admission_start)*1000, 3)
                 warm_start = _timing_clock()
                 summary = await guard.warm(tokenized['tokens'])
                 timing.record['warmMs'] = round((_timing_clock()-warm_start)*1000, 3)
                 print(json.dumps({'event': 'dsh_final_wire_warmed', **summary}), flush=True)
-            try:
+            if not incoming_stream:
                 await watch_client(request, prepare())
-            except HTTPException:
-                raise
-            except Exception:
-                raise HTTPException(503, 'Long-context cache preparation stopped; retry later.')
-        client = httpx.AsyncClient(timeout=httpx.Timeout(3600, connect=10), trust_env=False)
-        wire_data = dict(data)
-        if long and not incoming_stream:
-            wire_data['stream'] = True
-            wire_data['stream_options'] = {**(data.get('stream_options') or {}), 'include_usage': True}
-        dispatch_start = _timing_clock()
-        upstream = await client.send(client.build_request('POST', BACKEND+'/v1/chat/completions', json=wire_data), stream=True)
-        timing.record['upstreamHeadersMs'] = round((_timing_clock()-dispatch_start)*1000, 3)
-        timing.record['upstreamStatus'] = upstream.status_code
-        if upstream.status_code != 200 or (not long and not incoming_stream):
-            body = await upstream.aread()
-            timing.record['bodyConsumed'] = True
-            return JSONResponse(json.loads(body), status_code=upstream.status_code, headers={'X-DSH-Request-ID': rid})
+
+        async def dispatch():
+            nonlocal client, upstream
+            client = httpx.AsyncClient(timeout=httpx.Timeout(3600, connect=10), trust_env=False)
+            wire_data = dict(data)
+            if long and not incoming_stream:
+                wire_data['stream'] = True
+                wire_data['stream_options'] = {**(data.get('stream_options') or {}), 'include_usage': True}
+            dispatch_start = _timing_clock()
+            upstream = await client.send(client.build_request('POST', BACKEND+'/v1/chat/completions', json=wire_data), stream=True)
+            timing.record['upstreamHeadersMs'] = round((_timing_clock()-dispatch_start)*1000, 3)
+            timing.record['upstreamStatus'] = upstream.status_code
+
+        if not (long and incoming_stream):
+            await dispatch()
+            if upstream.status_code != 200 or (not long and not incoming_stream):
+                body = await upstream.aread()
+                timing.record['bodyConsumed'] = True
+                return JSONResponse(json.loads(body), status_code=upstream.status_code, headers={'X-DSH-Request-ID': rid})
 
         async def stream():
             iterator = upstream.aiter_raw().__aiter__()
@@ -313,6 +322,46 @@ async def completion(request: Request):
                     'message': 'Long-context cache handoff failed; request stopped without full-prefill fallback.'}}).encode()+b'\n\n'
             finally:
                 await asyncio.shield(cleanup())
+        if long and incoming_stream:
+            async def prepared_stream():
+                # Start HTTP streaming before admission/preparation. Otherwise an
+                # upstream proxy can remain blocked awaiting response headers
+                # after the end user cancels, retaining the long-request lease.
+                async def ready():
+                    await prepare()
+                    await dispatch()
+                task = asyncio.create_task(ready())
+                try:
+                    yield b': dsh-long-request-pending\n\n'
+                    while not task.done():
+                        done, _ = await asyncio.wait({task}, timeout=5)
+                        if not done:
+                            yield b': dsh-long-request-pending\n\n'
+                    await task
+                    if upstream.status_code != 200:
+                        yield b'data: '+json.dumps({'error': {'code': 'context_upstream_failed',
+                            'message': 'Long-context upstream request failed.'}}).encode()+b'\n\n'
+                        return
+                    async for chunk in stream():
+                        yield chunk
+                except HTTPException as exc:
+                    yield b'data: '+json.dumps({'error': {'code': 'context_admission_failed',
+                        'status': exc.status_code, 'message': str(exc.detail)}}).encode()+b'\n\n'
+                except asyncio.CancelledError:
+                    raise
+                except Exception:
+                    yield b'data: '+json.dumps({'error': {'code': 'context_preparation_failed',
+                        'message': 'Long-context preparation stopped.'}}).encode()+b'\n\n'
+                finally:
+                    if not task.done():
+                        task.cancel()
+                        with contextlib.suppress(asyncio.CancelledError):
+                            await task
+                    await asyncio.shield(cleanup())
+            handed_off = True
+            return StreamingResponse(prepared_stream(), media_type='text/event-stream',
+                headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no', 'X-DSH-Request-ID': rid},
+                background=BackgroundTask(cleanup))
         if not incoming_stream:
             async def collect():
                 packets = []

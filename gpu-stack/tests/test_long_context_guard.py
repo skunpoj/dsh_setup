@@ -1,5 +1,3 @@
-import os
-os.environ.setdefault('DSH_TOKENIZER_URL','http://local-model.ai-workspace.svc.cluster.local:8000/v1/tokenize')
 import asyncio
 import json
 import os
@@ -28,6 +26,7 @@ def load_guard(lease_directory):
                'litellm.integrations.custom_logger': logger}
     if os.name == 'nt':
         modules['fcntl'] = types.SimpleNamespace()
+    os.environ.setdefault('DSH_TOKENIZER_URL', 'http://inference.invalid/v1/tokenize')
     scope = {}
     with patch.dict(sys.modules, modules):
         exec((Path(__file__).parents[1]/'runtime/long_context_callbacks.py').read_text(encoding='utf-8').replace('/tmp/dsh-long-admission', lease_directory), scope)
@@ -70,10 +69,18 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(Rejected):
             await self.request(input='unrecognized')
 
-    async def test_unrelated_model_fails_closed_without_fallback(self):
-        with self.assertRaises(Rejected) as error:
-            await self.request(model='unrelated-model', max_tokens=65536)
-        self.assertEqual(error.exception.status_code, 400)
+    async def test_unrelated_model_retains_the_existing_guard(self):
+        calls = []
+        class Legacy:
+            async def async_pre_call_hook(self, user, cache, data, call_type):
+                calls.append(data['model'])
+                return {**data, 'max_tokens': 8192}
+        legacy = types.ModuleType('custom_callbacks')
+        legacy.proxy_handler_instance = Legacy()
+        with patch.dict(sys.modules, {'custom_callbacks': legacy}):
+            result = await self.request(model='unrelated-model', max_tokens=65536)
+        self.assertEqual(calls, ['unrelated-model'])
+        self.assertEqual(result['max_tokens'], 8192)
 
     async def test_warming_yields_between_bounded_prefix_extensions(self):
         guard = self.scope['LongContextGuard']()
@@ -167,6 +174,58 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
         result = await guard.warm([0]*2048)
         self.assertEqual(calls, ['foreground', 1024, 'foreground', 2048])
         self.assertEqual(result['foregroundYieldSeconds'], .5)
+
+    @unittest.skipIf(os.name == 'nt', 'POSIX process-shared lease')
+    async def test_bounded_queue_waits_once_and_excess_is_rejected_immediately(self):
+        await self.guard.acquire('active')
+        waiting = asyncio.create_task(self.guard.acquire('waiting', wait_seconds=1500))
+        await asyncio.sleep(.02)
+        self.assertEqual(self.guard.waiters, ['waiting'])
+        with self.assertRaises(Rejected) as caught:
+            await self.guard.acquire('excess', wait_seconds=1500)
+        self.assertEqual(caught.exception.status_code, 429)
+        self.guard.release({'metadata': {'dsh_long_lease': 'active'}})
+        result = await asyncio.wait_for(waiting, 1)
+        self.assertEqual(result, {'queued': True, 'waitBudgetSeconds': 1500})
+        self.guard.release({'metadata': {'dsh_long_lease': 'waiting'}})
+        self.assertEqual(self.guard.waiters, [])
+
+    @unittest.skipIf(os.name == 'nt', 'POSIX process-shared lease')
+    async def test_waiter_cancellation_preserves_active_owner_and_frees_queue(self):
+        await self.guard.acquire('active')
+        waiting = asyncio.create_task(self.guard.acquire('cancelled', wait_seconds=1500))
+        await asyncio.sleep(.02)
+        waiting.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await waiting
+        self.assertEqual(self.guard.waiters, [])
+        self.assertEqual(list(self.guard.leases), ['active'])
+        self.guard.release({'metadata': {'dsh_long_lease': 'active'}})
+        await asyncio.wait_for(self.guard.acquire('next'), 1)
+        self.guard.release({'metadata': {'dsh_long_lease': 'next'}})
+
+    @unittest.skipIf(os.name == 'nt', 'POSIX process-shared lease')
+    async def test_queue_timeout_removes_waiter_without_unlocking_active_request(self):
+        await self.guard.acquire('active')
+        with self.assertRaises(Rejected):
+            await self.guard.acquire('expired', wait_seconds=.01)
+        self.assertEqual(self.guard.waiters, [])
+        self.assertEqual(list(self.guard.leases), ['active'])
+        self.guard.release({'metadata': {'dsh_long_lease': 'active'}})
+
+    @unittest.skipIf(os.name == 'nt', 'POSIX process-shared lease')
+    async def test_fifo_waiters_cannot_be_overtaken(self):
+        await self.guard.acquire('active')
+        first = asyncio.create_task(self.guard.acquire('first', max_waiters=2))
+        await asyncio.sleep(.02)
+        second = asyncio.create_task(self.guard.acquire('second', max_waiters=2))
+        await asyncio.sleep(.02)
+        self.guard.release({'metadata': {'dsh_long_lease': 'active'}})
+        await asyncio.wait_for(first, 1)
+        self.assertFalse(second.done())
+        self.guard.release({'metadata': {'dsh_long_lease': 'first'}})
+        await asyncio.wait_for(second, 1)
+        self.guard.release({'metadata': {'dsh_long_lease': 'second'}})
 
 
 if __name__ == '__main__':

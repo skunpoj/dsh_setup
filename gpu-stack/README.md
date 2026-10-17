@@ -60,3 +60,8 @@ The new bundle is sanitized. Existing repository documentation/history contains 
 ## CI activation
 
 `ci-example.yml` is a reviewed GitHub Actions example, not an active workflow. The publishing token cannot create/update workflow files, so an authorized repository maintainer must copy it to `.github/workflows/portable-gpu.yml` to enable automatic checks. The Linux qualification was run directly; publishing this example does not claim hosted CI passed. It runs the guard/manifest/privacy checks and rejects canonical forwarding-source drift.
+
+
+## Bounded long admission and cancellation
+
+The final-wire route admits one long request and one FIFO waiter (up to 1,500 seconds); excess long waiters receive an immediate capacity error. Ordinary requests bypass that lock. Streaming clients receive content-free SSE comments during waiting/preparation, so cancellation can propagate before model output. A single inference replica/process is required; this is not a distributed admission queue. The legacy callback default remains 300 seconds. See [actual DSH acceptance](../docs/ADMISSION_RESPONSIVENESS_20261017.html).

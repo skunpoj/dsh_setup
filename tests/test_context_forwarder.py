@@ -12,6 +12,7 @@ from unittest.mock import patch
 class Rejected(Exception):
     def __init__(self, status_code, detail):
         self.status_code = status_code
+        self.detail = detail
         super().__init__(detail)
 
 
@@ -44,8 +45,9 @@ class Background:
 class FakeGuard:
     def __init__(self):
         self.active = False
-    async def acquire(self, key):
+    async def acquire(self, key, **kwargs):
         self.active = True
+        return {'queued': False, **kwargs}
     async def warm(self, ids):
         return {'steps': 2}
     def release(self, data):
@@ -122,18 +124,18 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_final_wire_normalization_stream_and_lease_lifetime(self):
         response = await self.scope['completion'](self.request())
-        self.assertTrue(self.scope['guard'].active)
+        self.assertFalse(self.scope['guard'].active)
+        content = b''.join([b async for b in response.body_iterator])
         self.assertEqual(self.sent[0]['max_tokens'], 8192)
         self.assertIs(self.sent[0]['tools'][0]['function']['strict'], False)
         self.assertNotEqual(self.sent[0]['rid'], 'do-not-abort-another-request')
-        content = b''.join([b async for b in response.body_iterator])
         self.assertIn(b'OK', content)
         self.assertFalse(self.scope['guard'].active)
         self.assertEqual(self.aborted, [self.sent[0]['rid']])
 
     async def test_never_consumed_stream_background_still_releases(self):
         response = await self.scope['completion'](self.request())
-        self.assertTrue(self.scope['guard'].active)
+        self.assertFalse(self.scope['guard'].active)
         await response.background()
         self.assertFalse(self.scope['guard'].active)
 
@@ -156,6 +158,8 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
             tools=[{'type': 'function', 'function': {'name': 'example',
                 'strict': None, 'parameters': {'type': 'object',
                     'properties': {'label': {'type': 'string'}}}}}]))
+        content = b''.join([b async for b in response.body_iterator])
+        self.assertIn(b'OK', content)
         for field in ('model', 'messages', 'tools', 'tool_choice',
                       'reasoning_effort', 'chat_template_kwargs', 'continue_final_message'):
             self.assertEqual(counted[0][field], self.sent[0][field], field)
@@ -168,6 +172,8 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         response = await self.scope['completion'](self.request(
             continue_final_message=True,
             tools=[{'type': 'function', 'function': {'name': 'example', 'strict': True}}]))
+        content = b''.join([b async for b in response.body_iterator])
+        self.assertIn(b'OK', content)
         self.assertTrue(self.sent[0]['continue_final_message'])
         self.assertTrue(self.sent[0]['tools'][0]['function']['strict'])
         await response.background()
@@ -220,15 +226,42 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 cancelled.append(True)
         self.scope['guard'].warm = warm
-        request = self.request()
-        async def disconnected():
-            return True
-        request.is_disconnected = disconnected
-        with self.assertRaises(Rejected) as caught:
-            await self.scope['completion'](request)
-        self.assertEqual(caught.exception.status_code, 499)
+        response = await self.scope['completion'](self.request())
+        iterator = response.body_iterator
+        pending = await anext(iterator)
+        self.assertTrue(pending.startswith(b':'))
+        await asyncio.sleep(.01)
+        self.assertTrue(self.scope['guard'].active)
+        await iterator.aclose()
         self.assertTrue(cancelled)
         self.assertFalse(self.scope['guard'].active)
+        self.assertEqual(self.sent, [])
+
+    async def test_cancelled_waiting_stream_cancels_admission_without_dispatch(self):
+        cancelled = []
+        async def waiting(key, **kwargs):
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cancelled.append(True)
+        self.scope['guard'].acquire = waiting
+        response = await self.scope['completion'](self.request())
+        iterator = response.body_iterator
+        self.assertTrue((await anext(iterator)).startswith(b':'))
+        await asyncio.sleep(.01)
+        await iterator.aclose()
+        self.assertTrue(cancelled)
+        self.assertEqual(self.sent, [])
+        self.assertFalse(self.scope['guard'].active)
+
+    async def test_streaming_queue_full_reports_error_without_model_dispatch(self):
+        async def full(key, **kwargs):
+            raise Rejected(429, 'Long-context waiting queue full; retry later.')
+        self.scope['guard'].acquire = full
+        response = await self.scope['completion'](self.request())
+        content = b''.join([b async for b in response.body_iterator])
+        self.assertIn(b'context_admission_failed', content)
+        self.assertIn(b'429', content)
         self.assertEqual(self.sent, [])
 
 

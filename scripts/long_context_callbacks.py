@@ -100,6 +100,7 @@ class LongContextGuard(CustomLogger):
     def __init__(self):
         super().__init__()
         self.leases = {}
+        self.waiters = []
 
     async def warm(self, ids):
         """Finish small cached-prefill requests so cold DSH requests get turns.
@@ -147,24 +148,50 @@ class LongContextGuard(CustomLogger):
                 'mode': 'chunked-prefix-warming', 'probeSeconds': CACHE_PROBE_SECONDS,
                 'foregroundYieldSeconds': round(yielded_seconds, 3)}
 
-    async def acquire(self, key):
+    async def acquire(self, key, wait_seconds=300, max_waiters=1):
+        """One active long request plus a bounded FIFO waiting lane.
+
+        Waiting does not occupy the ordinary-request lane or GPU. The final
+        forwarding route supplies a longer budget within its client deadline;
+        legacy callers retain their existing five-minute budget.
+        """
         os.makedirs('/tmp/dsh-long-admission', mode=0o700, exist_ok=True)
         fd = os.open('/tmp/dsh-long-admission/active.lock', os.O_CREAT | os.O_RDWR, 0o600)
+        transferred = False
+        queued = False
         try:
-            deadline = time.monotonic() + 300
-            while True:
+            if not self.waiters:
                 try:
                     fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     self.leases[key] = fd
-                    return
+                    transferred = True
+                    return {'queued': False, 'waitBudgetSeconds': wait_seconds}
                 except BlockingIOError:
-                    if time.monotonic() >= deadline:
-                        raise HTTPException(429, 'Long-context capacity busy; retry later.',
-                            headers={'Retry-After': '30'})
-                    await asyncio.sleep(.1)
-        except BaseException:
-            os.close(fd)
-            raise
+                    pass
+            if len(self.waiters) >= max_waiters:
+                raise HTTPException(429, 'Long-context waiting queue full; retry later.',
+                                    headers={'Retry-After': '30'})
+            self.waiters.append(key)
+            queued = True
+            deadline = time.monotonic() + wait_seconds
+            while True:
+                if self.waiters[0] == key:
+                    try:
+                        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        self.leases[key] = fd
+                        transferred = True
+                        return {'queued': True, 'waitBudgetSeconds': wait_seconds}
+                    except BlockingIOError:
+                        pass
+                if time.monotonic() >= deadline:
+                    raise HTTPException(429, 'Long-context capacity busy; retry later.',
+                                        headers={'Retry-After': '30'})
+                await asyncio.sleep(.1)
+        finally:
+            if queued:
+                self.waiters.remove(key)
+            if not transferred:
+                os.close(fd)
 
     def release(self, data):
         if not isinstance(data, dict):

@@ -1,5 +1,18 @@
 # Shared LLM — 1M Setup, Performance and Operational Limits
 
+## Latest admission and cancellation correction
+
+The controlled occupied-slot retest passed: **1,007,704 input tokens**, **119 output tokens**, the full correct 1–40 answer and persisted prompt, with **0 retries**. Total DSH time was **1551.75 seconds**, including **315.74 seconds waiting for admission** and **1226.79 seconds preparing context**. The answer streamed in **3.53 seconds**, approximately **33.42 output tokens/second**. This rate excludes queueing and preparation.
+
+**46/46 overlapping ordinary DSH replies** were exact with zero retries, taking **4.05–9.12 seconds** (median 5.59). A third long nonstreaming request to the loopback final-wire guard received HTTP 429 in **0.34 seconds** while the active and waiting positions were occupied. Of these, 38 probes started after the hold released, during the real long-request work; that subset took 5.07–9.12 seconds. The intentional 320-second hold is test overhead, not a GPU throughput measurement.
+
+Actual DSH cancellation of a 147,674-token active request freed admission in **1.48 seconds after cancellation**. A separate 147,673-token waiting request was cancelled and cleaned up while the main near1M request retained its own lease. The GPU pod identity/image stayed unchanged with **zero restarts**. CUDA allocator memory-mapping OOM warnings were observed near the final prefix steps, but the request completed and ordinary replies continued. This verifies the recorded admission/cancellation case, not additional GPU memory headroom or two full-1M requests. Mounted middleware bytes match the tested source. All **68 targeted Linux tests** and **42 portable-bundle tests** passed without skips.
+
+[Sanitized measurement record](context-evidence/admission-responsiveness-20261017.json). Earlier retry-bearing and invalid-fixture records remain preserved; this result does not retroactively make them passes.
+
+See [admission design and test](ADMISSION_RESPONSIVENESS_20261017.html). Streaming preparation now returns early SSE comments; cancellation no longer has to wait for response headers. One long request may wait up to 1,500 seconds in a bounded FIFO position; ordinary requests bypass long admission. This final-wire route supersedes the earlier 300-second waiting policy recorded below. Legacy callback defaults remain unchanged.
+
+
 ## Complete application redeployment and current-source mixed test
 
 The [deployment, preservation and functional review](DEPLOYMENT_AND_FUNCTION_REVIEW_20261017.html) covers the subsequent sequential replacement of all twenty main runtimes, both legacy instances, the gateway and resolver. It records original-file/history checks, private isolation, all-worker networking, actual client replies, offline dependency installation and complete HTML rendering checks. The main runtime checks verified 31,897 files and 10,257,934,187 original bytes with no content failures; the original owner's 80 histories and admin's independent 83 histories remain separate.
@@ -262,7 +275,7 @@ Transport, tool continuation, compaction and restart/persistence checks are desc
 | DSH transport | Provider timeout and stream-idle settings 3,600,000 ms; effective transport acceptance tested separately |
 | LiteLLM | Pinned digest `4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f`; existing inference keys and Secret references preserved |
 | Final request budget | Exact backend tokenizer includes messages, tools and template options; input + output + 256 reserve must fit 1,048,576 |
-| Long-request admission | One request above 128K at a time in one gateway replica; wait up to 300 seconds, then retryable 429; no Router rate-limit retries for the two guarded model groups |
+| Long-request admission | One request above 128K at a time in one gateway replica; one FIFO waiting position up to 1,500 seconds; excess waiters refused immediately; no Router rate-limit retries for the two guarded model groups |
 | Ordinary requests | Bypass the long-request lease and remain concurrent; queueing and slower output remain possible |
 | SGLang | Image digest `4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860`; model snapshot `dba1be0a40aa45a94ad051997016db3960a90277` |
 | Backend scheduling | Context 1M, static memory 0.90, running cap 16, chunk 1,024, maximum prefill 2,048, decode interval four, V2 fairness + V3 single-chunk-owner guard |
