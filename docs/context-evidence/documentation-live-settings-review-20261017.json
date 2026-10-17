@@ -1,0 +1,1015 @@
+{
+  "timeUTC": "2026-10-17T03:24:46.613463+00:00",
+  "scope": "Fresh read-only settings verification; previous tests checked from saved records, not rerun",
+  "profiles": [
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-internet",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-secure",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-156540115183048a-internet",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-156540115183048a-secure",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-8c6976e5b5410415-internet",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-8c6976e5b5410415-secure",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    },
+    {
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "context": 1048576,
+          "output": 8192
+        },
+        {
+          "id": "deepseek-flash",
+          "context": 1048576,
+          "output": 8192
+        }
+      ],
+      "compaction": [
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-v4.1-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        },
+        {
+          "provider": "litellm-cluster",
+          "model": "deepseek-flash",
+          "thresholdRatio": 0.875,
+          "headroomTokens": 65536,
+          "maxTokens": 8192
+        }
+      ],
+      "timeoutMs": 3600000,
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "ready": 1,
+      "image": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6"
+    }
+  ],
+  "gateway": {
+    "replicas": 1,
+    "strategy": "Recreate",
+    "configMap": "litellm-admission-1449d03a3db7",
+    "retryPolicies": {
+      "deepseek-flash": {
+        "RateLimitErrorRetries": 0
+      },
+      "deepseek-v4.1-flash": {
+        "RateLimitErrorRetries": 0
+      }
+    },
+    "sourceHashes": {
+      "context_forwarder.py": "cec22210d419e75e74e326c73cde4c7e380a10b217a0eefa375334987d482b71",
+      "context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
+      "long_context_callbacks.py": "af3108c4340a53d7656c2749958aea19bbeeab145ff2d8958e87222708b67563"
+    },
+    "sourceMatches": true
+  },
+  "model": {
+    "arguments": [
+      "--model-path",
+      "/models/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+      "--served-model-name",
+      "deepseek-ai/DeepSeek-V4.1-Flash,deepseek-v4.1-flash,deepseek-v4-flash,deepseek",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--tp-size",
+      "4",
+      "--moe-runner-backend",
+      "marlin",
+      "--trust-remote-code",
+      "--mem-fraction-static",
+      "0.90",
+      "--max-running-requests",
+      "16",
+      "--chunked-prefill-size",
+      "1024",
+      "--max-prefill-tokens",
+      "2048",
+      "--swa-prefix-tails",
+      "0",
+      "--context-length",
+      "1048576",
+      "--reasoning-parser",
+      "deepseek-v41",
+      "--tool-call-parser",
+      "deepseekv41",
+      "--enable-mixed-chunk",
+      "--enable-metrics",
+      "--prefill-decode-interval",
+      "4"
+    ],
+    "image": "lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+    "ready": 1
+  },
+  "runningPods": [
+    {
+      "name": "dsh-internet-7cb9c87777-gfrsg",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-secure-55d4ddbf85-jbqj2",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-120fc75e04cf8e5f-internet-78877b5f79-vjsvk",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-120fc75e04cf8e5f-secure-74d57c5cdb-wrljf",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-156540115183048a-internet-588c95b449-k9fhp",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-156540115183048a-secure-87ff7955c-b4dr2",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-26ae784d194a5760-internet-7b5b568f4f-2j2tq",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-26ae784d194a5760-secure-5c544fbdf4-kqqnc",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-8205c7f83822ea35-internet-645f684967-sbvvr",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-8205c7f83822ea35-secure-7bf5cc5b59-924zt",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-8a2539e2b69d9daf-internet-7d95fdf9cd-s5xzk",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-8a2539e2b69d9daf-secure-854787fdfb-vdx89",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-8c6976e5b5410415-internet-57874d6b77-wj6n6",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-8c6976e5b5410415-secure-68d6d97597-pfzwd",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-ae5deb822e0d7199-internet-7bfd996974-88sg7",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-ae5deb822e0d7199-secure-869d5bffb9-t8n25",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-ca8b22d0db83a22d-internet-6895554bc-l27hb",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-ca8b22d0db83a22d-secure-867b7fd4c7-k598x",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-d0b55cb0730a08ac-internet-8584fdb488-nngfv",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "dsh-u-d0b55cb0730a08ac-secure-874698765-g79vn",
+      "containers": [
+        {
+          "name": "dsh",
+          "imageID": "dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "litellm-9dd7f5f46-7vb7s",
+      "containers": [
+        {
+          "name": "context-forwarder",
+          "imageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+          "ready": true,
+          "restartCount": 0
+        },
+        {
+          "name": "litellm",
+          "imageID": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    },
+    {
+      "name": "litellm-postgres-7c99d8f478-p5dlf",
+      "containers": [
+        {
+          "name": "postgres",
+          "imageID": "docker.io/library/postgres@sha256:f8e2cc2a36ddb8700e639570f0bc70d0c1495951ba61df903a015dc87db07d02",
+          "ready": true,
+          "restartCount": 8
+        }
+      ]
+    },
+    {
+      "name": "vllm-deepseek-v4-1-flash-549874d7b-9496n",
+      "containers": [
+        {
+          "name": "vllm",
+          "imageID": "docker.io/lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+          "ready": true,
+          "restartCount": 0
+        }
+      ]
+    }
+  ],
+  "authenticatedInference": {
+    "exact": true,
+    "seconds": 1.1751,
+    "usage": {
+      "completion_tokens": 5,
+      "prompt_tokens": 11,
+      "total_tokens": 16
+    }
+  },
+  "finishedUTC": "2026-10-17T03:25:09.052139+00:00"
+}

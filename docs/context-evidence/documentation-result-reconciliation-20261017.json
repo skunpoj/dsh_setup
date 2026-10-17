@@ -1,0 +1,42 @@
+{
+  "timeUTC": "2026-10-17T03:25:56.531457+00:00",
+  "scope": "Reconciled current numerical LLM settings, cited stress campaign counts, progressive exact/persisted results, and latest failed raw-narrative acceptance; no new load test",
+  "liveProfileCount": 20,
+  "runningImagesMatch": true,
+  "schedulerAndGatewayPoliciesMatch": true,
+  "stressCampaigns": [
+    {
+      "file": "inference-stress-20261016-live.json",
+      "status": "passed",
+      "stages": 18,
+      "exactReplies": 105
+    },
+    {
+      "file": "inference-stress-1m-final-route-20261016.json",
+      "status": "passed",
+      "stages": 18,
+      "exactReplies": 105
+    },
+    {
+      "file": "inference-stress-current-image-retest-20261016.json",
+      "status": "passed",
+      "stages": 18,
+      "exactReplies": 105
+    },
+    {
+      "file": "inference-stress-after-admission-fix-20261016.json",
+      "status": "interrupted",
+      "stages": 15,
+      "exactReplies": 93
+    },
+    {
+      "file": "inference-mixed-after-admission-fix-20261016.json",
+      "status": "passed",
+      "stages": 3,
+      "exactReplies": 12
+    }
+  ],
+  "progressiveSummaryMatchesRawEvents": true,
+  "rawNarrativeAcceptance": false,
+  "localLinksValid": true
+}
