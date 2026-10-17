@@ -1,0 +1,9 @@
+{
+  "registrySurvivedRestart": true,
+  "explicitWorkspacePolicyPresent": true,
+  "sessionFingerprint": {
+    "files": 4,
+    "sha256": "43a568b5b9fb232615a66f0847f67e84ed9301a7fc31d5640807bc0bd6a86f72"
+  },
+  "sessionsMatchPreRestartRepair": true
+}

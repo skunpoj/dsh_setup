@@ -64,6 +64,10 @@ Open [Admin overview](https://dsh.aiportal.bot.or.th/admin) as existing `admin`,
 
 The dashboard combines live gateway counts/routing/audit with a timestamped infrastructure snapshot; Refresh does not run infrastructure probes. Audit fields are time/event/user/environment, without passwords, tickets, prompts or conversation text. Rotation retains archives; capacity exhaustion refuses new runtime/login access until approved archival. It is not a complete command transcript or tamper-proof SIEM. The gateway has no Kubernetes API token. DSH2/DSH3 each project recent sanitized access events every 30 seconds into their own central audit folder; the dashboard shows projection age. Those projections are a bounded operational view, not the full source archive or a terminal-command ledger.
 
+## First-use workspace creation
+
+The container has no desktop `xdg-user-dir` utility. The web workspace controller must use `documentsDirectory: /workspace`, keeping automatic new-user files under `/workspace/deepseek-harness/default-workspace`. Existing private registries and histories are retained. Empty main-runtime registries were repaired through DSH's workspace API by registering their already-private `/workspace`, without moving files or restarting other users. The admin No Internet runtime was reloaded and its registry persisted. Seed and startup configuration now enforce the explicit path in future runtime images; those image changes still require the normal image-build rollout. [Cause, fix and acceptance](docs/WORKSPACE_INITIALIZATION_REPAIR_20261017.md).
+
 ## Setup, changes and rollback
 
 1. Build/test via Azure pipeline, pin an immutable runtime digest and test it in a disposable namespace. Build 62743 uses source `4b90c846ead7098433173a18046105b179744737`, image `dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6`. All 18 runtime replacements and final gateway access checks passed; see [actual live acceptance](docs/context-evidence/kerberos-runtime-live-62743.json). Build success alone is not Production acceptance.

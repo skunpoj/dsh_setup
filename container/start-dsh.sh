@@ -36,12 +36,13 @@ chmod 0700 /state/kerberos
 export KRB5CCNAME="${KRB5CCNAME:-FILE:/state/kerberos/ccache}"
 rm -rf "${DSH_HOME:-$HOME/.dsh}"
 ln -s /state "${DSH_HOME:-$HOME/.dsh}"
-if [ ! -f /state/settings.yaml ]; then
+if [ ! -f /state/profiles/web/cordis.patch.yml ]; then
   cp -R --no-preserve=ownership,timestamps,mode /opt/dsh/seed/dsh-home/. /state/
 fi
 if [ -f /state/.credentials.yaml ]; then
   chmod 0600 /state/.credentials.yaml
 fi
+node /opt/dsh/scripts/configure_workspace_policy.js /state
 if [ -n "${DSH_CONTEXT_TOKENS:-}" ]; then
   node /opt/dsh/scripts/configure_runtime_context.js /state "$DSH_CONTEXT_TOKENS"
 fi

@@ -1,0 +1,123 @@
+{
+  "scope": "Private main workspace registration only; no model request, file migration or other-user runtime restart",
+  "results": [
+    {
+      "runtime": "dsh-internet",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-secure",
+      "existingRegistryPreserved": true,
+      "workspaceCount": 11
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-internet",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-120fc75e04cf8e5f-secure",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-internet",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-156540115183048a-secure",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-internet",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-26ae784d194a5760-secure",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-internet",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-8205c7f83822ea35-secure",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-internet",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-8a2539e2b69d9daf-secure",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-internet",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-8c6976e5b5410415-secure",
+      "existingRegistryPreserved": true,
+      "workspaceCount": 1
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-internet",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-ae5deb822e0d7199-secure",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-internet",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-ca8b22d0db83a22d-secure",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-internet",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    },
+    {
+      "runtime": "dsh-u-d0b55cb0730a08ac-secure",
+      "emptyRegistryRepaired": true,
+      "path": "/workspace",
+      "persistedRegistryCount": 1
+    }
+  ]
+}

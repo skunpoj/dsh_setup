@@ -1,0 +1,7 @@
+{
+  "actualAdminRuntimeBrowser": true,
+  "noDefaultWorkspaceFailureToast": true,
+  "registeredWorkspaceRendered": true,
+  "composerFields": 1,
+  "scope": "Fresh operator browser via local port forward; not the user existing browser session"
+}
