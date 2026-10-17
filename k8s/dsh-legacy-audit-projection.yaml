@@ -1,0 +1,33 @@
+# Collector source only. Runs beside each protected legacy authentication service; no standalone duplicate-XFS mount.
+apiVersion: v1
+kind: ConfigMap
+immutable: true
+metadata:
+  name: dsh-legacy-audit-74cd8ecf8c49
+  namespace: llm
+data:
+  collector.py: "\"\"\"Bounded central projection of legacy access events, never account\
+    \ files.\n\nMount only each protected audit subdirectory read-only. Full source\
+    \ archives\nremain at source; this is a recent-event view, not an immutable command\
+    \ ledger.\n\"\"\"\nimport json\nimport os\nfrom pathlib import Path\nimport re\n\
+    import uuid\nfrom datetime import datetime, timezone\n\nEVENTS = {'login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket'}\n\
+    \n\ndef project(directory, label):\n    rows=[]\n    for file in sorted(Path(directory).glob('events*.jsonl')):\n\
+    \        if file.is_symlink() or not file.is_file(): continue\n        with file.open('rb')\
+    \ as stream:\n            size=file.stat().st_size;start=max(0,size-1048576);stream.seek(start)\n\
+    \            if start:stream.readline()\n            text=stream.read(1048576).decode('utf-8',errors='replace')\n\
+    \        for line in text.splitlines():\n            try:\n                v=json.loads(line)\n\
+    \                if v.get('event') not in EVENTS or not re.fullmatch(r'[A-Za-z0-9_.-]{1,30}',v.get('user','')):continue\n\
+    \                stamp=datetime.fromisoformat(v['time'].replace('Z','+00:00'))\n\
+    \                if stamp.tzinfo is None:continue\n                rows.append({'time':stamp.astimezone(timezone.utc).isoformat(),'event':v['event'],\n\
+    \                             'user':v['user'],'environment':label+'/internet'})\n\
+    \            except (ValueError,TypeError,KeyError,AttributeError):continue\n\
+    \    unique={json.dumps(v,sort_keys=True):v for v in rows}\n    return sorted(unique.values(),key=lambda\
+    \ v:v['time'])[-1000:]\n\n\ndef atomic(file, text):\n    temporary=file.with_name(file.name+'.tmp-'+uuid.uuid4().hex)\n\
+    \    with temporary.open('w',encoding='utf-8') as stream:\n        os.chmod(temporary,0o600);stream.write(text);stream.flush();os.fsync(stream.fileno())\n\
+    \    temporary.replace(file)\n\n\ndef main():\n    output=Path(os.environ.get('DSH_AUDIT_OUTPUT','/output'));output.mkdir(exist_ok=True)\n\
+    \    status={'observedAt':datetime.now(timezone.utc).isoformat(),'instances':[],'scope':'Recent\
+    \ protected access events; no command bodies or account credentials'}\n    for\
+    \ label in ['legacy-dsh2','legacy-dsh3']:\n        rows=project('/sources/'+label,label)\n\
+    \        atomic(output/(label+'.jsonl'),''.join(json.dumps(v)+'\\n' for v in rows))\n\
+    \        status['instances'].append({'name':label,'events':len(rows)})\n    atomic(output/'status.json',json.dumps(status,indent=2)+'\\\
+    n')\n    print(json.dumps(status))\n\n\nif __name__=='__main__':main()\n"

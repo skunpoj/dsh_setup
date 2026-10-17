@@ -28,7 +28,7 @@ try {
  assert(!/[\u0e00-\u0e7f]/.test(narrative),'Risk report narrative must be English');
  assert.equal(await page.locator('#embedded-readme, #embedded-llm-guide').count(),0,'General setup guides must remain outside the three-risk report');
  assert.equal(await page.getByRole('heading',{name:'Current implementation and remaining gaps',exact:true}).count(),3,'Each risk must distinguish deployed controls from remaining gaps');
- for(const boundary of ['remote Livy/Spark execution','local recoverable-password store','existing AD/datalake permissions','DSH2/DSH3','accepted exception']) {
+ for(const boundary of ['remote Livy/Spark execution','salted scrypt password records','existing AD/datalake permissions','DSH2/DSH3','accepted exception']) {
   assert(narrative.includes(boundary),`Missing risk boundary: ${boundary}`);
  }
 
@@ -39,6 +39,7 @@ try {
  await page.waitForTimeout(1200);
  assert.equal(await page.locator('.mermaid-container svg').count(),3);
  assert.equal(await page.locator('script[src]').count(),0);
+ assert(!narrative.includes('Built from tracked Markdown'),'Build credits must not appear in the risk narrative');
  assert.deepEqual(external,[]);
  const panel=page.locator('.mermaid-wrapper').first();
  const zoom=()=>page.evaluate(()=>mermaidPanZoomInstances.get(document.querySelector('.mermaid-container')).getZoom());

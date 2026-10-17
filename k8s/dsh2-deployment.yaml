@@ -1,311 +1,379 @@
+# Existing-install acceptance snapshot. Provision referenced protected Secrets/PVCs and immutable sources first; see the hardening guide.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dsh-user2
   namespace: llm
-  labels:
-    app: dsh-user2
 spec:
+  progressDeadlineSeconds: 600
   replicas: 1
-  strategy:
-    type: Recreate
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: dsh-user2
+  strategy:
+    type: Recreate
   template:
     metadata:
+      annotations:
+        dsh.bot.or.th/auth-source-sha256: 6676689baf5e84ba5ae1c5c473a472dd63c0a955e7b335224d3428c2e185f9cc
+        kubectl.kubernetes.io/restartedAt: '2026-10-15T08:22:03+07:00'
+      creationTimestamp: null
       labels:
         app: dsh-user2
     spec:
-      terminationGracePeriodSeconds: 60
+      automountServiceAccountToken: false
       containers:
-      - name: dsh
-        image: ubuntu:24.04
-        imagePullPolicy: IfNotPresent
-        command:
-        - /bin/bash
-        - -c
-        - |
-          export DEBIAN_FRONTEND=noninteractive
-
-          # Shutdown trap to ensure zero-loss synchronous flush to local storage on SIGTERM/SIGINT
-          cleanup() {
-            echo "[SHUTDOWN-TRAP] Received termination signal, syncing sessions and storage..."
-            if [ -d /root/.dsh/sessions ] && [ -w /workspace/dsh_storage ]; then
-              mkdir -p /workspace/dsh_storage/sessions 2>/dev/null || true
-              cp -ru /root/.dsh/sessions/. /workspace/dsh_storage/sessions/ 2>/dev/null || true
-              find /workspace/dsh_storage/sessions -name "session.lock" -delete 2>/dev/null || true
-            fi
-            if [ -d /root/.dsh/storages ] && [ -w /workspace/dsh_storage ]; then
-              mkdir -p /workspace/dsh_storage/storages 2>/dev/null || true
-              cp -ru /root/.dsh/storages/. /workspace/dsh_storage/storages/ 2>/dev/null || true
-            fi
-            if [ -d /root/.dsh/attachments ] && [ -w /workspace/dsh_storage ]; then
-              mkdir -p /workspace/dsh_storage/attachments 2>/dev/null || true
-              cp -ru /root/.dsh/attachments/. /workspace/dsh_storage/attachments/ 2>/dev/null || true
-            fi
-            if [ -f /root/.dsh/.credentials.yaml ] && [ -w /workspace/dsh_storage ]; then
-              cp -u /root/.dsh/.credentials.yaml /workspace/dsh_storage/.credentials.yaml 2>/dev/null || true
-            fi
-            for p in /root/*; do
-              if [ -d "$p" ] && [ ! -L "$p" ]; then
-                base=$(basename "$p")
-                case "$base" in
-                  "workspace"|"users"|"repos"|"npm"|"dsh_setup"|".npm"|".dsh"|".cache")
-                    ;;
-                  *)
-                    if [ -w /workspace/dsh_storage ]; then
-                      mkdir -p "/workspace/dsh_storage/workspaces/$base" 2>/dev/null || true
-                      cp -ru "$p/." "/workspace/dsh_storage/workspaces/$base/" 2>/dev/null || true
-                    fi
-                    ;;
-                esac
-              fi
-            done
-            sync || true
-            echo "[SHUTDOWN-TRAP] Sync complete."
-            exit 0
-          }
-          trap cleanup SIGTERM SIGINT
-
-          echo "Updating apt repositories and installing packages..."
-          apt-get update
-          apt-get install -y --no-install-recommends \
-            git curl bash socat python3 python3-pip python3-venv python-is-python3 \
-            build-essential ca-certificates jq openssl procps
-
-          # Install Node.js 22 LTS if not already present
-          if ! command -v node >/dev/null 2>&1; then
-            echo "Installing Node.js 22 LTS via NodeSource..."
-            curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-            apt-get install -y --no-install-recommends nodejs
-          fi
-
-          # Install ttyd web terminal
-          if ! command -v ttyd >/dev/null 2>&1; then
-            echo "Installing ttyd binary..."
-            curl -fsSL -o /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 && chmod +x /usr/local/bin/ttyd || true
-          fi
-
-          echo "Configuring Git Credentials..."
-          git config --global http.sslVerify false
-          git config --global user.name "DSH User 2"
-          git config --global user.email "user2@bot.or.th"
-
-          # Isolated Local Storage only (Zero DA_WORKSPACE mount)
-          mkdir -p /workspace/users /workspace/repos /workspace/dsh_storage/sessions /workspace/dsh_storage/storages /workspace/dsh_storage/attachments /workspace/dsh_storage/workspaces 2>/dev/null || true
-          ln -s /workspace /root/workspace 2>/dev/null || true
-          ln -s /workspace/users /root/users 2>/dev/null || true
-
-          # Initialize User 2 credentials if absent
-          if [ ! -f /workspace/users/.user_auth.json ]; then
-            echo '{"user2": "User2@Bot2026", "guest": "Guest@Bot2026"}' > /workspace/users/.user_auth.json
-            chmod 600 /workspace/users/.user_auth.json
-          fi
-
-          # Decouple sessions & storages to local rootfs
-          rm -rf /root/.dsh
-          mkdir -p /root/.dsh/sessions /root/.dsh/storages /root/.dsh/attachments
-          if [ -d /workspace/dsh_storage/sessions ]; then
-            cp -ru /workspace/dsh_storage/sessions/. /root/.dsh/sessions/ 2>/dev/null || true
-            find /root/.dsh/sessions -name "session.lock" -delete 2>/dev/null || true
-          fi
-          if [ -d /workspace/dsh_storage/storages ]; then
-            cp -ru /workspace/dsh_storage/storages/. /root/.dsh/storages/ 2>/dev/null || true
-          fi
-          if [ -d /workspace/dsh_storage/attachments ]; then
-            cp -ru /workspace/dsh_storage/attachments/. /root/.dsh/attachments/ 2>/dev/null || true
-          fi
-          if [ -f /workspace/dsh_storage/.credentials.yaml ]; then
-            cp /workspace/dsh_storage/.credentials.yaml /root/.dsh/.credentials.yaml 2>/dev/null || true
-            chmod 600 /root/.dsh/.credentials.yaml 2>/dev/null || true
-          fi
-
-          # Link user workspaces
-          for d in /workspace/dsh_storage/workspaces/*; do
-            if [ -d "$d" ]; then
-              base=$(basename "$d")
-              if [ ! -e "/root/$base" ]; then
-                ln -s "$d" "/root/$base" 2>/dev/null || true
-              fi
-            fi
-          done
-
-          echo "Installing DSH (v4 log format supported)..."
-          npm install -g --ignore-scripts @deepseek-ai/dsh@0.2.0-rc.2
-          ln -sf $(which dsh 2>/dev/null) /usr/local/bin/dsh 2>/dev/null || true
-          ln -sf /usr/lib/node_modules /usr/local/lib/node_modules 2>/dev/null || true
-
-          echo "Configuring cluster LiteLLM models in DSH catalog..."
-          node /scripts/configure_models.js || true
-
-          # Background sync loop for sessions and storage
-          (
-            while true; do
-              sleep 15
-              if [ -f /root/.dsh/.credentials.yaml ] && [ -w /workspace/dsh_storage ]; then
-                cp -u /root/.dsh/.credentials.yaml /workspace/dsh_storage/.credentials.yaml 2>/dev/null || true
-              fi
-              if [ -d /root/.dsh/sessions ] && [ -w /workspace/dsh_storage ]; then
-                mkdir -p /workspace/dsh_storage/sessions 2>/dev/null || true
-                cp -ru /root/.dsh/sessions/. /workspace/dsh_storage/sessions/ 2>/dev/null || true
-                find /workspace/dsh_storage/sessions -name "session.lock" -delete 2>/dev/null || true
-              fi
-              if [ -d /root/.dsh/storages ] && [ -w /workspace/dsh_storage ]; then
-                mkdir -p /workspace/dsh_storage/storages 2>/dev/null || true
-                cp -ru /root/.dsh/storages/. /workspace/dsh_storage/storages/ 2>/dev/null || true
-              fi
-              if [ -d /root/.dsh/attachments ] && [ -w /workspace/dsh_storage ]; then
-                mkdir -p /workspace/dsh_storage/attachments 2>/dev/null || true
-                cp -ru /root/.dsh/attachments/. /workspace/dsh_storage/attachments/ 2>/dev/null || true
-              fi
-              for p in /root/*; do
-                if [ -d "$p" ] && [ ! -L "$p" ]; then
-                  base=$(basename "$p")
-                  case "$base" in
-                    "workspace"|"users"|"repos"|"npm"|"dsh_setup"|".npm"|".dsh"|".cache")
-                      ;;
-                    *)
-                      if [ -w /workspace/dsh_storage ]; then
-                        mkdir -p "/workspace/dsh_storage/workspaces/$base" 2>/dev/null || true
-                        cp -ru "$p/." "/workspace/dsh_storage/workspaces/$base/" 2>/dev/null || true
-                      fi
-                      ;;
-                  esac
-                fi
-              done
-            done
-          ) &
-
-          echo "Starting Enterprise SSO Auth Proxy on port 3080..."
-          AUTH_USER="user2" AUTH_PASS="User2@Bot2026" node /scripts/auth_proxy.js &
-
-          if command -v ttyd >/dev/null 2>&1; then
-            echo "Launching interactive Web Terminal (ttyd) on port 7681 (127.0.0.1)..."
-            nohup ttyd -p 7681 -i 127.0.0.1 -W bash -l > /tmp/ttyd.log 2>&1 &
-          fi
-
-          echo "Launching dsh web UI on port 3081 (127.0.0.1) with token logging..."
-          mkfifo /tmp/dsh_fifo
-          DSH_BIN=$(which dsh 2>/dev/null || ls /usr/bin/dsh /usr/local/bin/dsh 2>/dev/null | head -n1)
-          node --expose-internals "$DSH_BIN" web --port 3081 --no-open --trusted-host dsh2.aiportal.bot.or.th --trusted-host dsh-user2.aiportal.bot.or.th > /tmp/dsh_fifo 2>&1 &
-          DSH_PID=$!
-
-          while read -r line < /tmp/dsh_fifo; do
-            echo "$line"
-            case "$line" in
-              *"token="*)
-                TOKEN=$(echo "$line" | sed -n 's/.*token=\([A-Za-z0-9_-]*\).*/\1/p')
-                if [ -n "$TOKEN" ]; then
-                  echo "$TOKEN" > /tmp/dsh_token.txt
-                  echo "[DSH-LAUNCHER] Captured token: ${TOKEN:0:8}..."
-                fi
-                ;;
-            esac
-          done &
-
-          wait $DSH_PID
+      - command:
+        - bash
+        - /legacy-start/start.sh
         env:
         - name: DSH_PERMISSION_MODE
           value: danger-full-access
-        - name: AUTH_USER
-          value: user2
-        - name: AUTH_PASS
-          value: User2@Bot2026
         - name: DSH_TRUSTED_HOST
           value: dsh2.aiportal.bot.or.th
         - name: DEEPSEEK_BASE_URL
           value: http://litellm.llm.svc.cluster.local:4000/v1
         - name: DEEPSEEK_API_KEY
-          value: sk-9d39851f559a86336c7c45f9cf18867ab24e2faa4ce70702
+          valueFrom:
+            secretKeyRef:
+              key: litellm-api-key
+              name: dsh-inference-legacy-user2
         - name: OPENAI_BASE_URL
           value: http://litellm.llm.svc.cluster.local:4000/v1
         - name: OPENAI_API_KEY
-          value: sk-9d39851f559a86336c7c45f9cf18867ab24e2faa4ce70702
+          valueFrom:
+            secretKeyRef:
+              key: litellm-api-key
+              name: dsh-inference-legacy-user2
         - name: LITELLM_API_BASE
           value: http://litellm.llm.svc.cluster.local:4000/v1
         - name: LITELLM_API_KEY
-          value: sk-9d39851f559a86336c7c45f9cf18867ab24e2faa4ce70702
-        - name: DSH_COOKIE_NAME
-          value: dsh2_auth
-        ports:
-        - containerPort: 3080
-          name: auth-proxy
-        - containerPort: 3081
-          name: dsh-web
-        # Do not publish the pod as a Service endpoint before DSH is listening.
-        startupProbe:
-          exec:
-            command: ["/bin/bash", "-c", "</dev/tcp/127.0.0.1/3081"]
-          periodSeconds: 5
-          timeoutSeconds: 2
-          failureThreshold: 180
-          successThreshold: 1
-        readinessProbe:
-          exec:
-            command: ["/bin/bash", "-c", "</dev/tcp/127.0.0.1/3081"]
-          periodSeconds: 5
-          timeoutSeconds: 2
-          failureThreshold: 3
-          successThreshold: 1
-        resources:
-          requests:
-            cpu: 1000m
-            memory: 2Gi
-          limits:
-            cpu: 4000m
-            memory: 8Gi
+          valueFrom:
+            secretKeyRef:
+              key: litellm-api-key
+              name: dsh-inference-legacy-user2
+        - name: HOME
+          value: /root
+        - name: DSH_HOME
+          value: /root/.dsh
+        - name: DSH_TRUSTED_HOST_ALIASES
+          value: dsh2.aiportal.bot.or.th,dsh-user2.aiportal.bot.or.th
+        - name: KRB5CCNAME
+          value: FILE:/root/.kerberos/ccache
+        image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6
+        imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
             exec:
               command:
               - /bin/bash
               - -c
-              - |
-                echo "[PRE-STOP] Flushing sessions, storages, and attachments..."
-                if [ -d /root/.dsh/sessions ] && [ -w /workspace/dsh_storage ]; then
-                  mkdir -p /workspace/dsh_storage/sessions 2>/dev/null || true
-                  cp -ru /root/.dsh/sessions/. /workspace/dsh_storage/sessions/ 2>/dev/null || true
-                  find /workspace/dsh_storage/sessions -name "session.lock" -delete 2>/dev/null || true
-                fi
-                if [ -d /root/.dsh/storages ] && [ -w /workspace/dsh_storage ]; then
-                  mkdir -p /workspace/dsh_storage/storages 2>/dev/null || true
-                  cp -ru /root/.dsh/storages/. /workspace/dsh_storage/storages/ 2>/dev/null || true
-                fi
-                if [ -d /root/.dsh/attachments ] && [ -w /workspace/dsh_storage ]; then
-                  mkdir -p /workspace/dsh_storage/attachments 2>/dev/null || true
-                  cp -ru /root/.dsh/attachments/. /workspace/dsh_storage/attachments/ 2>/dev/null || true
-                fi
-                if [ -f /root/.dsh/.credentials.yaml ] && [ -w /workspace/dsh_storage ]; then
-                  cp -u /root/.dsh/.credentials.yaml /workspace/dsh_storage/.credentials.yaml 2>/dev/null || true
-                fi
-                for p in /root/*; do
-                  if [ -d "$p" ] && [ ! -L "$p" ]; then
-                    base=$(basename "$p")
-                    case "$base" in
-                      "workspace"|"users"|"repos"|"npm"|"dsh_setup"|".npm"|".dsh"|".cache")
-                        ;;
-                      *)
-                        if [ -w /workspace/dsh_storage ]; then
-                          mkdir -p "/workspace/dsh_storage/workspaces/$base" 2>/dev/null || true
-                          cp -ru "$p/." "/workspace/dsh_storage/workspaces/$base/" 2>/dev/null || true
-                        fi
-                        ;;
-                    esac
-                  fi
-                done
-                sync || true
-                echo "[PRE-STOP] Final sync complete."
+              - "echo \"[PRE-STOP] Flushing sessions, storages, and attachments...\"\
+                \nif [ -d /root/.dsh/sessions ] && [ -w /workspace/dsh_storage ];\
+                \ then\n  mkdir -p /workspace/dsh_storage/sessions 2>/dev/null ||\
+                \ true\n  cp -ru /root/.dsh/sessions/. /workspace/dsh_storage/sessions/\
+                \ 2>/dev/null || true\n  find /workspace/dsh_storage/sessions -name\
+                \ \"session.lock\" -delete 2>/dev/null || true\nfi\nif [ -d /root/.dsh/storages\
+                \ ] && [ -w /workspace/dsh_storage ]; then\n  mkdir -p /workspace/dsh_storage/storages\
+                \ 2>/dev/null || true\n  cp -ru /root/.dsh/storages/. /workspace/dsh_storage/storages/\
+                \ 2>/dev/null || true\nfi\nif [ -d /root/.dsh/attachments ] && [ -w\
+                \ /workspace/dsh_storage ]; then\n  mkdir -p /workspace/dsh_storage/attachments\
+                \ 2>/dev/null || true\n  cp -ru /root/.dsh/attachments/. /workspace/dsh_storage/attachments/\
+                \ 2>/dev/null || true\nfi\nif [ -f /root/.dsh/.credentials.yaml ]\
+                \ && [ -w /workspace/dsh_storage ]; then\n  cp -u /root/.dsh/.credentials.yaml\
+                \ /workspace/dsh_storage/.credentials.yaml 2>/dev/null || true\nfi\n\
+                for p in /root/*; do\n  if [ -d \"$p\" ] && [ ! -L \"$p\" ]; then\n\
+                \    base=$(basename \"$p\")\n    case \"$base\" in\n      \"workspace\"\
+                |\"users\"|\"repos\"|\"npm\"|\"dsh_setup\"|\".npm\"|\".dsh\"|\".cache\"\
+                )\n        ;;\n      *)\n        if [ -w /workspace/dsh_storage ];\
+                \ then\n          mkdir -p \"/workspace/dsh_storage/workspaces/$base\"\
+                \ 2>/dev/null || true\n          cp -ru \"$p/.\" \"/workspace/dsh_storage/workspaces/$base/\"\
+                \ 2>/dev/null || true\n        fi\n        ;;\n    esac\n  fi\ndone\n\
+                sync || true\necho \"[PRE-STOP] Final sync complete.\"\n"
+        name: dsh
+        ports:
+        - containerPort: 3081
+          name: dsh-web
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - python3
+            - -c
+            - import socket,pathlib;[(socket.create_connection(('127.0.0.1',p),timeout=1).close())
+              for p in [3080,3081,7681]];assert pathlib.Path('/tmp/dsh_token.txt').stat().st_size>10
+          failureThreshold: 6
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: '2'
+            memory: 4Gi
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 10001
+          runAsNonRoot: true
+          runAsUser: 10001
+        startupProbe:
+          exec:
+            command:
+            - python3
+            - -c
+            - import socket,pathlib;[(socket.create_connection(('127.0.0.1',p),timeout=1).close())
+              for p in [3080,3081,7681]];assert pathlib.Path('/tmp/dsh_token.txt').stat().st_size>10
+          failureThreshold: 60
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 5
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
         volumeMounts:
-        - name: isolated-local-storage
-          mountPath: /workspace
-        - name: dsh-scripts
-          mountPath: /scripts
+        - mountPath: /workspace
+          name: isolated-local-storage
+        - mountPath: /scripts
+          name: dsh-scripts
+        - mountPath: /root
+          name: isolated-local-storage
+          subPath: .legacy-home-v2
+        - mountPath: /legacy-start
+          name: legacy-start
+          readOnly: true
+        - mountPath: /runtime-tokens
+          name: launch-token
+      - command:
+        - node
+        - /scripts/auth_proxy.js
+        env:
+        - name: AUTH_USER
+          value: user2
+        - name: DSH_TRUSTED_HOST
+          value: dsh2.aiportal.bot.or.th
+        - name: DSH_COOKIE_NAME
+          value: dsh2_auth
+        - name: WORKSPACE_ROOT
+          value: /auth/users
+        - name: DSH_USER_STORE_PATH
+          value: /auth/users/users.json
+        - name: DSH_USER_SETTINGS_PATH
+          value: /auth/users/settings.json
+        - name: DSH_AUDIT_DIR
+          value: /auth/audit
+        - name: DSH_OFFLINE_TOKEN_FILE
+          value: /runtime-tokens/legacy
+        - name: DSH_ONLINE_TOKEN_FILE
+          value: /runtime-tokens/legacy
+        image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6
+        imagePullPolicy: IfNotPresent
+        name: auth-proxy
+        ports:
+        - containerPort: 3080
+          name: auth-proxy
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /login
+            port: 3080
+            scheme: HTTP
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: '1'
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 10001
+          runAsNonRoot: true
+          runAsUser: 10001
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /auth
+          name: legacy-auth
+        - mountPath: /scripts
+          name: legacy-auth-source
+          readOnly: true
+        - mountPath: /runtime-tokens
+          name: launch-token
+          readOnly: true
+        - mountPath: /workspace
+          name: isolated-local-storage
+          readOnly: true
+      - name: audit-exporter
+        image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6
+        command:
+        - sh
+        - -c
+        - while true; do python3 -B /collector/collector.py || echo "Audit projection
+          unavailable" >&2; sleep 30; done
+        env:
+        - name: DSH_AUDIT_SOURCE_LABEL
+          value: legacy-dsh2
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 10001
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: legacy-auth
+          mountPath: /sources/legacy-dsh2
+          subPath: audit
+          readOnly: true
+        - name: audit-export-source
+          mountPath: /collector
+          readOnly: true
+        - name: central-legacy-audit
+          mountPath: /output
+          subPath: dsh-admin-audit/legacy/legacy-dsh2
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - command:
+        - python3
+        - -c
+        - "\nimport pathlib,shutil,os,hashlib,json\nsource=pathlib.Path('/workspace/.legacy-cutover-checkpoint/root');home=pathlib.Path('/workspace/.legacy-home-v2')\n\
+          marker=home/'.legacy-migration-complete'\nif not marker.exists():\n if home.exists():raise\
+          \ RuntimeError('Partial home exists; operator reconciliation required')\n\
+          \ shutil.copytree(source,home,symlinks=True)\n for p in source.rglob('*'):\n\
+          \  q=home/p.relative_to(source)\n  if p.is_symlink():\n   if not q.is_symlink()\
+          \ or os.readlink(p)!=os.readlink(q):raise RuntimeError('Home link mismatch')\n\
+          \  elif p.is_file() and hashlib.sha256(p.read_bytes()).digest()!=hashlib.sha256(q.read_bytes()).digest():raise\
+          \ RuntimeError('Home bytes mismatch')\n marker.write_text('verified private\
+          \ home migration\\n')\nfor base,dirs,files in os.walk('/workspace',followlinks=False):\n\
+          \ for p in [pathlib.Path(base),*[pathlib.Path(base)/n for n in dirs+files]]:os.chown(p,10001,10001,follow_symlinks=False)\n\
+          print(json.dumps({'homeCopyVerified':True,'privateWorkspaceOwner':10001}))\n\
+          \nfor p in [home/\".dsh/.credentials.yaml\",home/\".git-credentials\"]:\n\
+          \ if p.is_file():os.chmod(p,0o600)\n"
+        image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6
+        imagePullPolicy: IfNotPresent
+        name: private-home-migration
+        resources:
+          limits:
+            cpu: '1'
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - CHOWN
+            - FOWNER
+            - DAC_OVERRIDE
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: false
+          runAsUser: 0
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /workspace
+          name: isolated-local-storage
+      - command:
+        - python3
+        - -c
+        - "\nimport pathlib,json,os,shutil\ndest=pathlib.Path('/auth/users');dest.mkdir(parents=True,exist_ok=True)\n\
+          target=dest/'users.json'\nif not target.exists():\n data=json.loads(pathlib.Path('/seed/users.json').read_text());assert\
+          \ len(data)==1 and all(v.get('scheme')=='scrypt-v1' for v in data.values())\n\
+          \ temp=dest/'users.initializing';temp.write_text(json.dumps(data));os.chmod(temp,0o600);temp.replace(target)\n\
+          \ audit=pathlib.Path('/auth/audit');audit.mkdir(exist_ok=True)\n source=pathlib.Path('/workspace/users/audit')\n\
+          \ for p in source.glob('events*.jsonl'):\n  if p.is_file() and not p.is_symlink():shutil.copy2(p,audit/p.name)\n\
+          for base,dirs,files in os.walk('/auth',followlinks=False):\n for p in [pathlib.Path(base),*[pathlib.Path(base)/n\
+          \ for n in dirs+files]]:os.chown(p,10001,10001,follow_symlinks=False)\n\
+          os.chmod('/auth/users',0o700);os.chmod(target,0o600)\nos.chown('/tokens',10001,10001);os.chmod('/tokens',0o700)\n"
+        image: dsoreg-sm1-p1.bot.or.th/da-gpu-server/dsh-runtime@sha256:595452b9d14f79bc5415795145967df713288f49db5f4699db570bcda4c3c5a6
+        imagePullPolicy: IfNotPresent
+        name: private-auth-seed
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - CHOWN
+            - FOWNER
+            - DAC_OVERRIDE
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: false
+          runAsUser: 0
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /auth
+          name: legacy-auth
+        - mountPath: /seed
+          name: auth-seed
+          readOnly: true
+        - mountPath: /workspace
+          name: isolated-local-storage
+          readOnly: true
+        - mountPath: /tokens
+          name: launch-token
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 60
       volumes:
       - name: isolated-local-storage
         persistentVolumeClaim:
           claimName: dsh-user2-storage-pvc
-      - name: dsh-scripts
-        configMap:
-          name: dsh-scripts
+      - configMap:
           defaultMode: 493
+          name: dsh-scripts
+        name: dsh-scripts
+      - configMap:
+          defaultMode: 420
+          name: dsh-legacy-separated-start-ed27397ef3fc
+        name: legacy-start
+      - name: legacy-auth
+        persistentVolumeClaim:
+          claimName: dsh-legacy-auth-user2
+      - name: auth-seed
+        secret:
+          defaultMode: 420
+          secretName: dsh-legacy-auth-user2-seed
+      - emptyDir: {}
+        name: launch-token
+      - name: legacy-auth-source
+        configMap:
+          name: dsh-legacy-auth-source-4474e8c2e0cc
+      - name: audit-export-source
+        configMap:
+          name: dsh-legacy-audit-837e595413fb
+      - name: central-legacy-audit
+        persistentVolumeClaim:
+          claimName: dsh-da-workspace-secure

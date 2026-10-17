@@ -8,7 +8,7 @@ const { spawn } = require('child_process');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-auth-proxy-'));
 const users = path.join(root, '.user_auth.json');
 const settings = path.join(root, '.user_settings.json');
-fs.writeFileSync(users, JSON.stringify({ alice: 'secret1' }));
+fs.writeFileSync(users, JSON.stringify({ alice: 'secret1', bob: 'secret2' }));
 
 const backend = http.createServer((req, res) => {
   if (req.url === '/ui') {
@@ -55,8 +55,8 @@ async function waitReady(port) {
   const proxyPort = 39080;
   await listen(backend, backendPort);
   const proxy = spawn(process.execPath, [path.join(__dirname, '..', 'scripts', 'auth_proxy.js')], {
-    env: { ...process.env, PORT: String(proxyPort), DSH_TARGET_PORT: String(backendPort),
-      DSH_PORT: 'tcp://10.43.76.59:3080', DSH_USER_STORE_PATH: users,
+    env: { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^(DSH_|AUTH_|WORKSPACE_ROOT$)/.test(key))), PORT: String(proxyPort), DSH_TARGET_PORT: String(backendPort),
+      DSH_PORT: 'tcp://10.43.76.59:3080', DSH_SINGLE_USER: 'alice', DSH_USER_STORE_PATH: users,
       DSH_USER_SETTINGS_PATH: settings, WORKSPACE_ROOT: root, DSH_COOKIE_NAME: 'test_auth' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -68,6 +68,11 @@ async function waitReady(port) {
     assert.match(page.body, /No Internet \/ Internal \(Default\)/);
     assert.match(page.body, /Internet uses a separate staging workspace/);
 
+    const persisted = JSON.parse(fs.readFileSync(users, 'utf8'));
+    assert.equal(persisted.alice.scheme, 'scrypt-v1');
+    assert(!fs.readFileSync(users, 'utf8').includes('secret1'));
+    assert.equal((await request(proxyPort, 'POST', '/login', 'username=bob&password=secret2')).status, 401);
+    assert.equal((await request(proxyPort, 'POST', '/register', 'username=other&password=secret3')).status, 403);
     const denied = await request(proxyPort, 'POST', '/login', 'username=alice&password=wrong&internet=on');
     assert.equal(denied.status, 401);
     assert.equal(fs.existsSync(settings), false);
@@ -102,6 +107,13 @@ async function waitReady(port) {
     const afterLogout = await request(proxyPort, 'GET', '/api/auth/session', '', onCookie);
     assert.equal(afterLogout.status, 200);
     assert.match(afterLogout.body, /เข้าสู่ระบบ/);
+    assert.equal((await request(proxyPort, 'POST', '/change-password', 'username=alice&old_password=secret1&new_password='+ 'x'.repeat(1025))).status, 400);
+    assert.equal((await request(proxyPort, 'POST', '/login', 'x'.repeat(17000))).status, 413);
+    const changed = await request(proxyPort, 'POST', '/change-password', 'username=alice&old_password=secret1&new_password=newsecret');
+    assert.equal(changed.status, 200);
+    assert.equal((await request(proxyPort, 'POST', '/login', 'username=alice&password=secret1')).status, 401);
+    assert.equal((await request(proxyPort, 'POST', '/login', 'username=alice&password=newsecret')).status, 302);
+    assert.equal(JSON.parse(fs.readFileSync(users)).alice.scheme, 'scrypt-v1');
     console.log('auth proxy internet policy tests passed');
   } finally {
     proxy.kill();

@@ -40,7 +40,8 @@ def generate(users, image, fixture_source_pvc=None, fixture_approval_ref=None):
     # A private-user cutover must not revert the current hardened gateway and
     # admin dashboard to the older source baked into the pinned runtime image.
     gateway_source = (root / 'scripts/auth_proxy.js').read_text(encoding='utf-8')
-    source_hash = hashlib.sha256(gateway_source.encode()).hexdigest()
+    password_helper = (root / 'scripts/password_store.js').read_text(encoding='utf-8')
+    source_hash = hashlib.sha256((gateway_source+password_helper).encode()).hexdigest()
     source_name = 'dsh-gateway-source-' + source_hash[:12]
     container['command'] = ['node', '/gateway-source/auth_proxy.js']
     container['volumeMounts'].append({'name': 'gateway-source', 'mountPath': '/gateway-source', 'readOnly': True})
@@ -121,7 +122,7 @@ def generate(users, image, fixture_source_pvc=None, fixture_approval_ref=None):
         'metadata': {'name': 'dsh-user-routing', 'namespace': 'llm'},
         'data': {'users.json': json.dumps(routes, indent=2)}},
         {'apiVersion': 'v1', 'kind': 'ConfigMap', 'immutable': True,
-         'metadata': {'name': source_name, 'namespace': 'llm'}, 'data': {'auth_proxy.js': gateway_source}}, gateway])
+         'metadata': {'name': source_name, 'namespace': 'llm'}, 'data': {'auth_proxy.js': gateway_source, 'password_store.js': password_helper}}, gateway])
     return documents
 
 

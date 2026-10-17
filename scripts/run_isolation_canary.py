@@ -109,7 +109,8 @@ def main():
         apply({'apiVersion': 'v1', 'kind': 'ConfigMap', 'metadata': {'name': 'canary-scripts', 'namespace': ns},
                'data': {'report_server.py': (ROOT / 'scripts/isolation_canary_report_server.py').read_text(),
                         'gateway_probe.js': (ROOT / 'scripts/isolation_canary_gateway_probe.js').read_text(),
-                        'auth_proxy.js': (ROOT / 'scripts/auth_proxy.js').read_text(encoding='utf-8')}})
+                        'auth_proxy.js': (ROOT / 'scripts/auth_proxy.js').read_text(encoding='utf-8'),
+                        'password_store.js': (ROOT / 'scripts/password_store.js').read_text(encoding='utf-8')}})
         for d in docs:
             if d['kind'] not in {'Deployment', 'Service'}:
                 apply(d)
@@ -254,6 +255,7 @@ print(json.dumps(r))
                     record['legacyVerificationError'] = str(error)
             record['cleanup'] = cleanup
             record['syntheticVolumesRetained'] = True
+            record['passwordHelperSHA256'] = hashlib.sha256((ROOT / 'scripts/password_store.js').read_text(encoding='utf-8').encode()).hexdigest()
             record['credentialValuesExported'] = False
             (args.output / 'result.json').write_text(json.dumps(record, indent=2), encoding='utf-8')
 

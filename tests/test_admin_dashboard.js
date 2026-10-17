@@ -20,6 +20,9 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
   model:{backendContext:1048576,userContext:131072,concurrencyCeiling:16},performance:['Short: 0.23 seconds'],
   gaps:['<img src=x onerror="window.dashboardXSS=true">'],password:'DO_NOT_EXPORT',rawSecret:{token:'DO_NOT_EXPORT'}};
  fs.writeFileSync(path.join(root,'summary.json'),JSON.stringify(snapshot));
+ fs.mkdirSync(path.join(root,'audit/legacy/legacy-dsh2'),{recursive:true});
+ fs.writeFileSync(path.join(root,'audit/legacy/legacy-dsh2/events.jsonl'),JSON.stringify({time:new Date().toISOString(),event:'terminal.open',user:'user2',environment:'legacy-dsh2/internet',password:'PROJECTION_SECRET'})+'\n');
+ fs.writeFileSync(path.join(root,'audit/legacy/legacy-dsh2/status.json'),JSON.stringify({observedAt:'2026-10-17T00:00:00Z',instances:[{name:'legacy-dsh2',events:1}],password:'PROJECTION_SECRET'}));
  const backend=http.createServer((req,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end('<html><body>DSH fixture</body></html>');});
  await new Promise(r=>backend.listen(backendPort,'127.0.0.1',r));
  const gateway=spawn(process.execPath,[source],{env:{...process.env,PORT:String(port),WORKSPACE_ROOT:root,
@@ -38,6 +41,8 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
   assert.equal((await request('POST','/api/admin/summary','',admin)).status,405);
   const result=await request('GET','/api/admin/summary','',admin);const data=JSON.parse(result.text);
   assert.equal(data.registeredAccounts,2);assert.equal(data.privateUserRouting,false);assert.equal(data.snapshot.model.userContext,131072);
+  assert.equal(data.audit.legacy.instances[0].events,1);
+  const merged=await request('GET','/api/admin/audit','',admin);assert(merged.text.includes('legacy-dsh2/internet'));assert(!merged.text.includes('PROJECTION_SECRET'));
   assert(!result.text.includes('DO_NOT_EXPORT'));assert(!result.text.includes('synthetic-admin'));assert.equal(result.headers['cache-control'],'no-store');
   assert((await request('GET','/','',admin)).text.includes('id="dsh-admin-dashboard"'));
   assert(!(await request('GET','/','',ordinary)).text.includes('id="dsh-admin-dashboard"'));

@@ -3,6 +3,7 @@
 const fs = require('fs');
 const http = require('http');
 const crypto = require('crypto');
+const {hashPassword,verifyPassword}=require(process.env.DSH_PASSWORD_HELPER||'/gateway-source/password_store.js');
 const root = '/auth';
 const privateFile = `${root}/.runtime-rollout-probe.json`;
 const storeFile = process.env.DSH_USER_STORE_PATH;
@@ -29,7 +30,7 @@ function request(method, url, body = '', cookie = '', contentType = 'application
     if(Object.hasOwn(users,user))throw new Error('Probe identity collision');
     const password=crypto.randomBytes(32).toString('hex');
     fs.writeFileSync(privateFile,JSON.stringify({user,password}),{mode:0o600,flag:'wx'});
-    users[user]=password;write(storeFile,users);console.log(JSON.stringify({temporaryProbeProvisioned:true}));return;
+    users[user]=hashPassword(password);write(storeFile,users);console.log(JSON.stringify({temporaryProbeProvisioned:true}));return;
   }
   const identity=read(privateFile);
   if(operation==='hold') {
@@ -53,7 +54,7 @@ function request(method, url, body = '', cookie = '', contentType = 'application
   }
   if(operation==='cleanup') {
     for(const session of identity.heldSessions||[])await request('GET','/logout','',session.cookie);
-    const users=read(storeFile);if(users[identity.user]!==identity.password)throw new Error('Probe changed; do not remove another credential');
+    const users=read(storeFile);if(!await verifyPassword(identity.password,users[identity.user]))throw new Error('Probe changed; do not remove another credential');
     delete users[identity.user];const expected=JSON.stringify(Object.entries(users).sort());write(storeFile,users);
     const otherAccountsUnchanged=JSON.stringify(Object.entries(read(storeFile)).sort())===expected;
     const settingsFile=process.env.DSH_USER_SETTINGS_PATH;

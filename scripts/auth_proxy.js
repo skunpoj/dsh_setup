@@ -2,6 +2,7 @@ const http = require('http');
 const url = require('url');
 const fs = require('fs');
 const crypto = require('crypto');
+const { hashPassword, verifyPassword, migrateUsers, writeAtomicUsers } = require('./password_store');
 
 const PROXY_PORT = Number(process.env.PORT || 3080);
 // Kubernetes may inject DSH_PORT=tcp://<service-ip>:3080 for the Service named
@@ -36,9 +37,32 @@ function auditEvent(event, actor, mode) {
   } catch { auditFailures++; console.error('[AUDIT] Could not persist security event'); return false; }
 }
 function recentAudit() {
-  try { return fs.readFileSync(`${AUDIT_DIR}/events.jsonl`, 'utf8').trim().split('\n').filter(Boolean).slice(-100).map(line => {
-    const r = JSON.parse(line);return {time:r.time,event:r.event,user:r.user,environment:r.environment};
-  }); } catch { return []; }
+  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket']);
+  const rows=[];
+  for(const file of [`${AUDIT_DIR}/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh2/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh3/events.jsonl`]) {
+    try {
+      if(fs.statSync(file).size > 8*1024*1024) continue;
+      for(const line of fs.readFileSync(file,'utf8').split('\n')) {
+        try {
+          const r=JSON.parse(line);
+          if(!events.has(r.event)||typeof r.time!=='string'||!Number.isFinite(Date.parse(r.time))||! /^[a-zA-Z0-9_.-]{1,30}$/.test(r.user)||!['secure','internet','legacy-dsh2/internet','legacy-dsh3/internet'].includes(r.environment)) continue;
+          rows.push({time:r.time,event:r.event,user:r.user,environment:r.environment});
+        } catch {}
+      }
+    } catch {}
+  }
+  return rows.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time)).slice(-100);
+}
+function legacyAuditStatus() {
+  const instances=[];
+  for(const name of ['legacy-dsh2','legacy-dsh3']) {
+    try {
+      const v=JSON.parse(fs.readFileSync(`${AUDIT_DIR}/legacy/${name}/status.json`,'utf8'));
+      const r=(v.instances||[]).find(row=>row.name===name);
+      if(r&&typeof v.observedAt==='string'&&Number.isFinite(Date.parse(v.observedAt))) instances.push({name,events:Math.max(0,Math.min(1000,Number(r.events)||0)),observedAt:v.observedAt});
+    } catch {}
+  }
+  return {observedAt:instances.length?instances.map(r=>r.observedAt).sort()[0]:null,instances};
 }
 
 function adminSummary() {
@@ -50,7 +74,7 @@ function adminSummary() {
   // Kubernetes configuration from an operator-supplied snapshot.
   return { generatedAt: new Date().toISOString(), registeredAccounts: Object.keys(loadUsers()).length,
     activeBrowserSessions: sessions, privateUserRouting: Boolean(USER_TARGETS), registrationEnabled: ALLOW_REGISTRATION,
-    audit: { failuresSinceStart: auditFailures, recentEvents: recentAudit().length },
+    audit: { failuresSinceStart: auditFailures, recentEvents: recentAudit().length, legacy: legacyAuditStatus() },
     snapshot: { observedAt: typeof saved.observedAt === 'string' ? saved.observedAt : null,
       environments: Array.isArray(saved.environments) ? saved.environments.map(e => ({ name: String(e.name || ''),
         ready: e.ready === true, storage: String(e.storage || ''), network: String(e.network || '') })) : [],
@@ -64,7 +88,7 @@ function renderAdminDashboard() {
   return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Admin overview</title>
 <style>body{font:16px/1.6 system-ui;background:#f1f5f9;color:#172033;margin:0}main{max-width:1100px;margin:auto;padding:32px}a{color:#075985}header{display:flex;gap:24px;align-items:center;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}section{background:white;border:1px solid #cbd5e1;border-radius:12px;padding:20px;margin:18px 0}h1,h2{line-height:1.2}strong{font-size:24px}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0}.muted{color:#475569}.notice{border-left:5px solid #d97706}button{padding:8px 16px;cursor:pointer}</style>
 <main><header><h1>DSH Admin overview</h1><a href="/">Back to DSH</a><a href="/logout">Logout</a><button id="refresh">Refresh</button></header><p id="error" role="alert"></p><p id="time" class="muted"></p>
-<div class="cards"><section>Registered accounts<br><strong id="accounts">—</strong></section><section>Active browser sessions<br><strong id="sessions">—</strong><div id="sessionDetail"></div></section><section>User routing<br><strong id="routing">—</strong></section></div>
+<div class="cards"><section>Registered accounts<br><strong id="accounts">—</strong></section><section>Main gateway browser sessions<br><strong id="sessions">—</strong><div id="sessionDetail"></div></section><section>User routing<br><strong id="routing">—</strong></section></div>
 <section class="notice"><h2>Evidence freshness</h2><p id="freshness"></p><p>Account/session counts and routing are current gateway values. Environment health, storage, limits and performance below are an operator-recorded snapshot, not live monitoring. Browser logins are not unique users or model requests.</p></section>
 <section><h2>Execution environments</h2><div style="overflow:auto"><table><thead><tr><th>Environment</th><th>Recorded readiness</th><th>Storage</th><th>Recorded network behavior</th></tr></thead><tbody id="environments"></tbody></table></div></section>
 <section><h2>Model limits</h2><p id="model"></p><p class="muted">A concurrency ceiling does not guarantee that many maximum-length requests fit.</p></section><section><h2>Recorded performance</h2><ul id="performance"></ul></section><section><h2>Central access audit</h2><p id="audit"></p><a href="/api/admin/audit">Read recent access events</a></section><section class="notice"><h2>Remaining controls</h2><ul id="gaps"></ul></section><p class="muted">Read-only overview. No passwords, cookies, conversation contents or source records are displayed.</p></main>
@@ -72,7 +96,7 @@ function renderAdminDashboard() {
 const put=(id,value)=>document.getElementById(id).textContent=value;
 function list(id,values){const root=document.getElementById(id);root.replaceChildren();for(const value of values){const li=document.createElement('li');li.textContent=value;root.append(li);}}
 async function refresh(){try{const r=await fetch('/api/admin/summary',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('Admin access unavailable ('+r.status+').');const d=await r.json();put('error','');put('time','Gateway read at '+d.generatedAt);put('accounts',d.registeredAccounts);put('sessions',d.activeBrowserSessions.secure+d.activeBrowserSessions.internet);put('sessionDetail','No Internet: '+d.activeBrowserSessions.secure+' · Internet: '+d.activeBrowserSessions.internet);put('routing',d.privateUserRouting?'Per user':'Shared pools');put('freshness',d.snapshot.observedAt?'Snapshot observed at '+d.snapshot.observedAt+'. Refresh does not rerun infrastructure tests.':'No snapshot available. Infrastructure status is unknown.');const root=document.getElementById('environments');root.replaceChildren();for(const e of d.snapshot.environments){const tr=document.createElement('tr');for(const text of [e.name,e.ready?'Ready at observation':'Not verified ready',e.storage,e.network]){const td=document.createElement('td');td.textContent=text;tr.append(td);}root.append(tr);}const m=d.snapshot.model;put('model',m?'Backend context: '+m.backendContext+' tokens · DSH/LiteLLM budget: '+m.userContext+' tokens · Running-request ceiling: '+m.concurrencyCeiling:'No recorded limits.');list('performance',d.snapshot.performance);list('gaps',d.snapshot.gaps);}catch(e){put('error',e.message);}}
-document.getElementById('refresh').addEventListener('click',refresh);refresh().then(async()=>{try{const r=await fetch('/api/admin/summary',{cache:'no-store'});const d=await r.json();put('audit','Recent recorded events: '+d.audit.recentEvents+' · Write failures since gateway start: '+d.audit.failuresSinceStart);}catch{put('audit','Audit status unavailable.');}});
+document.getElementById('refresh').addEventListener('click',refresh);refresh().then(async()=>{try{const r=await fetch('/api/admin/summary',{cache:'no-store'});const d=await r.json();put('audit','Recent main/legacy access events: '+d.audit.recentEvents+' · Write failures since gateway start: '+d.audit.failuresSinceStart+' · Legacy projection observed at: '+(d.audit.legacy?.observedAt||'not available'));}catch{put('audit','Audit status unavailable.');}});
 </script></html>`;
 }
 
@@ -99,7 +123,9 @@ const USER_TARGETS = process.env.DSH_USER_TARGETS_FILE
   ? JSON.parse(fs.readFileSync(process.env.DSH_USER_TARGETS_FILE, 'utf8')) : null;
 // Pilot accounts are provisioned by an administrator. Isolated routing always
 // disables registration, including when a legacy opt-in variable is present.
-const ALLOW_REGISTRATION = !USER_TARGETS && process.env.DSH_ALLOW_REGISTRATION === 'true';
+const LEGACY_OWNER = !USER_TARGETS ? (process.env.DSH_SINGLE_USER || process.env.AUTH_USER || '') : '';
+const LEGACY_INTERNET_ONLY = !USER_TARGETS && Boolean(process.env.AUTH_USER);
+const ALLOW_REGISTRATION = !USER_TARGETS && !LEGACY_OWNER && process.env.DSH_ALLOW_REGISTRATION === 'true';
 if (USER_TARGETS) {
   for (const [user, targets] of Object.entries(USER_TARGETS)) {
     if (!/^[a-z0-9_\-.]{3,30}$/.test(user)) throw new Error('Invalid provisioned identity');
@@ -380,7 +406,7 @@ if (!adminPass && !fs.existsSync(USER_STORE_PATH)) {
   process.exit(1);
 }
 const DEFAULT_USERS = {
-  ...(adminPass ? { 'admin': adminPass } : {})
+  ...(adminPass ? { 'admin': hashPassword(adminPass) } : {})
 };
 
 function loadUsers() {
@@ -388,18 +414,18 @@ function loadUsers() {
     if (fs.existsSync(USER_STORE_PATH)) {
       const raw = fs.readFileSync(USER_STORE_PATH, 'utf8');
       const data = JSON.parse(raw);
-      return Object.assign({}, DEFAULT_USERS, data);
+      return Object.assign(Object.create(null), DEFAULT_USERS, migrateUsers(data));
     }
   } catch (e) {
-    console.error('[AUTH-PROXY] Failed to load user store:', e.message);
+    console.error('[AUTH-PROXY] Invalid account store; refusing startup/request.');
+    throw e;
   }
   return Object.assign({}, DEFAULT_USERS);
 }
 
 function saveUsers(users) {
   try {
-    fs.mkdirSync(USER_ROOT, { recursive: true });
-    fs.writeFileSync(USER_STORE_PATH, JSON.stringify(users, null, 2), 'utf8');
+    writeAtomicUsers(USER_STORE_PATH, users);
     return true;
   } catch (e) {
     console.error('[AUTH-PROXY] Failed to save user store:', e.message);
@@ -431,7 +457,7 @@ function saveUserSettings(settings) {
 }
 
 function normalizeInternetMode(value) {
-  return value === 'on' ? 'on' : 'off';
+  return LEGACY_INTERNET_ONLY ? 'on' : (value === 'on' ? 'on' : 'off');
 }
 
 function setUserInternetMode(username, mode) {
@@ -450,9 +476,9 @@ function injectLogoutControl(html, isAdmin = false) {
 
 // Initialize user store if missing
 let USERS = loadUsers();
-if (!fs.existsSync(USER_STORE_PATH)) {
-  saveUsers(USERS);
-}
+// Persist salted hashes before accepting any requests; never fall back to a
+// plaintext store or overwrite a corrupt store with default accounts.
+if (!saveUsers(USERS)) throw new Error('Account migration could not be persisted');
 
 function getDshToken(tokenFile = '/tmp/dsh_token.txt') {
   try {
@@ -713,10 +739,10 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
         <div class="form-group">
           <span class="form-label">Working environment</span>
           <div class="radio-group" role="radiogroup" aria-label="Working environment">
-            <label class="radio-option"><input type="radio" name="internet" value="off" checked> No Internet / Internal (Default)</label>
-            <label class="radio-option"><input type="radio" name="internet" value="on"> Internet</label>
+            <label class="radio-option"><input type="radio" name="internet" value="off" ${LEGACY_INTERNET_ONLY ? 'disabled' : 'checked'}> ${LEGACY_INTERNET_ONLY ? 'No Internet unavailable on this legacy instance' : 'No Internet / Internal (Default)'}</label>
+            <label class="radio-option"><input type="radio" name="internet" value="on" ${LEGACY_INTERNET_ONLY ? 'checked' : ''}> Internet</label>
           </div>
-          <div class="form-help">The environment is fixed for this login session. No Internet / Internal permits approved internal services only; Internet uses a separate staging workspace. These environments do not share project files or chat history.</div>
+          <div class="form-help">${LEGACY_INTERNET_ONLY ? 'Legacy owner-only Internet workspace. Use the main DSH service for separate No Internet and Internet environments.' : 'The environment is fixed for this login session. No Internet / Internal permits approved internal services only; Internet uses a separate staging workspace. These environments do not share project files or chat history.'}</div>
         </div>
         <button type="submit" class="btn-submit">เข้าสู่ระบบ (Sign In)</button>
       </form>
@@ -771,19 +797,31 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
 
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
+  if (req.method === 'POST' && ['/login','/register','/change-password'].includes(parsedUrl.pathname)) {
+    if (Number(req.headers['content-length']) > 16384) { res.writeHead(413); return res.end('Authentication form too large'); }
+    let received = 0;
+    req.on('data', chunk => {
+      received += chunk.length;
+      if (received > 16384 && !res.writableEnded) {
+        res.writeHead(413); res.end('Authentication form too large');
+        req.removeAllListeners('end'); req.removeAllListeners('data'); req.resume();
+      }
+    });
+  }
+
 
   // Handle Login Form Submission
   if (req.method === 'POST' && parsedUrl.pathname === '/login') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
-    req.on('end', () => {
+    req.on('end', async () => {
       const params = new URLSearchParams(body);
       const username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
       const password = params.get('password') ? params.get('password').trim() : '';
       const internet = normalizeInternetMode(params.get('internet'));
 
       USERS = loadUsers();
-      if (USERS[username] && USERS[username] === password) {
+      if ((!LEGACY_OWNER || username === LEGACY_OWNER) && await verifyPassword(password, USERS[username])) {
         if (!getEnvironmentTarget(internet, username)) {
           res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
           return res.end('No dedicated runtime provisioned for this identity and environment.');
@@ -845,7 +883,7 @@ const server = http.createServer((req, res) => {
         return res.end(renderAuthPage({ tab: 'register', errorMsg: 'ชื่อผู้ใช้งานต้องเป็นภาษาอังกฤษ/ตัวเลข ความยาว 3-30 ตัวอักษร' }));
       }
 
-      if (!password || password.length < 6) {
+      if (!password || password.length < 6 || Buffer.byteLength(password) > 1024) {
         res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(renderAuthPage({ tab: 'register', errorMsg: 'รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร' }));
       }
@@ -861,7 +899,7 @@ const server = http.createServer((req, res) => {
         return res.end(renderAuthPage({ tab: 'register', errorMsg: `ชื่อผู้ใช้งาน "${username}" มีอยู่ในระบบแล้ว กรุณาใช้ชื่ออื่นหรือเข้าสู่ระบบ` }));
       }
 
-      USERS[username] = password;
+      USERS[username] = hashPassword(password);
       if (saveUsers(USERS)) {
         try {
           fs.mkdirSync(`${USER_ROOT}/${username}`, { recursive: true });
@@ -881,7 +919,7 @@ const server = http.createServer((req, res) => {
   if (req.method === 'POST' && parsedUrl.pathname === '/change-password') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
-    req.on('end', () => {
+    req.on('end', async () => {
       const params = new URLSearchParams(body);
       const username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
       const oldPassword = params.get('old_password') ? params.get('old_password').trim() : '';
@@ -892,18 +930,18 @@ const server = http.createServer((req, res) => {
         return res.end(renderAuthPage({ tab: 'change', errorMsg: 'กรุณากรอกข้อมูลให้ครบทุกช่อง' }));
       }
 
-      if (newPassword.length < 6) {
+      if (newPassword.length < 6 || Buffer.byteLength(newPassword) > 1024) {
         res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(renderAuthPage({ tab: 'change', errorMsg: 'รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 6 ตัวอักษร' }));
       }
 
       USERS = loadUsers();
-      if (!USERS[username] || USERS[username] !== oldPassword) {
+      if ((LEGACY_OWNER && username !== LEGACY_OWNER) || !await verifyPassword(oldPassword, USERS[username])) {
         res.writeHead(401, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(renderAuthPage({ tab: 'change', errorMsg: 'ชื่อผู้ใช้งานหรือรหัสผ่านเดิมไม่ถูกต้อง' }));
       }
 
-      USERS[username] = newPassword;
+      USERS[username] = hashPassword(newPassword);
       if (saveUsers(USERS)) {
         console.log(`[AUTH-PROXY] Successfully changed password for user: ${username}`);
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });

@@ -1,6 +1,7 @@
 // Runs privately in the gateway. Never prints tokens or history contents.
 const fs=require('fs'),http=require('http'),crypto=require('crypto'),assert=require('assert');
 const users=JSON.parse(fs.readFileSync(process.env.DSH_USER_STORE_PATH,'utf8'));
+if(Object.values(users).some(v=>typeof v!=='string'))throw new Error('Stored hashes are not login credentials; supply approved test credentials privately through the rollout verifier.');
 const routes=JSON.parse(fs.readFileSync(process.env.DSH_USER_TARGETS_FILE,'utf8'));
 const legacyOwner=routes.thanatcc?.secure?.host?.startsWith('dsh-secure.')?'thanatcc':'admin';
 const request=(method,path,body='',cookie='',extra={})=>new Promise((resolve,reject)=>{

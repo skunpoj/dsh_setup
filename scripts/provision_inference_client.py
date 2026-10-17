@@ -19,7 +19,7 @@ def kube(*args, data=None):
     return p.stdout
 
 
-def provision(secret_name):
+def provision(secret_name, allowed_models=None):
     # The admin credential is read only inside the existing LiteLLM pod. The
     # generated client token travels through captured stdin/stdout directly to
     # Kubernetes, never through a tool-visible print or local credential file.
@@ -35,6 +35,10 @@ def call(route,key,body=None):
 status,models=call('/v1/models',master)
 if status!=200:raise RuntimeError('Could not enumerate configured models')
 names=[r['id'] for r in models['data']]
+requested=REQUESTED_MODELS
+if requested is not None:
+ if not set(requested).issubset(names):raise RuntimeError('Requested managed models are not available')
+ names=requested
 status,key=call('/key/generate',master,{'key_alias':ALIAS,'models':names,
  'allowed_routes':['/chat/completions','/v1/chat/completions','/responses','/v1/responses',
  '/models','/v1/models','/embeddings','/v1/embeddings','/audio/transcriptions',
@@ -52,7 +56,7 @@ status,result=call('/v1/chat/completions',token,{'model':'deepseek-v4.1-flash',
 if status!=200 or result['choices'][0]['message']['content'].strip()!='CLIENT_KEY_OK':
  call('/key/delete',master,{'keys':[token]});raise RuntimeError('Restricted-key inference failed')
 print(json.dumps({'token':token,'denials':denials,'inferenceExact':True,'allowedModelCount':len(names)}))
-'''.replace('ALIAS', repr(secret_name))
+'''.replace('ALIAS', repr(secret_name)).replace('REQUESTED_MODELS', repr(allowed_models))
     output = json.loads(kube('exec', '-i', 'deploy/litellm', '--', 'python', '-', data=code))
     token = output.pop('token')
     kube('apply', '-f', '-', data=json.dumps({'apiVersion': 'v1', 'kind': 'Secret',

@@ -31,9 +31,11 @@ def main():
     args = ap.parse_args()
     args.output.mkdir(exist_ok=False, parents=True)
     source = (ROOT / 'scripts/auth_proxy.js').read_text(encoding='utf-8')
+    password_helper = (ROOT / 'scripts/password_store.js').read_text(encoding='utf-8')
+    helper_digest = hashlib.sha256(password_helper.encode()).hexdigest()
     digest = hashlib.sha256(source.encode()).hexdigest()
     evidence = json.loads(args.verification_file.read_text(encoding='utf-8'))
-    if digest != evidence['gatewayOverlaySHA256']:
+    if digest != evidence['gatewayOverlaySHA256'] or helper_digest != evidence.get('passwordHelperSHA256'):
         raise RuntimeError('Source differs from the live-tested canary correction')
     before = json.loads(kube('get', 'deployment', 'dsh-environment-gateway', '-o', 'json'))
     (args.output / 'gateway-before.json').write_text(json.dumps(before, indent=2), encoding='utf-8')
@@ -53,9 +55,9 @@ def main():
         record['prepare'] = run_probe('prepare')
         prepared = True
         record['before'] = run_probe('verify')
-        name = 'dsh-gateway-source-' + digest[:12]
+        name = 'dsh-gateway-source-' + hashlib.sha256((source+password_helper).encode()).hexdigest()[:12]
         cm = {'apiVersion': 'v1', 'kind': 'ConfigMap', 'immutable': True,
-              'metadata': {'name': name, 'namespace': 'llm'}, 'data': {'auth_proxy.js': source}}
+              'metadata': {'name': name, 'namespace': 'llm'}, 'data': {'auth_proxy.js': source, 'password_store.js': password_helper}}
         kube('apply', '-f', '-', data=json.dumps(cm))
         template = json.loads(json.dumps(before['spec']['template']))
         template['metadata'].setdefault('annotations', {})['dsh.bot.or.th/gateway-source-sha256'] = digest

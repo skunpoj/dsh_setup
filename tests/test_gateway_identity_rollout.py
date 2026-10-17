@@ -21,9 +21,10 @@ class GatewayRolloutSafety(unittest.TestCase):
         (root / 'docs/context-evidence').mkdir(parents=True)
         (root / 'scripts/auth_proxy.js').write_text('// tested source', encoding='utf-8')
         (root / 'scripts/runtime_rollout_probe.js').write_text('// probe', encoding='utf-8')
+        (root / 'scripts/password_store.js').write_text('// password helper', encoding='utf-8')
         actual = hashlib.sha256(b'// tested source').hexdigest()
         (root / 'docs/context-evidence/user-isolation-canary-20261016.json').write_text(
-            json.dumps({'gatewayOverlaySHA256': digest or actual}), encoding='utf-8')
+            json.dumps({'gatewayOverlaySHA256': digest or actual, 'passwordHelperSHA256': hashlib.sha256(b'// password helper').hexdigest()}), encoding='utf-8')
         return actual
 
     def test_source_not_tested_in_canary_refused_before_kubernetes(self):
