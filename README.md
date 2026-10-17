@@ -9,6 +9,8 @@
 
 ## Setup entry points and central administration
 
+The [complete platform guide](docs/DSH_PLATFORM_GUIDE.html) brings together the three risk controls, implemented features, deployment states, practical examples, labelled interface screenshots and an embedded LLM/GPU setup section. The portable edition omits private site addresses; the private Desktop edition includes the configured access inventory.
+
 The [portable GPU + LiteLLM + 1M setup](gpu-stack/README.md) is the sanitized public counterpart for shared inference: digest-pinned model runtime, scheduler patches, exact final-payload guard, one-long-request admission, short-request fairness, Secret references and network-policy templates. It has no organization-specific endpoints, node names, storage paths or credentials. Supply private site settings outside Git, qualify the rendered candidate, and retain rollback before deployment. Existing site-specific documents/history are not redacted by this addition. The complete private infrastructure repository is not copied wholesale.
 
 The [central dashboard scope](docs/CENTRAL_DASHBOARD_SCOPE.md) maps our requested operating view to current implementation: accounts/access and environment routing are summarized today; live GPU/token/queue telemetry, execution/file metadata, full archive search and remote-job attribution need separate collectors. Admin oversight does not grant ownership of users' histories. Snapshot Refresh rereads saved observations, not live probes. See the scope document for privacy rules, permissions and implementation acceptance.

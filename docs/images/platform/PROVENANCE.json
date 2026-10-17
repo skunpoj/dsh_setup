@@ -1,0 +1,32 @@
+{
+  "capturedDate": "2026-10-17",
+  "screenshots": [
+    {
+      "file": "admin-dashboard-details-fixture.png",
+      "sha256": "189395a0b3aec01af6daf4116ea99aabe317347a86c4d49dd88818b4e3edbbe4",
+      "kind": "Synthetic illustration of actual gateway code, demonstration data; not Production metrics"
+    },
+    {
+      "file": "admin-dashboard-fixture.png",
+      "sha256": "5a90093b884301d3e2690e5c050c6542c3ec8a70782208e1ef1a05063d2398f9",
+      "kind": "Synthetic illustration of actual gateway code, demonstration data; not Production metrics"
+    },
+    {
+      "file": "live-legacy2-login.png",
+      "sha256": "3d033196333041f8cfe403b192188f33ddee082f5650f0acb1c24beb211a8f29",
+      "kind": "Live login page, fields cleared; no browser chrome"
+    },
+    {
+      "file": "live-legacy3-login.png",
+      "sha256": "cf7201e272c0b1d38caf9b48c1465f6dc4a0ee15a7482ed2641247cbb23bd693",
+      "kind": "Live login page, fields cleared; no browser chrome"
+    },
+    {
+      "file": "live-main-login.png",
+      "sha256": "4d57989c8e526b34abeffccd4985aa51fad267acef597a8d69d68a24d09530f3",
+      "kind": "Live login page, fields cleared; no browser chrome"
+    }
+  ],
+  "authenticatedWorkingSessionsCaptured": false,
+  "privateConversationContentsIncluded": false
+}
