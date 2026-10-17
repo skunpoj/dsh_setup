@@ -2,9 +2,9 @@ name: DSH upstream candidate
 on:
   push:
     branches: [main]
-    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**']
+    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', .gitattributes]
   pull_request:
-    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**']
+    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', .gitattributes]
   schedule:
     - cron: '17 2 * * *'
   workflow_dispatch:

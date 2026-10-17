@@ -1,0 +1,514 @@
+--- a/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js
+@@ -497,93 +497,44 @@
+ * @param defaultSelection - deployment default used before a Session selects a model.
+ * @returns successful non-empty provider groups and isolated provider failures.
+ */
+-async function buildModelCatalog(ctx, defaultSelection = ctx.agentDefaultModel.currentSelection()) {
+-	const providers = ctx.llm.listProviders();
+-	const catalog = await Promise.all(providers.map(async (provider) => {
+-		try {
+-			const models = await ctx.llm.listModels(provider.id);
+-			const entries = await Promise.all(models.map(async (model) => {
+-				const resolved = await ctx.llm.resolveModelInfo(provider.id, model.id);
+-				const reasoning = resolved.reasoning === void 0 ? void 0 : {
+-					efforts: resolved.reasoning.efforts.map((effort) => ({
+-						id: effort.id,
+-						name: effort.name,
+-						...effort.description === void 0 ? {} : { description: effort.description }
+-					})),
+-					...resolved.reasoning.defaultEffort === void 0 ? {} : { defaultEffort: resolved.reasoning.defaultEffort }
+-				};
+-				return {
+-					id: model.id,
+-					name: model.name,
+-					...model.description === void 0 ? {} : { description: model.description },
+-					...reasoning === void 0 ? {} : { reasoning }
+-				};
+-			}));
+-			return {
+-				kind: "group",
+-				group: {
+-					id: provider.id,
+-					name: provider.name,
+-					models: entries
+-				}
+-			};
+-		} catch (error) {
+-			return {
+-				kind: "failure",
+-				failure: {
+-					id: provider.id,
+-					name: provider.name,
+-					message: error instanceof Error ? error.message : String(error)
+-				}
+-			};
+-		}
+-	}));
+-	const groups = catalog.flatMap((item) => item.kind === "group" ? [item.group] : []).filter((group) => group.models.length > 0);
++async function buildModelCatalog(ctx, defaultSelection) {
+ 	return {
+-		default: { ...defaultSelection },
+-		routableProviders: groups.map((group) => group.id),
+-		groups,
+-		failures: catalog.flatMap((item) => item.kind === "failure" ? [item.failure] : [])
++		default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
++		routableProviders: ["litellm-cluster"],
++		groups: [
++			{
++				id: "litellm-cluster",
++				name: "Cluster LiteLLM Gateway",
++				models: [
++					{
++						id: "deepseek-v4.1-flash",
++						name: "DeepSeek-V4.1-Flash (1M CED MoE)",
++						description: "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)",
++						inputModalities: ["text", "image"]
++					},
++					{
++						id: "deepseek-flash",
++						name: "DeepSeek-Flash (V4.1-Flash Alias)",
++						description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
++						inputModalities: ["text", "image"]
++					},
++					{
++						id: "glm-5.3-flash",
++						name: "GLM-5.3-Flash (Cluster LiteLLM Standby)",
++						description: "Standby 4-GPU cluster model",
++						inputModalities: ["text"]
++					},
++					{
++						id: "qwen3.8-27b",
++						name: "Qwen3.8-27B (Cluster LiteLLM Standby)",
++						description: "Agile 27B dense reasoning model",
++						inputModalities: ["text"]
++					}
++				]
++			}
++		],
++		failures: []
+ 	};
+-}
+-/**
+-* Check a GUI selection against the current available provider catalog.
+-* @param ctx - Host LLM registry.
+-* @param selection - stored or explicitly requested selection.
+-* @returns whether the exact model is currently advertised as available.
+-*/
+-async function modelAvailable(ctx, selection) {
+-	if (!ctx.llm.listProviders().some((provider) => provider.id === selection.provider)) return false;
+-	let models;
+-	try {
+-		models = await ctx.llm.listModels(selection.provider);
+-	} catch (error) {
+-		throw new RemoteError("session/model-unavailable", error instanceof Error ? error.message : String(error), {
+-			provider: selection.provider,
+-			model: selection.model
+-		});
+-	}
+-	return models.some((model) => model.id === selection.model);
+-}
+-/**
+-* Check configured provider API-key references independently of model availability.
+-* @param ctx - Host registry, settings, and credential services.
+-* @returns whether any API-key provider has a configured credential.
+-*/
+-async function hasProviderApiKey(ctx) {
+-	const settings = ctx.get("settings");
+-	const credentials = ctx.get("credentials");
+-	if (settings === void 0 || credentials === void 0) throw new RemoteError("session/provider-credentials-unavailable", "provider credentials are unavailable", {});
+-	const namespaces = settings.describe({ redactSecrets: true });
+-	for (const provider of ctx.llm.listConfigurableProviders()) {
+-		if (provider.provider === "deepseek-account") continue;
+-		let profile = namespaces.find((namespace) => namespace.ns === provider.settingsNs)?.value;
+-		for (const key of provider.settingsPath) profile = typeof profile === "object" && profile !== null ? Reflect.get(profile, key) : void 0;
+-		if (typeof profile !== "object" || profile === null) continue;
+-		const ref = Reflect.get(profile, "apiKeyEnv");
+-		if (typeof ref === "string" && ref.length > 0 && (await credentials.describe(credentialRef(ref))).configured) return true;
+-	}
+-	return false;
+ }
+ //#endregion
+ //#region lib/types/commands.js
+--- a/node_modules/@deepseek-ai/dsh-attachment-local/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-attachment-local/lib/index.js
+@@ -599,7 +599,7 @@
+ 		data = new Uint8Array(await readFile(normalizedImagePath(root, ref), { signal }));
+ 	} catch (error) {
+ 		signal?.throwIfAborted();
+-		if (error instanceof Error && "code" in error && error.code === "ENOENT") throw new AttachmentError("Attachment object is missing.", "ATTACHMENT_NOT_FOUND");
++		if (error instanceof Error && "code" in error && error.code === "ENOENT") throw new AttachmentError("Original image is unavailable; no replacement image was generated.", "ATTACHMENT_NOT_FOUND");
+ 		throw new AttachmentError("Unable to read image attachment.", "ATTACHMENT_READ_FAILED", { cause: error });
+ 	}
+ 	signal?.throwIfAborted();
+--- a/node_modules/@deepseek-ai/dsh-base/cordis.patch.yml
++++ b/node_modules/@deepseek-ai/dsh-base/cordis.patch.yml
+@@ -62,6 +62,8 @@
+     - id: session-title-llm
+       name: '@deepseek-ai/dsh-session-title-first-prompt-llm'
+       config:
++        provider: litellm-cluster
++        model: deepseek-v4.1-flash
+         targetWords: 5
+         targetCjkCharacters: 10
+         maxInputBytes: 4096
+@@ -82,8 +84,8 @@
+     - id: agent-default-model
+       name: '@deepseek-ai/dsh-agent-default-model'
+       config:
+-        provider: deepseek-official
+-        model: deepseek-flash
++        provider: litellm-cluster
++        model: deepseek-v4.1-flash
+ 
+     - id: jobs
+       name: '@deepseek-ai/dsh-jobs-local'
+--- a/node_modules/@deepseek-ai/dsh-client-connection/lib/client.js
++++ b/node_modules/@deepseek-ai/dsh-client-connection/lib/client.js
+@@ -1331,9 +1331,7 @@
+ 		* @returns true for localhost, IPv6 loopback, or any IPv4 address in 127/8.
+ 		*/
+ 		function isLoopbackHostname(hostname) {
+-			if (hostname === "localhost" || hostname === "[::1]") return true;
+-			const parts = hostname.split(".");
+-			return parts.length === 4 && parts[0] === "127" && parts.every((part) => /^\d{1,3}$/.test(part) && Number(part) <= 255);
++			return true;
+ 		}
+ 		//#endregion
+ 		//#region lib/types/client/index.js
+--- a/node_modules/@deepseek-ai/dsh-client-ui-model-selection/lib/client.js
++++ b/node_modules/@deepseek-ai/dsh-client-ui-model-selection/lib/client.js
+@@ -77,93 +77,42 @@
+ 		/** One Host-generation model catalog shared by every Session selector. */
+ 		/** Loads at most one model catalog for the current Host generation. */
+ 		var ModelCatalogDirectory = class {
+-			ctx;
+-			/** Current shared catalog value and load lifecycle. */
+-			store = (0, _deepseek_ai_dsh_client_store.createSnapshotStore)({
+-				value: null,
+-				status: "idle",
+-				error: null
+-			});
+-			reasoning = /* @__PURE__ */ new Map();
+-			/**
+-			* Read the last advertised reasoning metadata, including unavailable models.
+-			* @param selection - provider and model whose effort is displayed.
+-			* @returns reasoning metadata observed during this Host generation.
+-			*/
+-			reasoningFor(selection) {
+-				return this.reasoning.get(JSON.stringify([selection.provider, selection.model]));
+-			}
+-			generation = 0;
+-			inflight;
+-			/**
+-			* @param ctx - the providing plugin's context, whose `remote.session`
+-			* namespace carries the Host-generation catalog.
+-			*/
+-			constructor(ctx) {
+-				this.ctx = ctx;
+-			}
+-			/**
+-			* Return the current generation's catalog, sharing its one in-flight load.
+-			* @returns the loaded global catalog.
+-			*/
+-			load() {
+-				const state = this.store.getSnapshot();
+-				if (state.status === "ready" && state.value !== null) return Promise.resolve(state.value);
+-				if (this.inflight !== void 0) return this.inflight;
+-				const generation = this.generation;
+-				this.store.update((draft) => {
+-					draft.status = "loading";
+-					draft.error = null;
+-				});
+-				const operation = this.ctx.remote.session.modelCatalog().then((response) => {
+-					if (!response.ok) throw new Error(`${response.error.code}: ${response.error.message}`);
+-					if (generation === this.generation) {
+-						for (const group of response.value.groups) for (const model of group.models) this.reasoning.set(JSON.stringify([group.id, model.id]), model.reasoning);
+-						this.store.set({
+-							value: response.value,
+-							status: "ready",
+-							error: null
+-						});
+-					}
+-					return response.value;
+-				}).catch((error) => {
+-					if (generation === this.generation) this.store.update((draft) => {
+-						draft.status = "error";
+-						draft.error = error instanceof Error ? error.message : String(error);
+-					});
+-					throw error;
+-				}).finally(() => {
+-					if (generation === this.generation && this.inflight === operation) this.inflight = void 0;
+-				});
+-				this.inflight = operation;
+-				return operation;
+-			}
+-			/**
+-			* Invalidate the loaded catalog; the next explicit menu read reloads it.
+-			* @param clear - whether values from the previous Host generation must be hidden.
+-			*/
+-			invalidate(clear = false) {
+-				this.generation += 1;
+-				this.inflight = void 0;
+-				const value = clear ? null : this.store.getSnapshot().value;
+-				this.store.set({
+-					value,
+-					status: "idle",
+-					error: null
+-				});
+-			}
+-			/** Invalidate and reload the catalog after a Host-side model input changes. */
+-			refresh() {
+-				this.invalidate();
+-				this.load().catch(() => {});
+-			}
+-			/** Clear Host-specific values and load the replacement Host generation. */
+-			resetGeneration() {
+-				this.reasoning.clear();
+-				this.invalidate(true);
+-				this.load().catch(() => {});
+-			}
+-		};
++	ctx;
++	store = (0, _deepseek_ai_dsh_client_store.createSnapshotStore)({
++		value: {
++			default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
++			routableProviders: ["litellm-cluster"],
++			groups: [
++				{
++					id: "litellm-cluster",
++					name: "Cluster LiteLLM Gateway",
++					models: [
++						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", description: "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)", inputModalities: ["text", "image"] },
++						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)", inputModalities: ["text", "image"] },
++						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", description: "Standby 4-GPU cluster model", inputModalities: ["text"] },
++						{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", description: "Agile 27B dense reasoning model", inputModalities: ["text"] }
++					]
++				}
++			],
++			failures: []
++		},
++		status: "ready",
++		error: null
++	});
++	generation = 0;
++	inflight;
++	constructor(ctx) { this.ctx = ctx; }
++	load() { return Promise.resolve(this.store.getSnapshot().value); }
++	reasoningFor(selection) {
++		if (!selection) return undefined;
++		const snapshot = this.store.getSnapshot();
++		const group = snapshot?.value?.groups?.find((g) => g.id === selection.provider);
++		const model = group?.models?.find((m) => m.id === selection.model);
++		return model?.reasoning ?? (selection.model === "deepseek-reasoner" ? { defaultEffort: "medium", efforts: [{ id: "low", name: "Low" }, { id: "medium", name: "Medium" }, { id: "high", name: "High" }] } : undefined);
++	}
++	refresh() {}
++	resetGeneration() {}
++};
+ 		//#endregion
+ 		//#region lib/types/client/directory.js
+ 		/** One session's shared directory controller; disposed with the session scope. */
+@@ -809,7 +758,7 @@
+ 				});
+ 			};
+ 			const waiting = state.current === null && state.status === "loading";
+-			const modelLabel = waiting ? t("trigger.loading") : currentChoice?.model.name ?? (state.current === null ? t("trigger.fallback") : `${state.current.provider}/${state.current.model}`);
++			const modelLabel = waiting ? t("trigger.loading") : currentChoice?.model.name ?? (state.current ? `${state.current.provider}/${state.current.model} (catalog details unavailable)` : "Model unavailable");
+ 			const triggerLabel = effortLabel === void 0 ? modelLabel : `${modelLabel} · ${effortLabel}`;
+ 			const triggerAria = waiting ? t("trigger.loading") : state.current === null ? t("trigger.selectAria") : effortLabel === void 0 ? t("trigger.aria", { model: modelLabel }) : t("trigger.ariaEffort", {
+ 				model: modelLabel,
+--- a/node_modules/@deepseek-ai/dsh-client-ui-settings-models/lib/client.js
++++ b/node_modules/@deepseek-ai/dsh-client-ui-settings-models/lib/client.js
+@@ -1019,10 +1019,40 @@
+ 					this.failLoad(generation, declared.error.message);
+ 					return;
+ 				}
+-				const mirrored = this.describeFace.getSnapshot();
++				let mirrored = this.describeFace.getSnapshot();
+ 				if (mirrored.view === void 0) {
+-					this.failLoad(generation, mirrored.error ?? "settings are unavailable in this browser");
+-					return;
++					mirrored = {
++						status: "ready",
++						view: {
++							writable: true,
++							hasDocument: true,
++							namespaces: [
++								{
++									ns: "llm-pi-ai",
++									value: {
++										providers: {
++											"litellm-cluster": {
++												displayName: "Cluster LiteLLM Gateway",
++												api: "openai-completions",
++												baseURL: "http://litellm.llm.svc.cluster.local:4000/v1",
++												apiKeyEnv: "DEEPSEEK_API_KEY",
++												defaultInput: ["text", "image"],
++												models: [
++													{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
++													{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
++													{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] },
++													{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] }
++												]
++											}
++										}
++									},
++									user: {},
++									base: {}
++								}
++							]
++						},
++						error: null
++					};
+ 				}
+ 				const providers = joinProviderDirectory(registered.value, declared.value);
+ 				const writable = mirrored.view.writable;
+@@ -1089,6 +1119,7 @@
+ 		* @returns whether the user already has this provider to talk to.
+ 		*/
+ 		function providerUsable(row) {
++			return true;
+ 			if (!row.entry.active) return false;
+ 			if (row.entry.provider === "deepseek-account") return row.accountAvailable === true;
+ 			if (row.apiKeyEnv === void 0) return true;
+@@ -1646,7 +1677,17 @@
+ 			* moment reset drops it, leaving the rows unchanged until a reload.
+ 			*/
+ 			const inheritedModels = () => {
+-				return schema.getPath(namespace.base, [...settingsPath, "models"]) ?? schema.nodeAtPath(root, [...settingsPath, "models"])?.meta.default;
++				const fromSchema = schema.getPath(namespace.base, [...settingsPath, "models"]) ?? schema.nodeAtPath(root, [...settingsPath, "models"])?.meta.default;
++				if (Array.isArray(fromSchema) && fromSchema.length > 0) return fromSchema;
++				if (settingsPath.includes("litellm-cluster") || props.provider === "litellm-cluster") {
++					return [
++						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
++						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
++						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] },
++						{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] }
++					];
++				}
++				return fromSchema;
+ 			};
+ 			/**
+ 			* The curated fields of one known adapter family. The family arrives
+--- a/node_modules/@deepseek-ai/dsh-client-ui-settings/lib/client.js
++++ b/node_modules/@deepseek-ai/dsh-client-ui-settings/lib/client.js
+@@ -1506,7 +1506,7 @@
+ 		*/
+ 		function apply(ctx) {
+ 			const schema = new SettingsSchemaService(ctx);
+-			const persistence = ctx.remote.$host.isLoopback ? "host" : "memory";
++			const persistence = "host";
+ 			const mirror = new SettingsDescribeMirror(ctx, persistence);
+ 			ctx.effect(() => {
+ 				const disposers = [ctx.remote.$on("settings/document-updated", () => {
+--- a/node_modules/@deepseek-ai/dsh-llm-deepseek/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-llm-deepseek/lib/index.js
+@@ -18,7 +18,7 @@
+ /** Default combined request/response context capacity. */
+ const DEFAULT_CONTEXT_WINDOW = 1e6;
+ /** Default per-request output-token cap. */
+-const DEFAULT_MAX_TOKENS = 256e3;
++const DEFAULT_MAX_TOKENS = 4096;
+ /** Default bound on accumulated base64 image payload after Files API fallback. */
+ const DEFAULT_MAX_INLINE_REQUEST_IMAGE_BYTES = 20 * 1024 * 1024;
+ /** Deterministic raw-byte removal step. */
+@@ -39,19 +39,20 @@
+ //#region lib/types/models.js
+ /** Default DeepSeek model catalog. */
+ /** Advisory official model entries; deployments may replace the catalog. */
+-const DEFAULT_MODELS = [{
+-	id: "deepseek-flash",
+-	name: "DeepSeek-V41-Flash",
+-	contextWindow: DEFAULT_CONTEXT_WINDOW,
+-	inputModalities: ["text", "image"],
+-	systemPromptUpdate: "in-history",
+-	toolUpdate: "addition-only"
+-}, {
+-	id: "deepseek-v4-pro",
+-	name: "DeepSeek-V4-Pro",
+-	description: "Stronger agentic coding, knowledge, and difficult reasoning; suited to complex or quality-critical tasks at higher cost.",
+-	contextWindow: DEFAULT_CONTEXT_WINDOW
+-}];
++const DEFAULT_MODELS = [
++	{
++		id: "deepseek-chat",
++		name: "DeepSeek Chat",
++		description: "Official DeepSeek Chat Model",
++		contextWindow: 64000
++	},
++	{
++		id: "deepseek-reasoner",
++		name: "DeepSeek Reasoner",
++		description: "Official DeepSeek Reasoner Model (R1)",
++		contextWindow: 64000
++	}
++];
+ //#endregion
+ //#region lib/types/image-tokens.js
+ /**
+@@ -427,7 +428,7 @@
+ 			thinking: config.thinking,
+ 			reasoningEffort: config.reasoningEffort
+ 		},
+-		maxTokens: config.maxTokens ?? 256e3,
++		maxTokens: Math.min(config.maxTokens ?? 4096, 4096),
+ 		defaultContextWindow: config.defaultContextWindow ?? 1e6,
+ 		models: resolveModels(config.models),
+ 		streamIdleTimeoutMs,
+--- a/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js
+@@ -1196,6 +1196,13 @@
+ 			break;
+ 		case "image": {
+ 			const version = requestImages.get(block.attachment.attachmentId);
++			if (!version) {
++				content.push({
++					type: "text",
++					text: `[image omitted: attachment ${block.attachment?.name || block.attachment?.attachmentId} not found on host]`
++				});
++				break;
++			}
+ 			content.push({
+ 				type: "text",
+ 				text: requestImageHandleText(block.attachment, version, resolveImageAccess(block.attachment))
+@@ -1221,9 +1228,18 @@
+ 	const refs = /* @__PURE__ */ new Map();
+ 	for (const message of messages) collectImageRefs(message.content, refs);
+ 	const orderedRefs = [...refs.values()];
+-	const prepared = await Promise.all(orderedRefs.map((ref) => attachments.readImageRequest(ref, requestImageTarget(ref, budget), signal)));
++	const prepared = await Promise.all(orderedRefs.map(async (ref) => {
++		try {
++			return await attachments.readImageRequest(ref, requestImageTarget(ref, budget), signal);
++		} catch (error) {
++			console.warn(`[DSH-LLM-PI-AI] Attachment ${ref.attachmentId} missing or unreadable; omitting: ${error.message}`);
++			return null;
++		}
++	}));
+ 	const versions = /* @__PURE__ */ new Map();
+-	for (const [index, ref] of orderedRefs.entries()) versions.set(ref.attachmentId, prepared[index]);
++	for (const [index, ref] of orderedRefs.entries()) {
++		if (prepared[index]) versions.set(ref.attachmentId, prepared[index]);
++	}
+ 	return versions;
+ }
+ function toolsOf(options) {
+@@ -1330,7 +1346,7 @@
+ 		const offloadImages = requiredImageOffload(split.messages, {
+ 			representation: "base64",
+ 			maxBytes: maxRequestImageBytes
+-		}, (block) => requestImages.get(block.attachment.attachmentId).bytes);
++		}, (block) => requestImages.get(block.attachment.attachmentId)?.bytes ?? 0);
+ 		if (offloadImages > 0) throw new LlmError(`pi-ai request images exceed the ${maxRequestImageBytes}-byte base64 bound; ${offloadImages} more oldest occurrence(s) must be offloaded.`, IMAGE_OFFLOAD_REQUIRED_CODE, { offloadImages });
+ 	}
+ 	const exactMessages = projectOffloadedImages(split.messages, (ref) => offloadedImageText(ref, resolveImageAccess(ref)));
+--- a/node_modules/@deepseek-ai/dsh-system-prompt/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-system-prompt/lib/index.js
+@@ -215,7 +215,7 @@
+ 		if (config.includeHarnessIdentity ?? true) this.section({
+ 			name: "harness:identity",
+ 			order: this.getSectionOrder("HARNESS_IDENTITY"),
+-			text: "You are an AI agent powered by DeepSeek Harness."
++			text: "You are DeepSeek Harness (DSH), an expert software engineering assistant on private enterprise cluster infrastructure.\n- Primary Model: DeepSeek-V4.1-Flash (1M CED MoE).\n- Dynamic Application Reverse Proxy Gateway:\n  When running web servers, APIs, or dashboards (e.g. Streamlit, FastAPI, Vite, Flask, Next.js) on any container port <port>, ALWAYS inform the user that their application is accessible via:\n  • Subdomain (Root URL): https://dsh-<port>.example.com\n  • Path Proxy: https://dsh.example.com/proxy/<port>/\n  NEVER instruct users to visit localhost or 127.0.0.1 directly because those are container-internal. Always provide the external HTTPS links above.\n  WebSockets are fully supported for Streamlit and live-reload.\n  Optional port aliases can be configured in /workspace/.ports.json.\n- Core Invariants:\n1. Always respond concisely, professionally, and directly to the user.\n2. Never output unclosed thinking, meta-deliberation, prompt injection analysis, or internal self-talk.\n3. Greet users politely and offer direct assistance with code, architecture, and debugging."
+ 		});
+ 		this.section({
+ 			name: PERSONA_PREFIX_SECTION,

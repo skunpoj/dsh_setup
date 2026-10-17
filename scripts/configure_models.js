@@ -1,11 +1,18 @@
 const fs = require("fs");
 const dshHome = process.env.DSH_HOME || `${process.env.HOME || "/root"}/.dsh`;
 
-const dshPkgDir = [
+const dshPkgDir = process.env.DSH_PACKAGE_DIR || [
   "/usr/local/lib/node_modules/@deepseek-ai/dsh",
   "/usr/lib/node_modules/@deepseek-ai/dsh"
 ].find(d => fs.existsSync(d)) || "/usr/local/lib/node_modules/@deepseek-ai/dsh";
 const baseModulesDir = `${dshPkgDir}/node_modules/@deepseek-ai`;
+// Always validate all pristine inputs before any package/profile write.
+const path = require('path'), crypto = require('crypto');
+const {verify} = require('./verify_upstream_contract');
+const contract = JSON.parse(fs.readFileSync(path.join(__dirname,'upstream_patch_contract.json'),'utf8'));
+const mismatches = verify(dshPkgDir,contract);
+if(mismatches.length) throw new Error('Unreviewed upstream package; refusing all configuration writes: '+JSON.stringify(mismatches));
+
 
 // 1. Maintain official DeepSeek models in dsh-llm-deepseek
 const file = `${baseModulesDir}/dsh-llm-deepseek/lib/index.js`;
@@ -402,6 +409,7 @@ llm-pi-ai:
   console.log(`[CONFIG] Populated ${dshHome}/settings.yaml with DeepSeek-V4.1-Flash default`);
 } catch(e) {
   console.error(e);
+  throw e;
 }
 
 // 8. Patch dsh-system-prompt with enterprise grounding and dynamic app gateway awareness
@@ -475,6 +483,7 @@ When you build, develop, or run web applications, APIs, dashboards, or preview s
   console.log("[CONFIG] Populated AGENTS.md instructions for DSH agent engine");
 } catch(e) {
   console.error("[CONFIG] Failed to write AGENTS.md:", e.message);
+  throw e;
 }
 
 // 10. Resilient Attachment Handling in dsh-llm-pi-ai (Prevents "Attachment object is missing" fatal turn failure)
@@ -567,28 +576,21 @@ if (fs.existsSync(piAiFile)) {
   console.log("[CONFIG] Patched dsh-llm-pi-ai with resilient image attachment handling");
 }
 
-// 11. Resilient Attachment Storage in dsh-attachment-local (Prevents "Attachment object is missing" across all subsystems)
+// 11. Report missing originals explicitly; never fabricate replacement image evidence.
 const alFile = `${baseModulesDir}/dsh-attachment-local/lib/index.js`;
 if (fs.existsSync(alFile)) {
   let alContent = fs.readFileSync(alFile, "utf8");
   const oldReadImage = `		if (error instanceof Error && "code" in error && error.code === "ENOENT") throw new AttachmentError("Attachment object is missing.", "ATTACHMENT_NOT_FOUND");
 		throw new AttachmentError("Unable to read image attachment.", "ATTACHMENT_READ_FAILED", { cause: error });
 	}`;
-  const newReadImage = `		if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-			console.warn(\`[DSH-ATTACHMENT-LOCAL] Image \${sha256} missing on host, generating synthetic placeholder\`);
-			const fallbackPng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
-			return {
-				ref: { ...ref, bytes: fallbackPng.byteLength, mediaType: "image/png" },
-				data: new Uint8Array(fallbackPng)
-			};
-		}
+  const newReadImage = `		if (error instanceof Error && "code" in error && error.code === "ENOENT") throw new AttachmentError("Original image is unavailable; no replacement image was generated.", "ATTACHMENT_NOT_FOUND");
 		throw new AttachmentError("Unable to read image attachment.", "ATTACHMENT_READ_FAILED", { cause: error });
 	}`;
 
   if (alContent.includes(oldReadImage)) {
     alContent = alContent.replace(oldReadImage, newReadImage);
     fs.writeFileSync(alFile, alContent, "utf8");
-    console.log("[CONFIG] Patched dsh-attachment-local readImageFile with synthetic fallback");
+    console.log("[CONFIG] Patched dsh-attachment-local to report unavailable originals explicitly");
   }
 }
 
@@ -671,6 +673,19 @@ try {
   console.log("[CONFIG] Enforced cordis.patch.yml with auto-compaction and configured 1M context window");
 } catch (e) {
   console.error("[CONFIG] Failed to write cordis.patch.yml:", e.message);
+  throw e;
 }
 
 
+
+// Read back every mutation and reject no-op or syntactically broken output.
+const {spawnSync} = require('child_process');
+const applied = contract.targets.map(entry => {
+ const target=path.join(baseModulesDir,entry.path),source=fs.readFileSync(target);
+ const sha256=crypto.createHash('sha256').update(source).digest('hex');
+ if(sha256===entry.sha256) throw new Error('Expected patch did not change target: '+entry.path);
+ if(target.endsWith('.js')){const syntax=spawnSync(process.execPath,['--check',target],{encoding:'utf8'});if(syntax.status!==0)throw new Error('Patched target syntax rejected: '+entry.path+' '+syntax.stderr);}
+ return {path:entry.path,upstreamSHA256:entry.sha256,patchedSHA256:sha256};
+});
+if(fs.readFileSync(alFile,'utf8').includes('fallbackPng'))throw new Error('Synthetic missing-image fallback is forbidden');
+console.log(JSON.stringify({reviewedUpstreamVersion:contract.baselineVersion,appliedPatches:applied,scope:'Build-time compatibility overlay; no Production deployment'}));

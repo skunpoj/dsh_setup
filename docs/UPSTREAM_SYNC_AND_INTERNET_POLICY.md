@@ -1,5 +1,44 @@
 # DSH upstream maintenance and release policy
 
+## Current patch and update review — 17 October 2026
+
+Fresh registry checks found npm `latest=0.2.0-rc.2`, `next=0.2.1-rc.2` and `alpha=0.2.1-alpha.5`. The pinned default still matches latest. Official master was `687f282e8625c6b8d11ff58211a90524be2e4317`; master, preview channels and the default published package are different release tracks. This is not a recommendation to merge master or silently adopt next.
+
+The GitHub upstream-candidate workflow is active. Its most recent prior hosted run, [39019957050](https://github.com/skunpoj/dsh_setup/actions/runs/39019957050), passed source `13b26c8`. Those are prior-source results, not acceptance of the new changes below. Daily/manual/push candidate checks are configured; patch-export and line-ending-policy changes are included in the revised push/PR path filters; the production upgrade remains a separate operation.
+
+### What our implementation actually is
+
+The official npm application is the base. Kubernetes isolation, gateway authentication, central storage, access audit, package promotion and shared inference are separate deployment overlays. Ten bundled DSH files are modified by `configure_models.js`. The managed SDK budget loader, Claude/TrueForge policies and GPU scheduler patches belong to their respective dependencies, not to an upstream DSH source merge. We do not maintain a fully synchronized clone of the official monorepo.
+
+The [patch inventory](UPSTREAM_PATCH_INVENTORY.md) separates these responsibilities. The new [versioned patch export](../patches/README.md) records the ten actual upstream/local differences, original and resulting hashes, and the configurator hash. The neutral-host diff is a review artifact; the guarded configurator remains the single runtime build-time application engine. No manual patch should be applied to a running installation. Supported plugins/configuration should replace individual source edits when equivalent upstream extension points are qualified.
+
+### Fixes from this code review
+
+- Direct configurator invocation now verifies the root/module package identities, versions and all original file hashes before any package/profile write. Docker's earlier separate check remains; it is no longer the only guard.
+- Profile/settings write failures now stop candidate construction. Every expected package mutation must produce changed output, and all resulting JavaScript targets undergo syntax checks. A missing target, changed upstream file or accidental repeated application is refused.
+- Missing attachment storage no longer fabricates a one-pixel replacement image in the candidate. It reports an unavailable original; the existing LLM adapter can explicitly label/omit it. This preserves the distinction between recovered evidence and an absent image. Actual installed-function behavior is a candidate acceptance check.
+- Reviewed patch exports and their manifests must stay synchronized with the configurator. The Docker candidate includes these artifacts so the same CI contract checks run against them. Exact-byte sources/exports use LF to avoid Windows line-ending changes invalidating their hashes.
+
+All ten baseline targets were independently obtained from official npm archives, checked against published SHA-512 integrity and reviewed SHA-256, patched in a disposable package tree, then read back. Applying the exported unified diff to a fresh original copy reproduced all ten output hashes with Git line-ending conversion disabled. An initial Windows apply converted line endings and failed exact hashes; it is not counted as successful acceptance.
+
+See the [review measurements](context-evidence/upstream-maintenance-review-20261017.json). The Windows installed-SDK budget test initially failed because the default Linux path was absent; it subsequently passed using the exact read-back installed SDK source. This is separate from a complete installed-package candidate and from any Production upgrade.
+
+### Actual installed-package acceptance
+
+An isolated CPU-only pod used the existing pinned runtime image, no service-account token, no credentials or Production storage, a read-only root filesystem and a deny-all ingress/egress policy. Its installed package was copied into disposable storage, the ten official original files restored, and the new guarded configurator applied. Actual installed-module syntax, web profile composition and the missing-image function check passed. The actual web server then passed launch-cookie authentication, session/model-catalog RPC, anonymous denial and untrusted-Host denial. No inference request was made. The disposable pod and its temporary policy were removed.
+
+This qualifies the new patches against the installed baseline dependency tree; it is not a fresh image build or Production deployment. A separate reapplication attempt was refused before changing any of the existing candidate package/profile files. All ten local JavaScript source suites passed (the installed-SDK suite used an exact read-back source), nine upstream/export Python cases passed, and all 24 JavaScript operator sources passed syntax checks. Python source compilation also passed. This is bounded regression coverage, not proof of every application behavior or dependency.
+
+### Update sequence
+
+1. Detect npm latest and record source/channel/integrity metadata. An explicit preview remains opt-in.
+2. Build a candidate from that exact official package. Keep local overlays separate. A changed contract stops automation rather than auto-approving new hashes.
+3. Review upstream diffs, remove patches already supplied upstream, adapt required patches and tests, and regenerate the reviewed export.
+4. Qualify actual installed code, authenticated web/RPC/Host boundaries and overlay regressions, then copied-state histories/attachments, tools, terminal/WebSockets, compaction, user/environment/network boundaries and rollback.
+5. Publish an immutable candidate and perform a controlled handover only after the affected release checks pass. Preserve original histories and newer writes. A scheduled check or passing source test is not itself a Production upgrade.
+
+This review changes candidate-build source and documentation. It does not upgrade the currently running DSH package or restart a shared service. Concurrent admission work has a separate owner and acceptance record.
+
 ## Why this is not a fully synchronized source fork
 
 `dsh_setup` packages the official npm distribution and maintains deployment, authentication, routing, storage and model-configuration overlays. It does not copy the official monorepo. Updating the official package and preserving these overlays is the correct synchronization operation; merging all official source files into this deployment repository would mix two different repository purposes.

@@ -1,7 +1,7 @@
 // Boot the installed upstream web server against disposable state only.
 const fs=require('fs'),os=require('os'),path=require('path'),http=require('http'),assert=require('assert'),{spawn}=require('child_process');
 const home=fs.mkdtempSync(path.join(os.tmpdir(),'dsh-candidate-'));
-const seed='/opt/dsh/seed/dsh-home';
+const seed=process.env.DSH_CANDIDATE_SEED || '/opt/dsh/seed/dsh-home';
 fs.cpSync(seed,home,{recursive:true});
 const port=31997;let token='',cookie='',log='',closed=false;
 const child=spawn('dsh',['web','--host','127.0.0.1','--port',String(port),'--no-open','--trusted-host','127.0.0.1'],{

@@ -20,6 +20,7 @@ ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh KRB5CCNAME=FILE:/state/kerberos/ccach
 
 COPY scripts/ /opt/dsh/scripts/
 COPY tests/ /opt/dsh/tests/
+COPY patches/ /opt/dsh/patches/
 COPY container/ /opt/dsh/container/
 RUN python3 /opt/dsh/scripts/configure_managed_harnesses.py \
  && node /opt/dsh/tests/test_managed_harnesses.mjs \

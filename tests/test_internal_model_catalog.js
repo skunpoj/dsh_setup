@@ -11,13 +11,16 @@ const files = new Map([
 ]);
 const fakeFs = {
   existsSync: p => files.has(p) || p === '/usr/local/lib/node_modules/@deepseek-ai/dsh',
-  readFileSync: p => { assert(files.has(p), `unexpected read ${p}`); return files.get(p); },
+  readFileSync: p => { if(p.endsWith('upstream_patch_contract.json'))return JSON.stringify({targets:[]});if(p.endsWith('dsh-attachment-local/lib/index.js'))return '';assert(files.has(p), `unexpected read ${p}`); return files.get(p); },
   writeFileSync: (p, value) => files.set(p, value),
   mkdirSync: () => {},
 };
 const source = fs.readFileSync(path.join(__dirname, '../scripts/configure_models.js'), 'utf8');
 vm.runInNewContext(source, {
-  require: name => { assert.equal(name, 'fs'); return fakeFs; },
+  // This fixture isolates catalog transformation; real preflight is tested against
+  // original registry artifacts and by test_upstream_contract.js.
+  __dirname: path.join(__dirname,'../scripts'),
+  require: name => { if(name==='fs')return fakeFs;if(name==='./verify_upstream_contract')return {verify:()=>[]};return require(name); },
   process: { env: { HOME: '/fixture', DSH_HOME: '/fixture/.dsh' } },
   console: { log() {}, error(error) { throw error; } }, Buffer,
 });
