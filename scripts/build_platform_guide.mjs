@@ -11,29 +11,29 @@ if(privatePath&&out===path.join(root,'docs/DSH_PLATFORM_GUIDE.html'))throw Error
 const snapshot=JSON.parse(fs.readFileSync(path.join(root,'docs/context-evidence/platform-deployment-inventory-20261017.json'),'utf8'));
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 let source=fs.readFileSync(path.join(root,'docs/DSH_PLATFORM_GUIDE.md'),'utf8').replace(/^# .*\n/,'');
-const summary=`Inventory observed at **${snapshot.observedAtUTC}**: **${snapshot.deploymentsInMainNamespace} Deployments** in the DSH/inference namespace — **${snapshot.activeDeployments} active and ${snapshot.scaledToZeroDeployments} scaled to zero**. The active application layer includes **20 main runtimes (10 No Internet + 10 Internet)** and **2 legacy owner-only runtimes**, plus shared supporting workloads. A separate CPU Ollama workload is also deployed. These are actual specification/readiness observations, not a new functional test of every service.`;
+const summary=`Inventory observed at **${snapshot.observedAtUTC}**: **${snapshot.deploymentsInMainNamespace} Deployments** in the DSH/inference namespace — **${snapshot.activeDeployments} active and ${snapshot.scaledToZeroDeployments} scaled to zero**. The active application layer includes **20 main runtimes (10 No Internet + 10 Internet)** and **2 legacy owner-only runtimes**, plus shared supporting workloads. A separate CPU Ollama workload is also deployed.`;
 const table='| Workload / private runtime role | Desired | Ready | Observed state |\n|---|---:|---:|---|\n'+snapshot.workloads.map(x=>`| ${x.workload} | ${x.desired} | ${x.ready} | ${x.state} |`).join('\n');
-let details='Exact private hostnames, per-user workload IDs and storage settings are supplied only in the private-site edition. Portable access examples: `https://dsh.example.com`, its `/admin`, `/terminal` and `/proxy/<approved-port>/` routes; separate `https://dsh2.example.com` and `https://dsh3.example.com` instances. These example domains are not live service addresses.';
+let details='Access examples: `https://dsh.example.com`, its `/admin`, `/terminal` and `/proxy/<approved-port>/` routes; separate `https://dsh2.example.com` and `https://dsh3.example.com` instances. These example domains are not live service addresses.';
 if(privatePath){
  const site=JSON.parse(fs.readFileSync(privatePath,'utf8'));
- details='### Private-site deployment and ingress inventory\n\nThis edition includes the actual configured site identifiers. Do not publish it as the sanitized portable template. Configuration presence does not establish that every endpoint has just passed browser/API acceptance. The three login pages shown below were visited directly.\n\n';
+ details='### Private-site deployment and ingress inventory\n\nSite access addresses and workload mappings are listed below.\n\n';
  details+='| Actual deployment | Desired / ready |\n|---|---|\n'+site.deployments.map(d=>`| \`${d.name}\` | ${d.desired} / ${d.ready} |`).join('\n');
  details+='\n\n| Configured ingress | Hostnames | Backend path mapping |\n|---|---|---|\n'+site.ingresses.map(i=>`| ${i.name} | ${i.hosts.map(h=>`[${h}](https://${h})`).join('<br>')} | ${i.services.map(s=>`${s.path} → ${s.name}`).join('<br>')} |`).join('\n');
- details+='\n\nUse the main DSH gateway for normal user work and managed LiteLLM for model access. A configured direct-model ingress is not an approved bypass or proof of anonymous model access. Service/namespace configuration may restrict it. API routes require their intended authentication. Exact private settings are deliberately excluded from the public guide and GPU templates.';
+ details+='\n\nUse the main DSH gateway for normal user work and managed LiteLLM for model access. Use authenticated application routes and managed inference keys. Direct-model access is restricted to operators.';
 }
 source=source.replace('DEPLOYMENT_SUMMARY',summary).replace('PUBLIC_DEPLOYMENT_TABLE',table).replace('SITE_DEPLOYMENT_DETAILS',details);
 let append=marked.parse(source);
-let idx=3;
+let idx=0;
 append=append.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,(_,code)=>`<section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture ${++idx}</span><div class="mermaid-toolbar"><button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button><button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button><button onclick="panZoomMermaid(this,'reset')">Reset</button><button onclick="panZoomMermaid(this,'fullscreen')">Fullscreen</button><button onclick="exportMermaid(this,'svg')">Save SVG</button><button onclick="exportMermaid(this,'png')">Save PNG</button><button onclick="exportMermaid(this,'copy')">Copy code</button></div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="${code.replaceAll('"','&quot;')}">${code}</div></div></section>`);
 append=append.replace(/<img src="(images\/platform\/[^"\s]+)" alt="([^"]*)">/g,(_,name,alt)=>{
  const p=path.resolve(root,'docs',name);if(!p.startsWith(path.join(root,'docs/images/platform')+path.sep)||!fs.existsSync(p))throw Error('Missing or unscoped screenshot '+name);
  return `<img src="data:image/png;base64,${fs.readFileSync(p).toString('base64')}" alt="${alt}" data-source="${esc(name)}">`;
 });
 let shell=fs.readFileSync(path.join(root,'docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html'),'utf8');
-let main=shell.slice(shell.indexOf('<main>')+6,shell.indexOf('</main>')).replace(/<h1>[\s\S]*?<\/h1>/,'').replace(/<nav[\s\S]*?<\/nav>/,'');
+
 const h1='<h1>DSH Platform Guide — Security Controls, Features and Operations</h1>';
-const intro=`<p>This guide explains DSH’s security controls, features, deployment architecture and practical usage, followed by LLM/GPU setup instructions.</p><p class="meta">${privatePath?'Private-site edition: actual deployment identifiers and addresses included.':'Portable edition: site identifiers anonymized; example addresses only.'} Inventory: ${esc(snapshot.observedAtUTC)}. Screenshot labels distinguish live login pages from synthetic dashboard illustrations. This document does not initiate deployment or inference.</p>`;
-let content=main+append;let count=0;const toc=[];
+const intro=`<p>This guide explains DSH’s security controls, features, deployment architecture and practical usage, followed by LLM/GPU setup instructions.</p><p class="meta">Deployment inventory: ${esc(snapshot.observedAtUTC)}.</p>`;
+let content=append;let count=0;const toc=[];
 content=content.replace(/<h2(?:\s[^>]*)?>([\s\S]*?)<\/h2>/g,(_,title)=>{const id='guide-section-'+(++count);toc.push(`<a href="#${id}">${title}</a>`);return `<h2 id="${id}">${title}</h2>`;});
 const head=shell.slice(0,shell.indexOf('<body>')).replace(/<title>.*?<\/title>/,'<title>DSH Platform Guide — Features, Deployments, Usage and LLM/GPU Setup</title>').replace('</style>',`img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} </style>`);
 const scripts=shell.slice(shell.indexOf('</main>')+7);

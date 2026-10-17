@@ -1,4 +1,165 @@
-# DSH platform features and usage
+# DSH Platform Guide
+
+DSH controls three risks: external leakage, damage or excessive access, and exposure of results. The Harness, its tools and generated code are treated as automation that can make mistakes. The application therefore enforces boundaries through network policy, private execution, scoped storage and authenticated routes rather than relying on prompt instructions.
+
+## 1 Prevent external leakage
+
+### Control objective
+
+Prevent unauthorized public connections from the No Internet execution environment while retaining only the internal services required for work. Internet access is provided through a separate environment for dependency preparation, with no automatic transfer of protected data.
+
+### Separate execution and network boundaries
+
+No Internet / Internal is the default login choice. Each main user has a private runtime for this environment and a different private Internet runtime. Authentication fixes the user/environment route for the login session. Switching environments requires logout and a new login; a submitted username, routing header or changed selection cannot choose another user's backend.
+
+No Internet has a restricted outbound network policy. Its approved paths include internal inference, controlled DNS and permitted authentication or job-submission services. Public-domain and direct-IP connectivity are restricted at the network layer, including commands launched from the terminal. The runtime has no Kubernetes management token with which to change its own policy.
+
+The Internet environment has separate compute, workspace, histories and credentials. It does not mount protected No Internet working data. Its public connectivity supports dependency preparation; it is not an alternate processing route for protected prompts, tickets, datasets or reports. The shared internal gateway and inference services do not merge user workspaces. This architecture provides restricted egress, rather than a strict air gap.
+
+The gateway, LiteLLM, local model providers and supporting database have their own destination restrictions. Filtered internal DNS serves approved internal names rather than forwarding arbitrary public lookups. Supplied model clients use internal LiteLLM with model-scoped credentials and operator-owned configuration; external model fallback is disabled for the managed route. Client configuration complements infrastructure enforcement and does not replace it.
+
+### Transfer dependencies without sharing protected workspaces
+
+The Internet environment downloads package artifacts into an incoming area. An operator reviews their source, version and expected hashes. A controlled promotion process verifies selected bytes and places approved artifacts in a separate cache. No Internet mounts that cache read-only and installs without a public package index.
+
+Internet cannot directly install into the protected runtime or modify its workspace. Prompts, datasets, credentials, histories and reports are not dependency artifacts and must not use this transfer path. Hash verification establishes artifact integrity; package approval remains necessary because an intact package can still contain harmful code.
+
+```mermaid
+flowchart TB
+ U[Named user] --> G[Authenticated environment routing]
+ G --> S[No Internet - private execution and data]
+ G --> I[Internet - separate dependency staging]
+ S --> M[Internal LiteLLM]
+ M --> LM[Local model and embedding providers]
+ LM --> LE[Public egress denied]
+ DB --> LE
+ M --> DB[Approved internal database]
+ G --> DNS[Filtered internal DNS]
+ M --> DNS
+ S --> B[Network layer blocks public destinations]
+ I --> P[Incoming packages]
+ P --> V[Operator review and hash verification]
+ V --> C[Approved read-only cache]
+ C --> S
+ X[Legacy hostname] --> Y[Owner-only authentication]
+ Y --> Z[Legacy Internet workload]
+ Z --> L[Allowed Livy endpoint]
+ S --> L[Allowed Livy endpoint]
+ L --> R[Remote Spark drivers and executors]
+ R --> E[Remote platform network policy]
+ classDef exposure fill:#7f1d1d,stroke:#f87171,color:#ffffff
+ class E exposure
+```
+
+### Keep environment choices explicit
+
+Legacy DSH2 and DSH3 are owner-only Internet-capable instances. The No Internet choice is disabled on these instances. Their authenticated proxies and ingress restrictions prevent direct peer access, while retaining their intended internal inference and permitted service connections. Protected offline work uses the designated No Internet environment.
+
+An internal connection to another platform does not grant administration of that platform. If a submitted command executes remotely, that platform applies its own permissions and network rules; this responsibility is separated in the final section.
+
+## 2 Prevent damage or excessive access
+
+### Control objective
+
+Contain local execution and prevent peer or administrative access beyond the selected user's environment. Preserve existing permissions on connected platforms instead of silently granting broader access or imposing an unrequested replacement authorization policy.
+
+### Run tools within a private, restricted workload
+
+Each main user/environment has a separate execution process with bounded workspace, session, attachment and credential mounts. Isolation is enforced through the workload and mounted scope, rather than merely choosing different folders in one shared process. Broad parent directories containing other users' data and host-management interfaces are not exposed to ordinary execution.
+
+The workloads execute as non-root, disable privilege escalation, drop Linux capabilities, use RuntimeDefault seccomp and have no mounted Kubernetes management token. CPU and memory limits constrain local resource use. Legacy instances similarly use restricted non-root execution with a designated owner account.
+
+DSH, Claude Code and TrueForge inherit the selected runtime's identity, mounts and network policy. Installing a tool does not grant a privileged container, host socket or another user's credentials. TrueForge's optional nested sandbox is disabled. Its ordinary tools run within the selected runtime's existing restrictions.
+
+### Preserve private work and bounded write access
+
+Protected working files and durable histories use bounded central CIFS paths. Internet workspaces and histories remain separate. Credentials and profiles remain in their designated private state locations, while approved dependency artifacts are read-only. Generated outputs belong in the user's designated writable working area.
+
+Existing histories and files retain their ownership. An explicitly authorized support copy is independent and does not reassign the source, expose a shared parent directory or establish ongoing synchronization. Persistence across runtime replacement is part of the application design; independent recovery from authorized or accidental deletion is a separate storage-service responsibility.
+
+### Use connected services under existing authorization
+
+Datalake connections authenticate with the applicable Kerberos principal. DSH does not expand that principal's permissions, grant administration of the datalake or redefine its dataset scope. Submitted commands remain subject to that platform's authorization and execution controls. Existing personal and system-account entitlements are preserved.
+
+A generated command can still make a mistake within permissions already granted. Tasks should therefore separate original inputs from outputs and review destructive operations where appropriate. For sandbox-only or read-only work, use an entitlement provisioned by the relevant platform owner.
+
+```mermaid
+flowchart TB
+ U[Named user] --> P[Main private non-root runtime]
+ P --> W[Own writable workspace and results]
+ P --> C[Private credential cache]
+ C --> K[Kerberos execution identity]
+ K --> A[Effective datalake authorization]
+ A --> D[Permitted datasets or sandbox]
+ A --> N[Existing platform permissions]
+ P --> Q[CPU and memory limits]
+ D --> O[Task-designated result location]
+ classDef pending fill:#78350f,stroke:#fbbf24,color:#ffffff
+ class N pending
+```
+
+### Bound shared resources
+
+The inference route counts the complete request, reserves output capacity and controls admission of expensive work. Long requests use bounded waiting and an explicit busy response while shorter work remains schedulable. Admission manages shared capacity independently of data authorization. Local process limits and shared inference scheduling are DSH controls; remote job queues remain under the platform that executes those jobs.
+
+## 3 Keep results contained
+
+### Control objective
+
+Keep histories, reports, files, attachments and terminal access within authorized user routes. Separate operational oversight from automatic access to user content.
+
+### Authenticate access and bind it to private storage
+
+The gateway admits provisioned named accounts, disables self-registration and binds each authenticated user to the assigned runtime. Reports, files, attachments and terminal WebSockets use the authenticated boundary. Server-side identity and route checks reject forged roles, peer-runtime selection and direct bypass paths.
+
+Each user/environment has separate working files and history storage. Switching environments does not automatically transfer content or credentials. Logout invalidates the gateway session. Legacy instances admit only their designated owners; shared guest and cross-account logins are disabled.
+
+Account stores use salted scrypt password records and bounded verification. Authentication records are stored outside execution workspaces, with protected account volumes and operator-only recovery material. Supplied bootstrap configuration does not create factory-password accounts. Users can change passwords through the authenticated flow; startup does not overwrite a changed password.
+
+### Centralize oversight without merging user content
+
+The admin-only dashboard combines operational information and access events. Administrative visibility does not automatically grant access to another user's conversations or files. Any authorized support copy remains in a separate private store and preserves the original owner's records.
+
+Access auditing records relevant events, user, environment and time outside execution workspaces. It excludes passwords, Kerberos tickets and conversation bodies. Legacy exporters read only their access-log scope and write a bounded central projection. Execution users do not receive the account or audit stores. Required gateway auditing fails closed when an access event cannot be persisted.
+
+The dashboard distinguishes timestamped infrastructure snapshots from current gateway information. Refresh reloads the saved snapshot. Access logs support accountability; a full command recorder, conversation archive and independent audit-retention service are separate capabilities.
+
+```mermaid
+flowchart TB
+ U[Named user] --> G[Authenticated gateway]
+ G --> R[Fixed private runtime]
+ R --> F[Own files - reports - history]
+ X[Other user] --> N[Peer routes and files denied]
+ A[Admin] --> D[Admin-only dashboard and access audit]
+ A --> P[Own private runtime]
+ LA[Protected legacy access logs] --> EX[Read-only log exporter]
+ EX --> CP[Bounded central access projection]
+ CP --> D
+ F --> B[Authorized browser access]
+ B --> E[Manual copying requires endpoint controls]
+ classDef boundary fill:#78350f,stroke:#fbbf24,color:#ffffff
+ class E boundary
+```
+
+### Deliver generated results through the same boundary
+
+Working reports, charts, temporary files and generated applications remain in the private environment. Server-side file access uses the authenticated identity rather than a submitted owner name or arbitrary filesystem path. Exposing a new application requires the same authenticated proxy and user-bound storage; it does not justify a new public bypass route.
+
+The managed workflow does not automatically publish protected results externally. The No Internet environment's network policy blocks direct public transmission from its execution runtime. Internet-capable tools must not be represented as having the same offline restriction. Authorized viewing and downloading are normal application functions; additional restrictions on what a person copies require an explicit handling policy and endpoint controls.
+
+## Connected services and responsibilities
+
+Use these responsibility boundaries when planning connected services, data access and operations.
+
+| Boundary | Responsibility and agreed treatment |
+|---|---|
+| Remote Livy/Spark execution | The datalake platform controls its drivers, executors, job limits and outbound network. DSH restricts its local submission path but does not administer those machines. Livy/Spark remains available. Its remote workers require their own outbound controls. |
+| Dataset and sandbox authorization | The platform's existing Kerberos/AD and data permissions remain authoritative. Use a sandbox-only or read-only entitlement when the task requires it. |
+| Authorized browser handling | Viewing, copying and downloading by an authorized person are distinct from peer access or unauthorized publication. Device restrictions, managed browsers or DLP apply only where required by the organization's handling policy. |
+| Identity lifecycle | Authentication uses local accounts with an authenticated password-change flow. Corporate SSO/MFA and organization-wide recovery require separate integration. Change any exposed or known password; hashing protects stored records, not a password already known to someone else. |
+| Storage recovery and infrastructure administration | Central storage provides persistence. Storage-server ACL administration, independent backups and disaster recovery belong to that service. Cluster, host and storage administrators remain trusted privileged operators. |
+| Audit-service extensions | Current central access logging and dashboard oversight are included. Complete command/body capture, remote-job correlation and independently retained audit archives require additional collectors and an operating policy. |
+| Deliberately Internet-capable environments | Internet staging and the legacy Internet instances retain their intended public connectivity. They are not protected No Internet environments and must not be used as an automatic bridge for protected content. |
 
 ## Platform features and intended use
 
@@ -13,11 +174,11 @@ The main interface is the DSH web workspace. Claude Code and TrueForge are optio
 | Workspaces and projects | Keep repositories, scripts and results under `/workspace` | The selected environment's mounts define what is visible. A folder name alone is not the isolation mechanism. |
 | Persistent history and attachments | Reopen sessions and use their associated files | Workspace, session and attachment stores persist according to their mounts. Credential/profile state has a separate scope. |
 | Long-context analysis | Supply relevant repository/document material to the managed local model | DSH supports a 1,048,576 total-token budget, not unlimited input plus output. Large cold prompts can take many minutes. |
-| Compaction and tool-result pruning | Use `/compact` where appropriate; automatic compaction is configured | Compaction must reduce context; it can refuse a non-reducing summary. It is not a backup or a promise to retain every detail. |
+| Compaction and tool-result pruning | Use `/compact` where appropriate; automatic compaction is configured | Compaction must reduce context; it can refuse a non-reducing summary. Save important findings and source references before compacting. |
 | Web terminal | Open the authenticated terminal and run tools in the selected environment | Same user, mounts, non-root identity and network boundary; opening a terminal does not grant host or cluster administration. |
 | Application previews | Start a server on an approved free port, then open the authenticated app route | Serve only the intended result folder. A new server must remain behind the gateway; an arbitrary public route is not automatically protected. |
 | Claude Code | Run the installed `claude` client from the terminal | Managed internal endpoint/model and persistent private client state. Current default uses the client's 1,000,000-token mode. |
-| TrueForge | Start `trueforge`, then open its authenticated port-3000 app route | Private client state and managed internal model. Optional nested code sandbox is disabled; this is not a fully qualified sandbox feature. |
+| TrueForge | Start `trueforge`, then open its authenticated port-3000 app route | Private client state and managed internal model. Optional nested code sandbox is disabled. |
 | Offline dependency preparation | Download in Internet, approve artifacts, install from the read-only cache in No Internet | Python/npm helpers exist. Native/OS dependencies may need a qualified runtime-image build; the package cache is not a shared writable workspace. |
 | Kerberos and datalake connection | Authenticate privately using the intended principal and configured client | Existing platform permissions remain authoritative. Local DSH login and central storage do not grant data access. |
 | Admin overview and access audit | Admin opens the dashboard; views current gateway values and dated infrastructure observations | Admin-only oversight. No automatic ownership of user content, complete command transcript, live GPU dashboard or unlimited archive. |
@@ -27,7 +188,7 @@ The main interface is the DSH web workspace. Claude Code and TrueForge are optio
 
 ### Installed clients
 
-The inventory read back the installed main-runtime packages: DSH `0.2.0-rc.2`, Claude Code `2.1.301`, TrueForge `0.179.2`. Version presence is not a fresh end-to-end test of every command. The separate deployment and client reports contain the recorded acceptance scope. New upstream-patch candidate fixes are qualified separately and are not assumed present in an older running image.
+Installed main-runtime versions: DSH `0.2.0-rc.2`, Claude Code `2.1.301`, TrueForge `0.179.2`.
 
 ## Deployments and access points
 
@@ -39,21 +200,21 @@ SITE_DEPLOYMENT_DETAILS
 
 Main DSH routes each identity to its own selected runtime. Main service aliases and app ports are entry routes, not extra independent copies of a user's workspace. DSH2 and DSH3 have their own designated owners and remain Internet-only. Claude Code and TrueForge run inside those assigned workloads; they are not additional shared GPU deployments.
 
-The original unisolated `dsh` deployment and the alternative model Deployments listed as scaled to zero are retained configurations, not currently available parallel model capacity. Do not scale another four-GPU model while the only GPU node is occupied without a reviewed capacity/handover plan. No deployment was changed for this guide.
+The original unisolated `dsh` deployment and the alternative model Deployments listed as scaled to zero are retained configurations, not currently available parallel model capacity. Do not scale another four-GPU model while the only GPU node is occupied without a reviewed capacity/handover plan.
 
 ### Supporting services and standby models
 
-The environment gateway handles login, fixed private routing, authenticated app/terminal access and the admin view. The internal DNS service provides the approved name-resolution path. LiteLLM and its final-payload guard handle model authentication, exact budgets and admission; PostgreSQL supports LiteLLM's persistent service state. The shared SGLang workload runs the active generative model. A documentation server and workload-switcher service are also deployed; readiness/configuration presence does not freshly qualify their administrative operations, and this guide does not invoke model switching.
+The environment gateway handles login, fixed private routing, authenticated app/terminal access and the admin view. The internal DNS service provides the approved name-resolution path. LiteLLM and its final-payload guard handle model authentication, exact budgets and admission; PostgreSQL supports LiteLLM's persistent service state. The shared SGLang workload runs the active generative model. A documentation server serves operational guides; the workload-switcher service supports operator-controlled model changes.
 
 Alternative GLM/Qwen and earlier model-runtime Deployments are explicitly identified as scaled to zero in the inventory. They do not provide simultaneous GPU capacity, an automatic fallback model or an operational service merely because their configuration exists.
 
 ### Optional CPU embeddings
 
-A separate Ollama workload was found outside the main inference namespace with CPU/memory limits and no requested GPU. Its HTTPS `/api/ps` readback returned no currently loaded models. Earlier BGE-M3 embedding acceptance is a historical result; this readback does not claim a fresh embedding inference test or a currently loaded model. CPU embeddings do not require another copy of the four-GPU generative model.
+A separate CPU Ollama workload provides optional embeddings without using the generative model’s GPUs. Use `/api/ps` to check loaded models and load the approved model before the first embedding request.
 
 ## Example usage
 
-These are user workflows and sample commands, not a claim that each example was executed while building this guide. Use synthetic/public input first and review the selected environment before running a task.
+Choose the intended environment before starting. The examples below cover common tasks.
 
 ### 1 Sign in and choose the environment
 
@@ -62,7 +223,7 @@ These are user workflows and sample commands, not a claim that each example was 
 3. Open the intended workspace or create a new session. Verify which environment you are using before adding files or authenticating to connected services.
 4. To switch environments, logout and sign in again. To change a password, use the authenticated password-change flow; do not put credentials in chat or project files.
 
-A model's statement that it has web tools is not proof of network access. If connectivity is relevant, request an actual approved connectivity check and its observed result in the selected environment; do not infer access from the presence of a tool name.
+Check connectivity from the selected environment when needed; a listed web tool may still be blocked by its network policy.
 
 ### 2 Review a repository with traceable answers
 
@@ -70,7 +231,7 @@ Example prompt:
 
 > Inspect this repository without changing files. Explain the request path, authentication boundary and persistence locations. Cite the exact file and line range for each factual claim. Separate observations from assumptions and list anything you could not verify.
 
-For a large review, choose relevant code and documents rather than padding the input. Ask for a source ledger and check it against the actual files. A near-1M capacity result does not establish general correctness of every answer. Keep enough context headroom for tool definitions, output and follow-up work.
+For a large review, choose relevant code and documents rather than padding the input. Ask for a source ledger and check it against the actual files. Keep enough context headroom for tool definitions, output and follow-up work.
 
 ### 3 Produce a bounded analysis result
 
@@ -85,7 +246,7 @@ cd /workspace/<project>
 python3 -m json.tool results/summary.json
 ```
 
-A local file inspection can verify saved content; it does not independently establish the correctness of the source dataset.
+Compare the saved results with the input and the requested calculations.
 
 ### 4 Use the web terminal and application preview
 
@@ -109,7 +270,7 @@ printf 'six==1.17.0\n' > requirements.txt
 prepare-offline-deps python requirements.txt
 ```
 
-This downloads to the incoming package area. An operator reviews source/version/hashes and performs controlled promotion; the example does not grant the downloader permission to approve its own artifacts. In No Internet, after approval:
+This downloads to the incoming package area. An operator reviews source/version/hashes and performs controlled promotion. In No Internet, after approval:
 
 ```sh
 python3 -m venv /workspace/<project>/.venv
@@ -146,13 +307,13 @@ An authorized admin opens `/admin` through the main gateway. Review account/sess
 
 ## Interface screenshots
 
-The screenshots below are page-content captures, without fabricated browser chrome. Login captures are from the live main/legacy pages with empty input fields. Dashboard captures are clearly labelled synthetic illustrations from the actual gateway code, using demonstration accounts and values; they are not Production statistics. Private conversations, credentials and Kerberos tickets are excluded.
+The login screenshots show the live interfaces. Dashboard screenshots use demonstration accounts and values to explain the controls.
 
 ### Main login and environment selection
 
 ![Live main DSH login with empty fields](images/platform/live-main-login.png)
 
-Live page capture, 17 October 2026. No Internet / Internal is selected by default. The interface currently includes bilingual login labels; the guide's narrative is English.
+No Internet / Internal is selected by default.
 
 ### Legacy owner-only Internet deployments
 
@@ -162,41 +323,41 @@ DSH2 live login capture. No Internet is unavailable on this legacy instance; Int
 
 ![Live DSH3 login with No Internet disabled](images/platform/live-legacy3-login.png)
 
-DSH3 live login capture. Similar appearance reflects the shared login implementation, not a second copy of the same deployment screenshot.
+DSH3 is an owner-only Internet instance; No Internet is disabled.
 
 ### Admin overview and limits
 
 ![Synthetic admin overview rendered by the real gateway code](images/platform/admin-dashboard-fixture.png)
 
-Documentation fixture, not live Production metrics. Two demonstration accounts and one demonstration browser session illustrate the account, private-routing and snapshot panels.
+Synthetic dashboard example: accounts, private routing and infrastructure snapshot panels.
 
 ![Synthetic dashboard model-limit and access-audit panels](images/platform/admin-dashboard-details-fixture.png)
 
-Documentation fixture, not a live GPU monitor. The screenshot illustrates the separate model-budget, recorded-performance and access-audit sections. The feature examples above explain terminals and clients; those authenticated working screens are not represented here as newly captured live sessions.
+Synthetic dashboard example: model budgets, recorded performance and access audit.
 
 ## Storage, administration and maintenance
 
 ### Where work is stored
 
-`/workspace` is the working location presented to each runtime; its backing PVC/subpath defines the durable store. Main No Internet project data and durable DSH histories use scoped central CIFS mounts. Credentials and profiles remain in private state locations. Internet workspaces/state remain separate, and the approved cache is mounted read-only where needed. Do not infer a network filesystem from a directory name or assume every legacy/client state store has moved to CIFS.
+`/workspace` is the working location presented to each runtime; its backing PVC/subpath defines the durable store. Main No Internet project data and durable DSH histories use scoped central CIFS mounts. Credentials and profiles remain in private state locations. Internet workspaces/state remain separate, and the approved cache is mounted read-only where needed. Consult the runtime’s mount configuration for its backing storage.
 
-DSH sessions/attachments and managed-client state are distinct stores. Claude uses its persistent private state; TrueForge uses its private application state. Legacy client `/state` wiring can alias its existing owner-only durable home rather than creating another shared tree. Do not replace a working mount without stopped-writer reconciliation and preservation of newer writes. Exact site paths belong in the private inventory, not in the public portable template.
+DSH sessions/attachments and managed-client state are distinct stores. Claude uses its persistent private state; TrueForge uses its private application state. Legacy client `/state` wiring can alias its existing owner-only durable home rather than creating another shared tree. Do not replace a working mount without stopped-writer reconciliation and preservation of newer writes.
 
 ### User and audit administration
 
-Accounts and private runtime mappings are provisioned by the operator; the dashboard is not a full account CRUD console. Password hashing, private mounts and fixed routing are separate controls. Disable/deprovision access through the reviewed identity/routing procedure while preserving ownership and retention requirements. Do not copy one user's history to all accounts.
+Operators provision accounts and private runtime mappings through the identity and routing procedure. The dashboard provides the access summary. Password hashing, private mounts and fixed routing are separate controls. Disable/deprovision access through the reviewed identity/routing procedure while preserving ownership and retention requirements. Do not copy one user's history to all accounts.
 
 The access audit records bounded metadata such as time, event, user and environment. It is not a terminal-command recorder or an archive of all prompts/responses. Legacy access projections and main gateway events are combined under the admin boundary. Retention capacity, off-platform archival and remote-job correlation need the defined operational policy.
 
 ### Updates and rollback
 
-The official npm package remains the base. Local gateway/Kubernetes/model overlays and the versioned ten-target DSH compatibility patch set are maintained separately. Daily/manual candidate qualification tracks npm latest; changed upstream hashes stop the patch process. The new candidate fixes include strict patch preflight/postchecks and explicit refusal of a missing original image instead of fabricated pixels. Passing candidate tests is not a statement that an existing Production image was replaced.
+The official npm package remains the base. Local gateway/Kubernetes/model overlays and the versioned ten-target DSH compatibility patch set are maintained separately. Daily/manual candidate qualification tracks npm latest; changed upstream hashes stop the patch process. Patch preflight and postchecks verify the expected upstream code before a candidate is promoted. Missing source assets cause an explicit error.
 
 Before a rollout, retain the exact image, source ConfigMaps, profile and workload specification; verify that the relevant agents are idle. Replace workloads in a controlled sequence and read back affected content, history and mounts. On regression, restore a compatible configuration/image while preserving newer durable writes. A mounted share is persistence, not an independent backup. Do not restart the shared model merely to update a document or client page.
 
 ## LLM and GPU setup
 
-This final section is an operator setup guide, not a command to redeploy the current cluster. The existing site uses one shared four-GPU generative model; private user runtimes do not each require their own model copy. Use the portable `gpu-stack` source and supply private site values outside Git.
+The platform uses one shared four-GPU generative model. Private user runtimes share inference while keeping their own files and state. Use the portable `gpu-stack` source and supply private site values outside Git.
 
 ```mermaid
 flowchart LR
@@ -224,17 +385,28 @@ flowchart LR
 | Model output budget | At most 8,192 output tokens; final guard reserves another 256 tokens |
 | Clients | DSH/TrueForge declare 1,048,576 total; Claude's current default uses its 1,000,000-token mode |
 
-One expensive request above the managed 128K threshold is admitted at a time; ordinary requests remain concurrent. A cap of 16 is not a guarantee of sixteen million-token requests. The reviewed final-wire policy has one active long request plus one FIFO waiting position, with up to 1,500 seconds waiting for admission; additional long requests receive a capacity error. Ordinary work bypasses this long-request queue. Streaming keepalive comments permit cancellation before model output; they are not generated answers. Keep a single forwarder process/replica because the admission lease is not distributed.
+One expensive request above the managed 128K threshold is admitted at a time; ordinary requests remain concurrent. The running-request cap of 16 applies to workloads that fit the shared memory budget. The final-wire policy has one active long request plus one FIFO waiting position, with up to 1,500 seconds waiting for admission; additional long requests receive a capacity error. Ordinary work bypasses this long-request queue. Streaming keepalive comments permit cancellation before model output; they are not generated answers. Keep a single forwarder process/replica because the admission lease is not distributed.
 
-The recorded occupied-slot retest completed an actual DSH request with 1,007,704 input / 119 output tokens and zero retries. Its 25m52s total included 5m16s admission waiting and 20m27s context preparation; the answer stream took 3.53s, approximately 33.42 output tokens/sec. All 46 overlapping ordinary replies passed in 4.05–9.12s; 38 ran after the artificial hold released, during real long work. Active cancellation released the lease in 1.48s, and queue overflow returned 429 promptly. The GPU did not restart, but recovering allocation warnings still show tight memory. These bounded cases do not establish two simultaneous full-1M GPU requests or a latency guarantee.
+### Performance example
+
+A measured DSH request used 1,007,704 input tokens and produced 119 output tokens without retries. Its timing illustrates the difference between waiting, preparing context and generating an answer:
+
+| Stage | Measured time |
+|---|---|
+| Admission wait with an intentionally occupied slot | 5m16s |
+| Context preparation | 20m27s |
+| Answer stream | 3.53s, approximately 33.42 output tokens/sec |
+| Total | 25m52s |
+
+During the same test, 46 ordinary replies completed in 4.05–9.12s. Latency varies with workload and cache state. Keep one full-length request active at a time to preserve shared capacity for ordinary work.
 
 The total budget includes messages, tools, requested output and the guard reserve. A cold million-token prompt requires substantial preparation even if the latest user sentence is short. Cached follow-ups can be faster. Time to first text, queue wait, preparation time, answer-stream rate and whole-request time are different measurements.
 
 ### 1 Prepare prerequisites and a test environment
 
-Use a reviewed test namespace and verify GPU capacity before scheduling. Install the approved NVIDIA device plugin and an enforcing network-policy implementation. The portable template requests 256 GiB host RAM and allows 512 GiB; verify actual capacity rather than assuming it is available. No additional node or GPU purchase is assumed by this design.
+Use a reviewed test namespace and verify GPU capacity before scheduling. Install the approved NVIDIA device plugin and an enforcing network-policy implementation. The portable template requests 256 GiB host RAM and allows 512 GiB; verify actual capacity rather than assuming it is available.
 
-Stage the approved model revision in a PVC, with the expected model path under `/approved`. Verify the complete files against their approved source/revision/hash manifest. A readable `config.json` alone is not weight-integrity verification. Review any model code required by `--trust-remote-code`; runtime downloads remain disabled and the model cache is read-only.
+Stage the approved model revision in a PVC, with the expected model path under `/approved`. Verify the complete files against their approved source/revision/hash manifest. Review any model code required by `--trust-remote-code`; runtime downloads remain disabled and the model cache is read-only.
 
 ### 2 Provision private database and inference credentials
 
@@ -254,7 +426,7 @@ kubectl -n <test-namespace> apply --dry-run=server \
   -f /private/inference-candidate.yaml
 ```
 
-Inspect the rendered objects before applying them. The renderer refuses mutable image tags, unexpected settings and accidental overwrite of an existing candidate. The reviewed scheduler source hashes must match the installed runtime. The example does not contain a private node name, registry credential, corporate endpoint or central-share location.
+Inspect the rendered objects before applying them. The renderer refuses mutable image tags, unexpected settings and accidental overwrite of an existing candidate. The reviewed scheduler source hashes must match the installed runtime.
 
 ### 4 Apply network boundaries and health checks
 
@@ -292,12 +464,12 @@ with urllib.request.urlopen(request, timeout=30) as response:
 print(len(vector))  # BGE-M3's expected vector length is 1024.
 ```
 
-This sample is not a new inference result. At the guide's inventory time, the CPU workload was Ready but no model was loaded according to `/api/ps`. A model may be installed on disk without being currently loaded. Keep CA trust correct rather than disabling certificate verification.
+Load the approved model before embedding requests. A model installed on disk may not be loaded in memory; check `/api/ps`. Configure the trusted CA and keep certificate verification enabled.
 
 ### 6 Qualify behavior and preserve rollback
 
 Progressively test 128K, 256K, 512K and near-1M input with known answers and source checks. Verify substantial output, actual file/tool continuation and persisted responses. Run ordinary DSH requests during long work, distinguish API versus DSH versus alternative-client results, and measure admission/first-text/preparation/streaming separately. Test cancellation, queue bounds, endpoint overrides, over-budget refusal, credential scope and direct-model denial.
 
-Retain the last qualified profile/image/source and state-preservation baseline before a change. GPU memory is tight: the earlier 0.92 allocation left too little temporary workspace and failed around 262K; smaller prefill chunks and 0.90 were then qualified. A successful long capacity result does not establish two-full-1M concurrency, every analytical answer, vision or a guaranteed latency. Roll back on a genuine regression without overwriting newer workspace/history data.
+Retain the last qualified profile/image/source and state-preservation baseline before a change. Keep sufficient temporary GPU workspace by preserving the qualified memory fraction and bounded prefill settings. Keep the one-long-request admission policy and check answer accuracy against the task’s sources. Roll back on a genuine regression without overwriting newer workspace/history data.
 
-The portable setup and its tests are maintained in `gpu-stack/`; detailed dated performance and acceptance records remain in the separate LLM guide. This document supplies the setup content itself so the local HTML is usable without opening those links.
+The portable setup and its tests are maintained in `gpu-stack/`; detailed dated performance and acceptance records remain in the separate LLM guide.
