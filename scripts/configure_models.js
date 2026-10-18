@@ -476,9 +476,12 @@ When you build, develop, or run web applications, APIs, dashboards, or preview s
 `;
 
   fs.mkdirSync(dshHome, { recursive: true });
-  fs.writeFileSync(`${dshHome}/AGENTS.md`, agentsMdContent, "utf8");
-  if (fs.existsSync("/workspace")) {
-    fs.writeFileSync("/workspace/AGENTS.md", agentsMdContent, "utf8");
+  // Preserve existing operator/user instructions; add the managed efficiency block once.
+  const quickPolicy = "<!-- DSH:BOUNDED-QUICK-REQUESTS:v1 -->\n## Scope and response efficiency\nFor a simple status, location, or factual question, answer the question directly and briefly. Use the current conversation to identify the relevant target. If the target is ambiguous, state what is known and ask one focused question rather than exploring unrelated systems.\nVerify only the affected facts needed for that question. Batch independent read-only checks in one tool invocation where practical. Once the answer is established, stop investigating and give the result with any material limitation. Do not create or rewrite reports, scripts, dashboards, or other artifacts merely to answer a status/path question unless the user requests them.\nFor these simple questions, normally use a short paragraph or up to five concise bullets. Do not restate a long investigation log. This is a response-efficiency default, not a tool cap: complete broader work and provide detail when requested. Preserve all existing safety, verification, permissions and user instructions; never shorten by guessing, deleting context, or skipping necessary checks.\n<!-- /DSH:BOUNDED-QUICK-REQUESTS:v1 -->\n";
+  for (const agentsPath of [`${dshHome}/AGENTS.md`, ...(fs.existsSync("/workspace") ? ["/workspace/AGENTS.md"] : [])]) {
+    const existing = fs.existsSync(agentsPath) ? fs.readFileSync(agentsPath, "utf8") : agentsMdContent;
+    const next = existing.includes("<!-- DSH:BOUNDED-QUICK-REQUESTS:v1 -->") ? existing : existing + "\n\n" + quickPolicy;
+    if (!fs.existsSync(agentsPath) || next !== existing) fs.writeFileSync(agentsPath, next, "utf8");
   }
   console.log("[CONFIG] Populated AGENTS.md instructions for DSH agent engine");
 } catch(e) {

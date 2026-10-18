@@ -1,0 +1,123 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Small-request latency diagnosis and safe guidance</title><style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
+</style></head><body><main><h1>Small-request latency: diagnosis and bounded guidance</h1>
+<p>Observed 18 October 2026. This report concerns short-question latency, not a new 1M stress-test acceptance.</p>
+<h2>What made a short prompt slow</h2>
+<p>An authenticated, read-only trace of the reported existing session found:</p>
+<table>
+<thead>
+<tr>
+<th>Actual turn</th>
+<th align="right">Completion time</th>
+<th align="right">Model responses</th>
+<th align="right">Tool calls</th>
+<th align="right">Generated output tokens</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Simple status question</td>
+<td align="right">841.59 seconds</td>
+<td align="right">75</td>
+<td align="right">74</td>
+<td align="right">22,649</td>
+</tr>
+<tr>
+<td>Workspace-location question</td>
+<td align="right">62.57 seconds</td>
+<td align="right">3</td>
+<td align="right">2</td>
+<td align="right">1,627</td>
+</tr>
+</tbody></table>
+<p>The status turn used 66 shell calls, seven writes and one presentation operation. Tool argument hashes were distinct; this was excessive scope and sequential work, not an identical-command retry loop. Its tools occupied about 15.72 seconds. First-text waits summed across its model responses were about 87.06 seconds. The remainder includes generation and other agent overhead; it cannot all be assigned to the GPU from this trace alone.</p>
+<p>Individual requests in these turns stayed below 128K input tokens. They did not use the above-128K long-request preparation gate. Summed input usage across many calls is not a single request&#39;s context size. A small newly typed message can still lead to many model/tool steps in an established conversation.</p>
+<p>The location turn generated 1,115 tokens in its final response alone. At approximately 33 tokens/second, a verbose answer itself consumes tens of seconds. The sidebar generation rate does not measure total question-to-completion latency.</p>
+<h2>Safe change applied</h2>
+<p>The admin runtime received an appended, marked instruction block for simple status, location and factual questions. It asks the agent to identify the relevant target from conversation, batch independent read-only checks where practical, stop when the answer is established, and normally answer in a short paragraph or up to five bullets. It discourages unsolicited report/script/dashboard creation for these questions. Ambiguity calls for one focused question rather than broad exploration.</p>
+<p>This is guidance, not a hard tool limit or output truncation. Explicitly detailed and broader implementation requests remain supported. Necessary verification and existing safety/user instructions retain priority. No model, GPU scheduling, context limit, compaction threshold, user history or workspace content was changed by this deployment.</p>
+<p>The installed block was read back. All 87 session-store files backing 80 listed histories remained byte-identical during installation. The traced session remained listed afterward. No runtime restart was required. An existing synthetic session&#39;s persisted instruction event confirmed that the normal DSH loader refreshed the block.</p>
+<p>Source startup generation now preserves existing AGENTS instructions and adds the marked block once, rather than replacing user instructions wholesale. That source change requires the next normal image build to enter a newly built image; this task applied the guidance directly to the persistent admin instruction file. Other users&#39; runtimes were not rolled out.</p>
+<h2>Retest results</h2>
+<p>Tests used disposable CPU DSH storage with the shared inference service. They did not add test messages to the real conversation.</p>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th align="right">First text</th>
+<th align="right">Total completion</th>
+<th align="right">Output tokens</th>
+<th align="right">Tools</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Synthetic status before guidance</td>
+<td align="right">2.137 s</td>
+<td align="right">6.617 s</td>
+<td align="right">127</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td>Same status, new session after guidance</td>
+<td align="right">0.307 s</td>
+<td align="right">4.066 s</td>
+<td align="right">109</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td>Existing synthetic session after refresh</td>
+<td align="right">0.367 s</td>
+<td align="right">3.059 s</td>
+<td align="right">79</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td>Workspace-location question after guidance</td>
+<td align="right">0.519 s</td>
+<td align="right">2.042 s</td>
+<td align="right">36</td>
+<td align="right">0</td>
+</tr>
+</tbody></table>
+<p>All status answers reported the fixture&#39;s actual healthy state, zero pending items and correct workspace. The fixture was read, not modified. The location answer identified the actual synthetic session directory. The synthetic volume was ephemeral: its answer&#39;s generic assertion about persistent workspace behavior does not independently establish that canary&#39;s restart persistence. Production history preservation was checked separately as described above.</p>
+<p>Fixed-output retests required exactly the integers 1–40, totaling 119 output tokens:</p>
+<table>
+<thead>
+<tr>
+<th>Case</th>
+<th align="right">First text</th>
+<th align="right">Total completion</th>
+<th align="right">Streaming output rate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>First single request</td>
+<td align="right">1.731 s</td>
+<td align="right">5.575 s</td>
+<td align="right">33.3 tokens/s</td>
+</tr>
+<tr>
+<td>Warm single request</td>
+<td align="right">0.255 s</td>
+<td align="right">4.062 s</td>
+<td align="right">33.3 tokens/s</td>
+</tr>
+<tr>
+<td>Concurrent request A</td>
+<td align="right">0.523 s</td>
+<td align="right">4.091 s</td>
+<td align="right">36.3 tokens/s</td>
+</tr>
+<tr>
+<td>Concurrent request B</td>
+<td align="right">0.313 s</td>
+<td align="right">4.090 s</td>
+<td align="right">35.3 tokens/s</td>
+</tr>
+</tbody></table>
+<p>Streaming rates use <code>(output tokens − 1) / (last text − first text)</code>; total time includes request and polling overhead. The pair delivered approximately 58.2 output tokens/s aggregate including wall time. All four outputs matched exactly, persisted their prompts and completed with zero retries and zero tools.</p>
+<p>The guidance reduced unnecessary output in this bounded sample. It did not improve intrinsic decode speed. These samples are not a controlled statistical benchmark or an SLA. They do not prove that every established conversation will now finish quickly, and the real 14-minute turn was not replayed because it would repeat production actions. Browser rendering latency, long-context fairness and the other coordinated GPU optimization trial are separate measurements.</p>
+<h2>Preservation and rollback</h2>
+<p>The installer saves the original instruction bytes, refuses duplicate installation, checks for concurrent instruction changes, writes atomically, reads back the result, and compares every session-file hash before and after. Its preservation/duplicate/restore test passed. It never writes session files.</p>
+<p>To roll back, first ensure the runtime is idle and compare the live instruction hash with the recorded installed hash. If no later edits exist, restore the verified pre-change instruction backup. If instructions changed afterward, remove only the exact managed block while preserving newer content. Do not restore or delete histories to reverse this guidance change.</p>
+<p>Private evidence includes the sanitized event timing trace, per-step breakdown, installation hashes and synthetic test transcripts. Raw user conversation, credentials, endpoints and private paths are excluded from this public report. Synthetic histories were archived before removing the disposable pod.</p>
+</main></body></html>

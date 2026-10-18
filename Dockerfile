@@ -19,6 +19,7 @@ RUN groupadd --gid 10001 dsh \
 ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh KRB5CCNAME=FILE:/state/kerberos/ccache DSH_CONTEXT_TOKENS=1048576
 
 COPY scripts/ /opt/dsh/scripts/
+COPY config/ /opt/dsh/config/
 COPY tests/ /opt/dsh/tests/
 COPY patches/ /opt/dsh/patches/
 COPY container/ /opt/dsh/container/
