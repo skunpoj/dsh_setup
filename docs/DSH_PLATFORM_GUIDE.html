@@ -703,8 +703,8 @@ python scripts/rollout_admin_management.py \
 <h3>GPU memory and scheduling design</h3>
 <p>The model uses the original runner with <strong>512-token prefill chunks</strong>, a <strong>1,024-token maximum prefill batch</strong>, and at most <strong>two prefill requests per batch</strong>. Prefill and decode run in separate batches: <code>--enable-mixed-chunk</code> is omitted. This bounds the long-context prefill work without forcing ordinary conversations to execute one at a time. The decode scheduler still permits parallel ordinary requests, with a running-request cap of <strong>16</strong>.</p>
 <p>The <strong>eight sliding-window prefix tails</strong> reserve cache capacity for prefix reuse while other conversations run. The server reports <strong>1,150,208 full-context token slots</strong> and <strong>16,640 sliding-window slots</strong> in their respective pools. Memory fraction remains <strong>0.90</strong>, tensor parallelism <strong>4</strong>, and the maximum conversation budget remains <strong>1,048,576 tokens</strong>. The experimental allocator-cache hook is removed.</p>
-<p>Managed admission allows <strong>one request above 128K active</strong> and <strong>one bounded FIFO waiter</strong>. Ordinary requests bypass that long-request admission queue. The tested workload is one near-1M conversation plus up to eight simultaneous ordinary conversations; the configured cap of 16 is not sixteen full-million contexts.</p>
-<h3>Latest actual DSH 1M and concurrency results</h3>
+<p>Managed admission allows <strong>one request above 128K active</strong> and <strong>one bounded FIFO waiter</strong>. Ordinary requests bypass that long-request admission queue. One near-1M conversation can run alongside ordinary conversations. The configured cap of 16 is not sixteen full-million contexts. The 17 October eight-client sample reused identical short prompts; the later diverse-prompt burst exposed a cache-retention failure, so those results are not equivalent.</p>
+<h3>Actual DSH 1M and concurrency results</h3>
 <p>The final bounded-prefill qualification <strong>passed</strong>, completing at <strong>23:57 ICT on 17 October 2026</strong>. The complete known answer was read back from the DSH session, with the prompt preserved and no retry. Ordinary requests continued to complete during the long run.</p>
 <table>
 <thead>
@@ -779,6 +779,36 @@ python scripts/rollout_admin_management.py \
 <p><strong>Reading the speed figures:</strong> per-conversation streaming rate is <code>(output tokens − 1) / first-to-last-text seconds</code>. Combined cohort throughput divides all eight replies&#39; output tokens by the time from the earliest request start to the latest completion. The cold near-1M preparation time is separate from the 3.539-second answer stream.</p>
 <p>This test uses actual DSH session APIs in a disposable runtime through the shared live LiteLLM/model route. It verifies synthetic text capacity, saved answers and bounded mixed-workload concurrency. Existing long-answer analytical reviews and Claude Code/TrueForge acceptance remain separate tests.</p>
 <p><a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/GPU_ALLOCATOR_QUALIFICATION_20261017.md">Detailed qualification and retained failed experiments</a> · <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/gpu-allocator-qualification-20261017.json">Recorded measurements</a>.</p>
+<h3>Restored profile: fresh DSH verification</h3>
+<p>The restored profile returned the complete saved answer for <strong>1,007,752 input / 431 output tokens</strong>, with zero retries, no allocator warning and no restart. <strong>42/42</strong> paired short replies passed in <strong>6.07–10.60s</strong> (median <strong>7.62s</strong>), including 42 confirmed complete while the long turn remained active. The same-text recovery took <strong>24m43.7s</strong>; retained cache may contribute, so it does not replace the cold reference above or establish a preparation speedup.</p>
+<p>The authenticated admin route was also checked after recovery: one 119-token reply in <strong>5.504s</strong>, and a concurrent pair in <strong>4.243s / 4.445s</strong>, all exact, saved and retry-free. Across 20 runtimes, <strong>164 original histories / 182 original session files</strong> kept their IDs and byte hashes. Three new labelled test histories were archived through the application.</p>
+<h3>Preparation and single-conversation speed</h3>
+<p>The 24m36s reference run spent <strong>1,466.18 seconds preparing context</strong>, including <strong>118.21 seconds yielding to ordinary requests</strong>; its 119-token answer then streamed at <strong>33.34 tokens/sec</strong>. Preparation latency and answer-generation speed require different optimizations.</p>
+<table>
+<thead>
+<tr>
+<th>Existing four-GPU trial</th>
+<th>Actual DSH result</th>
+<th>Operating decision</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Larger 8,192-token preparation steps</td>
+<td>Focused 256K turn completed in 137.27s; near-1M trial lost cached prefix after diverse concurrent short traffic</td>
+<td>Restored 2,048-token preparation steps</td>
+</tr>
+<tr>
+<td>DSpark speculative decoding</td>
+<td>Structured 599-token answers reached <strong>162.50–165.61 tokens/sec</strong>; prose sample <strong>69.56 tokens/sec</strong></td>
+<td>Rejected after a long-input temporary-memory failure</td>
+</tr>
+<tr>
+<td>Diverse short traffic during the near-1M preparation trial</td>
+<td><strong>24/24</strong> saved, exact, retry-free replies in <strong>6.57–16.66s</strong></td>
+<td>Short replies passed; the long request did not</td>
+</tr>
+</tbody></table>
+<p><strong>100+ output tokens/sec per conversation together with stable 1M operation is not qualified.</strong> The restored operating profile retains the 1M ceiling and ordinary concurrency. Its fresh recovery result is described in the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/PERFORMANCE_OPTIMIZATION_20261018.html">optimization report</a>. The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/SHORT_REQUEST_LATENCY_20261018.html">small-question guide</a> also explains agent/tool overhead, which can dominate a short user prompt.</p>
 <h3>1 Prepare prerequisites and a test environment</h3>
 <p>Use a reviewed test namespace and verify GPU capacity before scheduling. Install the approved NVIDIA device plugin and an enforcing network-policy implementation. The portable template requests 256 GiB host RAM and allows 512 GiB; verify actual capacity rather than assuming it is available.</p>
 <p>Stage the approved model revision in a PVC, with the expected model path under <code>/approved</code>. Verify the complete files against their approved source/revision/hash manifest. Review any model code required by <code>--trust-remote-code</code>; runtime downloads remain disabled and the model cache is read-only.</p>

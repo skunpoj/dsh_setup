@@ -29,12 +29,21 @@ def load_guard(lease_directory):
     if os.name == 'nt':
         modules['fcntl'] = types.SimpleNamespace()
     scope = {}
-    with patch.dict(sys.modules, modules):
+    with patch.dict(sys.modules, modules), patch.dict(os.environ, {'DSH_LONG_WARM_STEP_TOKENS':'2048'}):
         exec((Path(__file__).parents[1]/'scripts/long_context_callbacks.py').read_text(encoding='utf-8').replace('/tmp/dsh-long-admission', lease_directory), scope)
     return scope
 
 
 class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
+    def test_operator_warm_step_is_bounded_and_not_request_controlled(self):
+        for value, expected in [('512',512),('2048',2048),('8192',8192)]:
+            with patch.dict(os.environ, {'DSH_LONG_WARM_STEP_TOKENS':value}):
+                self.assertEqual(self.scope['configured_warm_step'](),expected)
+        for value in ['0','8193','16384','513','no','-512']:
+            with patch.dict(os.environ, {'DSH_LONG_WARM_STEP_TOKENS':value}):
+                with self.assertRaises(ValueError):
+                    self.scope['configured_warm_step']()
+
     def setUp(self):
         lease = tempfile.TemporaryDirectory(prefix='dsh-test-admission-')
         self.addCleanup(lease.cleanup)
@@ -97,6 +106,32 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(lengths, [1024, 2048, 2500])
         self.assertEqual(result['steps'], 3)
 
+    async def test_operator_8192_step_preserves_yielding_and_numeric_progress(self):
+        with patch.dict(os.environ, {'DSH_LONG_WARM_STEP_TOKENS':'8192'}):
+            self.scope['WARM_STEP'] = self.scope['configured_warm_step']()
+        self.scope['CACHE_PROBE_SECONDS'] = 0
+        guard = self.scope['LongContextGuard']()
+        lengths, yields = [], []
+        async def foreground():
+            yields.append(len(lengths))
+            return 0
+        guard.before_warm_step = foreground
+        def warm(ids):
+            previous = lengths[-1] if lengths else 0
+            lengths.append(len(ids))
+            return {'cached_tokens':previous}
+        self.scope['warm_prefix'] = warm
+        captured = io.StringIO()
+        with contextlib.redirect_stdout(captured):
+            result = await guard.warm([1234567]*20000)
+        self.assertEqual(lengths, [8192,16384,20000])
+        self.assertEqual(yields, [0,1,2])
+        self.assertEqual(result['steps'],3)
+        events=[json.loads(line) for line in captured.getvalue().splitlines()]
+        self.assertEqual([e['preparedTokens'] for e in events],[8192,20000])
+        self.assertTrue(all(e['stepTokens']==8192 for e in events))
+        self.assertNotIn('1234567',captured.getvalue())
+
     async def test_cache_loss_stops_warming_without_monolithic_fallback(self):
         guard = self.scope['LongContextGuard']()
         self.scope['WARM_STEP'] = 1024
@@ -133,7 +168,7 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
         captured = io.StringIO()
         with contextlib.redirect_stdout(captured), self.assertRaisesRegex(RuntimeError, 'evicted'):
             await guard.warm([1234567]*4096)
-        self.assertEqual(json.loads(captured.getvalue()), {'event':'dsh_prefix_cache_lost',
+        self.assertEqual([json.loads(line) for line in captured.getvalue().splitlines() if json.loads(line)['event']=='dsh_prefix_cache_lost'][0], {'event':'dsh_prefix_cache_lost',
             'previousTokens':2048,'targetTokens':4096,'cachedTokens':0,'steps':1})
         self.assertNotIn('1234567', captured.getvalue())
 

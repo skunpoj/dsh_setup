@@ -1,6 +1,16 @@
 # Shared LLM — 1M Setup, Performance and Operational Limits
 
-## Latest allocator correction and concurrent 1M retest
+## Four-GPU preparation and generation-speed trials
+
+The 18 October actual DSH trials separated preparation time from answer streaming. Larger 8,192-token preparation steps passed a focused 256K test but failed the near-1M/diverse-traffic cache-retention gate. DSpark reached **162.50–165.61 tokens/sec** on three structured short answers and **69.56 tokens/sec** on a prose sample, then exhausted temporary memory during long input. Both candidates were rejected; the original model and 2,048-token preparation setting were restored. These short-only speeds are not the deployed 1M rate.
+
+The current recovery qualification, complete measurements, rejected trials and explanation of the remaining optimization targets are in the [performance optimization report](PERFORMANCE_OPTIMIZATION_20261018.html). Ordinary agent/tool latency is covered separately in the [short-request report](SHORT_REQUEST_LATENCY_20261018.html).
+
+The original **1,048,576-token model profile and 2,048-token preparation steps** are restored. The full recovery DSH turn returned the complete known answer for **1,007,752 input / 431 output tokens** in **24m43.7s**, with **zero retries, no allocator warnings and no model restart**. Its answer streamed at **32.99 output tokens/sec**. The preset output-length check required more than 500 tokens; the compact correct answer used 431, so that check remains failed and is preserved in the raw result. **42/42** paired short replies were exact, persisted and retry-free, taking **6.07–10.60s** (median **7.62s**); 42 were confirmed complete while the long turn remained active.
+
+This recovery reused the same user text after earlier preparation. It is **not a controlled cold-preparation speedup**. The faster candidates were rejected: **100+ output tokens/sec per conversation together with stable 1M operation is not qualified**. Across the full experimental cycle, the rejected DSpark profile caused one unexpected model restart; the restored recovery generation had none.
+
+## Previous accepted allocator and concurrent 1M qualification
 
 The revised profile passed an actual DSH turn with **1,007,697 input / 119 output tokens**, returning the complete expected answer and persisting it with **zero retries**. Whole-turn time was **1475.94 seconds**; the answer streamed in **3.54 seconds**, approximately **33.34 output tokens/second**. Streaming rate excludes preparation, queueing and agent overhead.
 

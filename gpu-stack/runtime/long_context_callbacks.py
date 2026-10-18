@@ -22,7 +22,14 @@ RESERVE = 256
 LONG_THRESHOLD = 131072
 MODELS = {'deepseek-v4.1-flash', 'deepseek-flash'}
 TOKENIZER = os.environ['DSH_TOKENIZER_URL']
-WARM_STEP = 2048
+def configured_warm_step():
+    value = os.environ.get('DSH_LONG_WARM_STEP_TOKENS', '2048')
+    if not value.isdecimal() or not 512 <= int(value) <= 8192 or int(value) % 512:
+        raise ValueError('DSH_LONG_WARM_STEP_TOKENS must be a multiple of 512 between 512 and 8192')
+    return int(value)
+
+
+WARM_STEP = configured_warm_step()
 CACHE_PROBE_SECONDS = 2
 
 
@@ -113,6 +120,7 @@ class LongContextGuard(CustomLogger):
         steps = 0
         start = time.monotonic()
         yielded_seconds = 0
+        request_seconds = 0
         async def foreground_turn():
             nonlocal yielded_seconds
             before_step = getattr(self, 'before_warm_step', None)
@@ -135,6 +143,7 @@ class LongContextGuard(CustomLogger):
         for end in range(WARM_STEP, len(ids)+WARM_STEP, WARM_STEP):
             end = min(end, len(ids))
             await foreground_turn()
+            request_start = time.monotonic()
             try:
                 meta = await asyncio.to_thread(warm_prefix, ids[:end])
             except Exception as exc:
@@ -142,6 +151,7 @@ class LongContextGuard(CustomLogger):
                     'previousTokens': previous, 'targetTokens': end, 'steps': steps,
                     'errorType': type(exc).__name__}), flush=True)
                 raise
+            request_seconds += time.monotonic() - request_start
             cached = meta.get('cached_tokens', 0)
             if previous and cached < previous-512:
                 print(json.dumps({'event': 'dsh_prefix_cache_lost',
@@ -150,6 +160,12 @@ class LongContextGuard(CustomLogger):
                 raise RuntimeError('Long prefix was evicted; defer and retry the request')
             previous = end
             steps += 1
+            if steps == 1 or steps % 32 == 0 or end == len(ids):
+                print(json.dumps({'event': 'dsh_warm_progress', 'steps': steps,
+                    'preparedTokens': end, 'cachedTokens': cached, 'stepTokens': WARM_STEP,
+                    'elapsedSeconds': round(time.monotonic()-start, 3),
+                    'requestSeconds': round(request_seconds, 3),
+                    'foregroundYieldSeconds': round(yielded_seconds, 3)}), flush=True)
             await asyncio.sleep(.05)
         return {'steps': steps, 'tokens': len(ids),
                 'seconds': round(time.monotonic()-start, 3), 'stepTokens': WARM_STEP,

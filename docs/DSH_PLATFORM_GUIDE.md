@@ -416,9 +416,9 @@ The model uses the original runner with **512-token prefill chunks**, a **1,024-
 
 The **eight sliding-window prefix tails** reserve cache capacity for prefix reuse while other conversations run. The server reports **1,150,208 full-context token slots** and **16,640 sliding-window slots** in their respective pools. Memory fraction remains **0.90**, tensor parallelism **4**, and the maximum conversation budget remains **1,048,576 tokens**. The experimental allocator-cache hook is removed.
 
-Managed admission allows **one request above 128K active** and **one bounded FIFO waiter**. Ordinary requests bypass that long-request admission queue. The tested workload is one near-1M conversation plus up to eight simultaneous ordinary conversations; the configured cap of 16 is not sixteen full-million contexts.
+Managed admission allows **one request above 128K active** and **one bounded FIFO waiter**. Ordinary requests bypass that long-request admission queue. One near-1M conversation can run alongside ordinary conversations. The configured cap of 16 is not sixteen full-million contexts. The 17 October eight-client sample reused identical short prompts; the later diverse-prompt burst exposed a cache-retention failure, so those results are not equivalent.
 
-### Latest actual DSH 1M and concurrency results
+### Actual DSH 1M and concurrency results
 
 The final bounded-prefill qualification **passed**, completing at **23:57 ICT on 17 October 2026**. The complete known answer was read back from the DSH session, with the prompt preserved and no retry. Ordinary requests continued to complete during the long run.
 
@@ -449,6 +449,24 @@ The late cohort began at a recorded **907,264-token prepared prefix**. The long 
 This test uses actual DSH session APIs in a disposable runtime through the shared live LiteLLM/model route. It verifies synthetic text capacity, saved answers and bounded mixed-workload concurrency. Existing long-answer analytical reviews and Claude Code/TrueForge acceptance remain separate tests.
 
 [Detailed qualification and retained failed experiments](https://github.com/skunpoj/dsh_setup/blob/main/docs/GPU_ALLOCATOR_QUALIFICATION_20261017.md) · [Recorded measurements](https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/gpu-allocator-qualification-20261017.json).
+
+### Restored profile: fresh DSH verification
+
+The restored profile returned the complete saved answer for **1,007,752 input / 431 output tokens**, with zero retries, no allocator warning and no restart. **42/42** paired short replies passed in **6.07–10.60s** (median **7.62s**), including 42 confirmed complete while the long turn remained active. The same-text recovery took **24m43.7s**; retained cache may contribute, so it does not replace the cold reference above or establish a preparation speedup.
+
+The authenticated admin route was also checked after recovery: one 119-token reply in **5.504s**, and a concurrent pair in **4.243s / 4.445s**, all exact, saved and retry-free. Across 20 runtimes, **164 original histories / 182 original session files** kept their IDs and byte hashes. Three new labelled test histories were archived through the application.
+
+### Preparation and single-conversation speed
+
+The 24m36s reference run spent **1,466.18 seconds preparing context**, including **118.21 seconds yielding to ordinary requests**; its 119-token answer then streamed at **33.34 tokens/sec**. Preparation latency and answer-generation speed require different optimizations.
+
+| Existing four-GPU trial | Actual DSH result | Operating decision |
+|---|---|---|
+| Larger 8,192-token preparation steps | Focused 256K turn completed in 137.27s; near-1M trial lost cached prefix after diverse concurrent short traffic | Restored 2,048-token preparation steps |
+| DSpark speculative decoding | Structured 599-token answers reached **162.50–165.61 tokens/sec**; prose sample **69.56 tokens/sec** | Rejected after a long-input temporary-memory failure |
+| Diverse short traffic during the near-1M preparation trial | **24/24** saved, exact, retry-free replies in **6.57–16.66s** | Short replies passed; the long request did not |
+
+**100+ output tokens/sec per conversation together with stable 1M operation is not qualified.** The restored operating profile retains the 1M ceiling and ordinary concurrency. Its fresh recovery result is described in the [optimization report](https://github.com/skunpoj/dsh_setup/blob/main/docs/PERFORMANCE_OPTIMIZATION_20261018.html). The [small-question guide](https://github.com/skunpoj/dsh_setup/blob/main/docs/SHORT_REQUEST_LATENCY_20261018.html) also explains agent/tool overhead, which can dominate a short user prompt.
 
 ### 1 Prepare prerequisites and a test environment
 

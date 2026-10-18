@@ -1,0 +1,231 @@
+{
+  "scope": "Actual DSH trials on the existing four GPUs. Rejected profiles are not operating performance.",
+  "date": "2026-10-18",
+  "baselineDecode": [
+    {
+      "elapsedSeconds": 18.709100008010864,
+      "firstTextSeconds": 0.3965487480163574,
+      "streamSeconds": 18.09500002861023,
+      "exact": true,
+      "retries": 0,
+      "persistedPromptVerified": true,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 599,
+        "totalTokens": 8273
+      },
+      "streamTokensPerSecond": 33.04780320831693
+    },
+    {
+      "elapsedSeconds": 18.69241976737976,
+      "firstTextSeconds": 0.2486567497253418,
+      "streamSeconds": 18.092999935150146,
+      "exact": true,
+      "retries": 0,
+      "persistedPromptVerified": true,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 599,
+        "totalTokens": 8273
+      },
+      "streamTokensPerSecond": 33.05145648280452
+    },
+    {
+      "elapsedSeconds": 18.68575644493103,
+      "firstTextSeconds": 0.26044535636901855,
+      "streamSeconds": 18.092999935150146,
+      "exact": true,
+      "retries": 0,
+      "persistedPromptVerified": true,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 599,
+        "totalTokens": 8273
+      },
+      "streamTokensPerSecond": 33.05145648280452
+    }
+  ],
+  "rejectedDSparkDecode": [
+    {
+      "elapsedSeconds": 6.09254002571106,
+      "firstTextSeconds": 2.3129498958587646,
+      "streamSeconds": 3.6110000610351562,
+      "exact": true,
+      "retries": 0,
+      "persistedPromptVerified": true,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 599,
+        "totalTokens": 8273
+      },
+      "streamTokensPerSecond": 165.6050927422507
+    },
+    {
+      "elapsedSeconds": 4.062570571899414,
+      "firstTextSeconds": 0.2560756206512451,
+      "streamSeconds": 3.680000066757202,
+      "exact": true,
+      "retries": 0,
+      "persistedPromptVerified": true,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 599,
+        "totalTokens": 8273
+      },
+      "streamTokensPerSecond": 162.49999705216163
+    },
+    {
+      "elapsedSeconds": 4.0620222091674805,
+      "firstTextSeconds": 0.24510574340820312,
+      "streamSeconds": 3.6449999809265137,
+      "exact": true,
+      "retries": 0,
+      "persistedPromptVerified": true,
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 599,
+        "totalTokens": 8273
+      },
+      "streamTokensPerSecond": 164.06035751144114
+    }
+  ],
+  "rejectedDSparkProse": {
+    "elapsedSeconds": 8.104708671569824,
+    "firstTextSeconds": 0.5274910926818848,
+    "streamSeconds": 7.13100004196167,
+    "retries": 0,
+    "persistedPromptVerified": true,
+    "usage": {
+      "inputTokens": 7844,
+      "outputTokens": 497,
+      "totalTokens": 8341
+    },
+    "streamTokensPerSecond": 69.55546165773899,
+    "semanticAcceptance": false,
+    "reviewNote": "Configuration numbers present; queue-overflow description imprecise. Not a general accuracy pass."
+  },
+  "operatingModelProfile": {
+    "context_length": 1048576,
+    "mem_fraction_static": 0.9,
+    "chunked_prefill_size": 512,
+    "max_prefill_tokens": 1024,
+    "prefill_max_requests": 2,
+    "max_running_requests": 16,
+    "swa_prefix_tails": 8,
+    "speculative_algorithm": null,
+    "enable_mixed_chunk": false
+  },
+  "operatingWarmStep": 2048,
+  "qualified100TokensPerSecondWith1M": false,
+  "rejected8192Preparation": {
+    "finalWireInputTokens": 1007752,
+    "longAnswerReturned": false,
+    "automaticRetries": 1,
+    "previousPreparedTokens": 679936,
+    "failedTargetTokens": 688128,
+    "matchedCachedTokens": 6656,
+    "warmCallTimeoutSeconds": 30,
+    "shortReplyCount": 24,
+    "allShortRepliesCorrectAndPersisted": true,
+    "shortElapsedSecondsRange": [
+      6.56597375869751,
+      16.66188073158264
+    ],
+    "modelUnchanged": true,
+    "allocatorWarningLines": 0
+  },
+  "restoredRecovery": {
+    "scope": "Same-user-text recovery; partial cache may remain; not a cold speed comparison",
+    "inputTokens": 1007752,
+    "outputTokens": 431,
+    "elapsedSeconds": 1483.6713931560516,
+    "streamSeconds": 13.032999992370605,
+    "streamTokensPerSecond": 32.99317120016251,
+    "correctSavedAnswer": true,
+    "preset500TokenGatePassed": false,
+    "rawCompositeGatePassed": false,
+    "functional1MVerified": true,
+    "retries": 0,
+    "shortReplyCount": 42,
+    "shortRepliesConfirmedWhileLongActive": 42,
+    "shortSecondsRange": [
+      6.070741415023804,
+      10.597972631454468
+    ],
+    "shortSecondsMedian": 7.619931936264038,
+    "allocatorWarningLines": 0,
+    "modelUnchanged": true,
+    "modelRestarts": [
+      0
+    ],
+    "normalizedAnswerSHA256": "0f80ba546eee2df6652d239cf78ac6373cff378b4de7e89192ebd9aebcdbdd9d",
+    "sameUserPromptSHA256": "7d8e88f3445daa99d562642367b7f5bb152c85c5645398bac64ad5287c530ec6"
+  },
+  "authenticatedRouteAfterRecovery": [
+    {
+      "usage": {
+        "inputTokens": 7716,
+        "outputTokens": 119,
+        "totalTokens": 7835
+      },
+      "exact": true,
+      "persistedPromptVerified": true,
+      "tools": 0,
+      "retries": 0,
+      "elapsedSeconds": 5.504,
+      "firstTextSeconds": 1.74,
+      "streamSeconds": 3.539
+    },
+    {
+      "usage": {
+        "inputTokens": 7721,
+        "outputTokens": 119,
+        "totalTokens": 7840
+      },
+      "exact": true,
+      "persistedPromptVerified": true,
+      "tools": 0,
+      "retries": 0,
+      "elapsedSeconds": 4.243,
+      "firstTextSeconds": 0.563,
+      "streamSeconds": 3.478
+    },
+    {
+      "usage": {
+        "inputTokens": 7720,
+        "outputTokens": 119,
+        "totalTokens": 7839
+      },
+      "exact": true,
+      "persistedPromptVerified": true,
+      "tools": 0,
+      "retries": 0,
+      "elapsedSeconds": 4.445,
+      "firstTextSeconds": 1.015,
+      "streamSeconds": 3.254
+    }
+  ],
+  "historyPreservation": {
+    "runtimes": 20,
+    "originalHistories": 164,
+    "originalFiles": 182,
+    "allOriginalIDsPreserved": true,
+    "allOriginalFileBytesUnchanged": true,
+    "newSessionIDs": 3,
+    "newFiles": 6,
+    "runningAgents": 0
+  },
+  "originalEngineSourceSHA256": {
+    "layers/attention/deepseek_v4_backend.py": "486900ed693af0573a941d6b6656ebc01ccb7ff1c44584e43ad3c0fb00a3c3a9",
+    "model_executor/runner/decode_cuda_graph_runner.py": "f3e111f71fb07dfb3a293a6f3480969bf7b8876668c64a84572d648c73a0b727",
+    "layers/attention/dsv4/dsv41_sparse.py": "b56eca87c3706edc9dd4db0f64431b87d52864495765bc3a85af6dbde21e2a5a"
+  },
+  "modelImageDigest": "sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+  "retainedSourceChecks": {
+    "canonicalLinuxTests": 39,
+    "portableLinuxTests": 47,
+    "skips": 0,
+    "suitesOverlap": true,
+    "finalPublicationChecks": 8
+  }
+}
