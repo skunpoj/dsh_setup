@@ -60,3 +60,47 @@ The installer saves the original instruction bytes, refuses duplicate installati
 To roll back, first ensure the runtime is idle and compare the live instruction hash with the recorded installed hash. If no later edits exist, restore the verified pre-change instruction backup. If instructions changed afterward, remove only the exact managed block while preserving newer content. Do not restore or delete histories to reverse this guidance change.
 
 Private evidence includes the sanitized event timing trace, per-step breakdown, installation hashes and synthetic test transcripts. Raw user conversation, credentials, endpoints and private paths are excluded from this public report. Synthetic histories were archived before removing the disposable pod.
+
+
+## Post-GPU trial verification — 18 October 2026
+
+The experimental GPU profiles were rejected and the previous model specification was restored exactly: **1,048,576 total context tokens, memory fraction 0.90, 512-token prefill chunks, aggregate prefill 1,024, at most two prefill requests, running-request cap 16 and no speculative decoding**. Gateway preparation is back to **2,048-token steps**. The current profile has no accepted decode-speed improvement from this cycle.
+
+The trials explain why short benchmarks alone are insufficient:
+
+| Trial | Observed result | Disposition |
+|---|---|---|
+| DSpark at memory fraction 0.90 | Startup rejected the cache allocation after draft weights loaded | Rejected |
+| Narrower decode graph | Approximately 35.6 tokens/s on structured short answers; incorrect 256K answer | Rejected |
+| DSpark at memory fraction 0.925 | 162–166 tokens/s on structured answers and about 69.6 on prose; CUDA OOM/restart during long/concurrent work | Rejected; fast figures are not current production performance |
+| 8,192-token preparation steps | After a diverse eight-client burst, a prepared 679,936-token prefix matched only 6,656 tokens; reprocessing toward 688,128 exceeded the 30-second step timeout | Rejected; restored 2,048-token steps |
+
+The last failure involved preparation/cache retention, with zero model restarts. Returning to smaller steps does not establish that the diverse-eight-client cache gap is fixed. The historical identical-prompt tests and fresh nonce-tail tests are different workloads.
+
+### Complete near-1M functional recovery
+
+A disposable actual DSH runtime submitted the same saved user text and pre-recorded reference answers. Cache reuse was not assumed, and this is not a controlled cold-speed comparison. The completed request used **1,007,752 input / 431 output tokens** and returned the exact three facts placed near the beginning, middle and end, followed by every integer from 1 through 200.
+
+Completion took **1483.67 seconds (24m43.7s)**; generation streamed at **32.99 output tokens/s**. All **42** overlapping nonce-tail ordinary replies were exact and persisted, with **zero retries**, taking **6.07–10.60 seconds** (median **7.62 seconds**). The model stayed in the same generation with **zero unexpected restarts and zero mapping-OOM warnings**. All 43 saved answers were independently read back; the long user-text SHA-256 matched the pre-recorded input, and the answer oracle was derived again from the actual saved reference values.
+
+The raw controller result remains `failed`: its additional preset required more than 500 output tokens. The complete, correct compact answer used 431 tokens. A separate reconciliation records **functional near-1M/retrieval/paired-concurrency acceptance passed**, while **the greater-than-500 output-token target was unmet**. No raw result was rewritten, and no greater-than-500 output-load acceptance is claimed.
+
+This establishes one near-1M DSH request with ordinary requests in pairs. The configured cap of 16 is not a guarantee of 16 simultaneous decodes or two maximum-context requests. Reliable near-1M preparation during the diverse-eight-client burst remains an open performance gap.
+
+### Actual authenticated gateway retest
+
+Three new, labelled test histories were created through the normal admin login and gateway route to the existing runtime. Every saved response identified `deepseek-v4.1-flash` through `litellm-cluster`; all produced the exact 119-token answer with zero retries and zero tools.
+
+| Request | First text | Total completion | Streaming output rate |
+|---|---:|---:|---:|
+| single | 1.740 s | 5.504 s | 33.34 tokens/s |
+| pair-A | 0.563 s | 4.243 s | 33.93 tokens/s |
+| pair-B | 1.015 s | 4.445 s | 36.26 tokens/s |
+
+These timings include gateway/application requests and polling, but exclude browser painting and the operator's external network. The previous real-session diagnosis still matters: generating many sequential tool/model steps can dominate the total wait even when a small individual request is responsive.
+
+### Final preservation and publication scope
+
+Across **20 main runtimes**, all **164 original history IDs** and all **182 original session-file byte hashes** remained unchanged. Only the **three new admin-route test histories** were added (six new files); all three were archived through the normal API and retained. No test messages were appended to the original slow conversation. The disposable canary's synthetic histories were archived separately before removal.
+
+The live model and gateway settings, rejected experiments and unresolved diverse-burst limitation are detailed in the [GPU trial and recovery report](PERFORMANCE_OPTIMIZATION_20261018.html). The concise-question guidance remains scoped to the admin runtime as described above. Other users' agent-guidance files were not rolled out by this work.
