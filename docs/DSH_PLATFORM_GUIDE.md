@@ -439,75 +439,67 @@ flowchart LR
 | Runtime image | `lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860` |
 | Tensor parallelism | `--tp-size 4` |
 | Total context ceiling | `--context-length 1048576` |
-| Static memory fraction | `--mem-fraction-static 0.90` |
-| Maximum running requests | `--max-running-requests 16` |
-| Prefill work | `--chunked-prefill-size 512`, `--max-prefill-tokens 1024` |
+| Static memory fraction | `--mem-fraction-static 0.923` |
+| Maximum running requests | `--max-running-requests 8` |
+| Prefill work | `--chunked-prefill-size 1024`, `--max-prefill-tokens 1024` |
 | Bounded prefill | `--prefill-max-requests 2`; mixed prefill/decode batches disabled |
 | Decode scheduling | `--prefill-decode-interval 4`; ordinary decodes remain concurrent |
-| Prefix reuse | `--swa-prefix-tails 8` |
-| Model runner | Original image runner; experimental allocator-cache hook removed |
+| Prefix reuse | `--swa-prefix-tails 16` |
+| Model runner | DSpark block size 5; CUDA graph cap 8; source-fenced score and FP4 memory overlays |
 | Model output budget | At most 8,192 output tokens; final guard reserves another 256 tokens |
 | Clients | DSH/TrueForge declare 1,048,576 total; Claude's current default uses its 1,000,000-token mode |
 
-One expensive request above the managed 128K threshold is admitted at a time; ordinary requests remain concurrent. The running-request cap of 16 applies to workloads that fit the shared memory budget. The final-wire policy has one active long request plus one FIFO waiting position, with up to 1,500 seconds waiting for admission; additional long requests receive a capacity error. Ordinary work bypasses this long-request queue. Streaming keepalive comments permit cancellation before model output; they are not generated answers. Keep a single forwarder process/replica because the admission lease is not distributed.
+One expensive request above the managed 128K threshold is admitted at a time; ordinary requests remain concurrent. The running-request cap of eight applies to workloads that fit the shared memory budget. The final-wire policy has one active long request plus one FIFO waiting position, with up to 1,500 seconds waiting for admission; additional long requests receive a capacity error. Ordinary work bypasses this long-request queue. Streaming keepalive comments permit cancellation before model output; they are not generated answers. Keep a single forwarder process/replica because the admission lease is not distributed.
 
 ### GPU memory and scheduling design
 
-The model uses the original runner with **512-token prefill chunks**, a **1,024-token maximum prefill batch**, and at most **two prefill requests per batch**. Prefill and decode run in separate batches: `--enable-mixed-chunk` is omitted. This bounds the long-context prefill work without forcing ordinary conversations to execute one at a time. The decode scheduler still permits parallel ordinary requests, with a running-request cap of **16**.
+DSpark predicts several candidate tokens using its draft path and checks them with the target model. It speeds accepted output without reducing the context ceiling. The memory changes target separate peaks: owned attention-score buffers are reused for ReLU and weighting, score computation uses smaller tiles, and FP4 dequantization avoids expanded scales and oversized integer lookup indices. Reducing the active-request and graph caps to eight releases persistent graph memory while preserving ordinary parallel service.
 
-The **eight sliding-window prefix tails** reserve cache capacity for prefix reuse while other conversations run. The server reports **1,150,208 full-context token slots** and **16,640 sliding-window slots** in their respective pools. Memory fraction remains **0.90**, tensor parallelism **4**, and the maximum conversation budget remains **1,048,576 tokens**. The experimental allocator-cache hook is removed.
+The startup gate compares the original and patched calculations on the actual GPUs before the model starts: 80 score cases, eight tiled cases, 132 FP4 cases and eight FP4 memory checks passed. Isolated large-score peak memory fell from 1,088 to 272 MiB; isolated FP4 peak memory fell from 1,280 to 584 MiB. These peaks occur in different operations and must not be added together as a global memory saving. Source hashes fence the pinned runtime; changed upstream targets stop initialization. Qualification helpers reject optimized Python modes that would disable their assertions.
 
-Managed admission allows **one request above 128K active** and **one bounded FIFO waiter**. Ordinary requests bypass that long-request admission queue. One near-1M conversation can run alongside ordinary conversations. The configured cap of 16 is not sixteen full-million contexts. The 17 October eight-client sample reused identical short prompts; the later diverse-prompt burst exposed a cache-retention failure, so those results are not equivalent.
+The shared final-payload guard still admits one expensive request and one bounded FIFO waiter. Ordinary work bypasses that long queue. Eight is the actively running GPU cap, not a total user limit: a 16-client burst queues and completes. Two full-1M requests are not admitted simultaneously. Central workspaces, credentials and history mounts are unchanged by the GPU rollout.
 
-### Actual DSH 1M and concurrency results
+### Actual DSH performance and concurrency
 
-The final bounded-prefill qualification **passed**, completing at **23:57 ICT on 17 October 2026**. The complete known answer was read back from the DSH session, with the prompt preserved and no retry. Ordinary requests continued to complete during the long run.
-
-| Check | Recorded result |
+| Actual DSH check | Measured result |
 |---|---|
-| Near-1M DSH input and output | **1,007,697 input / 119 output tokens**, complete correct saved answer |
-| Cold near-1M elapsed time | **24m36s** (1,475.94s), including preparation and delivery |
-| Near-1M retries | **0** |
-| Near-1M answer-stream speed | **33.34 output tokens/sec** over 3.539s |
-| Ordinary replies alongside long work | **62/62** correct and persisted, all with zero retries |
-| Ordinary reply latency | **5.58–11.69s**, median **7.62s** |
-| Ordinary streaming speed | **21.62–36.42 output tokens/sec per conversation** |
-| Ordinary request size | **7,674 input / 119 output tokens** per reply |
-| Final-generation mapping-OOM warnings / unexpected model restarts | **0 / 0** |
+| Focused 256K stage | 257,691 input; exact seven-token answer in 130.57s; eight correct short replies, median 3.56s |
+| Recorded near-1M known-answer task | 1,007,752 input / 431 output; **22m22.2s**; exact and saved |
+| Near-1M answer stream | **147.82 tokens/sec** |
+| Ordinary replies during long work | **46/46** exact, saved and retry-free; **3.56–11.21s** |
+| Ordinary paired median | **5.08s** |
+| Eight-client cohorts during long work | Two completed cohorts at prepared prefixes above 600K and 900K |
+| Structured short answers | Three outputs of 599 tokens; **164.60–166.11 streaming tokens/sec each** |
+| Natural-language samples | First: 406 tokens at 76.76 tokens/sec; factual correction: 350 tokens at **96.76 tokens/sec**, final content reviewed |
+| Cached near-1M continuation | 1,008,209 input / 1,199 output; **14.86s**; **158.32 streaming tokens/sec** |
+| Actual near-1M tool continuation | 1,009,673 input; **13.42s**; actual file create/read/delete checked |
+| Short client bursts after capacity run | **31/31** exact saved replies across 1, 2, 4, 8 and 16 clients; active GPU cap stays eight |
+| Full near-1M qualification failures | **0 retries / 0 allocator warnings / 0 unexpected restarts** |
+| Existing history preservation | **167 histories / 188 files across 20 runtimes** retained IDs and bytes |
 
-The 62 ordinary replies include these three eight-client cohorts; 62 is a total completed count, not a simultaneous-request count:
+These fresh client bursts ran after the identical-profile handover. The GPU admits at most eight active requests; a 16-client burst queues additional requests.
 
-| Eight-client cohort | Elapsed time per reply | Combined output tokens/sec, full request window |
-|---|---|---:|
-| Scheduled cohort 1: 8 concurrent replies | **9.64–10.16s** | **90.04** |
-| Scheduled cohort 2: 8 concurrent replies | **11.11–11.69s** | **80.86** |
-| Late cohort: 8 concurrent replies at a 907,264-token prepared prefix | **7.09–7.63s** | **121.63** |
+| Clients | Correct replies | Elapsed per reply | Stream tokens/sec per conversation | Combined tokens/sec over full cohort |
+|---:|---:|---|---|---:|
+| 1 | 1/1 | 1.29–1.29s | 169.05–169.05 | 92.35 |
+| 2 | 2/2 | 2.59–2.84s | 70.96–138.66 | 83.76 |
+| 4 | 4/4 | 2.87–3.88s | 54.86–102.88 | 122.43 |
+| 8 | 8/8 | 3.20–5.98s | 49.89–99.33 | 158.45 |
+| 16 | 16/16 | 3.11–11.21s | 47.91–104.15 | 169.01 |
 
-The late cohort began at a recorded **907,264-token prepared prefix**. The long turn was active both before and after that cohort. Its **121.63 combined output tokens/sec** includes waiting, preparation and delivery across all eight replies; it is not a 121.63 tokens/sec single conversation.
+Combined throughput includes the cohort request window and is not the rate of a single conversation.
 
-**Reading the speed figures:** per-conversation streaming rate is `(output tokens − 1) / first-to-last-text seconds`. Combined cohort throughput divides all eight replies' output tokens by the time from the earliest request start to the latest completion. The cold near-1M preparation time is separate from the 3.539-second answer stream.
+Preparing a million-token input remains expensive. The earlier cold reference took **24m36s**; this run took **22m22.2s**, with a different known-answer payload and traffic schedule. This is a measured comparison, not a controlled percentage improvement. The successful cached continuation reuses prepared context and is not a cold preparation result. Larger 8,192-token warm steps previously lost prefix reuse under diverse traffic, so the qualified default remains 2,048.
 
-This test uses actual DSH session APIs in a disposable runtime through the shared live LiteLLM/model route. It verifies synthetic text capacity, saved answers and bounded mixed-workload concurrency. Existing long-answer analytical reviews and Claude Code/TrueForge acceptance remain separate tests.
+Streaming rate is `(output tokens − 1) / first-to-last-text seconds`; whole-turn time includes preparation, queueing and DSH delivery. The three 599-token structured answers exceed 100 streaming tokens/sec; natural prose and a near-1M answer have their own rates above. This does not promise 100+ for every conversation or concurrent load. The known-answer task checks three references distributed through the input and the complete requested number sequence; it does not establish general million-token analytical quality. Fresh tests here use actual native DSH session APIs through the shared gateway, not a fresh Claude Code, TrueForge or browser-login acceptance.
 
-[Detailed qualification and retained failed experiments](https://github.com/skunpoj/dsh_setup/blob/main/docs/GPU_ALLOCATOR_QUALIFICATION_20261017.md) · [Recorded measurements](https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/gpu-allocator-qualification-20261017.json).
+One-second NVML samples through the full near-1M capacity run observed a minimum **38 MiB free per GPU**. Follow-ups are not covered by that sample. Sampling does not bound shorter allocation peaks. GPU headroom remains limited, so the matched full-context, short-traffic and tool tests—not nominal cache slots—qualify this profile.
 
-### Restored profile: fresh DSH verification
+The full near-1M, cached-output and tool results were recorded before an operator-channel recovery. The same qualified GPU specification was then redeployed with all four runtime-module hashes unchanged. The current generation reran GPU reference gates, three real DSH structured replies, 31 concurrent-client replies and a natural-language sample. The full cold near-1M test was not repeated solely for this identical-profile handover.
 
-The restored profile returned the complete saved answer for **1,007,752 input / 431 output tokens**, with zero retries, no allocator warning and no restart. **42/42** paired short replies passed in **6.07–10.60s** (median **7.62s**), including 42 confirmed complete while the long turn remained active. The same-text recovery took **24m43.7s**; retained cache may contribute, so it does not replace the cold reference above or establish a preparation speedup.
+The deployed bootstrap refuses optimized Python modes before optional imports so qualification assertions remain active. GPU reference gates run before startup and generated source hashes are read back independently. Workspace mounts remain unchanged, and the saved 1M specification is retained for rollback.
 
-The authenticated admin route was also checked after recovery: one 119-token reply in **5.504s**, and a concurrent pair in **4.243s / 4.445s**, all exact, saved and retry-free. Across 20 runtimes, **164 original histories / 182 original session files** kept their IDs and byte hashes. Three new labelled test histories were archived through the application.
-
-### Preparation and single-conversation speed
-
-The 24m36s reference run spent **1,466.18 seconds preparing context**, including **118.21 seconds yielding to ordinary requests**; its 119-token answer then streamed at **33.34 tokens/sec**. Preparation latency and answer-generation speed require different optimizations.
-
-| Existing four-GPU trial | Actual DSH result | Operating decision |
-|---|---|---|
-| Larger 8,192-token preparation steps | Focused 256K turn completed in 137.27s; near-1M trial lost cached prefix after diverse concurrent short traffic | Restored 2,048-token preparation steps |
-| DSpark speculative decoding | Structured 599-token answers reached **162.50–165.61 tokens/sec**; prose sample **69.56 tokens/sec** | Rejected after a long-input temporary-memory failure |
-| Diverse short traffic during the near-1M preparation trial | **24/24** saved, exact, retry-free replies in **6.57–16.66s** | Short replies passed; the long request did not |
-
-**100+ output tokens/sec per conversation together with stable 1M operation is not qualified.** The restored operating profile retains the 1M ceiling and ordinary concurrency. Its fresh recovery result is described in the [optimization report](https://github.com/skunpoj/dsh_setup/blob/main/docs/PERFORMANCE_OPTIMIZATION_20261018.html). The [small-question guide](https://github.com/skunpoj/dsh_setup/blob/main/docs/SHORT_REQUEST_LATENCY_20261018.html) also explains agent/tool overhead, which can dominate a short user prompt.
+[Full measurements and trial history](https://github.com/skunpoj/dsh_setup/blob/main/docs/PERFORMANCE_OPTIMIZATION_20261018.html).
 
 ### 1 Prepare prerequisites and a test environment
 
@@ -576,6 +568,14 @@ Load the approved model before embedding requests. A model installed on disk may
 ### 6 Qualify behavior and preserve rollback
 
 Progressively test 128K, 256K, 512K and near-1M input with known answers and source checks. Verify substantial output, actual file/tool continuation and persisted responses. Run ordinary DSH requests during long work, distinguish API versus DSH versus alternative-client results, and measure admission/first-text/preparation/streaming separately. Test cancellation, queue bounds, endpoint overrides, over-budget refusal, credential scope and direct-model denial.
+
+Run this native DSH concurrency probe from the repository root, supplying the approved disposable canary and a private result path. It refuses persistent or host-mounted storage and runs concurrent clients through one operator channel:
+
+```sh
+python scripts/probe_dsh_concurrency.py --namespace "$APP_NAMESPACE" --pod "$DISPOSABLE_DSH_POD" --expected-app "$DISPOSABLE_DSH_APP" --host "$DSH_HOST" --output "$PRIVATE_RESULT_JSON"
+```
+
+Check saved native answers and model health before attributing an operator transport failure to inference. The probe does not deploy or restart workloads. A confirmed incorrect answer or actual model failure remains a rollback trigger.
 
 Retain the last qualified profile/image/source and state-preservation baseline before a change. Keep sufficient temporary GPU workspace by preserving the qualified memory fraction and bounded prefill settings. Keep the one-long-request admission policy and check answer accuracy against the task’s sources. Roll back on a genuine regression without overwriting newer workspace/history data.
 

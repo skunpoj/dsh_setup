@@ -227,5 +227,57 @@
     "skips": 0,
     "suitesOverlap": true,
     "finalPublicationChecks": 8
+  },
+  "correctiveMemoryReuseTrialRechecked20261019": {
+    "observedAtUTC": "2026-10-18T23:41:29.429023+00:00",
+    "disposition": "rejected",
+    "rawControllerStatus": "running",
+    "rawResultLeftUnchanged": true,
+    "reason": "Controller stopped without a final result; retained model log proves CUDA OOM and one restart. Full near-1M acceptance failed.",
+    "modelFailureUTC": "2026-10-18T03:17:22Z",
+    "allocationMiB": 32,
+    "freeMiB": 21.75,
+    "failureLocation": "dsv41_sparse.py scores(): s.sum(dim=1)",
+    "completedShortReplies": 24,
+    "allRecordedShortRepliesExactPersistedRetryFree": true,
+    "shortElapsedSecondsRange": [
+      3.076063871383667,
+      8.638290405273438
+    ],
+    "completedEightClientBursts": 1,
+    "oneMillionInputAnswerVerified": false,
+    "priorGPUReferenceCasesPassed": 80,
+    "prior256KDSHInputTokens": 257690,
+    "sourceAndMathTestsDoNotEstablishRuntimeAcceptance": true,
+    "gpuReferenceCases": 80,
+    "bitwiseReferenceEquality": true,
+    "isolatedTemporaryPeakGiB": [
+      3.0,
+      1.0625
+    ],
+    "structuredDSHStreamingTokensPerSecond": [
+      164.24059178096974,
+      165.74279195157564
+    ],
+    "structuredReplyOutputTokens": 599,
+    "capacityInputTokens": 257690,
+    "capacityElapsedSeconds": 124.67499923706055,
+    "capacityShortReplyMedianSeconds": 4.073793649673462,
+    "rollback": {
+      "exactBaselineSpecificationRestored": true,
+      "actualDSHReplyVerified": true,
+      "retries": 0,
+      "context": 1048576,
+      "originalIndexerSHA256": "b56eca87c3706edc9dd4db0f64431b87d52864495765bc3a85af6dbde21e2a5a",
+      "onlyOwnedTestAgentsCancelled": 0
+    },
+    "historyPreservation": {
+      "runtimes": 20,
+      "originalHistories": 167,
+      "originalFiles": 188,
+      "allOriginalIDsPreserved": true,
+      "allOriginalFileBytesUnchanged": true,
+      "changedOrMissingFileCount": 0
+    }
   }
 }

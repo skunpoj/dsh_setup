@@ -55,6 +55,56 @@ spec:
           capabilities:
             drop:
             - ALL
+      - name: verify-indexer-reference
+        image: lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860
+        command:
+        - sh
+        - -ec
+        - 'cp /sgl-workspace/sglang/python/sglang/srt/layers/attention/dsv4/dsv41_sparse.py
+          /overlay/original.py
+
+          python3 /patch/indexer_scratch_patch.py /overlay/original.py /overlay/dsv41_sparse.py
+
+          cp /overlay/dsv41_sparse.py /overlay/patched.py
+
+          python3 /patch/indexer_reference_gate.py > /overlay/gpu-reference.json
+
+          cat /overlay/gpu-reference.json
+
+          python3 /patch/indexer_tile_patch.py /sgl-workspace/sglang/python/sglang/srt/layers/attention/deepseek_v4_backend.py
+          /overlay/deepseek_v4_backend.py
+
+          cp /sgl-workspace/sglang/python/sglang/srt/mem_cache/deepseek_v4_memory_pool.py
+          /overlay/dequant_original.py
+
+          python3 /patch/indexer_dequant_patch.py /overlay/dequant_original.py /overlay/deepseek_v4_memory_pool.py
+
+          cp /overlay/deepseek_v4_memory_pool.py /overlay/dequant_patched.py
+
+          python3 /patch/indexer_dequant_reference_gate.py > /overlay/dequant-reference.json
+
+          cat /overlay/dequant-reference.json'
+        workingDir: /overlay
+        volumeMounts:
+        - name: scheduler-overlay
+          mountPath: /overlay
+        - name: scheduler-patch-source
+          mountPath: /patch
+          readOnly: true
+        resources:
+          requests:
+            cpu: '1'
+            memory: 8Gi
+            nvidia.com/gpu: 4
+          limits:
+            cpu: '2'
+            memory: 16Gi
+            nvidia.com/gpu: 4
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
       containers:
       - name: sglang
         image: lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860
@@ -77,15 +127,15 @@ spec:
         - marlin
         - --trust-remote-code
         - --mem-fraction-static
-        - '0.90'
+        - '0.923'
         - --max-running-requests
-        - '16'
+        - '8'
         - --chunked-prefill-size
-        - '512'
+        - '1024'
         - --max-prefill-tokens
         - '1024'
         - --swa-prefix-tails
-        - '8'
+        - '16'
         - --context-length
         - '1048576'
         - --reasoning-parser
@@ -97,6 +147,12 @@ spec:
         - --enable-metrics
         - --prefill-decode-interval
         - '4'
+        - --speculative-algorithm
+        - DSPARK
+        - --speculative-dspark-block-size
+        - '5'
+        - --cuda-graph-max-bs-decode
+        - '8'
         ports:
         - containerPort: 8000
           name: http
@@ -145,6 +201,18 @@ spec:
         - name: scheduler-overlay
           mountPath: /sgl-workspace/sglang/python/sglang/srt/managers/schedule_policy.py
           subPath: schedule_policy.py
+          readOnly: true
+        - name: scheduler-overlay
+          mountPath: /sgl-workspace/sglang/python/sglang/srt/layers/attention/dsv4/dsv41_sparse.py
+          subPath: dsv41_sparse.py
+          readOnly: true
+        - name: scheduler-overlay
+          mountPath: /sgl-workspace/sglang/python/sglang/srt/layers/attention/deepseek_v4_backend.py
+          subPath: deepseek_v4_backend.py
+          readOnly: true
+        - name: scheduler-overlay
+          mountPath: /sgl-workspace/sglang/python/sglang/srt/mem_cache/deepseek_v4_memory_pool.py
+          subPath: deepseek_v4_memory_pool.py
           readOnly: true
         startupProbe:
           httpGet:

@@ -1,5 +1,57 @@
 # Shared LLM — 1M Setup, Performance and Operational Limits
 
+## Current DSpark configuration and measured behavior
+
+**Current qualified DSpark profile, 19 October 2026:** actual DSH processed **1,007,752 input / 431 output tokens** with the complete correct saved answer in **22m22.2s**. **46/46 ordinary replies** passed during long preparation (**3.56–11.21s**, paired median **5.08s**), including two eight-client bursts. The qualifying model generation had **zero retries, allocator warnings or unexpected restarts**. Three 599-token structured short answers streamed at **164.60–166.11 tokens/sec per conversation**. Explanatory prose samples measured **76.76–96.76 tokens/sec**. One expensive request is admitted at a time; up to **eight** requests run actively, with additional ordinary clients queued. [Results and setup](DSH_PLATFORM_GUIDE.html#guide-section-10).
+
+| Setting | Qualified value |
+|---|---|
+| Total context | 1,048,576 tokens across main DSH, LiteLLM and SGLang |
+| Model / GPUs | DeepSeek-V4.1-Flash, tensor parallel 4, existing node |
+| Recorded GPU memory | Four H100 NVL devices reporting 95,830 MiB each |
+| Speculative decoding | DSpark, block size 5 |
+| Static memory | 0.923 |
+| Active requests / CUDA graph cap | 8 / 8 |
+| Prefill chunk / batch budget | 1,024 / 1,024 tokens; two prefill requests; separate prefill/decode |
+| Prefix tails / decode interval | 16 / 4 |
+| Full / sliding-window cache slots | 1,150,976 / 17,920 |
+| Attention-score temporary tile | 256 MiB |
+| Preparation step | 2,048 tokens at the final forwarding boundary |
+| Long admission | One active request above 128K; one FIFO waiter, at most 1,500s; further long requests receive 429 |
+| Output budget | At most 8,192 tokens plus a 256-token safety reserve |
+
+| Actual DSH check | Measured result |
+|---|---|
+| Focused 256K stage | 257,691 input; exact seven-token answer in 130.57s; eight correct short replies, median 3.56s |
+| Recorded near-1M known-answer task | 1,007,752 input / 431 output; **22m22.2s**; exact and saved |
+| Near-1M answer stream | **147.82 tokens/sec** |
+| Ordinary replies during long work | **46/46** exact, saved and retry-free; **3.56–11.21s** |
+| Ordinary paired median | **5.08s** |
+| Eight-client cohorts during long work | Two completed cohorts at prepared prefixes above 600K and 900K |
+| Structured short answers | Three outputs of 599 tokens; **164.60–166.11 streaming tokens/sec each** |
+| Natural-language samples | First: 406 tokens at 76.76 tokens/sec; factual correction: 350 tokens at **96.76 tokens/sec**, final content reviewed |
+| Cached near-1M continuation | 1,008,209 input / 1,199 output; **14.86s**; **158.32 streaming tokens/sec** |
+| Actual near-1M tool continuation | 1,009,673 input; **13.42s**; actual file create/read/delete checked |
+| Short client bursts after capacity run | **31/31** exact saved replies across 1, 2, 4, 8 and 16 clients; active GPU cap stays eight |
+| Full near-1M qualification failures | **0 retries / 0 allocator warnings / 0 unexpected restarts** |
+| Existing history preservation | **167 histories / 188 files across 20 runtimes** retained IDs and bytes |
+
+These fresh client bursts ran after the identical-profile handover. The GPU admits at most eight active requests; a 16-client burst queues additional requests.
+
+| Clients | Correct replies | Elapsed per reply | Stream tokens/sec per conversation | Combined tokens/sec over full cohort |
+|---:|---:|---|---|---:|
+| 1 | 1/1 | 1.29–1.29s | 169.05–169.05 | 92.35 |
+| 2 | 2/2 | 2.59–2.84s | 70.96–138.66 | 83.76 |
+| 4 | 4/4 | 2.87–3.88s | 54.86–102.88 | 122.43 |
+| 8 | 8/8 | 3.20–5.98s | 49.89–99.33 | 158.45 |
+| 16 | 16/16 | 3.11–11.21s | 47.91–104.15 | 169.01 |
+
+Combined throughput includes the cohort request window and is not the rate of a single conversation.
+
+[Detailed trials and setup](PERFORMANCE_OPTIMIZATION_20261018.html). Earlier dated measurements below retain their original profiles.
+
+## Earlier setup and qualification records
+
 ## Four-GPU preparation and generation-speed trials
 
 The 18 October actual DSH trials separated preparation time from answer streaming. Larger 8,192-token preparation steps passed a focused 256K test but failed the near-1M/diverse-traffic cache-retention gate. DSpark reached **162.50–165.61 tokens/sec** on three structured short answers and **69.56 tokens/sec** on a prose sample, then exhausted temporary memory during long input. Both candidates were rejected; the original model and 2,048-token preparation setting were restored. These short-only speeds are not the deployed 1M rate.

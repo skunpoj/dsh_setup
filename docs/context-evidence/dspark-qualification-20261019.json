@@ -1,0 +1,1692 @@
+{
+  "date": "2026-10-19",
+  "scope": "Actual native DSH, disposable runtime and shared existing four-GPU model; known-answer capacity and speed",
+  "profile": {
+    "context": 1048576,
+    "speculation": "DSPARK",
+    "blockSize": 5,
+    "staticMemory": 0.923,
+    "activeCap": 8,
+    "graphCap": 8,
+    "prefillChunk": 1024,
+    "prefillMaxTokens": 1024,
+    "prefixTails": 16,
+    "longAdmission": 1,
+    "longFIFOWaiters": 1,
+    "longWaitSeconds": 1500
+  },
+  "long": {
+    "usage": {
+      "inputTokens": 1007752,
+      "outputTokens": 431,
+      "totalTokens": 1008183
+    },
+    "elapsedSeconds": 1342.1673362255096,
+    "firstTextSeconds": 1338.7135062217712,
+    "streamSeconds": 2.9089999198913574,
+    "streamTokensPerSecond": 147.81712335559612,
+    "exact": true,
+    "retries": 0,
+    "tools": 0,
+    "persistedPromptVerified": true
+  },
+  "shorts": [
+    {
+      "usage": {
+        "inputTokens": 7697,
+        "outputTokens": 119,
+        "totalTokens": 7816
+      },
+      "elapsedSeconds": 4.076449871063232,
+      "firstTextSeconds": 2.9261019229888916,
+      "streamSeconds": 0.8989999294281006,
+      "streamTokensPerSecond": 131.25696247280663,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7700,
+        "outputTokens": 119,
+        "totalTokens": 7819
+      },
+      "elapsedSeconds": 3.572681188583374,
+      "firstTextSeconds": 2.374119520187378,
+      "streamSeconds": 1.1480000019073486,
+      "streamTokensPerSecond": 102.78745627521646,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7696,
+        "outputTokens": 119,
+        "totalTokens": 7815
+      },
+      "elapsedSeconds": 4.579524517059326,
+      "firstTextSeconds": 3.3233680725097656,
+      "streamSeconds": 0.8980000019073486,
+      "streamTokensPerSecond": 131.40311776098935,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7698,
+        "outputTokens": 119,
+        "totalTokens": 7817
+      },
+      "elapsedSeconds": 4.064962148666382,
+      "firstTextSeconds": 2.8299288749694824,
+      "streamSeconds": 1.1510000228881836,
+      "streamTokensPerSecond": 102.51954618029,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7699,
+        "outputTokens": 119,
+        "totalTokens": 7818
+      },
+      "elapsedSeconds": 3.5872275829315186,
+      "firstTextSeconds": 2.654866933822632,
+      "streamSeconds": 0.8980000019073486,
+      "streamTokensPerSecond": 131.40311776098935,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7699,
+        "outputTokens": 119,
+        "totalTokens": 7818
+      },
+      "elapsedSeconds": 3.5874266624450684,
+      "firstTextSeconds": 2.0938541889190674,
+      "streamSeconds": 1.1549999713897705,
+      "streamTokensPerSecond": 102.16450469519474,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7696,
+        "outputTokens": 119,
+        "totalTokens": 7815
+      },
+      "elapsedSeconds": 4.066587924957275,
+      "firstTextSeconds": 2.6199209690093994,
+      "streamSeconds": 1.1530001163482666,
+      "streamTokensPerSecond": 102.34170693210737,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7697,
+        "outputTokens": 119,
+        "totalTokens": 7816
+      },
+      "elapsedSeconds": 4.060007572174072,
+      "firstTextSeconds": 3.112543821334839,
+      "streamSeconds": 0.9000000953674316,
+      "streamTokensPerSecond": 131.11109721807932,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7697,
+        "outputTokens": 119,
+        "totalTokens": 7816
+      },
+      "elapsedSeconds": 4.547996997833252,
+      "firstTextSeconds": 3.4875166416168213,
+      "streamSeconds": 0.8970000743865967,
+      "streamTokensPerSecond": 131.54959890130775,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7696,
+        "outputTokens": 119,
+        "totalTokens": 7815
+      },
+      "elapsedSeconds": 4.569508790969849,
+      "firstTextSeconds": 2.9777426719665527,
+      "streamSeconds": 1.1579999923706055,
+      "streamTokensPerSecond": 101.89982795978756,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7695,
+        "outputTokens": 119,
+        "totalTokens": 7814
+      },
+      "elapsedSeconds": 5.601796627044678,
+      "firstTextSeconds": 4.4258131980896,
+      "streamSeconds": 1.1510000228881836,
+      "streamTokensPerSecond": 102.51954618029,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7697,
+        "outputTokens": 119,
+        "totalTokens": 7816
+      },
+      "elapsedSeconds": 6.104750394821167,
+      "firstTextSeconds": 4.982472658157349,
+      "streamSeconds": 0.8989999294281006,
+      "streamTokensPerSecond": 131.25696247280663,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7699,
+        "outputTokens": 119,
+        "totalTokens": 7818
+      },
+      "elapsedSeconds": 5.085631608963013,
+      "firstTextSeconds": 3.747457265853882,
+      "streamSeconds": 0.9010000228881836,
+      "streamTokensPerSecond": 130.96559045775308,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7695,
+        "outputTokens": 119,
+        "totalTokens": 7814
+      },
+      "elapsedSeconds": 4.5928661823272705,
+      "firstTextSeconds": 3.1890244483947754,
+      "streamSeconds": 1.1659998893737793,
+      "streamTokensPerSecond": 101.20069570793353,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7696,
+        "outputTokens": 119,
+        "totalTokens": 7815
+      },
+      "elapsedSeconds": 8.13729476928711,
+      "firstTextSeconds": 5.7693071365356445,
+      "streamSeconds": 2.190999984741211,
+      "streamTokensPerSecond": 53.85668681962019,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7699,
+        "outputTokens": 119,
+        "totalTokens": 7818
+      },
+      "elapsedSeconds": 8.137117147445679,
+      "firstTextSeconds": 5.332329273223877,
+      "streamSeconds": 2.315000057220459,
+      "streamTokensPerSecond": 50.971920986334034,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7699,
+        "outputTokens": 119,
+        "totalTokens": 7818
+      },
+      "elapsedSeconds": 8.634631156921387,
+      "firstTextSeconds": 6.260746717453003,
+      "streamSeconds": 1.8970000743865967,
+      "streamTokensPerSecond": 62.20347673847921,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7698,
+        "outputTokens": 119,
+        "totalTokens": 7817
+      },
+      "elapsedSeconds": 9.137654066085815,
+      "firstTextSeconds": 7.580989599227905,
+      "streamSeconds": 1.0959999561309814,
+      "streamTokensPerSecond": 107.66423788606245,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7696,
+        "outputTokens": 119,
+        "totalTokens": 7815
+      },
+      "elapsedSeconds": 6.601022481918335,
+      "firstTextSeconds": 3.7268731594085693,
+      "streamSeconds": 2.5810000896453857,
+      "streamTokensPerSecond": 45.71871208893003,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7699,
+        "outputTokens": 119,
+        "totalTokens": 7818
+      },
+      "elapsedSeconds": 5.578320503234863,
+      "firstTextSeconds": 3.1802175045013428,
+      "streamSeconds": 2.2890000343322754,
+      "streamTokensPerSecond": 51.55089481439077,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7698,
+        "outputTokens": 119,
+        "totalTokens": 7817
+      },
+      "elapsedSeconds": 7.129085540771484,
+      "firstTextSeconds": 4.499423265457153,
+      "streamSeconds": 2.2300000190734863,
+      "streamTokensPerSecond": 52.91479775369073,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7697,
+        "outputTokens": 119,
+        "totalTokens": 7816
+      },
+      "elapsedSeconds": 8.588693141937256,
+      "firstTextSeconds": 6.755123138427734,
+      "streamSeconds": 1.624000072479248,
+      "streamTokensPerSecond": 72.6600952793417,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7700,
+        "outputTokens": 119,
+        "totalTokens": 7819
+      },
+      "elapsedSeconds": 4.0634589195251465,
+      "firstTextSeconds": 2.8923838138580322,
+      "streamSeconds": 0.8970000743865967,
+      "streamTokensPerSecond": 131.54959890130775,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7697,
+        "outputTokens": 119,
+        "totalTokens": 7816
+      },
+      "elapsedSeconds": 3.557415008544922,
+      "firstTextSeconds": 2.3358023166656494,
+      "streamSeconds": 1.1549999713897705,
+      "streamTokensPerSecond": 102.16450469519474,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7701,
+        "outputTokens": 119,
+        "totalTokens": 7820
+      },
+      "elapsedSeconds": 6.585127353668213,
+      "firstTextSeconds": 5.514409065246582,
+      "streamSeconds": 0.9030001163482666,
+      "streamTokensPerSecond": 130.675509187299,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7698,
+        "outputTokens": 119,
+        "totalTokens": 7817
+      },
+      "elapsedSeconds": 6.641179084777832,
+      "firstTextSeconds": 5.04556679725647,
+      "streamSeconds": 1.1500000953674316,
+      "streamTokensPerSecond": 102.60868714302003,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7700,
+        "outputTokens": 119,
+        "totalTokens": 7819
+      },
+      "elapsedSeconds": 6.100955486297607,
+      "firstTextSeconds": 5.187081575393677,
+      "streamSeconds": 0.877000093460083,
+      "streamTokensPerSecond": 134.54958657352847,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7697,
+        "outputTokens": 119,
+        "totalTokens": 7816
+      },
+      "elapsedSeconds": 6.116490364074707,
+      "firstTextSeconds": 4.6215431690216064,
+      "streamSeconds": 1.1559998989105225,
+      "streamTokensPerSecond": 102.07613349379153,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7697,
+        "outputTokens": 119,
+        "totalTokens": 7816
+      },
+      "elapsedSeconds": 6.086901664733887,
+      "firstTextSeconds": 4.836324453353882,
+      "streamSeconds": 0.8959999084472656,
+      "streamTokensPerSecond": 131.69644202809081,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7698,
+        "outputTokens": 119,
+        "totalTokens": 7817
+      },
+      "elapsedSeconds": 5.598424196243286,
+      "firstTextSeconds": 4.2518310546875,
+      "streamSeconds": 1.1610000133514404,
+      "streamTokensPerSecond": 101.63651907235665,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7700,
+        "outputTokens": 119,
+        "totalTokens": 7819
+      },
+      "elapsedSeconds": 6.125448226928711,
+      "firstTextSeconds": 5.013669013977051,
+      "streamSeconds": 0.8970000743865967,
+      "streamTokensPerSecond": 131.54959890130775,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7698,
+        "outputTokens": 119,
+        "totalTokens": 7817
+      },
+      "elapsedSeconds": 5.619181156158447,
+      "firstTextSeconds": 4.4447972774505615,
+      "streamSeconds": 1.1630001068115234,
+      "streamTokensPerSecond": 101.46172756897533,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7695,
+        "outputTokens": 119,
+        "totalTokens": 7814
+      },
+      "elapsedSeconds": 4.6116132736206055,
+      "firstTextSeconds": 3.321056842803955,
+      "streamSeconds": 1.1470000743865967,
+      "streamTokensPerSecond": 102.87706394710143,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7698,
+        "outputTokens": 119,
+        "totalTokens": 7817
+      },
+      "elapsedSeconds": 5.079307794570923,
+      "firstTextSeconds": 3.8373165130615234,
+      "streamSeconds": 0.8980000019073486,
+      "streamTokensPerSecond": 131.40311776098935,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7699,
+        "outputTokens": 119,
+        "totalTokens": 7818
+      },
+      "elapsedSeconds": 10.176779985427856,
+      "firstTextSeconds": 7.676746845245361,
+      "streamSeconds": 2.316999912261963,
+      "streamTokensPerSecond": 50.92792596819864,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7697,
+        "outputTokens": 119,
+        "totalTokens": 7816
+      },
+      "elapsedSeconds": 8.105187177658081,
+      "firstTextSeconds": 5.929161548614502,
+      "streamSeconds": 1.88100004196167,
+      "streamTokensPerSecond": 62.73258764892922,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7697,
+        "outputTokens": 119,
+        "totalTokens": 7816
+      },
+      "elapsedSeconds": 9.100429773330688,
+      "firstTextSeconds": 6.4878599643707275,
+      "streamSeconds": 2.1679999828338623,
+      "streamTokensPerSecond": 54.428044711401895,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7699,
+        "outputTokens": 119,
+        "totalTokens": 7818
+      },
+      "elapsedSeconds": 11.112111806869507,
+      "firstTextSeconds": 9.9131441116333,
+      "streamSeconds": 1.0959999561309814,
+      "streamTokensPerSecond": 107.66423788606245,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7701,
+        "outputTokens": 119,
+        "totalTokens": 7820
+      },
+      "elapsedSeconds": 11.205829381942749,
+      "firstTextSeconds": 9.183078289031982,
+      "streamSeconds": 1.628999948501587,
+      "streamTokensPerSecond": 72.43708025193044,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7696,
+        "outputTokens": 119,
+        "totalTokens": 7815
+      },
+      "elapsedSeconds": 10.686647653579712,
+      "firstTextSeconds": 8.666054725646973,
+      "streamSeconds": 1.9140000343322754,
+      "streamTokensPerSecond": 61.650991579613994,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7701,
+        "outputTokens": 119,
+        "totalTokens": 7820
+      },
+      "elapsedSeconds": 10.681388139724731,
+      "firstTextSeconds": 8.110485076904297,
+      "streamSeconds": 2.194999933242798,
+      "streamTokensPerSecond": 53.758543776205,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7696,
+        "outputTokens": 119,
+        "totalTokens": 7815
+      },
+      "elapsedSeconds": 9.145915269851685,
+      "firstTextSeconds": 6.894608020782471,
+      "streamSeconds": 2.2269999980926514,
+      "streamTokensPerSecond": 52.98607997353522,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7699,
+        "outputTokens": 119,
+        "totalTokens": 7818
+      },
+      "elapsedSeconds": 5.092482089996338,
+      "firstTextSeconds": 3.5681145191192627,
+      "streamSeconds": 1.1500000953674316,
+      "streamTokensPerSecond": 102.60868714302003,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7700,
+        "outputTokens": 119,
+        "totalTokens": 7819
+      },
+      "elapsedSeconds": 5.092911243438721,
+      "firstTextSeconds": 4.126295566558838,
+      "streamSeconds": 0.8989999294281006,
+      "streamTokensPerSecond": 131.25696247280663,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7699,
+        "outputTokens": 119,
+        "totalTokens": 7818
+      },
+      "elapsedSeconds": 7.124180555343628,
+      "firstTextSeconds": 5.7115700244903564,
+      "streamSeconds": 1.1480000019073486,
+      "streamTokensPerSecond": 102.78745627521646,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7696,
+        "outputTokens": 119,
+        "totalTokens": 7815
+      },
+      "elapsedSeconds": 7.627535820007324,
+      "firstTextSeconds": 6.268610715866089,
+      "streamSeconds": 0.8980000019073486,
+      "streamTokensPerSecond": 131.40311776098935,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    }
+  ],
+  "pairedMedianSeconds": 5.082469701766968,
+  "shortBurstsDuringLong": [
+    {
+      "prefixBefore": 655360,
+      "longActiveAfter": true,
+      "rows": [
+        {
+          "usage": {
+            "inputTokens": 7696,
+            "outputTokens": 119,
+            "totalTokens": 7815
+          },
+          "elapsedSeconds": 8.13729476928711,
+          "firstTextSeconds": 5.7693071365356445,
+          "streamSeconds": 2.190999984741211,
+          "streamTokensPerSecond": 53.85668681962019,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 8.137117147445679,
+          "firstTextSeconds": 5.332329273223877,
+          "streamSeconds": 2.315000057220459,
+          "streamTokensPerSecond": 50.971920986334034,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 8.634631156921387,
+          "firstTextSeconds": 6.260746717453003,
+          "streamSeconds": 1.8970000743865967,
+          "streamTokensPerSecond": 62.20347673847921,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7698,
+            "outputTokens": 119,
+            "totalTokens": 7817
+          },
+          "elapsedSeconds": 9.137654066085815,
+          "firstTextSeconds": 7.580989599227905,
+          "streamSeconds": 1.0959999561309814,
+          "streamTokensPerSecond": 107.66423788606245,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7696,
+            "outputTokens": 119,
+            "totalTokens": 7815
+          },
+          "elapsedSeconds": 6.601022481918335,
+          "firstTextSeconds": 3.7268731594085693,
+          "streamSeconds": 2.5810000896453857,
+          "streamTokensPerSecond": 45.71871208893003,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 5.578320503234863,
+          "firstTextSeconds": 3.1802175045013428,
+          "streamSeconds": 2.2890000343322754,
+          "streamTokensPerSecond": 51.55089481439077,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7698,
+            "outputTokens": 119,
+            "totalTokens": 7817
+          },
+          "elapsedSeconds": 7.129085540771484,
+          "firstTextSeconds": 4.499423265457153,
+          "streamSeconds": 2.2300000190734863,
+          "streamTokensPerSecond": 52.91479775369073,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7697,
+            "outputTokens": 119,
+            "totalTokens": 7816
+          },
+          "elapsedSeconds": 8.588693141937256,
+          "firstTextSeconds": 6.755123138427734,
+          "streamSeconds": 1.624000072479248,
+          "streamTokensPerSecond": 72.6600952793417,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        }
+      ],
+      "requestWindowSeconds": 9.361881971359253,
+      "combinedOutputTokensPerSecond": 101.6889555873966
+    },
+    {
+      "prefixBefore": 917504,
+      "longActiveAfter": true,
+      "rows": [
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 10.176779985427856,
+          "firstTextSeconds": 7.676746845245361,
+          "streamSeconds": 2.316999912261963,
+          "streamTokensPerSecond": 50.92792596819864,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7697,
+            "outputTokens": 119,
+            "totalTokens": 7816
+          },
+          "elapsedSeconds": 8.105187177658081,
+          "firstTextSeconds": 5.929161548614502,
+          "streamSeconds": 1.88100004196167,
+          "streamTokensPerSecond": 62.73258764892922,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7697,
+            "outputTokens": 119,
+            "totalTokens": 7816
+          },
+          "elapsedSeconds": 9.100429773330688,
+          "firstTextSeconds": 6.4878599643707275,
+          "streamSeconds": 2.1679999828338623,
+          "streamTokensPerSecond": 54.428044711401895,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 11.112111806869507,
+          "firstTextSeconds": 9.9131441116333,
+          "streamSeconds": 1.0959999561309814,
+          "streamTokensPerSecond": 107.66423788606245,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7701,
+            "outputTokens": 119,
+            "totalTokens": 7820
+          },
+          "elapsedSeconds": 11.205829381942749,
+          "firstTextSeconds": 9.183078289031982,
+          "streamSeconds": 1.628999948501587,
+          "streamTokensPerSecond": 72.43708025193044,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7696,
+            "outputTokens": 119,
+            "totalTokens": 7815
+          },
+          "elapsedSeconds": 10.686647653579712,
+          "firstTextSeconds": 8.666054725646973,
+          "streamSeconds": 1.9140000343322754,
+          "streamTokensPerSecond": 61.650991579613994,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7701,
+            "outputTokens": 119,
+            "totalTokens": 7820
+          },
+          "elapsedSeconds": 10.681388139724731,
+          "firstTextSeconds": 8.110485076904297,
+          "streamSeconds": 2.194999933242798,
+          "streamTokensPerSecond": 53.758543776205,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7696,
+            "outputTokens": 119,
+            "totalTokens": 7815
+          },
+          "elapsedSeconds": 9.145915269851685,
+          "firstTextSeconds": 6.894608020782471,
+          "streamSeconds": 2.2269999980926514,
+          "streamTokensPerSecond": 52.98607997353522,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        }
+      ],
+      "requestWindowSeconds": 11.344129085540771,
+      "combinedOutputTokensPerSecond": 83.9200605724259
+    }
+  ],
+  "structured": [
+    {
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 599,
+        "totalTokens": 8273
+      },
+      "elapsedSeconds": 6.075729131698608,
+      "firstTextSeconds": 2.3283820152282715,
+      "streamSeconds": 3.5999999046325684,
+      "streamTokensPerSecond": 166.1111155115529,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 599,
+        "totalTokens": 8273
+      },
+      "elapsedSeconds": 4.059887170791626,
+      "firstTextSeconds": 0.2524747848510742,
+      "streamSeconds": 3.632999897003174,
+      "streamTokensPerSecond": 164.60226175433817,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    },
+    {
+      "usage": {
+        "inputTokens": 7674,
+        "outputTokens": 599,
+        "totalTokens": 8273
+      },
+      "elapsedSeconds": 4.060099124908447,
+      "firstTextSeconds": 0.2457423210144043,
+      "streamSeconds": 3.631999969482422,
+      "streamTokensPerSecond": 164.64757847594862,
+      "exact": true,
+      "retries": 0,
+      "tools": 0,
+      "persistedPromptVerified": true
+    }
+  ],
+  "naturalProse": {
+    "usage": {
+      "inputTokens": 8537,
+      "outputTokens": 350,
+      "totalTokens": 8887
+    },
+    "elapsedSeconds": 4.081814289093018,
+    "firstTextSeconds": 0.2708432674407959,
+    "streamSeconds": 3.6069998741149902,
+    "streamTokensPerSecond": 96.75631055729667,
+    "exact": false,
+    "retries": 0,
+    "tools": 0,
+    "persistedPromptVerified": true,
+    "contentReview": "passed",
+    "source": "actual DSH factual correction turn; raw initial response preserved separately"
+  },
+  "cachedNear1M": {
+    "usage": {
+      "inputTokens": 1008209,
+      "outputTokens": 1199,
+      "totalTokens": 1009408
+    },
+    "elapsedSeconds": 14.861421585083008,
+    "firstTextSeconds": 7.225054502487183,
+    "streamSeconds": 7.567000150680542,
+    "streamTokensPerSecond": 158.31901363081872,
+    "exact": true,
+    "retries": 0,
+    "tools": 0,
+    "persistedPromptVerified": true
+  },
+  "toolContinuation": {
+    "usage": {
+      "inputTokens": 1009673,
+      "outputTokens": 22,
+      "totalTokens": 1009695
+    },
+    "elapsedSeconds": 13.424980163574219,
+    "firstTextSeconds": 5.6289544105529785,
+    "streamSeconds": 7.4649999141693115,
+    "streamTokensPerSecond": 2.8131279626862304,
+    "exact": true,
+    "retries": 0,
+    "tools": 1,
+    "persistedPromptVerified": true
+  },
+  "shortBurstsAfterCapacity": [
+    {
+      "clients": 1,
+      "rows": [
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 1.288508653640747,
+          "firstTextSeconds": 0.5398201942443848,
+          "streamSeconds": 0.6979999542236328,
+          "streamTokensPerSecond": 169.05445234770585,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        }
+      ],
+      "requestWindowSeconds": 1.288508653640747,
+      "combinedOutputTokensPerSecond": 92.35483181564936
+    },
+    {
+      "clients": 2,
+      "rows": [
+        {
+          "usage": {
+            "inputTokens": 7698,
+            "outputTokens": 119,
+            "totalTokens": 7817
+          },
+          "elapsedSeconds": 2.841306686401367,
+          "firstTextSeconds": 1.9377925395965576,
+          "streamSeconds": 0.8510000705718994,
+          "streamTokensPerSecond": 138.66038803110817,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7700,
+            "outputTokens": 119,
+            "totalTokens": 7819
+          },
+          "elapsedSeconds": 2.5864477157592773,
+          "firstTextSeconds": 0.8193361759185791,
+          "streamSeconds": 1.6629998683929443,
+          "streamTokensPerSecond": 70.95610904288911,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        }
+      ],
+      "requestWindowSeconds": 2.841306447982788,
+      "combinedOutputTokensPerSecond": 83.76428391558056
+    },
+    {
+      "clients": 4,
+      "rows": [
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 3.37908673286438,
+          "firstTextSeconds": 1.0707249641418457,
+          "streamSeconds": 2.06499981880188,
+          "streamTokensPerSecond": 57.142862156987505,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7703,
+            "outputTokens": 119,
+            "totalTokens": 7822
+          },
+          "elapsedSeconds": 3.6319262981414795,
+          "firstTextSeconds": 2.2619400024414062,
+          "streamSeconds": 1.2850000858306885,
+          "streamTokensPerSecond": 91.82878764067854,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7700,
+            "outputTokens": 119,
+            "totalTokens": 7819
+          },
+          "elapsedSeconds": 3.8836662769317627,
+          "firstTextSeconds": 2.5576093196868896,
+          "streamSeconds": 1.1470000743865967,
+          "streamTokensPerSecond": 102.87706394710143,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7700,
+            "outputTokens": 119,
+            "totalTokens": 7819
+          },
+          "elapsedSeconds": 2.8744893074035645,
+          "firstTextSeconds": 0.7097768783569336,
+          "streamSeconds": 2.1510000228881836,
+          "streamTokensPerSecond": 54.85820490208988,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        }
+      ],
+      "requestWindowSeconds": 3.8877816200256348,
+      "combinedOutputTokensPerSecond": 122.4348604222429
+    },
+    {
+      "clients": 8,
+      "rows": [
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 5.493345499038696,
+          "firstTextSeconds": 3.6286938190460205,
+          "streamSeconds": 1.8529999256134033,
+          "streamTokensPerSecond": 63.680520635173885,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7696,
+            "outputTokens": 119,
+            "totalTokens": 7815
+          },
+          "elapsedSeconds": 3.2014496326446533,
+          "firstTextSeconds": 1.0342762470245361,
+          "streamSeconds": 2.0930001735687256,
+          "streamTokensPerSecond": 56.37839952913189,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 4.218186855316162,
+          "firstTextSeconds": 1.7814102172851562,
+          "streamSeconds": 2.319999933242798,
+          "streamTokensPerSecond": 50.86207042905583,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 5.2380359172821045,
+          "firstTextSeconds": 3.1344668865203857,
+          "streamSeconds": 2.0759999752044678,
+          "streamTokensPerSecond": 56.840077750183035,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 3.709007501602173,
+          "firstTextSeconds": 1.3461813926696777,
+          "streamSeconds": 2.2699999809265137,
+          "streamTokensPerSecond": 51.98237929140317,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7698,
+            "outputTokens": 119,
+            "totalTokens": 7817
+          },
+          "elapsedSeconds": 5.749826908111572,
+          "firstTextSeconds": 4.183670520782471,
+          "streamSeconds": 1.5089998245239258,
+          "streamTokensPerSecond": 78.19749086930995,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 4.723877668380737,
+          "firstTextSeconds": 2.206641435623169,
+          "streamSeconds": 2.365000009536743,
+          "streamTokensPerSecond": 49.894291553560656,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 5.978015899658203,
+          "firstTextSeconds": 4.639136552810669,
+          "streamSeconds": 1.187999963760376,
+          "streamTokensPerSecond": 99.32660235653091,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        }
+      ],
+      "requestWindowSeconds": 6.008155822753906,
+      "combinedOutputTokensPerSecond": 158.45128323646574
+    },
+    {
+      "clients": 16,
+      "rows": [
+        {
+          "usage": {
+            "inputTokens": 7696,
+            "outputTokens": 119,
+            "totalTokens": 7815
+          },
+          "elapsedSeconds": 4.125635147094727,
+          "firstTextSeconds": 1.6543114185333252,
+          "streamSeconds": 2.2800002098083496,
+          "streamTokensPerSecond": 51.75438120241171,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 5.645173072814941,
+          "firstTextSeconds": 3.024080514907837,
+          "streamSeconds": 2.36899995803833,
+          "streamTokensPerSecond": 49.81004731537052,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 4.628441095352173,
+          "firstTextSeconds": 2.0213022232055664,
+          "streamSeconds": 2.389000177383423,
+          "streamTokensPerSecond": 49.39304781854002,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7698,
+            "outputTokens": 119,
+            "totalTokens": 7817
+          },
+          "elapsedSeconds": 3.1097636222839355,
+          "firstTextSeconds": 1.1230666637420654,
+          "streamSeconds": 1.8209998607635498,
+          "streamTokensPerSecond": 64.7995656356186,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 5.136914968490601,
+          "firstTextSeconds": 2.539184808731079,
+          "streamSeconds": 2.373000144958496,
+          "streamTokensPerSecond": 49.726082086718044,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7701,
+            "outputTokens": 119,
+            "totalTokens": 7820
+          },
+          "elapsedSeconds": 6.409365892410278,
+          "firstTextSeconds": 3.9359183311462402,
+          "streamSeconds": 2.444000005722046,
+          "streamTokensPerSecond": 48.281505615274554,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7698,
+            "outputTokens": 119,
+            "totalTokens": 7817
+          },
+          "elapsedSeconds": 7.426030158996582,
+          "firstTextSeconds": 4.987813949584961,
+          "streamSeconds": 2.365999937057495,
+          "streamTokensPerSecond": 49.873205046130366,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7698,
+            "outputTokens": 119,
+            "totalTokens": 7817
+          },
+          "elapsedSeconds": 6.914278984069824,
+          "firstTextSeconds": 4.420858383178711,
+          "streamSeconds": 2.444999933242798,
+          "streamTokensPerSecond": 48.26176000892436,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7702,
+            "outputTokens": 119,
+            "totalTokens": 7821
+          },
+          "elapsedSeconds": 8.948566198348999,
+          "firstTextSeconds": 6.386184215545654,
+          "streamSeconds": 2.4579999446868896,
+          "streamTokensPerSecond": 48.00651043750586,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7701,
+            "outputTokens": 119,
+            "totalTokens": 7820
+          },
+          "elapsedSeconds": 7.935774564743042,
+          "firstTextSeconds": 5.47072696685791,
+          "streamSeconds": 2.36899995803833,
+          "streamTokensPerSecond": 49.81004731537052,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7703,
+            "outputTokens": 119,
+            "totalTokens": 7822
+          },
+          "elapsedSeconds": 10.220927715301514,
+          "firstTextSeconds": 7.9191319942474365,
+          "streamSeconds": 2.175999879837036,
+          "streamTokensPerSecond": 54.227944171043426,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7701,
+            "outputTokens": 119,
+            "totalTokens": 7820
+          },
+          "elapsedSeconds": 9.459393739700317,
+          "firstTextSeconds": 6.873298406600952,
+          "streamSeconds": 2.4630000591278076,
+          "streamTokensPerSecond": 47.90905284906323,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7700,
+            "outputTokens": 119,
+            "totalTokens": 7819
+          },
+          "elapsedSeconds": 9.960264921188354,
+          "firstTextSeconds": 7.425932884216309,
+          "streamSeconds": 2.3450000286102295,
+          "streamTokensPerSecond": 50.319828810378745,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 10.704789876937866,
+          "firstTextSeconds": 8.827678203582764,
+          "streamSeconds": 1.7690000534057617,
+          "streamTokensPerSecond": 66.70435072787075,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 11.205777645111084,
+          "firstTextSeconds": 9.820589542388916,
+          "streamSeconds": 1.133000135421753,
+          "streamTokensPerSecond": 104.14826645724554,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        },
+        {
+          "usage": {
+            "inputTokens": 7699,
+            "outputTokens": 119,
+            "totalTokens": 7818
+          },
+          "elapsedSeconds": 10.935935735702515,
+          "firstTextSeconds": 9.290783166885376,
+          "streamSeconds": 1.488999843597412,
+          "streamTokensPerSecond": 79.24782565115179,
+          "exact": true,
+          "retries": 0,
+          "tools": 0,
+          "persistedPromptVerified": true
+        }
+      ],
+      "requestWindowSeconds": 11.265499591827393,
+      "combinedOutputTokensPerSecond": 169.01159016341055
+    }
+  ],
+  "allocatorWarnings": 0,
+  "unexpectedRestarts": 0,
+  "historyPreservation": {
+    "histories": 167,
+    "files": 188,
+    "runtimes": 20,
+    "originalIDsAndBytesPreserved": true
+  },
+  "startupQualification": {
+    "optimizedPythonRefused": true,
+    "referenceGatesAndActualDSHCapacityPassed": true
+  },
+  "memorySamples": {
+    "label": "capacity",
+    "observedAtUTC": "2026-10-19T02:12:18.100679+00:00",
+    "samplerStartUTC": 1792374581.4249065,
+    "intervalSeconds": 1,
+    "rows": 5424,
+    "scope": "Read-only1HzNVML samples during preparation and follow-ups; not a continuous microsecond peak bound",
+    "gpus": [
+      {
+        "index": 0,
+        "samples": 1356,
+        "reportedTotalMiB": 95830,
+        "minimumObservedFreeMiB": 38,
+        "maximumObservedGPUUtilizationPercent": 100
+      },
+      {
+        "index": 1,
+        "samples": 1356,
+        "reportedTotalMiB": 95830,
+        "minimumObservedFreeMiB": 38,
+        "maximumObservedGPUUtilizationPercent": 100
+      },
+      {
+        "index": 2,
+        "samples": 1356,
+        "reportedTotalMiB": 95830,
+        "minimumObservedFreeMiB": 38,
+        "maximumObservedGPUUtilizationPercent": 100
+      },
+      {
+        "index": 3,
+        "samples": 1356,
+        "reportedTotalMiB": 95830,
+        "minimumObservedFreeMiB": 38,
+        "maximumObservedGPUUtilizationPercent": 100
+      }
+    ]
+  },
+  "sourceSHA256": {
+    "layers/attention/deepseek_v4_backend.py": "bcf594fa8531572ae3be6e43b16c48b1696b37be65e75b76ac0f23414af6e67b",
+    "model_executor/runner/decode_cuda_graph_runner.py": "f3e111f71fb07dfb3a293a6f3480969bf7b8876668c64a84572d648c73a0b727",
+    "layers/attention/dsv4/dsv41_sparse.py": "5aa0fd3321811eccf1ef18bb69511bfd4fd8ab817976e11efe79be6b28d3961d",
+    "mem_cache/deepseek_v4_memory_pool.py": "61d6b6b4e535e849b772b4e71e3823e7d5186eda9a3a66613b993f6b36da25d8"
+  },
+  "initialProseSample": {
+    "usage": {
+      "inputTokens": 7867,
+      "outputTokens": 406,
+      "totalTokens": 8273
+    },
+    "elapsedSeconds": 5.855162858963013,
+    "firstTextSeconds": 0.4491744041442871,
+    "streamSeconds": 5.276000022888184,
+    "streamTokensPerSecond": 76.76269868139524,
+    "exact": false,
+    "retries": 0,
+    "tools": 0,
+    "persistedPromptVerified": true,
+    "contentReviewPassed": false,
+    "factualCorrectionRequired": true
+  },
+  "mainDeepSeekProfileReadback": {
+    "mainRuntimes": 20,
+    "aliases": [
+      "deepseek-flash",
+      "deepseek-v4.1-flash"
+    ],
+    "allBothAliasesDeclare1048576": true,
+    "otherModelBudgetsUnchanged": true,
+    "actualInferenceScope": "Actual native DSH disposable runtime through shared gateway and model"
+  },
+  "operatorHarness": {
+    "rawResultPassed": false,
+    "rawResultSHA256": "3634f9d5150ac05981e52570dc669a05c2c3569f12cba450bc321e48d50434e6",
+    "allSixteenOriginalNativeAnswersRecoveredAndVerified": true,
+    "freshSingleChannelReplies": 31,
+    "freshSingleChannelPassed": true
+  },
+  "handover": {
+    "full1MAndCachedToolResultsBeforeIdenticalProfileHandover": true,
+    "sameGPUArgumentsAndFourRuntimeHashes": true,
+    "freshStartupGatesStructuredRepliesConcurrencyAndProseAfterHandover": true
+  },
+  "focused256K": {
+    "usage": {
+      "inputTokens": 257691,
+      "outputTokens": 7,
+      "totalTokens": 257698
+    },
+    "elapsedSeconds": 130.56877875328064,
+    "firstTextSeconds": 130.29151964187622,
+    "streamSeconds": 0.0009999275207519531,
+    "exact": true,
+    "retries": 0,
+    "tools": 0,
+    "persistedPromptVerified": true,
+    "shortReplies": 8,
+    "shortMedianSeconds": 3.5621657371520996
+  },
+  "syntheticUserPromptSHA256": "7d8e88f3445daa99d562642367b7f5bb152c85c5645398bac64ad5287c530ec6"
+}

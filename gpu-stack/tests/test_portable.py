@@ -42,12 +42,35 @@ class PortableTests(unittest.TestCase):
         self.assertFalse(any(v.get('subPath') in ['model_runner.py','allocator_pressure_guard.py'] for v in c['volumeMounts']))
         a=c['args']
         self.assertNotIn('--enable-mixed-chunk',a)
-        for flag,value in {'--context-length':'1048576','--chunked-prefill-size':'512','--max-prefill-tokens':'1024','--prefill-max-requests':'2','--mem-fraction-static':'0.90','--max-running-requests':'16','--swa-prefix-tails':'8'}.items():
+        for flag,value in {'--context-length':'1048576','--chunked-prefill-size':'1024','--max-prefill-tokens':'1024','--prefill-max-requests':'2','--mem-fraction-static':'0.923','--max-running-requests':'8','--swa-prefix-tails':'16','--speculative-algorithm':'DSPARK','--speculative-dspark-block-size':'5','--cuda-graph-max-bs-decode':'8'}.items():
             self.assertEqual(a[a.index(flag)+1],value)
         cfg=next(d['data']['config.yaml'] for d in self.docs if d['kind']=='ConfigMap' and 'config.yaml' in d['data'])
         parsed=yaml.safe_load(cfg)
         self.assertEqual([m['model_name'] for m in parsed['model_list']],module.ALIASES)
         for policy in parsed['router_settings']['model_group_retry_policy'].values():self.assertEqual(policy['RateLimitErrorRetries'],0)
+
+    def test_indexer_gate_uses_the_same_four_gpus_before_model_start(self):
+        model=next(d for d in self.docs if d['kind']=='Deployment'and d['metadata']['name']=='local-model')
+        pod=model['spec']['template']['spec'];main=pod['containers'][0]
+        gate=next(c for c in pod['initContainers']if c['name']=='verify-indexer-reference')
+        self.assertEqual(gate['image'],main['image'])
+        self.assertEqual(gate['resources']['requests']['nvidia.com/gpu'],4)
+        effective=max(sum(int(c.get('resources',{}).get('requests',{}).get('nvidia.com/gpu',0))for c in pod['containers']),max(int(c.get('resources',{}).get('requests',{}).get('nvidia.com/gpu',0))for c in pod['initContainers']))
+        self.assertEqual(effective,4)
+        self.assertEqual(gate['workingDir'],'/overlay')
+        self.assertIn('indexer_reference_gate.py',gate['command'][-1]);self.assertIn('indexer_tile_patch.py',gate['command'][-1]);self.assertIn('tiledCases', (ROOT/'runtime/indexer_reference_gate.py').read_text())
+        mounted=next(v for v in main['volumeMounts']if v.get('subPath')=='dsv41_sparse.py')
+        self.assertTrue(mounted['readOnly'])
+        self.assertEqual(model['spec']['strategy']['type'],'Recreate')
+
+    def test_indexer_source_stays_out_of_gateway_runtime(self):
+        configs=[d for d in self.docs if d['kind']=='ConfigMap']
+        patches=next(d['data']for d in configs if 'scheduler_fairness_patch.py'in d['data'])
+        gateway=next(d['data']for d in configs if 'config.yaml'in d['data'])
+        for name in ['indexer_scratch_patch.py','indexer_reference_gate.py','indexer_tile_patch.py','indexer_dequant_patch.py','indexer_dequant_reference_gate.py']:
+            self.assertIn(name,patches)
+            self.assertNotIn(name,gateway)
+        self.assertIn('b56eca87c3706edc9dd4db0f64431b87d52864495765bc3a85af6dbde21e2a5a',patches['indexer_scratch_patch.py'])
 
     def test_egress_denies_model_and_limits_gateway(self):
         policies={d['metadata']['name']:d['spec'] for d in self.docs if d['kind']=='NetworkPolicy'}

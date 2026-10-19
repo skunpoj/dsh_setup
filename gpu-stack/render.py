@@ -27,7 +27,7 @@ def render(settings):
         return d
     sources={p.name:p.read_text(encoding='utf-8') for p in (ROOT/'runtime').glob('*.py')}
     for source in sources.values():ast.parse(source)
-    patches={k:v for k,v in sources.items() if k.startswith('scheduler_')}
+    patches={k:v for k,v in sources.items() if k.startswith(('scheduler_','indexer_'))}
     guard={k:v for k,v in sources.items() if k not in patches}
     config={
       'model_list':[{'model_name':alias,'litellm_params':{
