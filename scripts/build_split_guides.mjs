@@ -31,7 +31,7 @@ Internet access is a separate per-user permission. Every non-admin account start
 
 These controls are deployed on the main gateway. Separate legacy-instance gateways are not covered by this permission change. Activity oversight and account administration do not grant ownership of private user content.
 
-The deployed dashboard provides account management and access activity. Additional numeric panels for stored sessions, token totals, execution activity and storage have been implemented and tested against isolated runtimes, but their gateway rollout is pending. Do not present a saved dashboard screenshot as a live utilization measurement.
+The deployed dashboard provides account management, access activity and numeric summaries from the 18 configured private runtimes: stored sessions, running agents, queued messages, turns, LLM steps, input/output token totals, recorded decode and wall-clock output rates, and workspace/durable-storage sizes. These are scoped snapshots, not live GPU utilization or independent Claude Code/TrueForge accounting. Actual deployed-code authorization and numeric collection were checked using a loopback-only disposable authenticated account; a real administrator password/browser login was not part of that acceptance. See the [dashboard definitions and scope](ADMIN_USAGE_TELEMETRY.html). Saved demonstration screenshots do not show current utilization.
 
 ## Environment and access design
 
