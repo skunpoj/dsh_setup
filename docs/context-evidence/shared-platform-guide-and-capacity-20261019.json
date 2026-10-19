@@ -96,5 +96,56 @@
       }
     ],
     "embeddedVideoDecoded": true
-  }
+  },
+  "postReplacementClients": {
+    "fourClientGuideLoadVerified": true,
+    "results": [
+      {
+        "client": "dsh",
+        "guideMarkerRecovered": true,
+        "defaultLimitCorrect": true,
+        "urlDoesNotStartProcess": true,
+        "exact": true,
+        "seconds": 0.863
+      },
+      {
+        "client": "claude",
+        "guideMarkerRecovered": true,
+        "defaultLimitCorrect": true,
+        "urlDoesNotStartProcess": true,
+        "exact": true,
+        "seconds": 0.661
+      },
+      {
+        "client": "kilo",
+        "guideMarkerRecovered": true,
+        "defaultLimitCorrect": true,
+        "urlDoesNotStartProcess": true,
+        "exact": true,
+        "seconds": 6.18
+      },
+      {
+        "client": "trueforge",
+        "guideMarkerRecovered": true,
+        "defaultLimitCorrect": true,
+        "urlDoesNotStartProcess": true,
+        "exact": true,
+        "seconds": 0.405
+      }
+    ],
+    "markerWasNotInUserPrompt": true
+  },
+  "instructionContextNotToolReads": {
+    "dshToolEvents": 0,
+    "kiloToolEvents": 0,
+    "claudeToolsDisabled": true,
+    "trueforgeSandboxDisabledAndNoMCP": true,
+    "trueforgeEventTypes": {
+      "turn.created": 1,
+      "model.message": 1,
+      "model.message.delta": 7,
+      "turn.done": 1
+    }
+  },
+  "testRuntimeCleanup": "Both disposable workers scaled to zero; private test state retained"
 }
