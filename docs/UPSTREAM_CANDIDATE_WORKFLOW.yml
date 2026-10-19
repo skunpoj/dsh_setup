@@ -2,9 +2,9 @@ name: DSH upstream candidate
 on:
   push:
     branches: [main]
-    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', 'config/**', 'plugins/**', 'k8s/**', 'package*.json', '*requirements*.txt', '*lock*', .gitattributes]
+    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', 'config/**', 'plugins/**', 'cordis_plugin/**', 'k8s/**', 'package*.json', '*requirements*.txt', '*lock*', .gitattributes]
   pull_request:
-    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', 'config/**', 'plugins/**', 'k8s/**', 'package*.json', '*requirements*.txt', '*lock*', .gitattributes]
+    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', 'config/**', 'plugins/**', 'cordis_plugin/**', 'k8s/**', 'package*.json', '*requirements*.txt', '*lock*', .gitattributes]
   schedule:
     - cron: '17 2 * * *'
   workflow_dispatch:
@@ -88,7 +88,7 @@ jobs:
           kernel_version=$(sed -n 's/^ARG IPYKERNEL_VERSION=//p' Dockerfile)
           /tmp/dsh-test-venv/bin/pip install PyYAML==6.0.3 "jupyterlab==$lab_version" "jupyter-server==$server_version" "ipykernel==$kernel_version"
           /tmp/dsh-test-venv/bin/python -m unittest discover -s tests -p 'test_*.py' 2>&1 | tee candidate-evidence/python-tests.log
-      - name: Verify admin dashboard browser behavior
+      - name: Verify admin and upstream browser behavior
         env:
           DSH_PLAYWRIGHT: /tmp/dsh-browser/node_modules/playwright
           DSH_ADMIN_QA_OUTPUT: candidate-evidence/browser
@@ -98,6 +98,7 @@ jobs:
           npm install --prefix /tmp/dsh-browser --ignore-scripts playwright@1.62.1
           /tmp/dsh-browser/node_modules/.bin/playwright install --with-deps chromium
           node tests/test_admin_dashboard.js
+          node tests/test_candidate_browser.js
       - name: Write qualification summary
         if: always()
         env:

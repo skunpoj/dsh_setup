@@ -1,0 +1,60 @@
+// Real upstream app browser qualification against a disposable built image.
+// Owner scope only. Never types/submits a conversation or calls inference.
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{spawn,spawnSync}=require('node:child_process');
+const port=31998,name=`dsh-browser-${process.pid}`,output=process.env.DSH_CANDIDATE_BROWSER_OUTPUT||'candidate-evidence/upstream-browser';
+const image=process.env.DSH_CANDIDATE_IMAGE||'dsh-upstream-candidate';
+fs.mkdirSync(output,{recursive:true});
+const args=['run','--rm','--name',name,'--network','host','--user','10001:10001','--cap-drop','ALL','--security-opt','no-new-privileges','--read-only','--tmpfs','/tmp:rw,nosuid,nodev,size=256m,mode=1777','--tmpfs','/workspace:rw,nosuid,nodev,size=16m,uid=10001,gid=10001','--entrypoint','node',image,'/opt/dsh/scripts/serve_candidate_browser.js'];
+const server=spawn('docker',args,{stdio:['ignore','pipe','pipe']});
+let log='',closed=false,spawnError,browser;
+server.stdout.on('data',b=>{log=(log+b.toString()).slice(-32000);});server.stderr.on('data',b=>{log=(log+b.toString()).slice(-32000);});server.on('error',e=>spawnError=e);server.on('exit',()=>closed=true);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{try{
+ const deadline=Date.now()+90000;let ready;
+ while(Date.now()<deadline&&!closed&&!spawnError){ready=log.split(/\r?\n/).map(line=>{try{return JSON.parse(line)}catch{return null}}).find(value=>value?.browserReady);if(ready)break;await sleep(200);}
+ assert(!spawnError,spawnError?.message);assert(ready,'Disposable upstream app did not become ready (startup logs deliberately withheld)');
+ const {chromium}=require(process.env.DSH_PLAYWRIGHT||'playwright');
+ browser=await chromium.launch({headless:true,args:['--host-resolver-rules=MAP dsh-ci.test 127.0.0.1','--no-proxy-server',`--unsafely-treat-insecure-origin-as-secure=http://dsh-ci.test:${port}`]});
+ const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'en-US'});
+ const externalRequests=[],pageErrors=[],inferenceRequests=[];
+ await context.route('**/*',route=>{const url=new URL(route.request().url());if(!['127.0.0.1','dsh-ci.test'].includes(url.hostname)){externalRequests.push(url.origin);return route.abort();}if(/\/v1\/(chat|responses|completions)/.test(url.pathname)){inferenceRequests.push(url.pathname);return route.abort();}return route.continue();});
+ const page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>pageErrors.push(e.message));
+ await page.goto(`http://dsh-ci.test:${port}/?token=${encodeURIComponent(ready.token)}`,{waitUntil:'domcontentloaded'});
+ const settings=()=>page.getByRole('button',{name:'Settings',exact:true});
+ await settings().waitFor({state:'visible'});
+ const selector=()=>page.getByRole('button',{name:/^Select model/});
+ await selector().waitFor({state:'visible'});await selector().click();
+ const drill=page.getByRole('menuitem',{name:/^Model/});if(await drill.count())await drill.click();
+ const group=page.getByRole('group',{name:'Model and reasoning effort',exact:true});
+ const models=group.locator('[data-model-id]');await models.nth(4).waitFor({state:'visible'});
+ const rows=await models.evaluateAll(nodes=>nodes.map(node=>({provider:node.getAttribute('data-provider-id'),model:node.getAttribute('data-model-id')})));
+ assert(rows.length>=5,'Actual DOM model selector lacks managed catalog');assert(rows.every(row=>row.provider==='litellm-cluster'),'External provider rendered in model selector');assert(rows.some(row=>row.model==='deepseek-v4.1-flash'));
+ await page.keyboard.press('Escape');await settings().click();
+ const dialog=page.getByRole('dialog');await dialog.waitFor({state:'visible'});
+ const modelsNav=dialog.getByRole('button',{name:'Models',exact:true});
+ await modelsNav.click();await dialog.getByRole('heading',{name:'Models',exact:true}).waitFor({state:'visible'});
+ await dialog.getByText('Cluster LiteLLM Gateway',{exact:true}).first().waitFor({state:'visible'});
+ await page.screenshot({path:path.join(output,'upstream-model-settings.png'),fullPage:true});
+ await dialog.getByRole('button',{name:'General',exact:true}).click();
+ const coding=()=>page.getByRole('switch',{name:'Show coding view',exact:true}).or(page.getByRole('checkbox',{name:'Show coding view',exact:true}));
+ await coding().waitFor({state:'visible'});const before=await coding().isChecked();
+ await coding().click();
+ for(let n=0;n<80&&(await coding().isChecked())===before;n++)await sleep(100);
+ assert.equal(await coding().isChecked(),!before,'Host-backed owner preference did not settle');
+ for(let n=0;n<80&&!(await coding().isEnabled());n++)await sleep(100);
+ assert(await coding().isEnabled(),'Host-backed preference acknowledgement did not settle');
+ // Fresh navigation reconnects the real application with the server-minted cookie.
+ await page.reload({waitUntil:'domcontentloaded'});await settings().waitFor({state:'visible'});
+ await settings().click();await page.getByRole('dialog').getByRole('button',{name:'General',exact:true}).click();
+ await coding().waitFor({state:'visible'});assert.equal(await coding().isChecked(),!before,'Host owner preference did not persist across reload');
+ await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+ await selector().waitFor({state:'visible'});await selector().click();const reopened=page.getByRole('menuitem',{name:/^Model/});if(await reopened.count())await reopened.click();await page.getByRole('group',{name:'Model and reasoning effort',exact:true}).locator('[data-model-id="deepseek-v4.1-flash"]').waitFor({state:'visible'});
+ assert.deepEqual(pageErrors,[]);assert.deepEqual(inferenceRequests,[]);
+ await browser.close();browser=null;
+ spawnSync('docker',['stop','--time','5',name],{encoding:'utf8',timeout:10000});
+ for(let n=0;n<30&&!closed;n++)await sleep(100);
+ const receipts=log.split(/\r?\n/).flatMap(line=>{try{const item=JSON.parse(line);return typeof item.modelRequests==='number'?[item]:[]}catch{return []}});
+ assert(receipts.length,'Mock inference counter receipt missing');assert(receipts.every(item=>item.modelRequests===0),'App attempted inference during UI qualification');
+ const result={actualUpstreamBrowser:true,ownerScopeOnly:true,syntheticNonLoopbackTrustedHost:true,tlsAcceptance:false,managedModelSelectorDOM:rows,hostBackedModelsSettingsRendered:true,reloadReconnect:true,pageErrors:[],blockedExternalOrigins:[...new Set(externalRequests)],modelRequests:0,hostOwnerPreferencePersistedAcrossReload:true,settingsWritesTested:true,ordinaryPeerPolicyTested:false,inferenceAcceptance:false};
+ fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
+ }finally{if(browser)await browser.close();spawnSync('docker',['rm','--force',name],{stdio:'ignore',timeout:10000});}})().catch(error=>{console.error(error.message);process.exitCode=1;});

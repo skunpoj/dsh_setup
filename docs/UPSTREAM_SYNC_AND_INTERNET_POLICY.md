@@ -130,7 +130,7 @@ python scripts/check_upstream.py --candidate 0.2.1-alpha.4 --output preview-chec
 
 ## Why Production upgrades remain gated
 
-Our compatibility layer still modifies selected package files. All ten current mutation targets now have pre-patch source contracts, but those hashes and candidate checks do not cover every future upstream semantic change. A changed target requires reviewing the source diff, adapting the overlay/tests and explicitly updating the reviewed contract. Prefer supported configuration/plugins over text patching as extension points become available; that migration is not complete.
+Our compatibility layer still modifies selected package files. The 0.2.1-rc.2 candidate has ten reviewed source inputs: two image-handling mutations and eight protected, unmodified upstream files. These hashes and candidate checks do not cover every future upstream semantic change. A changed target requires reviewing the source diff, adapting the overlay/tests and explicitly updating the reviewed contract. Prefer supported configuration/plugins over text patching as extension points become available; that migration is not complete.
 
 Before deployment, qualify copied-state session reads, new prompts, compaction, attachments, tools, browser Host/Origin handling, HTTP/WebSocket terminal/application proxy, private-user/network boundaries and restart/restore. Review any unmatched patch target. Retain a compatible old image/configuration and coherent state recovery baseline. Read back the actual running image and test the affected behavior after cutover.
 
