@@ -707,10 +707,19 @@ function setUserInternetMode(username, mode) {
   return saveUserSettings(settings);
 }
 
-function injectLogoutControl(html, isAdmin = false) {
+function injectLogoutControl(html, isAdmin = false, sessionUser = '', internetMode = 'off') {
   if (typeof html !== 'string' || html.includes('id="dsh-enterprise-logout"')) return html;
   const control = `<a id="dsh-enterprise-logout" href="/logout" aria-label="Logout" title="Logout" style="position:fixed;right:18px;top:14px;z-index:2147483647;display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(148,163,184,.42);border-radius:8px;background:rgba(15,23,42,.94);color:#f8fafc;font:600 13px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.28);backdrop-filter:blur(8px)"><span aria-hidden="true">&#x21AA;</span><span>Logout</span></a>`;
   const adminLink = isAdmin ? '<a id="dsh-admin-dashboard" href="/admin" style="position:fixed;right:220px;top:14px;z-index:2147483647;background:#0f172a;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 13px system-ui">Admin overview</a>' : '';
+  // Keep unsent text in the existing DOM. Never save drafts to browser storage,
+  // replay a failed POST, or silently switch an open tab to a different account.
+  const identity = JSON.stringify({user:sessionUser,internet:internetMode}).replaceAll('<','\\u003c');
+  const recovery = `<script id="dsh-session-recovery">(()=>{'use strict';const identity=${identity},originalFetch=window.fetch.bind(window);let panel=null,checking=false,waiting=false;
+function show(){waiting=true;if(panel)return;panel=document.createElement('section');panel.id='dsh-session-ended';panel.setAttribute('role','alert');panel.style.cssText='position:fixed;top:78px;left:50%;transform:translateX(-50%);width:min(520px,calc(100vw - 32px));box-sizing:border-box;z-index:2147483647;padding:18px;border:1px solid #eab308;border-radius:12px;background:#172033;color:#fff;font:14px/1.5 system-ui;box-shadow:0 8px 30px #0008';panel.innerHTML='<strong>Your sign-in session ended.</strong><p>Keep this tab open: your unsent draft stays here. Sign in again in a new tab using the same account and environment, then return here.</p><a href="/login" target="_blank" rel="noopener" style="color:#93c5fd">Sign in again</a> <button type="button" id="dsh-session-check">I have signed in</button><p id="dsh-session-note"></p>';document.body.append(panel);panel.querySelector('button').onclick=check;}
+async function check(){if(checking||!document.body)return;checking=true;try{const r=await originalFetch('/api/auth/session',{credentials:'same-origin',cache:'no-store'});if(r.status===401){show();return;}if(!r.ok||!(r.headers.get('content-type')||'').includes('application/json'))return;const s=await r.json();if(s.user!==identity.user||s.internet!==identity.internet){show();panel.querySelector('#dsh-session-note').textContent='Use the original account and environment to resume this tab.';return;}if(waiting){waiting=false;if(panel){panel.remove();panel=null;}window.dispatchEvent(new Event('dsh-session-restored'));}}catch{}finally{checking=false;}}
+window.fetch=async function(input,init){const r=await originalFetch(input,init);try{const u=new URL(typeof input==='string'?input:input.url,location.href);if(u.origin===location.origin&&u.pathname.startsWith('/api/')&&r.status===401&&r.headers.get('x-dsh-auth-required')==='1')show();}catch{}return r;};
+setInterval(check,15000);window.addEventListener('focus',check);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();</script>`;
+  html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, head => head+recovery) : recovery+html;
   if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}${adminLink}</body>`);
   return html + control + adminLink;
 }
@@ -1267,6 +1276,12 @@ const server = http.createServer((req, res) => {
 
   if (authenticated && (!accountEnabled(sessionUser) || (activeSession.internet === 'on' && !internetAllowed(sessionUser)))) { revokeUserSessions(sessionUser); authenticated=false; }
   if (!authenticated) {
+    // API consumers must never receive an HTML sign-in page with HTTP 200.
+    if (parsedUrl.pathname.startsWith('/api/')) {
+      res.writeHead(401, {'Content-Type':'application/json; charset=utf-8',
+        'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-DSH-Auth-Required':'1'});
+      return res.end(JSON.stringify({error:'AUTHENTICATION_REQUIRED',message:'Your sign-in session ended. Sign in again.',loginUrl:'/login'}));
+    }
     const tab = parsedUrl.query.tab || 'login';
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     return res.end(renderAuthPage({ tab }));
@@ -1411,7 +1426,7 @@ const server = http.createServer((req, res) => {
       const chunks = [];
       proxyRes.on('data', chunk => chunks.push(chunk));
       proxyRes.on('end', () => {
-        const body = injectLogoutControl(Buffer.concat(chunks).toString('utf8'), ADMIN_USERS.has(sessionUser));
+        const body = injectLogoutControl(Buffer.concat(chunks).toString('utf8'), ADMIN_USERS.has(sessionUser), sessionUser, internetMode);
         resHeaders['content-length'] = Buffer.byteLength(body);
         res.writeHead(proxyRes.statusCode, resHeaders);
         res.end(body);

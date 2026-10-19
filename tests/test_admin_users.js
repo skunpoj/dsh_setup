@@ -38,7 +38,7 @@ async function stop(){const child=gateway;gateway=null;await new Promise(r=>{chi
  assert.equal((await request('POST','/api/admin/users','action=allow-internet&user=bob',alice)).status,403);
  assert.equal((await action('deny-internet','alice')).status,200);
  assert.equal((await internetLogin('alice','synthetic-alice')).status,403);
- assert((await request('GET','/api/auth/session','',granted.cookie)).text.includes('pane-login'));
+ assert.equal((await request('GET','/api/auth/session','',granted.cookie)).status,401);
  alice=await login('alice','synthetic-alice');
 
  assert.equal((await action('create','unprovisioned','long-test-password')).status,409);
@@ -51,10 +51,10 @@ async function stop(){const child=gateway;gateway=null;await new Promise(r=>{chi
  const upgraded=new Promise((resolve,reject)=>{const r=http.request({host:'127.0.0.1',port,path:'/',headers:{cookie:alice,Connection:'Upgrade',Upgrade:'websocket'}});r.on('upgrade',(res,s)=>{socket=s;s.on('error',()=>{});s.on('close',()=>{closed=true;});s.resume();resolve();});r.on('error',reject);r.end();});await upgraded;
  assert.equal((await action('revoke','alice')).status,200);
  for(let i=0;i<30&&!closed;i++)await new Promise(r=>setTimeout(r,20));assert(closed,'Live upgraded connection remained open');
- assert((await request('GET','/api/auth/session','',alice)).text.includes('pane-login'));
+ assert.equal((await request('GET','/api/auth/session','',alice)).status,401);
  alice=await login('alice','synthetic-alice');assert(alice);
  assert.equal((await action('disable','alice')).status,200);assert.equal(await login('alice','synthetic-alice'),'');
- assert((await request('GET','/api/auth/session','',alice)).text.includes('pane-login'));
+ assert.equal((await request('GET','/api/auth/session','',alice)).status,401);
  assert.equal((await request('POST','/change-password','username=alice&old_password=synthetic-alice&new_password=changed-password')).status,401);
  const store=JSON.parse(fs.readFileSync(path.join(root,'users.json')));assert.equal(store.alice.disabled,true);assert.equal(store.bob.scheme,'scrypt-v1');assert(!fs.readFileSync(path.join(root,'users.json'),'utf8').includes('long-synthetic-password'));
  await stop();await start();assert.equal(await login('alice','synthetic-alice'),'');

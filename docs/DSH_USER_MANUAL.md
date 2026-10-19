@@ -58,6 +58,7 @@ Reload **User management** to see a newly registered account. Unused prepared pa
 
 | Symptom | What to check |
 |---|---|
+| Your sign-in session ended | Keep the draft tab open. Select **Sign in again**, authenticate in the new tab with the same account and environment, then return and select **I have signed in**. Submit the draft yourself; DSH does not replay a failed prompt. An older tab loaded before this recovery control was installed needs one reload after you copy its unsent draft. |
 | Internet choice is disabled | Check credentials and request an Internet grant from the administrator. Do not change endpoint or routing settings to bypass it. |
 | A web tool exists but public access fails | No Internet policy applies to tools as well as terminal commands. Use approved internal destinations or the separate Internet environment for public work. |
 | Files or chats seem missing | Verify username, selected environment and project. Internet and No Internet histories are separate. |

@@ -112,8 +112,8 @@ async function waitReady(port) {
     assert.match(logout.headers['set-cookie'][0], /^test_auth=;/);
     assert.match(logout.headers['set-cookie'][0], /; Secure(?:;|$)/);
     const afterLogout = await request(proxyPort, 'GET', '/api/auth/session', '', onCookie);
-    assert.equal(afterLogout.status, 200);
-    assert.match(afterLogout.body, /เข้าสู่ระบบ/);
+    assert.equal(afterLogout.status, 401);
+    assert.equal(JSON.parse(afterLogout.body).error, 'AUTHENTICATION_REQUIRED');
     assert.equal((await request(proxyPort, 'POST', '/change-password', 'username=alice&old_password=secret1&new_password='+ 'x'.repeat(1025))).status, 400);
     assert.equal((await request(proxyPort, 'POST', '/login', 'x'.repeat(17000))).status, 413);
     const changed = await request(proxyPort, 'POST', '/change-password', 'username=alice&old_password=secret1&new_password=newsecret');

@@ -478,6 +478,10 @@ klist
 </tr>
 </thead>
 <tbody><tr>
+<td>Your sign-in session ended</td>
+<td>Keep the draft tab open. Select <strong>Sign in again</strong>, authenticate in the new tab with the same account and environment, then return and select <strong>I have signed in</strong>. Submit the draft yourself; DSH does not replay a failed prompt. An older tab loaded before this recovery control was installed needs one reload after you copy its unsent draft.</td>
+</tr>
+<tr>
 <td>Internet choice is disabled</td>
 <td>Check credentials and request an Internet grant from the administrator. Do not change endpoint or routing settings to bypass it.</td>
 </tr>
@@ -967,6 +971,10 @@ python scripts/publish_manual_bundle.py --bundle &quot;$PRIVATE_DIR/manual-bundl
 <tr>
 <td>Internet permission was revoked</td>
 <td>New Internet logins are denied and tracked gateway connections close. An operator must separately stop any detached work if required.</td>
+</tr>
+<tr>
+<td>A gateway update ends the browser sign-in</td>
+<td>The current tab shows a sign-in prompt and keeps its unsent draft in the page. Sign in in the new tab using the same account/environment, return and explicitly submit when ready. API requests receive JSON 401 rather than a login HTML document.</td>
 </tr>
 </tbody></table>
 <h4>Why prepared private pairs</h4>

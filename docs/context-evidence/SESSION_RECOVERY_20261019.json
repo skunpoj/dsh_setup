@@ -1,0 +1,22 @@
+{
+  "gatewaySourceSHA256": "642e4af28b946e199788423ce2368ecd57197b971314ac5abc3ddb4a8cac80e7",
+  "scope": "Loopback candidate using deployed gateway code and four real empty private runtimes",
+  "accountsCreated": 2,
+  "nativeSessions": 4,
+  "crossUserHistoryDenials": 4,
+  "crossEnvironmentHistoryDenials": 4,
+  "defaultInternetDenials": 2,
+  "ordinaryAdminDenials": 2,
+  "terminalWrites": 4,
+  "terminalReadbacks": 4,
+  "actualDshReplies": 2,
+  "fullPoolRefused": true,
+  "adminInternetRevocation": true,
+  "accountAssignmentSurvivedGatewayRestart": true,
+  "status": "passed",
+  "date": "2026-10-19",
+  "browserRestartRegression": "passed with draft preserved, wrong identity refused, no automatic prompt replay",
+  "liveExpiredApi401JsonVerified": true,
+  "existingLiveSignupSlotsRetained": 4,
+  "testOnlyPairs": 2
+}

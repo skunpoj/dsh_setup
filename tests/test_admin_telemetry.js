@@ -28,7 +28,7 @@ const backend=http.createServer((request,response)=>{
   process:{env:{DSH_TRUSTED_HOST:'localhost'}},AUDIT_DIR:directory,
   USER_TARGETS:{alice:{secure:{host:'127.0.0.1',port,tokenFile:'/runtime-tokens/alice'}},bob:{internet:{host:'127.0.0.1',port,tokenFile:'/runtime-tokens/bob'}}},
   getDshToken:file=>file.split('/').at(-1)});
- vm.runInContext(fragment+'\nglobalThis.telemetry={adminTelemetry,projectSessionMetrics};',context);
+ vm.runInContext('function allUserTargets(){return USER_TARGETS;}\n'+fragment+'\nglobalThis.telemetry={adminTelemetry,projectSessionMetrics};',context);
  const api=context.telemetry;
  const data=await api.adminTelemetry();assert.equal(data.availableRuntimes,1);assert.equal(data.configuredRuntimes,2);
  assert.equal(data.totals.sessions,1);assert.equal(data.totals.runningAgents,1);assert.equal(data.totals.queuedMessages,2);

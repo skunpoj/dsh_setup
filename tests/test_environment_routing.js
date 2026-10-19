@@ -95,8 +95,9 @@ async function waitReady(port) {
     assert(!JSON.parse(fs.readFileSync(users, 'utf8')).mallory);
     for (const protectedPath of ['/proxy/8000/report', '/api/sessions', '/report.html']) {
       const anonymous = await request(gatewayPort, 'GET', protectedPath);
-      assert.equal(anonymous.status, 200); // Gateway's login page, not backend content.
-      assert(anonymous.body.includes('id="pane-login"'));
+      assert.equal(anonymous.status, protectedPath.startsWith('/api/') ? 401 : 200);
+      if(protectedPath.startsWith('/api/')) assert.equal(JSON.parse(anonymous.body).error,'AUTHENTICATION_REQUIRED');
+      else assert(anonymous.body.includes('id="pane-login"'));
       assert(!anonymous.body.includes('secure-pool'));
     }
     const offLogin = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=off');
@@ -133,4 +134,6 @@ async function waitReady(port) {
   // Existing upstream and image pipelines already run this entry point.
   require('child_process').execFileSync(process.execPath,
     [path.join(__dirname, 'test_self_registration.js')], { stdio: 'inherit', timeout: 60000 });
+  require('child_process').execFileSync(process.execPath,
+    [path.join(__dirname, 'test_session_recovery.js')], { stdio: 'inherit', timeout: 60000 });
 }).catch(error => { console.error(error); process.exitCode = 1; });

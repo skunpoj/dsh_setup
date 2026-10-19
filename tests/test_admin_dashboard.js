@@ -33,7 +33,7 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
  try{
   for(let i=0;i<80;i++){try{await request('GET','/login');break;}catch{await new Promise(r=>setTimeout(r,50));}}
   for(const route of ['/admin','/api/admin/summary','/api/admin/telemetry']){
-   const anonymous=await request('GET',route);assert(anonymous.text.includes('id="pane-login"'));assert(!anonymous.text.includes('registeredAccounts'));
+   const anonymous=await request('GET',route);if(route.startsWith('/api/')){assert.equal(anonymous.status,401);assert.equal(JSON.parse(anonymous.text).error,'AUTHENTICATION_REQUIRED');}else assert(anonymous.text.includes('id="pane-login"'));assert(!anonymous.text.includes('registeredAccounts'));
   }
   const login=async(username,password)=>(await request('POST','/login',new URLSearchParams({username,password,internet:'off'}).toString())).cookie;
   const ordinary=await login('alice','synthetic-ordinary');const admin=await login('admin','synthetic-admin');

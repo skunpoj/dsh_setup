@@ -41,6 +41,10 @@ img{max-width:100%;height:auto;border-radius:12px}table{table-layout:fixed}pre{w
 <td>Internet permission was revoked</td>
 <td>New Internet logins are denied and tracked gateway connections close. An operator must separately stop any detached work if required.</td>
 </tr>
+<tr>
+<td>A gateway update ends the browser sign-in</td>
+<td>The current tab shows a sign-in prompt and keeps its unsent draft in the page. Sign in in the new tab using the same account/environment, return and explicitly submit when ready. API requests receive JSON 401 rather than a login HTML document.</td>
+</tr>
 </tbody></table>
 <h2>Why prepared private pairs</h2>
 <p>A small warm pool provides immediate signup on the existing node. Each slot is an empty, dedicated No Internet runtime and Internet runtime, with separate private storage and inference credentials. Allocating a pair does not grant Internet access. The gateway binds the username to the slot in its owner-only account record; it accepts no client-supplied runtime, role, host or permission.</p>

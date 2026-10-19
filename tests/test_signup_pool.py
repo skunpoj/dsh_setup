@@ -62,5 +62,16 @@ class SignupPoolTests(unittest.TestCase):
         self.assertTrue(all(m['readOnly'] for m in live['mounts']))
         with self.assertRaises(ValueError):config.build(added,1,added)
 
+    def test_acceptance_only_pool_preserves_existing_live_capacity(self):
+        _, original, _ = pool.generate(self.templates, self.claims, 'old-pool', 2)
+        _, tests, _ = pool.generate(self.templates, self.claims, 'test-pool', 2)
+        document, stage, live = config.build(tests, 2, original)
+        import json
+        self.assertEqual(json.loads(document['data']['live.json']),original)
+        self.assertEqual(len(json.loads(document['data']['test.json'])['slots']),2)
+        self.assertEqual(stage['poolFile'],'/signup-pool/existing.json')
+        self.assertEqual(len(live['mounts']),5)
+        with self.assertRaises(ValueError):config.build(tests,2)
+
 
 if __name__ == '__main__':unittest.main()

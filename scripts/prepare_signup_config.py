@@ -12,9 +12,9 @@ import subprocess
 
 def build(pool, reserve, existing=None):
     slots = list(pool['slots'])
-    if not 1 <= reserve < len(slots):
-        raise ValueError('Reserve at least one acceptance-only pair and retain live capacity')
     old=(existing or {}).get('slots',{})
+    if not 1 <= reserve <= len(slots) or (reserve == len(slots) and not old):
+        raise ValueError('Reserve at least one acceptance-only pair and retain live capacity')
     if set(old)&set(slots):raise ValueError('Never replace or recycle an existing slot')
     config = {'test.json': json.dumps({'slots': {s: pool['slots'][s] for s in slots[:reserve]}}),
               'live.json': json.dumps({'slots': {**old,**{s: pool['slots'][s] for s in slots[reserve:]}}})}

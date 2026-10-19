@@ -25,6 +25,7 @@ The dashboard also supports **Create account**, **Enable**, **Disable** and **Si
 | A new account is missing from User management | Reload the page. Usage refresh is separate from reloading the account list. |
 | Internet is still unavailable after approval | Logout and sign in again with Internet selected. Approval does not move files or history. |
 | Internet permission was revoked | New Internet logins are denied and tracked gateway connections close. An operator must separately stop any detached work if required. |
+| A gateway update ends the browser sign-in | The current tab shows a sign-in prompt and keeps its unsent draft in the page. Sign in in the new tab using the same account/environment, return and explicitly submit when ready. API requests receive JSON 401 rather than a login HTML document. |
 
 ## Why prepared private pairs
 
