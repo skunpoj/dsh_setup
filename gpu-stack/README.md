@@ -1,5 +1,7 @@
 # Portable GPU + LiteLLM + 1M setup
 
+The pinned **DeepSeek-V4.1-Flash-1017** candidate is being staged separately. See the [model update procedure and acceptance status](../docs/MODEL_UPDATE_1017.md). The measurements below belong to the earlier qualified checkpoint until new results are published.
+
 ## Current DSpark configuration and measured behavior
 
 **Current qualified DSpark profile, 19 October 2026:** actual DSH processed **1,007,752 input / 431 output tokens** with the complete correct saved answer in **22m22.2s**. **46/46 ordinary replies** passed during long preparation (**3.56–11.21s**, paired median **5.08s**), including two eight-client bursts. The qualifying model generation had **zero retries, allocator warnings or unexpected restarts**. Three 599-token structured short answers streamed at **164.60–166.11 tokens/sec per conversation**. Explanatory prose samples measured **76.76–96.76 tokens/sec**. One expensive request is admitted at a time; up to **eight** requests run actively, with additional ordinary clients queued. [Results and setup](../docs/DSH_PLATFORM_GUIDE.html#guide-section-10).

@@ -1,0 +1,13 @@
+{
+  "repository": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "revision": "1bae0e1088993b9b82de08f59de5be5a34e42170",
+  "release_date": "2026-10-17",
+  "announcement": "https://api-docs.deepseek.com/news/news261017/",
+  "repository_bytes": 510311045295,
+  "total_context_tokens": 1048576,
+  "configuration_sha256": "8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879",
+  "tokenizer_sha256": "c90dfa01249db1be4245780a052ede752e1361c612ac6d08e2bdada7d599476b",
+  "tokenizer_configuration_sha256": "6ac8c8dc065ed118161d02dd532749ae3f52c243deac27872134fae2f50d8547",
+  "qualification": "staging; not yet accepted for production",
+  "prior_checkpoint_results_apply": false
+}
