@@ -10,6 +10,16 @@ Detection rejects redirects, other hosts, excessive time/bytes, traversal, dupli
 
 The former automatic pin-only proposal job is removed. Scheduled detection and reviewed-source qualification remain automatic with read-only permissions and checkout credentials disabled. Complete upgrade PRs require human source review. There is no automatic merge, image publication or deployment.
 
+## Official release and model update proposals
+
+Automatic runs now save `release-candidate.patch` and `release-proposal.json` before the reviewed-source execution gate. A newer release generates a minimal candidate pin patch, but it remains **incomplete and blocked** until its full source port, contracts, SDK and regression tests are reviewed. The workflow never applies the patch, approves new hashes or deploys it.
+
+Official model tracking reads only DeepSeek's public [pricing/model table](https://api-docs.deepseek.com/quick_start/pricing/) and [changelog](https://api-docs.deepseek.com/updates/). New revisions require changelog corroboration; malformed or ambiguous documents fail closed with a saved receipt. `config/official-deepseek-models.json` records official API aliases separately from dated revisions. `official-model-update.patch` changes that tracking metadata only, preserving all runtime routing, credentials and catalog defaults. It does not call inference or query authenticated APIs.
+
+The reviewed official snapshot on 19 October 2026 identifies `deepseek-flash` as `DeepSeek-V4.1-Flash-1017` and `deepseek-v4-pro` as `DeepSeek-V4-Pro-0813`. These are official API observations, **not evidence that our internal LiteLLM backend runs those revisions**. Model deployment/routing changes require independent backend and capability qualification. No context, output budget, price or vision capability is automatically increased from a public announcement.
+
+Nine regression cases cover model revision proposals, retained API aliases, missing/ambiguous documents, new-revision corroboration, URL restrictions, unchanged releases, stale/mixed receipts, unsafe versions, and preservation of existing Dockerfile commands. Synthetic future-release fixtures test patch generation; they do not claim a newer official DSH release exists.
+
 ## Historical pre-port release and session-recovery review — 19 October 2026
 
 The official npm latest/next channel is now `0.2.1-rc.2`; alpha remains `0.2.1-alpha.5`. Production and the Dockerfile remain on the qualified `0.2.0-rc.2`. Official master is `687f282e8625c6b8d11ff58211a90524be2e4317`. This supersedes the earlier statement that the pinned version still matches npm latest.

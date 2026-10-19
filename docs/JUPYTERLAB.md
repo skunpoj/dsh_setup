@@ -66,3 +66,7 @@ python scripts/rollout_jupyter_runtime.py \
 The helper checks for running agents, preserves existing mounts and session-file hashes, verifies workspace/state markers after replacement and restores the saved configuration on regression. It supports `--only` for a bounded set of workers. Acceptance must identify the same running image; an image-build result alone is insufficient.
 
 Official references: [Server security](https://jupyter-server.readthedocs.io/en/latest/operators/security.html), [URL prefix](https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html#running-the-notebook-with-a-customized-url-prefix), [Lab URLs](https://jupyterlab.readthedocs.io/en/stable/user/urls.html).
+
+## Optional automatic startup
+
+An administrator may approve the managed **jupyter** service for this user and environment. It then starts automatically with the worker, using the same workspace and persistent notebook state. Admin Stop survives restarts. A new notebook server does not restore unsaved cells, Python variables or an interrupted kernel. Manual `jupyter lab` remains available when no supervised server uses port 8888. See [managed startup and isolation](APP_SERVICE_SUPERVISION.html).

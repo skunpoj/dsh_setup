@@ -42,6 +42,13 @@ def generate(templates, claims, pool_id, count):
             pod.pop('initContainers', None)
             if pod.get('automountServiceAccountToken') is not False:
                 raise ValueError('Template must not mount a management token')
+            # Runtime service approvals belong to the old private runtime. Never
+            # clone its supervisor, policy/status claims or running services.
+            if len(pod['containers'])==2 and {c['name']for c in pod['containers']}=={'dsh','app-supervisor'}:
+                pod['containers']=[c for c in pod['containers']if c['name']=='dsh']
+                private_service_volumes={'app-supervisor-source','app-service-control','app-service-status','app-supervisor-tmp'}
+                if any(m['name']in private_service_volumes for m in pod['containers'][0]['volumeMounts']):raise ValueError('Supervisor control unexpectedly mounted in agent')
+                pod['volumes']=[v for v in pod['volumes']if v['name']not in private_service_volumes]
             if len(pod['containers']) != 1 or pod.get('hostNetwork') or pod.get('hostPID'):
                 raise ValueError('Unexpected private template')
             container = pod['containers'][0]

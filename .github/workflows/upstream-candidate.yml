@@ -49,6 +49,12 @@ jobs:
               f.write('candidate='+d['candidateVersion']+'\n')
               f.write('needs_update='+str(d['candidateChangeRequired']).lower()+'\n')
           PY
+      - name: Prepare release and official model review patches
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests -p test_official_update_proposals.py
+          python3 scripts/prepare_release_patch.py --detection candidate-evidence/upstream.json --comparison candidate-evidence/source-diff.json --output-dir candidate-evidence
+          python3 scripts/check_official_models.py --output-dir candidate-evidence
       - name: Require reviewed compatible source before executing candidate
         run: |
           python3 - <<'PY'

@@ -2,6 +2,8 @@
 
 Administrators can use `/admin` to manage accounts and review numeric activity summaries for the main service's configured private runtimes. Account permissions, Internet grants, private routing and conversation ownership remain separate from monitoring.
 
+**New-user slots** shows current remaining capacity, assigned/prepared slots and enabled/disabled accounts. Capacity and DSH activity refresh every 15 seconds while visible. A slot is one new account's private environment pair, not a project folder or application name. Unavailable activity clears old numeric readings; storage samples older than five minutes are marked. [Capacity, monitoring and shared-client walkthrough](PLATFORM_CAPACITY_AND_CLIENTS.html).
+
 ![DSH usage panel with synthetic demonstration counters](images/platform/admin-usage-illustration.png)
 
 The illustration uses synthetic accounts and counters to explain the layout; it is not a live user's activity record.
@@ -49,6 +51,14 @@ Only an authenticated administrator can use the all-user inventory and mutation 
 Keep the existing single gateway writer for the file-based registry. Before adding gateway replicas, move mappings and policies to transactional shared storage. Saved URL configuration survives gateway replacement through its protected persistent volume.
 
 The user-facing **My apps** page displays names used and the effective limit. Jupyter and terminal launch choices remain independent of the number of custom names. See [application URL setup](APP_URLS_AND_INGRESS.html).
+
+## Managed startup services
+
+Use the separate **Managed startup services** section to save and approve Jupyter or user-app startup definitions. **Start** enables autostart, **Stop** disables it, **Restart** replaces the managed process and **Remove** deletes the definition. Existing URL controls still manage URLs only. An application can be running with its URL disabled, or its URL can exist while no server is running.
+
+Definitions are protected on a dedicated persistent volume, separate from accounts and histories. Each private runtime receives only its own definition directory, read-only, and a constrained non-root supervisor sidecar. No Internet/Internet authorization remains independent. New services are stopped until explicitly approved. Status is supervisor-reported; unknown is not healthy.
+
+Read [startup controls, isolation architecture, credential handling and installation](APP_SERVICE_SUPERVISION.html). [Watch the lifecycle walkthrough](APP_AUTOSTART_WALKTHROUGH.html).
 
 ## Usage panels
 

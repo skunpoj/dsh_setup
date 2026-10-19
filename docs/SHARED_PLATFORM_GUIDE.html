@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH — Shared client platform guide</title><style>*{box-sizing:border-box}body{font:17px/1.65 system-ui;margin:0;background:#edf2f7;color:#193047}main{max-width:1100px;margin:auto;padding:28px}a{color:#0369a1}h1,h2,h3{line-height:1.3}h2{margin-top:38px}table{border-collapse:collapse;width:100%;table-layout:fixed}td,th{padding:12px;text-align:left;border-bottom:1px solid #bdcbd8;overflow-wrap:anywhere}img,video{width:100%;max-width:100%;height:auto;background:white;border-radius:12px}pre{white-space:pre-wrap;overflow-wrap:anywhere}code{overflow-wrap:anywhere}figure{margin:20px 0}figcaption{font-size:14px;color:#475569}nav{display:flex;gap:18px;flex-wrap:wrap}@media(max-width:600px){main{padding:16px}body{font-size:16px}td,th{padding:8px}}</style></head><body><main><nav><a href="DSH_USER_MANUAL.html">User manual</a><a href="DSH_GUIDED_TOUR.html">Guided tour</a><a href="ADMIN_USAGE_TELEMETRY.html">Admin guide</a></nav><h1>Shared platform guide for coding clients</h1>
+<p>DSH, Claude Code, Kilo and TrueForge receive the same platform reference:
+<a href="https://github.com/skunpoj/dsh_setup/blob/main/container/PLATFORM_GUIDE.md"><code>container/PLATFORM_GUIDE.md</code></a>. It explains private
+environments, projects, persistent storage, approved dependencies, terminal and
+Jupyter access, application names/ports/limits and managed inference. Client
+conversations remain separate. This guide supplies context; infrastructure and
+gateway authorization enforce access.</p>
+<table>
+<thead>
+<tr>
+<th>Client</th>
+<th>Loading mechanism</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DSH</td>
+<td>A versioned managed block in private <code>/state/AGENTS.md</code> and <code>/workspace/AGENTS.md</code></td>
+</tr>
+<tr>
+<td>Claude Code</td>
+<td>System-wide <code>/etc/claude-code/CLAUDE.md</code>, loaded by normal Claude Code sessions</td>
+</tr>
+<tr>
+<td>Kilo</td>
+<td>The readonly managed policy&#39;s <code>instructions</code> file list</td>
+</tr>
+<tr>
+<td>TrueForge</td>
+<td>A digest-gated adapter at the installed agent-definition instruction boundary, preserving the agent&#39;s existing instructions</td>
+</tr>
+</tbody></table>
+<p>The guide does not discover or copy another client&#39;s history. Existing project
+instructions outside its managed block remain unchanged. The first runtime
+refresh retains the previous instruction file next to it for recovery. A changed
+TrueForge package must be reviewed before applying the adapter; an unfamiliar
+source digest refuses installation. Explicit client modes that disable instruction
+discovery, such as Claude&#39;s <code>--bare</code>, are outside normal guide loading.</p>
+<h2>Installation and updates</h2>
+<p>The runtime image installs the shared guide and client policy during its build:</p>
+<pre><code class="language-sh">python3 /opt/dsh/scripts/configure_platform_guide.py --image
+</code></pre>
+<p>Normal private-runtime startup refreshes DSH&#39;s managed block:</p>
+<pre><code class="language-sh">python3 /opt/dsh/scripts/configure_platform_guide.py --state /state --workspace /workspace
+</code></pre>
+<p>For an existing pinned image, an operator can use <code>scripts/platform_guide_overlay.py</code>
+to generate an immutable readonly ConfigMap overlay. Preflight both installed
+TrueForge resolver files, qualify the overlay on a disposable runtime, then
+compose it with the existing deployment specification. Preserve images, private
+volumes and other sidecars. Do not replace whole user instruction files.</p>
+<h2>Client qualification</h2>
+<p>The 19 October disposable-runtime check used actual installed DSH, Claude Code,
+Kilo and TrueForge with a random marker only in the loaded guide. The user prompt
+did not contain that marker and prohibited file reads/tools. All four recovered
+the marker, default allowance of eight application names and the fact that saving
+a URL does not start the server. Recorded elapsed times were 2.094, 1.473, 9.179
+and 0.672 seconds respectively. This establishes guide ingestion for those
+normal client paths; it is not a throughput benchmark or a new 1M test.</p>
+<p>Guide refresh and overlay tests also cover preserved project instructions,
+idempotent updates, ambiguous-marker refusal, exclusive staging, unchanged data
+mounts/images and retention of other sidecars. Production deployment and served
+manual versions must be checked separately from this disposable qualification.</p>
+</main></body></html>

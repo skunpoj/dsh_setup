@@ -145,6 +145,8 @@ async function waitReady(port) {
 })().then(() => {
   // Existing upstream and image pipelines already run this entry point.
   require('child_process').execFileSync(process.execPath,
+    [path.join(__dirname, 'test_service_status_reader.js')], { stdio: 'inherit', timeout: 10000 });
+  require('child_process').execFileSync(process.execPath,
     [path.join(__dirname, 'test_self_registration.js')], { stdio: 'inherit', timeout: 60000 });
   require('child_process').execFileSync(process.execPath,
     [path.join(__dirname, 'test_session_recovery.js')], { stdio: 'inherit', timeout: 60000 });

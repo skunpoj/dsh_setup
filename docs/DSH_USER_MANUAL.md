@@ -14,6 +14,8 @@ Anyone reaching the login page can create an account while private capacity is a
 
 ### Custom app URLs and ports
 
+The Create account count means **new-user slots**, not multiple workspaces for one user. It refreshes from current assignments; an unavailable refresh shows no old number. Your project folders and registered app names are separate concepts. See [capacity and monitoring](PLATFORM_CAPACITY_AND_CLIENTS.html).
+
 Open `/applications` after signing in to save a friendly name for a port in your private environment. The notebook suggestion is `<username>-jupyter` on port 8888. Other app names/ports are configurable with collision checks. Login and tool navigation from a custom app hostname use the main DSH address. See [application URLs and Ingress setup](APP_URLS_AND_INGRESS.html) for path URLs, approved hostnames, TLS/DNS, wildcard behavior and publication commands.
 
 ### Pick the correct environment
@@ -38,6 +40,10 @@ The shared model supports a total budget of 1,048,576 tokens, including instruct
 
 ## 3 Run tools and inspect results
 
+Approved startup services run in a separate supervisor container. Keep their dependencies in the pinned runtime image or an approved project-local installation visible in the owner workspace. Packages installed only in DSH's temporary container directories are not automatically shared with that container.
+
+DSH, Claude Code, Kilo and TrueForge load the same [platform guide](SHARED_PLATFORM_GUIDE.html) for environments, storage, applications and managed inference. Their conversations remain separate. The guide supplies context; the live gateway controls actual account and app permissions.
+
 For Python notebooks, run `jupyter lab` in your terminal and open `/proxy/8888/lab` on this DSH site. Create a Python 3 notebook and run `print(6 * 7)`. Save it under `/workspace`; stop unused kernels when finished. Jupyter uses the selected environment's private storage, permissions and network controls. See [JupyterLab usage and setup](JUPYTERLAB.html).
 
 Use the web terminal from the selected environment to inspect files and run commands. The terminal executes inside your assigned runtime, not on the Kubernetes node. Its processes have the same file permissions and network restrictions as the assistant's tools.
@@ -59,6 +65,12 @@ Use the usage panels to distinguish stored histories from active browser session
 Users change their own password through the password-change flow. An admin role grants operational oversight, not automatic ownership of private conversations. Keep any explicitly authorized support copy separate from the owner's original data.
 
 Reload **User management** to see a newly registered account. Unused prepared pairs are available signup capacity; assigned pairs appear in account-scoped usage. Disabling an account preserves its private data and does not recycle the pair.
+
+### Managed Jupyter and app startup
+
+An administrator can approve persistent startup definitions in **Admin overview → Managed startup services**. Saving a definition leaves a new service stopped. Start enables automatic startup after a worker pod replacement; Stop prevents it. Restart replaces the managed process. This is separate from URL names, ports and quota management. Saved notebooks and files persist, while memory-only kernel state does not.
+
+See [managed startup, architecture, user isolation and credentials](APP_SERVICE_SUPERVISION.html) and the [recorded lifecycle walkthrough](APP_AUTOSTART_WALKTHROUGH.html). Each user has separate No Internet and Internet runtime pods; the supervisor runs non-root inside that user's selected pod. It receives no gateway password store, agent history mount, launch token or model-key environment. Approved apps share their owner's workspace and runtime permissions.
 
 ## 6 Troubleshoot common situations
 

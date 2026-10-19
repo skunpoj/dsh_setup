@@ -18,6 +18,15 @@ class SignupPoolTests(unittest.TestCase):
         self.templates = {env: next(d for d in original if d['kind'] == 'Deployment' and d['metadata']['name'].endswith('-' + env)) for env in ['secure', 'internet']}
         self.claims = {d['metadata']['name']: d for d in original if d['kind'] == 'PersistentVolumeClaim'}
 
+    def test_supervised_template_does_not_copy_control_or_status(self):
+        supervisor=load('supervision_manifest','deploy_app_supervision.py')
+        templates={env:supervisor.sidecar(template,'source','old-control','old-status')for env,template in self.templates.items()}
+        docs,_,_=pool.generate(templates,self.claims,'fresh-service-test',1)
+        for d in docs:
+            if d['kind']=='Deployment':
+                pod=d['spec']['template']['spec'];self.assertEqual([c['name']for c in pod['containers']],['dsh'])
+                self.assertFalse(any(v['name'].startswith(('app-supervisor','app-service')) for v in pod['volumes']))
+
     def test_empty_exclusive_scopes_and_secret_names(self):
         before = copy.deepcopy(self.templates)
         docs, config, paths = pool.generate(self.templates, self.claims, 'signup-test', 3)
