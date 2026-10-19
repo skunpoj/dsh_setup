@@ -45,12 +45,14 @@ RUN mkdir -p /etc/kilo /etc/dsh-kilo-config/kilo \
  && node /usr/local/lib/node_modules/@kilocode/cli/bin/kilo --version \
  && python3 -m unittest discover -s /opt/dsh/tests -p test_managed_kilo.py
 RUN python3 /opt/dsh/scripts/configure_managed_harnesses.py \
+ && python3 /opt/dsh/scripts/configure_platform_guide.py --image \
  && node /opt/dsh/tests/test_managed_harnesses.mjs \
  && node /opt/dsh/tests/test_managed_inference_transport.js \
  && node /opt/dsh/tests/test_managed_budget.js \
  && DSH_MANAGED_TRANSPORT=1 NODE_OPTIONS='--require /opt/dsh/scripts/managed_inference_transport.cjs' node /opt/dsh/tests/test_managed_budget_hook.mjs \
  && node /opt/dsh/scripts/verify_upstream_contract.js \
  && node /opt/dsh/scripts/configure_models.js \
+ && python3 /opt/dsh/scripts/configure_platform_guide.py --state /home/dsh/.dsh \
  && node /opt/dsh/scripts/verify_installed_candidate.js "${DSH_VERSION}" \
  && mkdir -p /opt/dsh/seed \
  && cp -a /home/dsh/.dsh /opt/dsh/seed/dsh-home \
