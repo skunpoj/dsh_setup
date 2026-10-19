@@ -24,8 +24,8 @@ else
 fi
 
 mkdir -p /state/sessions /state/storages /state/attachments /state/kerberos /workspace /runtime-tokens
-mkdir -p /state/claude /state/trueforge
-chmod 0700 /state/claude /state/trueforge
+mkdir -p /state/claude /state/trueforge /state/kilo
+chmod 0700 /state/claude /state/trueforge /state/kilo
 if [ ! -e "$HOME/.claude" ]; then
   ln -s /state/claude "$HOME/.claude"
 elif [ "$(readlink "$HOME/.claude" || true)" != /state/claude ]; then
