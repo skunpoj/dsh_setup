@@ -38,7 +38,7 @@ function auditEvent(event, actor, mode, subject) {
   } catch { auditFailures++; console.error('[AUDIT] Could not persist security event'); return false; }
 }
 function recentAudit() {
-  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket','account.create','account.enable','account.disable','account.revoke']);
+  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket','account.create','account.enable','account.disable','account.revoke','account.allow-internet','account.deny-internet']);
   const rows=[];
   for(const file of [`${AUDIT_DIR}/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh2/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh3/events.jsonl`]) {
     try {
@@ -67,6 +67,128 @@ function legacyAuditStatus() {
   return {observedAt:instances.length?instances.map(r=>r.observedAt).sort()[0]:null,instances};
 }
 
+// BEGIN ADMIN TELEMETRY: expose numeric projections, never conversation bodies.
+let telemetryCache = null, telemetryPending = null;
+const telemetryCookies = new Map();
+function metricInteger(value) { return Number.isSafeInteger(value) && value >= 0 ? value : 0; }
+function projectSessionMetrics(items, user, environment) {
+  if (!Array.isArray(items) || items.length > 2000) throw new Error('Runtime summary exceeds its bound');
+  const row = {user, environment, available:true, sessions:items.length, runningAgents:0, queuedMessages:0,
+    turns:0, llmSteps:0, inputTokens:0, outputTokens:0, decodeTokens:0, decodeMs:0, usageSessions:0};
+  const counters = new Map();
+  for (const item of items) {
+    const values = item?.projections?.values || {}, usage = values.tokenUsage, stats = values.sessionStats || {};
+    row.runningAgents += item?.running === true ? 1 : 0;
+    row.queuedMessages += ['next-turn','next-step'].reduce((n,k)=>n+(Array.isArray(values.inbox?.[k])?values.inbox[k].length:0),0);
+    row.turns += metricInteger(stats.turns); row.llmSteps += metricInteger(stats.steps);
+    row.decodeTokens += metricInteger(stats.decodeTokens); row.decodeMs += metricInteger(stats.decodeMs);
+    if (usage && typeof usage === 'object' && ['uncachedInputTokens','cacheReadTokens','cacheWriteTokens','outputTokens'].every(k=>Number.isSafeInteger(usage[k])&&usage[k]>=0)) {
+      row.usageSessions++;
+      row.inputTokens += metricInteger(usage.uncachedInputTokens)+metricInteger(usage.cacheReadTokens)+metricInteger(usage.cacheWriteTokens);
+      row.outputTokens += metricInteger(usage.outputTokens);
+      if(typeof item.sessionId==='string' && item.sessionId.length<=128) counters.set(user+'\0'+environment+'\0'+item.sessionId,{
+        output:metricInteger(usage.outputTokens), decodeTokens:metricInteger(stats.decodeTokens),decodeMs:metricInteger(stats.decodeMs),
+        lastPromptAt:metricInteger(values.sessionListMetadata?.lastPromptAt)});
+    }
+  }
+  for(const value of Object.values(row)) if(typeof value==='number'&&!Number.isSafeInteger(value))throw new Error('Runtime counter overflow');
+  row.recordedDecodeTokensPerSecond = row.decodeMs ? Math.round(row.decodeTokens*100000/row.decodeMs)/100 : null;
+  return {row,counters};
+}
+function telemetryRequest(target, host, method, route, cookie='', body='', limit=8*1024*1024) {
+  return new Promise((resolve,reject)=>{
+    let settled=false, bytes=0;const chunks=[];
+    const finish=(error,value)=>{if(settled)return;settled=true;clearTimeout(deadline);error?reject(error):resolve(value);};
+    const request=http.request({host:target.host,port:target.port,path:route,method,
+      headers:{Host:host,Origin:'http://'+host,Cookie:cookie,'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}},response=>{
+      response.on('data',chunk=>{bytes+=chunk.length;if(bytes>limit){request.destroy();finish(new Error('Runtime summary exceeds its bound'));}else chunks.push(chunk);});
+      response.on('error',()=>finish(new Error('Runtime unavailable')));
+      response.on('end',()=>finish(null,{status:response.statusCode,headers:response.headers,body:Buffer.concat(chunks).toString('utf8')}));
+    });
+    const deadline=setTimeout(()=>{request.destroy();finish(new Error('Runtime unavailable'));},4000);
+    request.on('error',()=>finish(new Error('Runtime unavailable')));request.end(body);
+  });
+}
+async function runtimeTelemetry(target,user,environment) {
+  const host=process.env.DSH_TRUSTED_HOST || 'localhost';
+  const token=getDshToken(target.tokenFile);if(!token)throw new Error('Runtime authentication unavailable');
+  const key=target.host+':'+target.port+'|'+target.tokenFile;
+  const fingerprint=crypto.createHash('sha256').update(token).digest('hex');
+  let cached=telemetryCookies.get(key);
+  if(!cached || cached.fingerprint!==fingerprint){
+    const auth=await telemetryRequest(target,host,'GET','/?token='+encodeURIComponent(token),'','',65536);
+    const cookie=(auth.headers['set-cookie']||[]).find(x=>x.startsWith('dsh-auth-'))?.split(';')[0];
+    if(!cookie)throw new Error('Runtime authentication unavailable');
+    cached={fingerprint,cookie};telemetryCookies.set(key,cached);
+  }
+  const response=await telemetryRequest(target,host,'POST','/api/session/list',cached.cookie,JSON.stringify({
+    type:'client-request',rpcId:crypto.randomUUID(),method:'session/list',payload:{args:{_request:{}}}}));
+  if(response.status!==200){telemetryCookies.delete(key);throw new Error('Runtime summary unavailable');}
+  let data;try{data=JSON.parse(response.body);}catch{telemetryCookies.delete(key);throw new Error('Runtime summary unavailable');}
+  if(!data?.result?.ok){telemetryCookies.delete(key);throw new Error('Runtime summary unavailable');}
+  return projectSessionMetrics(data.result.value.items,user,environment);
+}
+function capacityProjection() {
+  try {
+    const file=process.env.DSH_ADMIN_CAPACITY_FILE || `${AUDIT_DIR}/capacity.json`;
+    if(fs.statSync(file).size>256*1024)return null;
+    const data=JSON.parse(fs.readFileSync(file,'utf8'));
+    if(typeof data.observedAt!=='string'||!Number.isFinite(Date.parse(data.observedAt))||!Array.isArray(data.runtimes))return null;
+    return {observedAt:data.observedAt,runtimes:data.runtimes.slice(0,128).filter(r=>
+      typeof r.user==='string'&&/^[a-z0-9_.-]{3,30}$/.test(r.user)&&['secure','internet'].includes(r.environment))
+      .map(r=>({user:r.user,environment:r.environment,workspaceFileBytes:Number.isSafeInteger(r.workspaceFileBytes)&&r.workspaceFileBytes>=0?r.workspaceFileBytes:null,
+        workspaceScanComplete:r.workspaceScanComplete===true,
+        durableStateFileBytes:Number.isSafeInteger(r.durableStateFileBytes)&&r.durableStateFileBytes>=0?r.durableStateFileBytes:null,
+        durableStateScanComplete:r.durableStateScanComplete===true,
+        stateUsedBytes:Number.isSafeInteger(r.stateUsedBytes)&&r.stateUsedBytes>=0?r.stateUsedBytes:null,
+        stateCapacityBytes:Number.isSafeInteger(r.stateCapacityBytes)&&r.stateCapacityBytes>=0?r.stateCapacityBytes:null}))};
+  }catch{return null;}
+}
+async function adminTelemetry() {
+  if(telemetryCache && Date.now()-telemetryCache.sampledAt<15000)return {...telemetryCache.public,storage:capacityProjection()};
+  if(telemetryPending)return telemetryPending;
+  telemetryPending=(async()=>{
+    const targets=USER_TARGETS ? Object.entries(USER_TARGETS).flatMap(([user,environments])=>
+      Object.entries(environments).filter(([environment])=>['secure','internet'].includes(environment)).map(([environment,target])=>({user,environment,target}))) : [];
+    if(targets.length>128)throw new Error('Too many provisioned runtime targets');
+    const samples=new Array(targets.length);let cursor=0;
+    await Promise.all(Array.from({length:Math.min(4,targets.length)},async()=>{
+      while(cursor<targets.length){const index=cursor++,item=targets[index];
+        try{samples[index]=await runtimeTelemetry(item.target,item.user,item.environment);}
+        catch{samples[index]={row:{user:item.user,environment:item.environment,available:false},counters:new Map()};}
+      }
+    }));
+    const sampledAt=Date.now(),counters=new Map(),totals={sessions:0,runningAgents:0,queuedMessages:0,turns:0,llmSteps:0,inputTokens:0,outputTokens:0,decodeTokens:0,decodeMs:0,usageSessions:0};
+    for(const sample of samples){
+      if(Object.keys(totals).some(key=>!Number.isSafeInteger(totals[key]+metricInteger(sample.row[key])))){
+        sample.row={user:sample.row.user,environment:sample.row.environment,available:false};sample.counters.clear();continue;
+      }
+      for(const key of Object.keys(totals))totals[key]+=metricInteger(sample.row[key]);for(const [key,value]of sample.counters)counters.set(key,value);
+    }
+    for(const value of Object.values(totals))if(!Number.isSafeInteger(value))throw new Error('Aggregate counter overflow');
+    const complete=samples.every(x=>x.row.available),previous=telemetryCache;let outputRate=null,recentDecodeRate=null;
+    if(complete && previous?.complete && sampledAt>previous.sampledAt){
+      let delta=0,decodeTokens=0,decodeMs=0,reset=false;
+      for(const key of previous.counters.keys())if(!counters.has(key))reset=true;
+      for(const [key,value]of counters){const old=previous.counters.get(key);
+        if(old){if(value.output<old.output||value.decodeTokens<old.decodeTokens||value.decodeMs<old.decodeMs)reset=true;
+          else {delta+=value.output-old.output;decodeTokens+=value.decodeTokens-old.decodeTokens;decodeMs+=value.decodeMs-old.decodeMs;}}
+        else if(value.lastPromptAt>previous.sampledAt){delta+=value.output;decodeTokens+=value.decodeTokens;decodeMs+=value.decodeMs;}
+      }
+      if(!reset){outputRate=Math.round(delta*100000/(sampledAt-previous.sampledAt))/100;
+        recentDecodeRate=decodeMs?Math.round(decodeTokens*100000/decodeMs)/100:null;}
+    }
+    const result={observedAt:new Date(sampledAt).toISOString(),sampleWindowSeconds:previous?(sampledAt-previous.sampledAt)/1000:null,
+      configuredRuntimes:targets.length,availableRuntimes:samples.filter(x=>x.row.available).length,
+      totals:{...totals,recordedDecodeTokensPerSecond:totals.decodeMs?Math.round(totals.decodeTokens*100000/totals.decodeMs)/100:null,
+        recentDecodeTokensPerSecond:recentDecodeRate,outputTokensPerSecond:outputRate},
+      runtimes:samples.map(x=>x.row),storage:capacityProjection()};
+    telemetryCache={sampledAt,counters,complete,public:result};return result;
+  })();
+  try{return await telemetryPending;}finally{telemetryPending=null;}
+}
+// END ADMIN TELEMETRY.
+
 function adminSummary() {
   let saved = {};
   try { saved = JSON.parse(fs.readFileSync(ADMIN_SUMMARY_FILE, 'utf8')); } catch {}
@@ -92,7 +214,8 @@ function renderAdminDashboard() {
 <main><header><h1>DSH Admin overview</h1><a href="/">Back to DSH</a><a href="/logout">Logout</a><button id="refresh">Refresh</button></header><p id="error" role="alert"></p><p id="time" class="muted"></p>
 <div class="cards"><section>Registered accounts<br><strong id="accounts">—</strong></section><section>Main gateway browser sessions<br><strong id="sessions">—</strong><div id="sessionDetail"></div></section><section>User routing<br><strong id="routing">—</strong></section></div>
 <section><h2>User management</h2><p>Manage access to existing private runtimes. Disabling an account preserves its files and history. Sign out closes browser and terminal connections; it does not cancel already-running tools.</p><p id="userMessage" role="status"></p><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Role</th><th>Status</th><th>Environments</th><th>Sessions</th><th>Actions</th></tr></thead><tbody id="users"></tbody></table></div><form id="createUser"><h3>Create a provisioned account</h3><label>Identity <select id="newUser" required></select></label> <label>Initial password <input id="newPassword" type="password" minlength="12" maxlength="1024" autocomplete="new-password" required></label> <button id="createButton">Create account</button></form><p id="provisionHelp">New identities require operator-provisioned private environments. Administrator roles are managed by the operator.</p></section>
-<section class="notice"><h2>Evidence freshness</h2><p id="freshness"></p><p>Account/session counts and routing are current gateway values. Environment health, storage, limits and performance below are an operator-recorded snapshot, not live monitoring. Browser logins are not unique users or model requests.</p></section>
+<section><h2>DSH usage and activity</h2><p id="usageFreshness">Loading runtime summaries…</p><div class="cards"><div>Stored conversations<br><strong id="usageSessions">—</strong></div><div>Running DSH agents<br><strong id="usageAgents">—</strong></div><div>Recorded turns / LLM steps<br><strong id="usageTurns">—</strong></div><div>Accumulated input / output tokens<br><strong id="usageTokens">—</strong></div><div>All-history decode tokens/sec<br><strong id="usageDecode">—</strong></div><div>Recent conversation decode tokens/sec<br><strong id="usageRecentDecode">—</strong></div><div>Recent output tokens/sec<br><strong id="usageRate">—</strong></div></div><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Environment</th><th>Agents</th><th>Conversations</th><th>Turns</th><th>LLM steps</th><th>Input tokens</th><th>Output tokens</th><th>Recorded decode tok/sec</th><th>Workspace / durable files GiB</th><th>Local state used / capacity GiB</th></tr></thead><tbody id="usageRows"></tbody></table></div><p class="muted">Stored totals include imported or copied histories. Decode speed uses recorded decode time; recent output rate uses changes between samples. This panel covers DSH application sessions, not independent terminal-client accounting. Conversation text, files and credentials are excluded.</p><p id="storageFreshness" class="muted"></p></section>
+<section class="notice"><h2>Infrastructure observation</h2><p id="freshness"></p><p>Usage is sampled from runtime summaries. Account/browser-session counts and routing are current gateway values. The environment health, model limits and recorded performance below are an operator snapshot. Browser logins and conversations are separate counts.</p></section>
 <section><h2>Execution environments</h2><div style="overflow:auto"><table><thead><tr><th>Environment</th><th>Recorded readiness</th><th>Storage</th><th>Recorded network behavior</th></tr></thead><tbody id="environments"></tbody></table></div></section>
 <section><h2>Model limits</h2><p id="model"></p><p class="muted">A concurrency ceiling does not guarantee that many maximum-length requests fit.</p></section><section><h2>Recorded performance</h2><ul id="performance"></ul></section><section><h2>Central access audit</h2><p id="audit"></p><a href="/api/admin/audit">Read recent access events</a></section><section class="notice"><h2>Remaining controls</h2><ul id="gaps"></ul></section><p class="muted">Stored passwords, cookies and conversation contents are never displayed.</p></main>
 <script>
@@ -105,6 +228,22 @@ function list(id,values){const root=document.getElementById(id);root.replaceChil
 async function refresh(){try{const r=await fetch('/api/admin/summary',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('Admin access unavailable ('+r.status+').');const d=await r.json();put('error','');put('time','Gateway read at '+d.generatedAt);put('accounts',d.registeredAccounts);put('sessions',d.activeBrowserSessions.secure+d.activeBrowserSessions.internet);put('sessionDetail','No Internet: '+d.activeBrowserSessions.secure+' · Internet: '+d.activeBrowserSessions.internet);put('routing',d.privateUserRouting?'Per user':'Shared pools');put('freshness',d.snapshot.observedAt?'Snapshot observed at '+d.snapshot.observedAt+'. Refresh does not rerun infrastructure tests.':'No snapshot available. Infrastructure status is unknown.');const root=document.getElementById('environments');root.replaceChildren();for(const e of d.snapshot.environments){const tr=document.createElement('tr');for(const text of [e.name,e.ready?'Ready at observation':'Not verified ready',e.storage,e.network]){const td=document.createElement('td');td.textContent=text;tr.append(td);}root.append(tr);}const m=d.snapshot.model;put('model',m?'Backend context: '+m.backendContext+' tokens · DSH/LiteLLM budget: '+m.userContext+' tokens · Running-request ceiling: '+m.concurrencyCeiling:'No recorded limits.');list('performance',d.snapshot.performance);list('gaps',d.snapshot.gaps);}catch(e){put('error',e.message);}}
 document.getElementById('refresh').addEventListener('click',refresh);refresh().then(async()=>{try{const r=await fetch('/api/admin/summary',{cache:'no-store'});const d=await r.json();put('audit','Recent main/legacy access events: '+d.audit.recentEvents+' · Write failures since gateway start: '+d.audit.failuresSinceStart+' · Legacy projection observed at: '+(d.audit.legacy?.observedAt||'not available'));}catch{put('audit','Audit status unavailable.');}});
 document.getElementById('refresh').addEventListener('click',refreshUsers);refreshUsers();
+const metricText=value=>typeof value==='number'&&Number.isFinite(value)?value.toLocaleString(undefined,{maximumFractionDigits:2}):'—';
+const gib=value=>typeof value==='number'?metricText(value/1073741824):'—';
+async function refreshUsage(){try{
+ const response=await fetch('/api/admin/telemetry',{cache:'no-store',credentials:'same-origin'});
+ if(!response.ok)throw Error('Runtime usage unavailable.');const data=await response.json(),t=data.totals;
+ put('usageFreshness','Observed '+data.observedAt+' · '+data.availableRuntimes+'/'+data.configuredRuntimes+' private runtimes available · '+t.usageSessions+'/'+t.sessions+' stored sessions have usage records · refreshes every 15 seconds while visible.');
+ put('usageSessions',metricText(t.sessions));put('usageAgents',metricText(t.runningAgents));put('usageTurns',metricText(t.turns)+' / '+metricText(t.llmSteps));
+ put('usageTokens',metricText(t.inputTokens)+' / '+metricText(t.outputTokens));put('usageDecode',metricText(t.recordedDecodeTokensPerSecond));put('usageRate',metricText(t.outputTokensPerSecond));put('usageRecentDecode',metricText(t.recentDecodeTokensPerSecond));
+ const root=document.getElementById('usageRows');root.replaceChildren();
+ for(const row of data.runtimes){const storage=data.storage?.runtimes.find(x=>x.user===row.user&&x.environment===row.environment),tr=document.createElement('tr');
+  const values=[row.user,row.environment==='secure'?'No Internet':'Internet',...['runningAgents','sessions','turns','llmSteps','inputTokens','outputTokens','recordedDecodeTokensPerSecond'].map(k=>row.available?metricText(row[k]):'Unavailable'),storage?gib(storage.workspaceFileBytes)+' / '+gib(storage.durableStateFileBytes)+(storage.workspaceScanComplete&&storage.durableStateScanComplete?'':' (partial)'):'—',storage?gib(storage.stateUsedBytes)+' / '+gib(storage.stateCapacityBytes):'—'];
+  for(const value of values){const cell=document.createElement('td');cell.textContent=value;tr.append(cell);}root.append(tr);
+ }
+ put('storageFreshness',data.storage?'Storage observed '+data.storage.observedAt+'. Workspace and durable-state bytes are separate file-size scans; partial scans are marked. Local state usage includes filesystem overhead.':'Storage capacity has not been collected.');
+ }catch(error){put('usageFreshness',error.message);}}
+document.getElementById('refresh').addEventListener('click',refreshUsage);refreshUsage();setInterval(()=>{if(!document.hidden)refreshUsage();},15000);
 </script></html>`;
 }
 
@@ -1094,8 +1233,15 @@ const server = http.createServer((req, res) => {
       });
       return;
     }
-    if(!['/admin','/api/admin/summary','/api/admin/audit'].includes(parsedUrl.pathname)){res.writeHead(404,headers);return res.end('Unknown admin endpoint.');}
+    if(!['/admin','/api/admin/summary','/api/admin/audit','/api/admin/telemetry'].includes(parsedUrl.pathname)){res.writeHead(404,headers);return res.end('Unknown admin endpoint.');}
     if (req.method !== 'GET') { res.writeHead(405, { ...headers, Allow: 'GET' }); return res.end('Read-only endpoint.'); }
+    if(parsedUrl.pathname==='/api/admin/telemetry')return adminTelemetry().then(data=>{
+      if(res.destroyed)return;
+      if(!accountEnabled(sessionUser)||![...SESSIONS.values()].includes(activeSession)){
+        res.writeHead(403,{...headers,'Content-Type':'application/json; charset=utf-8'});return res.end(JSON.stringify({error:'Administrator session ended.'}));
+      }
+      res.writeHead(200,{...headers,'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(data));
+    }).catch(()=>{res.writeHead(503,{...headers,'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify({error:'Runtime usage unavailable.'}));});
     const api = parsedUrl.pathname !== '/admin';
     res.writeHead(200, { ...headers, 'Content-Type': api ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8' });
     return res.end(api ? JSON.stringify(parsedUrl.pathname.endsWith('/audit') ? {events:recentAudit()} : adminSummary()) : renderAdminDashboard());

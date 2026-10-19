@@ -32,13 +32,18 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
  let browser;
  try{
   for(let i=0;i<80;i++){try{await request('GET','/login');break;}catch{await new Promise(r=>setTimeout(r,50));}}
-  for(const route of ['/admin','/api/admin/summary']){
+  for(const route of ['/admin','/api/admin/summary','/api/admin/telemetry']){
    const anonymous=await request('GET',route);assert(anonymous.text.includes('id="pane-login"'));assert(!anonymous.text.includes('registeredAccounts'));
   }
   const login=async(username,password)=>(await request('POST','/login',new URLSearchParams({username,password,internet:'off'}).toString())).cookie;
   const ordinary=await login('alice','synthetic-ordinary');const admin=await login('admin','synthetic-admin');
-  for(const route of ['/admin','/api/admin/summary']) assert.equal((await request('GET',route,'',ordinary,{'x-dsh-user':'admin','x-dsh-role':'admin'})).status,403);
+  for(const route of ['/admin','/api/admin/summary','/api/admin/telemetry']) assert.equal((await request('GET',route,'',ordinary,{'x-dsh-user':'admin','x-dsh-role':'admin'})).status,403);
   assert.equal((await request('POST','/api/admin/summary','',admin)).status,405);
+  assert.equal((await request('POST','/api/admin/telemetry','',admin)).status,405);
+  const telemetry=await request('GET','/api/admin/telemetry','',admin);
+  assert.equal(telemetry.status,200);assert.equal(telemetry.headers['cache-control'],'no-store');
+  assert.equal(JSON.parse(telemetry.text).configuredRuntimes,0);
+  assert(!telemetry.text.includes('DO_NOT_EXPORT'));assert(!telemetry.text.includes('synthetic-admin'));
   const result=await request('GET','/api/admin/summary','',admin);const data=JSON.parse(result.text);
   assert.equal(data.registeredAccounts,2);assert.equal(data.privateUserRouting,false);assert.equal(data.snapshot.model.userContext,131072);
   assert.equal(data.audit.legacy.instances[0].events,1);
