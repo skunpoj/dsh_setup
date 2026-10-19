@@ -43,6 +43,7 @@ if [ -f /state/.credentials.yaml ]; then
   chmod 0600 /state/.credentials.yaml
 fi
 node /opt/dsh/scripts/configure_workspace_policy.js /state
+python3 /opt/dsh/scripts/configure_platform_guide.py --state /state --workspace /workspace
 if [ -n "${DSH_CONTEXT_TOKENS:-}" ]; then
   node /opt/dsh/scripts/configure_runtime_context.js /state "$DSH_CONTEXT_TOKENS"
 fi
