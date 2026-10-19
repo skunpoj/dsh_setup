@@ -14,7 +14,8 @@ import subprocess
 
 REMOTE = r'''
 import json, os, stat, time
-def file_sizes(roots, max_entries=100000, seconds=8):
+def file_sizes(roots, max_entries=100000, seconds=8, required_roots=None):
+    required=set(roots if required_roots is None else required_roots)
     deadline=time.monotonic()+seconds; pending=list(roots); total=entries=0; complete=True
     while pending:
         if time.monotonic()>deadline or entries>=max_entries:complete=False;break
@@ -30,11 +31,14 @@ def file_sizes(roots, max_entries=100000, seconds=8):
                         if stat.S_ISDIR(info.st_mode):pending.append(item.path)
                         elif stat.S_ISREG(info.st_mode):total+=info.st_size
                     except OSError:complete=False
+        except FileNotFoundError:
+            if directory in required:complete=False
         except OSError:complete=False
     return {'bytes':total,'complete':complete,'entries':entries}
 if __name__=='__main__':
     workspace=file_sizes(['/workspace'])
-    durable=file_sizes(['/state/sessions','/state/attachments','/state/storages','/state/workspaces','/state/logs'])
+    state_roots=['/state/sessions','/state/attachments','/state/storages','/state/workspaces','/state/logs']
+    durable=file_sizes(state_roots,required_roots=globals().get('REQUIRED_DURABLE_ROOTS',state_roots))
     try:
         state=os.statvfs('/state');used=(state.f_blocks-state.f_bfree)*state.f_frsize;capacity=state.f_blocks*state.f_frsize
     except OSError:used=capacity=None
@@ -67,7 +71,11 @@ def main():
           and any(c['name']=='dsh'for c in p['spec']['containers'])]
         if len(matches)!=1:return {**row,'available':False}
         try:
-            data=json.loads(kube('exec','-i',matches[0]['metadata']['name'],'-c','dsh','--','timeout','22','python3','-',source=REMOTE.encode()))
+            container=next(c for c in matches[0]['spec']['containers']if c['name']=='dsh')
+            required=[v['mountPath']for v in container.get('volumeMounts',[])if v['mountPath']in
+              ['/state/sessions','/state/attachments','/state/storages','/state/workspaces','/state/logs']]
+            source='REQUIRED_DURABLE_ROOTS='+repr(required)+'\n'+REMOTE
+            data=json.loads(kube('exec','-i',matches[0]['metadata']['name'],'-c','dsh','--','timeout','22','python3','-',source=source.encode()))
             allowed={'workspaceFileBytes','workspaceScanComplete','durableStateFileBytes','durableStateScanComplete','stateUsedBytes','stateCapacityBytes'}
             if set(data)!=allowed:raise ValueError('Unexpected capacity fields')
             return {**row,**data,'available':True}

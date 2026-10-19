@@ -20,6 +20,7 @@ def main():
     ap.add_argument('--namespace', default='llm')
     ap.add_argument('--deployment', default='dsh-environment-gateway')
     ap.add_argument('--expected-source-sha256', required=True)
+    ap.add_argument('--snapshot', type=Path, help='Optional reviewed status JSON; replace it in the same gateway-only handover')
     args = ap.parse_args()
 
     def kube(*parts, data=None):
@@ -32,6 +33,11 @@ def main():
     source = (ROOT/'scripts/auth_proxy.js').read_text(encoding='utf-8')
     helper = (ROOT/'scripts/password_store.js').read_text(encoding='utf-8')
     source_hash = hashlib.sha256(source.encode()).hexdigest()
+    snapshot_text=args.snapshot.read_text(encoding='utf-8')if args.snapshot else None
+    snapshot=json.loads(snapshot_text)if snapshot_text is not None else None
+    if snapshot is not None:
+        if not isinstance(snapshot,dict)or not isinstance(snapshot.get('environments'),list)or not isinstance(snapshot.get('model'),dict):
+            raise ValueError('Expected a reviewed environment/model status object')
     print(json.dumps({'apply': args.apply, 'sourceSHA256': source_hash, 'gatewayOnly': True}), flush=True)
     if not args.apply:
         return
@@ -56,6 +62,13 @@ def main():
         for volume in template['spec']['volumes']:
             if volume['name'] == 'gateway-source':
                 volume['configMap']['name'] = name
+        if snapshot_text is not None:
+            summary_name='dsh-admin-status-'+hashlib.sha256(snapshot_text.encode()).hexdigest()[:12]
+            kube('apply','-f','-',data=json.dumps({'apiVersion':'v1','kind':'ConfigMap','immutable':True,
+              'metadata':{'name':summary_name},'data':{'summary.json':snapshot_text}}))
+            volume=next(v for v in template['spec']['volumes']if v['name']=='admin-status')
+            volume['configMap']['name']=summary_name
+            record['snapshotConfigMap']=summary_name
         template.setdefault('metadata', {}).setdefault('annotations', {})['dsh.bot.or.th/gateway-source-sha256'] = source_hash
         changed = True
         kube('patch', 'deploy', args.deployment, '--type=merge', '-p', json.dumps({'spec': {
@@ -63,6 +76,11 @@ def main():
         kube('rollout', 'status', 'deploy/'+args.deployment, '--timeout=150s')
         if kube('exec', 'deploy/'+args.deployment, '--', 'node', '-e', read_hash).strip() != source_hash:
             raise RuntimeError('Mounted source differs')
+        if snapshot is not None:
+            read="console.log(require('fs').readFileSync(process.env.DSH_ADMIN_SUMMARY_FILE||'/admin-status/summary.json','utf8'))"
+            if json.loads(kube('exec','deploy/'+args.deployment,'--','node','-e',read))!=snapshot:
+                raise RuntimeError('Mounted model/environment status differs')
+            record['snapshotContentVerified']=True
         if store() != original_store:
             raise RuntimeError('Account content changed unexpectedly; preserve current store and investigate')
         probe = (ROOT/'scripts/verify_hashed_gateway_live.js').read_text(encoding='utf-8')

@@ -17,7 +17,7 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
 (async()=>{
  fs.writeFileSync(path.join(root,'users.json'),JSON.stringify({admin:'synthetic-admin',alice:'synthetic-ordinary'}));
  const snapshot={observedAt:'2026-10-16T06:32:56Z',environments:[{name:'No Internet',ready:true,storage:'CIFS',network:'HTTPS denied'}],
-  model:{backendContext:1048576,userContext:131072,concurrencyCeiling:16},performance:['Short: 0.23 seconds'],
+  model:{backendContext:1048576,userContext:131072,concurrencyCeiling:16,checkpoint:'DO_NOT_EXPORT',revision:'DO_NOT_EXPORT'},performance:['Short: 0.23 seconds'],
   gaps:['<img src=x onerror="window.dashboardXSS=true">'],password:'DO_NOT_EXPORT',rawSecret:{token:'DO_NOT_EXPORT'}};
  fs.writeFileSync(path.join(root,'summary.json'),JSON.stringify(snapshot));
  fs.mkdirSync(path.join(root,'audit/legacy/legacy-dsh2'),{recursive:true});
@@ -54,14 +54,26 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
   const {chromium}=require(process.env.DSH_PLAYWRIGHT || 'C:/Users/skunpojt/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
   const executablePath=process.env.DSH_BROWSER_EXECUTABLE || (process.platform==='win32'?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':undefined);
   browser=await chromium.launch({headless:true,...(executablePath?{executablePath}:{})});
-  const context=await browser.newContext({viewport:{width:1440,height:1000}});
+  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'en-US'});
   await context.addCookies([{name:'dsh_auth',value:admin.split('=')[1],url:`http://127.0.0.1:${port}`}]);
   const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(`http://127.0.0.1:${port}/admin`);await page.waitForFunction(()=>document.getElementById('accounts').textContent==='2');
   assert.equal(await page.locator('#routing').textContent(),'Shared pools');assert.equal(await page.locator('#gaps img').count(),0);
   assert.equal(await page.evaluate(()=>Boolean(window.dashboardXSS)),false);assert.deepEqual(errors,[]);
   await page.click('#refresh');assert((await page.locator('#freshness').textContent()).includes(snapshot.observedAt));
-  if(process.env.DSH_ADMIN_QA_OUTPUT){fs.mkdirSync(process.env.DSH_ADMIN_QA_OUTPUT,{recursive:true});await page.screenshot({path:path.join(process.env.DSH_ADMIN_QA_OUTPUT,'admin-dashboard.png'),fullPage:true});}
+  const usageFixture={observedAt:'2026-10-19T04:00:00Z',configuredRuntimes:2,availableRuntimes:2,
+   totals:{sessions:3,runningAgents:1,queuedMessages:2,turns:7,llmSteps:12,inputTokens:5500,outputTokens:900,usageSessions:3,recordedDecodeTokensPerSecond:25,recentDecodeTokensPerSecond:80,outputTokensPerSecond:2.5},
+   runtimes:[{user:'alice',environment:'secure',available:true,runningAgents:1,sessions:2,turns:5,llmSteps:8,inputTokens:3500,outputTokens:600,recordedDecodeTokensPerSecond:30}],
+   storage:{observedAt:'2026-10-19T03:00:00Z',runtimes:[{user:'alice',environment:'secure',workspaceFileBytes:67108864,workspaceScanComplete:true,durableStateFileBytes:33554432,durableStateScanComplete:false,stateUsedBytes:1073741824,stateCapacityBytes:5368709120}]},
+   prompt:'PRIVATE_TELEMETRY',password:'PRIVATE_TELEMETRY'};
+  await page.route('**/api/admin/telemetry',route=>route.fulfill({json:usageFixture}));await page.click('#refresh');
+  await page.waitForFunction(()=>document.getElementById('usageSessions').textContent==='3');
+  assert.equal(await page.locator('#usageAgents').textContent(),'1');assert.equal(await page.locator('#usageTokens').textContent(),'5,500 / 900');
+  assert.equal(await page.locator('#usageRecentDecode').textContent(),'80');assert.equal(await page.locator('#usageRows tr').count(),1);
+  assert((await page.locator('#usageRows').textContent()).includes('(partial)'));assert(!(await page.locator('body').textContent()).includes('PRIVATE_TELEMETRY'));
+  for(const width of [1440,768,390]){await page.setViewportSize({width,height:1000});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
+  await page.setViewportSize({width:1440,height:1000});assert.deepEqual(errors,[]);
+  if(process.env.DSH_ADMIN_QA_OUTPUT){fs.mkdirSync(process.env.DSH_ADMIN_QA_OUTPUT,{recursive:true});await page.screenshot({path:path.join(process.env.DSH_ADMIN_QA_OUTPUT,'admin-dashboard.png'),fullPage:true});await page.locator('section').filter({has:page.getByRole('heading',{name:'DSH usage and activity',exact:true})}).screenshot({path:path.join(process.env.DSH_ADMIN_QA_OUTPUT,'admin-usage-fixture.png')});}
   await browser.close();browser=null;
   fs.unlinkSync(path.join(root,'summary.json'));const missing=JSON.parse((await request('GET','/api/admin/summary','',admin)).text);assert.equal(missing.snapshot.observedAt,null);assert.deepEqual(missing.snapshot.environments,[]);
   await request('GET','/logout','',admin);assert((await request('GET','/admin','',admin)).text.includes('id="pane-login"'));

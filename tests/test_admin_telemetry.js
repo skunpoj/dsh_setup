@@ -43,6 +43,8 @@ const backend=http.createServer((request,response)=>{
  removeAlice=true;now+=16000;const removed=await api.adminTelemetry();assert.equal(removed.totals.outputTokensPerSecond,null,'Removed histories reset the rate baseline');
  const malformed=session('bad',-1);malformed.projections.values.tokenUsage.outputTokens='PRIVATE_COUNTER';
  assert.equal(api.projectSessionMetrics([malformed],'alice','secure').row.usageSessions,0);
+ const fractional=session('fractional',3);fractional.projections.values.sessionStats.decodeTokens=3;fractional.projections.values.sessionStats.decodeMs=0.5;
+ assert.equal(api.projectSessionMetrics([fractional],'alice','secure').row.recordedDecodeTokensPerSecond,6000);
  assert.throws(()=>api.projectSessionMetrics(new Array(2001).fill({}),'alice','secure'));
  console.log(JSON.stringify({passed:true,checks:['actual bounded native HTTP protocol','partial runtime coverage','running agents and queues','turn and LLM-step counts','input/output accumulation','decode-time average','counter-delta output rate','request cache','imported-history exclusion from live rate','counter reset handling','private content and credentials excluded','bounded session projection','numeric-only storage projection']}));
  }finally{await new Promise(resolve=>backend.close(resolve));fs.rmSync(directory,{recursive:true,force:true});}})().catch(error=>{console.error(error);process.exitCode=1;});
