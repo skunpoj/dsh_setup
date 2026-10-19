@@ -117,10 +117,22 @@ function writeServices(user,mode,value) {
 function servicesAllowed(user,mode){return accountEnabled(user)&&(mode==='off'||internetAllowed(user));}
 function reconcileServices(){if(!APP_SERVICES_ROOT)return;for(const user of Object.keys(loadUsers()))for(const mode of ['off','on']){try{const d=readServices(user,mode),allowed=servicesAllowed(user,mode);if(d.allowed!==allowed){d.allowed=allowed;writeServices(user,mode,d);}}catch{}}}
 setInterval(()=>{try{reconcileServices();}catch{}},5000).unref();
+// App status is untrusted. Open once without following links or blocking on pipes,
+// then bound reads from that same regular-file descriptor to avoid stat/open races.
+function readServiceStatus(file){
+ let fd;try{
+  fd=fs.openSync(file,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW|fs.constants.O_NONBLOCK);
+  const st=fs.fstatSync(fd);if(!st.isFile()||st.size>65536)throw Error('Invalid status file');
+  const body=Buffer.alloc(65537);let used=0,n;
+  while(used<body.length&&(n=fs.readSync(fd,body,used,body.length-used,null))>0)used+=n;
+  if(used>65536)throw Error('Status exceeds bound');
+  return JSON.parse(body.subarray(0,used).toString('utf8'));
+ }finally{if(fd!==undefined)fs.closeSync(fd);}
+}
 function serviceInventory(){
   if(!APP_SERVICES_ROOT)return [];
   const rows=[];for(const user of Object.keys(loadUsers()))for(const mode of ['off','on']){
-    try {const desired=readServices(user,mode);let status={};try{const f=path.join(serviceFolder(user,mode),'status','status.json');if(fs.statSync(f).size>65536)throw Error('Status exceeds bound');status=JSON.parse(fs.readFileSync(f,'utf8'));}catch{}
+    try {const desired=readServices(user,mode);let status={};try{const f=path.join(serviceFolder(user,mode),'status','status.json');status=readServiceStatus(f);}catch{}
       const fresh=Number.isFinite(status.observedAt)&&Math.abs(Date.now()/1000-status.observedAt)<30;
       rows.push({user,mode,available:true,allowed:servicesAllowed(user,mode),services:Object.values(desired.services).map(e=>({name:e.name,kind:e.kind,cwd:e.cwd,argv:e.argv,port:e.port,enabled:e.enabled,generation:e.generation,phase:fresh&&Array.isArray(status.services)?(['running','disabled','access-disabled','backoff','start-failed','port-in-use'].includes(status.services.find(v=>v.name===e.name)?.phase)?status.services.find(v=>v.name===e.name).phase:'pending'):'unknown'}))});
     }catch{rows.push({user,mode,available:false,services:[]});}
