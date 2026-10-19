@@ -1,8 +1,8 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH — Setup and Stress-Test Results</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #cedce8;border-radius:8px}table{table-layout:fixed}</style></head><body><main><h1>DSH — Step-by-Step Setup and Stress-Test Results</h1><nav aria-label="Contents"><a href="#section-1">Latest implementation and qualification</a><a href="#section-2">Deploy the DSH application and private environments</a><a href="#section-3">Shared inference architecture</a><a href="#section-4">Step-by-step GPU and LiteLLM setup</a><a href="#section-5">Use the deployed platform</a><a href="#section-6">Storage, administration and maintenance</a><a href="#section-7">Qualification results and stress-test history</a></nav>
+img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #cedce8;border-radius:8px}table{table-layout:fixed}</style></head><body><main><h1>DSH — Step-by-Step Setup and Stress-Test Results</h1><nav aria-label="Contents"><a href="#section-1">What is deployed — recorded configuration and qualification</a><a href="#section-2">How to install DSH</a><a href="#section-3">Shared inference architecture</a><a href="#section-4">Step-by-step GPU and LiteLLM setup</a><a href="#section-5">Use the deployed platform</a><a href="#section-6">Storage, administration and maintenance</a><a href="#section-7">Qualification results and stress-test history</a></nav>
 <p>This operator guide separates reproducible setup, recorded accepted behavior and experimental profiles. Read the companion <a href="DSH_SECURITY_ENVIRONMENT_AND_FEATURES.html">Security, Environments and Features</a> for the three risk boundaries and interface screenshots. Creating these documents does not deploy or benchmark the system.</p>
-<h2 id="section-1">Latest implementation and qualification</h2>
+<h2 id="section-1">What is deployed — recorded configuration and qualification</h2>
 <p><strong>19 October 2026: the corrected 128 MiB score-tile profile passed the recorded DeepSeek-V4.1-Flash-1017 workloads on the existing four H100 NVL GPUs.</strong> The checkpoint is pinned to revision <code>1bae0e1088993b9b82de08f59de5be5a34e42170</code>. Earlier checkpoint results and the first 1017 trial remain separate historical records.</p>
 <table>
 <thead>
@@ -130,20 +130,202 @@ img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #
 </tr>
 </tbody></table>
 <p>These are bounded workload-specific samples, not simultaneous full-1M capability for sixteen clients. Two full-1M requests are not admitted simultaneously. Saved original failed and cancelled cases remain part of the trial history. The checkpoint-specific <a href="MODEL_UPDATE_1017.html">model update report</a> describes the rollout and qualification; the security companion stays focused on controlling the three risks.</p>
-<h2 id="section-2">Deploy the DSH application and private environments</h2>
-<h3>1 Prepare site settings and preserve rollback</h3>
-<p>Choose the approved namespace, public gateway hostname, trusted CA, internal service destinations, storage claims and operator identities. Keep private settings and credential values outside Git. Save current image digests, workload/configuration specifications and history/workspace checks before an existing-site change. Build a test namespace first; a documentation example is not an instruction to apply all legacy manifests.</p>
-<h3>2 Build and qualify the application image</h3>
-<p>The repository Dockerfile packages pinned DSH, Claude Code and TrueForge versions, Linux/Python/Kerberos tooling and the reviewed compatibility overlays. Its default package versions are DSH 0.2.0-rc.2, Claude Code 2.1.301 and TrueForge 0.179.2. Build through the approved image pipeline, inspect the installed package/patch checks and retain the pushed immutable digest. No Internet runtime must start from a prebuilt image rather than downloading packages at startup. Version pins are source defaults, not a fresh check of the upstream registry.</p>
-<h3>3 Provision private storage and identity routes</h3>
-<p>Use one private runtime per user and environment with bounded workspace, session, attachment and credential mounts. Assign the original owner explicitly when migrating existing content. No Internet uses scoped central storage for durable work/history; keep credentials private and Internet staging separate. Approved packages are read-only to No Internet. Run as the configured non-root identity and map share permissions deliberately. Do not mount a broad parent containing other users&#39; content or migrate a live writer without reconciliation.</p>
-<h3>4 Configure the gateway, policy and internal services</h3>
-<p>Provision accounts through the protected gateway store and map server-side user/environment routes. Disable self-registration. Only admin may create provisioned accounts; default Internet permission to denied for non-admins and grant it individually through User management. Verify both the disabled selector and server-side refusal, permission persistence and revocation of existing sessions. Do not put credentials into source manifests. Default login to No Internet; switching requires a new login. Apply the enforcing network policies, filtered internal DNS and service-specific allowlists before making the environment available. Cover gateway, tools, inference and database separately. Retain authenticated terminal, attachment/report and application-preview routes; do not create a public bypass. Livy/Spark remains available under its documented remote-network boundary.</p>
-<h3>5 Provision named accounts and verify isolation</h3>
-<p>Create only accounts with an already provisioned private runtime pair, then let owners change initial passwords privately. Verify correct and incorrect login, logout, role checks, cross-user file/history refusal, terminal routing, No Internet public-destination denial, internal inference and approved-package read-only behavior. Use synthetic users/content for negative tests. A successful login alone does not verify storage or network isolation.</p>
-<h3>6 Check persistence, dashboard and handover</h3>
-<p>Create a disposable workspace/history marker, replace the intended runtime in a controlled test and read back the same content. Check the centralized dashboard and access audit without exposing credentials or conversation bodies. Preserve existing histories byte-for-byte during migrations; central persistence is not an independent backup. Roll back application/image/configuration on regression while retaining newer durable writes.</p>
-<p>The detailed operational procedures remain in <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/MULTI_TENANT_STORAGE_AND_PERSISTENCE.md">storage and persistence</a>, <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md">upstream maintenance</a> and the reviewed repository deployment sources. Site-specific Secret, storage and destination values are intentionally not supplied by this public guide.</p>
+<h2 id="section-2">How to install DSH</h2>
+<p>This walkthrough follows the repository&#39;s actual build, manifest-generation and inference-rendering interfaces. Run commands from the repository root in a POSIX operator shell. Windows operators can use WSL; Python-only generation also works in PowerShell. The recorded deployment and performance results appear separately under <strong>What is deployed</strong> and <strong>Qualification results</strong>.</p>
+<h3>1 Choose the deployment target and collect inputs</h3>
+<p>Use a new test namespace for a new installation. For an existing installation, preserve its current namespace, claims, account store and owner mapping; do not run initial provisioning over live routing. Never apply the entire <code>k8s</code> directory: it includes historical deployments and site-specific examples.</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Operator supplies</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cluster access</td>
+<td>Approved kubeconfig/context, policy-enforcing CNI, GPU device plugin, ingress and trusted TLS</td>
+<td>Kubernetes deployment and acceptance</td>
+</tr>
+<tr>
+<td>GPU capacity</td>
+<td>Existing four-GPU node, compatible driver/runtime and sufficient shared memory</td>
+<td>Model workload</td>
+</tr>
+<tr>
+<td>Model storage</td>
+<td>Bound model PVC and approved checkpoint staged at <code>/models/approved</code></td>
+<td>Portable model renderer</td>
+</tr>
+<tr>
+<td>Central storage</td>
+<td>SMB CSI driver, private share credentials, share location, UID/GID mapping and ACLs</td>
+<td>Private No Internet projects and durable histories</td>
+</tr>
+<tr>
+<td>Other storage</td>
+<td>StorageClass, auth-state claim, per-runtime state/token claims, incoming/approved package claims</td>
+<td>Gateway and private environments</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>Running PostgreSQL service, persistent storage, backup policy and private connection URL</td>
+<td>LiteLLM key management</td>
+</tr>
+<tr>
+<td>Images</td>
+<td>Built DSH application digest, qualified LiteLLM digest and pinned model image</td>
+<td>Three distinct workloads; the DSH image is not the model image</td>
+</tr>
+<tr>
+<td>Network</td>
+<td>Gateway hostname/TLS, filtered resolver, cluster domain and approved internal destinations</td>
+<td>Routing, Host/Origin checks and destination policies</td>
+</tr>
+<tr>
+<td>Identities</td>
+<td>Named DSH users, roles, environment permissions and restricted inference credentials</td>
+<td>Private routes and authentication</td>
+</tr>
+</tbody></table>
+<p>Keep values in an operator-only directory outside the checkout. The public examples intentionally contain no usable site credentials. A required value is an installation input, not a value the renderer discovers automatically.</p>
+<pre><code class="language-sh">git clone https://github.com/skunpoj/dsh_setup.git
+cd dsh_setup
+git rev-parse HEAD
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install PyYAML
+kubectl config current-context
+kubectl get nodes
+kubectl get storageclass
+</code></pre>
+<p>Record the selected source commit and inspect the context before any write. Install Python packages on the operator workstation, not by enabling Internet on a No Internet runtime. Use an approved local package cache where operator Internet is unavailable.</p>
+<h3>2 Build and inspect the application image</h3>
+<p>The Dockerfile packages DSH, Claude Code, TrueForge, terminal and Kerberos tooling plus reviewed overlays. Read its pinned build arguments before changing versions. The checked-in Azure pipeline is a site-specific example; configure your own registry connection, repository and agent pool rather than copying its private registry settings.</p>
+<pre><code class="language-sh">export DSH_IMAGE_TAG=&#39;registry.example.net/ai/dsh-runtime:reviewed-build&#39;
+docker build --pull -t &quot;$DSH_IMAGE_TAG&quot; .
+docker run --rm --entrypoint node -w /opt/dsh &quot;$DSH_IMAGE_TAG&quot; tests/test_user_isolation_routing.js
+docker run --rm --entrypoint node -w /opt/dsh &quot;$DSH_IMAGE_TAG&quot; tests/test_auth_proxy_internet.js
+docker run --rm --entrypoint node -w /opt/dsh &quot;$DSH_IMAGE_TAG&quot; tests/test_admin_users.js
+docker push &quot;$DSH_IMAGE_TAG&quot;
+docker pull &quot;$DSH_IMAGE_TAG&quot;
+docker image inspect &quot;$DSH_IMAGE_TAG&quot; --format &#39;{{json .RepoDigests}}&#39;
+</code></pre>
+<p>Select the registry digest from the final output and set <code>DSH_IMAGE</code> to that complete <code>registry/repository@sha256:…</code> reference. Check installed client versions and patch checks inside this image. A successful build alone is not a login, persistence or network test. Stage the image into the target registry before restricting runtime egress.</p>
+<h3>3 Prepare storage, database and Secrets</h3>
+<p>Create the target namespace and provision its database and storage through the site&#39;s supported deployment tooling. Configure PostgreSQL service labels and the destination policy together: the portable renderer expects the database pod label <code>app: llm-database</code> and port 5432. Supply these inference Secrets through the approved secret manager:</p>
+<table>
+<thead>
+<tr>
+<th>Secret</th>
+<th>Required keys</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>credentialSecret</code> from the settings JSON</td>
+<td><code>LITELLM_MASTER_KEY</code>, <code>INTERNAL_ROUTE_KEY</code></td>
+</tr>
+<tr>
+<td><code>databaseSecret</code> from the settings JSON</td>
+<td><code>DATABASE_URL</code></td>
+</tr>
+<tr>
+<td>Each DSH inference-client Secret</td>
+<td><code>litellm-api-key</code> containing a model-only client key</td>
+</tr>
+</tbody></table>
+<p>Keep the master key out of execution-worker mounts. Do not print Secret YAML, put credentials in command arguments or store them in the repository. PostgreSQL installation, schema initialization/migration and account-key issuance are operator steps; <code>gpu-stack/render.py</code> does not perform them.</p>
+<p>For central storage, adapt a private copy of <code>k8s/dsh-da-workspace.yaml</code>: replace the share, volume handle, Secret reference and namespace; retain UID/GID 10001 only if it matches the chosen image. Verify non-root create, flush and reopen against an isolated test directory. Configure server ACLs as well as client mount modes. Keep the original share mounted; do not replace it with a local volume to bypass a permission error.</p>
+<h3>4 Render shared inference before applying it</h3>
+<pre><code class="language-sh">export PRIVATE_DIR=&#39;/private/dsh-install&#39;
+mkdir -p &quot;$PRIVATE_DIR&quot;
+chmod 700 &quot;$PRIVATE_DIR&quot;
+cp gpu-stack/settings.example.json &quot;$PRIVATE_DIR/inference-settings.json&quot;
+# Edit the private JSON with the approved namespace, existing PVC,
+# gateway image digest and existing Secret names from steps 1–3.
+python gpu-stack/render.py --settings &quot;$PRIVATE_DIR/inference-settings.json&quot; --output &quot;$PRIVATE_DIR/inference-candidate.yaml&quot;
+</code></pre>
+<p>The renderer creates model/gateway workloads, Services, immutable source ConfigMaps and their network policies. It does not create the namespace, model PVC, weights, PostgreSQL or Secrets. Its generic DNS rule is not the platform&#39;s filtered-DNS implementation. Review service names, peer labels and source hashes before connecting DSH.</p>
+<pre><code class="language-sh">export INFERENCE_NS=&#39;ai-workspace&#39;
+kubectl -n &quot;$INFERENCE_NS&quot; apply --dry-run=server -f &quot;$PRIVATE_DIR/inference-candidate.yaml&quot;
+kubectl -n &quot;$INFERENCE_NS&quot; diff -f &quot;$PRIVATE_DIR/inference-candidate.yaml&quot;
+# kubectl diff returns 1 when it finds changes; inspect them.
+kubectl -n &quot;$INFERENCE_NS&quot; apply -f &quot;$PRIVATE_DIR/inference-candidate.yaml&quot;
+kubectl -n &quot;$INFERENCE_NS&quot; rollout status deployment/local-model --timeout=2100s
+kubectl -n &quot;$INFERENCE_NS&quot; rollout status deployment/local-inference --timeout=300s
+</code></pre>
+<p>Apply only to the reviewed target. Read back image IDs, arguments, mounted source and actual answer content. The first model start can be lengthy. Test authenticated inference using a restricted key without exposing it. Model port 8000 must remain private to the gateway; the final-wire preparation listener is loopback-only. Keep the 1M total budget, 8,192 output ceiling, 256 reserve and one-long-request admission aligned across clients and proxy.</p>
+<h3>5 Generate private user/environment candidates</h3>
+<pre><code class="language-sh">python scripts/generate_user_runtimes.py --help
+python scripts/generate_user_runtimes.py --users pilot-a pilot-b --image &quot;$DSH_IMAGE&quot; --output &quot;$PRIVATE_DIR/private-users.raw.yaml&quot;
+</code></pre>
+<p>This writes Deployments, per-runtime PVCs, private Services, routing and gateway-source ConfigMaps, and the gateway Deployment. It does not apply them, create login accounts, issue inference keys, initialize central subdirectories or migrate histories. Unlike the inference renderer, it can overwrite its output path; use a new filename for each review.</p>
+<p>The current application generator is <strong>site-bound</strong>: it emits namespace <code>llm</code>, <code>.llm.svc.cluster.local</code> routes, the template&#39;s DNS configuration and existing central/package claim references. It does not accept a namespace option. Before using another site, adapt a private copy of the generated YAML and referenced configuration together. Do not assume <code>kubectl -n</code> rewrites explicit namespaces or route hostnames. Keep an untouched generated file and a separate reviewed <code>private-users.site.yaml</code>.</p>
+<p>For each candidate, inspect every PVC, Secret and ConfigMap reference. Provision missing claims and per-user inference Secrets first; prepare only that user&#39;s central subdirectories. Keep Secure and Internet project/history/credential mounts separate. The central claim is shared infrastructure, but each worker mounts only its scoped subpaths. Verify no broad parent exposes peer directories. The generator does not contain the gateway Service, ingress or all supporting policy/configuration resources; supply their reviewed private-site versions separately.</p>
+<p>The existing <code>provision_inference_client.py</code> targets namespace <code>llm</code> and deployment <code>litellm</code>; it is not directly compatible with the portable <code>local-inference</code> names. Adapt that integration explicitly, or issue restricted keys through the target LiteLLM administrator interface. Likewise, <code>rollout_private_routing.py</code> is an existing-site migration utility with ownership/evidence gates, not a new-cluster installer.</p>
+<h3>6 Apply supporting controls, then start private workloads</h3>
+<p>Prepare a private supporting bundle containing the filtered DNS configuration/service, storage and profile ConfigMaps, gateway Service, TLS ingress, environment network policies and package-promotion resources. Use the corresponding <code>k8s</code> files as reference inputs, not a blanket apply list. Replace all site destinations and align their labels with the generated workloads. Approved package storage is read-only to No Internet; only controlled promotion writes to it.</p>
+<pre><code class="language-sh">export APP_NS=&#39;llm&#39;
+kubectl -n &quot;$APP_NS&quot; apply --dry-run=server -f &quot;$PRIVATE_DIR/supporting.site.yaml&quot;
+kubectl -n &quot;$APP_NS&quot; apply --dry-run=server -f &quot;$PRIVATE_DIR/private-users.site.yaml&quot;
+kubectl -n &quot;$APP_NS&quot; diff -f &quot;$PRIVATE_DIR/supporting.site.yaml&quot;
+kubectl -n &quot;$APP_NS&quot; diff -f &quot;$PRIVATE_DIR/private-users.site.yaml&quot;
+# After reviewing both diffs, install supporting controls first.
+kubectl -n &quot;$APP_NS&quot; apply -f &quot;$PRIVATE_DIR/supporting.site.yaml&quot;
+kubectl -n &quot;$APP_NS&quot; apply -f &quot;$PRIVATE_DIR/private-users.site.yaml&quot;
+kubectl -n &quot;$APP_NS&quot; get deployments,pods,pvc,services,networkpolicies
+</code></pre>
+<p>The two <code>.site.yaml</code> bundles are operator-prepared outputs, not files supplied by this repository. Resolve every referenced resource before this step. Configure the gateway&#39;s trusted host and TLS, default No Internet selection, server-side private routing and disabled registration. Grant Internet separately per named account. Seed the initial administrator through the protected account-store procedure; do not introduce a factory password. Use Admin → User management for additional already-provisioned private runtimes.</p>
+<h3>7 Verify the installed behavior before handover</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Required result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Login and account roles</td>
+<td>Correct login works; incorrect login, forged roles and ordinary-user admin calls fail; logout invalidates access</td>
+</tr>
+<tr>
+<td>Environment selection</td>
+<td>No Internet is default; unauthorized Internet selection is refused by the server</td>
+</tr>
+<tr>
+<td>Isolation</td>
+<td>Two synthetic users cannot read each other&#39;s histories, files, attachments or terminal sessions</td>
+</tr>
+<tr>
+<td>Network</td>
+<td>Public-domain and direct-IP requests fail in No Internet; permitted inference works; Internet operates only in its separate environment</td>
+</tr>
+<tr>
+<td>Dependency transfer</td>
+<td>Internet writes incoming artifacts; reviewed promotion verifies hashes; No Internet can read approved artifacts but cannot alter them</td>
+</tr>
+<tr>
+<td>Persistence</td>
+<td>A disposable file and conversation survive controlled runtime replacement with identical content; existing histories retain IDs and bytes</td>
+</tr>
+<tr>
+<td>Inference</td>
+<td>Native DSH gives correct persisted answers at ordinary, 256K, 512K and near-1M sizes, with real tool continuation and short requests overlapping long work</td>
+</tr>
+<tr>
+<td>Admission and recovery</td>
+<td>A second long request obeys the bounded queue; further waiters are refused; cancellation releases admission; short work continues</td>
+</tr>
+<tr>
+<td>Administration</td>
+<td>Authorized overview shows correctly scoped activity/capacity; other users cannot obtain admin data</td>
+</tr>
+</tbody></table>
+<p>Start with synthetic content. Use actual browser login, HTTP/WebSocket terminal interaction and saved conversation readback; a rollout status does not replace these checks. Record first-text latency, preparation time and streaming output rate separately. Remote submitted jobs retain the remote platform&#39;s network and AD permission boundaries.</p>
+<h3>8 Roll back without losing newer work</h3>
+<p>Before upgrading an existing site, retain the exact old Deployment specs, immutable ConfigMaps/image digests, routing/account configuration and a private history/file fingerprint. Keep credentials in protected recovery storage. Replace one private runtime at a time and repeat the affected behavior checks. On regression restore its reviewed old image/configuration and route; do not delete PVCs or overwrite newer histories with an old snapshot. Stop the writer and reconcile newer central writes before changing storage mounts. Model changes on the single shared GPU node interrupt inference; retain the last qualified model profile for that separate rollback.</p>
+<h3>Installation coverage</h3>
+<p>The commands above expose the actual installation sequence and remaining operator inputs. The portable inference renderer and private-runtime generator can be exercised offline. A fresh-cluster install, site bundle, database migration and initial administrator bootstrap still require the target site&#39;s supported tooling and acceptance. They are not a single copy-and-run installer. Existing deployment qualification is documented separately and does not establish a fresh-site installation test.</p>
 <h2 id="section-3">Shared inference architecture</h2>
 <p>The platform uses one shared four-GPU generative model. Private user runtimes share inference while keeping their own files and state. Use the portable <code>gpu-stack</code> source and supply private site values outside Git.</p>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 1</span><div class="mermaid-toolbar"><button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button><button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button><button onclick="panZoomMermaid(this,'reset')">Reset</button><button onclick="panZoomMermaid(this,'fullscreen')">Fullscreen</button><button onclick="exportMermaid(this,'svg')">Save SVG</button><button onclick="exportMermaid(this,'png')">Save PNG</button><button onclick="exportMermaid(this,'copy')">Copy code</button></div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart LR

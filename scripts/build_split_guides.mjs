@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 const root=path.resolve(import.meta.dirname,'..');
-const modules=process.env.DSH_DOC_NODE_MODULES || 'C:/Users/skunpojt/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules';
+const modules=process.env.DSH_DOC_NODE_MODULES || path.join(root,'node_modules');
 const {marked}=await import(pathToFileURL(path.join(modules,'marked/lib/marked.esm.js')));
 const arg=process.argv.indexOf('--status');
 const status=fs.readFileSync(arg<0 ? path.join(root,'docs/context-evidence/SPLIT_GUIDE_STATUS_20261019.md') : process.argv[arg+1],'utf8');
@@ -49,36 +49,8 @@ Users enter through the authenticated gateway. The selected identity and environ
 Logout ends the gateway session. Changing environment requires signing in again and does not copy files, conversation history or credentials between environments. Incoming and approved package areas provide the controlled dependency-transfer path; they are not shared project storage.
 
 `+find('Interface screenshots').replace('The login screenshots show the live interfaces.', 'The sign-in screenshot illustrates the recorded interface, not a fresh availability check.').replace('Live main DSH login with empty fields','Main DSH sign-in interface with empty fields');
-const platformSetup=`## Deploy the DSH application and private environments
-
-### 1 Prepare site settings and preserve rollback
-
-Choose the approved namespace, public gateway hostname, trusted CA, internal service destinations, storage claims and operator identities. Keep private settings and credential values outside Git. Save current image digests, workload/configuration specifications and history/workspace checks before an existing-site change. Build a test namespace first; a documentation example is not an instruction to apply all legacy manifests.
-
-### 2 Build and qualify the application image
-
-The repository Dockerfile packages pinned DSH, Claude Code and TrueForge versions, Linux/Python/Kerberos tooling and the reviewed compatibility overlays. Its default package versions are DSH 0.2.0-rc.2, Claude Code 2.1.301 and TrueForge 0.179.2. Build through the approved image pipeline, inspect the installed package/patch checks and retain the pushed immutable digest. No Internet runtime must start from a prebuilt image rather than downloading packages at startup. Version pins are source defaults, not a fresh check of the upstream registry.
-
-### 3 Provision private storage and identity routes
-
-Use one private runtime per user and environment with bounded workspace, session, attachment and credential mounts. Assign the original owner explicitly when migrating existing content. No Internet uses scoped central storage for durable work/history; keep credentials private and Internet staging separate. Approved packages are read-only to No Internet. Run as the configured non-root identity and map share permissions deliberately. Do not mount a broad parent containing other users' content or migrate a live writer without reconciliation.
-
-### 4 Configure the gateway, policy and internal services
-
-Provision accounts through the protected gateway store and map server-side user/environment routes. Disable self-registration. Only admin may create provisioned accounts; default Internet permission to denied for non-admins and grant it individually through User management. Verify both the disabled selector and server-side refusal, permission persistence and revocation of existing sessions. Do not put credentials into source manifests. Default login to No Internet; switching requires a new login. Apply the enforcing network policies, filtered internal DNS and service-specific allowlists before making the environment available. Cover gateway, tools, inference and database separately. Retain authenticated terminal, attachment/report and application-preview routes; do not create a public bypass. Livy/Spark remains available under its documented remote-network boundary.
-
-### 5 Provision named accounts and verify isolation
-
-Create only accounts with an already provisioned private runtime pair, then let owners change initial passwords privately. Verify correct and incorrect login, logout, role checks, cross-user file/history refusal, terminal routing, No Internet public-destination denial, internal inference and approved-package read-only behavior. Use synthetic users/content for negative tests. A successful login alone does not verify storage or network isolation.
-
-### 6 Check persistence, dashboard and handover
-
-Create a disposable workspace/history marker, replace the intended runtime in a controlled test and read back the same content. Check the centralized dashboard and access audit without exposing credentials or conversation bodies. Preserve existing histories byte-for-byte during migrations; central persistence is not an independent backup. Roll back application/image/configuration on regression while retaining newer durable writes.
-
-The detailed operational procedures remain in [storage and persistence](https://github.com/skunpoj/dsh_setup/blob/main/docs/MULTI_TENANT_STORAGE_AND_PERSISTENCE.md), [upstream maintenance](https://github.com/skunpoj/dsh_setup/blob/main/docs/UPSTREAM_SYNC_AND_INTERNET_POLICY.md) and the reviewed repository deployment sources. Site-specific Secret, storage and destination values are intentionally not supplied by this public guide.
-
-`;
-const setup=`# DSH — Step-by-Step Setup and Stress-Test Results\n\nThis operator guide separates reproducible setup, recorded accepted behavior and experimental profiles. Read the companion [Security, Environments and Features](${companionSecurity}) for the three risk boundaries and interface screenshots. Creating these documents does not deploy or benchmark the system.\n\n${status}\n\n${platformSetup}## Shared inference architecture\n${gpuArchitecture}\n## Step-by-step GPU and LiteLLM setup\n\nThese steps reproduce the current qualified portable profile, including its reviewed runtime overlays. Verify the pinned sources and requalify behavior on the target environment before rollout.\n\n${gpuSteps}\n${find('Example usage').replace('## Example usage','## Use the deployed platform')}\n${find('Storage, administration and maintenance')}\n## Qualification results and stress-test history\n\nThe following results describe their stated workloads and dates. The current qualification is summarized above; older restored or rejected profiles remain explicitly historical. Streaming tokens/sec, whole-request latency and aggregate throughput measure different things. A configured request cap does not prove that many full-context requests can execute together.\n\n${history}`;
+const platformSetup=fs.readFileSync(path.join(root,'docs/INSTALLATION_WALKTHROUGH.md'),'utf8')+'\n\n';
+const setup=`# DSH — Step-by-Step Setup and Stress-Test Results\n\nThis operator guide separates reproducible setup, recorded accepted behavior and experimental profiles. Read the companion [Security, Environments and Features](${companionSecurity}) for the three risk boundaries and interface screenshots. Creating these documents does not deploy or benchmark the system.\n\n${status.replace('## Latest implementation and qualification','## What is deployed — recorded configuration and qualification')}\n\n${platformSetup}## Shared inference architecture\n${gpuArchitecture}\n## Step-by-step GPU and LiteLLM setup\n\nThese steps reproduce the current qualified portable profile, including its reviewed runtime overlays. Verify the pinned sources and requalify behavior on the target environment before rollout.\n\n${gpuSteps}\n${find('Example usage').replace('## Example usage','## Use the deployed platform')}\n${find('Storage, administration and maintenance')}\n## Qualification results and stress-test history\n\nThe following results describe their stated workloads and dates. The current qualification is summarized above; older restored or rejected profiles remain explicitly historical. Streaming tokens/sec, whole-request latency and aggregate throughput measure different things. A configured request cap does not prove that many full-context requests can execute together.\n\n${history}`;
 const shell=fs.readFileSync(path.join(root,'docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html'),'utf8');
 const head=shell.slice(0,shell.indexOf('<body>'));
 const scripts=shell.slice(shell.indexOf('</main>')+7);

@@ -1,5 +1,7 @@
 # DSH — Private Execution Environments and Kerberos Datalake Access
 
+For installation, follow the [complete operator walkthrough](docs/INSTALLATION_WALKTHROUGH.md) or the rendered [Setup and Stress-Test Guide](docs/DSH_SETUP_AND_STRESS_TEST_GUIDE.html). The guide separates recorded deployment results from installation commands and identifies required private site inputs.
+
 **DeepSeek-V4.1-Flash-1017 is deployed on the existing four GPUs.** The pinned checkpoint preserves 1,048,576 total tokens and DSpark block five. Actual DSH processed 1,007,752 input / 431 output tokens, with the complete correct saved answer in **27m33.97s**. All **60/60** tracked short replies passed alongside it, with a paired median of **5.11s**. The accepted cold run had zero automatic retries, allocator mapping warnings or unexpected model restarts. The corrected 128 MiB temporary score tiles retain the full KV pool; preparation is slower than the rejected 256 MiB trial. [Setup and results](docs/MODEL_UPDATE_1017.html).
 
 The [setup and stress-test guide](docs/DSH_SETUP_AND_STRESS_TEST_GUIDE.html) covers installation, rollback and measured workloads. The [1017 model guide](docs/MODEL_UPDATE_1017.html) records the new checkpoint, compatibility checks, current results and retained trial history. Earlier measurements retain their original checkpoint and profile.
