@@ -105,6 +105,8 @@ All 80 histories in 82 files remain unchanged, aggregate SHA256 `7bb4aa235893e12
 
 ## Admin access and audit
 
+JupyterLab is packaged alongside Kilo Code, Claude Code and TrueForge. Run `jupyter lab` from a private DSH terminal, then open `/proxy/8888/lab`. Notebooks use that environment's existing workspace and network restrictions. [JupyterLab guide](docs/JUPYTERLAB.md).
+
 Browser sign-ins are held in gateway memory and end when the gateway is replaced. Expired API requests return JSON 401. Updated DSH pages show a sign-in prompt that preserves the current unsent draft in the page, checks the original account/environment after reauthentication and never automatically replays a failed prompt. See [session recovery and acceptance](docs/SESSION_RECOVERY_20261019.md).
 
 Open [Admin overview](https://dsh.aiportal.bot.or.th/admin) as existing `admin`, or use its navigation link. Users can select **Create account** on the login page while qualified private capacity is available. Each account receives an exclusive pair and starts with Internet denied. In **User management**, administrators approve or revoke Internet, enable or disable accounts and sign out gateway sessions. Reload User management to see newly registered accounts. See the [signup and capacity procedure](docs/SELF_SERVICE_SIGNUP.md). `DSH_ADMIN_USERS` is an operator allowlist, not a client role selector. Gateway authentication source and its password helper are mounted together from an immutable, source-addressed ConfigMap; the live acceptance record identifies the exact hashes.

@@ -4,12 +4,20 @@ ARG DSH_VERSION=0.2.0-rc.2
 ARG CLAUDE_CODE_VERSION=2.1.301
 ARG TRUEFORGE_VERSION=0.179.2
 ARG KILO_VERSION=7.8.12
+ARG JUPYTERLAB_VERSION=4.6.4
+ARG JUPYTER_SERVER_VERSION=2.21.1
+ARG IPYKERNEL_VERSION=7.4.0
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends bash ca-certificates curl git jq krb5-user openssl procps python3 python3-pip python3-venv socat \
  && npm install -g --ignore-scripts "@deepseek-ai/dsh@${DSH_VERSION}" \
  && npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" "@truefoundry/trueforge@${TRUEFORGE_VERSION}" \
  && npm install -g "@kilocode/cli@${KILO_VERSION}" \
  && rm -rf /var/lib/apt/lists/* /root/.npm
+
+# Install at image build time; offline runtimes never bootstrap from PyPI.
+RUN python3 -m venv /opt/dsh/jupyter \
+ && /opt/dsh/jupyter/bin/python -m pip install --no-cache-dir \
+      "jupyterlab==${JUPYTERLAB_VERSION}" "jupyter-server==${JUPYTER_SERVER_VERSION}" "ipykernel==${IPYKERNEL_VERSION}"
 
 COPY vendor/ttyd /usr/local/bin/ttyd
 RUN chmod 0755 /usr/local/bin/ttyd \
@@ -25,6 +33,9 @@ COPY config/ /opt/dsh/config/
 COPY tests/ /opt/dsh/tests/
 COPY patches/ /opt/dsh/patches/
 COPY container/ /opt/dsh/container/
+RUN install -m 0755 /opt/dsh/container/jupyter-managed.py /usr/local/bin/jupyter \
+ && ln -s /usr/local/bin/jupyter /usr/local/bin/jupyterlab \
+ && su -s /bin/sh -c '/opt/dsh/jupyter/bin/python /opt/dsh/tests/test_managed_jupyter.py' dsh
 RUN mkdir -p /etc/kilo /etc/dsh-kilo-config/kilo \
  && install -m 0644 /opt/dsh/container/kilo-managed.json /etc/kilo/kilo.json \
  && install -m 0755 /opt/dsh/container/kilo-managed.py /usr/local/bin/kilo-managed \
