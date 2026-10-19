@@ -1,5 +1,9 @@
 **Enterprise AI Platform**
 
+## Current English presentation
+
+The **44-slide expanded English edition** is current: [HTML walkthrough](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019.html) · [editable PowerPoint](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019.pptx) · [edition and source notes](docs/PRESENTATION_EDITION.md). Downloads require authorized access to the private release. Earlier 25-slide editions remain historical.
+
 # DeepSeek Harness (DSH)
 
 Enterprise Agentic Coding & Knowledge Gateway
