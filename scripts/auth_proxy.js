@@ -2,9 +2,29 @@ const http = require('http');
 const url = require('url');
 const fs = require('fs');
 const crypto = require('crypto');
+const path = require('path');
 const { hashPassword, verifyPassword, migrateUsers, writeAtomicUsers } = require('./password_store');
 
 const PROXY_PORT = Number(process.env.PORT || 3080);
+const MANUAL_DIR = process.env.DSH_MANUAL_DIR || '/opt/dsh/manual';
+function serveManual(req, res, pathname) {
+  const headers = {'Cache-Control':'no-cache', 'X-Content-Type-Options':'nosniff',
+    'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"};
+  if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405,{...headers,Allow:'GET, HEAD'});return res.end(); }
+  if (pathname === '/manual' || pathname === '/manual/') { res.writeHead(302,{...headers,Location:'/manual/DSH_PLATFORM_GUIDE.html'});return res.end(); }
+  try {
+    const name=decodeURIComponent(pathname.slice('/manual/'.length));
+    if (!/^[a-zA-Z0-9_./-]+\.(html|md|json|png|svg)$/.test(name) || name.split('/').some(x=>!x || x==='.' || x==='..')) throw Error('Unknown manual');
+    const manifest=JSON.parse(fs.readFileSync(path.join(MANUAL_DIR,'manifest.json'),'utf8'));
+    if (!Object.hasOwn(manifest.files,name)) { res.writeHead(404,headers);return res.end('Manual page not found.'); }
+    const entry=manifest.files[name], root=fs.realpathSync(MANUAL_DIR), file=fs.realpathSync(path.join(root,name));
+    if (!file.startsWith(root+path.sep) || entry.bytes>8*1024*1024) throw Error('Invalid manual file');
+    const body=fs.readFileSync(file);
+    if(body.length!==entry.bytes || crypto.createHash('sha256').update(body).digest('hex')!==entry.sha256)throw Error('Manual integrity mismatch');
+    const types={html:'text/html; charset=utf-8',md:'text/plain; charset=utf-8',json:'application/json; charset=utf-8',png:'image/png',svg:'image/svg+xml'};
+    res.writeHead(200,{...headers,'Content-Type':types[name.split('.').pop()],'Content-Length':body.length});return res.end(req.method==='HEAD'?undefined:body);
+  } catch { res.writeHead(404,headers);return res.end('Manual page unavailable.'); }
+}
 // Kubernetes may inject DSH_PORT=tcp://<service-ip>:3080 for the Service named
 // "dsh". Accept only an explicitly numeric port and otherwise use the internal
 // DSH web port, avoiding an invalid 127.0.0.1:NaN proxy target.
@@ -864,6 +884,8 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       font-size: 11px;
       color: #64748B;
     }
+    .footer-note a { color: #93C5FD; font-size: 14px; text-underline-offset: 4px; }
+    .footer-note a:hover, .footer-note a:focus-visible { color: #DBEAFE; }
   </style>
   <script>
     function switchTab(name) {
@@ -882,7 +904,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       </div>
       <div class="org-title">Enterprise AI Platform</div>
       <h1 class="app-title">DeepSeek Harness (DSH)</h1>
-      <p class="app-subtitle">Enterprise Agentic Coding & Knowledge Gateway</p>
+      <p class="app-subtitle">Enterprise Agentic Coding &amp; Knowledge Gateway</p>
     </div>
 
     <div class="auth-tabs">
@@ -957,7 +979,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
     </div>
 
     <div class="footer-note">
-      ระบบสารสนเทศเฉพาะกิจองค์กร · รักษาความลับข้อมูลขั้นสูงสุด
+      <a href="/manual/" target="_blank" rel="noopener">User manual</a>
     </div>
   </div>
 <script>
@@ -972,6 +994,7 @@ u.addEventListener('input',reset);p.addEventListener('input',reset);u.addEventLi
 
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
+  if (parsedUrl.pathname === '/manual' || parsedUrl.pathname.startsWith('/manual/')) return serveManual(req,res,parsedUrl.pathname);
   if (req.method === 'POST' && ['/login','/register','/change-password','/api/login-environments'].includes(parsedUrl.pathname)) {
     if (Number(req.headers['content-length']) > 16384) { res.writeHead(413); return res.end('Authentication form too large'); }
     let received = 0;

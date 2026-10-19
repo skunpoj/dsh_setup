@@ -30,7 +30,7 @@ append=append.replace(/<img src="(images\/platform\/[^"\s]+)" alt="([^"]*)">/g,(
 });
 let shell=fs.readFileSync(path.join(root,'docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html'),'utf8');
 
-const h1='<h1>DSH Platform Guide — Security Controls, Features and Operations</h1>';
+const h1='<p class="meta">Enterprise AI Platform</p><h1>DeepSeek Harness (DSH)</h1><p>Enterprise Agentic Coding &amp; Knowledge Gateway</p>';
 const intro=`<p>This guide explains DSH’s security controls, features, deployment architecture and practical usage, followed by LLM/GPU setup instructions.</p><p class="meta">Deployment inventory: ${esc(snapshot.observedAtUTC)}.</p>`;
 let content=append;let count=0;const toc=[];
 content=content.replace(/<h2(?:\s[^>]*)?>([\s\S]*?)<\/h2>/g,(_,title)=>{const id='guide-section-'+(++count);toc.push(`<a href="#${id}">${title}</a>`);return `<h2 id="${id}">${title}</h2>`;});

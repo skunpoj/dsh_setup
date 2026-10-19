@@ -21,7 +21,12 @@ def main():
     ap.add_argument('--deployment', default='dsh-environment-gateway')
     ap.add_argument('--expected-source-sha256', required=True)
     ap.add_argument('--snapshot', type=Path, help='Optional reviewed status JSON; replace it in the same gateway-only handover')
+    ap.add_argument('--manual-dir', help='Already published versioned manual directory on the gateway auth volume')
     args = ap.parse_args()
+    if args.manual_dir:
+        import re
+        if not re.fullmatch(r'/auth/manuals/[a-f0-9]{16}', args.manual_dir):
+            raise ValueError('Expected a versioned operator-published manual directory')
 
     def kube(*parts, data=None):
         p = subprocess.run(['kubectl', '-n', args.namespace, '--request-timeout=30s', *parts],
@@ -59,6 +64,11 @@ def main():
         kube('apply', '-f', '-', data=json.dumps({'apiVersion': 'v1', 'kind': 'ConfigMap', 'immutable': True,
              'metadata': {'name': name}, 'data': {'auth_proxy.js': source, 'password_store.js': helper}}))
         template = json.loads(json.dumps(before['spec']['template']))
+        if args.manual_dir:
+            env=template['spec']['containers'][0].setdefault('env',[])
+            env[:]=[e for e in env if e['name']!='DSH_MANUAL_DIR']
+            env.append({'name':'DSH_MANUAL_DIR','value':args.manual_dir})
+            record['manualDirectory']=args.manual_dir
         for volume in template['spec']['volumes']:
             if volume['name'] == 'gateway-source':
                 volume['configMap']['name'] = name

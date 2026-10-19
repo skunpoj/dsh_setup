@@ -1,4 +1,10 @@
-# DSH — Private Execution Environments and Kerberos Datalake Access
+**Enterprise AI Platform**
+
+# DeepSeek Harness (DSH)
+
+Enterprise Agentic Coding & Knowledge Gateway
+
+[User manual](docs/DSH_PLATFORM_GUIDE.html) · The deployed login page also links to the on-site `/manual/` guide.
 
 Managed coding clients: **Claude Code, TrueForge and Kilo CLI**, inside private DSH environments through internal LiteLLM. See [client setup, controls and qualification](docs/MANAGED_CLIENT_SUPPORT.html).
 

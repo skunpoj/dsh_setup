@@ -64,6 +64,11 @@ async function waitReady(port) {
     await waitReady(proxyPort);
     const page = await request(proxyPort, 'GET', '/login');
     assert.equal(page.status, 200);
+    assert(page.body.includes('Enterprise AI Platform'));
+    assert(page.body.includes('DeepSeek Harness (DSH)'));
+    assert(page.body.includes('Enterprise Agentic Coding &amp; Knowledge Gateway'));
+    assert(page.body.includes('href="/manual/"'));
+    assert(!page.body.includes('ระบบสารสนเทศเฉพาะกิจองค์กร'));
     assert.match(page.body, /name="internet" value="off" checked/);
     assert.match(page.body, /No Internet \/ Internal \(Default\)/);
     assert.match(page.body, /Internet uses a separate staging workspace/);

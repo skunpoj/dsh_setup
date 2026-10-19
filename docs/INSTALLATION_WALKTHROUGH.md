@@ -165,6 +165,19 @@ kubectl -n "$APP_NS" get deployments,pods,pvc,services,networkpolicies
 
 The two `.site.yaml` bundles are operator-prepared outputs, not files supplied by this repository. Resolve every referenced resource before this step. Configure the gateway's trusted host and TLS, default No Internet selection, server-side private routing and disabled registration. Grant Internet separately per named account. Seed the initial administrator through the protected account-store procedure; do not introduce a factory password. Use Admin → User management for additional already-provisioned private runtimes.
 
+### Publish the on-site user manual
+
+The login branding is Enterprise AI Platform / DeepSeek Harness (DSH) / Enterprise Agentic Coding & Knowledge Gateway. Its User manual link opens `/manual/` on the same site. Publish only the reviewed public documentation bundle, separately from user workspaces and account records:
+
+```sh
+python scripts/build_manual_bundle.py --output "$PRIVATE_DIR/manual-bundle"
+python scripts/publish_manual_bundle.py --bundle "$PRIVATE_DIR/manual-bundle" --namespace "$APP_NS" --deployment dsh-environment-gateway
+```
+
+The publisher verifies every file hash and returns a versioned `manualDir` under `/auth/manuals/`. Set the gateway's `DSH_MANUAL_DIR` to that returned path in its reviewed Deployment. For an existing site, `rollout_admin_management.py --manual-dir` can combine that setting with a verified gateway-source update and rollback. Only the gateway reloads; execution runtimes and inference do not restart. Existing browser sessions may require sign-in again after that gateway reload.
+
+Open the login page, follow User manual, verify the expected title/content and test its links and diagrams. The route accepts only catalogued documentation with matching hashes; it does not serve an arbitrary filesystem path. Public manual access does not grant access to user files, terminals, histories or admin routes. Keep prior versioned manual directories for rollback.
+
 ### 7 Verify the installed behavior before handover
 
 | Check | Required result |
