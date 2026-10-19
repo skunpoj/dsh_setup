@@ -51,6 +51,21 @@ These are bounded workload-specific samples, not simultaneous full-1M capability
 
 This walkthrough follows the repository's actual build, manifest-generation and inference-rendering interfaces. Run commands from the repository root in a POSIX operator shell. Windows operators can use WSL; Python-only generation also works in PowerShell. The recorded deployment and performance results appear separately under **What is deployed** and **Qualification results**.
 
+### Installation sequence and completion gates
+
+Follow steps 1–8 in order. Keep one private installation record with the source commit, chosen input values, rendered manifest hashes and acceptance results. Complete each gate before proceeding.
+
+| Stage | Completion gate | Detailed reference |
+|---|---|---|
+| Prerequisites and images | Correct cluster; drivers/CSI/CNI available; image pulled by digest | Steps 1–2 below |
+| Storage and database | Claims mounted with intended identity; weights readable; PostgreSQL initialized; Secret keys present | Step 3 and [storage guide](MULTI_TENANT_STORAGE_AND_PERSISTENCE.md) |
+| Inference | Reviewed manifest; correct loaded checkpoint; authenticated correct answer; direct bypass denied | Step 4 and [portable GPU setup](../gpu-stack/README.md) |
+| Private runtimes and gateway | All references resolved; private mounts/routes; login and roles accepted | Steps 5–6 below |
+| Functional acceptance | Cross-user denial, persistence, terminal, network, tools and long/short inference checks pass | Step 7 and [LLM configuration/results](LLM_SETUP_AND_TEST_RESULTS.html) |
+| Handover | Qualified configuration recorded; rollback preserves newer data | Step 8 below |
+
+The portable GPU renderer and the site-bound DSH generator are two components of this sequence. Generating both files does not automatically join their service names, namespaces, DNS or credentials; the private site bundles must join those explicitly.
+
 ### 1 Choose the deployment target and collect inputs
 
 Use a new test namespace for a new installation. For an existing installation, preserve its current namespace, claims, account store and owner mapping; do not run initial provisioning over live routing. Never apply the entire `k8s` directory: it includes historical deployments and site-specific examples.
@@ -159,6 +174,19 @@ The existing `provision_inference_client.py` targets namespace `llm` and deploym
 
 Prepare a private supporting bundle containing the filtered DNS configuration/service, storage and profile ConfigMaps, gateway Service, TLS ingress, environment network policies and package-promotion resources. Use the corresponding `k8s` files as reference inputs, not a blanket apply list. Replace all site destinations and align their labels with the generated workloads. Approved package storage is read-only to No Internet; only controlled promotion writes to it.
 
+Before applying, run the offline reference check against all prepared bundles:
+
+```sh
+python scripts/check_installation_bundle.py \
+  --manifest "$PRIVATE_DIR/inference-candidate.yaml" \
+  --manifest "$PRIVATE_DIR/supporting.site.yaml" \
+  --manifest "$PRIVATE_DIR/private-users.site.yaml"
+```
+
+Missing PVCs, Secrets, ConfigMaps, account references, ingress Services and unpinned container images are reported. Resolve each failure in the bundles. For a resource that already exists, verify its name and namespace separately and pass `--external Kind/namespace/name` for that resource. This is an explicit dependency declaration, not permission to assume a Secret or volume exists. Inspect required Secret key names without exposing their values. Never include credential values in the checker arguments or output.
+
+The offline checker does not prove Secret key contents, PVC binding, correct subdirectories/ACLs, DNS resolution, network enforcement, database schema, registry access or application behavior. Server dry-run validates the cluster API/schema/admission path; Kubernetes can still accept a Deployment whose referenced resource is absent. Both checks and the following runtime tests are needed.
+
 ```sh
 export APP_NS='llm'
 kubectl -n "$APP_NS" apply --dry-run=server -f "$PRIVATE_DIR/supporting.site.yaml"
@@ -186,6 +214,8 @@ The two `.site.yaml` bundles are operator-prepared outputs, not files supplied b
 | Inference | Native DSH gives correct persisted answers at ordinary, 256K, 512K and near-1M sizes, with real tool continuation and short requests overlapping long work |
 | Admission and recovery | A second long request obeys the bounded queue; further waiters are refused; cancellation releases admission; short work continues |
 | Administration | Authorized overview shows correctly scoped activity/capacity; other users cannot obtain admin data |
+
+For each row, record the expected result, observed result and pass/fail. Stop handover if a required check fails; correct the configuration and rerun the affected check. For mounts, inspect the actual mounted source and read back saved file contents after restart. For inference, verify the model identifier, exact answer and saved assistant response, not just HTTP success. For packages, test both permitted installation from the approved cache and refusal to modify it. For networking, test from the execution process as well as the browser-facing gateway.
 
 Start with synthetic content. Use actual browser login, HTTP/WebSocket terminal interaction and saved conversation readback; a rollout status does not replace these checks. Record first-text latency, preparation time and streaming output rate separately. Remote submitted jobs retain the remote platform's network and AD permission boundaries.
 

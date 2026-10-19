@@ -132,6 +132,48 @@ img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #
 <p>These are bounded workload-specific samples, not simultaneous full-1M capability for sixteen clients. Two full-1M requests are not admitted simultaneously. Saved original failed and cancelled cases remain part of the trial history. The checkpoint-specific <a href="MODEL_UPDATE_1017.html">model update report</a> describes the rollout and qualification; the security companion stays focused on controlling the three risks.</p>
 <h2 id="section-2">How to install DSH</h2>
 <p>This walkthrough follows the repository&#39;s actual build, manifest-generation and inference-rendering interfaces. Run commands from the repository root in a POSIX operator shell. Windows operators can use WSL; Python-only generation also works in PowerShell. The recorded deployment and performance results appear separately under <strong>What is deployed</strong> and <strong>Qualification results</strong>.</p>
+<h3>Installation sequence and completion gates</h3>
+<p>Follow steps 1–8 in order. Keep one private installation record with the source commit, chosen input values, rendered manifest hashes and acceptance results. Complete each gate before proceeding.</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Completion gate</th>
+<th>Detailed reference</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Prerequisites and images</td>
+<td>Correct cluster; drivers/CSI/CNI available; image pulled by digest</td>
+<td>Steps 1–2 below</td>
+</tr>
+<tr>
+<td>Storage and database</td>
+<td>Claims mounted with intended identity; weights readable; PostgreSQL initialized; Secret keys present</td>
+<td>Step 3 and <a href="MULTI_TENANT_STORAGE_AND_PERSISTENCE.md">storage guide</a></td>
+</tr>
+<tr>
+<td>Inference</td>
+<td>Reviewed manifest; correct loaded checkpoint; authenticated correct answer; direct bypass denied</td>
+<td>Step 4 and <a href="../gpu-stack/README.md">portable GPU setup</a></td>
+</tr>
+<tr>
+<td>Private runtimes and gateway</td>
+<td>All references resolved; private mounts/routes; login and roles accepted</td>
+<td>Steps 5–6 below</td>
+</tr>
+<tr>
+<td>Functional acceptance</td>
+<td>Cross-user denial, persistence, terminal, network, tools and long/short inference checks pass</td>
+<td>Step 7 and <a href="LLM_SETUP_AND_TEST_RESULTS.html">LLM configuration/results</a></td>
+</tr>
+<tr>
+<td>Handover</td>
+<td>Qualified configuration recorded; rollback preserves newer data</td>
+<td>Step 8 below</td>
+</tr>
+</tbody></table>
+<p>The portable GPU renderer and the site-bound DSH generator are two components of this sequence. Generating both files does not automatically join their service names, namespaces, DNS or credentials; the private site bundles must join those explicitly.</p>
 <h3>1 Choose the deployment target and collect inputs</h3>
 <p>Use a new test namespace for a new installation. For an existing installation, preserve its current namespace, claims, account store and owner mapping; do not run initial provisioning over live routing. Never apply the entire <code>k8s</code> directory: it includes historical deployments and site-specific examples.</p>
 <table>
@@ -265,6 +307,14 @@ python scripts/generate_user_runtimes.py --users pilot-a pilot-b --image &quot;$
 <p>The existing <code>provision_inference_client.py</code> targets namespace <code>llm</code> and deployment <code>litellm</code>; it is not directly compatible with the portable <code>local-inference</code> names. Adapt that integration explicitly, or issue restricted keys through the target LiteLLM administrator interface. Likewise, <code>rollout_private_routing.py</code> is an existing-site migration utility with ownership/evidence gates, not a new-cluster installer.</p>
 <h3>6 Apply supporting controls, then start private workloads</h3>
 <p>Prepare a private supporting bundle containing the filtered DNS configuration/service, storage and profile ConfigMaps, gateway Service, TLS ingress, environment network policies and package-promotion resources. Use the corresponding <code>k8s</code> files as reference inputs, not a blanket apply list. Replace all site destinations and align their labels with the generated workloads. Approved package storage is read-only to No Internet; only controlled promotion writes to it.</p>
+<p>Before applying, run the offline reference check against all prepared bundles:</p>
+<pre><code class="language-sh">python scripts/check_installation_bundle.py \
+  --manifest &quot;$PRIVATE_DIR/inference-candidate.yaml&quot; \
+  --manifest &quot;$PRIVATE_DIR/supporting.site.yaml&quot; \
+  --manifest &quot;$PRIVATE_DIR/private-users.site.yaml&quot;
+</code></pre>
+<p>Missing PVCs, Secrets, ConfigMaps, account references, ingress Services and unpinned container images are reported. Resolve each failure in the bundles. For a resource that already exists, verify its name and namespace separately and pass <code>--external Kind/namespace/name</code> for that resource. This is an explicit dependency declaration, not permission to assume a Secret or volume exists. Inspect required Secret key names without exposing their values. Never include credential values in the checker arguments or output.</p>
+<p>The offline checker does not prove Secret key contents, PVC binding, correct subdirectories/ACLs, DNS resolution, network enforcement, database schema, registry access or application behavior. Server dry-run validates the cluster API/schema/admission path; Kubernetes can still accept a Deployment whose referenced resource is absent. Both checks and the following runtime tests are needed.</p>
 <pre><code class="language-sh">export APP_NS=&#39;llm&#39;
 kubectl -n &quot;$APP_NS&quot; apply --dry-run=server -f &quot;$PRIVATE_DIR/supporting.site.yaml&quot;
 kubectl -n &quot;$APP_NS&quot; apply --dry-run=server -f &quot;$PRIVATE_DIR/private-users.site.yaml&quot;
@@ -321,6 +371,7 @@ kubectl -n &quot;$APP_NS&quot; get deployments,pods,pvc,services,networkpolicies
 <td>Authorized overview shows correctly scoped activity/capacity; other users cannot obtain admin data</td>
 </tr>
 </tbody></table>
+<p>For each row, record the expected result, observed result and pass/fail. Stop handover if a required check fails; correct the configuration and rerun the affected check. For mounts, inspect the actual mounted source and read back saved file contents after restart. For inference, verify the model identifier, exact answer and saved assistant response, not just HTTP success. For packages, test both permitted installation from the approved cache and refusal to modify it. For networking, test from the execution process as well as the browser-facing gateway.</p>
 <p>Start with synthetic content. Use actual browser login, HTTP/WebSocket terminal interaction and saved conversation readback; a rollout status does not replace these checks. Record first-text latency, preparation time and streaming output rate separately. Remote submitted jobs retain the remote platform&#39;s network and AD permission boundaries.</p>
 <h3>8 Roll back without losing newer work</h3>
 <p>Before upgrading an existing site, retain the exact old Deployment specs, immutable ConfigMaps/image digests, routing/account configuration and a private history/file fingerprint. Keep credentials in protected recovery storage. Replace one private runtime at a time and repeat the affected behavior checks. On regression restore its reviewed old image/configuration and route; do not delete PVCs or overwrite newer histories with an old snapshot. Stop the writer and reconcile newer central writes before changing storage mounts. Model changes on the single shared GPU node interrupt inference; retain the last qualified model profile for that separate rollback.</p>
