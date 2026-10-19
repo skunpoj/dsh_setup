@@ -21,3 +21,11 @@ The installer preserves the worker image and original mounts, snapshots native h
 Prepared signup templates strip old supervision and policy/status mounts; new runtimes receive independent startup provisioning instead of inheriting another user's service definitions. The existing file-based policy store remains single-writer. Scope and final installed/deferred counts are reported by the operator's rollout receipt, separately from these disposable cases.
 
 See [architecture, installation and permissions](APP_SERVICE_SUPERVISION.md), [admin instructions](ADMIN_USAGE_TELEMETRY.md) and [recorded startup workflow](APP_AUTOSTART_WALKTHROUGH.html).
+
+## Main worker rollout
+
+The rolling installation completed on 26 reviewed main and prepared-signup runtimes, with no deferred workers. Existing workspace and state mounts were preserved. Across those runtimes, 167 history IDs and 189 session files were retained; an independent read-only comparison found no changed, missing or additional session files. All 52 temporary workspace/notebook-state markers survived pod replacement and were removed.
+
+The GPU model pod identity, image and restart count remained unchanged. Production startup definitions remain empty until an administrator explicitly saves and starts a service. Two owner-only legacy instances and two unused rollback runtimes are outside this installation scope.
+
+An independent review identified a status-file hazard before final approval: an application could replace its status file with a pipe or symlink. The gateway reader now opens without following links or blocking, verifies a regular file through the same descriptor, bounds reads to 65,537 bytes and rejects oversized content. Disposable Linux checks passed valid JSON, oversize, malformed JSON, directory, symlink, FIFO, pathname-replacement and file-growth cases. No malicious-file test was run against the live gateway.
