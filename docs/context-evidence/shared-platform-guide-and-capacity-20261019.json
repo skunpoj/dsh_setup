@@ -225,5 +225,42 @@
     "viewportChecks": 87,
     "passed": true,
     "guidedTourScenes": 14
+  },
+  "combinedRuntimeAcceptance": {
+    "gatewaySourceSHA256": "9b3cbfb535e602277e912f8367c713aa6666d1c60a097f5b3abfe8af6e355c0b",
+    "scope": "Loopback candidate using deployed gateway code and four real empty private runtimes",
+    "accountsCreated": 2,
+    "nativeSessions": 4,
+    "crossUserHistoryDenials": 4,
+    "crossEnvironmentHistoryDenials": 4,
+    "defaultInternetDenials": 2,
+    "ordinaryAdminDenials": 2,
+    "terminalWrites": 4,
+    "terminalReadbacks": 4,
+    "actualDshReplies": 2,
+    "signupCapacitySamples": [
+      2,
+      1,
+      0
+    ],
+    "fullPoolRefused": true,
+    "adminInternetRevocation": true,
+    "accountAssignmentSurvivedGatewayRestart": true,
+    "signupCapacitySurvivedRestart": true,
+    "status": "passed"
+  },
+  "combinedStatusReaderLinux": {
+    "status": "passed",
+    "platform": "linux",
+    "checks": [
+      "valid regular JSON",
+      "oversize refused",
+      "invalid JSON refused",
+      "directory refused",
+      "symlink refused",
+      "FIFO refused without blocking",
+      "pathname replacement reads original descriptor",
+      "growth after fstat bounded and refused"
+    ]
   }
 }
