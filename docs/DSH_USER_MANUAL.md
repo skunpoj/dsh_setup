@@ -40,6 +40,8 @@ The shared model supports a total budget of 1,048,576 tokens, including instruct
 
 ## 3 Run tools and inspect results
 
+Approved startup services run in a separate supervisor container. Keep their dependencies in the pinned runtime image or an approved project-local installation visible in the owner workspace. Packages installed only in DSH's temporary container directories are not automatically shared with that container.
+
 DSH, Claude Code, Kilo and TrueForge load the same [platform guide](SHARED_PLATFORM_GUIDE.html) for environments, storage, applications and managed inference. Their conversations remain separate. The guide supplies context; the live gateway controls actual account and app permissions.
 
 For Python notebooks, run `jupyter lab` in your terminal and open `/proxy/8888/lab` on this DSH site. Create a Python 3 notebook and run `print(6 * 7)`. Save it under `/workspace`; stop unused kernels when finished. Jupyter uses the selected environment's private storage, permissions and network controls. See [JupyterLab usage and setup](JUPYTERLAB.html).

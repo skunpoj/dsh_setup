@@ -6,6 +6,8 @@ An administrator can approve a JupyterLab server or a user application as a mana
 
 A saved notebook, script or data file lives in persistent workspace storage. A process, open kernel, Python variable or terminal job is memory, not durable data. Autostart creates a new server process; it does not restore an interrupted computation or an unsaved notebook. Save notebooks before maintenance.
 
+The supervisor is a separate container: packages installed only into the DSH container’s ephemeral root are not automatically available to it. Use dependencies included in the pinned runtime image, approved offline artifacts, or project-local dependencies visible through the shared owner workspace. The recorded acceptance covers JupyterLab and a standard-library Python application; it does not qualify every framework or virtual-environment launcher.
+
 ## Architecture and user isolation
 
 ```mermaid
