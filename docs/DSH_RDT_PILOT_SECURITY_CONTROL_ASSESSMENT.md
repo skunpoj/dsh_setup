@@ -90,7 +90,9 @@ Each main user/environment has a separate execution process with bounded workspa
 
 The workloads execute as non-root, disable privilege escalation, drop Linux capabilities, use RuntimeDefault seccomp and have no mounted Kubernetes management token. CPU and memory limits constrain local resource use. Legacy instances similarly use restricted non-root execution with a designated owner account.
 
-DSH, Claude Code and TrueForge inherit the selected runtime's identity, mounts and network policy. Installing a tool does not grant a privileged container, host socket or another user's credentials. TrueForge's optional nested sandbox remains disabled under the current restrictions; its absence is an agreed capability limit, not a reason to weaken the container boundary.
+DSH and the managed Claude Code, TrueForge and Kilo CLI clients inherit the selected runtime's identity, mounts and network policy. Installing a tool does not grant a privileged container, host socket or another user's credentials. TrueForge's optional nested sandbox remains disabled under the current restrictions; its absence is an agreed capability limit, not a reason to weaken the container boundary.
+
+All managed clients use the internal inference route with scoped credentials. Kilo's operator policy disables public model selection, automatic sharing, telemetry and default plugin downloads; its state is private to the selected runtime. Configuration is complemented by the runtime's actual network and storage boundaries. Ordinary Claude Code and TrueForge compatibility checks are documented separately from native DSH long-context acceptance in the [managed-client guide](MANAGED_CLIENT_SUPPORT.html).
 
 ### Preserve private work and bounded write access
 

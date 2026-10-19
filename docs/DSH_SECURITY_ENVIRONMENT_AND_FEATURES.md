@@ -89,7 +89,7 @@ Each main user/environment has a separate execution process with bounded workspa
 
 The workloads execute as non-root, disable privilege escalation, drop Linux capabilities, use RuntimeDefault seccomp and have no mounted Kubernetes management token. CPU and memory limits constrain local resource use. Additional instances similarly use restricted non-root execution with a designated owner account.
 
-DSH, Claude Code and TrueForge inherit the selected runtime's identity, mounts and network policy. Installing a tool does not grant a privileged container, host socket or another user's credentials. TrueForge's optional nested sandbox is disabled. Its ordinary tools run within the selected runtime's existing restrictions.
+DSH and the managed Claude Code, TrueForge and Kilo CLI clients inherit the selected runtime's identity, mounts and network policy. Installing a tool does not grant a privileged container, host socket or another user's credentials. TrueForge's optional nested sandbox is disabled. Its ordinary tools run within the selected runtime's existing restrictions.
 
 ### Preserve private work and bounded write access
 
@@ -212,7 +212,7 @@ Use these responsibility boundaries when planning connected services, data acces
 
 ## Platform features and intended use
 
-The main interface is the DSH web workspace. Claude Code and TrueForge are optional clients available inside its private execution environment; they do not replace the DSH web interface. One shared local model serves these clients without sharing their working files.
+The main interface is the DSH web workspace. Claude Code, TrueForge and Kilo CLI are optional clients available inside its private execution environment; they do not replace the DSH web interface. One shared local model serves these clients without sharing their working files.
 
 | Capability | How it is used | Implemented boundary or limitation |
 |---|---|---|
@@ -228,12 +228,17 @@ The main interface is the DSH web workspace. Claude Code and TrueForge are optio
 | Application previews | Start a server on an approved free port, then open the authenticated app route | Serve only the intended result folder. A new server must remain behind the gateway; an arbitrary public route is not automatically protected. |
 | Claude Code | Run the installed `claude` client from the terminal | Managed internal endpoint/model and persistent private client state. Current default uses the client's 1,000,000-token mode. |
 | TrueForge | Start `trueforge`, then open its authenticated port-3000 app route | Private client state and managed internal model. Optional nested code sandbox is disabled. |
+| Kilo Code CLI | Run `kilo` or `kilo run` from the authenticated terminal | Pinned managed CLI, internal LiteLLM only, private `/state/kilo` state, sharing/telemetry disabled. Qualification is recorded in the [managed-client guide](MANAGED_CLIENT_SUPPORT.html). |
 | Offline dependency preparation | Download in Internet, approve artifacts, install from the read-only cache in No Internet | Python/npm helpers exist. Native/OS dependencies may need a qualified runtime-image build; the package cache is not a shared writable workspace. |
 | Kerberos and datalake connection | Authenticate privately using the intended principal and configured client | Existing platform permissions remain authoritative. Local DSH login and central storage do not grant data access. |
 | Central dashboard and user management | Admin reviews accounts, private environments, browser sessions and access events; creates provisioned accounts, enables/disables access and signs users out | User files and history remain intact. Creating execution environments and granting administrator roles remain operator actions. |
 | Plugins and upstream tools | Use approved installed DSH plugins/tools within the same runtime | The upstream plugin architecture is available; each optional integration needs its own configuration and qualification. |
 | Upstream maintenance | Detect releases, verify patch contracts, build and test candidates | Default follows the official npm latest channel. Reviewed compatibility patches and deployment overlays are separate; no automatic Production merge. |
 | Operations and rollback | Preserve specifications, image/source digests and mounted data before change | Restore compatible configuration on regression; never overwrite newer work with an older history copy. |
+
+### Managed client compatibility
+
+Claude Code returned the expected ordinary reply in 1.17 seconds; TrueForge returned it in 0.73 seconds with its saved assistant response verified in the recorded 1017 compatibility tests. Kilo CLI 7.8.12 subsequently passed an exact ordinary reply in 9.05 seconds in a non-root No Internet canary, plus a real read-tool operation and saved-session recovery after pod replacement; it is deployed to all 20 main runtimes. These timings are separate samples including different startup conditions, not a controlled client speed comparison. These are ordinary-request checks, separate from native DSH near-1M acceptance. They do not establish near-1M support or a latency guarantee for every client. [Client versions, usage and acceptance scope](MANAGED_CLIENT_SUPPORT.html).
 
 
 ## Who can create accounts and use Internet

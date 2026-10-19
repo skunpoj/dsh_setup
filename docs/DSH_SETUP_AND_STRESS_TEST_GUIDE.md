@@ -113,7 +113,7 @@ Record the selected source commit and inspect the context before any write. Inst
 
 ### 2 Build and inspect the application image
 
-The Dockerfile packages DSH, Claude Code, TrueForge, terminal and Kerberos tooling plus reviewed overlays. Read its pinned build arguments before changing versions. The checked-in Azure pipeline is a site-specific example; configure your own registry connection, repository and agent pool rather than copying its private registry settings.
+The Dockerfile packages DSH, Claude Code, TrueForge, Kilo CLI, terminal and Kerberos tooling plus reviewed overlays. Kilo is pinned with `KILO_VERSION=7.8.12`; its operator policy is installed into `/etc/kilo/kilo.json`. The [managed-client guide](MANAGED_CLIENT_SUPPORT.html) covers endpoint adaptation, private state and acceptance. Read its pinned build arguments before changing versions. The checked-in Azure pipeline is a site-specific example; configure your own registry connection, repository and agent pool rather than copying its private registry settings.
 
 ```sh
 export DSH_IMAGE_TAG='registry.example.net/ai/dsh-runtime:reviewed-build'
@@ -421,6 +421,8 @@ claude -p "Read README.md and list three implementation questions; cite the rele
 ```
 
 To use TrueForge, first ensure port 3000 is free, run `trueforge`, wait for its listening message and open the service's authenticated `/proxy/3000/` route or configured port-3000 alias. Its model/provider configuration is operator-managed; private chat state remains in that environment. Do not enable privileged container features to make the optional nested sandbox start.
+
+For Kilo CLI, run `kilo` in the authenticated terminal, or `kilo run --format json "Reply exactly KILO_READY"`. The managed launcher uses only internal LiteLLM, stores private client state under `/state/kilo`, and disables sharing, public-provider selection and background downloads. See the [managed-client guide](MANAGED_CLIENT_SUPPORT.html) for the qualified versions, policy and ordinary-versus-near-1M test scope.
 
 ### 7 Authenticate to a permitted datalake service
 

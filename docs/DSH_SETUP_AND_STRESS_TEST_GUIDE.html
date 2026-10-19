@@ -270,7 +270,7 @@ kubectl get storageclass
 </code></pre>
 <p>Record the selected source commit and inspect the context before any write. Install Python packages on the operator workstation, not by enabling Internet on a No Internet runtime. Use an approved local package cache where operator Internet is unavailable.</p>
 <h3>2 Build and inspect the application image</h3>
-<p>The Dockerfile packages DSH, Claude Code, TrueForge, terminal and Kerberos tooling plus reviewed overlays. Read its pinned build arguments before changing versions. The checked-in Azure pipeline is a site-specific example; configure your own registry connection, repository and agent pool rather than copying its private registry settings.</p>
+<p>The Dockerfile packages DSH, Claude Code, TrueForge, Kilo CLI, terminal and Kerberos tooling plus reviewed overlays. Kilo is pinned with <code>KILO_VERSION=7.8.12</code>; its operator policy is installed into <code>/etc/kilo/kilo.json</code>. The <a href="MANAGED_CLIENT_SUPPORT.html">managed-client guide</a> covers endpoint adaptation, private state and acceptance. Read its pinned build arguments before changing versions. The checked-in Azure pipeline is a site-specific example; configure your own registry connection, repository and agent pool rather than copying its private registry settings.</p>
 <pre><code class="language-sh">export DSH_IMAGE_TAG=&#39;registry.example.net/ai/dsh-runtime:reviewed-build&#39;
 docker build --pull -t &quot;$DSH_IMAGE_TAG&quot; .
 docker run --rm --entrypoint node -w /opt/dsh &quot;$DSH_IMAGE_TAG&quot; tests/test_user_isolation_routing.js
@@ -525,6 +525,7 @@ prepare-offline-deps python requirements.txt
 claude -p &quot;Read README.md and list three implementation questions; cite the relevant sections.&quot;
 </code></pre>
 <p>To use TrueForge, first ensure port 3000 is free, run <code>trueforge</code>, wait for its listening message and open the service&#39;s authenticated <code>/proxy/3000/</code> route or configured port-3000 alias. Its model/provider configuration is operator-managed; private chat state remains in that environment. Do not enable privileged container features to make the optional nested sandbox start.</p>
+<p>For Kilo CLI, run <code>kilo</code> in the authenticated terminal, or <code>kilo run --format json &quot;Reply exactly KILO_READY&quot;</code>. The managed launcher uses only internal LiteLLM, stores private client state under <code>/state/kilo</code>, and disables sharing, public-provider selection and background downloads. See the <a href="MANAGED_CLIENT_SUPPORT.html">managed-client guide</a> for the qualified versions, policy and ordinary-versus-near-1M test scope.</p>
 <h3>7 Authenticate to a permitted datalake service</h3>
 <pre><code class="language-sh">kinit &lt;approved-principal&gt;
 klist

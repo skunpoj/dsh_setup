@@ -1,0 +1,40 @@
+{
+  "verifiedDate": "2026-10-19",
+  "scope": "Main DSH runtimes; legacy additional owner instances unchanged",
+  "kiloVersion": "7.8.12",
+  "imageDigest": "sha256:d983a96be7a663ac46ada54e1a078a2454aa8350689a51f87fe89f8dadbe804b",
+  "build": 62941,
+  "mainRuntimesAccepted": 20,
+  "historyIDsPreserved": 167,
+  "historyFilesByteIdentical": 189,
+  "gpuPodUnchanged": true,
+  "canary": {
+    "version": "7.8.12",
+    "unauthorizedOptionsDenied": 3,
+    "operatorPolicyWriteDenied": true,
+    "internalModelListed": true,
+    "exactReply": true,
+    "replyElapsedSeconds": 9.051,
+    "persistedReplyVerified": true,
+    "actualReadToolVerified": true,
+    "publicHttpsDenied": 2,
+    "uid": 10001
+  },
+  "podReplacementPersistenceVerified": true,
+  "hostileProjectAndEnvironmentOverridesIgnored": true,
+  "nativeDshExactReplies": 3,
+  "freshNear1mKiloTest": false,
+  "publicTcpDenials": [
+    {
+      "target": "1.1.1.1",
+      "port": 443,
+      "failureType": "TimeoutError"
+    },
+    {
+      "target": "8.8.8.8",
+      "port": 443,
+      "failureType": "TimeoutError"
+    }
+  ],
+  "syntheticKiloSessionsExported": 2
+}

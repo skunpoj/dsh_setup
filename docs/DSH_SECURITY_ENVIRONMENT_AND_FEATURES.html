@@ -115,7 +115,7 @@ img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #
 <h3>Run tools within a private, restricted workload</h3>
 <p>Each main user/environment has a separate execution process with bounded workspace, session, attachment and credential mounts. Isolation is enforced through the workload and mounted scope, rather than merely choosing different folders in one shared process. Broad parent directories containing other users&#39; data and host-management interfaces are not exposed to ordinary execution.</p>
 <p>The workloads execute as non-root, disable privilege escalation, drop Linux capabilities, use RuntimeDefault seccomp and have no mounted Kubernetes management token. CPU and memory limits constrain local resource use. Additional instances similarly use restricted non-root execution with a designated owner account.</p>
-<p>DSH, Claude Code and TrueForge inherit the selected runtime&#39;s identity, mounts and network policy. Installing a tool does not grant a privileged container, host socket or another user&#39;s credentials. TrueForge&#39;s optional nested sandbox is disabled. Its ordinary tools run within the selected runtime&#39;s existing restrictions.</p>
+<p>DSH and the managed Claude Code, TrueForge and Kilo CLI clients inherit the selected runtime&#39;s identity, mounts and network policy. Installing a tool does not grant a privileged container, host socket or another user&#39;s credentials. TrueForge&#39;s optional nested sandbox is disabled. Its ordinary tools run within the selected runtime&#39;s existing restrictions.</p>
 <h3>Preserve private work and bounded write access</h3>
 <p>Protected working files and durable histories use bounded central CIFS paths. Internet workspaces and histories remain separate. Credentials and profiles remain in their designated private state locations, while approved dependency artifacts are read-only. Generated outputs belong in the user&#39;s designated writable working area.</p>
 <p>Existing histories and files retain their ownership. An explicitly authorized support copy is independent and does not reassign the source, expose a shared parent directory or establish ongoing synchronization. Persistence across runtime replacement is part of the application design; independent recovery from authorized or accidental deletion is a separate storage-service responsibility.</p>
@@ -274,7 +274,7 @@ img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #
 </tr>
 </tbody></table>
 <h2 id="section-5">Platform features and intended use</h2>
-<p>The main interface is the DSH web workspace. Claude Code and TrueForge are optional clients available inside its private execution environment; they do not replace the DSH web interface. One shared local model serves these clients without sharing their working files.</p>
+<p>The main interface is the DSH web workspace. Claude Code, TrueForge and Kilo CLI are optional clients available inside its private execution environment; they do not replace the DSH web interface. One shared local model serves these clients without sharing their working files.</p>
 <table>
 <thead>
 <tr>
@@ -344,6 +344,11 @@ img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #
 <td>Private client state and managed internal model. Optional nested code sandbox is disabled.</td>
 </tr>
 <tr>
+<td>Kilo Code CLI</td>
+<td>Run <code>kilo</code> or <code>kilo run</code> from the authenticated terminal</td>
+<td>Pinned managed CLI, internal LiteLLM only, private <code>/state/kilo</code> state, sharing/telemetry disabled. Qualification is recorded in the <a href="MANAGED_CLIENT_SUPPORT.html">managed-client guide</a>.</td>
+</tr>
+<tr>
 <td>Offline dependency preparation</td>
 <td>Download in Internet, approve artifacts, install from the read-only cache in No Internet</td>
 <td>Python/npm helpers exist. Native/OS dependencies may need a qualified runtime-image build; the package cache is not a shared writable workspace.</td>
@@ -374,6 +379,8 @@ img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #
 <td>Restore compatible configuration on regression; never overwrite newer work with an older history copy.</td>
 </tr>
 </tbody></table>
+<h3>Managed client compatibility</h3>
+<p>Claude Code returned the expected ordinary reply in 1.17 seconds; TrueForge returned it in 0.73 seconds with its saved assistant response verified in the recorded 1017 compatibility tests. Kilo CLI 7.8.12 subsequently passed an exact ordinary reply in 9.05 seconds in a non-root No Internet canary, plus a real read-tool operation and saved-session recovery after pod replacement; it is deployed to all 20 main runtimes. These timings are separate samples including different startup conditions, not a controlled client speed comparison. These are ordinary-request checks, separate from native DSH near-1M acceptance. They do not establish near-1M support or a latency guarantee for every client. <a href="MANAGED_CLIENT_SUPPORT.html">Client versions, usage and acceptance scope</a>.</p>
 <h2 id="section-6">Who can create accounts and use Internet</h2>
 <p>Self-registration is disabled. Only administrators can create accounts for provisioned private runtimes through Admin overview → User management. Creating an account does not automatically provision compute or storage.</p>
 <p>Internet access is a separate per-user permission. Every non-admin account starts without it; administrators retain access and may grant or revoke it individually. The Internet radio option is disabled until valid credentials confirm the permission. The server rejects a forged Internet selection regardless of the browser state. Revocation signs the user out and closes tracked gateway connections; it does not cancel tools already executing. Password changes preserve the permission. No Internet remains the default even for approved users.</p>

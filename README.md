@@ -1,5 +1,7 @@
 # DSH — Private Execution Environments and Kerberos Datalake Access
 
+Managed coding clients: **Claude Code, TrueForge and Kilo CLI**, inside private DSH environments through internal LiteLLM. See [client setup, controls and qualification](docs/MANAGED_CLIENT_SUPPORT.html).
+
 For the consolidated DSpark decisions, failed trials, memory corrections, preparation overhead and accepted measurements, see the [inference optimization experience record](docs/INFERENCE_OPTIMIZATION_EXPERIENCE.html).
 
 For installation, follow the [complete operator walkthrough](docs/INSTALLATION_WALKTHROUGH.md) or the rendered [Setup and Stress-Test Guide](docs/DSH_SETUP_AND_STRESS_TEST_GUIDE.html). The guide separates recorded deployment results from installation commands and identifies required private site inputs.

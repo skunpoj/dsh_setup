@@ -1,5 +1,7 @@
 # Shared LLM — 1M Setup, Performance and Operational Limits
 
+Managed Claude Code, TrueForge and Kilo CLI setup, controls and exact ordinary-test scope are in the [managed-client guide](MANAGED_CLIENT_SUPPORT.html). Kilo 7.8.12 is deployed to the 20 main runtimes; its fresh tests cover ordinary inference, a read tool and private-state persistence, not near-1M CLI qualification.
+
 For the consolidated DSpark decisions, failed trials, memory corrections, preparation overhead and accepted measurements, see the [inference optimization experience record](INFERENCE_OPTIMIZATION_EXPERIENCE.html).
 
 ## Current DSpark configuration and measured behavior

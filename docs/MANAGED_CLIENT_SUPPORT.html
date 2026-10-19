@@ -1,0 +1,51 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH managed coding clients</title><style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
+</style></head><body><main><h1>Managed coding clients inside DSH</h1>
+<p>DSH remains the main web interface. Claude Code, TrueForge and Kilo CLI run as optional clients inside the selected private DSH execution environment. They share the internal LiteLLM/model service, not another user&#39;s project files, credentials or client histories.</p>
+<h2>Compatibility and acceptance</h2>
+<table>
+<thead>
+<tr>
+<th>Client</th>
+<th>Pinned version</th>
+<th>Recorded acceptance</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Claude Code</td>
+<td>2.1.301</td>
+<td>Ordinary exact reply in 1.17 seconds in the 1017 checks</td>
+</tr>
+<tr>
+<td>TrueForge</td>
+<td>0.179.2</td>
+<td>Ordinary exact reply in 0.73 seconds; saved assistant content verified</td>
+</tr>
+<tr>
+<td>Kilo Code CLI</td>
+<td>7.8.12</td>
+<td>Exact ordinary reply in 9.05 seconds in a No Internet canary; saved output, actual read tool and session persistence across pod replacement verified</td>
+</tr>
+</tbody></table>
+<p>The Kilo image is deployed to <strong>all 20 main DSH runtimes</strong>. The rollout preserved <strong>167 existing history IDs and 189 session files byte-for-byte</strong>, with mounts unchanged and no GPU model restart. Native DSH also passed three exact persisted ordinary replies at one and two concurrent clients on the new image. Existing additional owner instances were not changed by this rollout. The Kilo timing includes client startup and is a single compatibility sample, not a controlled speed comparison with the other clients.</p>
+<p>The actual non-root canary rejected model/sharing overrides, denied writes to the operator policy, ignored hostile project/environment overrides, and failed both public-domain and direct-IP HTTPS probes while internal inference worked. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/KILO_SUPPORT_20261019.json">Sanitized acceptance summary</a>.</p>
+<p>These ordinary checks do not substitute for a client-specific near-1M trial. The native DSH million-token, substantial-output, tool and concurrency results remain in the <a href="MODEL_UPDATE_1017.html">checkpoint report</a>. Configuring a 1M client budget is not itself proof of a successful 1M turn in that client. The centralized DSH usage counters do not currently include independent CLI session accounting.</p>
+<h2>Use Kilo from the web terminal</h2>
+<p>Sign in, choose the appropriate environment, and open the authenticated DSH terminal. Work within the selected private <code>/workspace</code>:</p>
+<pre><code class="language-sh">kilo --version
+kilo
+# Or submit an ordinary non-interactive request:
+kilo run --format json &quot;Reply exactly KILO_READY&quot;
+</code></pre>
+<p>The managed launcher selects <code>dsh-internal/deepseek-v4.1-flash</code>, pointing to the internal LiteLLM route and the installed DeepSeek-V4.1-Flash-1017 checkpoint. No Kilo cloud account is required for this provider. Kilo is used as a terminal client; this integration does not add a browser IDE extension or expose a new unauthenticated server.</p>
+<p>Kilo stores data, local state and cache beneath <code>/state/kilo</code>, independently of Claude, TrueForge and native DSH histories. Its durability follows that runtime&#39;s <code>/state</code> mount. The Internet and No Internet environments retain separate state and workspace mounts; signing into another environment does not copy client histories. The new client does not migrate, clone or delete existing histories.</p>
+<h2>How the three controls apply</h2>
+<p><strong>Prevent external leakage.</strong> The launcher uses an operator-owned provider policy, enables only the internal provider, disables project-level provider configuration and removes inherited configuration/proxy overrides. Automatic sharing, OpenTelemetry, automatic updates, public model-catalog refresh, default plugins and LSP downloads are disabled. The No Internet runtime&#39;s infrastructure policy remains the enforcing public-network boundary; the Internet environment remains Internet-capable by design. No new public-destination allowance is introduced to install or run Kilo.</p>
+<p><strong>Prevent damage or excessive access.</strong> Kilo runs as the same non-root identity as its private execution workload, with the same scoped mounts, dropped capabilities and resource limits. Workspace read/search tools are permitted; other tool actions request approval. External-directory access is denied in the supplied client policy, and no host socket or elevated sandbox permission is added. Client permission prompts complement operating-system/storage permissions; they are not a replacement for those boundaries.</p>
+<p><strong>Keep results contained.</strong> Sharing and cloud/remote commands are disabled in the supported launcher. Sessions remain in private runtime state. The existing authenticated terminal gateway controls browser access; installing Kilo does not add a public publication route or give administrators ownership of another user&#39;s files. Authorized users can still copy content, and ordinary shell access can invoke programs independently of the launcher. The operator policy is not represented as an unbypassable sandbox for arbitrary code; the container/network/storage boundaries remain authoritative.</p>
+<h2>Setup and maintenance</h2>
+<p>The Dockerfile installs <code>@kilocode/cli@7.8.12</code> during the approved image build. No Internet runtime startup performs no package download. The build places root-owned policy in <code>/etc/kilo/kilo.json</code> and installs the <code>kilo</code>/<code>kilocode</code> managed launchers. Credentials are read at runtime from the existing model-scoped <code>/harness-credentials/api-key</code> Secret mount, rather than included in the image or report. Generic deployments must adapt the operator-owned LiteLLM URL to their approved internal service.</p>
+<p>Retain one-hour provider and stream deadlines to accommodate cold preparation. Context/output budgets are 1,048,576/8,192 tokens; exact final-envelope counting, output reserve and bounded long admission remain enforced by the shared gateway. A long-running client must not bypass those controls by selecting a direct model endpoint.</p>
+<p>Before promotion, test the actual built binary as non-root: version, resolved internal provider, refusal of unauthorized provider/sharing options, correct ordinary output, private saved session, a bounded file tool operation, persistence and public-network denial in No Internet. Preserve image digest, private runtime specs and history fingerprints before replacing runtimes. Do not restart the GPU model merely to install a client.</p>
+<p>The integration follows Kilo&#39;s official <a href="https://kilo.ai/docs/code-with-ai/platforms/cli">CLI installation and configuration</a> and <a href="https://kilo.ai/docs/code-with-ai/agents/custom-models">custom-model configuration</a>. Package upgrades require review and repeated managed-policy/runtime checks; no automatic production upgrade is enabled.</p>
+</main></body></html>
