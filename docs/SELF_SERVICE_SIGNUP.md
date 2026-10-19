@@ -8,7 +8,7 @@
 4. Sign in with **No Internet / Internal** selected. Your files, conversations, attachments and credentials belong to this private environment.
 5. If Internet work is needed, ask an administrator for approval. After approval, logout and sign in with **Internet** selected. Its workspace and history remain separate from No Internet.
 
-The login page shows available workspace capacity. When no unused pair remains, signup refuses the request without creating an unusable account or sharing another user's runtime. An operator replenishes capacity; retry after it is available.
+The login page shows **N new-user slots available**, refreshed every 15 seconds while visible and when returning to the tab. This is unused prepared account capacity, not the number of project folders or app URLs assigned to a user. A failed refresh shows capacity unavailable. When no unused pair remains, signup refuses the request without creating an unusable account or sharing another user's runtime. An operator replenishes capacity; retry after it is available. See the [capacity walkthrough](PLATFORM_CAPACITY_AND_CLIENTS.html).
 
 ## For an administrator
 

@@ -14,6 +14,8 @@ Anyone reaching the login page can create an account while private capacity is a
 
 ### Custom app URLs and ports
 
+The Create account count means **new-user slots**, not multiple workspaces for one user. It refreshes from current assignments; an unavailable refresh shows no old number. Your project folders and registered app names are separate concepts. See [capacity and monitoring](PLATFORM_CAPACITY_AND_CLIENTS.html).
+
 Open `/applications` after signing in to save a friendly name for a port in your private environment. The notebook suggestion is `<username>-jupyter` on port 8888. Other app names/ports are configurable with collision checks. Login and tool navigation from a custom app hostname use the main DSH address. See [application URLs and Ingress setup](APP_URLS_AND_INGRESS.html) for path URLs, approved hostnames, TLS/DNS, wildcard behavior and publication commands.
 
 ### Pick the correct environment
@@ -37,6 +39,10 @@ Continue the same conversation for related work. Start another session for an un
 The shared model supports a total budget of 1,048,576 tokens, including instructions, tools, conversation, output and reserve. A short prompt in a large existing conversation can still require substantial processing. Near-1M cold preparation is expensive. Requests above the long-admission threshold are serialized; ordinary requests can continue alongside them. `/compact` reduces conversation history when useful; it does not increase the model's total budget.
 
 ## 3 Run tools and inspect results
+
+Approved startup services run in a separate supervisor container. Keep their dependencies in the pinned runtime image or an approved project-local installation visible in the owner workspace. Packages installed only in DSH's temporary container directories are not automatically shared with that container.
+
+DSH, Claude Code, Kilo and TrueForge load the same [platform guide](SHARED_PLATFORM_GUIDE.html) for environments, storage, applications and managed inference. Their conversations remain separate. The guide supplies context; the live gateway controls actual account and app permissions.
 
 For Python notebooks, run `jupyter lab` in your terminal and open `/proxy/8888/lab` on this DSH site. Create a Python 3 notebook and run `print(6 * 7)`. Save it under `/workspace`; stop unused kernels when finished. Jupyter uses the selected environment's private storage, permissions and network controls. See [JupyterLab usage and setup](JUPYTERLAB.html).
 

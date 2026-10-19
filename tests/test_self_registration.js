@@ -18,10 +18,14 @@ const password='long-synthetic-password',signup=user=>request('POST','/register'
 const login=(user,internet='off',pass=password)=>request('POST','/login',{username:user,password:pass,internet});
 (async()=>{try{await new Promise(r=>backend.listen(3081,'0.0.0.0',r));await start();
  const page=await request('GET','/login');assert(page.text.includes('id="tab-register"'));assert(page.text.includes('minlength="12"'));
+ const capacityBefore=JSON.parse((await request('GET','/api/signup-capacity')).text);
+ assert.equal(capacityBefore.remainingSlots,2);assert.deepEqual(Object.keys(capacityBefore).sort(),['observedAt','registrationEnabled','remainingSlots']);
+ assert(!page.text.includes('private workspace(s) available'));assert(page.text.includes("new-user slots available"));
  assert.equal((await request('POST','/register',{username:'evil',password,confirm_password:password},'',{Origin:'https://evil.example'})).status,403);
  for(const user of ['admin','__proto__','constructor'])assert.equal((await signup(user)).status,409);
  assert.equal((await request('POST','/register',{username:'alice',password:'short',confirm_password:'short'})).status,400);
  const concurrent=await Promise.all(['alice','bob','overflow'].map(signup));assert.equal(concurrent.filter(r=>r.status===200).length,2);assert.equal(concurrent.filter(r=>r.status===503).length,1);
+ assert.equal(JSON.parse((await request('GET','/api/signup-capacity')).text).remainingSlots,0);
  const users=JSON.parse(fs.readFileSync(store));const names=Object.keys(users).filter(u=>u!=='admin');assert.equal(names.length,2);assert.notEqual(users[names[0]].runtimeSlot,users[names[1]].runtimeSlot);
  for(const user of names){assert.equal(users[user].internetAllowed,false);assert.equal(users[user].scheme,'scrypt-v1');assert(!fs.readFileSync(store,'utf8').includes(password));assert.equal((await login(user,'on')).status,403);}
  const a=await login(names[0]),b=await login(names[1]);assert.equal(a.status,302);assert.equal(b.status,302);
@@ -33,5 +37,6 @@ const login=(user,internet='off',pass=password)=>request('POST','/login',{userna
  assert.equal((await request('POST','/change-password',{username:names[0],old_password:password,new_password:'replacement-synthetic-password'})).status,200);assert.equal(JSON.parse(fs.readFileSync(store))[names[0]].runtimeSlot,users[names[0]].runtimeSlot);
  assert.equal((await action('disable',names[1])).status,200);assert.equal((await signup('still-full')).status,503);
  await stop();await start();assert.equal((await login(names[0],'off','replacement-synthetic-password')).status,302);assert.equal((await login(names[1])).status,401);assert.equal((await signup('no-reuse')).status,503);
+ assert.equal(JSON.parse((await request('GET','/api/signup-capacity')).text).remainingSlots,0);
  console.log('Self signup: atomic exclusive allocation, capacity refusal, private routing, default Internet denial, admin grant/revoke, password change and restart persistence passed.');
 }finally{await stop();await new Promise(r=>backend.close(r));fs.rmSync(root,{recursive:true,force:true});}})().catch(e=>{console.error(e);process.exitCode=1;});

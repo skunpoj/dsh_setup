@@ -71,6 +71,14 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
   assert.equal(await page.locator('#usageAgents').textContent(),'1');assert.equal(await page.locator('#usageTokens').textContent(),'5,500 / 900');
   assert.equal(await page.locator('#usageRecentDecode').textContent(),'80');assert.equal(await page.locator('#usageRows tr').count(),1);
   assert((await page.locator('#usageRows').textContent()).includes('(partial)'));assert(!(await page.locator('body').textContent()).includes('PRIVATE_TELEMETRY'));
+  assert((await page.locator('#storageFreshness').textContent()).includes('older than 5 minutes'));
+  assert((await page.locator('#usageHealth').textContent()).includes('All configured runtime summaries available'));
+  await page.unroute('**/api/admin/telemetry');
+  await page.route('**/api/admin/telemetry',route=>route.fulfill({status:503,json:{error:'unavailable'}}));
+  await page.click('#refresh');await page.waitForFunction(()=>document.getElementById('usageHealth').textContent==='Current activity is unknown.');
+  assert.equal(await page.locator('#usageSessions').textContent(),'—');assert.equal(await page.locator('#usageRows tr').count(),0);
+  await page.unroute('**/api/admin/telemetry');await page.route('**/api/admin/telemetry',route=>route.fulfill({json:usageFixture}));
+  await page.click('#refresh');await page.waitForFunction(()=>document.getElementById('usageSessions').textContent==='3');
   for(const width of [1440,768,390]){
    await page.setViewportSize({width,height:1000});
    const layout=await page.evaluate(()=>({viewport:innerWidth,width:document.documentElement.scrollWidth,
