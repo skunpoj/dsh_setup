@@ -22,7 +22,9 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  await context.route('**/*',route=>{const url=new URL(route.request().url());if(!['127.0.0.1','dsh-ci.test'].includes(url.hostname)){externalRequests.push(url.origin);return route.abort();}if(/\/v1\/(chat|responses|completions)/.test(url.pathname)){inferenceRequests.push(url.pathname);return route.abort();}return route.continue();});
  page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>pageErrors.push(e.message));page.on('console',message=>{if(message.type()==='error')browserDiagnostics.push({type:'console',message:message.text().replace(/token[=:]\s*[A-Za-z0-9_-]+/gi,'token=[REDACTED]').slice(0,1000)});});page.on('response',response=>{if(response.status()>=400)browserDiagnostics.push({type:'http',status:response.status(),path:new URL(response.url()).pathname});});
  await page.goto(`http://dsh-ci.test:${port}/?token=${encodeURIComponent(ready.token)}`,{waitUntil:'domcontentloaded'});
- const settings=()=>page.getByRole('button',{name:'Settings',exact:true});
+ const settings=()=>page.getByRole('button',{name:'Account menu',exact:true});
+ // The upstream account plugin fills settings.launcher; Settings lives in its menu.
+ const openSettings=async()=>{await settings().click();await page.getByRole('menuitem',{name:'Settings',exact:true}).click();};
  await settings().waitFor({state:'visible'});
  const selector=()=>page.getByRole('button',{name:/^Select model/});
  await selector().waitFor({state:'visible'});await selector().click();
@@ -31,7 +33,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const models=group.locator('[data-model-id]');await models.nth(4).waitFor({state:'visible'});
  const rows=await models.evaluateAll(nodes=>nodes.map(node=>({provider:node.getAttribute('data-provider-id'),model:node.getAttribute('data-model-id')})));
  assert(rows.length>=5,'Actual DOM model selector lacks managed catalog');assert(rows.every(row=>row.provider==='litellm-cluster'),'External provider rendered in model selector');assert(rows.some(row=>row.model==='deepseek-v4.1-flash'));
- await page.keyboard.press('Escape');await settings().click();
+ await page.keyboard.press('Escape');await openSettings();
  const dialog=page.getByRole('dialog');await dialog.waitFor({state:'visible'});
  const modelsNav=dialog.getByRole('button',{name:'Models',exact:true});
  await modelsNav.click();await dialog.getByRole('heading',{name:'Models',exact:true}).waitFor({state:'visible'});
@@ -47,7 +49,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  assert(await coding().isEnabled(),'Host-backed preference acknowledgement did not settle');
  // Fresh navigation reconnects the real application with the server-minted cookie.
  await page.reload({waitUntil:'domcontentloaded'});await settings().waitFor({state:'visible'});
- await settings().click();await page.getByRole('dialog').getByRole('button',{name:'General',exact:true}).click();
+ await openSettings();await page.getByRole('dialog').getByRole('button',{name:'General',exact:true}).click();
  await coding().waitFor({state:'visible'});assert.equal(await coding().isChecked(),!before,'Host owner preference did not persist across reload');
  await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
  await selector().waitFor({state:'visible'});await selector().click();const reopened=page.getByRole('menuitem',{name:/^Model/});if(await reopened.count())await reopened.click();await page.getByRole('group',{name:'Model and reasoning effort',exact:true}).locator('[data-model-id="deepseek-v4.1-flash"]').waitFor({state:'visible'});
