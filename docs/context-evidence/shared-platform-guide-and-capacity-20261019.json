@@ -177,5 +177,53 @@
         "seconds": 0.319
       }
     ]
+  },
+  "normalizedLoaderActualClientAcceptance": {
+    "newLoaderSHA256": "339928b15a54b6f956676d824f51e3d867b4e8b22ce2668b09fafe8d38a17e09",
+    "mountedLoaderMatchesSource": true,
+    "fourClientGuideLoad": {
+      "fourClientGuideLoadVerified": true,
+      "results": [
+        {
+          "client": "dsh",
+          "guideMarkerRecovered": true,
+          "defaultLimitCorrect": true,
+          "urlDoesNotStartProcess": true,
+          "exact": true,
+          "seconds": 0.857
+        },
+        {
+          "client": "claude",
+          "guideMarkerRecovered": true,
+          "defaultLimitCorrect": true,
+          "urlDoesNotStartProcess": true,
+          "exact": true,
+          "seconds": 0.713
+        },
+        {
+          "client": "kilo",
+          "guideMarkerRecovered": true,
+          "defaultLimitCorrect": true,
+          "urlDoesNotStartProcess": true,
+          "exact": true,
+          "seconds": 6.253
+        },
+        {
+          "client": "trueforge",
+          "guideMarkerRecovered": true,
+          "defaultLimitCorrect": true,
+          "urlDoesNotStartProcess": true,
+          "exact": true,
+          "seconds": 0.413
+        }
+      ],
+      "markerWasNotInUserPrompt": true
+    }
+  },
+  "manualValidation": {
+    "htmlPages": 29,
+    "viewportChecks": 87,
+    "passed": true,
+    "guidedTourScenes": 14
   }
 }

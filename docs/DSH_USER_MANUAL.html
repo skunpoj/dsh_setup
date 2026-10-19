@@ -12,6 +12,7 @@ img{max-width:100%;height:auto;border-radius:12px}table{table-layout:fixed}pre{w
 </ol>
 <p>Anyone reaching the login page can create an account while private capacity is available. Signup assigns an exclusive No Internet/Internet runtime pair, but Internet access stays denied until an administrator grants it. A full pool refuses signup without creating an account. See <a href="SELF_SERVICE_SIGNUP.html">Create an account and approve Internet access</a> for the complete flow.</p>
 <h3>Custom app URLs and ports</h3>
+<p>The Create account count means <strong>new-user slots</strong>, not multiple workspaces for one user. It refreshes from current assignments; an unavailable refresh shows no old number. Your project folders and registered app names are separate concepts. See <a href="PLATFORM_CAPACITY_AND_CLIENTS.html">capacity and monitoring</a>.</p>
 <p>Open <code>/applications</code> after signing in to save a friendly name for a port in your private environment. The notebook suggestion is <code>&lt;username&gt;-jupyter</code> on port 8888. Other app names/ports are configurable with collision checks. Login and tool navigation from a custom app hostname use the main DSH address. See <a href="APP_URLS_AND_INGRESS.html">application URLs and Ingress setup</a> for path URLs, approved hostnames, TLS/DNS, wildcard behavior and publication commands.</p>
 <h3>Pick the correct environment</h3>
 <table>
@@ -45,6 +46,7 @@ img{max-width:100%;height:auto;border-radius:12px}table{table-layout:fixed}pre{w
 <p>Continue the same conversation for related work. Start another session for an unrelated task. Durable conversations and attachments remain in their assigned user&#39;s environment; another user&#39;s login does not inherit them. Refreshing the browser is different from starting a new conversation.</p>
 <p>The shared model supports a total budget of 1,048,576 tokens, including instructions, tools, conversation, output and reserve. A short prompt in a large existing conversation can still require substantial processing. Near-1M cold preparation is expensive. Requests above the long-admission threshold are serialized; ordinary requests can continue alongside them. <code>/compact</code> reduces conversation history when useful; it does not increase the model&#39;s total budget.</p>
 <h2 id="chapter-3">3 Run tools and inspect results</h2>
+<p>DSH, Claude Code, Kilo and TrueForge load the same <a href="SHARED_PLATFORM_GUIDE.html">platform guide</a> for environments, storage, applications and managed inference. Their conversations remain separate. The guide supplies context; the live gateway controls actual account and app permissions.</p>
 <p>For Python notebooks, run <code>jupyter lab</code> in your terminal and open <code>/proxy/8888/lab</code> on this DSH site. Create a Python 3 notebook and run <code>print(6 * 7)</code>. Save it under <code>/workspace</code>; stop unused kernels when finished. Jupyter uses the selected environment&#39;s private storage, permissions and network controls. See <a href="JUPYTERLAB.html">JupyterLab usage and setup</a>.</p>
 <p>Use the web terminal from the selected environment to inspect files and run commands. The terminal executes inside your assigned runtime, not on the Kubernetes node. Its processes have the same file permissions and network restrictions as the assistant&#39;s tools.</p>
 <p>For a generated HTML result, serve only the result directory through an approved port and open its authenticated preview. Stop the server after use. Keep source files separate from generated results, review diffs and do not place passwords or tickets in prompts, repositories or exported reports.</p>
@@ -485,6 +487,85 @@ klist
 <li><strong>Review activity:</strong> open <strong>Central access audit</strong> to inspect login, access and account-management events. Management events identify the administrator and affected account.</li>
 </ol>
 <p>Administrator accounts and roles are maintained by the operator. The dashboard does not grant datalake permissions or expose stored passwords, Kerberos credentials or conversation contents.</p>
+<h3>Capacity, usage and shared client guidance</h3>
+<h4>What “new-user slots available” means</h4>
+<p>The Create account page displays <strong>N new-user slots available</strong>. N is read from
+the gateway&#39;s current account assignments, not written as a fixed number in the
+page. A slot is a pre-provisioned pair of private execution environments for one
+new account. It is not a user&#39;s project folder count, app-name allowance or GPU
+request allowance. Internet access still requires administrator approval.</p>
+<p>The count updates every 15 seconds while the page is visible and when returning
+to the tab. If it cannot refresh, the page shows capacity unavailable. Account
+creation always rechecks allocation on the server; two people viewing the same
+last slot cannot both claim it. An assigned slot stays reserved when its account
+is disabled, preserving private files and history. Increasing the prepared pool
+is an operator deployment action. Remaining slots do not promise worker health;
+runtime availability is shown separately in the admin dashboard.</p>
+<h4>Admin capacity and monitoring</h4>
+<p>Open <strong>Admin overview</strong> to see:</p>
+<table>
+<thead>
+<tr>
+<th>View</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>New-user slots</td>
+<td>Remaining slots, assigned/prepared slots and enabled/disabled accounts</td>
+</tr>
+<tr>
+<td>Browser sessions</td>
+<td>Sessions authenticated through the main gateway, split by environment</td>
+</tr>
+<tr>
+<td>DSH activity</td>
+<td>Running DSH agents, queued messages, stored conversations, turns and model steps</td>
+</tr>
+<tr>
+<td>Token usage</td>
+<td>Accumulated input/output tokens and separately labelled recorded/recent decode rates</td>
+</tr>
+<tr>
+<td>Runtime coverage</td>
+<td>Responding/configured private runtimes; incomplete coverage is explicit</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>Per-user/environment workspace and durable file sizes, local state used/capacity, collection time and partial-scan status</td>
+</tr>
+<tr>
+<td>Applications</td>
+<td>Names, ports, enabled state and one administrator-controlled allowance per account</td>
+</tr>
+<tr>
+<td>Managed services</td>
+<td>Administrator-controlled startup and status when the service supervisor is deployed</td>
+</tr>
+<tr>
+<td>Access audit</td>
+<td>Central access records and projection freshness</td>
+</tr>
+</tbody></table>
+<p>Capacity and DSH activity refresh every 15 seconds while the dashboard is visible.
+Unavailable activity clears the numeric cards instead of displaying old numbers
+as current. A storage collection older than five minutes is marked; the Refresh
+button does not run a new storage scan. The operator updates storage observations
+with <code>scripts/collect_admin_capacity.py</code>. Saved infrastructure/model observations
+retain their own timestamps.</p>
+<p>These rates are DSH conversation measurements, not complete Claude Code/Kilo/
+TrueForge usage accounting or instantaneous GPU telemetry. Imported histories
+can increase accumulated token totals; the recent-rate calculation excludes
+old imported conversations. Missing measurements display unknown rather than zero.</p>
+<h4>Platform context in all four clients</h4>
+<p>The <a href="SHARED_PLATFORM_GUIDE.md">shared platform guide</a> supplies DSH, Claude Code,
+Kilo and TrueForge with the same platform concepts. It explains private accounts,
+environments, persistent files, app URLs/ports/limits, notebooks, dependencies
+and managed inference. The clients do not share conversation memory. Live
+account/app settings remain authoritative when an administrator changes them.</p>
+<p>Use DSH as the main web workspace; choose Web Terminal or JupyterLab on login when
+needed. DSH remains the default landing page. <strong>My apps</strong> registers a name and
+port, while the service-startup controls manage a process separately.</p>
 <h2 id="chapter-6">6 Troubleshoot common situations</h2>
 <table>
 <thead>
@@ -963,7 +1044,7 @@ python scripts/publish_manual_bundle.py --bundle &quot;$PRIVATE_DIR/manual-bundl
 <li>Sign in with <strong>No Internet / Internal</strong> selected. Your files, conversations, attachments and credentials belong to this private environment.</li>
 <li>If Internet work is needed, ask an administrator for approval. After approval, logout and sign in with <strong>Internet</strong> selected. Its workspace and history remain separate from No Internet.</li>
 </ol>
-<p>The login page shows available workspace capacity. When no unused pair remains, signup refuses the request without creating an unusable account or sharing another user&#39;s runtime. An operator replenishes capacity; retry after it is available.</p>
+<p>The login page shows <strong>N new-user slots available</strong>, refreshed every 15 seconds while visible and when returning to the tab. This is unused prepared account capacity, not the number of project folders or app URLs assigned to a user. A failed refresh shows capacity unavailable. When no unused pair remains, signup refuses the request without creating an unusable account or sharing another user&#39;s runtime. An operator replenishes capacity; retry after it is available. See the <a href="PLATFORM_CAPACITY_AND_CLIENTS.html">capacity walkthrough</a>.</p>
 <h4>For an administrator</h4>
 <p>Open <strong>Admin overview → User management</strong>. Reload User management after a new signup, find the account and select <strong>Allow Internet</strong>. To remove the permission, select <strong>Disable Internet</strong>. Revocation invalidates that user&#39;s gateway sessions and closes tracked gateway connections, so a fresh Internet login is denied. It does not cancel processes already running in the private runtime.</p>
 <p>The dashboard also supports <strong>Create account</strong>, <strong>Enable</strong>, <strong>Disable</strong> and <strong>Sign out</strong>. New names use available private-pair capacity; existing operator-reserved identities retain their explicit mappings. An administrator role is assigned by the operator, never by the signup form.</p>
@@ -1124,6 +1205,8 @@ print(len(vector))  # BGE-M3&#39;s expected vector length is 1024.
 <li><a href="DSH_SETUP_AND_STRESS_TEST_GUIDE.html">Detailed setup and stress tests</a></li>
 <li><a href="MANAGED_CLIENT_SUPPORT.html">Claude Code, TrueForge and Kilo support</a></li>
 <li><a href="JUPYTERLAB.html">JupyterLab notebooks</a></li>
+<li><a href="PLATFORM_CAPACITY_AND_CLIENTS.html">Capacity, activity and shared-client walkthrough</a></li>
+<li><a href="SHARED_PLATFORM_GUIDE.html">Shared platform guide loading</a></li>
 <li><a href="DSH_PLATFORM_GUIDE.html">Platform architecture reference</a></li>
 </ul>
 </main>
