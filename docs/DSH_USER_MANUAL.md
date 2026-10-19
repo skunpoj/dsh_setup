@@ -52,6 +52,8 @@ Use the usage panels to distinguish stored histories from active browser session
 
 Users change their own password through the password-change flow. An admin role grants operational oversight, not automatic ownership of private conversations. Keep any explicitly authorized support copy separate from the owner's original data.
 
+Reload **User management** to see a newly registered account. Unused prepared pairs are available signup capacity; assigned pairs appear in account-scoped usage. Disabling an account preserves its private data and does not recycle the pair.
+
 ## 6 Troubleshoot common situations
 
 | Symptom | What to check |

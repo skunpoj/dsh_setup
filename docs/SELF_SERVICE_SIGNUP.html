@@ -11,8 +11,37 @@ img{max-width:100%;height:auto;border-radius:12px}table{table-layout:fixed}pre{w
 </ol>
 <p>The login page shows available workspace capacity. When no unused pair remains, signup refuses the request without creating an unusable account or sharing another user&#39;s runtime. An operator replenishes capacity; retry after it is available.</p>
 <h2>For an administrator</h2>
-<p>Open <strong>Admin overview → User management</strong>. Find the account and select <strong>Allow Internet</strong>. To remove the permission, select <strong>Disable Internet</strong>. Revocation invalidates that user&#39;s gateway sessions and closes tracked gateway connections, so a fresh Internet login is denied. It does not cancel processes already running in the private runtime.</p>
+<p>Open <strong>Admin overview → User management</strong>. Reload User management after a new signup, find the account and select <strong>Allow Internet</strong>. To remove the permission, select <strong>Disable Internet</strong>. Revocation invalidates that user&#39;s gateway sessions and closes tracked gateway connections, so a fresh Internet login is denied. It does not cancel processes already running in the private runtime.</p>
 <p>The dashboard also supports <strong>Create account</strong>, <strong>Enable</strong>, <strong>Disable</strong> and <strong>Sign out</strong>. New names use available private-pair capacity; existing operator-reserved identities retain their explicit mappings. An administrator role is assigned by the operator, never by the signup form.</p>
+<h2>Common questions</h2>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Create account is unavailable on a fresh installation</td>
+<td>Operators first qualify empty private pairs and explicitly enable registration; bootstrap defaults remain off.</td>
+</tr>
+<tr>
+<td>Signup reports full capacity</td>
+<td>No account is created. Ask the operator to add new pairs; disabling an existing account does not free its slot.</td>
+</tr>
+<tr>
+<td>A new account is missing from User management</td>
+<td>Reload the page. Usage refresh is separate from reloading the account list.</td>
+</tr>
+<tr>
+<td>Internet is still unavailable after approval</td>
+<td>Logout and sign in again with Internet selected. Approval does not move files or history.</td>
+</tr>
+<tr>
+<td>Internet permission was revoked</td>
+<td>New Internet logins are denied and tracked gateway connections close. An operator must separately stop any detached work if required.</td>
+</tr>
+</tbody></table>
 <h2>Why prepared private pairs</h2>
 <p>A small warm pool provides immediate signup on the existing node. Each slot is an empty, dedicated No Internet runtime and Internet runtime, with separate private storage and inference credentials. Allocating a pair does not grant Internet access. The gateway binds the username to the slot in its owner-only account record; it accepts no client-supplied runtime, role, host or permission.</p>
 <p>The gateway has no Kubernetes management token. Operators provision and qualify the private pairs separately; signup only allocates capacity from the reviewed, read-only catalog. Hashing the password and allocating the unique slot are one synchronous account-store transaction in a single gateway writer. Its atomic file replacement preserves the assignment across gateway replacement. Use one gateway replica with Recreate handover; this file-backed allocator is not a multi-replica account database.</p>

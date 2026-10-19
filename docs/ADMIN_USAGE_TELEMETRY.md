@@ -6,6 +6,12 @@ Administrators can use `/admin` to manage accounts and review numeric activity s
 
 The illustration uses synthetic accounts and counters to explain the layout; it is not a live user's activity record.
 
+## Accounts and Internet approval
+
+Users select **Create account** on the login page. Signup assigns an exclusive qualified runtime pair and denies Internet by default. Open **User management** to create an account from available capacity, enable or disable access, sign out sessions, or select **Allow Internet** / **Disable Internet**. Reload the page to pick up new registrations. The usage collector includes assigned signup pairs alongside explicitly configured accounts; unused pairs are capacity, not user activity.
+
+Disabling an account retains its assignment, files and histories. Internet revocation invalidates gateway sessions and closes tracked connections; it does not terminate detached tools already running inside a runtime. An administrator cannot select arbitrary backend addresses or self-assign the admin role through the signup form. Operators replenish empty pairs; the gateway has no Kubernetes management token. See the [signup and approval procedure](SELF_SERVICE_SIGNUP.html).
+
 ## Usage panels
 
 | Panel | Meaning |

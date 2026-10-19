@@ -31,7 +31,7 @@ Internet access is a separate per-user permission. Every non-admin account start
 
 These controls are deployed on the main gateway. Separate legacy-instance gateways are not covered by this permission change. Activity oversight and account administration do not grant ownership of private user content.
 
-The deployed dashboard provides account management, access activity and numeric summaries from the 18 configured private runtimes: stored sessions, running agents, queued messages, turns, LLM steps, input/output token totals, recorded decode and wall-clock output rates, and workspace/durable-storage sizes. These are scoped snapshots, not live GPU utilization or independent Claude Code/TrueForge accounting. Actual deployed-code authorization and numeric collection were checked using a loopback-only disposable authenticated account; a real administrator password/browser login was not part of that acceptance. See the [dashboard definitions and scope](ADMIN_USAGE_TELEMETRY.html). Saved demonstration screenshots do not show current utilization.
+The deployed dashboard provides account management, access activity and numeric summaries from the configured private runtimes, including assigned signup pairs: stored sessions, running agents, queued messages, turns, LLM steps, input/output token totals, recorded decode and wall-clock output rates, and workspace/durable-storage sizes. These are scoped snapshots, not live GPU utilization or independent Claude Code/TrueForge accounting. Actual deployed-code authorization and numeric collection were checked using a loopback-only disposable authenticated account; a real administrator password/browser login was not part of that acceptance. See the [dashboard definitions and scope](ADMIN_USAGE_TELEMETRY.html). Saved demonstration screenshots do not show current utilization.
 
 ## Environment and access design
 
@@ -42,7 +42,7 @@ Users enter through the authenticated gateway. The selected identity and environ
 | Main No Internet environment | Work with internal data and tools without direct public Internet access | Default environment; private execution/storage and restricted destinations. Remote submitted jobs remain subject to their own platform's network controls. |
 | Main Internet environment | Prepare dependencies and perform explicitly Internet-capable work | Separate private execution, files, histories and credentials. It does not mount protected No Internet content. |
 | Additional owner instances | Provide an assigned owner's Internet-capable workspace | Owner-only authentication and scoped storage; not represented as No Internet environments. |
-| Admin overview, /admin | Manage provisioned accounts and review access events | Admin authorization; operational oversight does not automatically grant ownership of users' files or histories. |
+| Admin overview, /admin | Manage accounts, Internet grants and available private capacity; review access events | Admin authorization; operational oversight does not automatically grant ownership of users' files or histories. |
 | Terminal, /terminal, and approved application previews | Run tools and view generated applications in the selected environment | Authenticated HTTP/WebSocket routing and the same private runtime identity, mounts and network policy. |
 | Shared internal inference and optional embeddings | Serve model requests without duplicating GPU models for each user | Internal authenticated route with controlled destinations; shared inference does not merge workspaces. |
 
@@ -58,7 +58,7 @@ const esc=x=>x.replaceAll('&','&amp;').replaceAll('"','&quot;');
 for(const [name,title,md]of [['DSH_SECURITY_ENVIRONMENT_AND_FEATURES','DSH — Security, Environments and Features',security],['DSH_SETUP_AND_STRESS_TEST_GUIDE','DSH — Setup and Stress-Test Results',setup]]){
  const resolved=md;
  fs.writeFileSync(path.join(root,'docs',name+'.md'),resolved);
- let html=marked.parse(resolved);let diagram=0;
+ let html=marked.parse(resolved).replace(/href="\.\.\/([^"\s]+)"/g,(_,ref)=>`href="https://github.com/skunpoj/dsh_setup/blob/main/${ref}"`);let diagram=0;
  html=html.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,(_,code)=>`<section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture ${++diagram}</span><div class="mermaid-toolbar"><button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button><button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button><button onclick="panZoomMermaid(this,'reset')">Reset</button><button onclick="panZoomMermaid(this,'fullscreen')">Fullscreen</button><button onclick="exportMermaid(this,'svg')">Save SVG</button><button onclick="exportMermaid(this,'png')">Save PNG</button><button onclick="exportMermaid(this,'copy')">Copy code</button></div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="${code.replaceAll('"','&quot;')}">${code}</div></div></section>`);
  html=html.replace(/<img src="(images\/platform\/[^"\s]+)" alt="([^"]*)">/g,(_,image,alt)=>`<img src="data:image/png;base64,${fs.readFileSync(path.join(root,'docs',image)).toString('base64')}" alt="${alt}">`);
  const toc=[];html=html.replace(/<h2>(.*?)<\/h2>/g,(_,title)=>{const id='section-'+(toc.length+1);toc.push(`<a href="#${id}">${title}</a>`);return `<h2 id="${id}">${title}</h2>`;});

@@ -156,7 +156,7 @@ img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #
 <tr>
 <td>Inference</td>
 <td>Reviewed manifest; correct loaded checkpoint; authenticated correct answer; direct bypass denied</td>
-<td>Step 4 and <a href="../gpu-stack/README.md">portable GPU setup</a></td>
+<td>Step 4 and <a href="https://github.com/skunpoj/dsh_setup/blob/main/gpu-stack/README.md">portable GPU setup</a></td>
 </tr>
 <tr>
 <td>Private runtimes and gateway</td>
@@ -373,6 +373,10 @@ python scripts/publish_manual_bundle.py --bundle &quot;$PRIVATE_DIR/manual-bundl
 <tbody><tr>
 <td>Login and account roles</td>
 <td>Correct login works; incorrect login, forged roles and ordinary-user admin calls fail; logout invalidates access</td>
+</tr>
+<tr>
+<td>Self-service signup</td>
+<td>Exclusive empty pairs are assigned atomically; Internet starts denied; full capacity creates no account; assignment survives gateway replacement; test-only slots remain unpublished</td>
 </tr>
 <tr>
 <td>Environment selection</td>

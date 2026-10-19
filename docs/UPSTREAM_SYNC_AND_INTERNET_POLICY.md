@@ -1,5 +1,9 @@
 # DSH upstream maintenance and release policy
 
+## Account provisioning overlay
+
+Self-service signup and administrator Internet approval are gateway deployment overlays, separate from the upstream application. Preserve account-store slot assignments, the qualified read-only signup catalog and per-user mounts during updates. Run the routing test entrypoint, including self-registration regression checks, and qualify candidate signup/persistence before changing the published pool. Never reset account state or replace assigned private storage during an upstream upgrade. See [self-service setup and replenishment](SELF_SERVICE_SIGNUP.html).
+
 ## Current patch and update review — 17 October 2026
 
 Fresh registry checks found npm `latest=0.2.0-rc.2`, `next=0.2.1-rc.2` and `alpha=0.2.1-alpha.5`. The pinned default still matches latest. Official master was `687f282e8625c6b8d11ff58211a90524be2e4317`; master, preview channels and the default published package are different release tracks. This is not a recommendation to merge master or silently adopt next.

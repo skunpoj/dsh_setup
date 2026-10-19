@@ -235,6 +235,7 @@ Open the login page, follow User manual, verify the expected title/content and t
 | Check | Required result |
 |---|---|
 | Login and account roles | Correct login works; incorrect login, forged roles and ordinary-user admin calls fail; logout invalidates access |
+| Self-service signup | Exclusive empty pairs are assigned atomically; Internet starts denied; full capacity creates no account; assignment survives gateway replacement; test-only slots remain unpublished |
 | Environment selection | No Internet is default; unauthorized Internet selection is refused by the server |
 | Isolation | Two synthetic users cannot read each other's histories, files, attachments or terminal sessions |
 | Network | Public-domain and direct-IP requests fail in No Internet; permitted inference works; Internet operates only in its separate environment |

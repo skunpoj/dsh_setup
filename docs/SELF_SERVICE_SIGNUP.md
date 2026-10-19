@@ -12,9 +12,19 @@ The login page shows available workspace capacity. When no unused pair remains, 
 
 ## For an administrator
 
-Open **Admin overview → User management**. Find the account and select **Allow Internet**. To remove the permission, select **Disable Internet**. Revocation invalidates that user's gateway sessions and closes tracked gateway connections, so a fresh Internet login is denied. It does not cancel processes already running in the private runtime.
+Open **Admin overview → User management**. Reload User management after a new signup, find the account and select **Allow Internet**. To remove the permission, select **Disable Internet**. Revocation invalidates that user's gateway sessions and closes tracked gateway connections, so a fresh Internet login is denied. It does not cancel processes already running in the private runtime.
 
 The dashboard also supports **Create account**, **Enable**, **Disable** and **Sign out**. New names use available private-pair capacity; existing operator-reserved identities retain their explicit mappings. An administrator role is assigned by the operator, never by the signup form.
+
+## Common questions
+
+| Situation | Action |
+|---|---|
+| Create account is unavailable on a fresh installation | Operators first qualify empty private pairs and explicitly enable registration; bootstrap defaults remain off. |
+| Signup reports full capacity | No account is created. Ask the operator to add new pairs; disabling an existing account does not free its slot. |
+| A new account is missing from User management | Reload the page. Usage refresh is separate from reloading the account list. |
+| Internet is still unavailable after approval | Logout and sign in again with Internet selected. Approval does not move files or history. |
+| Internet permission was revoked | New Internet logins are denied and tracked gateway connections close. An operator must separately stop any detached work if required. |
 
 ## Why prepared private pairs
 

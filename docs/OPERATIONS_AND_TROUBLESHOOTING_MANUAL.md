@@ -1,4 +1,4 @@
-> **Legacy manual notice — 15 October 2026:** the CIFS/rootfs diagrams and startup procedures below describe the legacy deployment, not the current Secure/Internet pools. They do not prove zero data loss or per-user isolation. Use [the current walkthrough](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) and [storage guide](MULTI_TENANT_STORAGE_AND_PERSISTENCE.md) as current authority.
+> **Legacy manual notice — 15 October 2026:** the CIFS/rootfs diagrams and startup procedures below describe the legacy deployment, not the current Secure/Internet pools. They do not prove zero data loss or per-user isolation. For current account creation and administrator Internet approval, use the [user manual](DSH_USER_MANUAL.html) and [signup procedure](SELF_SERVICE_SIGNUP.html). Use [the current walkthrough](DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html) and [storage guide](MULTI_TENANT_STORAGE_AND_PERSISTENCE.md) as current authority.
 
 # DeepSeek Harness (DSH) Operations & Troubleshooting Manual
 

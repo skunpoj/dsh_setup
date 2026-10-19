@@ -1,13 +1,14 @@
 # DSH storage and persistence — current deployed design
 
-The [latest live record](context-evidence/central-state-live-20261015.json) supersedes the earlier local-only active-history snapshot. Secure uses the actual original mounted DA_WORKSPACE. Internet remains separate and has no protected CIFS mount.
+No Internet workspaces and durable histories use the original mounted DA_WORKSPACE. Each account has a private execution pair with separately scoped mounts. Internet remains separate and has no protected CIFS mount. The [central-state restoration record](context-evidence/central-state-live-20261015.json) documents the original migration; the [private-routing guide](PER_USER_ISOLATION.md) and [signup guide](SELF_SERVICE_SIGNUP.html) describe the subsequent account isolation and capacity allocation.
 
 | Data | Live location |
 |---|---|
-| Secure `/workspace` | CIFS claim `dsh-da-workspace-secure`, subpath `dsh` |
-| Secure sessions, attachments, storages, workspaces and logs | Direct submounts under `/state/<directory>` to `dsh/dsh_storage/<directory>` on the same CIFS claim |
-| Secure credentials and profiles | Original local `dsh-secure-state` PVC |
-| Internet workspace and state | Separate local `dsh-internet-staging` and `dsh-internet-state` PVCs |
+| Private No Internet `/workspace` | CIFS claim `dsh-da-workspace-secure`, exclusive `dsh/private/<identity-or-slot-hash>/secure` subpath |
+| Private No Internet sessions, attachments, storages, workspaces and logs | Direct `/state/<directory>` submounts to that identity's `dsh/private/<identity-or-slot-hash>/state/<directory>` |
+| No Internet credentials and profiles | Dedicated local state PVC; Kerberos cache remains private |
+| Internet workspace and state | Separate private local PVCs for the assigned Internet runtime |
+| Preserved owner content | `thanatcc` retains the original `dsh` workspace and `dsh/dsh_storage` durable directories, with private-user and reviewed security subtrees masked |
 | Approved packages | Read-only approved cache; Internet writes only to Incoming |
 
 The Windows root is `\\bot.or.th\cfs\FILESERV\DA_WORKSPACE\workstation\dsh`. The historical raw USER_INPUT verifies `dsh_storage`, not `dsh_volume`. Durable content now writes centrally through mounted directories; the old 15-second copy loop is not required. Active configuration/credentials remain local and are not included in the central state-directory migration.
@@ -26,8 +27,10 @@ Use `scripts/restore_central_state.py` only for a reviewed, stopped-writer migra
 
 CIFS maps UID/GID 10001 with `forceuid`, `forcegid`, `dir_mode=0770`, `file_mode=0770`, `vers=3.0`. This is not per-file POSIX permission enforcement or proof of Windows/server ACL correctness. A live share is not a backup, immutable archive or zero-loss guarantee; independent storage-server recovery and access review remain necessary.
 
-## Isolation and remaining acceptance
+## Per-user storage and signup
 
-Current Secure users still share a runtime and central environment tree. The private-runtime generator scopes every workspace and durable-state mount to its identity. Source tests verify no overlap between generated users, but private-user cutover has not occurred. Broad legacy shared mounts must not expose future private paths when claiming user isolation. Do not infer ownership of the existing shared histories or copy them into every user.
+Private routing is deployed. Each account/environment uses a separate execution runtime and scoped storage; the gateway mounts launch tokens and account metadata, not user workspace roots. The preserved legacy owner retains its original data. Explicitly authorized admin support copies are independent records, not a shared live history store.
 
-Read-only RDT source access remains separate from restoring the original writable workspace. It requires the exact approved source/snapshot/view, named identities and source-write/out-of-scope-read negative tests. The earlier [design audit](DA_WORKSPACE_DESIGN_REVIEW_20261015.md) and [21:32 workspace-only evidence](context-evidence/central-workspace-live-20261015.json) remain historical records. See [deployment experience](CENTRAL_STATE_RESTORATION_20261015.md).
+Self-service signup binds an account to one unused qualified slot. The slot's opaque identifier determines its pre-provisioned PVCs and CIFS subpaths; a submitted username does not construct a filesystem path. Account and slot assignment persist together. No Internet and Internet keep separate sessions, attachments and credentials. Disabling an account does not free or recycle its volumes. Test pairs never enter the live catalog. Operators add new empty pairs rather than reusing another person's state.
+
+Datalake access is independent: user-specific Kerberos and existing AD/Hive/HDFS rights are preserved. A workspace mount grants no datalake entitlement and imposes no universal read-only policy. The earlier [design audit](DA_WORKSPACE_DESIGN_REVIEW_20261015.md), [workspace restoration](context-evidence/central-workspace-live-20261015.json) and [migration experience](CENTRAL_STATE_RESTORATION_20261015.md) retain their historical scope.
