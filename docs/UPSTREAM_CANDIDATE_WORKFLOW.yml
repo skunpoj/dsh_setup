@@ -39,11 +39,10 @@ jobs:
           mkdir -p candidate-evidence
           python3 -m unittest discover -s tests -p test_upstream_check.py
           node tests/test_upstream_contract.js
-          if [ "$EVENT_NAME" = pull_request ]; then
-            CANDIDATE_VERSION=$(sed -n 's/^ARG DSH_VERSION=//p' Dockerfile)
-          fi
-          args=()
-          if [ -n "$CANDIDATE_VERSION" ]; then args=(--candidate "$CANDIDATE_VERSION"); fi
+          # Push/PR CI must qualify the checked-out package pin, not an
+          # unrelated new npm release whose patch contracts need review.
+          args=(--event "$EVENT_NAME")
+          if [ -n "$CANDIDATE_VERSION" ]; then args+=(--candidate "$CANDIDATE_VERSION"); fi
           python3 scripts/check_upstream.py --output candidate-evidence/upstream.json "${args[@]}"
           python3 - <<'PY'
           import json,os

@@ -85,8 +85,8 @@ The later [stress-source CI artifact readback](context-evidence/inference-stress
 The expanded `.github/workflows/upstream-candidate.yml` and its [tracked reference](UPSTREAM_CANDIDATE_WORKFLOW.yml) define:
 
 1. Daily release checks at 02:17 UTC (09:17 ICT), manual dispatch, and checks on relevant source pushes/pull requests.
-2. Tracking npm latest by default. A manual `candidate_version` can explicitly select a preview.
-3. A Docker candidate build even when npm latest is unchanged, so the baseline is exercised too. Pull requests qualify their Dockerfile pin rather than silently testing another npm channel.
+2. Scheduled and manual discovery track npm latest by default. A manual `candidate_version` can explicitly select a preview. Push and pull-request CI instead qualify the checked-out Dockerfile pin; newer npm releases are still reported in detection evidence.
+3. A Docker candidate build even when the selected version is unchanged, so source changes exercise their own baseline. All exact-source compatibility guards remain enforced; an unreviewed scheduled candidate still fails qualification and cannot produce an upgrade proposal.
 4. Pre-patch SHA-256 contracts for all ten upstream files our configurator mutates. The reviewed baseline hashes were derived from official npm package archives after SHA-512 integrity verification. Changed/missing targets stop the build; the automation never updates those hashes for itself.
 5. Actual installed-module syntax/budget/profile checks, disposable DSH web startup and session/model-catalog RPC, anonymous/Host denial, gateway routing and forged-header tests, package promotion, Python rollback/manifests tests, and browser admin-dashboard checks. The actual runtime smoke test has no network or Production storage. The test directory is now included in the Docker context; its earlier exclusion was incompatible with the Dockerfile's test copy.
 6. A package-pin branch and PR only after qualification succeeds. Existing branches/PRs are retained rather than overwritten. The write-capable proposal job is separate from the read-only candidate execution job.
