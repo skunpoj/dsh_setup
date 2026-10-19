@@ -91,6 +91,68 @@ img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #
 <p>A Windows control-channel failure initially marked one follow-up controller failed. Its raw result remains preserved. All 16 saved native replies were independently recovered and verified, and the corrected single-channel fresh test then passed all 31 replies. That transport incident is not relabelled as a model OOM or silently removed.</p>
 <p>The managed DeepSeek aliases declare 1M in all 20 main web profiles; other model entries retain their own budgets. These results concern native DSH through shared inference. They do not by themselves repeat every Claude Code/TrueForge capacity test or all application security checks.</p>
 <p>See the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dspark-qualification-20261019.json">sanitized qualification record</a> and the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/PERFORMANCE_OPTIMIZATION_20261018.html">detailed optimization report</a> for the workload-specific source records.</p>
+<h3>Full latest-test coverage</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Recorded result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>256K capacity</td>
+<td>257,691 input tokens; correct saved answer in 130.57 seconds; eight overlapping short replies, median 3.56 seconds. The seven-token answer is too short for a useful decode-speed benchmark.</td>
+</tr>
+<tr>
+<td>Fresh structured output</td>
+<td>Three exact, persisted 599-token answers at 164.60–166.11 streaming output tokens/sec.</td>
+</tr>
+<tr>
+<td>Startup reference gates</td>
+<td>80 score cases, eight tiled cases, 132 FP4 cases and eight memory checks passed; optimized Python is refused before the gates can be bypassed.</td>
+</tr>
+<tr>
+<td>Full-capacity ordinary bursts</td>
+<td>Eight-client cohorts passed at prepared prefixes of 655,360 and 917,504 tokens, with the long request still active.</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Fresh clients after handover</th>
+<th>Individual whole-request time</th>
+<th align="right">Combined cohort output tokens/sec</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1.29 seconds</td>
+<td align="right">92.35</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2.59–2.84 seconds</td>
+<td align="right">83.76</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2.87–3.88 seconds</td>
+<td align="right">122.43</td>
+</tr>
+<tr>
+<td>8</td>
+<td>3.20–5.98 seconds</td>
+<td align="right">158.45</td>
+</tr>
+<tr>
+<td>16</td>
+<td>3.11–11.21 seconds</td>
+<td align="right">169.01</td>
+</tr>
+</tbody></table>
+<p>The five fresh groups total 31 unique saved replies. All were exact and retry-free. Combined throughput includes the entire request window and is distinct from one conversation&#39;s streaming speed. The model can admit eight active requests; excess clients may queue.</p>
+<h3>Checkpoint scope</h3>
+<p>The results above remain bound to the checkpoint and four runtime-source hashes qualified on 19 October 2026. A separate task is staging DeepSeek-V4.1-Flash-1017, pinned revision <code>1bae0e1088993b9b82de08f59de5be5a34e42170</code>. That staging work does not change which model these results tested, and does not qualify the new weights. Re-run the relevant acceptance checks before attributing the recorded performance to that checkpoint.</p>
 <h2 id="section-2">Deploy the DSH application and private environments</h2>
 <h3>1 Prepare site settings and preserve rollback</h3>
 <p>Choose the approved namespace, public gateway hostname, trusted CA, internal service destinations, storage claims and operator identities. Keep private settings and credential values outside Git. Save current image digests, workload/configuration specifications and history/workspace checks before an existing-site change. Build a test namespace first; a documentation example is not an instruction to apply all legacy manifests.</p>

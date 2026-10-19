@@ -35,3 +35,27 @@ A Windows control-channel failure initially marked one follow-up controller fail
 The managed DeepSeek aliases declare 1M in all 20 main web profiles; other model entries retain their own budgets. These results concern native DSH through shared inference. They do not by themselves repeat every Claude Code/TrueForge capacity test or all application security checks.
 
 See the [sanitized qualification record](https://github.com/skunpoj/dsh_setup/blob/main/docs/context-evidence/dspark-qualification-20261019.json) and the [detailed optimization report](https://github.com/skunpoj/dsh_setup/blob/main/docs/PERFORMANCE_OPTIMIZATION_20261018.html) for the workload-specific source records.
+
+
+### Full latest-test coverage
+
+| Check | Recorded result |
+|---|---|
+| 256K capacity | 257,691 input tokens; correct saved answer in 130.57 seconds; eight overlapping short replies, median 3.56 seconds. The seven-token answer is too short for a useful decode-speed benchmark. |
+| Fresh structured output | Three exact, persisted 599-token answers at 164.60–166.11 streaming output tokens/sec. |
+| Startup reference gates | 80 score cases, eight tiled cases, 132 FP4 cases and eight memory checks passed; optimized Python is refused before the gates can be bypassed. |
+| Full-capacity ordinary bursts | Eight-client cohorts passed at prepared prefixes of 655,360 and 917,504 tokens, with the long request still active. |
+
+| Fresh clients after handover | Individual whole-request time | Combined cohort output tokens/sec |
+|---|---|---:|
+| 1 | 1.29 seconds | 92.35 |
+| 2 | 2.59–2.84 seconds | 83.76 |
+| 4 | 2.87–3.88 seconds | 122.43 |
+| 8 | 3.20–5.98 seconds | 158.45 |
+| 16 | 3.11–11.21 seconds | 169.01 |
+
+The five fresh groups total 31 unique saved replies. All were exact and retry-free. Combined throughput includes the entire request window and is distinct from one conversation's streaming speed. The model can admit eight active requests; excess clients may queue.
+
+### Checkpoint scope
+
+The results above remain bound to the checkpoint and four runtime-source hashes qualified on 19 October 2026. A separate task is staging DeepSeek-V4.1-Flash-1017, pinned revision `1bae0e1088993b9b82de08f59de5be5a34e42170`. That staging work does not change which model these results tested, and does not qualify the new weights. Re-run the relevant acceptance checks before attributing the recorded performance to that checkpoint.
