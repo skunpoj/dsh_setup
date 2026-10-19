@@ -1,6 +1,48 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Platform Guide — Features, Deployments, Usage and LLM/GPU Setup</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
 img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} </style></head><body><main><h1>DSH Platform Guide — Security Controls, Features and Operations</h1><p>This guide explains DSH’s security controls, features, deployment architecture and practical usage, followed by LLM/GPU setup instructions.</p><p class="meta">Deployment inventory: 2026-10-17T09:28:22.131490+00:00.</p><nav aria-label="Contents"><a href="#guide-section-1">1 Prevent external leakage</a><a href="#guide-section-2">2 Prevent damage or excessive access</a><a href="#guide-section-3">3 Keep results contained</a><a href="#guide-section-4">Connected services and responsibilities</a><a href="#guide-section-5">Platform features and intended use</a><a href="#guide-section-6">Deployments and access points</a><a href="#guide-section-7">Example usage</a><a href="#guide-section-8">Interface screenshots</a><a href="#guide-section-9">Storage, administration and maintenance</a><a href="#guide-section-10">LLM and GPU setup</a></nav><p>DSH controls three risks: external leakage, damage or excessive access, and exposure of results. The Harness, its tools and generated code are treated as automation that can make mistakes. The application therefore enforces boundaries through network policy, private execution, scoped storage and authenticated routes rather than relying on prompt instructions.</p>
+<h3>Technology choices and the boundaries they support</h3>
+<p>The pilot outline separates the technology choice from the acceptable risk boundary. A component being installed, or a rule appearing in a prompt, does not establish that the boundary is enforced. The following summary describes how the DSH design addresses the outline; it does not adopt its illustrative responses as approved requirements.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>DSH design and reason</th>
+<th>Risk-control role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Agent framework / Harness</td>
+<td>DeepSeek Harness provides the web workspace, file operations, tools and report generation. Generated code is treated as untrusted automation.</td>
+<td>Put enforcement outside the agent: private execution, destination restrictions and authenticated file access.</td>
+</tr>
+<tr>
+<td>Language model</td>
+<td>Internally hosted DeepSeek-V4.1-Flash is reached through the managed LiteLLM route.</td>
+<td>Keep managed model requests on internal infrastructure; disable external fallback instead of relying on the model to avoid external providers.</td>
+</tr>
+<tr>
+<td>Model serving</td>
+<td>LiteLLM provides the controlled API route to the SGLang GPU service. A local embedding service is separate from generation.</td>
+<td>Separate shared inference from private workspaces and keep provider credentials outside user-controlled routing decisions. The outline&#39;s Ollama serving example is not the DSH text-generation architecture.</td>
+</tr>
+<tr>
+<td>Code execution</td>
+<td>Tools run in each user&#39;s selected Kubernetes runtime. Libraries come from the prepared runtime and approved package path.</td>
+<td>Non-root identity, limited mounts, resource limits and network policy contain execution. Remote submitted jobs have a separate platform boundary.</td>
+</tr>
+<tr>
+<td>Infrastructure and storage</td>
+<td>Kubernetes supplies compute isolation; scoped central CIFS directories provide durable working files and histories.</td>
+<td>Separate users and environments, avoid broad parent mounts, and keep original inputs apart from writable results when a task requires input protection. Persistence is not an independent backup.</td>
+</tr>
+<tr>
+<td>UI and data access</td>
+<td>An authenticated gateway serves user-bound workspaces, reports and terminals. Connected data services apply the chosen execution identity&#39;s permissions.</td>
+<td>No public file bypass or automatic publication. An internal UI does not by itself restrict datasets or make remote execution offline.</td>
+</tr>
+</tbody></table>
+<p>The outline uses public snapshots, read-only originals and no production connection as examples. Those are valid choices for a specifically approved exercise, but they are not universal restrictions imposed by this deployment. Define the permitted data, account, destinations, write scope and output recipients before an exercise. If its boundary requires sandbox-only access or immutable inputs, provision the matching platform permissions or protected input copy; instructions alone are insufficient.</p>
 <h2 id="guide-section-1">1 Prevent external leakage</h2>
 <h3>Control objective</h3>
 <p>Prevent unauthorized public connections from the No Internet execution environment while retaining only the internal services required for work. Internet access is provided through a separate environment for dependency preparation, with no automatic transfer of protected data.</p>
@@ -102,8 +144,12 @@ img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #
  classDef pending fill:#78350f,stroke:#fbbf24,color:#ffffff
  class N pending
 </div></div></section>
+<h3>Separate input protection from permission to execute</h3>
+<p>A private runtime prevents access to another user&#39;s workspace; it does not make the current user&#39;s writable source data immutable. Where the agreed task forbids modifying originals, expose an approved read-only input snapshot or view and write generated code, reports and working copies to a separate writable location. The data or storage owner must enforce that distinction. Do not describe preserved personal read/write entitlements as a read-only guarantee.</p>
+<p>The agent may generate and run analytical code within its assigned boundary, but must not receive cluster administration, host-management sockets, unrelated service credentials or permission to enlarge its own mounts or network access. Tool approval is an additional operational choice; it is not a substitute for restricting the execution identity. A connected remote job inherits the remote platform&#39;s controls, not the local container&#39;s filesystem or egress policy.</p>
 <h3>Bound shared resources</h3>
 <p>The inference route counts the complete request, reserves output capacity and controls admission of expensive work. Long requests use bounded waiting and an explicit busy response while shorter work remains schedulable. Admission manages shared capacity independently of data authorization. Local process limits and shared inference scheduling are DSH controls; remote job queues remain under the platform that executes those jobs.</p>
+<p>For a shared-service pilot, define a workload budget as well as CPU and memory limits: allowed job duration, cancellation responsibility, output/storage growth and expected concurrent use. Long-running or repeated work should be cancellable through its executing service and should not bypass admission controls by spawning unrelated jobs. Administrators use the centralized dashboard and activity log to identify the affected user/environment and investigate abnormal consumption. Gateway access events are not complete CPU/GPU, disk or remote-cluster telemetry; remote job accounting, disk quotas and enforced execution deadlines must be configured where those workloads run before claiming those specific boundaries.</p>
 <h2 id="guide-section-3">3 Keep results contained</h2>
 <h3>Control objective</h3>
 <p>Keep histories, reports, files, attachments and terminal access within authorized user routes. Separate operational oversight from automatic access to user content.</p>
@@ -147,6 +193,45 @@ img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #
 <h3>Deliver generated results through the same boundary</h3>
 <p>Working reports, charts, temporary files and generated applications remain in the private environment. Server-side file access uses the authenticated identity rather than a submitted owner name or arbitrary filesystem path. Exposing a new application requires the same authenticated proxy and user-bound storage; it does not justify a new public bypass route.</p>
 <p>The managed workflow does not automatically publish protected results externally. The No Internet environment&#39;s network policy blocks direct public transmission from its execution runtime. Internet-capable tools must not be represented as having the same offline restriction. Authorized viewing and downloading are normal application functions; additional restrictions on what a person copies require an explicit handling policy and endpoint controls.</p>
+<h3>Review analytical results before operational use</h3>
+<p>Containment includes controlling how a result is used, not only who can download it. Keep generated code, input selection, calculation assumptions and resulting reports together in the private workspace so an authorized reviewer can reproduce the analysis. Label exploratory findings as provisional and compare important calculations with known reference results before relying on them.</p>
+<p>A fluent answer, a completed tool run or a plausible chart is not validation of analytical correctness. The pilot workflow should require human review before a result triggers an operational decision, source-data correction or downstream publication. If an integration can perform such actions, enforce its permitted operations and approval step at that integration; a report warning alone does not prevent writeback. These are task-level operating boundaries, not a claim that DSH implements a universal accuracy gate or disables every user&#39;s existing write permission.</p>
+<h3>Translate the pilot outline into an explicit decision</h3>
+<table>
+<thead>
+<tr>
+<th>Outline risk dimension</th>
+<th>How it fits the three controls</th>
+<th>Decision needed for the particular exercise</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Data confidentiality</td>
+<td>Risk 1 restricts outbound execution; Risk 3 limits access to resulting files.</td>
+<td>Identify permitted data classification, destinations and recipients. A public-data-only claim needs a defined dataset and matching access scope.</td>
+</tr>
+<tr>
+<td>Source-data integrity</td>
+<td>Risk 2 separates protected originals from writable results.</td>
+<td>Decide whether originals must be read-only and arrange that permission at the source.</td>
+</tr>
+<tr>
+<td>System access and autonomy</td>
+<td>Risk 2 constrains identities, tools, mounts and privilege changes.</td>
+<td>Define allowed connected services and destructive operations; retain remote-platform enforcement.</td>
+</tr>
+<tr>
+<td>Resource and operational impact</td>
+<td>Risk 2 bounds local execution and shared inference; central oversight supports investigation.</td>
+<td>Assign job deadlines, cancellation, storage budgets and remote-cluster monitoring to the enforcing service.</td>
+</tr>
+<tr>
+<td>Analytical reliability</td>
+<td>Risk 3 keeps provisional findings in an authorized review workflow.</td>
+<td>Set reference calculations, reviewer and permitted downstream actions; do not treat generated output as approved automatically.</td>
+</tr>
+</tbody></table>
+<p>Agree the boundary first, then identify the enforcing component and its owner. A boundary that is undecided or not checked must remain explicitly unconfirmed; the outline&#39;s example controls and this design explanation do not establish a new acceptance result. This keeps the three-risk structure while making the pilot&#39;s technology, autonomy and review decisions understandable.</p>
 <h2 id="guide-section-4">Connected services and responsibilities</h2>
 <p>Use these responsibility boundaries when planning connected services, data access and operations.</p>
 <table>

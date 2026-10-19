@@ -4,6 +4,8 @@ DSH controls three risks: external leakage, damage or excessive access, and expo
 
 **Scope conclusion:** the agreed DSH-controlled measures described below are implemented, with their defined acceptance checks completed in the recorded deployment review. No unresolved local failure was identified by those checks. This is completion of the reviewed application scope, not a guarantee against every attack, mistake or future regression. External dependencies and deliberate scope limits are consolidated in the final section; they are not presented as unfinished DSH implementation.
 
+For feature descriptions, usage instructions, deployment and GPU setup, use the companion [DSH Platform Guide](DSH_PLATFORM_GUIDE.html). Both documents use the same pilot-boundary explanations; this report keeps its focus on the three risks.
+
 This report explains the design and responsibility boundaries. Detailed measurements, test histories and recovery procedures remain in separate operational documents. This revision does not perform a new deployment or security test.
 
 ### Technology choices and the boundaries they support
