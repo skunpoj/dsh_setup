@@ -1,5 +1,11 @@
 # Publication qualification
 
+## 19 October checkpoint and temporary-memory correction
+
+The current portable profile uses DeepSeek-V4.1-Flash-1017, DSpark block five, 1M context, static fraction 0.923, eight active requests and 128 MiB score tiles. The existing four-GPU deployment passed 80 score cases, eight tiled comparisons and 132 dequantization comparisons before loading. Actual DSH then passed the cold near-1M request, 60 overlapping short replies, cached 1,199-token output, real file tools, 31 ordinary concurrency replies and preservation of 167 histories/188 files. The accepted generation had zero allocator mapping warnings or unexpected restarts. [Checkpoint results and trials](../docs/MODEL_UPDATE_1017.html).
+
+Portable source verification includes 67 test cases; Windows skips seven POSIX/platform cases. The runtime GPU and DSH checks above ran on the existing Linux node. They do not qualify a new cluster's database, network, storage or two full-1M sessions. The first 256 MiB tile trial and an operator-DNS rollback incident are retained separately from the accepted profile. A post-burst optional prose turn re-entered cold preparation and was cancelled; it is not prose-quality acceptance.
+
 At initial publication, the sanitized bundle passed 31 Linux unit/structural tests on 17 October 2026, with no skips. The same Windows suite passed with three POSIX file-lock tests skipped; those three were included in the Linux run. Tests cover final-payload/tool-default consistency, cancellation and lease cleanup, foreground scheduling, cache-loss refusal, output/total budgets, unsupported-route rejection, immutable image/name validation, Secret references, loopback-only forwarding, policy structure and content/source hash checks.
 
 A separate pre-publication scan checked the new bundle against known private domains, node/user/share names, private addresses and credential markers before it entered the public checkout. Only generic Kubernetes Service names, public upstream image references and public software/model identifiers remain. Source and publication hashes are in `SOURCE_MANIFEST.json`. New bundle qualification does not redact earlier repository history.
@@ -16,7 +22,7 @@ The earlier timing/foreground source and its updated template passed **36 Linux 
 
 ## Allocator correction and bounded prefill acceptance
 
-The latest publication passed **45 portable Linux tests without skips**, including final-payload counting, cancellation, safe numeric diagnostics, cache-loss refusal, immutable references and the structural prefill/memory controls. The canonical forwarder/guard suite passed 37 Linux tests; it overlaps the portable cases. The model template fixes context 1,048,576, static memory 0.90, running cap 16, chunk 512, prefill budget 1,024, eight prefix tails, prefill batch cap two and separate prefill/decode. Publication hashes are refreshed after the documentation update.
+The earlier allocator publication passed **45 portable Linux tests without skips**, including final-payload counting, cancellation, safe numeric diagnostics, cache-loss refusal, immutable references and the structural prefill/memory controls. The canonical forwarder/guard suite passed 37 Linux tests; it overlaps the portable cases. The model template fixes context 1,048,576, static memory 0.90, running cap 16, chunk 512, prefill budget 1,024, eight prefix tails, prefill batch cap two and separate prefill/decode. Publication hashes are refreshed after the documentation update.
 
 The full actual DSH near1M plus concurrent-short result and preceding failures are recorded in the [allocator qualification](../docs/GPU_ALLOCATOR_QUALIFICATION_20261017.html). A successful focused 256K test did not qualify the failed mixed-batch near1M candidate; the final full retest was required.
 
@@ -25,7 +31,7 @@ The full actual DSH near1M plus concurrent-short result and preceding failures a
 On 18 October 2026, the canonical forwarding/guard suite passed **39 Linux tests** and the portable bundle passed **47 Linux tests**, both without skips. The suites overlap. Added checks exercise bounded operator preparation-step configuration, cache-extension correctness, foreground yielding and numeric-only progress diagnostics. The operating default is 2,048 tokens. An 8,192-token trial did not qualify near-1M cache retention, and the faster DSpark candidate failed long-input memory allocation; neither is the default model profile. Source and publication hashes are refreshed after the final documentation changes. See the [actual DSH trial report](../docs/PERFORMANCE_OPTIMIZATION_20261018.html).
 
 
-## DSpark score, FP4 and graph-memory qualification — 19 October
+## Earlier checkpoint: score, FP4 and graph-memory qualification — 19 October
 
 | Setting | Qualified value |
 |---|---|

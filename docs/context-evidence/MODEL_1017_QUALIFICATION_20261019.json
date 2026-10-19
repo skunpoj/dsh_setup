@@ -1,0 +1,114 @@
+{
+  "checkpoint": "DeepSeek-V4.1-Flash-1017",
+  "revision": "1bae0e1088993b9b82de08f59de5be5a34e42170",
+  "verifiedDate": "2026-10-19",
+  "scope": "Recorded main DSH text, tool and mixed-concurrency cases; not universal analytical quality or two full1M requests",
+  "contextTokens": 1048576,
+  "scoreTileMiB": 128,
+  "cold": {
+    "elapsedSeconds": 1653.9692404270172,
+    "firstTextSeconds": 1650.9605708122253,
+    "streamTokensPerSecond": 149.150196101976,
+    "usage": {
+      "inputTokens": 1007752,
+      "outputTokens": 431,
+      "totalTokens": 1008183
+    },
+    "exact": true,
+    "persistedPromptVerified": true,
+    "retries": 0
+  },
+  "overlappingShorts": {
+    "correct": 60,
+    "pairedMedianSeconds": 5.109851956367493,
+    "eightClientBursts": 2
+  },
+  "cached": {
+    "elapsedSeconds": 15.132835388183594,
+    "streamTokensPerSecond": 159.2238135665619,
+    "usage": {
+      "inputTokens": 1008209,
+      "outputTokens": 1199,
+      "totalTokens": 1009408
+    },
+    "exact": true,
+    "persistedPromptVerified": true,
+    "retries": 0
+  },
+  "tool": {
+    "inputTokens": 1009686,
+    "elapsedSeconds": 12.937160015106201,
+    "actualCommandAndResultInspected": true,
+    "fileAbsentBeforeAndAfter": true
+  },
+  "allocatorWarningLines": 0,
+  "clientBursts": [
+    {
+      "clients": 1,
+      "correct": 1,
+      "elapsedMinSeconds": 1.29315185546875,
+      "elapsedMaxSeconds": 1.29315185546875,
+      "streamMinTokensPerSecond": 163.66153697603315,
+      "streamMaxTokensPerSecond": 163.66153697603315,
+      "aggregateCohortTokensPerSecond": 92.02322178694483
+    },
+    {
+      "clients": 2,
+      "correct": 2,
+      "elapsedMinSeconds": 1.8227972984313965,
+      "elapsedMaxSeconds": 1.823601245880127,
+      "streamMinTokensPerSecond": 112.91865204305314,
+      "streamMaxTokensPerSecond": 124.3414275069252,
+      "aggregateCohortTokensPerSecond": 130.4490271054553
+    },
+    {
+      "clients": 4,
+      "correct": 4,
+      "elapsedMinSeconds": 2.6105220317840576,
+      "elapsedMaxSeconds": 3.121565818786621,
+      "streamMinTokensPerSecond": 67.23647198622253,
+      "streamMaxTokensPerSecond": 99.66216087776698,
+      "aggregateCohortTokensPerSecond": 152.3436874721579
+    },
+    {
+      "clients": 8,
+      "correct": 8,
+      "elapsedMinSeconds": 3.183117151260376,
+      "elapsedMaxSeconds": 5.956967353820801,
+      "streamMinTokensPerSecond": 49.35173500617884,
+      "streamMaxTokensPerSecond": 100.00001454757644,
+      "aggregateCohortTokensPerSecond": 158.4272802766244
+    },
+    {
+      "clients": 16,
+      "correct": 16,
+      "elapsedMinSeconds": 2.8873400688171387,
+      "elapsedMaxSeconds": 10.969808101654053,
+      "streamMinTokensPerSecond": 47.92851548306976,
+      "streamMaxTokensPerSecond": 104.51725461790737,
+      "aggregateCohortTokensPerSecond": 172.51664313289578
+    }
+  ],
+  "histories": {
+    "runtimes": 20,
+    "originalHistories": 167,
+    "originalFiles": 188,
+    "allOriginalIDsPreserved": true,
+    "allOriginalFileBytesUnchanged": true,
+    "changedOrMissingFileCount": 0
+  },
+  "optionalPostBurstProse": "Cold preparation observed and cancelled; no generated prose accepted; cause not isolated",
+  "unexpectedModelRestartsDuringAcceptedGeneration": 0,
+  "operatorIncidents": "One DNS/API interruption triggered an inappropriate operator-helper rollback; corrected workflow distinguishes operator failure from model failure",
+  "knownAnswerProtocol": {
+    "syntheticUserPromptSHA256": "7d8e88f3445daa99d562642367b7f5bb152c85c5645398bac64ad5287c530ec6",
+    "referenceCharacterOffsets": [
+      0,
+      2750036,
+      5500072
+    ],
+    "oracle": "Three distributed random values plus complete sequence1\u2013200; cached follow-up sequence1\u2013400",
+    "matchingRule": "Exact expected content with whitespace normalization",
+    "nativePromptAndResponsePersistenceChecked": true
+  }
+}

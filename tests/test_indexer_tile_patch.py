@@ -8,7 +8,7 @@ spec=importlib.util.spec_from_file_location('tile_patch',HELPER);module=importli
 class TilePatchTests(unittest.TestCase):
  def test_image_source_pin_and_budget(self):
   self.assertEqual(module.EXPECTED,'486900ed693af0573a941d6b6656ebc01ccb7ff1c44584e43ad3c0fb00a3c3a9')
-  self.assertEqual(module.REPLACEMENT,'_TORCH_INDEXER_SCORE_BUDGET_BYTES = 1 << 28')
+  self.assertEqual(module.REPLACEMENT,'_TORCH_INDEXER_SCORE_BUDGET_BYTES = 1 << 27')
  def test_drift_is_refused(self):
   with self.assertRaises(ValueError):module.patch(module.ANCHOR+'\n')
  def test_only_the_exact_budget_changes(self):

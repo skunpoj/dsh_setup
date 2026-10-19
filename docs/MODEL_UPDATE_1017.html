@@ -1,0 +1,237 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DeepSeek-V4.1-Flash-1017 — setup and qualification</title><style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
+</style></head><body><main><h1>DeepSeek-V4.1-Flash-1017 update</h1>
+<p>The <a href="https://api-docs.deepseek.com/news/news261017/">17 October release</a> is a new checkpoint, not an automatic update to our existing local weights. The local deployment must download and validate the weights, load them and repeat the affected tests. The existing public model aliases remain stable for DSH, Claude Code and TrueForge.</p>
+<h2>Verified rollout, 19 October 2026</h2>
+<p><strong>DeepSeek-V4.1-Flash-1017 is deployed on the existing four GPUs.</strong> The pinned checkpoint preserves 1,048,576 total tokens and DSpark block five. Actual DSH processed 1,007,752 input / 431 output tokens, with the complete correct saved answer in <strong>27m33.97s</strong>. All <strong>60/60</strong> tracked short replies passed alongside it, with a paired median of <strong>5.11s</strong>. The accepted cold run had zero automatic retries, allocator mapping warnings or unexpected model restarts. The corrected 128 MiB temporary score tiles retain the full KV pool; preparation is slower than the rejected 256 MiB trial.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Installed value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Checkpoint</td>
+<td>DeepSeek-V4.1-Flash-1017, revision <code>1bae0e1088993b9b82de08f59de5be5a34e42170</code></td>
+</tr>
+<tr>
+<td>Total context / output ceiling / reserve</td>
+<td>1,048,576 / 8,192 / 256 tokens</td>
+</tr>
+<tr>
+<td>GPUs / speculative decoding</td>
+<td>Existing four H100 NVL / DSpark block five</td>
+</tr>
+<tr>
+<td>Static memory / active cap / decode graph cap</td>
+<td>0.923 / 8 / 8</td>
+</tr>
+<tr>
+<td>Prefill chunk / maximum prefill / prefill requests</td>
+<td>1,024 / 1,024 tokens / 2</td>
+</tr>
+<tr>
+<td>Prefix tails / decode interval / preparation step</td>
+<td>16 / 4 / 2,048 tokens</td>
+</tr>
+<tr>
+<td>Full / sliding-window KV slots</td>
+<td>1,150,976 / 17,920</td>
+</tr>
+<tr>
+<td>Temporary attention-score tile</td>
+<td>128 MiB</td>
+</tr>
+<tr>
+<td>Long admission</td>
+<td>One input-plus-reserved-output request above 131,072 tokens; one FIFO waiter for at most 1,500 seconds; excess long waiters receive 429</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Verified workload</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cold near-1M DSH</td>
+<td>1,007,752 input / 431 output; 27m33.97s total; first text 1650.96s; 149.15 streaming output tokens/sec</td>
+</tr>
+<tr>
+<td>Ordinary work during cold preparation</td>
+<td>60/60 exact, saved, retry-free replies; 3.13–9.22s; paired median 5.11s; two eight-client bursts</td>
+</tr>
+<tr>
+<td>Cached substantial output</td>
+<td>1,008,209 input / 1,199 output; 15.13s; 159.22 streaming tokens/sec; exact and saved</td>
+</tr>
+<tr>
+<td>Real file tool continuation</td>
+<td>1,009,686 input; 12.94s; actual printf/write, cat/read and rm/delete command inspected, successful tool result and absent file checked</td>
+</tr>
+<tr>
+<td>256K stage</td>
+<td>257,688 input / 7 output; 147.06s; 12 overlapping correct short replies; zero allocator warnings</td>
+</tr>
+<tr>
+<td>Structured short answers</td>
+<td>Three exact, saved 599-token outputs at 163.34–166.48 streaming tokens/sec per conversation</td>
+</tr>
+<tr>
+<td>Short-client bursts</td>
+<td>31/31 exact persisted replies across 1, 2, 4, 8 and 16 simultaneous native DSH clients; GPU active cap eight, additional clients queue</td>
+</tr>
+<tr>
+<td>Managed clients</td>
+<td>Claude Code ordinary reply 1.17s; TrueForge ordinary reply 0.73s with persisted assistant output verified. These are new-checkpoint ordinary tests, not fresh near-1M CLI acceptance</td>
+</tr>
+<tr>
+<td>History preservation</td>
+<td>All 167 original histories / 188 session files across 20 main runtimes retained their IDs and bytes</td>
+</tr>
+<tr>
+<td>GPU memory observation</td>
+<td>Four H100 NVL devices; minimum observed free memory 38 MiB per GPU in one-second sampling. Temporary headroom remains tight; two full-1M requests are not an accepted case</td>
+</tr>
+</tbody></table>
+<h3>Native DSH client concurrency</h3>
+<p>The cold synthetic task retrieved three known random values from widely separated positions in the input and returned the complete integer sequence 1–200. The cached continuation returned 1–400. These used the real DSH transport and saved response records; they establish the recorded retrieval/output cases, rather than a general repository-analysis benchmark.</p>
+<table>
+<thead>
+<tr>
+<th align="right">Clients</th>
+<th align="right">Correct</th>
+<th>Elapsed per reply</th>
+<th>Streaming tokens/sec per conversation</th>
+<th align="right">Aggregate tokens/sec over cohort</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">1</td>
+<td align="right">1/1</td>
+<td>1.29–1.29s</td>
+<td>163.66–163.66</td>
+<td align="right">92.02</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td align="right">2/2</td>
+<td>1.82–1.82s</td>
+<td>112.92–124.34</td>
+<td align="right">130.45</td>
+</tr>
+<tr>
+<td align="right">4</td>
+<td align="right">4/4</td>
+<td>2.61–3.12s</td>
+<td>67.24–99.66</td>
+<td align="right">152.34</td>
+</tr>
+<tr>
+<td align="right">8</td>
+<td align="right">8/8</td>
+<td>3.18–5.96s</td>
+<td>49.35–100.00</td>
+<td align="right">158.43</td>
+</tr>
+<tr>
+<td align="right">16</td>
+<td align="right">16/16</td>
+<td>2.89–10.97s</td>
+<td>47.93–104.52</td>
+<td align="right">172.52</td>
+</tr>
+</tbody></table>
+<p>Streaming rate measures output after first text. Aggregate rate includes the full cohort window; these are different measures. The 16-client burst queues work above the eight-active GPU cap.</p>
+<h3>Cache behavior after load</h3>
+<p>The immediate near-1M continuation and real tool turn reused prepared context successfully. A later optional operating-note request, after the short-client bursts, re-entered cold preparation and was intentionally cancelled before a generated prose answer. Its cache-miss cause was not isolated. That attempt is retained separately and is not prose-quality acceptance. Stored conversation history remains available independently of GPU KV-cache reuse; the 15.13-second hot result is not a guarantee for every later turn.</p>
+<h2>Installed checkpoint</h2>
+<ul>
+<li>Repository: <code>deepseek-ai/DeepSeek-V4.1-Flash-1017</code>.</li>
+<li>Revision: <code>1bae0e1088993b9b82de08f59de5be5a34e42170</code>.</li>
+<li>Download size from the repository manifest: 510,311,045,295 bytes.</li>
+<li>Architecture, configuration, tokenizer and tokenizer configuration match the installed earlier checkpoint. Both configurations declare a 1,048,576-token context and DSpark block size five.</li>
+<li>The reference encoder changes tool-result handling and multimodal ordering. The reference inference implementation also changes. Matching configuration alone does not establish correct execution.</li>
+<li>DeepSeek recommends Harness v0.2.1-rc.1 or later. A Harness package upgrade is a separate compatibility change; downloading weights does not upgrade the application.</li>
+</ul>
+<p>The <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/../gpu-stack/checkpoints/deepseek-v4.1-flash-1017.json">candidate metadata</a> records the immutable revision and configuration/tokenizer hashes.</p>
+<h2>Staging and rollback</h2>
+<p>The old checkpoint remains available. Download the candidate into a separate snapshot directory and ensure there is space for both versions plus working headroom. Do not delete the old checkpoint to make the candidate fit. The current model cache was expanded online before staging; the model process and user volumes were left in place.</p>
+<p>Save the exact live Deployment specification, image identity, runtime patch identities, source hashes and model path before changing the workload. Pin the checkpoint revision rather than downloading a moving <code>main</code>. Validate repository file sizes, shard coverage from the weight index and checkpoint contents before selecting it.</p>
+<p>Before the handover, check active user agents, model work and the long-request admission lease. Change only the selected checkpoint while retaining the qualified DSpark, prefill, memory, concurrency and admission settings. The single-node handover requires inference initialization. Workspace, history, authentication and network-policy configuration do not need to change.</p>
+<p>If the model fails to initialize or the functional checks fail, restore the saved Deployment specification and verify inference through DSH. A disconnected operator channel alone is not evidence of model failure: inspect the actual workload and saved native session before deciding to roll back.</p>
+<h2>Operator setup sequence</h2>
+<ol>
+<li><p>Save the live model Deployment, immutable image identity, runtime overlays and current profile privately. Record current model load and user agents before scheduling the single-node handover. Keep the old checkpoint and exact qualified Deployment available.</p>
+</li>
+<li><p>Stage the public checkpoint in a separate directory through the approved download environment. For an environment with the approved <code>huggingface_hub</code> client installed:</p>
+<pre><code class="language-python">from huggingface_hub import snapshot_download
+snapshot_download(
+    repo_id=&quot;deepseek-ai/DeepSeek-V4.1-Flash-1017&quot;,
+    revision=&quot;1bae0e1088993b9b82de08f59de5be5a34e42170&quot;,
+    local_dir=&quot;/private/staging/deepseek-flash-1017&quot;,
+)
+</code></pre>
+</li>
+<li><p>Verify the pinned manifest, all expected sizes, every LFS SHA-256, shard coverage from <code>model.safetensors.index.json</code>, and the configuration/tokenizer hashes in the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/../gpu-stack/checkpoints/deepseek-v4.1-flash-1017.json">checkpoint metadata</a>. A successful download or a readable <code>config.json</code> is not this integrity check. Keep the verified snapshot read-only during inference; do not enable runtime Internet downloads.</p>
+</li>
+<li><p>Follow the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/../gpu-stack/README.md">portable GPU setup</a> to render and server-dry-run the candidate. The portable mount exposes approved weights at <code>/models/approved</code>; supply the verified snapshot through the site&#39;s private PVC configuration. Preserve the stable served model aliases and managed LiteLLM/client endpoints.</p>
+</li>
+<li><p>Inspect the proposed difference, confirm idle admission and user work, then perform the controlled handover. On this one-node installation, loading the weights interrupts inference while initializing. It does not require replacing any DSH workspace, history, account or network-policy mount.</p>
+</li>
+<li><p>Read back the selected snapshot, running image and actual installed module hashes. Require the startup GPU calculation gates, actual short/tool requests and progressive long-context tests below. Check persisted answers and source data/history preservation independently.</p>
+</li>
+<li><p>Publish the checkpoint-specific test results and mirror the reviewed configuration/documentation. If the candidate fails its acceptance criteria, preserve its records and restore the exact qualified profile rather than retrying progressively riskier settings without measurements.</p>
+</li>
+</ol>
+<h2>Acceptance checks</h2>
+<ol>
+<li>Read back the running checkpoint path, immutable image, runtime source hashes, 1M context and DSpark settings.</li>
+<li>Verify ordinary DSH answers, persisted content, streaming, tool calls and follow-up turns.</li>
+<li>Verify 1, 2, 4, 8 and 16 concurrent short clients, recording queue time separately from output speed. The active GPU request cap remains eight.</li>
+<li>Progress through 256K and near-1M input with known answers distributed through the material. Keep short requests running alongside long work. Check retries, allocation warnings and restarts.</li>
+<li>Verify cached continuation and an actual controlled file create/read/delete tool operation. Confirm user history and workspace preservation independently.</li>
+<li>Publish checkpoint-specific measurements. Earlier checkpoint timing and token-rate measurements remain historical results and must not be relabelled as results for this candidate.</li>
+</ol>
+<h2>Download, compatibility and first live trial</h2>
+<p>All 83 repository files were size-checked. All 48 weight shards and 49 LFS objects passed SHA-256 verification against the pinned manifest. The old snapshot was retained. All 55 official reference-encoding tests passed after supplying the complete official fixtures and using UTF-8. The configuration, tokenizer and tokenizer configuration are byte-identical to the earlier checkpoint; 96,085 tensor names match. The installed encoder was also compared with representative official prompts, including tools. The local effort default remains unchanged; a matching explicit effort was used for the reference comparison.</p>
+<p>The first handover changed only the checkpoint path. The new model loaded on the existing four GPUs and passed the GPU mathematical-equivalence gates, three structured DSH replies and the 256K DSH test. The affected actual DSH results were:</p>
+<table>
+<thead>
+<tr>
+<th>First 1017 trial</th>
+<th>Observed result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Structured short answers</td>
+<td>Three exact, saved 599-token answers; 164.87–166.57 streaming output tokens/sec</td>
+</tr>
+<tr>
+<td>256K input</td>
+<td>257,689 input / 7 output tokens; exact saved answer in 132.94 seconds; 10 correct overlapping short replies</td>
+</tr>
+<tr>
+<td>Near-1M input</td>
+<td>1,007,752 input / 431 output tokens; complete exact saved answer in 1,351.41 seconds; 147.11 streaming output tokens/sec</td>
+</tr>
+<tr>
+<td>Ordinary work during near-1M preparation</td>
+<td>52/52 exact, saved, retry-free replies; paired median 4.09 seconds, including two eight-client bursts</td>
+</tr>
+<tr>
+<td>Stability gate</td>
+<td>Eight recoverable allocation warnings, zero fatal signatures and zero unexpected restarts; <strong>not accepted</strong> by the zero-warning qualification rule</td>
+</tr>
+</tbody></table>
+<p>The warning requested a 20 MiB mapping with approximately 17.75 MiB free. Correct output and recovery do not satisfy the memory-headroom criterion. The failed trial remains recorded; it is not relabelled as a fully qualified upgrade.</p>
+<h2>Temporary-memory correction</h2>
+<p>The accepted profile halves the indexer&#39;s temporary score-tile budget from 256 MiB to 128 MiB. It retains the 1,048,576-token ceiling, full KV pool, DSpark block five, static fraction 0.923, eight active requests and the existing long-admission policy. Smaller tiles reduce temporary allocation at the cost of more score operations. The results above record the observed performance and stability; the cold preparation time increased compared with the rejected trial.</p>
+<p>The source change is fenced to the exact runtime module hash. Before model startup, four-GPU reference tests compare the tiled calculation bit-for-bit with the original and check that inputs remain unchanged. Startup alone is insufficient: repeat actual DSH 256K and near-1M retrieval/output, overlapping short requests, cached continuation, real tools and history preservation. Keep the failed 256 MiB trial and previous qualified checkpoint separately available for review and rollback.</p>
+<h2>Operational lessons retained from the trials</h2>
+<p>The first 128 MiB initialization passed its GPU reference calculations, but an operator-side DNS/API connection failure interrupted observation. The original helper incorrectly rolled back on that connection error. This is not evidence that the 128 MiB model failed: its full DSH test had not started. The rollback and its additional initialization time remain part of the trial record.</p>
+<p>The revised workflow retries bounded read-only operator calls and distinguishes loss of visibility from an observed model crash, restart, failed calculation or incorrect response. An operator-channel exception preserves the candidate for independent inspection rather than automatically restarting it. A subsequent attempt also refused to proceed while the restored baseline&#39;s inference endpoint was still initializing; the continuation waits for readiness and then refreshes user-idle and admission checks before the controlled handover.</p>
+<p>Trial monitoring records operator-read failures separately from model-generation changes. Repeated loss of visibility can stop the disposable synthetic trial, but does not establish a GPU defect or authorize cancellation of a real user&#39;s work. Exact configuration snapshots, original failed results and native session records are retained privately; public summaries contain no credentials or user conversation content.</p>
+</main></body></html>

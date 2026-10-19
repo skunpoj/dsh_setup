@@ -8,6 +8,12 @@
   "configuration_sha256": "8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879",
   "tokenizer_sha256": "c90dfa01249db1be4245780a052ede752e1361c612ac6d08e2bdada7d599476b",
   "tokenizer_configuration_sha256": "6ac8c8dc065ed118161d02dd532749ae3f52c243deac27872134fae2f50d8547",
-  "qualification": "staging; not yet accepted for production",
-  "prior_checkpoint_results_apply": false
+  "qualification": "Accepted for the recorded main DSH text, tool and mixed-concurrency cases on 19 October 2026",
+  "prior_checkpoint_results_apply": false,
+  "qualified_context_tokens": 1048576,
+  "attention_score_tile_mib": 128,
+  "active_request_cap": 8,
+  "dspark_block_size": 5,
+  "model_runtime_image_sha256": "4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+  "backend_module_sha256": "6a0202c92d0e05922a72e02129c9a982235edc8210fbe94f4fb4403ce1d41f29"
 }

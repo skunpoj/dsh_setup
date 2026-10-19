@@ -1,10 +1,35 @@
 # Portable GPU + LiteLLM + 1M setup
 
-The pinned **DeepSeek-V4.1-Flash-1017** candidate is being staged separately. See the [model update procedure and acceptance status](../docs/MODEL_UPDATE_1017.md). The measurements below belong to the earlier qualified checkpoint until new results are published.
+**DeepSeek-V4.1-Flash-1017 is deployed on the existing four GPUs.** The pinned checkpoint preserves 1,048,576 total tokens and DSpark block five. Actual DSH processed 1,007,752 input / 431 output tokens, with the complete correct saved answer in **27m33.97s**. All **60/60** tracked short replies passed alongside it, with a paired median of **5.11s**. The accepted cold run had zero automatic retries, allocator mapping warnings or unexpected model restarts. The corrected 128 MiB temporary score tiles retain the full KV pool; preparation is slower than the rejected 256 MiB trial. [Checkpoint setup and complete results](../docs/MODEL_UPDATE_1017.html).
 
-## Current DSpark configuration and measured behavior
+| Setting | Installed value |
+|---|---|
+| Checkpoint | DeepSeek-V4.1-Flash-1017, revision `1bae0e1088993b9b82de08f59de5be5a34e42170` |
+| Total context / output ceiling / reserve | 1,048,576 / 8,192 / 256 tokens |
+| GPUs / speculative decoding | Existing four H100 NVL / DSpark block five |
+| Static memory / active cap / decode graph cap | 0.923 / 8 / 8 |
+| Prefill chunk / maximum prefill / prefill requests | 1,024 / 1,024 tokens / 2 |
+| Prefix tails / decode interval / preparation step | 16 / 4 / 2,048 tokens |
+| Full / sliding-window KV slots | 1,150,976 / 17,920 |
+| Temporary attention-score tile | 128 MiB |
+| Long admission | One input-plus-reserved-output request above 131,072 tokens; one FIFO waiter for at most 1,500 seconds; excess long waiters receive 429 |
 
-**Current qualified DSpark profile, 19 October 2026:** actual DSH processed **1,007,752 input / 431 output tokens** with the complete correct saved answer in **22m22.2s**. **46/46 ordinary replies** passed during long preparation (**3.56–11.21s**, paired median **5.08s**), including two eight-client bursts. The qualifying model generation had **zero retries, allocator warnings or unexpected restarts**. Three 599-token structured short answers streamed at **164.60–166.11 tokens/sec per conversation**. Explanatory prose samples measured **76.76–96.76 tokens/sec**. One expensive request is admitted at a time; up to **eight** requests run actively, with additional ordinary clients queued. [Results and setup](../docs/DSH_PLATFORM_GUIDE.html#guide-section-10).
+| Verified workload | Result |
+|---|---|
+| Cold near-1M DSH | 1,007,752 input / 431 output; 27m33.97s total; first text 1650.96s; 149.15 streaming output tokens/sec |
+| Ordinary work during cold preparation | 60/60 exact, saved, retry-free replies; 3.13–9.22s; paired median 5.11s; two eight-client bursts |
+| Cached substantial output | 1,008,209 input / 1,199 output; 15.13s; 159.22 streaming tokens/sec; exact and saved |
+| Real file tool continuation | 1,009,686 input; 12.94s; actual printf/write, cat/read and rm/delete command inspected, successful tool result and absent file checked |
+| 256K stage | 257,688 input / 7 output; 147.06s; 12 overlapping correct short replies; zero allocator warnings |
+| Structured short answers | Three exact, saved 599-token outputs at 163.34–166.48 streaming tokens/sec per conversation |
+| Short-client bursts | 31/31 exact persisted replies across 1, 2, 4, 8 and 16 simultaneous native DSH clients; GPU active cap eight, additional clients queue |
+| Managed clients | Claude Code ordinary reply 1.17s; TrueForge ordinary reply 0.73s with persisted assistant output verified. These are new-checkpoint ordinary tests, not fresh near-1M CLI acceptance |
+| History preservation | All 167 original histories / 188 session files across 20 main runtimes retained their IDs and bytes |
+| GPU memory observation | Four H100 NVL devices; minimum observed free memory 38 MiB per GPU in one-second sampling. Temporary headroom remains tight; two full-1M requests are not an accepted case |
+
+## Earlier checkpoint: DSpark configuration and measured behavior
+
+**Earlier checkpoint qualification, 19 October 2026:** actual DSH processed **1,007,752 input / 431 output tokens** with the complete correct saved answer in **22m22.2s**. **46/46 ordinary replies** passed during long preparation (**3.56–11.21s**, paired median **5.08s**), including two eight-client bursts. The qualifying model generation had **zero retries, allocator warnings or unexpected restarts**. Three 599-token structured short answers streamed at **164.60–166.11 tokens/sec per conversation**. Explanatory prose samples measured **76.76–96.76 tokens/sec**. One expensive request is admitted at a time; up to **eight** requests run actively, with additional ordinary clients queued. [Results and setup](../docs/DSH_PLATFORM_GUIDE.html#guide-section-10).
 
 | Setting | Qualified value |
 |---|---|
@@ -82,7 +107,7 @@ flowchart LR
 
 - One shared model copy; user workspace/history isolation belongs to the DSH deployment, not to GPU allocation.
 - 1,048,576 total tokens, at most 8,192 output tokens and a 256-token reserve. The final forwarded messages/tools are counted with the backend tokenizer. Input plus requested output plus reserve must fit.
-- One request with input plus reserved output above 131,072 is admitted at a time. One additional long request may wait in a bounded FIFO position for up to 1,500 seconds; excess waiting requests receive 429. Early streaming comments keep cancellation available during waiting/preparation. The two configured aliases have no hidden rate-limit retries. Ordinary work remains concurrent; the model running cap is 16, not sixteen full 1M conversations.
+- One request with input plus reserved output above 131,072 is admitted at a time. One additional long request may wait in a bounded FIFO position for up to 1,500 seconds; excess waiting requests receive 429. Early streaming comments keep cancellation available during waiting/preparation. The two configured aliases have no hidden rate-limit retries. Ordinary work remains concurrent; the current model running cap is eight; it is not eight full-1M conversations.
 - Small prefill chunks (512; maximum prefill 1,024), separate prefill/decode batches, a two-request prefill cap, a pinned scheduler reservation and a single chunk-owner guard bound transient attention work. Four decode rounds run between prefill batches; ordinary decoding remains parallel up to the shared running cap. Eight additional sliding-window prefix tails allocate capacity for prefix reuse within the same static memory budget. They are not an eight-user limit or a guarantee that every long prefix survives diverse concurrent traffic; an eight-diverse-request test exposed cache loss. Before each long warm step, foreground streams may drain for up to eight seconds. This is cooperative scheduling, not preemption or a latency guarantee.
 - One gateway replica with Recreate is essential: admission uses a local process-shared file lock. Do not scale replicas/workers without a distributed admission design.
 - Only two local aliases are exposed. There is no external fallback. No ingress, public hostname, shared workspace, database password or client API key is embedded. The final-wire listener binds to loopback and is never a Service.

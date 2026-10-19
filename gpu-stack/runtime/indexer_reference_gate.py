@@ -49,12 +49,12 @@ for gpu in range(4):
    torch.cuda.synchronize();reference_base=torch.cuda.memory_allocated();torch.cuda.reset_peak_memory_stats()
    expected=a(None,q,k,w).cpu();torch.cuda.synchronize();reference_peak=torch.cuda.max_memory_allocated()-reference_base
    tile_base=torch.cuda.memory_allocated();torch.cuda.reset_peak_memory_stats()
-   chunk=max(1,(1<<28)//(16*n*2))
+   chunk=max(1,(1<<27)//(16*n*2))
    parts=[b(None,q[i:i+chunk],k,w[i:i+chunk]).cpu()for i in range(0,m,chunk)]
    actual=torch.cat(parts);torch.cuda.synchronize();tile_peak=torch.cuda.max_memory_allocated()-tile_base
   torch.testing.assert_close(actual,expected,rtol=0,atol=0)
   assert all(torch.equal(x,y)for x,y in zip(before,[q,k,w]))
   assert tile_peak<reference_peak,'Tiled temporary memory must improve on the reference'
-  tiled.append({'referencePeakAboveInputBytes':reference_peak,'tiledPeakAboveInputBytes':tile_peak,'gpu':gpu,'shape':[m,16,n,128],'rowTile':chunk,'scoreBudgetMiB':256,'bitwiseEqual':True,'inputsUnchanged':True})
+  tiled.append({'referencePeakAboveInputBytes':reference_peak,'tiledPeakAboveInputBytes':tile_peak,'gpu':gpu,'shape':[m,16,n,128],'rowTile':chunk,'scoreBudgetMiB':128,'bitwiseEqual':True,'inputsUnchanged':True})
   del q,k,w,before,expected,actual,parts;gc.collect();torch.cuda.empty_cache()
 print(json.dumps({'scope':'Exclusive-GPU mathematical equivalence and temporary allocation gate only; not DSH acceptance','passed':True,'cases':rows,'tiledCases':tiled}))
