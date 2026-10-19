@@ -2,6 +2,7 @@
 
 **Current edition: expanded English, 44 slides, 19 October 2026.**
 
+- [English narrated video](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019.mp4) — all 44 slides, English synthetic narration, 44 chapters and sentence-aligned subtitles. [VTT captions](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019.vtt), [SRT captions](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019.srt), [narration transcript](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019_narration.txt).
 - [English HTML walkthrough](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019.html) — all 44 slide images, searchable slide text, explanations and pinned source links. Images and scripts are embedded; no CDN is required.
 - [Matching editable PowerPoint](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019.pptx) — 44 slides with speaker notes and editable tables.
 
@@ -23,3 +24,11 @@ The English HTML matches the expanded PPTX. Earlier 25-slide English and additio
 | English PPTX | 365232 | `f4ac14da9d2d533de9ad2bf0962d29f5d38337c84305952888631081ee448252` |
 
 All 44 HTML slide transcripts match the PPTX. All embedded images decoded; search, navigation and mobile layout passed browser checks. Both published files passed authenticated full-download byte/hash comparisons. Pinned source and download links are checked separately from runtime behavior.
+
+## English video edition
+
+The video follows the exact 44 final PPTX slide images and corresponding English HTML order. Narration uses the displayed default eight-app limit and 172.52 combined cohort tokens/sec, correcting stale wording in two inherited speaker notes. These are recorded measurements, not new benchmarks. Original long source walkthroughs and earlier 25-slide editions remain unchanged.
+
+Verification covers complete media decoding, non-silent English speech on every slide, sentence-aligned caption intervals, all 44 decoded slide images, browser playback and seeking, and authenticated full-download hashes. Synthetic narration is disclosed; these automated checks are not a human listening review.
+
+Video: **26m 52s**, **34,034,442 bytes**, SHA256 `f2061dabd122b226370b261494d257637a06d21440d2dbcaee3d6e735154ab79`. English captions: **264 sentence-aligned cues**; chapters: **44**.
