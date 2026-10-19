@@ -9,7 +9,18 @@ vm.createContext(sandbox);
 vm.runInContext(pi.slice(pi.indexOf('function userContent('),pi.indexOf('/** Convert a projected declaration')),sandbox);
 const sc=read('dsh-api-session-controller');
 vm.runInContext(sc.slice(sc.indexOf('async function buildModelCatalog('),sc.indexOf('/**\n* Check a GUI selection')),sandbox);
+// Upstream discovery intentionally withholds uncredentialed routes. Exercise
+// the installed method with synthetic auth, without a credential store or I/O.
+sandbox.LlmError=class extends Error {};
+vm.runInContext('class DiscoveryProbe { '+pi.slice(pi.indexOf('\tlistModels(provider) {'),pi.indexOf('\tresolveModel(provider, model, _signal) {'))+' }; globalThis.DiscoveryProbe=DiscoveryProbe;',sandbox);
 (async()=>{
+ const discovery=new sandbox.DiscoveryProbe();
+ discovery.current=()=>({models:{getModels:()=>[{id:'deepseek-v4.1-flash',name:'Managed',input:['text','image']} ]}});
+ discovery.profileOf=()=>({});
+ discovery.config={resolveApiKey:async()=>{throw Object.assign(new sandbox.LlmError('synthetic absent key'),{code:'MISSING_CREDENTIAL'});}};
+ assert.equal((await discovery.listModels('litellm-cluster')).length,0,'Missing credentials must not advertise a fake healthy route');
+ discovery.config.resolveApiKey=async()=> 'synthetic-no-network-key';
+ assert.equal((await discovery.listModels('litellm-cluster'))[0].id,'deepseek-v4.1-flash');
  const ref={attachmentId:'sha256:'+ 'a'.repeat(64),name:'old.png'};
  const messages=[{content:[{type:'image',attachment:ref}]}];
  const signal=new AbortController().signal;
@@ -40,5 +51,5 @@ vm.runInContext(sc.slice(sc.indexOf('async function buildModelCatalog('),sc.inde
  assert.equal(catalog.groups[0].models[0].reasoning.defaultEffort,'low');
  const contract=require('../scripts/upstream_patch_contract.json'),crypto=require('crypto');
  for(const e of contract.targets.filter(e=>e.patched===false))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(base,e.path))).digest('hex'),e.sha256,'Protected upstream permission/UI/prompt bytes changed: '+e.path);
- console.log(JSON.stringify({missingImageTruthful:true,corruptImagePropagated:true,cancellationPreserved:true,realImagePreserved:true,duplicateImagesDeduplicated:true,actualCatalogFunction:true,providerFailurePreserved:true,protectedUpstreamFiles:8,inference:false}));
+ console.log(JSON.stringify({missingCredentialCatalogWithheld:true,syntheticCredentialCatalogVisible:true,missingImageTruthful:true,corruptImagePropagated:true,cancellationPreserved:true,realImagePreserved:true,duplicateImagesDeduplicated:true,actualCatalogFunction:true,providerFailurePreserved:true,protectedUpstreamFiles:8,inference:false}));
 })().catch(e=>{console.error(e);process.exitCode=1;});

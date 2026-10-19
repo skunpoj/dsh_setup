@@ -4,8 +4,14 @@ const home=fs.mkdtempSync(path.join(os.tmpdir(),'dsh-candidate-'));
 const seed=process.env.DSH_CANDIDATE_SEED || '/opt/dsh/seed/dsh-home';
 fs.cpSync(seed,home,{recursive:true});
 const port=31997;let token='',cookie='',log='',closed=false;
+const missingCredential=process.argv.includes('--without-credential');
+const childEnvironment={...process.env,DSH_HOME:home};
+delete childEnvironment.DEEPSEEK_API_KEY;
+// Catalog validation needs a nonempty key in the new upstream adapter. This
+// fixture cannot authenticate and the caller runs the container network-none.
+if(!missingCredential)childEnvironment.DEEPSEEK_API_KEY='dsh-ci-synthetic-no-network';
 const child=spawn('dsh',['web','--host','127.0.0.1','--port',String(port),'--no-open','--trusted-host','127.0.0.1'],{
- env:{...process.env,DSH_HOME:home},stdio:['ignore','pipe','pipe']});
+ env:childEnvironment,stdio:['ignore','pipe','pipe']});
 child.on('exit',()=>{closed=true;});
 const collect=b=>{log=(log+b.toString()).slice(-16000);const m=log.match(/token=([A-Za-z0-9_-]+)/);if(m)token=m[1];};
 child.stdout.on('data',collect);child.stderr.on('data',collect);
@@ -30,12 +36,13 @@ async function rpc(method,args={}){const r=await request('POST','/api/'+method,J
  assert.equal(catalog.result?.ok,true,'Actual model-catalog RPC failed');
  const value=catalog.result.value;
  assert(value && value.default?.provider==='litellm-cluster','Actual catalog default differs');
- assert.deepEqual(value.routableProviders,['litellm-cluster'],'External provider appeared in actual catalog: '+JSON.stringify({providers:value.routableProviders,failedProviders:(value.failures||[]).map(x=>x.id)}));
+ assert.deepEqual(value.routableProviders,missingCredential?[]:['litellm-cluster'],'Actual catalog differs from credential fixture: '+JSON.stringify({providers:value.routableProviders,failedProviders:(value.failures||[]).map(x=>x.id)}));
+ if(missingCredential)assert.equal(value.groups.length,0,'Missing credential must not fabricate a healthy model group');
  const denied=await request('POST','/api/session/list','{}',false);
  assert([401,403].includes(denied.status),'Anonymous RPC was not denied');
  const wrongHost=await request('POST','/api/session/list','{}',true,'untrusted.invalid');
  assert([400,403,421].includes(wrongHost.status),'Untrusted Host was not denied');
- console.log(JSON.stringify({actualWebStartup:true,sessionList:true,internalModelCatalog:true,anonymousRpcDenied:true,untrustedHostDenied:true,disposableState:true,inferenceRequested:false}));
+ console.log(JSON.stringify({actualWebStartup:true,sessionList:true,internalModelCatalog:!missingCredential,syntheticCredential:!missingCredential,missingCredentialNotFabricated:missingCredential,anonymousRpcDenied:true,untrustedHostDenied:true,disposableState:true,inferenceRequested:false}));
 }finally{
  child.kill('SIGTERM');
  for(let n=0;n<20&&!closed;n++)await new Promise(r=>setTimeout(r,100));
