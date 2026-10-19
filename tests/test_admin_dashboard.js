@@ -18,7 +18,7 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
  fs.writeFileSync(path.join(root,'users.json'),JSON.stringify({admin:'synthetic-admin',alice:'synthetic-ordinary'}));
  const snapshot={observedAt:'2026-10-16T06:32:56Z',environments:[{name:'No Internet',ready:true,storage:'CIFS',network:'HTTPS denied'}],
   model:{backendContext:1048576,userContext:131072,concurrencyCeiling:16,checkpoint:'DO_NOT_EXPORT',revision:'DO_NOT_EXPORT'},performance:['Short: 0.23 seconds'],
-  gaps:['<img src=x onerror="window.dashboardXSS=true">'],password:'DO_NOT_EXPORT',rawSecret:{token:'DO_NOT_EXPORT'}};
+  gaps:['<img src=x onerror="window.dashboardXSS=true">'+'a'.repeat(100)],password:'DO_NOT_EXPORT',rawSecret:{token:'DO_NOT_EXPORT'}};
  fs.writeFileSync(path.join(root,'summary.json'),JSON.stringify(snapshot));
  fs.mkdirSync(path.join(root,'audit/legacy/legacy-dsh2'),{recursive:true});
  fs.writeFileSync(path.join(root,'audit/legacy/legacy-dsh2/events.jsonl'),JSON.stringify({time:new Date().toISOString(),event:'terminal.open',user:'user2',environment:'legacy-dsh2/internet',password:'PROJECTION_SECRET'})+'\n');
@@ -71,7 +71,12 @@ const request = (method, route, body='', cookie='', extra={}) => new Promise((re
   assert.equal(await page.locator('#usageAgents').textContent(),'1');assert.equal(await page.locator('#usageTokens').textContent(),'5,500 / 900');
   assert.equal(await page.locator('#usageRecentDecode').textContent(),'80');assert.equal(await page.locator('#usageRows tr').count(),1);
   assert((await page.locator('#usageRows').textContent()).includes('(partial)'));assert(!(await page.locator('body').textContent()).includes('PRIVATE_TELEMETRY'));
-  for(const width of [1440,768,390]){await page.setViewportSize({width,height:1000});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
+  for(const width of [1440,768,390]){
+   await page.setViewportSize({width,height:1000});
+   const layout=await page.evaluate(()=>({viewport:innerWidth,width:document.documentElement.scrollWidth,
+    overflowing:[...document.querySelectorAll('main,section,section li')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).map(e=>({tag:e.tagName,id:e.id,right:e.getBoundingClientRect().right}))}));
+   assert(layout.width<=width+1,JSON.stringify(layout));
+  }
   await page.setViewportSize({width:1440,height:1000});assert.deepEqual(errors,[]);
   if(process.env.DSH_ADMIN_QA_OUTPUT){fs.mkdirSync(process.env.DSH_ADMIN_QA_OUTPUT,{recursive:true});await page.screenshot({path:path.join(process.env.DSH_ADMIN_QA_OUTPUT,'admin-dashboard.png'),fullPage:true});await page.locator('section').filter({has:page.getByRole('heading',{name:'DSH usage and activity',exact:true})}).screenshot({path:path.join(process.env.DSH_ADMIN_QA_OUTPUT,'admin-usage-fixture.png')});}
   await browser.close();browser=null;
