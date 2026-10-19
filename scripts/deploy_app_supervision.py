@@ -49,6 +49,15 @@ def gateway_control_spec(original,control_pvc,identities):
     return spec
 
 
+def initialize_control(k,gateway,claim,identities):
+    job='dsh-service-control-init-'+uuid.uuid4().hex[:10]
+    code="const f=require('fs');for(const n of "+json.dumps(identities)+"){const p='/control/'+n;f.mkdirSync(p+'/status',{recursive:true,mode:448});if(!f.existsSync(p+'/config.json'))f.writeFileSync(p+'/config.json',JSON.stringify({allowed:false,services:{}}),{mode:384});}"
+    pod={'restartPolicy':'Never','automountServiceAccountToken':False,'securityContext':{'runAsUser':10001,'runAsGroup':10001,'fsGroup':10001,'seccompProfile':{'type':'RuntimeDefault'}},'containers':[{'name':'initialize','image':gateway['spec']['template']['spec']['containers'][0]['image'],'command':['node','-e',code],'securityContext':{'runAsNonRoot':True,'allowPrivilegeEscalation':False,'readOnlyRootFilesystem':True,'capabilities':{'drop':['ALL']}},'volumeMounts':[{'name':'control','mountPath':'/control'}]}],'volumes':[{'name':'control','persistentVolumeClaim':{'claimName':claim}}]}
+    if 'imagePullSecrets' in gateway['spec']['template']['spec']:pod['imagePullSecrets']=copy.deepcopy(gateway['spec']['template']['spec']['imagePullSecrets'])
+    k('apply','-f','-',data=json.dumps({'apiVersion':'batch/v1','kind':'Job','metadata':{'name':job},'spec':{'backoffLimit':0,'activeDeadlineSeconds':120,'template':{'spec':pod}}}))
+    k('wait','--for=condition=complete','job/'+job,'--timeout=120s');k('delete','job',job,'--wait=true')
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--gateway',default='dsh-environment-gateway');p.add_argument('--targets',type=Path,required=True,help='Private array of {user,mode,host}; no credentials')
     p.add_argument('--platform-guide-configmap');p.add_argument('--guide-acceptance',type=Path);p.add_argument('--namespace',default='llm');p.add_argument('--storage-class',default='topolvm');p.add_argument('--control-pvc',default='dsh-app-service-control');p.add_argument('--output',type=Path,required=True);p.add_argument('--kubectl',default='kubectl');p.add_argument('--apply',action='store_true');p.add_argument('--acceptance',type=Path);p.add_argument('--test-only',action='store_true');a=p.parse_args()
@@ -84,6 +93,7 @@ def main():
     claims=[{'apiVersion':'v1','kind':'PersistentVolumeClaim','metadata':{'name':'dsh-app-status-'+key(t['host'],t['mode'])},'spec':{'storageClassName':a.storage_class,'accessModes':['ReadWriteOnce'],'resources':{'requests':{'storage':'1Gi'}}}}for t,_,_ in workers]
     k('apply','-f','-',data=json.dumps({'apiVersion':'v1','kind':'List','items':claims}))
     gateway=json.loads(k('get','deploy',a.gateway,'-o','json'));(a.output/'gateway-before.private.json').write_text(json.dumps(gateway))
+    initialize_control(k,gateway,a.control_pvc,[key(t['host'],t['mode'])for t,_,_ in workers])
     spec=gateway_control_spec(gateway['spec'],a.control_pvc,[key(t['host'],t['mode'])for t,_,_ in workers])
     k('patch','deploy',a.gateway,'--type=json','-p',json.dumps([{'op':'replace','path':'/spec','value':spec}]))
     k('rollout','status','deploy/'+a.gateway,'--timeout=150s')
