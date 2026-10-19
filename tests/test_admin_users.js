@@ -25,6 +25,22 @@ async function stop(){const child=gateway;gateway=null;await new Promise(r=>{chi
  assert.equal((await request('POST','/api/admin/users','action=disable&user=alice',admin)).status,403);
  assert.equal((await action('disable','alice','',{Origin:'https://evil.example'})).status,403);
  assert.equal((await action('disable','admin')).status,409);
+ const internetLogin=(user,password)=>request('POST','/login',new URLSearchParams({username:user,password,internet:'on'}).toString());
+ const permission=(user,password)=>request('POST','/api/login-environments',new URLSearchParams({username:user,password}).toString());
+ assert.equal((await internetLogin('alice','synthetic-alice')).status,403);
+ assert.equal(JSON.parse((await permission('alice','synthetic-alice')).text).internetAllowed,false);
+ assert.equal(JSON.parse((await permission('admin','wrong')).text).internetAllowed,false);
+ assert.equal(JSON.parse((await permission('admin','synthetic-admin')).text).internetAllowed,true);
+ assert.equal((await internetLogin('admin','synthetic-admin')).status,302);
+ assert.equal((await action('allow-internet','alice')).status,200);console.log('permission grant passed');
+ assert.equal(JSON.parse((await permission('alice','synthetic-alice')).text).internetAllowed,true);
+ const granted=await internetLogin('alice','synthetic-alice');assert.equal(granted.status,302);
+ assert.equal((await request('POST','/api/admin/users','action=allow-internet&user=bob',alice)).status,403);
+ assert.equal((await action('deny-internet','alice')).status,200);
+ assert.equal((await internetLogin('alice','synthetic-alice')).status,403);
+ assert((await request('GET','/api/auth/session','',granted.cookie)).text.includes('pane-login'));
+ alice=await login('alice','synthetic-alice');
+
  assert.equal((await action('create','unprovisioned','long-test-password')).status,409);
  assert.equal((await action('create','bob','short')).status,400);
  assert.equal((await action('create','bob','long-synthetic-password')).status,200);
@@ -50,8 +66,12 @@ async function stop(){const child=gateway;gateway=null;await new Promise(r=>{chi
  const browser=await chromium.launch({headless:true,...(process.platform==='win32'?{executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'}:{})});
  try {
   const context=await browser.newContext({viewport:{width:1440,height:1050}});
-  await context.addCookies([{name:'dsh_auth',value:admin.split('=')[1],url:'http://127.0.0.1:'+port}]);
+
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
+  console.log('browser selector start');await page.goto('http://127.0.0.1:'+port+'/login');assert(await page.locator('#internet-option').isDisabled());
+  await page.fill('#login_username','alice');await page.fill('#login_password','synthetic-alice');await page.locator('#login_password').blur();await page.waitForTimeout(350);assert(await page.locator('#internet-option').isDisabled());
+  await page.fill('#login_username','admin');await page.fill('#login_password','synthetic-admin');await page.locator('#login_password').blur();await page.waitForFunction(()=>!document.getElementById('internet-option').disabled,{},{timeout:5000});console.log('browser selector passed');
+  await context.addCookies([{name:'dsh_auth',value:admin.split('=')[1],url:'http://127.0.0.1:'+port}]);
   await page.goto('http://127.0.0.1:'+port+'/admin');await page.waitForFunction(()=>document.querySelectorAll('#users tr').length===3);
   const row=page.locator('#users tr').filter({has:page.locator('td').filter({hasText:/^bob$/})});
   await row.getByRole('button',{name:'Disable',exact:true}).click();await page.waitForFunction(()=>document.getElementById('userMessage').textContent==='disable completed for bob.');
@@ -64,5 +84,5 @@ async function stop(){const child=gateway;gateway=null;await new Promise(r=>{chi
  } finally {await browser.close();}
   const evidence={passed:true,checks:['administrator-only list','no credential projection','CSRF and origin denial','protected admin roles','private-runtime prerequisite','hashed creation','duplicate refusal','active WebSocket closure','session revocation','disable denies login and password-change bypass','disabled state survives restart','enable restores login','actor and target audit','browser create/disable/enable','password field cleared','three responsive viewports']};
  console.log(JSON.stringify(evidence));
- }finally{if(gateway)await stop();if(backend)await new Promise(r=>backend.close(r));fs.rmSync(root,{recursive:true,force:true});}
+ }finally{if(gateway)await stop();if(backend){backend.closeAllConnections();await new Promise(r=>backend.close(r));}fs.rmSync(root,{recursive:true,force:true});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

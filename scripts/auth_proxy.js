@@ -99,7 +99,7 @@ function renderAdminDashboard() {
 const put=(id,value)=>document.getElementById(id).textContent=value;
 let managementToken='';
 async function userAction(action,user,password){try{const body=new URLSearchParams({action,user});if(password)body.set('password',password);const r=await fetch('/api/admin/users',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':managementToken},body});const d=await r.json();if(!r.ok)throw Error(d.error||'Account update failed.');put('userMessage',action+' completed for '+user+'.');await refreshUsers();await refresh();}catch(e){put('userMessage',e.message);}}
-async function refreshUsers(){try{const r=await fetch('/api/admin/users',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('User management unavailable.');const d=await r.json();managementToken=d.csrfToken;const root=document.getElementById('users');root.replaceChildren();for(const u of d.users){const tr=document.createElement('tr');for(const value of [u.user,u.role,u.enabled?'Enabled':'Disabled',u.environments.join(', '),u.sessions]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(u.role!=='Administrator'){for(const action of [u.enabled?'disable':'enable','revoke']){const b=document.createElement('button');b.type='button';b.textContent=action==='revoke'?'Sign out':action==='disable'?'Disable':'Enable';b.addEventListener('click',()=>{if(confirm(b.textContent+' '+u.user+'?'))userAction(action,u.user);});td.append(b);}}else td.textContent='Operator-managed';tr.append(td);root.append(tr);}const select=document.getElementById('newUser');select.replaceChildren();for(const user of d.provisionedIdentities){const opt=document.createElement('option');opt.value=user;opt.textContent=user;select.append(opt);}document.getElementById('createButton').disabled=!d.provisionedIdentities.length;}catch(e){put('userMessage',e.message);}}
+async function refreshUsers(){try{const r=await fetch('/api/admin/users',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('User management unavailable.');const d=await r.json();managementToken=d.csrfToken;const root=document.getElementById('users');root.replaceChildren();for(const u of d.users){const tr=document.createElement('tr');for(const value of [u.user,u.role,u.enabled?'Enabled':'Disabled',u.environments.join(', '),u.sessions]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(u.role!=='Administrator'){for(const action of [u.enabled?'disable':'enable','revoke',u.internetAllowed?'deny-internet':'allow-internet']){const b=document.createElement('button');b.type='button';b.textContent=action==='revoke'?'Sign out':action==='disable'?'Disable':action==='allow-internet'?'Allow Internet':action==='deny-internet'?'Disable Internet':'Enable';b.addEventListener('click',()=>{if(confirm(b.textContent+' '+u.user+'?'))userAction(action,u.user);});td.append(b);}}else td.textContent='Operator-managed';tr.append(td);root.append(tr);}const select=document.getElementById('newUser');select.replaceChildren();for(const user of d.provisionedIdentities){const opt=document.createElement('option');opt.value=user;opt.textContent=user;select.append(opt);}document.getElementById('createButton').disabled=!d.provisionedIdentities.length;}catch(e){put('userMessage',e.message);}}
 document.getElementById('createUser').addEventListener('submit',e=>{e.preventDefault();const field=document.getElementById('newPassword');const password=field.value;field.value='';userAction('create',document.getElementById('newUser').value,password);});
 function list(id,values){const root=document.getElementById(id);root.replaceChildren();for(const value of values){const li=document.createElement('li');li.textContent=value;root.append(li);}}
 async function refresh(){try{const r=await fetch('/api/admin/summary',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('Admin access unavailable ('+r.status+').');const d=await r.json();put('error','');put('time','Gateway read at '+d.generatedAt);put('accounts',d.registeredAccounts);put('sessions',d.activeBrowserSessions.secure+d.activeBrowserSessions.internet);put('sessionDetail','No Internet: '+d.activeBrowserSessions.secure+' · Internet: '+d.activeBrowserSessions.internet);put('routing',d.privateUserRouting?'Per user':'Shared pools');put('freshness',d.snapshot.observedAt?'Snapshot observed at '+d.snapshot.observedAt+'. Refresh does not rerun infrastructure tests.':'No snapshot available. Infrastructure status is unknown.');const root=document.getElementById('environments');root.replaceChildren();for(const e of d.snapshot.environments){const tr=document.createElement('tr');for(const text of [e.name,e.ready?'Ready at observation':'Not verified ready',e.storage,e.network]){const td=document.createElement('td');td.textContent=text;tr.append(td);}root.append(tr);}const m=d.snapshot.model;put('model',m?'Backend context: '+m.backendContext+' tokens · DSH/LiteLLM budget: '+m.userContext+' tokens · Running-request ceiling: '+m.concurrencyCeiling:'No recorded limits.');list('performance',d.snapshot.performance);list('gaps',d.snapshot.gaps);}catch(e){put('error',e.message);}}
@@ -192,10 +192,11 @@ function revokeUserSessions(user) {
   for (const socket of USER_SOCKETS.get(user) || []) socket.destroy();
   USER_SOCKETS.delete(user);
 }
+function internetAllowed(user) { return ADMIN_USERS.has(user) || loadUsers()[user]?.internetAllowed === true; }
 function adminAccounts() {
   const users=loadUsers();
   return Object.keys(users).sort().map(user=>({user, enabled:users[user].disabled!==true,
-    role:ADMIN_USERS.has(user)?'Administrator':'User',
+    role:ADMIN_USERS.has(user)?'Administrator':'User', internetAllowed:internetAllowed(user),
     environments:USER_TARGETS ? ['secure','internet'].filter(mode=>Object.hasOwn(USER_TARGETS,user)&&USER_TARGETS[user][mode]) : ['instance'],
     sessions:[...SESSIONS.values()].filter(s=>s.user===user).length}));
 }
@@ -762,7 +763,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
           <span class="form-label">Working environment</span>
           <div class="radio-group" role="radiogroup" aria-label="Working environment">
             <label class="radio-option"><input type="radio" name="internet" value="off" ${LEGACY_INTERNET_ONLY ? 'disabled' : 'checked'}> ${LEGACY_INTERNET_ONLY ? 'No Internet unavailable on this legacy instance' : 'No Internet / Internal (Default)'}</label>
-            <label class="radio-option"><input type="radio" name="internet" value="on" ${LEGACY_INTERNET_ONLY ? 'checked' : ''}> Internet</label>
+            <label class="radio-option"><input type="radio" name="internet" value="on" id="internet-option" disabled> Internet (administrator approval required)</label>
           </div>
           <div class="form-help">${LEGACY_INTERNET_ONLY ? 'Legacy owner-only Internet workspace. Use the main DSH service for separate No Internet and Internet environments.' : 'The environment is fixed for this login session. No Internet / Internal permits approved internal services only; Internet uses a separate staging workspace. These environments do not share project files or chat history.'}</div>
         </div>
@@ -813,13 +814,19 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       ระบบสารสนเทศเฉพาะกิจองค์กร · รักษาความลับข้อมูลขั้นสูงสุด
     </div>
   </div>
+<script>
+(()=>{const u=document.getElementById('login_username'),p=document.getElementById('login_password'),on=document.getElementById('internet-option');if(!u||!p||!on)return;let generation=0;
+function reset(){generation++;on.disabled=true;on.checked=false;const off=document.querySelector('input[name="internet"][value="off"]');if(off&&!off.disabled)off.checked=true;}
+async function check(){reset();const g=generation;if(!u.value||!p.value)return;try{const r=await fetch('/api/login-environments',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:u.value,password:p.value})});const d=await r.json();if(g===generation)on.disabled=!d.internetAllowed;}catch{}}
+u.addEventListener('input',reset);p.addEventListener('input',reset);u.addEventListener('change',check);p.addEventListener('change',check);})();
+</script>
 </body>
 </html>`;
 }
 
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
-  if (req.method === 'POST' && ['/login','/register','/change-password'].includes(parsedUrl.pathname)) {
+  if (req.method === 'POST' && ['/login','/register','/change-password','/api/login-environments'].includes(parsedUrl.pathname)) {
     if (Number(req.headers['content-length']) > 16384) { res.writeHead(413); return res.end('Authentication form too large'); }
     let received = 0;
     req.on('data', chunk => {
@@ -831,6 +838,10 @@ const server = http.createServer((req, res) => {
     });
   }
 
+
+  if (req.method === 'POST' && parsedUrl.pathname === '/api/login-environments') {
+    let body='';req.on('data',c=>body+=c);req.on('end',async()=>{try{const f=new URLSearchParams(body),u=(f.get('username')||'').trim().toLowerCase();const ok=(!LEGACY_OWNER||u===LEGACY_OWNER)&&accountEnabled(u)&&await verifyPassword((f.get('password')||'').trim(),loadUsers()[u]);res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({internetAllowed:Boolean(ok&&internetAllowed(u))}));}catch{res.writeHead(503);res.end('{}');}});return;
+  }
 
   // Handle Login Form Submission
   if (req.method === 'POST' && parsedUrl.pathname === '/login') {
@@ -844,6 +855,7 @@ const server = http.createServer((req, res) => {
 
       USERS = loadUsers();
       if ((!LEGACY_OWNER || username === LEGACY_OWNER) && USERS[username]?.disabled !== true && await verifyPassword(password, USERS[username]) && accountEnabled(username)) {
+        if (internet === 'on' && !internetAllowed(username)) { res.writeHead(403); return res.end('Internet environment requires administrator approval.'); }
         if (!getEnvironmentTarget(internet, username)) {
           res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
           return res.end('No dedicated runtime provisioned for this identity and environment.');
@@ -965,7 +977,7 @@ const server = http.createServer((req, res) => {
 
       USERS = loadUsers();
       if (USERS[username]?.disabled === true) { res.writeHead(403); return res.end('Account disabled.'); }
-      USERS[username] = hashPassword(newPassword);
+      USERS[username] = { ...USERS[username], ...hashPassword(newPassword) };
       if (saveUsers(USERS)) {
         console.log(`[AUTH-PROXY] Successfully changed password for user: ${username}`);
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -1026,7 +1038,7 @@ const server = http.createServer((req, res) => {
     }
   }
 
-  if (authenticated && !accountEnabled(sessionUser)) { revokeUserSessions(sessionUser); authenticated=false; }
+  if (authenticated && (!accountEnabled(sessionUser) || (activeSession.internet === 'on' && !internetAllowed(sessionUser)))) { revokeUserSessions(sessionUser); authenticated=false; }
   if (!authenticated) {
     const tab = parsedUrl.query.tab || 'login';
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -1060,7 +1072,7 @@ const server = http.createServer((req, res) => {
         try {
           if(!accountEnabled(sessionUser) || ![...SESSIONS.values()].includes(activeSession)) return reply(403,{error:'Session expired.'});
           const fields=new URLSearchParams(body),user=fields.get('user')||'',action=fields.get('action');
-          if(!/^[a-z0-9_.-]{3,30}$/.test(user)||!['create','enable','disable','revoke'].includes(action)) return reply(400,{error:'Invalid account or action.'});
+          if(!/^[a-z0-9_.-]{3,30}$/.test(user)||!['create','enable','disable','revoke','allow-internet','deny-internet'].includes(action)) return reply(400,{error:'Invalid account or action.'});
           const users=loadUsers();
           if(ADMIN_USERS.has(user)) return reply(409,{error:'Administrator accounts are maintained by the operator.'});
           if(action==='create') {
@@ -1072,10 +1084,11 @@ const server = http.createServer((req, res) => {
           } else {
             if(!Object.hasOwn(users,user))return reply(404,{error:'Account not found.'});
             if(action==='enable'||action==='disable')users[user]={...users[user],disabled:action==='disable'};
+            if(action==='allow-internet'||action==='deny-internet')users[user]={...users[user],internetAllowed:action==='allow-internet'};
           }
           if(!auditEvent('account.'+action,sessionUser,activeSession.internet,user))return reply(503,{error:'Audit storage unavailable.'});
           if(action!=='revoke'&&!saveUsers(users))return reply(500,{error:'Account update could not be saved.'});
-          if(action==='disable'||action==='revoke')revokeUserSessions(user);
+          if(action==='disable'||action==='revoke'||action==='deny-internet')revokeUserSessions(user);
           return reply(200,{updated:true,user,action});
         } catch {return reply(500,{error:'Account management unavailable.'});}
       });
@@ -1212,7 +1225,7 @@ server.on('upgrade', (req, socket, head) => {
     }
   }
 
-  if (authenticated && !accountEnabled(activeSession.user)) authenticated=false;
+  if (authenticated && (!accountEnabled(activeSession.user) || (activeSession.internet === 'on' && !internetAllowed(activeSession.user)))) authenticated=false;
   if (!authenticated) {
     socket.destroy();
     return;
