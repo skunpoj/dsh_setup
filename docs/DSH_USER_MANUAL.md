@@ -7,10 +7,14 @@ Use DSH in your browser to work with code, documents and analysis tools. This ma
 1. Open the DSH address supplied by your administrator. The floating **User manual** button opens this guide before sign-in.
 2. If you are new, select **Create account**, choose a unique username and confirm a password of at least 12 characters. Then enter your local DSH username and password. Your DSH login selects your private workspace; it is separate from an AD or Kerberos login.
 3. Leave **No Internet / Internal** selected for internal work. **Internet** is a separate environment for approved users preparing packages or working with public material.
-4. Sign in, select a workspace and start a conversation. Give the assistant a bounded task and identify the files it should use.
+4. Choose **DSH workspace**, **Web Terminal** or **JupyterLab** in **Open after sign in**, then sign in. For DSH, select a workspace and start a conversation. Give the assistant a bounded task and identify the files it should use.
 5. Inspect its answer and saved outputs. Ask it to verify changes before relying on a result.
 
 Anyone reaching the login page can create an account while private capacity is available. Signup assigns an exclusive No Internet/Internet runtime pair, but Internet access stays denied until an administrator grants it. A full pool refuses signup without creating an account. See [Create an account and approve Internet access](SELF_SERVICE_SIGNUP.html) for the complete flow.
+
+### Custom app URLs and ports
+
+Open `/applications` after signing in to save a friendly name for a port in your private environment. The notebook suggestion is `<username>-jupyter` on port 8888. Other app names/ports are configurable with collision checks. See [application URLs and Ingress setup](APP_URLS_AND_INGRESS.html) for path URLs, approved hostnames, TLS/DNS, wildcard behavior and publication commands.
 
 ### Pick the correct environment
 

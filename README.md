@@ -174,3 +174,8 @@ The [three-risk control report](docs/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.h
 On the main DSH gateway, Internet selection is disabled by default for every non-administrator account. Administrators retain Internet access and can grant or revoke it per user in Admin overview → User management. The login option remains disabled until valid credentials confirm permission. The server rejects unauthorized Internet logins and checks existing HTTP/WebSocket sessions; revocation signs the user out. Provisioned Internet runtimes alone do not grant permission. Password changes preserve the permission record.
 
 Verified on 19 October 2026: local HTTP/browser administrator grant/revoke, CSRF/role checks and selector behavior; deployed gateway source readback, default denial across existing non-admin accounts, forged-login refusal, and persisted grant/revoke checks using a disposable account. This gateway change did not restart model or user runtimes. Separate legacy-instance gateways are outside this change.
+
+### Application launch and custom URLs
+
+The login selector opens DSH, Web Terminal or JupyterLab in the chosen private environment. At `/applications`, users can save/check a friendly name for a local app port; the default notebook name is `<username>-jupyter`. See [application URLs, wildcard DNS, TLS and Ingress setup](docs/APP_URLS_AND_INGRESS.md). Same-host paths need no new DNS; hostname publication requires approved infrastructure configuration.
+

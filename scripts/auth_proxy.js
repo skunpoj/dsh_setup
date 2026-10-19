@@ -34,6 +34,35 @@ const DSH_TARGET_HOST = process.env.DSH_HOST || '127.0.0.1';
 const USER_ROOT = process.env.WORKSPACE_ROOT || '/workspace/users';
 const USER_STORE_PATH = process.env.DSH_USER_STORE_PATH || `${USER_ROOT}/.user_auth.json`;
 const USER_SETTINGS_PATH = process.env.DSH_USER_SETTINGS_PATH || `${USER_ROOT}/.user_settings.json`;
+const APP_LINKS_PATH = process.env.DSH_APP_LINKS_PATH || path.join(path.dirname(USER_STORE_PATH), 'app-links.json');
+const APP_DOMAIN = (process.env.DSH_APP_DOMAIN || '').toLowerCase();
+if(APP_DOMAIN && !/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/.test(APP_DOMAIN))throw Error('Invalid approved app domain');
+function appHostName(host) {
+  const value=String(host||'').toLowerCase().split(':')[0];
+  if(value===(process.env.DSH_TRUSTED_HOST||'').toLowerCase().split(':')[0])return null;
+  if(!APP_DOMAIN||!value.endsWith('.'+APP_DOMAIN))return null;
+  const name=value.slice(0,-APP_DOMAIN.length-1);
+  return validAppName(name)?name:null;
+}
+function appLinks() {
+  if (!fs.existsSync(APP_LINKS_PATH)) return {};
+  const value=JSON.parse(fs.readFileSync(APP_LINKS_PATH,'utf8'));
+  if (!value || typeof value!=='object' || Array.isArray(value)) throw Error('Invalid app links');
+  return value;
+}
+function saveAppLinks(value) {
+  fs.mkdirSync(path.dirname(APP_LINKS_PATH),{recursive:true,mode:0o700});
+  const tmp=APP_LINKS_PATH+'.tmp-'+crypto.randomBytes(8).toString('hex');let fd;
+  try {fd=fs.openSync(tmp,'wx',0o600);fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.renameSync(tmp,APP_LINKS_PATH);}
+  finally {if(fd!==undefined)fs.closeSync(fd);if(fs.existsSync(tmp))fs.unlinkSync(tmp);}
+}
+function validAppName(name) {return typeof name==='string' && /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/.test(name) && !/^\d+$/.test(name) && !/^dsh(?:$|[-0-9])/.test(name) && !['terminal','jupyter','dashboard','streamlit','fastapi','web','api','ttyd','constructor','prototype'].includes(name);}
+function validAppPort(port) {return Number.isInteger(port)&&port>=1024&&port<=65535&&![PROXY_PORT,DSH_TARGET_PORT,3080,3081,4000,4001].includes(port);}
+function customAppPort(alias,user,mode) {
+  const entry=appLinks()[alias];
+  return entry && entry.owner===user && validAppPort(entry.ports?.[mode]) ? entry.ports[mode] : null;
+}
+function renderApplications() {return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>My applications</title><style>body{font:16px system-ui;max-width:900px;margin:40px auto;padding:20px;line-height:1.6;background:#0b1220;color:#eef}a{color:#8cf}input,button{font:inherit;padding:9px;margin:5px}li{margin:14px 0}</style><h1>My applications</h1><p><a href="/">DSH</a> · <a href="/terminal">Web Terminal</a> · <a href="/proxy/8888/lab">JupyterLab</a> · <a href="/manual/APP_URLS_AND_INGRESS.html">URL guide</a></p><p>Choose a name and a listening port in your private environment. URLs require sign-in and work only for your account in the selected environment. This does not start an application or enable Internet access.</p><form id="appForm"><label>Name <input id="appName" pattern="[a-z0-9-]{3,63}" maxlength="63" required></label><label>Port <input id="appPort" type="number" min="1024" max="65535" value="8888" required></label><button type="button" id="check">Check name</button><button>Save URL</button></form><p id="status" role="status"></p><ul id="links"></ul><script>let token='';const status=document.getElementById('status');async function load(){const r=await fetch('/api/app-links');if(!r.ok)throw Error('Sign in again to manage applications.');const d=await r.json();token=d.csrfToken;if(!document.getElementById('appName').value)document.getElementById('appName').value=d.defaultName;const list=document.getElementById('links');list.replaceChildren();for(const e of d.links){const li=document.createElement('li'),a=document.createElement('a'),b=document.createElement('button');a.href=e.url;a.textContent=e.name+' → port '+e.port;li.append(a);b.textContent='Remove URL';b.onclick=()=>save('delete',e.name,e.port);li.append(b);list.append(li)}}async function save(action,name,port){const r=await fetch('/api/app-links',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-App-CSRF':token},body:new URLSearchParams({action,name,port})});const d=await r.json();status.textContent=d.message||d.error;await load()}document.getElementById('appForm').onsubmit=e=>{e.preventDefault();save('save',document.getElementById('appName').value,document.getElementById('appPort').value).catch(e=>status.textContent=e.message)};document.getElementById('check').onclick=async()=>{const r=await fetch('/api/app-links?name='+encodeURIComponent(document.getElementById('appName').value));const d=await r.json();status.textContent=d.available?'Name available in the application registry.':(d.error||'Name reserved.');};load().catch(e=>status.textContent=e.message);</script></html>`;}
 const COOKIE_NAME = process.env.DSH_COOKIE_NAME || 'dsh_auth';
 const COOKIE_TRANSPORT = process.env.DSH_COOKIE_SECURE === 'false' ? '' : '; Secure';
 const ADMIN_USERS = new Set((process.env.DSH_ADMIN_USERS || 'admin').split(',').map(x => x.trim()).filter(Boolean));
@@ -420,9 +449,10 @@ function adminAccounts() {
 }
 
 // --- DYNAMIC APP GATEWAY HELPERS (OPTION 1 & OPTION 2) ---
-function resolvePortAlias(alias) {
+function resolvePortAlias(alias, user, mode) {
   if (!alias) return null;
   const key = alias.toLowerCase();
+  if (user) {const port=customAppPort(key,user,mode);if(port)return port;}
   try {
     const portsPath = '/workspace/.ports.json';
     if (fs.existsSync(portsPath)) {
@@ -436,6 +466,7 @@ function resolvePortAlias(alias) {
   }
   const defaults = {
     'terminal': 7681,
+    'jupyter': 8888,
     'ttyd': 7681,
     'streamlit': 8501,
     'dashboard': 8501,
@@ -446,33 +477,35 @@ function resolvePortAlias(alias) {
   return defaults[key] || null;
 }
 
-function parseAppTarget(inHost, reqUrl) {
+function parseAppTarget(inHost, reqUrl, user, mode) {
   const parsed = url.parse(reqUrl, true);
   let port = null;
   let targetPath = reqUrl;
+  const customHost=appHostName(inHost);
+  if(customHost)port=customAppPort(customHost,user,mode);
 
   // 1. Subdomain Check: e.g. dsh-8000.example.com, dsh2-8501, dsh-user2-8000...
   // dsh-user<N> is tried before dsh<N> so dsh-user2-8000 resolves to port 8000, not alias "user2-8000".
   const subMatch = inHost.match(/^(?:dsh-user[0-9]*|dsh[0-9]*)-([a-zA-Z0-9_-]+)\./i);
-  if (subMatch) {
+  if (subMatch && !customHost) {
     const raw = subMatch[1];
     if (/^\d+$/.test(raw)) {
       port = parseInt(raw, 10);
     } else {
-      port = resolvePortAlias(raw);
+      port = resolvePortAlias(raw, user, mode);
     }
     targetPath = reqUrl; // Root path preserved for SPA / assets
   }
 
   // 2. Path Check: e.g. /proxy/8000/ or /proxy/myapp/api
-  if (!port) {
+  if (!port && !customHost) {
     const pathMatch = parsed.pathname.match(/^\/proxy\/([a-zA-Z0-9_-]+)(\/.*)?$/);
     if (pathMatch) {
       const raw = pathMatch[1];
       if (/^\d+$/.test(raw)) {
         port = parseInt(raw, 10);
       } else {
-        port = resolvePortAlias(raw);
+        port = resolvePortAlias(raw, user, mode);
       }
       targetPath = (pathMatch[2] || '/') + (parsed.search || '');
     }
@@ -535,7 +568,8 @@ function forwardToLocalApp(targetPort, targetPath, req, res, targetHost = '127.0
 <body>
   <div class="card">
     <h2>⚡ DSH Application Gateway</h2>
-    <p>Target service on port <code>${targetPort}</code> is currently not listening inside this DSH container.</p>
+    <p>Target service on port <code>${targetPort}</code> is currently not listening inside your selected private environment.</p>
+    ${targetPort === 8888 ? '<p>Open <a href="/terminal" style="color:#38BDF8">Web Terminal</a>, run <code>jupyter lab</code>, then return to <a href="/proxy/8888/lab" style="color:#38BDF8">JupyterLab</a>. Keep the terminal process running.</p>' : ''}
     <div class="tip">
       <strong>How to start your web application:</strong><br>
       Start your server inside the DSH container terminal or via agent, e.g.:
@@ -720,8 +754,9 @@ async function check(){if(checking||!document.body)return;checking=true;try{cons
 window.fetch=async function(input,init){const r=await originalFetch(input,init);try{const u=new URL(typeof input==='string'?input:input.url,location.href);if(u.origin===location.origin&&u.pathname.startsWith('/api/')&&r.status===401&&r.headers.get('x-dsh-auth-required')==='1')show();}catch{}return r;};
 setInterval(check,15000);window.addEventListener('focus',check);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();</script>`;
   html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, head => head+recovery) : recovery+html;
-  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}${adminLink}</body>`);
-  return html + control + adminLink;
+  const appsLink='<a id="dsh-my-applications" href="/applications" style="position:fixed;right:125px;top:14px;z-index:2147483647;background:#0f172a;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 13px system-ui">My apps</a>';
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}${appsLink}${adminLink}</body>`);
+  return html + control + appsLink + adminLink;
 }
 
 // Initialize user store if missing
@@ -998,6 +1033,15 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
           </div>
           <div class="form-help">${LEGACY_INTERNET_ONLY ? 'Legacy owner-only Internet workspace. Use the main DSH service for separate No Internet and Internet environments.' : 'The environment is fixed for this login session. No Internet / Internal permits approved internal services only; Internet uses a separate staging workspace. These environments do not share project files or chat history.'}</div>
         </div>
+        <div class="form-group">
+          <label class="form-label" for="login_application">Open after sign in</label>
+          <select id="login_application" name="application" class="form-control">
+            <option value="dsh">DSH workspace (Default)</option>
+            <option value="terminal">Web Terminal</option>
+            <option value="jupyter">JupyterLab</option>
+          </select>
+          <div class="form-help">All choices use your private workspace in the selected environment. If Jupyter is stopped, start it from Web Terminal with jupyter lab.</div>
+        </div>
         <button type="submit" class="btn-submit">เข้าสู่ระบบ (Sign In)</button>
       </form>
     </div>
@@ -1083,6 +1127,9 @@ const server = http.createServer((req, res) => {
       const username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
       const password = params.get('password') ? params.get('password').trim() : '';
       const internet = normalizeInternetMode(params.get('internet'));
+      const launchPaths = {dsh:'/', terminal:'/terminal', jupyter:'/proxy/8888/lab'};
+      const application = params.get('application') || 'dsh';
+      if (!Object.hasOwn(launchPaths, application)) { res.writeHead(400); return res.end('Choose DSH, Web Terminal or JupyterLab.'); }
 
       USERS = loadUsers();
       if ((!LEGACY_OWNER || username === LEGACY_OWNER) && USERS[username]?.disabled !== true && await verifyPassword(password, USERS[username]) && accountEnabled(username)) {
@@ -1115,7 +1162,7 @@ const server = http.createServer((req, res) => {
           }
           res.writeHead(302, {
             'Set-Cookie': cookieHeaders,
-            'Location': '/'
+            'Location': launchPaths[application]
           });
           return res.end();
         });
@@ -1358,6 +1405,40 @@ const server = http.createServer((req, res) => {
   }
   bindAuthenticatedProxyIdentity(req, sessionUser, internetMode);
 
+  if (parsedUrl.pathname === '/applications') {
+    res.writeHead(200, {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'});
+    return res.end(renderApplications());
+  }
+  if (parsedUrl.pathname === '/api/app-links') {
+    const reply=(s,v)=>{res.writeHead(s,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(v));};
+    try {
+      if(req.method==='GET') {
+        const all=appLinks();activeSession.appCsrf ||= crypto.randomBytes(32).toString('hex');
+        const name=parsedUrl.query.name;
+        if(name!==undefined) {if(!validAppName(name))return reply(400,{error:'Use 3–63 lowercase letters, digits and hyphens; built-in names are reserved.'});return reply(200,{available:!Object.hasOwn(all,name)||all[name].owner===sessionUser});}
+        return reply(200,{defaultName:sessionUser.replace(/[_.]/g,'-')+'-jupyter',csrfToken:activeSession.appCsrf,hostnameDomain:APP_DOMAIN||null,links:Object.entries(all).filter(([,e])=>e.owner===sessionUser&&validAppPort(e.ports?.[internetMode])).map(([name,e])=>({name,port:e.ports[internetMode],url:'/proxy/'+name+'/'+(e.ports[internetMode]===8888?'lab':''),hostname:APP_DOMAIN?name+'.'+APP_DOMAIN:null}))});
+      }
+      if(req.method!=='POST')return reply(405,{error:'Use GET or POST.'});
+      if(!activeSession.appCsrf||req.headers['x-dsh-app-csrf']!==activeSession.appCsrf)return reply(403,{error:'Invalid application token.'});
+      try {if(new URL(req.headers.origin).host!==(process.env.DSH_TRUSTED_HOST||req.headers.host))return reply(403,{error:'Cross-origin change denied.'});}catch{return reply(403,{error:'Same-origin request required.'});}
+      if(!String(req.headers['content-type']||'').startsWith('application/x-www-form-urlencoded'))return reply(415,{error:'Form encoding required.'});
+      let body='',large=false;req.on('data',b=>{if(large)return;body+=b;if(Buffer.byteLength(body)>2048){large=true;reply(413,{error:'Request too large.'});}});
+      req.on('end',()=>{if(large)return;try {
+        if(!accountEnabled(sessionUser)||![...SESSIONS.values()].includes(activeSession))return reply(403,{error:'Session ended.'});
+        const f=new URLSearchParams(body),name=f.get('name'),port=Number(f.get('port')),action=f.get('action'),all=appLinks();
+        if(!validAppName(name)||!['save','delete'].includes(action))return reply(400,{error:'Invalid application name or action.'});
+        if(Object.hasOwn(all,name)&&all[name].owner!==sessionUser)return reply(409,{error:'Name reserved. Choose another name.'});
+        if(action==='save') {
+          if(!validAppPort(port))return reply(400,{error:'Choose an application port from 1024–65535; management ports are reserved.'});
+          if(!Object.hasOwn(all,name)&&(Object.keys(all).length>=4096||Object.values(all).filter(e=>e.owner===sessionUser).length>=64))return reply(409,{error:'Application URL quota reached.'});
+          all[name]={owner:sessionUser,ports:{...(all[name]?.ports||{}),[internetMode]:port}};
+        } else if(Object.hasOwn(all,name)) {delete all[name].ports[internetMode];if(!Object.keys(all[name].ports).length)delete all[name];}
+        if(!auditEvent('application.'+action,sessionUser,internetMode))return reply(503,{error:'Audit storage unavailable.'});
+        saveAppLinks(all);return reply(200,{message:action==='save'?'Application URL saved.':'Application URL removed.'});
+      }catch{return reply(503,{error:'Application URL storage unavailable.'});}});return;
+    }catch{return reply(503,{error:'Application URL storage unavailable.'});}
+  }
+
   if (req.method === 'GET' && parsedUrl.pathname === '/api/auth/session') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({ user: sessionUser, internet: internetMode, environment: environmentTarget.name }));
@@ -1368,11 +1449,21 @@ const server = http.createServer((req, res) => {
     res.writeHead(302, { 'Location': '/proxy/terminal/' });
     return res.end();
   }
+  if (parsedUrl.pathname === '/jupyter') {
+    res.writeHead(302, { 'Location': '/proxy/8888/lab' });
+    return res.end();
+  }
 
   // Dynamic App Gateway (Option 1 Subdomain or Option 2 Path Proxy); only reachable after login
   if (!auditEvent('runtime.http', sessionUser, internetMode)) { res.writeHead(503); return res.end('Audit storage unavailable.'); }
   const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
-  const appTarget = parseAppTarget(incomingHost, req.url);
+  const hostAlias=appHostName(incomingHost);
+  if(hostAlias && !customAppPort(hostAlias,sessionUser,internetMode)) {res.writeHead(404);return res.end('Application hostname unavailable for this account and environment.');}
+  const appTarget = parseAppTarget(incomingHost, req.url, sessionUser, internetMode);
+  if(hostAlias && appTarget.port===8888) {res.writeHead(302,{Location:'https://'+process.env.DSH_TRUSTED_HOST+'/proxy/8888'+(req.url==='/'?'/lab':req.url)});return res.end();}
+  const namedPath=parsedUrl.pathname.match(/^\/proxy\/([a-z0-9][a-z0-9-]{2,62})(?:\/|$)/);
+  if(namedPath && Object.hasOwn(appLinks(),namedPath[1]) && !customAppPort(namedPath[1],sessionUser,internetMode)) {res.writeHead(404);return res.end('Application URL unavailable for this account and environment.');}
+  if(appTarget.port===8888 && namedPath && customAppPort(namedPath[1],sessionUser,internetMode)) {res.writeHead(302,{Location:'/proxy/8888'+appTarget.targetPath});return res.end();}
   if (appTarget && appTarget.port) {
     return forwardToLocalApp(appTarget.port, appTarget.targetPath, req, res, environmentTarget.host);
   }
@@ -1492,7 +1583,10 @@ server.on('upgrade', (req, socket, head) => {
 
   // Dynamic App Gateway for WebSockets (e.g. Streamlit, Vite HMR, Next.js); only reachable after login
   const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
-  const appTarget = parseAppTarget(incomingHost, req.url);
+  const hostAlias=appHostName(incomingHost);
+  const aliasPath=url.parse(req.url).pathname.match(/^\/proxy\/([a-z0-9][a-z0-9-]{2,62})(?:\/|$)/);
+  if((hostAlias && !customAppPort(hostAlias,activeSession.user,internetMode)) || (aliasPath && Object.hasOwn(appLinks(),aliasPath[1]) && !customAppPort(aliasPath[1],activeSession.user,internetMode)))return socket.destroy();
+  const appTarget = parseAppTarget(incomingHost, req.url, activeSession.user, internetMode);
   if (appTarget && appTarget.port) {
     if (!auditEvent(appTarget.port === 7681 ? 'terminal.open' : 'application.websocket', activeSession.user, internetMode)) return socket.destroy();
     return forwardWebSocketToLocalApp(appTarget.port, appTarget.targetPath, req, socket, head, environmentTarget.host);

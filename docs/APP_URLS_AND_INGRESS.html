@@ -1,0 +1,95 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH — Application URLs and ingress</title><style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
+</style></head><body><main><h1>Application URLs, login destinations and port publishing</h1>
+<h2>Choose what to open</h2>
+<p>On the login page choose <strong>DSH workspace</strong>, <strong>Web Terminal</strong> or <strong>JupyterLab</strong> from <strong>Open after sign in</strong>. DSH is the default. The separate environment selector still defaults to No Internet. Choosing an application never grants Internet access or changes your private runtime.</p>
+<table>
+<thead>
+<tr>
+<th>Choice</th>
+<th>Browser route</th>
+<th>Private application</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DSH</td>
+<td><code>/</code></td>
+<td>DSH web workspace</td>
+</tr>
+<tr>
+<td>Web Terminal</td>
+<td><code>/terminal</code> → <code>/proxy/terminal/</code></td>
+<td>Terminal on port 7681</td>
+</tr>
+<tr>
+<td>JupyterLab</td>
+<td><code>/proxy/8888/lab</code></td>
+<td>Notebook server on port 8888</td>
+</tr>
+<tr>
+<td>My application URLs</td>
+<td><code>/applications</code></td>
+<td>Create, check and remove your app names</td>
+</tr>
+</tbody></table>
+<p>JupyterLab is installed. If stopped, open Web Terminal and run <code>jupyter lab</code>, then reopen JupyterLab. Selecting an application does not execute shell commands automatically. Stopping its process does not delete saved notebooks.</p>
+<h2>Custom URL for a custom port</h2>
+<ol>
+<li>Sign in to the desired environment and open <code>/applications</code>.</li>
+<li>Enter a name and your application&#39;s listening port. The suggestion is <code>&lt;username&gt;-jupyter</code>, port <code>8888</code>. For a different app use, for example, <code>alice-report</code>, port <code>8501</code>.</li>
+<li>Select <strong>Check name</strong>, then <strong>Save URL</strong>.</li>
+<li>Start the application in that same environment and open its saved link.</li>
+</ol>
+<p><code>alice-report</code> → port <code>8501</code> produces <code>/proxy/alice-report/</code>. The gateway strips that prefix and forwards the remaining path, query, HTTP methods and WebSocket to port 8501 in Alice&#39;s selected runtime. Users cannot supply a destination machine, IP or Service. Another user cannot reserve or open Alice&#39;s saved name. An alias can have different ports in the owner&#39;s two environments; a missing environment mapping is refused.</p>
+<p>Names use 3–63 lowercase letters, digits and hyphens. Built-in names and management ports are reserved. Each account can hold 64 named URLs. Removing a URL removes its mapping, not its files or running process. Mappings are atomically saved in a protected gateway auth-volume file, separately from passwords and histories.</p>
+<p>Jupyter&#39;s friendly link redirects to <code>/proxy/8888/lab</code>: its managed assets, APIs, kernels and XSRF/origin checks retain a fixed base URL. Other apps must support their browser-visible path, or use an approved hostname. A proxy cannot automatically repair every framework&#39;s redirects, absolute asset URLs or cookie paths.</p>
+<h2>Paths and custom hostnames</h2>
+<table>
+<thead>
+<tr>
+<th>Style</th>
+<th>Example</th>
+<th>Requirements</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Same DSH address</td>
+<td><code>https://dsh.example.internal/proxy/alice-report/</code></td>
+<td>Saved mapping and listening app; no extra DNS or Ingress</td>
+</tr>
+<tr>
+<td>Custom hostname</td>
+<td><code>https://alice-report.apps.example.internal/</code></td>
+<td>Mapping, approved gateway <code>DSH_APP_DOMAIN</code>, DNS, TLS and an Ingress to the authentication gateway</td>
+</tr>
+</tbody></table>
+<p>The suggested notebook hostname label is <code>&lt;username&gt;-jupyter</code>. Dots/underscores in a username become hyphens; check for collisions. Users choose a name and local port, not arbitrary domains, cluster Services, certificates or other runtimes.</p>
+<p><strong>Path URLs work without new DNS. Hostnames are opt-in; saving an app does not allocate DNS or create an Ingress.</strong> A configured hostname is a candidate until published. The current main site uses explicit Ingress host rules. A DNS wildcard alone does not publish a new name.</p>
+<p>The gateway checks hostname ownership and environment before forwarding. Unowned/unknown app names are refused. Ordinary apps can remain at their hostname if compatible with that Host/Origin. Jupyter hostname links redirect to the canonical notebook path. Do not publish a direct unauthenticated worker Ingress.</p>
+<h2>Check name and Ingress availability</h2>
+<p>The browser checks the protected DSH application registry. It does not establish DNS or Kubernetes hostname ownership. The operator separately checks all visible Ingress rules:</p>
+<pre><code class="language-sh">python scripts/plan_app_ingress.py \
+  --user alice --name alice-report --domain apps.example.internal \
+  --namespace llm --service dsh-environment-gateway \
+  --tls-secret dsh-apps-tls --output /private/alice-report-ingress.yaml
+</code></pre>
+<p>Omit <code>--name</code> to suggest <code>alice-jupyter</code>. The command reads all namespaces, refuses exact-host or matching single-label wildcard conflicts and checks the deterministic Ingress resource name. Missing read permission is a failure, not proof of availability. <code>--inventory /private/ingresses.json</code> accepts an operator export; verify its freshness.</p>
+<p>DNS resolution is reported separately. Wildcard DNS may resolve an unused name without reserving it or establishing certificate coverage. The command renders a candidate only. Availability is a point-in-time observation, not an atomic global reservation; recheck before applying and use one operator/controller as publisher.</p>
+<h2>Operator hostname setup</h2>
+<ol>
+<li>Obtain an approved app-only DNS domain or explicitly allocated hostnames. Avoid a catch-all on a shared organizational domain.</li>
+<li>Point the approved names/wildcard at the ingress controller. Use a trusted certificate whose SAN covers those names and a TLS Secret in the Ingress namespace.</li>
+<li>Set <code>DSH_APP_DOMAIN=apps.example.internal</code> on the gateway. Keep <code>DSH_TRUSTED_HOST</code> fixed to the canonical DSH site. Ordinary user forms cannot change either setting.</li>
+<li>Save the app mapping. Generate/review its exact-host candidate, then run:</li>
+</ol>
+<pre><code class="language-sh">kubectl apply --dry-run=server -f /private/alice-report-ingress.yaml
+kubectl apply -f /private/alice-report-ingress.yaml
+</code></pre>
+<ol start="5">
+<li>Alternatively, an approved delegated wildcard Ingress can route <code>*.apps.example.internal</code> to the same gateway. Kubernetes wildcards match one DNS label. DNS, certificate and Ingress wildcards are three separate settings.</li>
+<li>Disable response buffering, support WebSockets, preserve original Host/Origin through the trusted ingress, deliberately set body/timeout limits and overwrite untrusted forwarded headers. Existing private-worker network policies continue to apply.</li>
+<li>Verify normal TLS, anonymous and wrong-user denial, environment approval/revocation, assets, uploads, redirects, terminal/kernel WebSockets and persistence.</li>
+</ol>
+<p>The gateway has no Kubernetes management token. Fully automatic exact-host registration requires a separate narrowly scoped operator controller; it is not implemented by allowing users/prompts to edit Ingress objects. Until that controller or a delegated wildcard domain is qualified, use the working custom path. Revert only routing/configuration on regression; never overwrite newer account, workspace or history content.</p>
+<p>References: <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards">Kubernetes Ingress wildcards</a>, <a href="https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html#running-the-notebook-with-a-customized-url-prefix">Jupyter base URLs</a>.</p>
+</main></body></html>

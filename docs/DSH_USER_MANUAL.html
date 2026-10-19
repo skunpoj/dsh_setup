@@ -7,10 +7,12 @@ img{max-width:100%;height:auto;border-radius:12px}table{table-layout:fixed}pre{w
 <li>Open the DSH address supplied by your administrator. The floating <strong>User manual</strong> button opens this guide before sign-in.</li>
 <li>If you are new, select <strong>Create account</strong>, choose a unique username and confirm a password of at least 12 characters. Then enter your local DSH username and password. Your DSH login selects your private workspace; it is separate from an AD or Kerberos login.</li>
 <li>Leave <strong>No Internet / Internal</strong> selected for internal work. <strong>Internet</strong> is a separate environment for approved users preparing packages or working with public material.</li>
-<li>Sign in, select a workspace and start a conversation. Give the assistant a bounded task and identify the files it should use.</li>
+<li>Choose <strong>DSH workspace</strong>, <strong>Web Terminal</strong> or <strong>JupyterLab</strong> in <strong>Open after sign in</strong>, then sign in. For DSH, select a workspace and start a conversation. Give the assistant a bounded task and identify the files it should use.</li>
 <li>Inspect its answer and saved outputs. Ask it to verify changes before relying on a result.</li>
 </ol>
 <p>Anyone reaching the login page can create an account while private capacity is available. Signup assigns an exclusive No Internet/Internet runtime pair, but Internet access stays denied until an administrator grants it. A full pool refuses signup without creating an account. See <a href="SELF_SERVICE_SIGNUP.html">Create an account and approve Internet access</a> for the complete flow.</p>
+<h3>Custom app URLs and ports</h3>
+<p>Open <code>/applications</code> after signing in to save a friendly name for a port in your private environment. The notebook suggestion is <code>&lt;username&gt;-jupyter</code> on port 8888. Other app names/ports are configurable with collision checks. See <a href="APP_URLS_AND_INGRESS.html">application URLs and Ingress setup</a> for path URLs, approved hostnames, TLS/DNS, wildcard behavior and publication commands.</p>
 <h3>Pick the correct environment</h3>
 <table>
 <thead>

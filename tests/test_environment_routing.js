@@ -90,6 +90,8 @@ async function waitReady(port) {
     const page = await request(gatewayPort, 'GET', '/login');
     assert(!page.body.includes('id="tab-register"'));
     assert(!page.body.includes('action="/register"'));
+    assert(page.body.includes('id="login_application"'));
+    assert(page.body.includes('<option value="jupyter">JupyterLab</option>'));
     const registration = await request(gatewayPort, 'POST', '/register', 'username=mallory&password=secret1&confirm_password=secret1');
     assert.equal(registration.status, 403);
     assert(!JSON.parse(fs.readFileSync(users, 'utf8')).mallory);
@@ -102,6 +104,16 @@ async function waitReady(port) {
     }
     const offLogin = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=off');
     const offCookie = offLogin.headers['set-cookie'][0].split(';')[0];
+    assert.equal(offLogin.headers.location, '/');
+    for (const [application, location] of [['terminal','/terminal'],['jupyter','/proxy/8888/lab']]) {
+      const launch = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=off&application='+application);
+      assert.equal(launch.status,302);assert.equal(launch.headers.location,location);
+      const session=launch.headers['set-cookie'][0].split(';')[0];
+      assert.equal(JSON.parse((await request(gatewayPort,'GET','/probe','',session)).body).backend,'secure-pool');
+    }
+    const injected=await request(gatewayPort,'POST','/login','username=alice&password=secret1&application=https://evil.example');
+    assert.equal(injected.status,400);assert(!injected.headers['set-cookie']);
+    assert.equal((await request(gatewayPort,'GET','/jupyter','',offCookie)).headers.location,'/proxy/8888/lab');
     const offResult = JSON.parse((await request(gatewayPort, 'GET', '/probe', '', offCookie)).body);
     assert.deepEqual(offResult, { backend: 'secure-pool', environment: 'off' });
 
@@ -136,4 +148,6 @@ async function waitReady(port) {
     [path.join(__dirname, 'test_self_registration.js')], { stdio: 'inherit', timeout: 60000 });
   require('child_process').execFileSync(process.execPath,
     [path.join(__dirname, 'test_session_recovery.js')], { stdio: 'inherit', timeout: 60000 });
+  require('child_process').execFileSync(process.execPath,
+    [path.join(__dirname, 'test_app_links.js')], { stdio: 'inherit', timeout: 60000 });
 }).catch(error => { console.error(error); process.exitCode = 1; });

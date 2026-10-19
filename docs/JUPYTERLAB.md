@@ -5,10 +5,12 @@ JupyterLab adds Python notebooks beside Kilo Code, Claude Code and TrueForge. It
 ## Open a notebook
 
 1. Sign in to DSH and select your environment. No Internet is the default; Internet requires administrator approval.
-2. Open its terminal and run `jupyter lab` (or `jupyterlab`). Keep that process running.
+2. Choose **JupyterLab** in the login application's dropdown. If stopped, open Web Terminal and run `jupyter lab` (or `jupyterlab`). Keep that process running.
 3. Open `/proxy/8888/lab` on the same DSH address in another tab. Your existing DSH sign-in authorizes access.
 4. Create a Python 3 notebook, run `print(6 * 7)` and check that the output is `42`.
 5. Save beneath `/workspace`. Stop kernels when finished; Ctrl+C in the launch terminal stops the server.
+
+Use `/applications` to save a friendly `<username>-jupyter` URL or map another application's port. See [custom URLs, ports and hostname setup](APP_URLS_AND_INGRESS.html). Jupyter's friendly URL redirects to its fixed notebook base URL.
 
 `jupyter --version` shows the installed Lab version. The image pins JupyterLab 4.6.4, Jupyter Server 2.21.1 and ipykernel 7.4.0. Installation happens during the image build, so notebook startup performs no package download.
 
