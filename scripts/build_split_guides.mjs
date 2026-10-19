@@ -23,7 +23,17 @@ const prefix=parts[0].replace(/^# [^\n]*\n/,'').trim();
 const security=`# DSH — Security, Environments and Features\n\nThis guide explains how the platform controls external leakage, damage or excessive access, and exposure of results, followed by its features and labelled interface screenshots. The environment outline is incorporated as design decisions rather than treated as an approved configuration.\n\nFor installation, configuration, rollback and measured results, use the companion [Setup and Stress-Test Guide](${companionSetup}).\n\n${prefix}\n\n`+
  ['1 Prevent external leakage','2 Prevent damage or excessive access','3 Keep results contained','Connected services and responsibilities'].map(find).join('\n')+'\n'+
  find('Platform features and intended use').replace(/### Installed clients[\s\S]*/, '')+'\n'+
- `## Environment and access design
+ `## Who can create accounts and use Internet
+
+Self-registration is disabled. Only administrators can create accounts for provisioned private runtimes through Admin overview → User management. Creating an account does not automatically provision compute or storage.
+
+Internet access is a separate per-user permission. Every non-admin account starts without it; administrators retain access and may grant or revoke it individually. The Internet radio option is disabled until valid credentials confirm the permission. The server rejects a forged Internet selection regardless of the browser state. Revocation signs the user out and closes tracked gateway connections; it does not cancel tools already executing. Password changes preserve the permission. No Internet remains the default even for approved users.
+
+These controls are deployed on the main gateway. Separate legacy-instance gateways are not covered by this permission change. Activity oversight and account administration do not grant ownership of private user content.
+
+The deployed dashboard provides account management and access activity. Additional numeric panels for stored sessions, token totals, execution activity and storage have been implemented and tested against isolated runtimes, but their gateway rollout is pending. Do not present a saved dashboard screenshot as a live utilization measurement.
+
+## Environment and access design
 
 Users enter through the authenticated gateway. The selected identity and environment determine the private runtime and storage scope; browser-supplied names or routing headers do not grant access to another user's environment.
 
@@ -55,7 +65,7 @@ Use one private runtime per user and environment with bounded workspace, session
 
 ### 4 Configure the gateway, policy and internal services
 
-Provision accounts through the protected gateway store and map server-side user/environment routes. Do not put credentials into source manifests. Default login to No Internet; switching requires a new login. Apply the enforcing network policies, filtered internal DNS and service-specific allowlists before making the environment available. Cover gateway, tools, inference and database separately. Retain authenticated terminal, attachment/report and application-preview routes; do not create a public bypass. Livy/Spark remains available under its documented remote-network boundary.
+Provision accounts through the protected gateway store and map server-side user/environment routes. Disable self-registration. Only admin may create provisioned accounts; default Internet permission to denied for non-admins and grant it individually through User management. Verify both the disabled selector and server-side refusal, permission persistence and revocation of existing sessions. Do not put credentials into source manifests. Default login to No Internet; switching requires a new login. Apply the enforcing network policies, filtered internal DNS and service-specific allowlists before making the environment available. Cover gateway, tools, inference and database separately. Retain authenticated terminal, attachment/report and application-preview routes; do not create a public bypass. Livy/Spark remains available under its documented remote-network boundary.
 
 ### 5 Provision named accounts and verify isolation
 

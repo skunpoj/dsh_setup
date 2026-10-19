@@ -236,6 +236,16 @@ The main interface is the DSH web workspace. Claude Code and TrueForge are optio
 | Operations and rollback | Preserve specifications, image/source digests and mounted data before change | Restore compatible configuration on regression; never overwrite newer work with an older history copy. |
 
 
+## Who can create accounts and use Internet
+
+Self-registration is disabled. Only administrators can create accounts for provisioned private runtimes through Admin overview → User management. Creating an account does not automatically provision compute or storage.
+
+Internet access is a separate per-user permission. Every non-admin account starts without it; administrators retain access and may grant or revoke it individually. The Internet radio option is disabled until valid credentials confirm the permission. The server rejects a forged Internet selection regardless of the browser state. Revocation signs the user out and closes tracked gateway connections; it does not cancel tools already executing. Password changes preserve the permission. No Internet remains the default even for approved users.
+
+These controls are deployed on the main gateway. Separate legacy-instance gateways are not covered by this permission change. Activity oversight and account administration do not grant ownership of private user content.
+
+The deployed dashboard provides account management and access activity. Additional numeric panels for stored sessions, token totals, execution activity and storage have been implemented and tested against isolated runtimes, but their gateway rollout is pending. Do not present a saved dashboard screenshot as a live utilization measurement.
+
 ## Environment and access design
 
 Users enter through the authenticated gateway. The selected identity and environment determine the private runtime and storage scope; browser-supplied names or routing headers do not grant access to another user's environment.
@@ -252,6 +262,13 @@ Users enter through the authenticated gateway. The selected identity and environ
 Logout ends the gateway session. Changing environment requires signing in again and does not copy files, conversation history or credentials between environments. Incoming and approved package areas provide the controlled dependency-transfer path; they are not shared project storage.
 
 ## Interface screenshots
+
+### DSH working session: controlled tool operation
+
+This is an actual completed synthetic DSH conversation in a disposable No Internet runtime using the 1017 checkpoint. The task creates, reads and removes one synthetic file, then returns its exact marker. The screenshot shows the operating interface and recorded response; corresponding execution records confirm the tool result and cleanup. It is not a Production user session, a general authorization test or complete 1017 near-1M qualification.
+
+![Actual DSH interface showing a completed synthetic tool task](images/platform/working-synthetic-tool-session.png)
+
 
 The sign-in screenshot illustrates the recorded interface, not a fresh availability check. Dashboard screenshots use demonstration accounts and values to explain the controls.
 

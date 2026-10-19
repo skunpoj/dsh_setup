@@ -60,9 +60,11 @@ See the [sanitized qualification record](https://github.com/skunpoj/dsh_setup/bl
 
 The five fresh groups total 31 unique saved replies. All were exact and retry-free. Combined throughput includes the entire request window and is distinct from one conversation's streaming speed. The model can admit eight active requests; excess clients may queue.
 
-### Checkpoint scope
+### Checkpoint scope and ongoing 1017 qualification
 
-The results above remain bound to the checkpoint and four runtime-source hashes qualified on 19 October 2026. A separate task is staging DeepSeek-V4.1-Flash-1017, pinned revision `1bae0e1088993b9b82de08f59de5be5a34e42170`. That staging work does not change which model these results tested, and does not qualify the new weights. Re-run the relevant acceptance checks before attributing the recorded performance to that checkpoint.
+Earlier results above apply to the previously qualified checkpoint, not automatically to new weights. Fresh Deployment readback now selects DeepSeek-V4.1-Flash-1017 revision `1bae0e1088993b9b82de08f59de5be5a34e42170`, retaining 1M context, DSpark, memory fraction 0.923 and active cap eight.
+
+The 1017 checkpoint passed the recorded 256K test with ten concurrent short replies (median 4.09 seconds), zero allocator/fatal signatures and no retries. Three exact saved structured replies streamed at 164.87–166.57 tokens/sec. Its near-1M test is still running; final full-length, follow-up and preservation acceptance remain pending. These intermediate results do not establish complete 1017 qualification. The operating task retains rollback and owns the final acceptance record.
 
 
 ## Deploy the DSH application and private environments
@@ -81,7 +83,7 @@ Use one private runtime per user and environment with bounded workspace, session
 
 ### 4 Configure the gateway, policy and internal services
 
-Provision accounts through the protected gateway store and map server-side user/environment routes. Do not put credentials into source manifests. Default login to No Internet; switching requires a new login. Apply the enforcing network policies, filtered internal DNS and service-specific allowlists before making the environment available. Cover gateway, tools, inference and database separately. Retain authenticated terminal, attachment/report and application-preview routes; do not create a public bypass. Livy/Spark remains available under its documented remote-network boundary.
+Provision accounts through the protected gateway store and map server-side user/environment routes. Disable self-registration. Only admin may create provisioned accounts; default Internet permission to denied for non-admins and grant it individually through User management. Verify both the disabled selector and server-side refusal, permission persistence and revocation of existing sessions. Do not put credentials into source manifests. Default login to No Internet; switching requires a new login. Apply the enforcing network policies, filtered internal DNS and service-specific allowlists before making the environment available. Cover gateway, tools, inference and database separately. Retain authenticated terminal, attachment/report and application-preview routes; do not create a public bypass. Livy/Spark remains available under its documented remote-network boundary.
 
 ### 5 Provision named accounts and verify isolation
 

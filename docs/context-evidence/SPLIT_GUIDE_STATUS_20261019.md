@@ -56,6 +56,8 @@ See the [sanitized qualification record](https://github.com/skunpoj/dsh_setup/bl
 
 The five fresh groups total 31 unique saved replies. All were exact and retry-free. Combined throughput includes the entire request window and is distinct from one conversation's streaming speed. The model can admit eight active requests; excess clients may queue.
 
-### Checkpoint scope
+### Checkpoint scope and ongoing 1017 qualification
 
-The results above remain bound to the checkpoint and four runtime-source hashes qualified on 19 October 2026. A separate task is staging DeepSeek-V4.1-Flash-1017, pinned revision `1bae0e1088993b9b82de08f59de5be5a34e42170`. That staging work does not change which model these results tested, and does not qualify the new weights. Re-run the relevant acceptance checks before attributing the recorded performance to that checkpoint.
+Earlier results above apply to the previously qualified checkpoint, not automatically to new weights. Fresh Deployment readback now selects DeepSeek-V4.1-Flash-1017 revision `1bae0e1088993b9b82de08f59de5be5a34e42170`, retaining 1M context, DSpark, memory fraction 0.923 and active cap eight.
+
+The 1017 checkpoint passed the recorded 256K test with ten concurrent short replies (median 4.09 seconds), zero allocator/fatal signatures and no retries. Three exact saved structured replies streamed at 164.87–166.57 tokens/sec. Its near-1M test is still running; final full-length, follow-up and preservation acceptance remain pending. These intermediate results do not establish complete 1017 qualification. The operating task retains rollback and owns the final acceptance record.
