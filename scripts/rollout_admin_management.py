@@ -22,9 +22,15 @@ def main():
     ap.add_argument('--expected-source-sha256', required=True)
     ap.add_argument('--snapshot', type=Path, help='Optional reviewed status JSON; replace it in the same gateway-only handover')
     ap.add_argument('--manual-dir', help='Already published versioned manual directory on the gateway auth volume')
+    ap.add_argument('--app-domain', help='Operator-approved app hostname suffix')
+    ap.add_argument('--app-inventory-configmap', help='Read-only ingress inventory; requires --app-domain')
     ap.add_argument('--signup-config', type=Path, help='Reviewed read-only signup pool/token mounts; no runtime data mounts or management token')
     ap.add_argument('--signup-acceptance', type=Path, help='Matching real signup/isolation/persistence result required before enabling signup')
     args = ap.parse_args()
+    if args.app_domain:
+        import re
+        if not re.fullmatch(r'(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}',args.app_domain) or not args.app_inventory_configmap or not re.fullmatch(r'[a-z0-9-]{3,63}',args.app_inventory_configmap):
+            raise ValueError('Approved domain and inventory ConfigMap required together')
     if args.manual_dir:
         import re
         if not re.fullmatch(r'/auth/manuals/[a-f0-9]{16}', args.manual_dir):
@@ -108,6 +114,14 @@ def main():
             env[:]=[e for e in env if e['name']!='DSH_MANUAL_DIR']
             env.append({'name':'DSH_MANUAL_DIR','value':args.manual_dir})
             record['manualDirectory']=args.manual_dir
+        if args.app_domain:
+            c=template['spec']['containers'][0]
+            if template['spec'].get('automountServiceAccountToken') is not False:raise RuntimeError('Gateway must retain no management token')
+            env=c.setdefault('env',[]);env[:]=[e for e in env if e['name'] not in ['DSH_APP_DOMAIN','DSH_APP_INVENTORY_FILE']]
+            env.extend([{'name':'DSH_APP_DOMAIN','value':args.app_domain},{'name':'DSH_APP_INVENTORY_FILE','value':'/app-host-inventory/inventory.json'}])
+            volumes=template['spec']['volumes'];volumes[:]=[v for v in volumes if v['name']!='app-host-inventory'];volumes.append({'name':'app-host-inventory','configMap':{'name':args.app_inventory_configmap}})
+            mounts=c['volumeMounts'];mounts[:]=[m for m in mounts if m['name']!='app-host-inventory'];mounts.append({'name':'app-host-inventory','mountPath':'/app-host-inventory','readOnly':True})
+            record['appHostnameDomain']=args.app_domain
         for volume in template['spec']['volumes']:
             if volume['name'] == 'gateway-source':
                 volume['configMap']['name'] = name

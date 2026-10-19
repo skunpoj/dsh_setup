@@ -1,0 +1,8 @@
+{
+  "namespace": "llm",
+  "domain": "apps.example.internal",
+  "gatewayService": "dsh-environment-gateway",
+  "tlsSecret": "dsh-apps-tls",
+  "runtimeImage": "registry.example.internal/ai/dsh-runtime@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "apiCIDRs": ["192.0.2.10/32", "192.0.2.11/32"]
+}

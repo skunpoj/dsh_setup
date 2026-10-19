@@ -35,13 +35,15 @@ Jupyter's friendly link redirects to `/proxy/8888/lab`: its managed assets, APIs
 
 The suggested notebook hostname label is `<username>-jupyter`. Dots/underscores in a username become hyphens; check for collisions. Users choose a name and local port, not arbitrary domains, cluster Services, certificates or other runtimes.
 
-**Path URLs work without new DNS. Hostnames are opt-in; saving an app does not allocate DNS or create an Ingress.** A configured hostname is a candidate until published. The current main site uses explicit Ingress host rules. A DNS wildcard alone does not publish a new name.
+**Both styles use the same saved app name and private port.** After the operator installs the wildcard DNS, TLS and authenticated wildcard route, users choose an available prefix and the hostname works dynamically. Saving an app does not create a new Kubernetes object or allocate an arbitrary external domain. The site suffix is operator configuration; public installations can use `apps.example.com`, `xxx.example.com` or another approved domain.
+
+An independent inventory reader refreshes existing Ingress reservations every 15 seconds. Kubernetes propagates its read-only ConfigMap to the gateway asynchronously. The gateway rejects new hostname claims when inventory is older than three minutes or unavailable; existing custom path URLs continue to work. Existing exact-host sites take precedence over the wildcard route, and their names cannot be claimed through the app form. A name check is an observation, not a global DNS reservation against future infrastructure changes.
 
 The gateway checks hostname ownership and environment before forwarding. Unowned/unknown app names are refused. Ordinary apps can remain at their hostname if compatible with that Host/Origin. Jupyter hostname links redirect to the canonical notebook path. Do not publish a direct unauthenticated worker Ingress.
 
 ## Check name and Ingress availability
 
-The browser checks the protected DSH application registry. It does not establish DNS or Kubernetes hostname ownership. The operator separately checks all visible Ingress rules:
+The browser checks the protected DSH registry and, when automatic hostnames are enabled, the fresh cluster Ingress reservations. It does not allocate a DNS zone. For an alternative manually published exact hostname, the operator can inspect all visible Ingress rules:
 
 ```sh
 python scripts/plan_app_ingress.py \
@@ -54,22 +56,35 @@ Omit `--name` to suggest `alice-jupyter`. The command reads all namespaces, refu
 
 DNS resolution is reported separately. Wildcard DNS may resolve an unused name without reserving it or establishing certificate coverage. The command renders a candidate only. Availability is a point-in-time observation, not an atomic global reservation; recheck before applying and use one operator/controller as publisher.
 
-## Operator hostname setup
+## Operator automatic-hostname setup
+
+The domain is configurable. No internal site value or credential is required in the public repository. Copy `config/app-hostnames.example.json` to a private operator file and supply the namespace, domain, authenticated gateway Service, TLS Secret, immutable runtime image and explicit Kubernetes API addresses. The example image/destinations are placeholders.
+
+```sh
+python scripts/render_app_hostname_support.py \
+  --settings /private/app-hostnames.json \
+  --output /private/app-hostnames.yaml
+kubectl apply --dry-run=server -f /private/app-hostnames.yaml
+```
+
+The renderer supplies a wildcard Ingress plus a separate inventory workload. The inventory identity can only read Ingress metadata and update its one named ConfigMap. It cannot read Secrets, accounts, pods, user data or other ConfigMaps, and cannot create/edit/delete Ingresses or workloads. Its network rule permits only the explicit Kubernetes API addresses. The authentication gateway and all execution workers retain no Kubernetes management token. Verify authorization using the reader's actual service-account token, not solely an impersonation check through an authentication proxy.
+
+Install and qualify the inventory workload first; keep the wildcard Ingress last for controlled activation. Mount `dsh-app-host-inventory` read-only at `/app-host-inventory` in the gateway, set `DSH_APP_DOMAIN` and `DSH_APP_INVENTORY_FILE=/app-host-inventory/inventory.json`, and verify that the reserved list is fresh. `scripts/rollout_admin_management.py` supports `--app-domain` and `--app-inventory-configmap`; its source-hash and signup-acceptance gates remain required. Preserve its rollback snapshot. Check all prerequisites below before applying the final wildcard Ingress.
 
 1. Obtain an approved app-only DNS domain or explicitly allocated hostnames. Avoid a catch-all on a shared organizational domain.
 2. Point the approved names/wildcard at the ingress controller. Use a trusted certificate whose SAN covers those names and a TLS Secret in the Ingress namespace.
-3. Set `DSH_APP_DOMAIN=apps.example.internal` on the gateway. Keep `DSH_TRUSTED_HOST` fixed to the canonical DSH site. Ordinary user forms cannot change either setting.
-4. Save the app mapping. Generate/review its exact-host candidate, then run:
+3. Set the approved domain on the gateway and keep `DSH_TRUSTED_HOST` fixed to the canonical DSH site. Ordinary user forms cannot change either setting.
+4. Review and install the generated wildcard route after the gateway and inventory are qualified. Users can then save their names and ports without another operator deployment. For the optional exact-host method only, run:
 
 ```sh
 kubectl apply --dry-run=server -f /private/alice-report-ingress.yaml
 kubectl apply -f /private/alice-report-ingress.yaml
 ```
 
-5. Alternatively, an approved delegated wildcard Ingress can route `*.apps.example.internal` to the same gateway. Kubernetes wildcards match one DNS label. DNS, certificate and Ingress wildcards are three separate settings.
+5. The wildcard routes `*.apps.example.internal` to the authentication gateway. Kubernetes wildcards match one DNS label. DNS, certificate and Ingress wildcards are three separate settings. Exact-host services keep their routes; the inventory reserves their names. Reject a conflicting existing wildcard instead of replacing it.
 6. Disable response buffering, support WebSockets, preserve original Host/Origin through the trusted ingress, deliberately set body/timeout limits and overwrite untrusted forwarded headers. Existing private-worker network policies continue to apply.
 7. Verify normal TLS, anonymous and wrong-user denial, environment approval/revocation, assets, uploads, redirects, terminal/kernel WebSockets and persistence.
 
-The gateway has no Kubernetes management token. Fully automatic exact-host registration requires a separate narrowly scoped operator controller; it is not implemented by allowing users/prompts to edit Ingress objects. Until that controller or a delegated wildcard domain is qualified, use the working custom path. Revert only routing/configuration on regression; never overwrite newer account, workspace or history content.
+Users and prompts do not edit Ingress objects. Dynamic publication consists of a user-owned alias/port mapping under the installed wildcard route. The reader maintains reservations, not per-app routes. Revert the wildcard/gateway configuration on regression and retain the canonical site/path proxy; never overwrite newer account, workspace, app mapping or history content.
 
-References: [Kubernetes Ingress wildcards](https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards), [Jupyter base URLs](https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html#running-the-notebook-with-a-customized-url-prefix).
+References: [Kubernetes Ingress wildcards](https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards), [NGINX exact-name and wildcard priority](https://nginx.org/en/docs/http/server_names.html), [Jupyter base URLs](https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html#running-the-notebook-with-a-customized-url-prefix).
