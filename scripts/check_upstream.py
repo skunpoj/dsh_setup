@@ -15,10 +15,21 @@ ROOT=Path(__file__).resolve().parents[1]
 VERSION=re.compile(r'[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*)?')
 
 
+def select_candidate(event, baseline, latest, explicit):
+    """Test checked-out code against its pin; discover releases separately."""
+    if event in ('push', 'pull_request'):
+        if explicit and explicit != baseline:
+            raise ValueError('Source CI must qualify the checked-out Dockerfile pin')
+        return baseline, 'checked-out-source-pin'
+    return explicit or latest, 'explicit-version' if explicit else 'npm-latest'
+
+
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--output',type=Path,required=True)
     ap.add_argument('--candidate',help='Explicit preview override; default tracks npm latest')
+    ap.add_argument('--event', choices=('push', 'pull_request', 'schedule', 'workflow_dispatch'),
+                    help='Source CI qualifies its Dockerfile pin; scheduled/manual discovery tracks latest')
     ap.add_argument('--prepare-candidate',action='store_true')
     args=ap.parse_args()
     if args.candidate and not VERSION.fullmatch(args.candidate):
@@ -32,7 +43,7 @@ def main():
     refs=subprocess.check_output(['git','ls-remote','https://github.com/deepseek-ai/deepseek-harness.git',
                                    'refs/heads/master','refs/tags/dsh-v*'],text=True,timeout=40)
     master=next(line.split()[0] for line in refs.splitlines() if line.endswith('refs/heads/master'))
-    candidate=args.candidate or channels['latest']
+    candidate, selection=select_candidate(args.event, baseline, channels['latest'], args.candidate)
     if not VERSION.fullmatch(candidate):raise ValueError('Invalid candidate version')
     with urllib.request.urlopen('https://registry.npmjs.org/@deepseek-ai/dsh/'+candidate,timeout=25) as response:
         package=json.load(response)
@@ -43,6 +54,7 @@ def main():
     record={'checkedAtUTC':datetime.now(timezone.utc).isoformat(),'officialRepository':'deepseek-ai/deepseek-harness',
         'officialMaster':master,'npmChannels':channels,'sourcePackagePin':baseline,'candidateVersion':candidate,
         'defaultChannelUpdateAvailable':channels['latest']!=baseline,'candidateChangeRequired':candidate!=baseline,
+        'triggerEvent':args.event,'candidateSelection':selection,
         'candidateRegistryIntegrity':integrity,'candidateSourceGitHead':package.get('gitHead'),
         'candidateLicense':package.get('license'),'productionChanged':False,
         'automationPolicy':'Detect releases, test candidate, propose package-pin PR; no auto-merge or Production deployment'}
