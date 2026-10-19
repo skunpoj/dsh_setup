@@ -57,7 +57,7 @@ class JupyterTests(unittest.TestCase):
                     status,body=request('GET','/api/contents/synthetic.ipynb');self.assertEqual(status,200);self.assertEqual(json.loads(body)['content']['cells'][0]['source'],'print(6 * 7)')
                     status,body=request('POST','/api/kernels',{'name':'python3'});self.assertEqual(status,201);kernel=json.loads(body)['id']
                     from websocket import create_connection
-                    ws=create_connection('ws://127.0.0.1:8888/api/kernels/'+kernel+'/channels',header=['X-DSH-User: alice','X-Forwarded-Host: dsh.test','Cookie: '+cookie],origin='https://dsh.test',timeout=15)
+                    ws=create_connection('ws://127.0.0.1:8888/api/kernels/'+kernel+'/channels',header=['X-DSH-User: alice','Cookie: '+cookie],origin='https://dsh.test',timeout=15)
                     identity=uuid.uuid4().hex
                     ws.send(json.dumps({'header':{'msg_id':identity,'username':'alice','session':uuid.uuid4().hex,'msg_type':'execute_request','version':'5.3'},'parent_header':{},'metadata':{},'channel':'shell','content':{'code':'print(6 * 7)','silent':False,'store_history':False,'user_expressions':{},'allow_stdin':False,'stop_on_error':True}}))
                     output=''

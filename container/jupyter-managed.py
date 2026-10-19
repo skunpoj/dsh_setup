@@ -47,9 +47,10 @@ def serve(root, state, trusted_host):
             from tornado.web import HTTPError
             user = handler.request.headers.get('X-DSH-User', '')
             forwarded_host = handler.request.headers.get('X-Forwarded-Host', '')
-            if forwarded_host != trusted_host or not re.fullmatch(r'[a-zA-Z0-9_.-]{3,30}', user):
+            websocket = handler.request.headers.get('Upgrade', '').lower() == 'websocket'
+            if (forwarded_host != trusted_host and not (websocket and not forwarded_host)) or not re.fullmatch(r'[a-zA-Z0-9_.-]{3,30}', user):
                 return None
-            if handler.request.method not in ['GET', 'HEAD', 'OPTIONS'] or handler.request.headers.get('Upgrade', '').lower() == 'websocket':
+            if handler.request.method not in ['GET', 'HEAD', 'OPTIONS'] or websocket:
                 if handler.request.headers.get('Origin') not in ['https://'+trusted_host, 'http://'+trusted_host]:
                     raise HTTPError(403, 'Notebook requests require the trusted DSH origin')
             return User(username=user)
