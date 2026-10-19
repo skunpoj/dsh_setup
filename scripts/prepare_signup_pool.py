@@ -104,6 +104,7 @@ def main():
     ap.add_argument('--count', type=int, default=6)
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--apply', action='store_true')
+    ap.add_argument('--image', help='Optional immutable image for acceptance-only candidate runtimes')
     ap.add_argument('--kubectl', default='kubectl')
     args = ap.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
@@ -117,6 +118,11 @@ def main():
     if args.template_user in {'admin', 'thanatcc'}:
         raise ValueError('Use an ordinary isolated runtime template, never the legacy owner')
     templates = {e: json.loads(kube('get', 'deploy', t['host'].split('.')[0], '-o', 'json')) for e, t in routing[args.template_user].items()}
+    if args.image:
+        if not re.fullmatch(r'[^\s]+@sha256:[a-f0-9]{64}', args.image):
+            raise ValueError('Candidate image must use an immutable digest')
+        for template in templates.values():
+            template['spec']['template']['spec']['containers'][0]['image'] = args.image
     claims = {p['metadata']['name']: p for p in json.loads(kube('get', 'pvc', '-o', 'json'))['items']}
     documents, pool, paths = generate(templates, claims, args.pool_id, args.count)
     if any(d['metadata']['name'] in claims for d in documents if d['kind'] == 'PersistentVolumeClaim'):

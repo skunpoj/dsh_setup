@@ -34,7 +34,7 @@ The shared model supports a total budget of 1,048,576 tokens, including instruct
 
 ## 3 Run tools and inspect results
 
-For Python notebooks, run `jupyter lab` in your terminal and open `/proxy/8888/lab` on this DSH site. Create a Python 3 notebook and run `print(6 * 7)`. Save it under `/workspace`; stop unused kernels when finished. Jupyter uses the selected environment's private storage, permissions and network controls. See [JupyterLab usage and setup](JUPYTERLAB.md).
+For Python notebooks, run `jupyter lab` in your terminal and open `/proxy/8888/lab` on this DSH site. Create a Python 3 notebook and run `print(6 * 7)`. Save it under `/workspace`; stop unused kernels when finished. Jupyter uses the selected environment's private storage, permissions and network controls. See [JupyterLab usage and setup](JUPYTERLAB.html).
 
 Use the web terminal from the selected environment to inspect files and run commands. The terminal executes inside your assigned runtime, not on the Kubernetes node. Its processes have the same file permissions and network restrictions as the assistant's tools.
 

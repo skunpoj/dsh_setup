@@ -235,7 +235,7 @@ Claude Code returned the expected ordinary reply in 1.17 seconds; TrueForge retu
 
 ### Installed clients
 
-Installed main-runtime versions: DSH `0.2.0-rc.2`, Claude Code `2.1.301`, TrueForge `0.179.2` and Kilo CLI `7.8.12`.
+Installed main-runtime versions: DSH `0.2.0-rc.2`, Claude Code `2.1.301`, TrueForge `0.179.2`, Kilo CLI `7.8.12` and JupyterLab `4.6.4`. Jupyter uses Python notebooks inside the same selected private execution environment. See the [notebook guide](JUPYTERLAB.html).
 
 ## Open your workspace
 

@@ -341,6 +341,11 @@ img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #
 <td>Private client state and managed internal model. Optional nested code sandbox is disabled.</td>
 </tr>
 <tr>
+<td>JupyterLab</td>
+<td>Run <code>jupyter lab</code>, then open <code>/proxy/8888/lab</code> on the same DSH address</td>
+<td>Python notebooks in the selected private workspace; authenticated gateway, non-root kernel, unchanged environment network restrictions.</td>
+</tr>
+<tr>
 <td>Kilo Code CLI</td>
 <td>Run <code>kilo</code> or <code>kilo run</code> from the authenticated terminal</td>
 <td>Pinned managed CLI, internal LiteLLM only, private <code>/state/kilo</code> state, sharing/telemetry disabled. Qualification is recorded in the <a href="MANAGED_CLIENT_SUPPORT.html">managed-client guide</a>.</td>
@@ -379,7 +384,7 @@ img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #
 <h3>Managed client compatibility</h3>
 <p>Claude Code returned the expected ordinary reply in 1.17 seconds; TrueForge returned it in 0.73 seconds with its saved assistant response verified in the recorded 1017 compatibility tests. Kilo CLI 7.8.12 subsequently passed an exact ordinary reply in 9.05 seconds in a non-root No Internet canary, plus a real read-tool operation and saved-session recovery after pod replacement; it is deployed to all 20 main runtimes. These timings are separate samples including different startup conditions, not a controlled client speed comparison. These are ordinary-request checks, separate from native DSH near-1M acceptance. They do not establish near-1M support or a latency guarantee for every client. <a href="MANAGED_CLIENT_SUPPORT.html">Client versions, usage and acceptance scope</a>.</p>
 <h3>Installed clients</h3>
-<p>Installed main-runtime versions: DSH <code>0.2.0-rc.2</code>, Claude Code <code>2.1.301</code>, TrueForge <code>0.179.2</code> and Kilo CLI <code>7.8.12</code>.</p>
+<p>Installed main-runtime versions: DSH <code>0.2.0-rc.2</code>, Claude Code <code>2.1.301</code>, TrueForge <code>0.179.2</code>, Kilo CLI <code>7.8.12</code> and JupyterLab <code>4.6.4</code>. Jupyter uses Python notebooks inside the same selected private execution environment. See the <a href="JUPYTERLAB.html">notebook guide</a>.</p>
 <h2 id="guide-section-6">Open your workspace</h2>
 <p>Access examples: <code>https://dsh.example.com</code>, its <code>/admin</code>, <code>/terminal</code> and <code>/proxy/&lt;approved-port&gt;/</code> routes; separate <code>https://dsh2.example.com</code> and <code>https://dsh3.example.com</code> instances. These example domains are not live service addresses.</p>
 <p>Main DSH routes each identity to its own selected runtime. Main service aliases and app ports are entry routes, not extra independent copies of a user&#39;s workspace. DSH2 and DSH3 have their own designated owners and remain Internet-only. Managed clients run inside their assigned workloads; they are not additional shared GPU deployments.</p>

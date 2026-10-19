@@ -2,7 +2,7 @@
 
 ## JupyterLab notebooks
 
-Run `jupyter lab` in the selected environment's terminal, then open `/proxy/8888/lab` on the same DSH site. Python notebooks use that user's workspace and existing network/permission boundary. No Internet notebooks retain central CIFS storage; Internet notebooks stay separate. See [JupyterLab usage, security and setup](JUPYTERLAB.md).
+Run `jupyter lab` in the selected environment's terminal, then open `/proxy/8888/lab` on the same DSH site. Python notebooks use that user's workspace and existing network/permission boundary. No Internet notebooks retain central CIFS storage; Internet notebooks stay separate. See [JupyterLab usage, security and setup](JUPYTERLAB.html).
 
 DSH remains the main web interface. Claude Code, TrueForge and Kilo CLI run as optional clients inside the selected private DSH execution environment. They share the internal LiteLLM/model service, not another user's project files, credentials or client histories.
 

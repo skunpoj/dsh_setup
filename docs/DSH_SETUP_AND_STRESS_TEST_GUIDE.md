@@ -113,6 +113,8 @@ Record the selected source commit and inspect the context before any write. Inst
 
 ### 2 Build and inspect the application image
 
+The image also preinstalls JupyterLab 4.6.4, Jupyter Server 2.21.1 and ipykernel 7.4.0 into `/opt/dsh/jupyter`. Its build runs a non-root notebook/kernel integration test. Jupyter is launched on demand through the existing authenticated `/proxy/8888/` route; no new ingress or shared notebook state is required. See [Jupyter setup](JUPYTERLAB.md).
+
 The Dockerfile packages DSH, Claude Code, TrueForge, Kilo CLI, terminal and Kerberos tooling plus reviewed overlays. Kilo is pinned with `KILO_VERSION=7.8.12`; its operator policy is installed into `/etc/kilo/kilo.json`. The [managed-client guide](MANAGED_CLIENT_SUPPORT.html) covers endpoint adaptation, private state and acceptance. Read its pinned build arguments before changing versions. The checked-in Azure pipeline is a site-specific example; configure your own registry connection, repository and agent pool rather than copying its private registry settings.
 
 ```sh

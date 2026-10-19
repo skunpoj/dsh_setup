@@ -1277,7 +1277,7 @@ const server = http.createServer((req, res) => {
   if (authenticated && (!accountEnabled(sessionUser) || (activeSession.internet === 'on' && !internetAllowed(sessionUser)))) { revokeUserSessions(sessionUser); authenticated=false; }
   if (!authenticated) {
     // API consumers must never receive an HTML sign-in page with HTTP 200.
-    if (parsedUrl.pathname.startsWith('/api/')) {
+    if (parsedUrl.pathname.startsWith('/api/') || /^\/proxy\/8888\/api(?:\/|$)/.test(parsedUrl.pathname)) {
       res.writeHead(401, {'Content-Type':'application/json; charset=utf-8',
         'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-DSH-Auth-Required':'1'});
       return res.end(JSON.stringify({error:'AUTHENTICATION_REQUIRED',message:'Your sign-in session ended. Sign in again.',loginUrl:'/login'}));

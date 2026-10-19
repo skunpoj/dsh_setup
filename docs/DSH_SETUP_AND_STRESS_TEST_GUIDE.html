@@ -270,6 +270,7 @@ kubectl get storageclass
 </code></pre>
 <p>Record the selected source commit and inspect the context before any write. Install Python packages on the operator workstation, not by enabling Internet on a No Internet runtime. Use an approved local package cache where operator Internet is unavailable.</p>
 <h3>2 Build and inspect the application image</h3>
+<p>The image also preinstalls JupyterLab 4.6.4, Jupyter Server 2.21.1 and ipykernel 7.4.0 into <code>/opt/dsh/jupyter</code>. Its build runs a non-root notebook/kernel integration test. Jupyter is launched on demand through the existing authenticated <code>/proxy/8888/</code> route; no new ingress or shared notebook state is required. See <a href="JUPYTERLAB.md">Jupyter setup</a>.</p>
 <p>The Dockerfile packages DSH, Claude Code, TrueForge, Kilo CLI, terminal and Kerberos tooling plus reviewed overlays. Kilo is pinned with <code>KILO_VERSION=7.8.12</code>; its operator policy is installed into <code>/etc/kilo/kilo.json</code>. The <a href="MANAGED_CLIENT_SUPPORT.html">managed-client guide</a> covers endpoint adaptation, private state and acceptance. Read its pinned build arguments before changing versions. The checked-in Azure pipeline is a site-specific example; configure your own registry connection, repository and agent pool rather than copying its private registry settings.</p>
 <pre><code class="language-sh">export DSH_IMAGE_TAG=&#39;registry.example.net/ai/dsh-runtime:reviewed-build&#39;
 docker build --pull -t &quot;$DSH_IMAGE_TAG&quot; .

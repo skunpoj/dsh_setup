@@ -18,7 +18,7 @@ insert('## 8 Install',gpu.slice(profile,first));
 insert('## 9 LLM',read('INSTALLATION_WALKTHROUGH.md').replace(/^## /,'### ')+'\n'+read('SELF_SERVICE_SIGNUP.md').replace(/^(#{1,4}) /gm,(_,h)=>'#'.repeat(Math.min(6,h.length+2))+' '));
 md+='\n'+gpu.slice('## LLM and GPU setup'.length,profile)+'\n'+gpu.slice(first);
 md=md.replace(/\]\(\.\.\/([^)]*)\)/g,'](https://github.com/skunpoj/dsh_setup/blob/main/$1)');
-md+='\n## Reference library\n\n- [Security, environments and features](DSH_SECURITY_ENVIRONMENT_AND_FEATURES.html)\n- [Detailed setup and stress tests](DSH_SETUP_AND_STRESS_TEST_GUIDE.html)\n- [Claude Code, TrueForge and Kilo support](MANAGED_CLIENT_SUPPORT.html)\n- [Platform architecture reference](DSH_PLATFORM_GUIDE.html)\n';
+md+='\n## Reference library\n\n- [Security, environments and features](DSH_SECURITY_ENVIRONMENT_AND_FEATURES.html)\n- [Detailed setup and stress tests](DSH_SETUP_AND_STRESS_TEST_GUIDE.html)\n- [Claude Code, TrueForge and Kilo support](MANAGED_CLIENT_SUPPORT.html)\n- [JupyterLab notebooks](JUPYTERLAB.html)\n- [Platform architecture reference](DSH_PLATFORM_GUIDE.html)\n';
 let html=marked.parse(md),diagram=0;
 html=html.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,(_,code)=>`<section class="mermaid-wrapper"><div class="mermaid-header">Architecture ${++diagram}</div><div class="mermaid-container"><div class="mermaid" data-raw-code="${code.replaceAll('"','&quot;')}">${code}</div></div></section>`);
 html=html.replace(/<img src="(images\/platform\/[^"\s]+)" alt="([^"]*)">/g,(_,image,alt)=>`<img src="data:image/png;base64,${fs.readFileSync(path.join(docs,image)).toString('base64')}" alt="${alt}">`);

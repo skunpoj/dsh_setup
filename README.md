@@ -103,9 +103,13 @@ The original central `dsh` / `dsh/dsh_storage` content and 80 histories remain w
 
 All 80 histories in 82 files remain unchanged, aggregate SHA256 `7bb4aa235893e12b0bf545a4f87e00a3a6df2a656e33acdb5231c8def460c317`. Actual process replacements preserved workspace/attachment markers. No histories were copied into non-admin accounts.
 
-## Admin access and audit
+## JupyterLab notebooks
 
 JupyterLab is packaged alongside Kilo Code, Claude Code and TrueForge. Run `jupyter lab` from a private DSH terminal, then open `/proxy/8888/lab`. Notebooks use that environment's existing workspace and network restrictions. [JupyterLab guide](docs/JUPYTERLAB.md).
+
+The 19 October rollout installed JupyterLab 4.6.4 in all 28 main workers and both additional owner instances. Real browser-cell execution, private notebook access and restart persistence passed using synthetic users; existing history and storage checks passed during rollout. [Qualification and rollout details](docs/JUPYTER_ACCEPTANCE_20261019.md).
+
+## Admin access and audit
 
 Browser sign-ins are held in gateway memory and end when the gateway is replaced. Expired API requests return JSON 401. Updated DSH pages show a sign-in prompt that preserves the current unsent draft in the page, checks the original account/environment after reauthentication and never automatically replays a failed prompt. See [session recovery and acceptance](docs/SESSION_RECOVERY_20261019.md).
 

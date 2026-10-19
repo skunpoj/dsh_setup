@@ -11,11 +11,12 @@ def main():
     ap.add_argument('--pool', type=Path, required=True)
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--kubectl', default='kubectl')
+    ap.add_argument('--gateway', default='dsh-environment-gateway', help='Isolated candidate gateway Deployment or the staged main gateway')
     a = ap.parse_args();a.output.mkdir(parents=True, exist_ok=False)
     def kube(*args):
         return subprocess.check_output([a.kubectl, '-n', 'llm', '--request-timeout=30s', *args], text=True, encoding='utf-8', timeout=190)
     expected = json.loads(a.pool.read_text())['slots']
-    actual = json.loads(kube('exec', 'deploy/dsh-environment-gateway', '--', 'cat', '/signup-pool/test.json'))['slots']
+    actual = json.loads(kube('exec', 'deploy/'+a.gateway, '--', 'cat', '/signup-pool/test.json'))['slots']
     if not actual or any(s not in expected or actual[s] != expected[s] for s in actual):
         raise RuntimeError('Acceptance targets differ from the prepared private pool')
     workloads = []
@@ -28,7 +29,7 @@ def main():
             workloads.append(name)
     source = (Path(__file__).parent/'verify_self_signup_live.js').read_text()
     p = subprocess.Popen([a.kubectl, '-n', 'llm', '--request-timeout=30s', 'exec', '-i',
-        'deploy/dsh-environment-gateway', '--', 'node', '-'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        'deploy/'+a.gateway, '--', 'node', '-'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT, text=True, encoding='utf-8', bufsize=1)
     p.stdin.write(source);p.stdin.close();records = []
     try:
@@ -44,7 +45,7 @@ def main():
                     for name in workloads:
                         kube('rollout', 'restart', 'deploy/' + name)
                         kube('rollout', 'status', 'deploy/' + name, '--timeout=150s')
-                    kube('exec', 'deploy/dsh-environment-gateway', '--', 'node', '-e',
+                    kube('exec', 'deploy/'+a.gateway, '--', 'node', '-e',
                         'require("fs").writeFileSync(' + json.dumps(checkpoint) + ',"continue")')
         if p.wait() != 0 or not records or records[-1].get('status') != 'passed':
             raise RuntimeError('Signup acceptance failed; leave registration disabled')

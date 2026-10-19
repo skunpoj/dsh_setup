@@ -344,6 +344,11 @@ img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #
 <td>Private client state and managed internal model. Optional nested code sandbox is disabled.</td>
 </tr>
 <tr>
+<td>JupyterLab</td>
+<td>Run <code>jupyter lab</code>, then open <code>/proxy/8888/lab</code> on the same DSH address</td>
+<td>Python notebooks in the selected private workspace; authenticated gateway, non-root kernel, unchanged environment network restrictions.</td>
+</tr>
+<tr>
 <td>Kilo Code CLI</td>
 <td>Run <code>kilo</code> or <code>kilo run</code> from the authenticated terminal</td>
 <td>Pinned managed CLI, internal LiteLLM only, private <code>/state/kilo</code> state, sharing/telemetry disabled. Qualification is recorded in the <a href="MANAGED_CLIENT_SUPPORT.html">managed-client guide</a>.</td>

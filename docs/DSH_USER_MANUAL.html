@@ -43,6 +43,7 @@ img{max-width:100%;height:auto;border-radius:12px}table{table-layout:fixed}pre{w
 <p>Continue the same conversation for related work. Start another session for an unrelated task. Durable conversations and attachments remain in their assigned user&#39;s environment; another user&#39;s login does not inherit them. Refreshing the browser is different from starting a new conversation.</p>
 <p>The shared model supports a total budget of 1,048,576 tokens, including instructions, tools, conversation, output and reserve. A short prompt in a large existing conversation can still require substantial processing. Near-1M cold preparation is expensive. Requests above the long-admission threshold are serialized; ordinary requests can continue alongside them. <code>/compact</code> reduces conversation history when useful; it does not increase the model&#39;s total budget.</p>
 <h2 id="chapter-3">3 Run tools and inspect results</h2>
+<p>For Python notebooks, run <code>jupyter lab</code> in your terminal and open <code>/proxy/8888/lab</code> on this DSH site. Create a Python 3 notebook and run <code>print(6 * 7)</code>. Save it under <code>/workspace</code>; stop unused kernels when finished. Jupyter uses the selected environment&#39;s private storage, permissions and network controls. See <a href="JUPYTERLAB.html">JupyterLab usage and setup</a>.</p>
 <p>Use the web terminal from the selected environment to inspect files and run commands. The terminal executes inside your assigned runtime, not on the Kubernetes node. Its processes have the same file permissions and network restrictions as the assistant&#39;s tools.</p>
 <p>For a generated HTML result, serve only the result directory through an approved port and open its authenticated preview. Stop the server after use. Keep source files separate from generated results, review diffs and do not place passwords or tickets in prompts, repositories or exported reports.</p>
 <p>The practical examples below cover repository review, CSV analysis, previews, package transfer, managed clients, Kerberos and the administrator overview.</p>
@@ -410,6 +411,11 @@ klist
 <td>Private client state and managed internal model. Optional nested code sandbox is disabled.</td>
 </tr>
 <tr>
+<td>JupyterLab</td>
+<td>Run <code>jupyter lab</code>, then open <code>/proxy/8888/lab</code> on the same DSH address</td>
+<td>Python notebooks in the selected private workspace; authenticated gateway, non-root kernel, unchanged environment network restrictions.</td>
+</tr>
+<tr>
 <td>Kilo Code CLI</td>
 <td>Run <code>kilo</code> or <code>kilo run</code> from the authenticated terminal</td>
 <td>Pinned managed CLI, internal LiteLLM only, private <code>/state/kilo</code> state, sharing/telemetry disabled. Qualification is recorded in the <a href="MANAGED_CLIENT_SUPPORT.html">managed-client guide</a>.</td>
@@ -448,7 +454,7 @@ klist
 <h3>Managed client compatibility</h3>
 <p>Claude Code returned the expected ordinary reply in 1.17 seconds; TrueForge returned it in 0.73 seconds with its saved assistant response verified in the recorded 1017 compatibility tests. Kilo CLI 7.8.12 subsequently passed an exact ordinary reply in 9.05 seconds in a non-root No Internet canary, plus a real read-tool operation and saved-session recovery after pod replacement; it is deployed to all 20 main runtimes. These timings are separate samples including different startup conditions, not a controlled client speed comparison. These are ordinary-request checks, separate from native DSH near-1M acceptance. They do not establish near-1M support or a latency guarantee for every client. <a href="MANAGED_CLIENT_SUPPORT.html">Client versions, usage and acceptance scope</a>.</p>
 <h3>Installed clients</h3>
-<p>Installed main-runtime versions: DSH <code>0.2.0-rc.2</code>, Claude Code <code>2.1.301</code>, TrueForge <code>0.179.2</code> and Kilo CLI <code>7.8.12</code>.</p>
+<p>Installed main-runtime versions: DSH <code>0.2.0-rc.2</code>, Claude Code <code>2.1.301</code>, TrueForge <code>0.179.2</code>, Kilo CLI <code>7.8.12</code> and JupyterLab <code>4.6.4</code>. Jupyter uses Python notebooks inside the same selected private execution environment. See the <a href="JUPYTERLAB.html">notebook guide</a>.</p>
 <h3>Interface screenshots</h3>
 <h3>DSH working session: controlled tool operation</h3>
 <p>This is an actual completed synthetic DSH conversation in a disposable No Internet runtime using the 1017 checkpoint. The task creates, reads and removes one synthetic file, then returns its exact marker. The screenshot shows the operating interface and recorded response; corresponding execution records confirm the tool result and cleanup. It is not a Production user session, a general authorization test or complete 1017 near-1M qualification.</p>
@@ -784,6 +790,7 @@ kubectl get storageclass
 </code></pre>
 <p>Record the selected source commit and inspect the context before any write. Install Python packages on the operator workstation, not by enabling Internet on a No Internet runtime. Use an approved local package cache where operator Internet is unavailable.</p>
 <h3>2 Build and inspect the application image</h3>
+<p>The image also preinstalls JupyterLab 4.6.4, Jupyter Server 2.21.1 and ipykernel 7.4.0 into <code>/opt/dsh/jupyter</code>. Its build runs a non-root notebook/kernel integration test. Jupyter is launched on demand through the existing authenticated <code>/proxy/8888/</code> route; no new ingress or shared notebook state is required. See <a href="JUPYTERLAB.md">Jupyter setup</a>.</p>
 <p>The Dockerfile packages DSH, Claude Code, TrueForge, Kilo CLI, terminal and Kerberos tooling plus reviewed overlays. Kilo is pinned with <code>KILO_VERSION=7.8.12</code>; its operator policy is installed into <code>/etc/kilo/kilo.json</code>. The <a href="MANAGED_CLIENT_SUPPORT.html">managed-client guide</a> covers endpoint adaptation, private state and acceptance. Read its pinned build arguments before changing versions. The checked-in Azure pipeline is a site-specific example; configure your own registry connection, repository and agent pool rather than copying its private registry settings.</p>
 <pre><code class="language-sh">export DSH_IMAGE_TAG=&#39;registry.example.net/ai/dsh-runtime:reviewed-build&#39;
 docker build --pull -t &quot;$DSH_IMAGE_TAG&quot; .
@@ -1100,6 +1107,7 @@ print(len(vector))  # BGE-M3&#39;s expected vector length is 1024.
 <li><a href="DSH_SECURITY_ENVIRONMENT_AND_FEATURES.html">Security, environments and features</a></li>
 <li><a href="DSH_SETUP_AND_STRESS_TEST_GUIDE.html">Detailed setup and stress tests</a></li>
 <li><a href="MANAGED_CLIENT_SUPPORT.html">Claude Code, TrueForge and Kilo support</a></li>
+<li><a href="JUPYTERLAB.html">JupyterLab notebooks</a></li>
 <li><a href="DSH_PLATFORM_GUIDE.html">Platform architecture reference</a></li>
 </ul>
 </main>
