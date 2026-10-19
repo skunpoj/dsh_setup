@@ -1,5 +1,7 @@
 # DeepSeek-V4.1-Flash-1017 update
 
+For the consolidated DSpark decisions, failed trials, memory corrections, preparation overhead and accepted measurements, see the [inference optimization experience record](INFERENCE_OPTIMIZATION_EXPERIENCE.html).
+
 The [17 October release](https://api-docs.deepseek.com/news/news261017/) is a new checkpoint, not an automatic update to our existing local weights. The local deployment must download and validate the weights, load them and repeat the affected tests. The existing public model aliases remain stable for DSH, Claude Code and TrueForge.
 
 ## Verified rollout, 19 October 2026

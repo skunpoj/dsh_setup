@@ -1,0 +1,113 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH inference optimization — decisions, trials and lessons</title><style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
+</style></head><body><main><h1>DSH inference optimization — decisions, trials and lessons</h1>
+<p>This record explains how the existing four-GPU deployment reached DSpark-enabled 1M operation, what failed, why preparation remains expensive and which claims the tests support. It consolidates the dated <a href="PERFORMANCE_OPTIMIZATION_20261018.html">performance trials</a>, <a href="MODEL_UPDATE_1017.html">1017 checkpoint qualification</a> and <a href="DSH_SETUP_AND_STRESS_TEST_GUIDE.html">setup guide</a>. Recorded measurements below are from those tests; opening this document does not start a benchmark.</p>
+<h2>From candidate support to qualified operation</h2>
+<p>The earlier statement that draft-weight availability and memory fit still required confirmation described the investigation stage. DSpark was subsequently loaded and exercised through real DSH requests, including a near-1M turn and its tool continuation. It is no longer merely an untested runtime capability. The pinned checkpoint was checked against its file manifest: 83 file sizes, 48 weight shards and 49 LFS hashes; 96,085 tensor names matched the earlier checkpoint. Runtime configuration alone was not used as proof of successful speculative execution.</p>
+<p>DSpark uses the model&#39;s draft path to propose candidate output tokens, which the target model verifies together. Accepted proposals can reduce sequential decoding work. Its extra weights, state and working buffers compete with the KV cache and temporary attention computation for GPU memory. Runtime support, successful startup, a fast short answer and stable full-context execution are four separate gates.</p>
+<p>The accepted 19 October configuration uses DeepSeek-V4.1-Flash-1017, DSpark block five, 1,048,576 total tokens, static memory fraction 0.923, eight active requests/eight decode graph slots, 1,024-token prefill chunks and batch budget, and 128 MiB attention-score tiles. Long admission allows one expensive request and one bounded FIFO waiter; ordinary requests remain concurrent. The model&#39;s active cap does not mean eight full-1M requests fit.</p>
+<h2>Why earlier fast candidates failed</h2>
+<table>
+<thead>
+<tr>
+<th>Observation</th>
+<th>What it established</th>
+<th>Decision or correction</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Large nominal KV pool</td>
+<td>Enough recorded token slots did not establish transient-memory headroom</td>
+<td>Qualify actual long input, decoding and simultaneous short work</td>
+</tr>
+<tr>
+<td>DSpark at static fraction 0.90 could not initialize its sliding-window cache</td>
+<td>The remaining static budget was insufficient for that candidate</td>
+<td>Adjust allocation and separately recover temporary working memory</td>
+</tr>
+<tr>
+<td>Fast short outputs followed by a 256K OOM</td>
+<td>A 1,024 MiB temporary score allocation failed with 1,009.75 MiB free</td>
+<td>Reject the candidate despite short-request speed</td>
+</tr>
+<tr>
+<td>Later near-1M trial requested 32 MiB with 21.75 MiB free</td>
+<td>A small final allocation failure still interrupted the model; it did not prove only that amount of extra memory would make all future workloads safe</td>
+<td>Reject, retain evidence and restore the qualified profile before another trial</td>
+</tr>
+<tr>
+<td>Reused score buffers, tiled score computation and bounded FP4 dequantization passed isolated GPU math checks</td>
+<td>The patched operations matched the tested reference calculations and reduced their isolated peaks</td>
+<td>Continue to full-context acceptance; do not add separate peak savings into a claimed global saving</td>
+</tr>
+<tr>
+<td>Static allocation reduced from 0.925 to 0.923; request/graph caps reduced</td>
+<td>More space was left for transient work while ordinary parallel service remained possible</td>
+<td>Retest cold input, cached continuation and mixed traffic</td>
+</tr>
+<tr>
+<td>New checkpoint with 256 MiB tiles returned a correct long answer but logged recovering allocation warnings</td>
+<td>Correct content alone did not pass the zero-warning stability criterion</td>
+<td>Reject that profile and qualify 128 MiB tiles</td>
+</tr>
+<tr>
+<td>Windows CRLF versus Linux LF changed an expected source hash</td>
+<td>The source-verification setup failed before accepted inference</td>
+<td>Normalize generated source and verify the actual Linux CLI; do not classify this as GPU OOM</td>
+</tr>
+<tr>
+<td>Operator connection loss triggered an early rollback</td>
+<td>A disconnected controller was not evidence of failed model execution</td>
+<td>Read actual model/session state before deciding whether rollback is justified</td>
+</tr>
+</tbody></table>
+<p>Startup math gates cover 80 score cases, eight tiled cases, 132 FP4 cases and eight FP4 memory checks. Source-hash fences stop initialization when upstream patch targets change. They complement actual DSH acceptance; they do not replace it.</p>
+<h2>Where the long wait comes from</h2>
+<p>There are two independent controls: the gateway&#39;s <strong>preparation step</strong> and the GPU&#39;s <strong>prefill chunk</strong>. The gateway prepares an increasing prefix of the final forwarded payload so short work can progress between preparation calls. The GPU processes admitted input in bounded prefill chunks. Neither number is the maximum context length.</p>
+<p>One recorded earlier near-1M trace contained <strong>493 preparation calls of 2,048 tokens</strong>. It spent <strong>1,466.18 seconds preparing context</strong>, including <strong>118.21 seconds yielding to ordinary work</strong>; tokenization took approximately <strong>2.24 seconds</strong>. The final 119-token answer streamed in <strong>3.539 seconds</strong>. This trace measures time inside preparation calls, which includes GPU work; it does not isolate all HTTP/serialization overhead as a separately measured component.</p>
+<p>Larger preparation steps can reduce repeated prefix serialization, HTTP requests and discarded warm-up outputs. They can also increase uninterrupted work and affect cache reuse under diverse traffic. An 8,192-token preparation experiment lost prefix reuse in the recorded mixed workload; the qualified default remains <strong>2,048</strong>. GPU prefill chunks remain <strong>1,024</strong>. A faster cached turn is cache reuse, not evidence that cold GPU prefill became equally fast.</p>
+<p>Earlier integration work also found tokenizer/chat-template defaults diverged for tool definitions and warming did not match the final forwarded payload. Counting and preparation were moved to the final forwarding boundary and the relevant defaults aligned. Otherwise the final request could process the full prompt again. Separately, a client character-count estimate could collapse the output allowance to one token despite room according to the exact tokenizer; the managed route received a bounded output-budget correction. These were payload/budget issues, distinct from GPU speed.</p>
+<h2>Accepted measurements and their limits</h2>
+<table>
+<thead>
+<tr>
+<th>Actual DSH case, 1017 checkpoint</th>
+<th>Recorded result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cold near-1M</td>
+<td>1,007,752 input / 431 output; 27m33.97s overall; first text 1,650.96s; 149.15 streaming output tokens/sec</td>
+</tr>
+<tr>
+<td>Short work alongside cold preparation</td>
+<td>60/60 correct persisted replies; 3.13–9.22s; paired median 5.11s; two eight-client bursts</td>
+</tr>
+<tr>
+<td>Cached substantial answer</td>
+<td>1,008,209 input / 1,199 output; 15.13s overall; 159.22 streaming output tokens/sec</td>
+</tr>
+<tr>
+<td>Real file tool continuation</td>
+<td>1,009,686 input; 12.94s; file create/read/delete and saved tool result verified</td>
+</tr>
+<tr>
+<td>Three structured 599-token outputs</td>
+<td>163.34–166.48 streaming output tokens/sec per conversation</td>
+</tr>
+<tr>
+<td>Short-client bursts</td>
+<td>31/31 correct persisted replies across 1, 2, 4, 8 and 16 clients; additional clients queue above eight active slots</td>
+</tr>
+<tr>
+<td>Stability during accepted cold generation</td>
+<td>Zero automatic retries, allocator mapping warnings or unexpected model restarts</td>
+</tr>
+</tbody></table>
+<p>The complete memory trace reached a minimum of <strong>36 MiB free per GPU</strong> including follow-ups, versus <strong>38 MiB during the cold stage</strong>. These are different observation windows, not conflicting measurements. Headroom remains tight.</p>
+<p>Streaming output rate excludes the cold preparation wait. Whole-turn latency includes preparation, queuing, tools and delivery. Aggregate cohort throughput divides total outputs by the complete cohort window. Report these separately; a high aggregate rate is not the speed of every conversation. Earlier prose samples were below 100 tokens/sec, and structured outputs do not establish a universal prose rate.</p>
+<p>After short-client bursts, an optional later near-1M prose turn re-entered cold preparation and was cancelled. Its cache-miss cause was not isolated. Durable history preservation and immediate hot continuation do not guarantee a later turn retains the same GPU KV cache.</p>
+<h2>Remaining optimization and acceptance work</h2>
+<p>The full controlled matrix of 512–1,024-token answers at concurrency 1, 2 and 8, using short, 128K and near-1M inputs, is not complete. Keep source-backed answer checks, first-text latency, streaming rate, aggregate throughput and memory/restart results for every cell. Fresh near-1M qualification for Claude Code and TrueForge is separate from native DSH acceptance.</p>
+<p>Any next optimization should preserve the total context limit, exact final-payload preparation, bounded long admission and short-request responsiveness. Change one variable at a time, retain rejected results and distinguish overhead reduction from kernel or decode improvements. Restore the qualified configuration after actual regression; retain user data and newer histories. No production setting is changed by this documentation update.</p>
+</main></body></html>

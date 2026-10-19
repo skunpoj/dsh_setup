@@ -6,7 +6,7 @@ const modules=process.env.DSH_DOC_NODE_MODULES || path.join(root,'node_modules')
 const {marked}=await import(pathToFileURL(path.join(modules,'marked/lib/marked.esm.js')));
 const shell=fs.readFileSync(path.join(root,'docs/LLM_SETUP_AND_TEST_RESULTS.html'),'utf8');
 const head=shell.slice(0,shell.indexOf('<body>'));
-for(const [name,title]of [['MODEL_UPDATE_1017','DeepSeek-V4.1-Flash-1017 — setup and qualification'],['ADMIN_USAGE_TELEMETRY','DSH administrator — usage and storage']]){
+for(const [name,title]of [['INFERENCE_OPTIMIZATION_EXPERIENCE','DSH inference optimization — decisions, trials and lessons'],['MODEL_UPDATE_1017','DeepSeek-V4.1-Flash-1017 — setup and qualification'],['ADMIN_USAGE_TELEMETRY','DSH administrator — usage and storage']]){
  const source=fs.readFileSync(path.join(root,'docs',name+'.md'),'utf8');
  let body=marked.parse(source).replace(/href="(?!https?:|#)([^"\s]+)"/g,(_,ref)=>ref.endsWith('.html')?`href="${ref}"`:`href="https://github.com/skunpoj/dsh_setup/blob/main/docs/${ref}"`);
  body=body.replace(/<img src="(images\/platform\/[^"\s]+)" alt="([^"]*)">/g,(_,image,alt)=>{

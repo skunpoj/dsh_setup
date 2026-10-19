@@ -1,5 +1,7 @@
 # Portable GPU + LiteLLM + 1M setup
 
+For the consolidated DSpark decisions, failed trials, memory corrections, preparation overhead and accepted measurements, see the [inference optimization experience record](../docs/INFERENCE_OPTIMIZATION_EXPERIENCE.html).
+
 **DeepSeek-V4.1-Flash-1017 is deployed on the existing four GPUs.** The pinned checkpoint preserves 1,048,576 total tokens and DSpark block five. Actual DSH processed 1,007,752 input / 431 output tokens, with the complete correct saved answer in **27m33.97s**. All **60/60** tracked short replies passed alongside it, with a paired median of **5.11s**. The accepted cold run had zero automatic retries, allocator mapping warnings or unexpected model restarts. The corrected 128 MiB temporary score tiles retain the full KV pool; preparation is slower than the rejected 256 MiB trial. [Checkpoint setup and complete results](../docs/MODEL_UPDATE_1017.html).
 
 | Setting | Installed value |

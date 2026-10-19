@@ -19,7 +19,7 @@
     "checkpoints/deepseek-v4.1-flash-1017.json": "e869c605ed65b94f4db62d438fea78df59abb132e23eca0d8b26afc8d10964db",
     "ci-example.yml": "553d0999a9914ab3ceaa8e108e35851364e4bb379a82395ec740a65975e371b1",
     "QUALIFICATION.md": "1bc2a97641ed44599fd3fecca595d0c88c46d196284f3e3319c25270a56ab847",
-    "README.md": "59c0114434b04972fd7647be8b48a047e4522269b1e55f3c96888ed3c1c7b05d",
+    "README.md": "be4559570220a9bfc88d6984cacbe07f28b16042ff8a14d19c6090940b35f6ba",
     "render.py": "0e6044bec5eb62e726cc21dbfbf7bc15b7906db11b56c4b388f1c464b6652595",
     "runtime/context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
     "runtime/context_forwarder.py": "aa4b061f8b3609dffc79350bf47be646c1e715c4536655e1e7d9298332e5a9a2",
