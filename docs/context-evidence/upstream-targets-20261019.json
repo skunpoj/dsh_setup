@@ -1,0 +1,155 @@
+{
+  "packages": [
+    {
+      "package": "dsh",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-tvY+yhfKRifthbqPe/OK0AYxM5ZkvqfYq/jMYgJcEUxiRRL1Vwra3Ti5TB6AXgSWQdiPHYh/Vp6SJa9yHwMNuw==",
+      "missingReviewedPaths": []
+    },
+    {
+      "package": "dsh-api-session-controller",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-AvYB5Seza/91BAKzataRn/5UYUqxNHU6W9ryH0JL0gslWkcURbGFFhvkRe9SXNo6DO0Jlv66NbBHME2t0XRPKA==",
+      "missingReviewedPaths": []
+    },
+    {
+      "package": "dsh-attachment-local",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-LW4zfDwzWZqMG21E27b0B+jC8vzW4KYRyPfnNp/WGoOnlfp5Jxp/2YzciYj42fjImSlP9SOhlS9jLZfM0ds1Kw==",
+      "missingReviewedPaths": []
+    },
+    {
+      "package": "dsh-base",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-aejv6yKXcDzu7XVVgl+tcbKSxbkWZ+qv2KGd6SvqfegPRwc3xdUNEJy3xFI/LYUZZfrUKQ9OnEOyvrZpCJ7g/Q==",
+      "missingReviewedPaths": []
+    },
+    {
+      "package": "dsh-client-connection",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-CcbFL0H7GwYxXwd2sENXYVRR98p8URDM4sPAosXmnRAIIjFhT/t4f88X+U6R+b/XHtniojoNsVfh7SQnGZkprw==",
+      "missingReviewedPaths": [
+        "dsh-client-connection/lib/client.js"
+      ]
+    },
+    {
+      "package": "dsh-client-ui-model-selection",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-vQ/MfeWbhR8kEjKDxWnJ9Wf5RgltngVnq+8TAnfx5cA/4PDlUD/Fm4K3/KWAgUMz7pS+x4yno4ri3SHSsksb5g==",
+      "missingReviewedPaths": []
+    },
+    {
+      "package": "dsh-client-ui-settings",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-oU8f/0+DsdbgF0XhM+Po7W4PDJmTbhifQVwIoAcKfj29JN/4tLxKqIKS0IRcMbIGD39BGFITne78KIMgrGJy3Q==",
+      "missingReviewedPaths": []
+    },
+    {
+      "package": "dsh-client-ui-settings-models",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-tjxvP66xh+i3h4Qf7h1tv7cEWVVtNAONDEN2ZM+Sv7Z2Z6P+hnr+mlXIjQdC+ovfsYQdg6TMXRle3cRr9x3Vug==",
+      "missingReviewedPaths": []
+    },
+    {
+      "package": "dsh-llm-deepseek",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-CxWvAB8FwnTJTZE7b5k0A3sAmC4mq2UJZNSsSNn7lWsquCcPoTvsR37UDo8ec352oBbYzrw+f9+h91oYLfhmqQ==",
+      "missingReviewedPaths": []
+    },
+    {
+      "package": "dsh-llm-pi-ai",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-sauT3s9LwRtJTuHJL6mIZSmMjy5S1o2u9qb/MFuo1VYc8CJwTL74/RxXYLX0vpRP2Hk7TFJkJFilx5jagMecsw==",
+      "missingReviewedPaths": []
+    },
+    {
+      "package": "dsh-system-prompt",
+      "version": "0.2.1-rc.2",
+      "integrityVerified": true,
+      "integrity": "sha512-X1WG2FMyfZapAkcCYyTl0UO5vVqDcCsA9wECJY7eeDTLHJDsqrilQJg2DRgHQzM+2/7T01QyzFZhKd7hfALJxg==",
+      "missingReviewedPaths": []
+    }
+  ],
+  "targets": [
+    {
+      "path": "dsh-api-session-controller/lib/index.js",
+      "baselineSHA256": "fb0f7b96130f595db20809eeb77a195b05f4a039f931d1e67692f1f74a4dd269",
+      "candidateSHA256": "a9801acb577b03053c5d5a3191ff555c5f1d791d0acddec113bea4511e33b386",
+      "changed": true,
+      "missing": false
+    },
+    {
+      "path": "dsh-attachment-local/lib/index.js",
+      "baselineSHA256": "cd39685581b4573a453c6126f8ce73da0bf1257c378827ebb431d6d4064f7662",
+      "candidateSHA256": "cd39685581b4573a453c6126f8ce73da0bf1257c378827ebb431d6d4064f7662",
+      "changed": false,
+      "missing": false
+    },
+    {
+      "path": "dsh-base/cordis.patch.yml",
+      "baselineSHA256": "9c2be64f46a193eff3cca190c26e697e8e8eee25c9b40149dfdb56f8142c252d",
+      "candidateSHA256": "a2cc57868a4d016609801e28781262515483dde29b41c2742d9a3b27a6f52f77",
+      "changed": true,
+      "missing": false
+    },
+    {
+      "path": "dsh-client-connection/lib/client.js",
+      "baselineSHA256": "0fbb93fa2382bb66919767f69c909585c6255486f9536f9232231edaeac8c4e6",
+      "candidateSHA256": null,
+      "changed": true,
+      "missing": true
+    },
+    {
+      "path": "dsh-client-ui-model-selection/lib/client.js",
+      "baselineSHA256": "2ca82227074f2d78f15588364368d27e4d58b1abcd7f9fc01f368fab64bc6696",
+      "candidateSHA256": "18f6e74e203d50f66c8e30552d52e070d06941514cb0e72b149683c092a3ba2a",
+      "changed": true,
+      "missing": false
+    },
+    {
+      "path": "dsh-client-ui-settings-models/lib/client.js",
+      "baselineSHA256": "7674ed0ba2eef60fa7db91b4bf8cea4dc23e1f0a2f3dd1e6a2a67ad4c0d005fa",
+      "candidateSHA256": "190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28",
+      "changed": true,
+      "missing": false
+    },
+    {
+      "path": "dsh-client-ui-settings/lib/client.js",
+      "baselineSHA256": "2ac7f186165c5a8ec2cd90045cf74693e5d3518ec90cd429951360d79754aa94",
+      "candidateSHA256": "0555eec2df1ca392a1167e637f287ac9963dbd2b0a230089c2a41be079c490e3",
+      "changed": true,
+      "missing": false
+    },
+    {
+      "path": "dsh-llm-deepseek/lib/index.js",
+      "baselineSHA256": "226e2047b843f954d8478207613f3e44448671c6f98f8edee77008d0fe005484",
+      "candidateSHA256": "eba35025ed1eedda89c51f2da46a3a968f7be1d59719f2ceeadfc4518dff37d6",
+      "changed": true,
+      "missing": false
+    },
+    {
+      "path": "dsh-llm-pi-ai/lib/index.js",
+      "baselineSHA256": "d46dbc30aeb3414190000e6f8aeaaf994246b5e5c651de07639f4a7e92de37ef",
+      "candidateSHA256": "99b5c20830a52f69641df8a18a39206079b0c725201958cce2c4a934f1d4f7cd",
+      "changed": true,
+      "missing": false
+    },
+    {
+      "path": "dsh-system-prompt/lib/index.js",
+      "baselineSHA256": "ff422afac6ba85f89afa985d921aed0b603feb354a05a549c48eae04cf0d2f57",
+      "candidateSHA256": "7be9f7aafbf345d01ddcc12fd297b16e9a1d41283a6a04073b867becca0bf020",
+      "changed": true,
+      "missing": false
+    }
+  ]
+}
