@@ -30,7 +30,7 @@ async function rpc(method,args={}){const r=await request('POST','/api/'+method,J
  assert.equal(catalog.result?.ok,true,'Actual model-catalog RPC failed');
  const value=catalog.result.value;
  assert(value && value.default?.provider==='litellm-cluster','Actual catalog default differs');
- assert.deepEqual(value.routableProviders,['litellm-cluster'],'External provider appeared in actual catalog');
+ assert.deepEqual(value.routableProviders,['litellm-cluster'],'External provider appeared in actual catalog: '+JSON.stringify({providers:value.routableProviders,failedProviders:(value.failures||[]).map(x=>x.id)}));
  const denied=await request('POST','/api/session/list','{}',false);
  assert([401,403].includes(denied.status),'Anonymous RPC was not denied');
  const wrongHost=await request('POST','/api/session/list','{}',true,'untrusted.invalid');
