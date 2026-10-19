@@ -22,6 +22,8 @@ def main():
     ap.add_argument('--expected-source-sha256', required=True)
     ap.add_argument('--snapshot', type=Path, help='Optional reviewed status JSON; replace it in the same gateway-only handover')
     ap.add_argument('--manual-dir', help='Already published versioned manual directory on the gateway auth volume')
+    ap.add_argument('--app-services-status-targets',type=Path,help='Private reviewed runtime rows for isolated read-only status mounts')
+    ap.add_argument('--app-services-pvc', help='Dedicated service control PVC; never the account-store claim')
     ap.add_argument('--app-domain', help='Operator-approved app hostname suffix')
     ap.add_argument('--app-inventory-configmap', help='Read-only ingress inventory; requires --app-domain')
     ap.add_argument('--signup-config', type=Path, help='Reviewed read-only signup pool/token mounts; no runtime data mounts or management token')
@@ -31,6 +33,9 @@ def main():
         import re
         if not re.fullmatch(r'(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}',args.app_domain) or not args.app_inventory_configmap or not re.fullmatch(r'[a-z0-9-]{3,63}',args.app_inventory_configmap):
             raise ValueError('Approved domain and inventory ConfigMap required together')
+    if args.app_services_pvc:
+        import re
+        if not re.fullmatch(r'[a-z0-9-]{3,63}',args.app_services_pvc):raise ValueError('Invalid service control claim')
     if args.manual_dir:
         import re
         if not re.fullmatch(r'/auth/manuals/[a-f0-9]{16}', args.manual_dir):
@@ -122,6 +127,20 @@ def main():
             volumes=template['spec']['volumes'];volumes[:]=[v for v in volumes if v['name']!='app-host-inventory'];volumes.append({'name':'app-host-inventory','configMap':{'name':args.app_inventory_configmap}})
             mounts=c['volumeMounts'];mounts[:]=[m for m in mounts if m['name']!='app-host-inventory'];mounts.append({'name':'app-host-inventory','mountPath':'/app-host-inventory','readOnly':True})
             record['appHostnameDomain']=args.app_domain
+        if args.app_services_pvc:
+            c=template['spec']['containers'][0]
+            if any(v.get('persistentVolumeClaim',{}).get('claimName')==args.app_services_pvc and v['name']!='app-service-control' for v in template['spec']['volumes']):raise RuntimeError('Service control must use a separate claim')
+            c['env']=[e for e in c.get('env',[])if e['name']!='DSH_APP_SERVICES_ROOT']+[{'name':'DSH_APP_SERVICES_ROOT','value':'/app-services'}]
+            template['spec']['volumes']=[v for v in template['spec']['volumes']if v['name']!='app-service-control']+[{'name':'app-service-control','persistentVolumeClaim':{'claimName':args.app_services_pvc}}]
+            c['volumeMounts']=[m for m in c['volumeMounts']if m['name']!='app-service-control']+[{'name':'app-service-control','mountPath':'/app-services'}]
+            if args.app_services_status_targets:
+                from deploy_app_supervision import gateway_control_spec,key
+                targets=json.loads(args.app_services_status_targets.read_text(encoding='utf-8'));assert len(targets)<=64
+                for t in targets:
+                    if t['mode'] not in ['off','on'] or not re.fullmatch(r'[a-z0-9.-]{3,253}',t['host']):raise ValueError('Invalid service target')
+                temporary={'template':template}
+                template=gateway_control_spec(temporary,args.app_services_pvc,[key(t['host'],t['mode'])for t in targets])['template']
+            record['serviceControlClaimConfigured']=True
         for volume in template['spec']['volumes']:
             if volume['name'] == 'gateway-source':
                 volume['configMap']['name'] = name

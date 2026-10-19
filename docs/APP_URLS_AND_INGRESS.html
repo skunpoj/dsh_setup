@@ -105,4 +105,6 @@ kubectl apply -f /private/alice-report-ingress.yaml
 </ol>
 <p>Users and prompts do not edit Ingress objects. Dynamic publication consists of a user-owned alias/port mapping under the installed wildcard route. The reader maintains reservations, not per-app routes. Revert the wildcard/gateway configuration on regression and retain the canonical site/path proxy; never overwrite newer account, workspace, app mapping or history content.</p>
 <p>References: <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards">Kubernetes Ingress wildcards</a>, <a href="https://nginx.org/en/docs/http/server_names.html">NGINX exact-name and wildcard priority</a>, <a href="https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html#running-the-notebook-with-a-customized-url-prefix">Jupyter base URLs</a>.</p>
+<h2>Process startup is a separate control</h2>
+<p>A saved URL does not start an application. Admin-approved <a href="APP_SERVICE_SUPERVISION.html">managed startup services</a> can launch Jupyter or an owned application automatically after worker replacement. A new definition is stopped until Start is approved. URL disable/removal does not stop the process; use the lifecycle Stop control for that.</p>
 </main></body></html>

@@ -33,6 +33,12 @@ These controls are deployed on the main gateway. Separate legacy-instance gatewa
 
 The deployed dashboard provides account management, access activity and numeric summaries from the configured private runtimes, including assigned signup pairs: stored sessions, running agents, queued messages, turns, LLM steps, input/output token totals, recorded decode and wall-clock output rates, and workspace/durable-storage sizes. These are scoped snapshots, not live GPU utilization or independent Claude Code/TrueForge accounting. Actual deployed-code authorization and numeric collection were checked using a loopback-only disposable authenticated account; a real administrator password/browser login was not part of that acceptance. See the [dashboard definitions and scope](ADMIN_USAGE_TELEMETRY.html). Saved demonstration screenshots do not show current utilization.
 
+## Admin-approved service recovery
+
+Jupyter and user apps can use a separate managed startup service. Admin approves the owner, environment and command; new definitions are stopped until Start is selected. The non-root supervisor shares that owner's runtime network and workspace permissions, while startup policy is mounted read-only and status storage is private to the runtime. Stop prevents recovery after pod replacement. URL publication remains a separate control and does not itself execute code.
+
+This supports controlled execution and recovery without granting broader data or Internet permissions. Durable files and notebook settings persist; unsaved kernel memory does not. See [architecture, credential boundaries and setup](APP_SERVICE_SUPERVISION.html) and [recorded admin startup workflow](APP_AUTOSTART_WALKTHROUGH.html).
+
 ## Environment and access design
 
 Users enter through the authenticated gateway. The selected identity and environment determine the private runtime and storage scope; browser-supplied names or routing headers do not grant access to another user's environment.

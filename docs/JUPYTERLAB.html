@@ -41,4 +41,6 @@
 </code></pre>
 <p>The helper checks for running agents, preserves existing mounts and session-file hashes, verifies workspace/state markers after replacement and restores the saved configuration on regression. It supports <code>--only</code> for a bounded set of workers. Acceptance must identify the same running image; an image-build result alone is insufficient.</p>
 <p>Official references: <a href="https://jupyter-server.readthedocs.io/en/latest/operators/security.html">Server security</a>, <a href="https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html#running-the-notebook-with-a-customized-url-prefix">URL prefix</a>, <a href="https://jupyterlab.readthedocs.io/en/stable/user/urls.html">Lab URLs</a>.</p>
+<h2>Optional automatic startup</h2>
+<p>An administrator may approve the managed <strong>jupyter</strong> service for this user and environment. It then starts automatically with the worker, using the same workspace and persistent notebook state. Admin Stop survives restarts. A new notebook server does not restore unsaved cells, Python variables or an interrupted kernel. Manual <code>jupyter lab</code> remains available when no supervised server uses port 8888. See <a href="APP_SERVICE_SUPERVISION.html">managed startup and isolation</a>.</p>
 </main></body></html>

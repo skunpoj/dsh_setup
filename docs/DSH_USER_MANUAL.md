@@ -64,6 +64,12 @@ Users change their own password through the password-change flow. An admin role 
 
 Reload **User management** to see a newly registered account. Unused prepared pairs are available signup capacity; assigned pairs appear in account-scoped usage. Disabling an account preserves its private data and does not recycle the pair.
 
+### Managed Jupyter and app startup
+
+An administrator can approve persistent startup definitions in **Admin overview → Managed startup services**. Saving a definition leaves a new service stopped. Start enables automatic startup after a worker pod replacement; Stop prevents it. Restart replaces the managed process. This is separate from URL names, ports and quota management. Saved notebooks and files persist, while memory-only kernel state does not.
+
+See [managed startup, architecture, user isolation and credentials](APP_SERVICE_SUPERVISION.html) and the [recorded lifecycle walkthrough](APP_AUTOSTART_WALKTHROUGH.html). Each user has separate No Internet and Internet runtime pods; the supervisor runs non-root inside that user's selected pod. It receives no gateway password store, agent history mount, launch token or model-key environment. Approved apps share their owner's workspace and runtime permissions.
+
 ## 6 Troubleshoot common situations
 
 | Symptom | What to check |

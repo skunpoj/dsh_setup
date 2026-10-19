@@ -52,6 +52,14 @@ Keep the existing single gateway writer for the file-based registry. Before addi
 
 The user-facing **My apps** page displays names used and the effective limit. Jupyter and terminal launch choices remain independent of the number of custom names. See [application URL setup](APP_URLS_AND_INGRESS.html).
 
+## Managed startup services
+
+Use the separate **Managed startup services** section to save and approve Jupyter or user-app startup definitions. **Start** enables autostart, **Stop** disables it, **Restart** replaces the managed process and **Remove** deletes the definition. Existing URL controls still manage URLs only. An application can be running with its URL disabled, or its URL can exist while no server is running.
+
+Definitions are protected on a dedicated persistent volume, separate from accounts and histories. Each private runtime receives only its own definition directory, read-only, and a constrained non-root supervisor sidecar. No Internet/Internet authorization remains independent. New services are stopped until explicitly approved. Status is supervisor-reported; unknown is not healthy.
+
+Read [startup controls, isolation architecture, credential handling and installation](APP_SERVICE_SUPERVISION.html). [Watch the lifecycle walkthrough](APP_AUTOSTART_WALKTHROUGH.html).
+
 ## Usage panels
 
 | Panel | Meaning |
