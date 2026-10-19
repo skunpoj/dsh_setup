@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-19",
+  "scope": "Disposable private runtime, actual installed clients; not a production rollout receipt",
+  "baseGuideSHA256": "5126573999da0491660b922dc97157264fc4affbdbeb95d5d07698842fd1193a",
+  "markerWasNotInUserPrompt": true,
+  "clients": [
+    {
+      "client": "dsh",
+      "guideMarkerRecovered": true,
+      "defaultLimitCorrect": true,
+      "urlDoesNotStartProcess": true,
+      "exact": true,
+      "seconds": 2.094
+    },
+    {
+      "client": "claude",
+      "guideMarkerRecovered": true,
+      "defaultLimitCorrect": true,
+      "urlDoesNotStartProcess": true,
+      "exact": true,
+      "seconds": 1.473
+    },
+    {
+      "client": "kilo",
+      "guideMarkerRecovered": true,
+      "defaultLimitCorrect": true,
+      "urlDoesNotStartProcess": true,
+      "exact": true,
+      "seconds": 9.179
+    },
+    {
+      "client": "trueforge",
+      "guideMarkerRecovered": true,
+      "defaultLimitCorrect": true,
+      "urlDoesNotStartProcess": true,
+      "exact": true,
+      "seconds": 0.672
+    }
+  ],
+  "operatorGuideAndPoliciesWriteDenied": 3,
+  "restart": {
+    "passed": true,
+    "instructionFilesByteIdentical": 2,
+    "guideBlocksEach": 1,
+    "persistedSessionFiles": 2,
+    "realUserWorkloadsChanged": false
+  },
+  "signupBrowser": {
+    "remainingSlots": [
+      2,
+      1,
+      0
+    ],
+    "failedRefreshReplacedOldCount": true,
+    "recovery": true,
+    "disabledAccountRetainsSlot": true
+  },
+  "html": {
+    "passed": true,
+    "checks": [
+      {
+        "file": "PLATFORM_CAPACITY_AND_CLIENTS.html",
+        "width": 1440,
+        "layout": true,
+        "images": true
+      },
+      {
+        "file": "PLATFORM_CAPACITY_AND_CLIENTS.html",
+        "width": 768,
+        "layout": true,
+        "images": true
+      },
+      {
+        "file": "PLATFORM_CAPACITY_AND_CLIENTS.html",
+        "width": 390,
+        "layout": true,
+        "images": true
+      },
+      {
+        "file": "SHARED_PLATFORM_GUIDE.html",
+        "width": 1440,
+        "layout": true,
+        "images": true
+      },
+      {
+        "file": "SHARED_PLATFORM_GUIDE.html",
+        "width": 768,
+        "layout": true,
+        "images": true
+      },
+      {
+        "file": "SHARED_PLATFORM_GUIDE.html",
+        "width": 390,
+        "layout": true,
+        "images": true
+      }
+    ],
+    "embeddedVideoDecoded": true
+  }
+}
