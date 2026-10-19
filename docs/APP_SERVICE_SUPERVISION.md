@@ -76,6 +76,8 @@ Internet approval remains independent of startup approval. Managed Internet serv
 
 ## Admin workflow
 
+Managed service names use 3–40 lowercase letters/digits/hyphens and must begin with a letter; an app URL with a longer or incompatible name needs a compatible alias before it can be managed.
+
 1. Open **Admin overview → Managed startup services**.
 2. Enter the exact existing owner and select No Internet or Internet.
 3. For Jupyter, use service name **jupyter**, kind **Jupyter**, directory `/workspace`. Its authenticated port and root are fixed.

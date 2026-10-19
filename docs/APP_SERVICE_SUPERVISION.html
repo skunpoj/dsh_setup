@@ -111,6 +111,7 @@
 <p>Local DSH credentials establish the platform login. A Kerberos principal is a separate user-specific identity. Its existing AD/datalake grants remain unchanged. The managed supervisor does not automatically inherit the agent&#39;s model keys, launch tokens, saved client profiles or Kerberos ticket cache. Authenticate a notebook/application through the user&#39;s approved mechanism when needed; never paste credentials into startup arguments, notebooks intended for sharing, reports or videos. A persistent notebook directory is not a credential vault.</p>
 <p>Internet approval remains independent of startup approval. Managed Internet services are paused when the account is disabled or Internet approval is revoked; the gateway reconciles that permission and the supervisor applies it within a few seconds. Logout does not stop an explicitly approved background service. No Internet services retain the existing restricted-egress policy. Remote execution through other platforms retains those platforms&#39; authorization and network boundaries.</p>
 <h2>Admin workflow</h2>
+<p>Managed service names use 3–40 lowercase letters/digits/hyphens and must begin with a letter; an app URL with a longer or incompatible name needs a compatible alias before it can be managed.</p>
 <ol>
 <li>Open <strong>Admin overview → Managed startup services</strong>.</li>
 <li>Enter the exact existing owner and select No Internet or Internet.</li>
