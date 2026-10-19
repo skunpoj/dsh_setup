@@ -9,7 +9,7 @@ const PROXY_PORT = Number(process.env.PORT || 3080);
 const MANUAL_DIR = process.env.DSH_MANUAL_DIR || '/opt/dsh/manual';
 function serveManual(req, res, pathname) {
   const headers = {'Cache-Control':'no-cache', 'X-Content-Type-Options':'nosniff',
-    'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"};
+    'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"};
   if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405,{...headers,Allow:'GET, HEAD'});return res.end(); }
   if (pathname === '/manual' || pathname === '/manual/') { res.writeHead(302,{...headers,Location:'/manual/DSH_USER_MANUAL.html'});return res.end(); }
   try {
@@ -35,6 +35,10 @@ const USER_ROOT = process.env.WORKSPACE_ROOT || '/workspace/users';
 const USER_STORE_PATH = process.env.DSH_USER_STORE_PATH || `${USER_ROOT}/.user_auth.json`;
 const USER_SETTINGS_PATH = process.env.DSH_USER_SETTINGS_PATH || `${USER_ROOT}/.user_settings.json`;
 const APP_LINKS_PATH = process.env.DSH_APP_LINKS_PATH || path.join(path.dirname(USER_STORE_PATH), 'app-links.json');
+const APP_POLICY_PATH = process.env.DSH_APP_POLICY_PATH || path.join(path.dirname(USER_STORE_PATH), 'app-policy.json');
+const DEFAULT_APP_LIMIT = 8;
+const SITE_APP_LIMIT = 4096; // Registry safety bound, not a user approval tier.
+const APP_CONNECTIONS = new Map();
 const APP_DOMAIN = (process.env.DSH_APP_DOMAIN || '').toLowerCase();
 if(APP_DOMAIN && !/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/.test(APP_DOMAIN))throw Error('Invalid approved app domain');
 function appHostnameState(name) {
@@ -66,20 +70,45 @@ function saveAppLinks(value) {
   try {fd=fs.openSync(tmp,'wx',0o600);fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.renameSync(tmp,APP_LINKS_PATH);}
   finally {if(fd!==undefined)fs.closeSync(fd);if(fs.existsSync(tmp))fs.unlinkSync(tmp);}
 }
+function appPolicy() {
+  if(!fs.existsSync(APP_POLICY_PATH))return {limits:{}};
+  const p=JSON.parse(fs.readFileSync(APP_POLICY_PATH,'utf8'));
+  if(!p || !p.limits || typeof p.limits!=='object' || Array.isArray(p.limits) || Object.entries(p.limits).some(([u,n])=>!(/^[a-z0-9_.-]{3,30}$/.test(u))||!Number.isInteger(n)||n<0||n>SITE_APP_LIMIT))throw Error('Invalid app policy');
+  return p;
+}
+function appLimit(user,policy=appPolicy()) {return Object.hasOwn(policy.limits,user)?policy.limits[user]:DEFAULT_APP_LIMIT;}
+function saveAppPolicy(value) {
+  fs.mkdirSync(path.dirname(APP_POLICY_PATH),{recursive:true,mode:0o700});
+  const tmp=APP_POLICY_PATH+'.tmp-'+crypto.randomBytes(8).toString('hex');let fd;
+  try {fd=fs.openSync(tmp,'wx',0o600);fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.renameSync(tmp,APP_POLICY_PATH);}
+  finally {if(fd!==undefined)fs.closeSync(fd);if(fs.existsSync(tmp))fs.unlinkSync(tmp);}
+}
+function trackAppConnection(name,connection) {
+  if(!name)return;
+  const set=APP_CONNECTIONS.get(name)||new Set();APP_CONNECTIONS.set(name,set);set.add(connection);
+  connection.once('close',()=>{set.delete(connection);if(!set.size&&APP_CONNECTIONS.get(name)===set)APP_CONNECTIONS.delete(name);});
+}
+function closeAppConnections(name) {for(const connection of APP_CONNECTIONS.get(name)||[])connection.destroy();APP_CONNECTIONS.delete(name);}
+function adminApps() {
+  const all=appLinks(),users=loadUsers(),policy=appPolicy();
+  return {defaultLimit:DEFAULT_APP_LIMIT,siteLimit:SITE_APP_LIMIT,totalNames:Object.keys(all).length,
+    accounts:Object.keys(users).sort().map(user=>({user,enabled:users[user].disabled!==true,internetAllowed:internetAllowed(user),limit:appLimit(user,policy),used:Object.values(all).filter(e=>e.owner===user).length})),
+    apps:Object.entries(all).map(([name,e])=>{const state=appHostnameState(name);return {name,owner:e.owner,enabled:e.enabled!==false,ports:{...(validAppPort(e.ports?.off)?{off:e.ports.off}:{}),...(validAppPort(e.ports?.on)?{on:e.ports.on}:{})},hostname:APP_DOMAIN?name+'.'+APP_DOMAIN:null,hostnameReady:state.available&&state.ready,updatedAt:e.updatedAt||null,updatedBy:e.updatedBy||null};})};
+}
 function validAppName(name) {return typeof name==='string' && /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/.test(name) && !/^\d+$/.test(name) && !/^dsh(?:$|[-0-9])/.test(name) && !['terminal','jupyter','dashboard','streamlit','fastapi','web','api','ttyd','constructor','prototype'].includes(name);}
 function validAppPort(port) {return Number.isInteger(port)&&port>=1024&&port<=65535&&![PROXY_PORT,DSH_TARGET_PORT,3080,3081,4000,4001].includes(port);}
 function customAppPort(alias,user,mode) {
   const entry=appLinks()[alias];
-  return entry && entry.owner===user && validAppPort(entry.ports?.[mode]) ? entry.ports[mode] : null;
+  return entry && entry.enabled!==false && entry.owner===user && validAppPort(entry.ports?.[mode]) ? entry.ports[mode] : null;
 }
-function renderApplications() {return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>My applications</title><style>body{font:16px system-ui;max-width:900px;margin:40px auto;padding:20px;line-height:1.6;background:#0b1220;color:#eef}a{color:#8cf}input,button{font:inherit;padding:9px;margin:5px}li{margin:14px 0}</style><h1>My applications</h1><p><a href="/">DSH</a> · <a href="/terminal">Web Terminal</a> · <a href="/proxy/8888/lab">JupyterLab</a> · <a href="/manual/APP_URLS_AND_INGRESS.html">URL guide</a></p><p>Choose a name and a listening port in your private environment. URLs require sign-in and work only for your account in the selected environment. This does not start an application or enable Internet access.</p><p id="domainHint"></p><form id="appForm"><label>Name <input id="appName" pattern="[a-z0-9-]{3,63}" maxlength="63" required></label><label>Port <input id="appPort" type="number" min="1024" max="65535" value="8888" required></label><button type="button" id="check" disabled>Check name</button><button id="saveApp" disabled>Save URL</button></form><p id="status" role="status"></p><ul id="links"></ul><script>let token='';const status=document.getElementById('status');async function load(){const r=await fetch('/api/app-links');if(!r.ok)throw Error('Sign in again to manage applications.');const d=await r.json();token=d.csrfToken;document.getElementById('check').disabled=false;document.getElementById('saveApp').disabled=false;document.getElementById('domainHint').textContent=d.hostnameDomain?'Choose a name for https://NAME.'+d.hostnameDomain+'/ and its private port.':'';if(!document.getElementById('appName').value)document.getElementById('appName').value=d.defaultName;const list=document.getElementById('links');list.replaceChildren();for(const e of d.links){const li=document.createElement('li'),a=document.createElement('a'),b=document.createElement('button');a.href=e.url;a.textContent=e.name+' → port '+e.port;li.append(a);if(e.hostnameUrl){const host=document.createElement('a');host.href=e.hostnameUrl;host.textContent=' · '+e.hostname;li.append(host);}else if(e.hostname){li.append(document.createTextNode(' · hostname awaiting setup'));}b.textContent='Remove URL';b.onclick=()=>save('delete',e.name,e.port);li.append(b);list.append(li)}}async function save(action,name,port){if(!token)throw Error('Wait for application settings to load.');const r=await fetch('/api/app-links',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-App-CSRF':token},body:new URLSearchParams({action,name,port})});const d=await r.json();status.textContent=d.message||d.error;await load()}document.getElementById('appForm').onsubmit=e=>{e.preventDefault();save('save',document.getElementById('appName').value,document.getElementById('appPort').value).catch(e=>status.textContent=e.message)};document.getElementById('check').onclick=async()=>{const r=await fetch('/api/app-links?name='+encodeURIComponent(document.getElementById('appName').value));const d=await r.json();status.textContent=d.available?'Name available in the application registry.':(d.error||'Name reserved.');};load().catch(e=>status.textContent=e.message);</script></html>`;}
+function renderApplications() {return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>My applications</title><style>body{font:16px system-ui;max-width:900px;margin:40px auto;padding:20px;line-height:1.6;background:#0b1220;color:#eef}a{color:#8cf}input,button{font:inherit;padding:9px;margin:5px}li{margin:14px 0}</style><h1>My applications</h1><p><a href="/">DSH</a> · <a href="/terminal">Web Terminal</a> · <a href="/proxy/8888/lab">JupyterLab</a> · <a href="/manual/APP_URLS_AND_INGRESS.html">URL guide</a></p><p>Choose a name and a listening port in your private environment. URLs require sign-in and work only for your account in the selected environment. This does not start an application or enable Internet access.</p><p id="domainHint"></p><p id="quota"></p><form id="appForm"><label>Name <input id="appName" pattern="[a-z0-9-]{3,63}" maxlength="63" required></label><label>Port <input id="appPort" type="number" min="1024" max="65535" value="8888" required></label><button type="button" id="check" disabled>Check name</button><button id="saveApp" disabled>Save URL</button></form><p id="status" role="status"></p><ul id="links"></ul><script>let token='';const status=document.getElementById('status');async function load(){const r=await fetch('/api/app-links');if(!r.ok)throw Error('Sign in again to manage applications.');const d=await r.json();token=d.csrfToken;document.getElementById('quota').textContent=d.used+' / '+d.limit+' application names used across both environments.';document.getElementById('check').disabled=false;document.getElementById('saveApp').disabled=false;document.getElementById('domainHint').textContent=d.hostnameDomain?'Choose a name for https://NAME.'+d.hostnameDomain+'/ and its private port.':'';if(!document.getElementById('appName').value)document.getElementById('appName').value=d.defaultName;const list=document.getElementById('links');list.replaceChildren();for(const e of d.links){const li=document.createElement('li'),a=document.createElement('a'),b=document.createElement('button');a.href=e.url;a.textContent=e.name+' → port '+e.port+(e.enabled?'':' (disabled by administrator)');li.append(a);if(e.hostnameUrl){const host=document.createElement('a');host.href=e.hostnameUrl;host.textContent=' · '+e.hostname;li.append(host);}else if(e.hostname){li.append(document.createTextNode(' · hostname awaiting setup'));}b.textContent='Remove URL';b.onclick=()=>save('delete',e.name,e.port);li.append(b);list.append(li)}}async function save(action,name,port){if(!token)throw Error('Wait for application settings to load.');const r=await fetch('/api/app-links',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-App-CSRF':token},body:new URLSearchParams({action,name,port})});const d=await r.json();status.textContent=d.message||d.error;await load()}document.getElementById('appForm').onsubmit=e=>{e.preventDefault();save('save',document.getElementById('appName').value,document.getElementById('appPort').value).catch(e=>status.textContent=e.message)};document.getElementById('check').onclick=async()=>{const r=await fetch('/api/app-links?name='+encodeURIComponent(document.getElementById('appName').value));const d=await r.json();status.textContent=d.available?'Name available in the application registry.':(d.error||'Name reserved.');};load().catch(e=>status.textContent=e.message);</script></html>`;}
 const COOKIE_NAME = process.env.DSH_COOKIE_NAME || 'dsh_auth';
 const COOKIE_TRANSPORT = process.env.DSH_COOKIE_SECURE === 'false' ? '' : '; Secure';
 const ADMIN_USERS = new Set((process.env.DSH_ADMIN_USERS || 'admin').split(',').map(x => x.trim()).filter(Boolean));
 const ADMIN_SUMMARY_FILE = process.env.DSH_ADMIN_SUMMARY_FILE || '/admin-status/summary.json';
 const AUDIT_DIR = process.env.DSH_AUDIT_DIR || `${USER_ROOT}/audit`;
 let auditFailures = 0;
-function auditEvent(event, actor, mode, subject) {
+function auditEvent(event, actor, mode, subject, appDetails) {
   try {
     fs.mkdirSync(AUDIT_DIR, { recursive: true, mode: 0o700 });
     const file = `${AUDIT_DIR}/events.jsonl`;
@@ -92,12 +121,21 @@ function auditEvent(event, actor, mode, subject) {
     const user = typeof actor === 'string' && /^[a-zA-Z0-9_.-]{1,30}$/.test(actor) ? actor : 'unidentified';
     fs.appendFileSync(file, JSON.stringify({ time: new Date().toISOString(), event, user,
       environment: normalizeInternetMode(mode) === 'on' ? 'internet' : 'secure',
-      ...(subject && /^[a-z0-9_.-]{3,30}$/.test(subject) ? {subject} : {}) }) + '\n', { mode: 0o600 });
+      ...(subject && /^[a-z0-9_.-]{3,30}$/.test(subject) ? {subject} : {}),
+      ...(event.startsWith('application.') && appDetails ? {application:projectAppAudit(appDetails)} : {}) }) + '\n', { mode: 0o600 });
     return true;
   } catch { auditFailures++; console.error('[AUDIT] Could not persist security event'); return false; }
 }
+function projectAppAudit(d) {
+  const result={};
+  for(const k of ['owner','name'])if(typeof d[k]==='string'&&/^[a-z0-9_.-]{3,63}$/.test(d[k]))result[k]=d[k];
+  if(['off','on'].includes(d.mode))result.mode=d.mode;
+  if(['requested','applied'].includes(d.outcome))result.outcome=d.outcome;
+  for(const k of ['previousPort','port','previousLimit','limit'])if(Number.isInteger(d[k])&&d[k]>=0&&d[k]<=65535)result[k]=d[k];
+  return result;
+}
 function recentAudit() {
-  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket','application.save','application.delete','account.create','account.enable','account.disable','account.revoke','account.allow-internet','account.deny-internet']);
+  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket','application.save','application.delete','application.limit','application.disable','application.enable','application.edit','account.create','account.enable','account.disable','account.revoke','account.allow-internet','account.deny-internet']);
   const rows=[];
   for(const file of [`${AUDIT_DIR}/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh2/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh3/events.jsonl`]) {
     try {
@@ -107,6 +145,7 @@ function recentAudit() {
           const r=JSON.parse(line);
           if(!events.has(r.event)||typeof r.time!=='string'||!Number.isFinite(Date.parse(r.time))||! /^[a-zA-Z0-9_.-]{1,30}$/.test(r.user)||!['secure','internet','legacy-dsh2/internet','legacy-dsh3/internet'].includes(r.environment)) continue;
           rows.push({time:r.time,event:r.event,user:r.user,environment:r.environment,
+            ...(r.event.startsWith('application.')&&r.application?{application:projectAppAudit(r.application)}:{}),
             ...(r.event.startsWith('account.') && typeof r.subject === 'string' && /^[a-z0-9_.-]{3,30}$/.test(r.subject) ? {subject:r.subject} : {})});
         } catch {}
       }
@@ -277,9 +316,10 @@ function adminSummary() {
 function renderAdminDashboard() {
   return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Admin overview</title>
 <style>body{font:16px/1.6 system-ui;background:#f1f5f9;color:#172033;margin:0}main{max-width:1100px;margin:auto;padding:32px}a{color:#075985}header{display:flex;gap:24px;align-items:center;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}section{background:white;border:1px solid #cbd5e1;border-radius:12px;padding:20px;margin:18px 0;overflow-wrap:anywhere}h1,h2{line-height:1.2}strong{font-size:24px}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0}.muted{color:#475569}.notice{border-left:5px solid #d97706}button{padding:8px 16px;cursor:pointer}</style>
-<main><header><h1>DSH Admin overview</h1><a href="/">Back to DSH</a><a href="/logout">Logout</a><button id="refresh">Refresh</button></header><p id="error" role="alert"></p><p id="time" class="muted"></p>
+<main><header><h1>DSH Admin overview</h1><a href="/">Back to DSH</a><a href="/logout">Logout</a><button id="refresh">Refresh</button><a href="#applications">Applications</a></header><p id="error" role="alert"></p><p id="time" class="muted"></p>
 <div class="cards"><section>Registered accounts<br><strong id="accounts">—</strong></section><section>Main gateway browser sessions<br><strong id="sessions">—</strong><div id="sessionDetail"></div></section><section>User routing<br><strong id="routing">—</strong></section></div>
 <section><h2>User management</h2><p>Manage access to existing private runtimes. Disabling an account preserves its files and history. Sign out closes browser and terminal connections; it does not cancel already-running tools.</p><p id="userMessage" role="status"></p><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Role</th><th>Status</th><th>Environments</th><th>Sessions</th><th>Actions</th></tr></thead><tbody id="users"></tbody></table></div><form id="createUser"><h3>Create account</h3><label>Identity ${SIGNUP_POOL ? '<input id="newUser" pattern="[a-z0-9_.-]{3,30}" minlength="3" maxlength="30" required>' : '<select id="newUser" required></select>'}</label> <label>Initial password <input id="newPassword" type="password" minlength="12" maxlength="1024" autocomplete="new-password" required></label> <button id="createButton">Create account</button></form><p id="provisionHelp">${SIGNUP_POOL ? 'New accounts receive an exclusive prepared workspace. Capacity: <span id="signupCapacity">—</span>. Internet requires a separate approval.' : 'New identities require operator-provisioned private environments.'} Administrator roles are managed by the operator.</p></section>
+<section id="applications"><h2>Applications</h2><p>New users receive 8 names. Set one limit per user; both environments share it. A lower limit preserves existing names. Disabling or removing a mapping closes its named-URL connections, while files and running applications stay in place.</p><p id="appMessage" role="status"></p><p id="appTotals"></p><div style="overflow:auto"><table><thead><tr><th>User</th><th>Account</th><th>Internet approval</th><th>Names used</th><th>Name limit</th></tr></thead><tbody id="appQuotas"></tbody></table></div><p><label>Find owner or name <input id="appFilter" type="search"></label></p><div style="overflow:auto"><table><thead><tr><th>Owner / name</th><th>No Internet port</th><th>Internet port</th><th>Status / actions</th></tr></thead><tbody id="adminApps"></tbody></table></div><p class="muted">This manages URL mappings, not access to another user's app contents. Direct numeric port URLs remain available to the owner. Quotas count names, not processes or GPU requests.</p></section>
 <section><h2>DSH usage and activity</h2><p id="usageFreshness">Loading runtime summaries…</p><div class="cards"><div>Stored conversations<br><strong id="usageSessions">—</strong></div><div>Running DSH agents<br><strong id="usageAgents">—</strong></div><div>Queued DSH messages<br><strong id="usageQueued">—</strong></div><div>Recorded turns / LLM steps<br><strong id="usageTurns">—</strong></div><div>Accumulated input / output tokens<br><strong id="usageTokens">—</strong></div><div>All-history decode tokens/sec<br><strong id="usageDecode">—</strong></div><div>Recent conversation decode tokens/sec<br><strong id="usageRecentDecode">—</strong></div><div>Recent output tokens/sec<br><strong id="usageRate">—</strong></div></div><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Environment</th><th>Agents</th><th>Conversations</th><th>Turns</th><th>LLM steps</th><th>Input tokens</th><th>Output tokens</th><th>Recorded decode tok/sec</th><th>Workspace / durable files GiB</th><th>Local state used / capacity GiB</th></tr></thead><tbody id="usageRows"></tbody></table></div><p class="muted">Stored totals include imported or copied histories. Decode speed uses recorded decode time; recent output rate uses changes between samples. This panel covers DSH application sessions, not independent terminal-client accounting. Conversation text, files and credentials are excluded.</p><p id="storageFreshness" class="muted"></p></section>
 <section class="notice"><h2>Infrastructure observation</h2><p id="freshness"></p><p>Usage is sampled from runtime summaries. Account/browser-session counts and routing are current gateway values. The environment health, model limits and recorded performance below are an operator snapshot. Browser logins and conversations are separate counts.</p></section>
 <section><h2>Execution environments</h2><div style="overflow:auto"><table><thead><tr><th>Environment</th><th>Recorded readiness</th><th>Storage</th><th>Recorded network behavior</th></tr></thead><tbody id="environments"></tbody></table></div></section>
@@ -289,6 +329,12 @@ const put=(id,value)=>document.getElementById(id).textContent=value;
 let managementToken='';
 async function userAction(action,user,password){try{const body=new URLSearchParams({action,user});if(password)body.set('password',password);const r=await fetch('/api/admin/users',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':managementToken},body});const d=await r.json();if(!r.ok)throw Error(d.error||'Account update failed.');put('userMessage',action+' completed for '+user+'.');await refreshUsers();await refresh();}catch(e){put('userMessage',e.message);}}
 async function refreshUsers(){try{const r=await fetch('/api/admin/users',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('User management unavailable.');const d=await r.json();managementToken=d.csrfToken;const root=document.getElementById('users');root.replaceChildren();for(const u of d.users){const tr=document.createElement('tr');for(const value of [u.user,u.role,u.enabled?'Enabled':'Disabled',u.environments.join(', '),u.sessions]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(u.role!=='Administrator'){for(const action of [u.enabled?'disable':'enable','revoke',u.internetAllowed?'deny-internet':'allow-internet']){const b=document.createElement('button');b.type='button';b.textContent=action==='revoke'?'Sign out':action==='disable'?'Disable':action==='allow-internet'?'Allow Internet':action==='deny-internet'?'Disable Internet':'Enable';b.addEventListener('click',()=>{if(confirm(b.textContent+' '+u.user+'?'))userAction(action,u.user);});td.append(b);}}else td.textContent='Operator-managed';tr.append(td);root.append(tr);}const select=document.getElementById('newUser');if(select.tagName==='SELECT'){select.replaceChildren();for(const user of d.provisionedIdentities){const opt=document.createElement('option');opt.value=user;opt.textContent=user;select.append(opt);}}const capacity=document.getElementById('signupCapacity');if(capacity)capacity.textContent=d.signupWorkspacesAvailable+' available';document.getElementById('createButton').disabled=select.tagName==='SELECT'?!d.provisionedIdentities.length:!(d.signupWorkspacesAvailable>0||d.provisionedIdentities.length);}catch(e){put('userMessage',e.message);}}
+let appManagementToken='',appInventory=null;
+async function appAction(fields){try{const r=await fetch('/api/admin/apps',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':appManagementToken},body:new URLSearchParams(fields)});const d=await r.json();if(!r.ok)throw Error(d.error||'Application change failed.');put('appMessage',d.message);await refreshApps();}catch(e){put('appMessage',e.message);}}
+function appButton(label,fields){const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=!appManagementToken;b.onclick=()=>{if(confirm(label+' for '+(fields.name||fields.user)+'?'))appAction(fields);};return b;}
+function renderApps(){const root=document.getElementById('adminApps');root.replaceChildren();if(!appInventory)return;const filter=document.getElementById('appFilter').value.toLowerCase();for(const e of appInventory.apps){if(!(e.owner+' '+e.name).toLowerCase().includes(filter))continue;const tr=document.createElement('tr'),identity=document.createElement('td');identity.textContent=e.owner+' / '+e.name+(e.hostname?' · '+e.hostname:'');tr.append(identity);for(const mode of ['off','on']){const td=document.createElement('td'),input=document.createElement('input');input.type='number';input.min=1024;input.max=65535;input.value=e.ports[mode]||'';input.setAttribute('aria-label',e.name+' '+mode+' port');const b=document.createElement('button');b.textContent='Save port';b.type='button';b.onclick=()=>{if(confirm('Change '+e.name+' '+mode+' port?'))appAction({action:'edit',user:e.owner,name:e.name,environment:mode,port:input.value});};td.append(input,b);tr.append(td);}const td=document.createElement('td');td.append(document.createTextNode((e.enabled?'Enabled':'Disabled')+' · '+(e.hostnameReady?'Hostname ready':'Hostname not ready')+(e.updatedAt?' · Changed '+e.updatedAt+' by '+e.updatedBy:'')));td.append(appButton(e.enabled?'Disable URL':'Enable URL',{action:e.enabled?'disable':'enable',user:e.owner,name:e.name}),appButton('Remove URL',{action:'delete',user:e.owner,name:e.name}));tr.append(td);root.append(tr);}}
+async function refreshApps(){try{const r=await fetch('/api/admin/apps',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('Application inventory unavailable.');const d=await r.json();appManagementToken=d.csrfToken;appInventory=d;put('appTotals',d.totalNames+' registered names · Default '+d.defaultLimit+' per user');const root=document.getElementById('appQuotas');root.replaceChildren();for(const u of d.accounts){const tr=document.createElement('tr');for(const value of [u.user,u.enabled?'Enabled':'Disabled',u.internetAllowed?'Approved':'Not approved',u.used]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td'),input=document.createElement('input');input.type='number';input.min=0;input.max=d.siteLimit;input.value=u.limit;input.setAttribute('aria-label',u.user+' name limit');const b=document.createElement('button');b.type='button';b.textContent='Save limit';b.onclick=()=>{if(confirm('Set '+u.user+' limit to '+input.value+'? Existing names stay in place.'))appAction({action:'limit',user:u.user,limit:input.value});};td.append(input,b);tr.append(td);root.append(tr);}renderApps();}catch(e){appManagementToken='';put('appMessage',e.message);document.querySelectorAll('#applications button').forEach(b=>b.disabled=true);}}
+document.getElementById('appFilter').addEventListener('input',renderApps);document.getElementById('refresh').addEventListener('click',refreshApps);refreshApps();
 document.getElementById('createUser').addEventListener('submit',e=>{e.preventDefault();const field=document.getElementById('newPassword');const password=field.value;field.value='';userAction('create',document.getElementById('newUser').value,password);});
 function list(id,values){const root=document.getElementById(id);root.replaceChildren();for(const value of values){const li=document.createElement('li');li.textContent=value;root.append(li);}}
 async function refresh(){try{const r=await fetch('/api/admin/summary',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('Admin access unavailable ('+r.status+').');const d=await r.json();put('error','');put('time','Gateway read at '+d.generatedAt);put('accounts',d.registeredAccounts);put('sessions',d.activeBrowserSessions.secure+d.activeBrowserSessions.internet);put('sessionDetail','No Internet: '+d.activeBrowserSessions.secure+' · Internet: '+d.activeBrowserSessions.internet);put('routing',d.privateUserRouting?'Per user':'Shared pools');put('freshness',d.snapshot.observedAt?'Snapshot observed at '+d.snapshot.observedAt+'. Refresh does not rerun infrastructure tests.':'No snapshot available. Infrastructure status is unknown.');const root=document.getElementById('environments');root.replaceChildren();for(const e of d.snapshot.environments){const tr=document.createElement('tr');for(const text of [e.name,e.ready?'Ready at observation':'Not verified ready',e.storage,e.network]){const td=document.createElement('td');td.textContent=text;tr.append(td);}root.append(tr);}const m=d.snapshot.model;put('model',m?(m.checkpoint?'Checkpoint: '+m.checkpoint+(m.revision?' ('+m.revision.slice(0,12)+')':'')+' · ':'')+'Backend context: '+m.backendContext+' tokens · DSH/LiteLLM budget: '+m.userContext+' tokens · Running-request ceiling: '+m.concurrencyCeiling+(m.longConcurrencyCeiling?' · Requests above 128K input: '+m.longConcurrencyCeiling+' at a time':'')+(m.maxOutputTokens?' · Maximum output: '+m.maxOutputTokens+' tokens':'')+(m.observedAt?' · Model observed at '+m.observedAt:''):'No recorded limits.');list('performance',d.snapshot.performance);list('gaps',d.snapshot.gaps);}catch(e){put('error',e.message);}}
@@ -448,6 +494,7 @@ function revokeUserSessions(user) {
   for (const [sid, session] of SESSIONS) if (session.user === user) SESSIONS.delete(sid);
   for (const socket of USER_SOCKETS.get(user) || []) socket.destroy();
   USER_SOCKETS.delete(user);
+  for(const [name,entry]of Object.entries(appLinks()))if(entry.owner===user)closeAppConnections(name);
 }
 function internetAllowed(user) { return ADMIN_USERS.has(user) || loadUsers()[user]?.internetAllowed === true; }
 function adminAccounts() {
@@ -557,7 +604,9 @@ function forwardToLocalApp(targetPort, targetPath, req, res, targetHost = '127.0
     proxyRes.pipe(res);
   });
 
+  res.once('close',()=>proxyReq.destroy());
   proxyReq.on('error', (err) => {
+    if(res.destroyed)return;
     console.warn(`[AUTH-PROXY] App forward error on port ${targetPort}:`, err.message);
     res.writeHead(502, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(`<!DOCTYPE html>
@@ -639,6 +688,7 @@ function forwardWebSocketToLocalApp(targetPort, targetPath, req, socket, head, t
     targetSocket.pipe(socket);
   });
 
+  socket.once('close',()=>targetSocket.destroy());
   targetSocket.on('error', (err) => {
     console.warn(`[AUTH-PROXY] WebSocket forward error on port ${targetPort}:`, err.message);
     socket.destroy();
@@ -1353,6 +1403,39 @@ const server = http.createServer((req, res) => {
     const headers = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer' };
     if (!ADMIN_USERS.has(sessionUser)) { auditEvent('admin.denied', sessionUser, activeSession.internet); res.writeHead(403, headers); return res.end('Administrator access required.'); }
+    if(parsedUrl.pathname==='/api/admin/apps') {
+      const reply=(status,data)=>{res.writeHead(status,{...headers,'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(data));};
+      try {
+        if(req.method==='GET'){activeSession.adminCsrf ||= crypto.randomBytes(32).toString('hex');return reply(200,{...adminApps(),csrfToken:activeSession.adminCsrf});}
+        if(req.method!=='POST')return reply(405,{error:'Use GET or POST.'});
+        if(!activeSession.adminCsrf||req.headers['x-dsh-admin-csrf']!==activeSession.adminCsrf)return reply(403,{error:'Invalid management token.'});
+        try {if(new URL(req.headers.origin).host!==(process.env.DSH_TRUSTED_HOST||req.headers.host))return reply(403,{error:'Same-origin management required.'});}catch{return reply(403,{error:'Same-origin management required.'});}
+        if(!String(req.headers['content-type']||'').startsWith('application/x-www-form-urlencoded'))return reply(415,{error:'Form encoding required.'});
+        let body='',large=false;req.on('data',chunk=>{if(large)return;body+=chunk;if(Buffer.byteLength(body)>4096){large=true;reply(413,{error:'Request too large.'});}});
+        req.on('end',()=>{if(large)return;try {
+          if(!accountEnabled(sessionUser)||!ADMIN_USERS.has(sessionUser)||![...SESSIONS.values()].includes(activeSession))return reply(403,{error:'Administrator session ended.'});
+          const f=new URLSearchParams(body),action=f.get('action'),owner=f.get('user'),name=f.get('name'),all=appLinks(),users=loadUsers();
+          if(!['limit','edit','enable','disable','delete'].includes(action)||!owner||!Object.hasOwn(users,owner))return reply(400,{error:'Choose an existing account and action.'});
+          const details={owner,name,outcome:'requested'};let policy;
+          if(action==='limit') {
+            const raw=f.get('limit');if(!/^(0|[1-9][0-9]{0,3})$/.test(raw||'')||Number(raw)>SITE_APP_LIMIT)return reply(400,{error:'Use a whole-number limit from 0 to '+SITE_APP_LIMIT+'.'});
+            policy=appPolicy();details.previousLimit=appLimit(owner,policy);details.limit=Number(raw);policy.limits[owner]=details.limit;
+          }else{
+            if(!validAppName(name)||!Object.hasOwn(all,name)||all[name].owner!==owner)return reply(404,{error:'Application mapping not found for this owner.'});
+            if(action==='edit') {
+              const mode=f.get('environment'),port=Number(f.get('port'));
+              if(!['off','on'].includes(mode)||!validAppPort(port)||!getEnvironmentTarget(mode,owner))return reply(400,{error:'Choose a provisioned environment and valid application port.'});
+              details.mode=mode;details.previousPort=all[name].ports?.[mode];details.port=port;all[name].ports={...all[name].ports,[mode]:port};
+            }else if(action==='delete')delete all[name];else all[name].enabled=action==='enable';
+            if(all[name]){all[name].updatedAt=new Date().toISOString();all[name].updatedBy=sessionUser;}
+          }
+          if(!auditEvent('application.'+action,sessionUser,activeSession.internet,owner,details))return reply(503,{error:'Audit storage unavailable.'});
+          if(action==='limit')saveAppPolicy(policy);else {saveAppLinks(all);closeAppConnections(name);}
+          const confirmed=auditEvent('application.'+action,sessionUser,activeSession.internet,owner,{...details,outcome:'applied'});
+          return reply(confirmed?200:503,{updated:true,...(!confirmed?{error:'Change saved; audit confirmation unavailable.'}:{message:'Application '+action+' saved.'})});
+        }catch{return reply(503,{error:'Application management storage unavailable.'});}});return;
+      }catch{return reply(503,{error:'Application inventory unavailable.'});}
+    }
     if (parsedUrl.pathname === '/api/admin/users') {
       const reply=(status,data)=>{res.writeHead(status,{...headers,'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(data));};
       if(req.method==='GET') {
@@ -1430,7 +1513,7 @@ const server = http.createServer((req, res) => {
         const all=appLinks();activeSession.appCsrf ||= crypto.randomBytes(32).toString('hex');
         const name=parsedUrl.query.name;
         if(name!==undefined) {if(!validAppName(name))return reply(400,{error:'Use 3–63 lowercase letters, digits and hyphens; built-in names are reserved.'});const host=appHostnameState(name);if(host.error)return reply(503,{error:host.error});return reply(200,{available:host.available&&(!Object.hasOwn(all,name)||all[name].owner===sessionUser),hostname:APP_DOMAIN?name+'.'+APP_DOMAIN:null});}
-        return reply(200,{defaultName:sessionUser.replace(/[_.]/g,'-')+'-jupyter',csrfToken:activeSession.appCsrf,hostnameDomain:APP_DOMAIN||null,links:Object.entries(all).filter(([,e])=>e.owner===sessionUser&&validAppPort(e.ports?.[internetMode])).map(([name,e])=>{const host=appHostnameState(name);return {name,port:e.ports[internetMode],url:'/proxy/'+name+'/'+(e.ports[internetMode]===8888?'lab':''),hostname:APP_DOMAIN?name+'.'+APP_DOMAIN:null,hostnameUrl:APP_DOMAIN&&host.available&&host.ready?'https://'+name+'.'+APP_DOMAIN+'/':null};})});
+        return reply(200,{used:Object.values(all).filter(e=>e.owner===sessionUser).length,limit:appLimit(sessionUser),defaultName:sessionUser.replace(/[_.]/g,'-')+'-jupyter',csrfToken:activeSession.appCsrf,hostnameDomain:APP_DOMAIN||null,links:Object.entries(all).filter(([,e])=>e.owner===sessionUser&&validAppPort(e.ports?.[internetMode])).map(([name,e])=>{const host=appHostnameState(name);return {name,enabled:e.enabled!==false,port:e.ports[internetMode],url:'/proxy/'+name+'/'+(e.ports[internetMode]===8888?'lab':''),hostname:APP_DOMAIN?name+'.'+APP_DOMAIN:null,hostnameUrl:APP_DOMAIN&&host.available&&host.ready?'https://'+name+'.'+APP_DOMAIN+'/':null};})});
       }
       if(req.method!=='POST')return reply(405,{error:'Use GET or POST.'});
       if(!activeSession.appCsrf||req.headers['x-dsh-app-csrf']!==activeSession.appCsrf)return reply(403,{error:'Invalid application token.'});
@@ -1445,11 +1528,11 @@ const server = http.createServer((req, res) => {
         if(action==='save') {
           const host=appHostnameState(name);if(host.error)return reply(503,{error:host.error});if(!host.available)return reply(409,{error:'This name belongs to an existing site. Choose another name.'});
           if(!validAppPort(port))return reply(400,{error:'Choose an application port from 1024–65535; management ports are reserved.'});
-          if(!Object.hasOwn(all,name)&&(Object.keys(all).length>=4096||Object.values(all).filter(e=>e.owner===sessionUser).length>=64))return reply(409,{error:'Application URL quota reached.'});
-          all[name]={owner:sessionUser,ports:{...(all[name]?.ports||{}),[internetMode]:port}};
+          if(!Object.hasOwn(all,name)&&(Object.keys(all).length>=SITE_APP_LIMIT||Object.values(all).filter(e=>e.owner===sessionUser).length>=appLimit(sessionUser)))return reply(409,{error:'Application URL quota reached.'});
+          all[name]={...all[name],owner:sessionUser,updatedAt:new Date().toISOString(),updatedBy:sessionUser,ports:{...(all[name]?.ports||{}),[internetMode]:port}};
         } else if(Object.hasOwn(all,name)) {delete all[name].ports[internetMode];if(!Object.keys(all[name].ports).length)delete all[name];}
-        if(!auditEvent('application.'+action,sessionUser,internetMode))return reply(503,{error:'Audit storage unavailable.'});
-        saveAppLinks(all);return reply(200,{message:action==='save'?'Application URL saved.':'Application URL removed.'});
+        if(!auditEvent('application.'+action,sessionUser,internetMode,undefined,{owner:sessionUser,name,mode:internetMode,outcome:'requested'}))return reply(503,{error:'Audit storage unavailable.'});
+        saveAppLinks(all);closeAppConnections(name);if(!auditEvent('application.'+action,sessionUser,internetMode,undefined,{owner:sessionUser,name,mode:internetMode,outcome:'applied'}))return reply(503,{error:'Change saved; audit confirmation unavailable.'});return reply(200,{message:action==='save'?'Application URL saved.':'Application URL removed.'});
       }catch{return reply(503,{error:'Application URL storage unavailable.'});}});return;
     }catch{return reply(503,{error:'Application URL storage unavailable.'});}
   }
@@ -1480,6 +1563,7 @@ const server = http.createServer((req, res) => {
   if(namedPath && Object.hasOwn(appLinks(),namedPath[1]) && !customAppPort(namedPath[1],sessionUser,internetMode)) {res.writeHead(404);return res.end('Application URL unavailable for this account and environment.');}
   if(appTarget.port===8888 && namedPath && customAppPort(namedPath[1],sessionUser,internetMode)) {res.writeHead(302,{Location:'/proxy/8888'+appTarget.targetPath});return res.end();}
   if (appTarget && appTarget.port) {
+    trackAppConnection(hostAlias||namedPath?.[1],res);
     return forwardToLocalApp(appTarget.port, appTarget.targetPath, req, res, environmentTarget.host);
   }
 
@@ -1604,6 +1688,7 @@ server.on('upgrade', (req, socket, head) => {
   const appTarget = parseAppTarget(incomingHost, req.url, activeSession.user, internetMode);
   if (appTarget && appTarget.port) {
     if (!auditEvent(appTarget.port === 7681 ? 'terminal.open' : 'application.websocket', activeSession.user, internetMode)) return socket.destroy();
+    trackAppConnection(hostAlias||aliasPath?.[1],socket);
     return forwardWebSocketToLocalApp(appTarget.port, appTarget.targetPath, req, socket, head, environmentTarget.host);
   }
 

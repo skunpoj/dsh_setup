@@ -22,17 +22,17 @@ JupyterLab is installed. If stopped, open Web Terminal and run `jupyter lab`, th
 
 `alice-report` → port `8501` produces `/proxy/alice-report/`. The gateway strips that prefix and forwards the remaining path, query, HTTP methods and WebSocket to port 8501 in Alice's selected runtime. Users cannot supply a destination machine, IP or Service. Another user cannot reserve or open Alice's saved name. An alias can have different ports in the owner's two environments; a missing environment mapping is refused.
 
-Names use 3–63 lowercase letters, digits and hyphens. Built-in names and management ports are reserved. Each account can hold 64 named URLs. Removing a URL removes its mapping, not its files or running process. Mappings are atomically saved in a protected gateway auth-volume file, separately from passwords and histories.
+Names use 3–63 lowercase letters, digits and hyphens. Built-in names and management ports are reserved. Each account starts with 8 named URLs across both environments; an administrator can set a different limit for that account in the central dashboard. Removing a URL removes its mapping, not its files or running process. Mappings are atomically saved in a protected gateway auth-volume file, separately from passwords and histories.
 
 Jupyter's friendly link redirects to `/proxy/8888/lab`: its managed assets, APIs, kernels and XSRF/origin checks retain a fixed base URL. Other apps must support their browser-visible path, or use an approved hostname. A proxy cannot automatically repair every framework's redirects, absolute asset URLs or cookie paths.
 
-## Administrator visibility and capacity planning
+## Administrator management and limits
 
-The deployed limit is **64 names per user across both environments**, with **4,096 names overall**. The current admin dashboard shows app save/delete audit events, but cannot yet list or edit every user's mappings or change these limits. The app-name limit is fixed in gateway code; it is not an editable account setting today.
+Open `/admin` → **Applications** to view users' names and both environment ports, search by owner/name, edit a port, disable/re-enable a mapping or remove it. The account table shows **Names used** and one editable **Name limit** per user. The default is **8**. There are no 16/64-name approval tiers. A lower limit preserves existing mappings and denies only additional registrations while usage is at or above that limit.
 
-For the current deployment, the recommended next release is **8 names by default**, increases to **16** through administrator approval, a **64-name hard ceiling** and a **256-name site cap**. These proposed values are not active. A path and hostname for one alias count as one name, and that alias may have one port per environment. Names are routing metadata, not reserved compute capacity.
+A path and hostname for one alias count as one name, and that alias may have a port in each environment. Disabled names still count until removed. Named URL changes are audited and persist in protected gateway storage. Port changes, disable and removal close the mapping's tracked connections; they do not delete files, stop the process, change Internet approval or permit admin to open another user's app. Owners retain their direct numeric port routes.
 
-The proposed Applications tab will list owner, name, both environment ports, enabled state and usage/limit, and allow authorized mapping changes and quota overrides. Lowering a quota must preserve existing mappings; it only prevents additional names. Removing a mapping must preserve application files and running processes. See [admin application management and acceptance plan](ADMIN_USAGE_TELEMETRY.html).
+The existing 4,096-name registry bound protects the single gateway and is not a user approval tier. Name limits control routing records rather than compute, process or inference usage. See [admin application management](ADMIN_USAGE_TELEMETRY.html) for the operating procedure.
 
 ## Paths and custom hostnames
 

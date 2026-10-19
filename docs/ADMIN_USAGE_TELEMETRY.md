@@ -14,53 +14,41 @@ Disabling an account retains its assignment, files and histories. Internet revoc
 
 ## Application names, ports and limits
 
-### Available today
+![Admin Applications panel using disposable demonstration accounts](images/platform/admin-applications.png)
 
-Users open **My apps** (`/applications`) to check, save and remove their own application names and ports. The central dashboard records app mapping save/delete events, but does **not yet provide an all-user application inventory, mapping controls or editable per-user limits**. The live gateway reviewed on 19 October 2026 matches the repository: its fixed limits are 64 names per user and 4,096 names overall. No custom names were registered at that observation.
+[Watch the recorded admin workflow](ADMIN_APPLICATIONS_WALKTHROUGH.html).
 
-One name counts once across No Internet and Internet. Its owner can configure a different port in each environment. The path and hostname are two ways to open the same mapping; they do not consume two names. Saving a name creates no pod, process, GPU allocation or additional Ingress object. Starting an application uses that user's existing runtime resources.
+Open **Applications** in `/admin` to manage registered app URLs for the main gateway's users. This is separate from User management, which controls account access and Internet approval.
 
-### Recommended administration design — planned
+### One limit per user
 
-Add an **Applications** tab to `/admin`, alongside User management. Show the following current registry fields without opening users' application contents:
+Every account starts with **8 names**, shared across No Internet and Internet. In the account table, edit **Name limit**, select **Save limit** and confirm. There are no approval tiers or special 16/64-name rules. Set the number appropriate to that person's work; zero prevents new registrations. The existing 4,096-name site safety bound also bounds accepted numeric limits.
 
-| Field | Purpose |
-|---|---|
-| Owner and account status | Identify the accountable user and disabled accounts |
-| Application name | Show the unique name and its path/hostname |
-| No Internet / Internet ports | Show each configured mapping separately |
-| Internet approval | Distinguish a saved Internet mapping from permission to use it |
-| Name usage / effective limit | Explain whether another name can be created |
-| Hostname reservation status and observation time | Identify conflicts or stale inventory |
-| Enabled state and last configuration change | Show whether a mapping is routable and who last changed it |
+**Names used** includes both enabled and disabled mappings. One alias counts once even if it has two environment ports and both a path and hostname. Lowering the limit preserves existing URLs, files and history. An over-limit owner can update or remove existing mappings but cannot register another name until usage is below the new limit. Removing a mapping frees its name and one quota slot.
 
-Provide owner/name/environment filters, an individual mapping disable/re-enable action, port editing, confirmed mapping removal and a per-user limit editor. Disabling or deleting a URL must stop routing through both its path and hostname; it must not delete files or kill the user's application process. Management does not grant admin permission to use another user's app or read their history. Ownership transfer is outside the first release; recreate a mapping only through an explicit reviewed process.
+Eight names is a practical starting allowance for a notebook, report preview, API and several project apps. Aliases are small routing records, not pods, reserved ports or GPU allocations. Their limit keeps the registry understandable and reduces name hoarding; it is not a substitute for runtime CPU/memory limits or model admission control.
 
-Recommended starting policy for the current small deployment:
+### Manage names and ports
 
-| Setting | Proposed value | Reason |
-|---|---|---|
-| Default names per account | 8, shared across both environments | Enough for a notebook, preview, API and several project apps |
-| Routine administrator-approved increase | Up to 16 | Accommodate active developers without making a large allocation the default |
-| Absolute per-user ceiling | 64 | Retain the existing upper bound for exceptional approved use |
-| Total site limit | 256 | Bound the single gateway registry while leaving room for growth |
-| Zero-name account limit | Allowed | Prevent new registrations while existing mappings remain manageable |
+1. Search by owner or application name.
+2. Review the No Internet and Internet ports separately, along with account status, Internet approval, mapping enabled state and hostname readiness.
+3. To change a port, edit its environment's field, select **Save port** and confirm. The destination remains that owner's provisioned runtime. Saving an Internet mapping does not grant Internet permission.
+4. Select **Disable URL** to stop named path/hostname forwarding and close the mapping's tracked connections. Select **Enable URL** to restore it.
+5. Select **Remove URL** and confirm to remove the mapping from both environments. This neither deletes files nor stops the underlying application process.
 
-These are an initial operating policy, not a measured throughput optimum. Aliases are small metadata records; 64 names do not reserve 64 ports or start 64 apps. A lower limit reduces clutter and name hoarding, but does not enforce a process, storage or inference quota. Continue enforcing runtime CPU/memory limits and the independent long-request admission policy.
+Port changes also close the mapping's open connections so a browser reconnects to the updated destination. The owner cannot re-enable an administrator-disabled mapping by saving it in My apps. Administration does not give the admin access to another user's app contents, workspace or histories, and does not transfer ownership.
 
-Store a protected default/site policy and explicit per-user overrides separately from password records and workspace files. Show effective values in both the admin tab and My apps. Keep one gateway writer for the existing file-based registry. If the gateway is later replicated, move registry and policy changes to transactional shared storage before enabling concurrent writers.
+These are URL controls. The owner retains direct numeric port routes within their own runtime. To revoke a person's access, use account Disable or Sign out; to stop an application process, use the appropriate runtime operation. Removing a name is not a process or network firewall.
 
-If a limit is reduced below existing usage, retain all mappings and allow editing/removal; deny only creation of additional names until usage falls below the limit. Never silently delete or reassign working URLs. Apply the site cap to new registrations, not updates to existing mappings. Reserve existing service names and enforce owner/environment checks for every HTTP and WebSocket route.
+### Storage, audit and operation
 
-### Implementation and acceptance plan
+Mappings remain in protected `app-links.json`; per-user limit overrides are atomically saved in separate `app-policy.json`, alongside the gateway's protected account storage. Workspace files, passwords and histories are not copied into the app registry. Missing overrides use the default of 8. Invalid policy or registry data produces an unavailable response rather than an empty inventory.
 
-1. Add validated policy storage and metadata fields, preserving existing app mappings. Read-only inventory comes first; a failed registry read must show an unavailable state rather than an empty inventory.
-2. Add admin-only inventory and mutation endpoints. Require the existing administrator role, same-origin checks, session-bound CSRF tokens and bounded input. Recheck authorization immediately before each write.
-3. Add the Applications tab, quota editor and user-facing usage/limit display. Require confirmation and a reason for disruptive changes. Record actor, owner, alias, environment, previous/new port or limit, action, time and outcome in the central audit; omit passwords, cookies and application content.
-4. Test ordinary-user denial, cross-user denial, CSRF, naming collisions, quota boundaries, quota reductions, disabled-account behavior and restart persistence. Verify that disabled mappings deny both HTTP and WebSocket access and that already-open connections close when that mapping is revoked.
-5. Test with disposable users and real applications, then perform a gateway-only rollout with saved rollback. Verify account records, histories and storage mounts remain unchanged. Confirm admin edits affect the intended user's route, not admin's runtime.
+Only an authenticated administrator can use the all-user inventory and mutation endpoint `/api/admin/apps`. Mutations require a current session-bound CSRF token and the canonical same origin. Account, owner, environment, port and input size are checked again before saving. App configuration audit records include the actor, owner, alias/environment, old/new limit or port, time and requested/applied outcome; credentials and application contents are excluded.
 
-The dashboard controls and proposed limits above have not been deployed. The current 64/4,096 limits remain in force until implementation and acceptance complete.
+Keep the existing single gateway writer for the file-based registry. Before adding gateway replicas, move mappings and policies to transactional shared storage. Saved URL configuration survives gateway replacement through its protected persistent volume.
+
+The user-facing **My apps** page displays names used and the effective limit. Jupyter and terminal launch choices remain independent of the number of custom names. See [application URL setup](APP_URLS_AND_INGRESS.html).
 
 ## Usage panels
 

@@ -211,3 +211,8 @@ Before upgrading an existing site, retain the exact old Deployment specs, immuta
 ### Installation coverage
 
 The commands above expose the actual installation sequence and remaining operator inputs. The portable inference renderer and private-runtime generator can be exercised offline. A fresh-cluster install, site bundle, database migration and initial administrator bootstrap still require the target site's supported tooling and acceptance. They are not a single copy-and-run installer. Existing deployment qualification is documented separately and does not establish a fresh-site installation test.
+
+
+### Preserve application mappings and per-user limits
+
+Keep the gateway auth volume persistent. It stores `app-links.json` (owner, environment ports and enabled state) and `app-policy.json` (per-user name limits). An absent policy uses 8 names per user. Do not put these private operational files into the public repository or user workspaces. Include them in the existing protected auth-volume backup and restore process. Preserve newer records during rollback; never restore an old account volume just to revert application code. Keep one gateway writer until registry storage supports transactional concurrent writes. Admin Applications manages names and ports after login; no Kubernetes management token is needed in the gateway.
