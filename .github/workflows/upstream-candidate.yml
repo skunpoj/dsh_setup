@@ -73,7 +73,12 @@ jobs:
           done
           docker run --rm --network none --entrypoint python3 -w /opt/dsh dsh-upstream-candidate -m unittest discover -s tests -p test_package_promotion.py 2>&1 | tee candidate-evidence/package-promotion.log
           python3 -m venv /tmp/dsh-test-venv
-          /tmp/dsh-test-venv/bin/pip install PyYAML==6.0.3
+          # The host suite also exercises a real Jupyter server/kernel. Match
+          # the image's reviewed versions instead of relying on runner packages.
+          lab_version=$(sed -n 's/^ARG JUPYTERLAB_VERSION=//p' Dockerfile)
+          server_version=$(sed -n 's/^ARG JUPYTER_SERVER_VERSION=//p' Dockerfile)
+          kernel_version=$(sed -n 's/^ARG IPYKERNEL_VERSION=//p' Dockerfile)
+          /tmp/dsh-test-venv/bin/pip install PyYAML==6.0.3 "jupyterlab==$lab_version" "jupyter-server==$server_version" "ipykernel==$kernel_version"
           /tmp/dsh-test-venv/bin/python -m unittest discover -s tests -p 'test_*.py' 2>&1 | tee candidate-evidence/python-tests.log
       - name: Verify admin dashboard browser behavior
         env:
