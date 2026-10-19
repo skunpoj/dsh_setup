@@ -7,6 +7,96 @@
 <h2>Accounts and Internet approval</h2>
 <p>Users select <strong>Create account</strong> on the login page. Signup assigns an exclusive qualified runtime pair and denies Internet by default. Open <strong>User management</strong> to create an account from available capacity, enable or disable access, sign out sessions, or select <strong>Allow Internet</strong> / <strong>Disable Internet</strong>. Reload the page to pick up new registrations. The usage collector includes assigned signup pairs alongside explicitly configured accounts; unused pairs are capacity, not user activity.</p>
 <p>Disabling an account retains its assignment, files and histories. Internet revocation invalidates gateway sessions and closes tracked connections; it does not terminate detached tools already running inside a runtime. An administrator cannot select arbitrary backend addresses or self-assign the admin role through the signup form. Operators replenish empty pairs; the gateway has no Kubernetes management token. See the <a href="SELF_SERVICE_SIGNUP.html">signup and approval procedure</a>.</p>
+<h2>Application names, ports and limits</h2>
+<h3>Available today</h3>
+<p>Users open <strong>My apps</strong> (<code>/applications</code>) to check, save and remove their own application names and ports. The central dashboard records app mapping save/delete events, but does <strong>not yet provide an all-user application inventory, mapping controls or editable per-user limits</strong>. The live gateway reviewed on 19 October 2026 matches the repository: its fixed limits are 64 names per user and 4,096 names overall. No custom names were registered at that observation.</p>
+<p>One name counts once across No Internet and Internet. Its owner can configure a different port in each environment. The path and hostname are two ways to open the same mapping; they do not consume two names. Saving a name creates no pod, process, GPU allocation or additional Ingress object. Starting an application uses that user&#39;s existing runtime resources.</p>
+<h3>Recommended administration design — planned</h3>
+<p>Add an <strong>Applications</strong> tab to <code>/admin</code>, alongside User management. Show the following current registry fields without opening users&#39; application contents:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Owner and account status</td>
+<td>Identify the accountable user and disabled accounts</td>
+</tr>
+<tr>
+<td>Application name</td>
+<td>Show the unique name and its path/hostname</td>
+</tr>
+<tr>
+<td>No Internet / Internet ports</td>
+<td>Show each configured mapping separately</td>
+</tr>
+<tr>
+<td>Internet approval</td>
+<td>Distinguish a saved Internet mapping from permission to use it</td>
+</tr>
+<tr>
+<td>Name usage / effective limit</td>
+<td>Explain whether another name can be created</td>
+</tr>
+<tr>
+<td>Hostname reservation status and observation time</td>
+<td>Identify conflicts or stale inventory</td>
+</tr>
+<tr>
+<td>Enabled state and last configuration change</td>
+<td>Show whether a mapping is routable and who last changed it</td>
+</tr>
+</tbody></table>
+<p>Provide owner/name/environment filters, an individual mapping disable/re-enable action, port editing, confirmed mapping removal and a per-user limit editor. Disabling or deleting a URL must stop routing through both its path and hostname; it must not delete files or kill the user&#39;s application process. Management does not grant admin permission to use another user&#39;s app or read their history. Ownership transfer is outside the first release; recreate a mapping only through an explicit reviewed process.</p>
+<p>Recommended starting policy for the current small deployment:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Proposed value</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Default names per account</td>
+<td>8, shared across both environments</td>
+<td>Enough for a notebook, preview, API and several project apps</td>
+</tr>
+<tr>
+<td>Routine administrator-approved increase</td>
+<td>Up to 16</td>
+<td>Accommodate active developers without making a large allocation the default</td>
+</tr>
+<tr>
+<td>Absolute per-user ceiling</td>
+<td>64</td>
+<td>Retain the existing upper bound for exceptional approved use</td>
+</tr>
+<tr>
+<td>Total site limit</td>
+<td>256</td>
+<td>Bound the single gateway registry while leaving room for growth</td>
+</tr>
+<tr>
+<td>Zero-name account limit</td>
+<td>Allowed</td>
+<td>Prevent new registrations while existing mappings remain manageable</td>
+</tr>
+</tbody></table>
+<p>These are an initial operating policy, not a measured throughput optimum. Aliases are small metadata records; 64 names do not reserve 64 ports or start 64 apps. A lower limit reduces clutter and name hoarding, but does not enforce a process, storage or inference quota. Continue enforcing runtime CPU/memory limits and the independent long-request admission policy.</p>
+<p>Store a protected default/site policy and explicit per-user overrides separately from password records and workspace files. Show effective values in both the admin tab and My apps. Keep one gateway writer for the existing file-based registry. If the gateway is later replicated, move registry and policy changes to transactional shared storage before enabling concurrent writers.</p>
+<p>If a limit is reduced below existing usage, retain all mappings and allow editing/removal; deny only creation of additional names until usage falls below the limit. Never silently delete or reassign working URLs. Apply the site cap to new registrations, not updates to existing mappings. Reserve existing service names and enforce owner/environment checks for every HTTP and WebSocket route.</p>
+<h3>Implementation and acceptance plan</h3>
+<ol>
+<li>Add validated policy storage and metadata fields, preserving existing app mappings. Read-only inventory comes first; a failed registry read must show an unavailable state rather than an empty inventory.</li>
+<li>Add admin-only inventory and mutation endpoints. Require the existing administrator role, same-origin checks, session-bound CSRF tokens and bounded input. Recheck authorization immediately before each write.</li>
+<li>Add the Applications tab, quota editor and user-facing usage/limit display. Require confirmation and a reason for disruptive changes. Record actor, owner, alias, environment, previous/new port or limit, action, time and outcome in the central audit; omit passwords, cookies and application content.</li>
+<li>Test ordinary-user denial, cross-user denial, CSRF, naming collisions, quota boundaries, quota reductions, disabled-account behavior and restart persistence. Verify that disabled mappings deny both HTTP and WebSocket access and that already-open connections close when that mapping is revoked.</li>
+<li>Test with disposable users and real applications, then perform a gateway-only rollout with saved rollback. Verify account records, histories and storage mounts remain unchanged. Confirm admin edits affect the intended user&#39;s route, not admin&#39;s runtime.</li>
+</ol>
+<p>The dashboard controls and proposed limits above have not been deployed. The current 64/4,096 limits remain in force until implementation and acceptance complete.</p>
 <h2>Usage panels</h2>
 <table>
 <thead>

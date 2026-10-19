@@ -26,6 +26,14 @@ Names use 3–63 lowercase letters, digits and hyphens. Built-in names and manag
 
 Jupyter's friendly link redirects to `/proxy/8888/lab`: its managed assets, APIs, kernels and XSRF/origin checks retain a fixed base URL. Other apps must support their browser-visible path, or use an approved hostname. A proxy cannot automatically repair every framework's redirects, absolute asset URLs or cookie paths.
 
+## Administrator visibility and capacity planning
+
+The deployed limit is **64 names per user across both environments**, with **4,096 names overall**. The current admin dashboard shows app save/delete audit events, but cannot yet list or edit every user's mappings or change these limits. The app-name limit is fixed in gateway code; it is not an editable account setting today.
+
+For the current deployment, the recommended next release is **8 names by default**, increases to **16** through administrator approval, a **64-name hard ceiling** and a **256-name site cap**. These proposed values are not active. A path and hostname for one alias count as one name, and that alias may have one port per environment. Names are routing metadata, not reserved compute capacity.
+
+The proposed Applications tab will list owner, name, both environment ports, enabled state and usage/limit, and allow authorized mapping changes and quota overrides. Lowering a quota must preserve existing mappings; it only prevents additional names. Removing a mapping must preserve application files and running processes. See [admin application management and acceptance plan](ADMIN_USAGE_TELEMETRY.html).
+
 ## Paths and custom hostnames
 
 | Style | Example | Requirements |
