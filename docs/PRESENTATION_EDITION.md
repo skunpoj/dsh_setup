@@ -31,4 +31,6 @@ The video follows the exact 44 final PPTX slide images and corresponding English
 
 Verification covers complete media decoding, non-silent English speech on every slide, sentence-aligned caption intervals, all 44 decoded slide images, browser playback and seeking, and authenticated full-download hashes. Synthetic narration is disclosed; these automated checks are not a human listening review.
 
-Video: **26m 52s**, **34,034,442 bytes**, SHA256 `f2061dabd122b226370b261494d257637a06d21440d2dbcaee3d6e735154ab79`. English captions: **264 sentence-aligned cues**; chapters: **44**.
+Video: **26m 52s**, **34,032,096 bytes**, SHA256 `60ce32d146a7104064b530595fde983254e0a81e459b778ab19d316d34eaf835`. English captions: **264 sentence-aligned cues**; chapters: **44**.
+
+Audio is encoded once from a continuous soundtrack. Per-segment AAC concatenation was rejected because encoder delay accumulated. Final encoded-speech alignment samples passed on all 44 slides, with less than one millisecond offset; caption text matches all 264 narration sentences.
