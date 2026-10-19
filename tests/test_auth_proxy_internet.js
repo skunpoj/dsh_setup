@@ -68,6 +68,8 @@ async function waitReady(port) {
     assert(page.body.includes('DeepSeek Harness (DSH)'));
     assert(page.body.includes('Enterprise Agentic Coding &amp; Knowledge Gateway'));
     assert(page.body.includes('href="/manual/"'));
+    assert(page.body.includes('class="manual-fab"'));
+    assert(!page.body.includes('class="footer-note"'));
     assert(!page.body.includes('ระบบสารสนเทศเฉพาะกิจองค์กร'));
     assert.match(page.body, /name="internet" value="off" checked/);
     assert.match(page.body, /No Internet \/ Internal \(Default\)/);

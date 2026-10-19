@@ -15,13 +15,13 @@ class ManualBundleTests(unittest.TestCase):
     def test_link_closure_and_content_hashes(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder)/'docs';root.mkdir()
-            for name in ['DSH_PLATFORM_GUIDE','DSH_SECURITY_ENVIRONMENT_AND_FEATURES','DSH_SETUP_AND_STRESS_TEST_GUIDE','MANAGED_CLIENT_SUPPORT']:
+            for name in ['DSH_USER_MANUAL','DSH_GUIDED_TOUR','DSH_PLATFORM_GUIDE','DSH_SECURITY_ENVIRONMENT_AND_FEATURES','DSH_SETUP_AND_STRESS_TEST_GUIDE','MANAGED_CLIENT_SUPPORT']:
                 (root/(name+'.html')).write_text('<a href="details.json">Details</a><a href="../private.json">Outside</a>',encoding='utf-8')
             (root/'details.json').write_text('{"public":true}',encoding='utf-8')
             with patch.object(module,'ROOT',root):
                 result=module.build(Path(folder)/'bundle')
             manifest=json.loads((Path(folder)/'bundle/manifest.json').read_text())
-            self.assertEqual(result['files'],5)
+            self.assertEqual(result['files'],7)
             self.assertNotIn('../private.json',manifest['files'])
             for name,entry in manifest['files'].items():
                 self.assertEqual(entry['sha256'],hashlib.sha256((root/name).read_bytes()).hexdigest())

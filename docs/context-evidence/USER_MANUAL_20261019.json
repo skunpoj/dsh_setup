@@ -1,0 +1,29 @@
+{
+  "live": true,
+  "filesHashVerified": 17,
+  "relativeLinksVerified": 15,
+  "manualChapters": 10,
+  "mermaidDiagrams": 4,
+  "tourChapters": 10,
+  "playPauseAndTimedAdvance": true,
+  "viewports": [
+    1440,
+    768,
+    390
+  ],
+  "javascriptErrors": [],
+  "date": "2026-10-19",
+  "scope": "Floating login manual button, combined user manual and video-style chapter tour",
+  "gatewaySourceSHA256": "b327128ca22de90744116388518ae99837aca7172e4957e57dfcc806ef94bafc",
+  "accountContentPreserved": true,
+  "loginChecks": {
+    "wrongPasswordDenied": true,
+    "unmappedRuntimeDenied": true,
+    "passwordChangePersisted": true,
+    "oversizedPasswordDenied": true,
+    "oversizedFormDenied": true,
+    "syntheticIdentityReceivedRuntime": false
+  },
+  "videoFormat": "Captioned HTML slide tour with saved screenshots and illustrated design scenes; not a recorded live-workspace video",
+  "performanceTests": "Existing dated results incorporated; no new GPU stress test in this publication"
+}

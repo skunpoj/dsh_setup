@@ -236,17 +236,13 @@ Claude Code returned the expected ordinary reply in 1.17 seconds; TrueForge retu
 
 Installed main-runtime versions: DSH `0.2.0-rc.2`, Claude Code `2.1.301`, TrueForge `0.179.2` and Kilo CLI `7.8.12`.
 
-## Deployments and access points
-
-DEPLOYMENT_SUMMARY
-
-PUBLIC_DEPLOYMENT_TABLE
+## Open your workspace
 
 SITE_DEPLOYMENT_DETAILS
 
 Main DSH routes each identity to its own selected runtime. Main service aliases and app ports are entry routes, not extra independent copies of a user's workspace. DSH2 and DSH3 have their own designated owners and remain Internet-only. Managed clients run inside their assigned workloads; they are not additional shared GPU deployments.
 
-The original unisolated `dsh` deployment and the alternative model Deployments listed as scaled to zero are retained configurations, not currently available parallel model capacity. Do not scale another four-GPU model while the only GPU node is occupied without a reviewed capacity/handover plan.
+Use the main DSH sign-in page for your assigned workspace. The operator's [deployment inventory](OPERATOR_DEPLOYMENT_INVENTORY.md) is maintained separately from these user instructions.
 
 ### Supporting services and standby models
 
@@ -372,7 +368,7 @@ The login screenshots show the live interfaces. Dashboard screenshots use demons
 
 ### Main login and environment selection
 
-![Live main DSH login with empty fields](images/platform/live-main-login.png)
+![Main DSH login layout with floating User manual button; empty demonstration account store](images/platform/manual-login.png)
 
 No Internet / Internal is selected by default.
 

@@ -4,7 +4,7 @@
 
 Enterprise Agentic Coding & Knowledge Gateway
 
-[User manual](docs/DSH_PLATFORM_GUIDE.html) · The deployed login page also links to the on-site `/manual/` guide.
+[User manual](docs/DSH_USER_MANUAL.html) · [Video-style guided tour](docs/DSH_GUIDED_TOUR.html) · The floating login button opens the on-site `/manual/` guide.
 
 Managed coding clients: **Claude Code, TrueForge and Kilo CLI**, inside private DSH environments through internal LiteLLM. See [client setup, controls and qualification](docs/MANAGED_CLIENT_SUPPORT.html).
 

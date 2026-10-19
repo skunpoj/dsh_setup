@@ -11,7 +11,7 @@ function serveManual(req, res, pathname) {
   const headers = {'Cache-Control':'no-cache', 'X-Content-Type-Options':'nosniff',
     'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"};
   if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405,{...headers,Allow:'GET, HEAD'});return res.end(); }
-  if (pathname === '/manual' || pathname === '/manual/') { res.writeHead(302,{...headers,Location:'/manual/DSH_PLATFORM_GUIDE.html'});return res.end(); }
+  if (pathname === '/manual' || pathname === '/manual/') { res.writeHead(302,{...headers,Location:'/manual/DSH_USER_MANUAL.html'});return res.end(); }
   try {
     const name=decodeURIComponent(pathname.slice('/manual/'.length));
     if (!/^[a-zA-Z0-9_./-]+\.(html|md|json|png|svg)$/.test(name) || name.split('/').some(x=>!x || x==='.' || x==='..')) throw Error('Unknown manual');
@@ -878,14 +878,16 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       background: linear-gradient(135deg, #165b99, #1b6cb4);
       transform: translateY(-1px);
     }
-    .footer-note {
-      text-align: center;
-      margin-top: 22px;
-      font-size: 11px;
-      color: #64748B;
+    .manual-fab {
+      position: fixed; right: max(24px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom));
+      z-index: 20; display: inline-flex; align-items: center; gap: 9px;
+      padding: 13px 19px; border: 1px solid #5B90C6; border-radius: 999px;
+      background: #12365b; color: #EFF6FF; font-size: 14px; font-weight: 600;
+      text-decoration: none; box-shadow: 0 8px 28px #0006;
     }
-    .footer-note a { color: #93C5FD; font-size: 14px; text-underline-offset: 4px; }
-    .footer-note a:hover, .footer-note a:focus-visible { color: #DBEAFE; }
+    .manual-fab:hover { background: #1e4c7c; }
+    .manual-fab:focus-visible { outline: 3px solid #93C5FD; outline-offset: 4px; }
+    @media (max-width: 600px) { body { padding-bottom: 100px; } .manual-fab { right: 16px; bottom: 16px; } }
   </style>
   <script>
     function switchTab(name) {
@@ -978,10 +980,8 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
       </form>
     </div>
 
-    <div class="footer-note">
-      <a href="/manual/" target="_blank" rel="noopener">User manual</a>
-    </div>
   </div>
+  <a class="manual-fab" href="/manual/" target="_blank" rel="noopener"><span aria-hidden="true">?</span> User manual</a>
 <script>
 (()=>{const u=document.getElementById('login_username'),p=document.getElementById('login_password'),on=document.getElementById('internet-option');if(!u||!p||!on)return;let generation=0;
 function reset(){generation++;on.disabled=true;on.checked=false;const off=document.querySelector('input[name="internet"][value="off"]');if(off&&!off.disabled)off.checked=true;}

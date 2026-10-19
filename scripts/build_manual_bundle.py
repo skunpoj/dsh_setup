@@ -23,7 +23,7 @@ class Links(HTMLParser):
 
 def build(output):
     output.mkdir(parents=True, exist_ok=False)
-    pending = ['DSH_PLATFORM_GUIDE.html', 'DSH_SECURITY_ENVIRONMENT_AND_FEATURES.html',
+    pending = ['DSH_USER_MANUAL.html', 'DSH_GUIDED_TOUR.html', 'DSH_PLATFORM_GUIDE.html', 'DSH_SECURITY_ENVIRONMENT_AND_FEATURES.html',
                'DSH_SETUP_AND_STRESS_TEST_GUIDE.html', 'MANAGED_CLIENT_SUPPORT.html']
     entries = {}
     total = 0

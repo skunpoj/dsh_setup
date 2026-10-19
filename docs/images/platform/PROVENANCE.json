@@ -30,6 +30,12 @@
       "file": "working-synthetic-tool-session.png",
       "sha256": "3803349eaa8d280fb102dd4cd5fd925fa36799a8156c197675514dabfbc25e63",
       "kind": "Actual DSH page-content capture of completed synthetic create/read/delete tool session in disposable No Internet runtime;1017 checkpoint; no personal content or browser chrome. Not a Production account or full security acceptance."
+    },
+    {
+      "file": "manual-login.png",
+      "capturedDate": "2026-10-19",
+      "sha256": "2777d0c6aa51fe9d3b624e8cd80b6a6b0fe7607109f460cf8bec5e6f73951270",
+      "kind": "Page-content capture of the current gateway source in a disposable local process with an empty account store; floating User manual control; no personal credentials or browser chrome."
     }
   ],
   "authenticatedWorkingSessionsCaptured": true,

@@ -12,7 +12,7 @@ const request=(route,method='GET')=>new Promise((resolve,reject)=>{const r=http.
 const child=spawn(process.execPath,[path.join(__dirname,'../scripts/auth_proxy.js')],{env:{...process.env,PORT:String(port),DSH_MANUAL_DIR:dir,DSH_USER_STORE_PATH:path.join(root,'users.json'),WORKSPACE_ROOT:root},stdio:'ignore'});
 (async()=>{try{
  let ready=false;for(let i=0;i<60;i++){try{await request('/manual');ready=true;break;}catch{await new Promise(r=>setTimeout(r,50));}}assert(ready);
- const redirect=await request('/manual/');assert.equal(redirect.status,302);assert.equal(redirect.headers.location,'/manual/DSH_PLATFORM_GUIDE.html');
+ const redirect=await request('/manual/');assert.equal(redirect.status,302);assert.equal(redirect.headers.location,'/manual/DSH_USER_MANUAL.html');
  const page=await request('/manual/guide.html');assert.equal(page.status,200);assert.equal(page.text,body);assert.equal(page.headers['x-content-type-options'],'nosniff');
  assert.equal((await request('/manual/guide.html','HEAD')).text,'');
  assert.equal((await request('/manual/guide.html','POST')).status,405);

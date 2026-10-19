@@ -279,7 +279,7 @@ The sign-in screenshot illustrates the recorded interface, not a fresh availabil
 
 ### Main login and environment selection
 
-![Main DSH sign-in interface with empty fields](images/platform/live-main-login.png)
+![Main DSH login layout with floating User manual button; empty demonstration account store](images/platform/manual-login.png)
 
 No Internet / Internal is selected by default.
 

@@ -167,9 +167,12 @@ The two `.site.yaml` bundles are operator-prepared outputs, not files supplied b
 
 ### Publish the on-site user manual
 
-The login branding is Enterprise AI Platform / DeepSeek Harness (DSH) / Enterprise Agentic Coding & Knowledge Gateway. Its User manual link opens `/manual/` on the same site. Publish only the reviewed public documentation bundle, separately from user workspaces and account records:
+The floating User manual button opens `/manual/` on the same site. It opens the combined user manual, including practical tasks, environment/risk design, administration, installation, stress results and LLM/GPU setup. Its captioned guided tour provides play/pause and chapter controls. The platform reference, risk/features report and setup/test guide remain separate reference documents, not substitutes for the manual. Workload counts belong in the operator inventory.
+
+Generate the combined guide after refreshing its platform, installation and test sources. Publish only reviewed public documentation, separately from user workspaces and account records:
 
 ```sh
+node scripts/build_user_manual.mjs
 python scripts/build_manual_bundle.py --output "$PRIVATE_DIR/manual-bundle"
 python scripts/publish_manual_bundle.py --bundle "$PRIVATE_DIR/manual-bundle" --namespace "$APP_NS" --deployment dsh-environment-gateway
 ```
