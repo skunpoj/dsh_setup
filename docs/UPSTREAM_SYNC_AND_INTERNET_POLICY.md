@@ -26,13 +26,13 @@ Public records: [official channel scan](context-evidence/upstream-check-20261019
 
 Self-service signup and administrator Internet approval are gateway deployment overlays, separate from the upstream application. Preserve account-store slot assignments, the qualified read-only signup catalog and per-user mounts during updates. Run the routing test entrypoint, including self-registration regression checks, and qualify candidate signup/persistence before changing the published pool. Never reset account state or replace assigned private storage during an upstream upgrade. See [self-service setup and replenishment](SELF_SERVICE_SIGNUP.html).
 
-## Current patch and update review — 17 October 2026
+## Historical patch and update review — 17 October 2026
 
 Fresh registry checks found npm `latest=0.2.0-rc.2`, `next=0.2.1-rc.2` and `alpha=0.2.1-alpha.5`. The pinned default still matches latest. Official master was `687f282e8625c6b8d11ff58211a90524be2e4317`; master, preview channels and the default published package are different release tracks. This is not a recommendation to merge master or silently adopt next.
 
 The GitHub upstream-candidate workflow is active. Its most recent prior hosted run, [39019957050](https://github.com/skunpoj/dsh_setup/actions/runs/39019957050), passed source `13b26c8`. Those are prior-source results, not acceptance of the new changes below. Daily/manual/push candidate checks are configured; patch-export and line-ending-policy changes are included in the revised push/PR path filters; the production upgrade remains a separate operation.
 
-### What our implementation actually is
+### Historical implementation at the 17 October baseline
 
 The official npm application is the base. Kubernetes isolation, gateway authentication, central storage, access audit, package promotion and shared inference are separate deployment overlays. Ten bundled DSH files are modified by `configure_models.js`. The managed SDK budget loader, Claude/TrueForge policies and GPU scheduler patches belong to their respective dependencies, not to an upstream DSH source merge. We do not maintain a fully synchronized clone of the official monorepo.
 
@@ -90,43 +90,49 @@ Upstream describes DSH as developer-preview software with breaking changes. See 
 
 The later [stress-source CI artifact readback](context-evidence/inference-stress-source-ci-20261016.json), checked at 12:53 UTC, observed npm alpha advance to `0.2.1-alpha.5`; latest/next remained `0.2.0-rc.2`. The earlier table/channel snapshot above is retained as historical evidence. No preview was deployed.
 
-## Automated checking and candidate patching
+## Current automated checking and reviewed candidate qualification
 
 The expanded `.github/workflows/upstream-candidate.yml` and its [tracked reference](UPSTREAM_CANDIDATE_WORKFLOW.yml) define:
 
 1. Daily release checks at 02:17 UTC (09:17 ICT), manual dispatch, and checks on relevant source pushes/pull requests.
 2. Scheduled and manual discovery track npm latest by default. A manual `candidate_version` can explicitly select a preview. Push and pull-request CI instead qualify the checked-out Dockerfile pin; newer npm releases are still reported in detection evidence.
 3. A data-only source comparison runs before build. Matching reviewed candidates continue to Docker qualification; unreviewed or changed releases persist actionable receipts and fail before build.
-4. Pre-patch SHA-256 contracts for all ten upstream files our configurator mutates. The reviewed baseline hashes were derived from official npm package archives after SHA-512 integrity verification. Changed/missing targets stop the build; the automation never updates those hashes for itself.
-5. Actual installed-module syntax/budget/profile checks, disposable DSH web startup and session/model-catalog RPC, anonymous/Host denial, gateway routing and forged-header tests, package promotion, Python rollback/manifests tests, and browser admin-dashboard checks. The actual runtime smoke test has no network or Production storage. The test directory is now included in the Docker context; its earlier exclusion was incompatible with the Dockerfile's test copy.
+4. SHA-256 contracts cover ten reviewed source inputs in the `0.2.1-rc.2` candidate: two image-handling mutation targets and eight protected, unmodified upstream files. The reviewed hashes were derived from official npm package archives after SHA-512 integrity verification. Changed/missing targets stop qualification before build; automation never updates reviewed hashes for itself. The actual installed-package guard also verifies the reviewed inputs before configuration.
+5. Actual installed-module syntax/budget/profile checks, disposable DSH web startup and session/model-catalog RPC, anonymous/Host denial, gateway routing and forged-header tests, package promotion, Python rollback/manifests tests, and browser admin-dashboard and installed upstream-client checks. The actual runtime smoke test has no network or Production storage. The test directory is now included in the Docker context; its earlier exclusion was incompatible with the Dockerfile's test copy.
 6. Human review of a complete source-port PR is required for upgrades. The former automatic pin-only proposal job is removed; the current workflow has no write-capable job.
-7. Thirty-day build, package, test, image-ID and browser evidence artifacts plus a workflow summary. Failure blocks the proposal and is visible as a failed Actions run; no external notification service is configured.
+7. Thirty-day build, package, test, image-ID and browser evidence artifacts plus a workflow summary. Failure blocks qualification and is visible as a failed Actions run; no external notification service is configured.
 8. No auto-merge, registry image publication or Production deployment in this GitHub workflow.
 
-**Publication status:** the workflow was published to GitHub main in commit `a315e9a281cb2f79718ccd6950d2fbe8baff4af9` through the authorized GitHub app and read back as workflow `386666257`, state **active**. The first push-triggered qualification is [run 38900841456](https://github.com/skunpoj/dsh_setup/actions/runs/38900841456). The older Git credential's workflow-write limitation remains; successful app publication does not change that credential's scope. No token value belongs in this document or chat.
+### Historical workflow publication and first-run evidence - 16 October 2026
 
-**First hosted run: passed, with artifact contents independently downloaded and verified.** The run qualified source `a315e9a281cb2f79718ccd6950d2fbe8baff4af9`, package `0.2.0-rc.2`, and local candidate image ID `sha256:5551a40774fba014751266a70ebe89ad5a218bda13fa2b7735e2d7b87dbb9acb`. All ten original target hashes matched. Actual installed-package/profile checks, disposable web startup, session/model-catalog RPC, anonymous and Host denial, six gateway/contract test programs, five Linux package-promotion cases, all 35 Python cases without Windows skips, and the admin-dashboard browser test passed. The browser record includes inert DOM-injection content, forged-admin denial, logout, constrained audit fields and refusal of new login when audit capacity is exhausted. These are synthetic candidate tests, not new Production-user tests.
+The following records describe the earlier `0.2.0-rc.2` workflow, including its former proposal job. They do not describe the current read-only workflow or qualify this candidate.
 
-The proposal job correctly skipped because the published version equals the repository pin. Future real PR creation and the repository's Actions PR-creation permission have not been exercised by that no-change run. The stored Git credential cannot read the repository's Actions administration settings (HTTP 403); this does not invalidate the completed read-only qualification. No setting was weakened to make a test pass. [Run metadata](context-evidence/upstream-hosted-run-20261016.json) and [downloaded artifact verification](context-evidence/upstream-hosted-artifact-verification-20261016.json) preserve the exact observations. Hosted raw artifacts expire on 15 November 2026; a verified ZIP is retained locally under `outputs/upstream-hosted-38900841456/`. The committed JSON summary does not depend on embedding those raw logs into the risk report.
+**Historical publication status:** the workflow was published to GitHub main in commit `a315e9a281cb2f79718ccd6950d2fbe8baff4af9` through the authorized GitHub app and read back as workflow `386666257`, state **active**. The first push-triggered qualification is [run 38900841456](https://github.com/skunpoj/dsh_setup/actions/runs/38900841456). The older Git credential's workflow-write limitation remains; successful app publication does not change that credential's scope. No token value belongs in this document or chat.
 
-The workflow requires GitHub Actions to be enabled and the repository setting allowing Actions to create pull requests. Hosted execution/PR permissions are separate from local tests. A no-update run still qualifies the baseline but skips PR creation. Scheduling occurs from GitHub's default branch; the Azure reference is not another scheduler. A bot-created PR may require approval before additional PR-event workflows run; qualification occurs before creation and does not rely on that event. See [GitHub trigger rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+**Historical first hosted run: passed, with artifact contents independently downloaded and verified.** The run qualified source `a315e9a281cb2f79718ccd6950d2fbe8baff4af9`, package `0.2.0-rc.2`, and local candidate image ID `sha256:5551a40774fba014751266a70ebe89ad5a218bda13fa2b7735e2d7b87dbb9acb`. All ten original target hashes matched. Actual installed-package/profile checks, disposable web startup, session/model-catalog RPC, anonymous and Host denial, six gateway/contract test programs, five Linux package-promotion cases, all 35 Python cases without Windows skips, and the admin-dashboard browser test passed. The browser record includes inert DOM-injection content, forged-admin denial, logout, constrained audit fields and refusal of new login when audit capacity is exhausted. These are synthetic candidate tests, not new Production-user tests.
 
-### Verification completed during implementation
+In that historical run, the former proposal job correctly skipped because the published version equalled the repository pin. That no-change run did not exercise real PR creation or the repository's Actions PR-creation permission; the current workflow no longer uses either. The stored Git credential cannot read the repository's Actions administration settings (HTTP 403); this does not invalidate the completed read-only qualification. No setting was weakened to make a test pass. [Run metadata](context-evidence/upstream-hosted-run-20261016.json) and [downloaded artifact verification](context-evidence/upstream-hosted-artifact-verification-20261016.json) preserve the exact observations. Hosted raw artifacts expire on 15 November 2026; a verified ZIP is retained locally under `outputs/upstream-hosted-38900841456/`. The committed JSON summary does not depend on embedding those raw logs into the risk report.
+
+### Current workflow permissions and scheduling
+
+The current workflow requires GitHub Actions execution with `contents: read`; it disables persisted checkout credentials and has no write-capable proposal job. It does not require the repository setting allowing Actions to create pull requests. Reviewed source still qualifies when the selected version is unchanged. Complete port PR creation and human review occur separately. Scheduling runs the workflow from GitHub's default branch; the tracked documentation reference is not another scheduler. Repository policy may require approval before a contributor's PR workflow executes. See [GitHub trigger rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+
+### Verification scope and historical implementation evidence
 
 - Official channel lookup validates the exact package name, version and SHA-512 integrity field; wrong package/version and missing integrity are refused by tests.
-- The patch-contract check accepts a reviewed fixture and refuses changed or absent targets. It protects the ten known mutation targets; it is not a semantic audit of every upstream dependency.
-- Workflow syntax passed checksum-verified official actionlint 1.7.12. Local gateway/routing/identity/catalog/contract tests and the admin browser test passed. Windows skips POSIX-specific cases; the hosted Linux job is responsible for those cases.
-- An isolated Kubernetes pod ran the current pinned baseline image with no service-account token, credentials, durable mounts or network access. Actual installed-module checks, disposable web startup, authenticated session/model-catalog RPC, anonymous denial and untrusted-Host denial passed. This proves the new probe against the installed baseline, not a fresh Docker build of these new source changes. [Exact baseline result](context-evidence/upstream-baseline-runtime-20261016.json).
+- The patch-contract check accepts a reviewed fixture and refuses changed or absent targets. For the current candidate it protects ten reviewed inputs: two mutation targets and eight unmodified upstream files. It is not a semantic audit of every upstream dependency.
+- Historical implementation evidence: workflow syntax passed checksum-verified official actionlint 1.7.12. Local gateway/routing/identity/catalog/contract tests and the admin browser test passed. Windows skips POSIX-specific cases; the hosted Linux job is responsible for those cases.
+- Historical 16 October evidence: an isolated Kubernetes pod ran the then-pinned baseline image with no service-account token, credentials, durable mounts or network access. Actual installed-module checks, disposable web startup, authenticated session/model-catalog RPC, anonymous denial and untrusted-Host denial passed. This proves the new probe against the installed baseline, not a fresh Docker build of these new source changes. [Exact baseline result](context-evidence/upstream-baseline-runtime-20261016.json).
 - Initial probe attempts used Bearer authentication instead of the web launch-cookie handshake, then sent an unnecessary argument to the zero-argument catalog method. They failed, were corrected, and are not counted as product regressions or successful acceptance. A subsequent temporary-pod creation collided with a terminating test pod; the corrected retry used a unique name. Temporary test resources were removed.
 
 To reproduce detection locally:
 
 ```powershell
-python scripts/check_upstream.py --output upstream-check.json
+python scripts/check_upstream.py --event schedule --output upstream-check.json --source-diff source-diff.json
 python scripts/check_upstream.py --candidate 0.2.1-alpha.4 --output preview-check.json
 ```
 
-`--prepare-candidate` changes only the Dockerfile pin. Neither command installs packages into Production. Candidate version input is validated before registry lookup/preparation. Detection does not claim that text patches rebase themselves correctly.
+`--prepare-candidate` permits a Dockerfile pin change only to the version already present in the reviewed source contract; it cannot prepare an unreviewed pin-only upgrade. Neither command installs packages into Production. Candidate version input is validated before registry lookup/preparation. Detection does not claim that text patches rebase themselves correctly.
 
 ## Why Production upgrades remain gated
 

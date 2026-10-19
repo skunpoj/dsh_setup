@@ -4,7 +4,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const port=31998,name=`dsh-browser-${process.pid}`,output=process.env.DSH_CANDIDATE_BROWSER_OUTPUT||'candidate-evidence/upstream-browser';
 const image=process.env.DSH_CANDIDATE_IMAGE||'dsh-upstream-candidate';
 fs.mkdirSync(output,{recursive:true});
-const args=['run','--rm','--name',name,'--network','host','--user','10001:10001','--cap-drop','ALL','--security-opt','no-new-privileges','--read-only','--tmpfs','/tmp:rw,nosuid,nodev,size=256m,mode=1777','--tmpfs','/workspace:rw,nosuid,nodev,size=16m,uid=10001,gid=10001','--entrypoint','node',image,'/opt/dsh/scripts/serve_candidate_browser.js'];
+const args=['run','--rm','--name',name,'--network','host','--user','10001:10001','--cap-drop','ALL','--security-opt','no-new-privileges','--read-only','--tmpfs','/tmp:rw,nosuid,nodev,size=256m,mode=1777','--tmpfs','/workspace:rw,nosuid,nodev,size=16m,uid=10001,gid=10001','--tmpfs','/native-cache:rw,exec,nosuid,nodev,size=16m,uid=10001,gid=10001','--entrypoint','node',image,'/opt/dsh/scripts/serve_candidate_browser.js'];
 const server=spawn('docker',args,{stdio:['ignore','pipe','pipe']});
 let log='',closed=false,spawnError,browser;
 server.stdout.on('data',b=>{log=(log+b.toString()).slice(-32000);});server.stderr.on('data',b=>{log=(log+b.toString()).slice(-32000);});server.on('error',e=>spawnError=e);server.on('exit',()=>closed=true);

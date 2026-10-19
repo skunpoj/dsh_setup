@@ -1,6 +1,6 @@
 // Executed only inside a disposable candidate container by test_candidate_browser.js.
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),http=require('node:http');
-const {spawn}=require('node:child_process');
+const {spawn,spawnSync}=require('node:child_process');
 const home=fs.mkdtempSync(path.join(os.tmpdir(),'dsh-browser-'));
 fs.cpSync('/opt/dsh/seed/dsh-home',home,{recursive:true});
 const port=Number(process.env.DSH_BROWSER_PORT||31998), mockPort=port+1;
@@ -13,7 +13,11 @@ rewrite(home);
 let modelRequests=0,child;
 const mock=http.createServer((_req,res)=>{modelRequests++;res.writeHead(503,{'content-type':'application/json'});res.end('{"error":"inference forbidden in browser qualification"}');});
 mock.listen(mockPort,'127.0.0.1',()=>{
- const env={PATH:process.env.PATH,HOME:home,DSH_HOME:home,LANG:'C.UTF-8',DEEPSEEK_API_KEY:'synthetic-browser-no-inference',DSH_MANAGED_TRANSPORT:'0',NODE_OPTIONS:''};
+ const env={PATH:process.env.PATH,HOME:home,DSH_HOME:home,LANG:'C.UTF-8',DEEPSEEK_API_KEY:'synthetic-browser-no-inference',DSH_MANAGED_TRANSPORT:'0',NARB_NATIVE_CACHE_DIR:'/native-cache',NODE_OPTIONS:''};
+ // The reviewed native loader materializes its .node module in its cache and
+ // requires that copy. Keep only this bounded cache executable; /tmp is unchanged.
+ const native=spawnSync(process.execPath,['-e',`try { require(require.resolve('node-addon-require-builtin',{paths:['/usr/local/lib/node_modules/@deepseek-ai/dsh']})); } catch(error) { console.error(require('node:util').inspect(error,{depth:null,colors:false}));process.exit(1); }`],{env,encoding:'utf8',timeout:15000});
+ if(native.status!==0){console.error(JSON.stringify({nativePreflightFailed:true,error:(native.stderr||native.error?.message||'Unknown native loader failure').slice(-16000),modelRequests}));mock.close();process.exitCode=1;return;}
  child=spawn('dsh',['web','--host','127.0.0.1','--port',String(port),'--no-open','--trusted-host','dsh-ci.test'],{env,stdio:['ignore','pipe','pipe']});
  let buffer='',reported=false;
  const collect=b=>{buffer=(buffer+b.toString()).slice(-32000);const match=buffer.match(/token=([A-Za-z0-9_-]+)/);if(match&&!reported){reported=true;console.log(JSON.stringify({browserReady:true,token:match[1]}));}};
