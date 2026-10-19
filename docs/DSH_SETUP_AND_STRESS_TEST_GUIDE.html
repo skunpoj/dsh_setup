@@ -176,6 +176,32 @@ img{max-width:100%;height:auto;display:block;margin:20px auto;border:1px solid #
 </tbody></table>
 <p>The portable GPU renderer and the site-bound DSH generator are two components of this sequence. Generating both files does not automatically join their service names, namespaces, DNS or credentials; the private site bundles must join those explicitly.</p>
 <h3>1 Choose the deployment target and collect inputs</h3>
+<p>Use <strong>DeepSeek-V4.1-Flash-1017</strong>, pinned to revision <code>1bae0e1088993b9b82de08f59de5be5a34e42170</code>, for the qualified DeepSeek setup. Follow the <a href="MODEL_UPDATE_1017.html">checkpoint staging and integrity procedure</a> before starting inference. Stage the verified snapshot so <code>/models/approved</code> inside the model container resolves to that exact checkpoint; the portable template uses this generic mount path rather than downloading weights or selecting the newest release automatically. A readable <code>config.json</code> alone does not establish the checkpoint identity or complete shard integrity.</p>
+<table>
+<thead>
+<tr>
+<th>Configuration scope</th>
+<th>Installation setting</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DeepSeek model, LiteLLM route and managed DSH profile</td>
+<td>1,048,576 total tokens; 8,192 maximum output; 256-token proxy reserve</td>
+</tr>
+<tr>
+<td>DeepSeek inference optimization</td>
+<td>DSpark block five; qualified 0.923 static fraction; eight active slots; 1,024-token prefill chunks/budget; 128 MiB score tiles</td>
+</tr>
+<tr>
+<td>DeepSeek long-request admission</td>
+<td>One expensive request above the 131,072-token input-plus-output threshold, plus one bounded waiter; this threshold is not a 128K context ceiling</td>
+</tr>
+<tr>
+<td>Separate GLM and Qwen catalog/provider entries, when installed</td>
+<td>Keep each model&#39;s own supported and verified limits; the DeepSeek update does not raise their limits or replace their weights</td>
+</tr>
+</tbody></table>
+<p>Keep the stable DeepSeek client aliases pointing to the updated checkpoint. Do not change every catalog entry to 1M: aliases, actual checkpoint support and route budgets must agree for each model separately. Verify the loaded model path/revision and an actual answer after rollout. The application image, model weights and model-serving image are independent versions; updating the checkpoint does not upgrade the DSH package.</p>
 <p>Use a new test namespace for a new installation. For an existing installation, preserve its current namespace, claims, account store and owner mapping; do not run initial provisioning over live routing. Never apply the entire <code>k8s</code> directory: it includes historical deployments and site-specific examples.</p>
 <table>
 <thead>

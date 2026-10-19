@@ -21,6 +21,17 @@ The portable GPU renderer and the site-bound DSH generator are two components of
 
 ### 1 Choose the deployment target and collect inputs
 
+Use **DeepSeek-V4.1-Flash-1017**, pinned to revision `1bae0e1088993b9b82de08f59de5be5a34e42170`, for the qualified DeepSeek setup. Follow the [checkpoint staging and integrity procedure](MODEL_UPDATE_1017.html) before starting inference. Stage the verified snapshot so `/models/approved` inside the model container resolves to that exact checkpoint; the portable template uses this generic mount path rather than downloading weights or selecting the newest release automatically. A readable `config.json` alone does not establish the checkpoint identity or complete shard integrity.
+
+| Configuration scope | Installation setting |
+|---|---|
+| DeepSeek model, LiteLLM route and managed DSH profile | 1,048,576 total tokens; 8,192 maximum output; 256-token proxy reserve |
+| DeepSeek inference optimization | DSpark block five; qualified 0.923 static fraction; eight active slots; 1,024-token prefill chunks/budget; 128 MiB score tiles |
+| DeepSeek long-request admission | One expensive request above the 131,072-token input-plus-output threshold, plus one bounded waiter; this threshold is not a 128K context ceiling |
+| Separate GLM and Qwen catalog/provider entries, when installed | Keep each model's own supported and verified limits; the DeepSeek update does not raise their limits or replace their weights |
+
+Keep the stable DeepSeek client aliases pointing to the updated checkpoint. Do not change every catalog entry to 1M: aliases, actual checkpoint support and route budgets must agree for each model separately. Verify the loaded model path/revision and an actual answer after rollout. The application image, model weights and model-serving image are independent versions; updating the checkpoint does not upgrade the DSH package.
+
 Use a new test namespace for a new installation. For an existing installation, preserve its current namespace, claims, account store and owner mapping; do not run initial provisioning over live routing. Never apply the entire `k8s` directory: it includes historical deployments and site-specific examples.
 
 | Input | Operator supplies | Used by |
