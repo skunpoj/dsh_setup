@@ -216,3 +216,7 @@ The commands above expose the actual installation sequence and remaining operato
 ### Preserve application mappings and per-user limits
 
 Keep the gateway auth volume persistent. It stores `app-links.json` (owner, environment ports and enabled state) and `app-policy.json` (per-user name limits). An absent policy uses 8 names per user. Do not put these private operational files into the public repository or user workspaces. Include them in the existing protected auth-volume backup and restore process. Preserve newer records during rollback; never restore an old account volume just to revert application code. Keep one gateway writer until registry storage supports transactional concurrent writes. Admin Applications manages names and ports after login; no Kubernetes management token is needed in the gateway.
+
+## Optional admin-controlled application startup
+
+After private routing and persistent user volumes are qualified, install the [service supervisor](APP_SERVICE_SUPERVISION.md) on explicitly selected workers. It preserves their image and mounts and adds a separate, non-root container plus isolated persistent control storage. Qualify automatic Jupyter/app restart with disposable users first; preserve histories and defer active agents or manual notebooks during the rolling installation. Existing URL mapping is independent from service approval. New signup-pool capacity needs the same supervision installation before it is advertised as supporting managed startup.

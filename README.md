@@ -185,3 +185,5 @@ The login selector opens DSH, Web Terminal or JupyterLab in the chosen private e
 
 
 The current [English 44-slide presentation video](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019.mp4) follows the matching [HTML and editable PPTX](docs/PRESENTATION_EDITION.md), with English narration, chapter navigation and captions. Earlier source walkthrough videos remain separately available.
+
+[Admin-controlled Jupyter and application startup](docs/APP_SERVICE_SUPERVISION.md): separate approval, private per-runtime supervisor, persistent definitions, automatic recovery, bounded backoff, explicit Stop and isolated credential handling.
