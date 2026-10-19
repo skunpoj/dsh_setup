@@ -43,6 +43,23 @@ class SourceDiffTests(unittest.TestCase):
         with patch.object(diff,'MAX_FILE',1),self.assertRaisesRegex(ValueError,'size limit'):diff.archive_files(blob,integrity,set())
         with patch.object(diff,'MAX_MEMBERS',0),self.assertRaisesRegex(ValueError,'member limit'):diff.archive_files(blob,integrity,set())
 
+    def test_normalized_path_aliases_cannot_overwrite_target(self):
+        for alias in ['package/lib/./x.js','package/lib//x.js','package//lib/x.js','./package/lib/x.js']:
+            with self.subTest(alias=alias):
+                blob,integrity=archive([('package/lib/x.js',b'original',tarfile.REGTYPE),(alias,b'replacement',tarfile.REGTYPE)])
+                with self.assertRaisesRegex(ValueError,'Noncanonical'):
+                    diff.archive_files(blob,integrity,{'lib/x.js'})
+                blob,integrity=archive([(alias,b'only-alias',tarfile.REGTYPE)])
+                with self.assertRaisesRegex(ValueError,'Noncanonical'):
+                    diff.archive_files(blob,integrity,{'lib/x.js'})
+
+    def test_canonical_directories_with_trailing_slash_are_accepted(self):
+        blob,integrity=archive([('package/',b'',tarfile.DIRTYPE),('package/lib/',b'',tarfile.DIRTYPE),('package/lib/x.js',b'payload',tarfile.REGTYPE)])
+        self.assertEqual(diff.archive_files(blob,integrity,{'lib/x.js'}),{'lib/x.js':b'payload'})
+        blob,integrity=archive([('package',b'',tarfile.DIRTYPE),('package/',b'',tarfile.DIRTYPE)])
+        with self.assertRaisesRegex(ValueError,'Duplicate'):
+            diff.archive_files(blob,integrity,set())
+
     def test_url_allowlist(self):
         for url in ['http://registry.npmjs.org/@deepseek-ai/dsh','https://evil.example/@deepseek-ai/dsh','https://registry.npmjs.org.evil/@deepseek-ai/dsh','https://registry.npmjs.org/@other/x','https://registry.npmjs.org/@deepseek-ai/dsh?x=1']:
             with self.assertRaises(ValueError):diff.validate_url(url)

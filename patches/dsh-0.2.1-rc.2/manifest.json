@@ -63,6 +63,6 @@
       "patched": false
     }
   ],
-  "configuratorSHA256": "dafe8160d7935c5629aef07a2bba0f36237d1aa69d5856e2af2207283c2432e3",
+  "configuratorSHA256": "c06bca4669a566478a3b1d215e4557ef94123f4bc1b9b9ed22307c383d6d58b7",
   "purpose": "Review artifact, normalized dsh.example.com host; generated from official integrity-verified package targets. Runtime application uses guarded configure_models.js, not this example-host diff."
 }

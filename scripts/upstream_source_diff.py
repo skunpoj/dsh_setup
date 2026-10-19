@@ -75,8 +75,12 @@ def archive_files(blob, integrity, wanted):
             parts=PurePosixPath(member.name).parts
             if '\\' in member.name or member.name.startswith('/') or '..' in parts or not parts or parts[0] != 'package' or ':' in member.name:
                 raise ValueError('Unsafe archive path')
-            if member.name in seen: raise ValueError('Duplicate archive path')
-            seen.add(member.name)
+            canonical='/'.join(parts)
+            allowed_names={canonical, canonical+'/'} if member.isdir() else {canonical}
+            if member.name not in allowed_names:
+                raise ValueError('Noncanonical archive path')
+            if canonical in seen: raise ValueError('Duplicate archive path')
+            seen.add(canonical)
             if not member.isdir() and not member.isfile(): raise ValueError('Archive links/special files refused')
             total += member.size
             if total > MAX_EXPANDED or member.size > MAX_FILE: raise ValueError('Archive expanded size limit exceeded')
