@@ -8,7 +8,7 @@
   "mcp": {},
   "lsp": false,
   "formatter": false,
-  "permission": {"*": "ask", "webfetch": "deny", "websearch": "deny", "external_directory": "deny"},
+  "permission": {"*": "ask", "read": "allow", "glob": "allow", "grep": "allow", "webfetch": "deny", "websearch": "deny", "external_directory": "deny"},
   "experimental": {"openTelemetry": false},
   "provider": {
     "dsh-internal": {

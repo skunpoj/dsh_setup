@@ -25,7 +25,7 @@ COPY config/ /opt/dsh/config/
 COPY tests/ /opt/dsh/tests/
 COPY patches/ /opt/dsh/patches/
 COPY container/ /opt/dsh/container/
-RUN mkdir -p /etc/kilo /etc/dsh-kilo-config \
+RUN mkdir -p /etc/kilo /etc/dsh-kilo-config/kilo \
  && install -m 0644 /opt/dsh/container/kilo-managed.json /etc/kilo/kilo.json \
  && install -m 0755 /opt/dsh/container/kilo-managed.py /usr/local/bin/kilo-managed \
  && rm /usr/local/bin/kilo /usr/local/bin/kilocode \
