@@ -13,6 +13,16 @@ def summarize(items, domain, namespace, service, ingress_name):
     reserved=set();wildcard_ready=False;conflict=False
     for obj in items:
         own=obj['metadata']['namespace']==namespace and obj['metadata']['name']==ingress_name
+        # NGINX aliases can occupy a host even without a spec.rules entry.
+        aliases=obj['metadata'].get('annotations',{}).get('nginx.ingress.kubernetes.io/server-alias','')
+        for alias in aliases.replace(',', ' ').split():
+            alias=alias.lower()
+            if alias=='*.'+domain:conflict=True
+            elif alias.endswith('.'+domain):
+                name=alias[:-len(domain)-1]
+                if '.' not in name:
+                    if '*' in name or '~' in name:conflict=True
+                    else:reserved.add(name)
         for rule in obj.get('spec',{}).get('rules',[]):
             host=rule.get('host','').lower()
             if host=='*.'+domain:

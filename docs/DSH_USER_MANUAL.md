@@ -14,7 +14,7 @@ Anyone reaching the login page can create an account while private capacity is a
 
 ### Custom app URLs and ports
 
-Open `/applications` after signing in to save a friendly name for a port in your private environment. The notebook suggestion is `<username>-jupyter` on port 8888. Other app names/ports are configurable with collision checks. See [application URLs and Ingress setup](APP_URLS_AND_INGRESS.html) for path URLs, approved hostnames, TLS/DNS, wildcard behavior and publication commands.
+Open `/applications` after signing in to save a friendly name for a port in your private environment. The notebook suggestion is `<username>-jupyter` on port 8888. Other app names/ports are configurable with collision checks. Login and tool navigation from a custom app hostname use the main DSH address. See [application URLs and Ingress setup](APP_URLS_AND_INGRESS.html) for path URLs, approved hostnames, TLS/DNS, wildcard behavior and publication commands.
 
 ### Pick the correct environment
 

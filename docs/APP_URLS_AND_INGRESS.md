@@ -17,7 +17,7 @@ JupyterLab is installed. If stopped, open Web Terminal and run `jupyter lab`, th
 
 1. Sign in to the desired environment and open `/applications`.
 2. Enter a name and your application's listening port. The suggestion is `<username>-jupyter`, port `8888`. For a different app use, for example, `alice-report`, port `8501`.
-3. Select **Check name**, then **Save URL**.
+3. Wait for the form to finish loading, then select **Check name** and **Save URL**. These controls stay disabled until your authenticated app settings are ready.
 4. Start the application in that same environment and open its saved link.
 
 `alice-report` → port `8501` produces `/proxy/alice-report/`. The gateway strips that prefix and forwards the remaining path, query, HTTP methods and WebSocket to port 8501 in Alice's selected runtime. Users cannot supply a destination machine, IP or Service. Another user cannot reserve or open Alice's saved name. An alias can have different ports in the owner's two environments; a missing environment mapping is refused.
@@ -37,9 +37,9 @@ The suggested notebook hostname label is `<username>-jupyter`. Dots/underscores 
 
 **Both styles use the same saved app name and private port.** After the operator installs the wildcard DNS, TLS and authenticated wildcard route, users choose an available prefix and the hostname works dynamically. Saving an app does not create a new Kubernetes object or allocate an arbitrary external domain. The site suffix is operator configuration; public installations can use `apps.example.com`, `xxx.example.com` or another approved domain.
 
-An independent inventory reader refreshes existing Ingress reservations every 15 seconds. Kubernetes propagates its read-only ConfigMap to the gateway asynchronously. The gateway rejects new hostname claims when inventory is older than three minutes or unavailable; existing custom path URLs continue to work. Existing exact-host sites take precedence over the wildcard route, and their names cannot be claimed through the app form. A name check is an observation, not a global DNS reservation against future infrastructure changes.
+An independent inventory reader refreshes existing Ingress rules and NGINX server-alias reservations every 15 seconds. Kubernetes propagates its read-only ConfigMap to the gateway asynchronously. The gateway rejects new hostname claims when inventory is older than three minutes or unavailable; existing custom path URLs continue to work. Existing exact-host sites take precedence over the wildcard route, and their names cannot be claimed through the app form. A name check is an observation, not a global DNS reservation against future infrastructure changes.
 
-The gateway checks hostname ownership and environment before forwarding. Unowned/unknown app names are refused. Ordinary apps can remain at their hostname if compatible with that Host/Origin. Jupyter hostname links redirect to the canonical notebook path. Do not publish a direct unauthenticated worker Ingress.
+The gateway checks hostname ownership and environment before forwarding. After sign-in, unowned/unknown app names are refused. Login, My apps and Web Terminal navigation from an app hostname return to the canonical DSH address, so the selected tool cannot be mistaken for the app running on that hostname. Ordinary apps can remain at their hostname if compatible with that Host/Origin. Jupyter hostname links redirect to the canonical notebook path. Do not publish a direct unauthenticated worker Ingress.
 
 ## Check name and Ingress availability
 
@@ -73,7 +73,7 @@ Install and qualify the inventory workload first; keep the wildcard Ingress last
 
 1. Obtain an approved app-only DNS domain or explicitly allocated hostnames. Avoid a catch-all on a shared organizational domain.
 2. Point the approved names/wildcard at the ingress controller. Use a trusted certificate whose SAN covers those names and a TLS Secret in the Ingress namespace.
-3. Set the approved domain on the gateway and keep `DSH_TRUSTED_HOST` fixed to the canonical DSH site. Ordinary user forms cannot change either setting.
+3. Set the approved domain on the gateway and keep `DSH_TRUSTED_HOST` fixed to the canonical DSH site. Configure `DSH_COOKIE_DOMAIN` to a parent shared by that site and the approved app names, or use the default canonical-host parent. For example, `dsh.example.internal` and `NAME.apps.example.internal` share `example.internal`. Unrelated domains do not share a browser login cookie. Ordinary user forms cannot change these settings.
 4. Review and install the generated wildcard route after the gateway and inventory are qualified. Users can then save their names and ports without another operator deployment. For the optional exact-host method only, run:
 
 ```sh

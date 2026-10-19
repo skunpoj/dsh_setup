@@ -9,6 +9,10 @@ class HostSupport(unittest.TestCase):
   return {'metadata':{'namespace':'llm','name':name},'spec':{'rules':[{'host':host,'http':{'paths':[{'backend':{'service':{'name':service,'port':{'number':3080}}}}]}}]}}
  def test_reservations(self):
   r=reader.summarize([self.item('existing','llm.example.internal'),self.item('dsh-user-app-wildcard','*.example.internal')],'example.internal','llm','dsh-environment-gateway','dsh-user-app-wildcard');self.assertEqual(r['reservedNames'],['llm']);self.assertTrue(r['wildcardReady'])
+ def test_nginx_aliases(self):
+  obj=self.item('other','existing.other.internal');obj['metadata']['annotations']={'nginx.ingress.kubernetes.io/server-alias':'reserved.example.internal, second.example.internal'}
+  result=reader.summarize([obj],'example.internal','llm','dsh-environment-gateway','dsh-user-app-wildcard');self.assertEqual(result['reservedNames'],['reserved','second'])
+  obj['metadata']['annotations']['nginx.ingress.kubernetes.io/server-alias']='*.example.internal';self.assertTrue(reader.summarize([obj],'example.internal','llm','dsh-environment-gateway','dsh-user-app-wildcard')['wildcardConflict'])
  def test_competing_wildcard(self):
   r=reader.summarize([self.item('other','*.example.internal')],'example.internal','llm','dsh-environment-gateway','dsh-user-app-wildcard');self.assertTrue(r['wildcardConflict']);self.assertFalse(r['wildcardReady'])
  def test_wrong_backend(self):

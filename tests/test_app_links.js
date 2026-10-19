@@ -33,6 +33,13 @@ async function stop(){await new Promise(resolve=>{gateway.once('exit',resolve);g
  assert.equal((await request('GET','/','',b,{Host:'alice-notebook.apps.test.local'})).status,404);
  assert.equal((await request('GET','/','',a,{Host:'alice-notebook.apps.test.local'})).headers.location,'https://dsh.test.local/proxy/8888/lab');
  assert.equal((await change(a,ai.csrfToken,'alice-demo',appPort)).status,200);
+ for(const target of ['/login','/applications','/terminal'])assert.equal((await request('GET',target,'',a,{Host:'alice-demo.apps.test.local'})).headers.location,'https://dsh.test.local'+target);
+ for(const [application,target] of [['dsh','/'],['terminal','/terminal'],['jupyter','/proxy/8888/lab']]) {
+  const reply=await request('POST','/login',new URLSearchParams({username:'alice',password:'synthetic-password',application}).toString(),'',{Host:'alice-demo.apps.test.local'});
+  assert.equal(reply.headers.location,'https://dsh.test.local'+target);
+ }
+ const page=await request('GET','/applications','',a);assert(page.text.includes('id="check" disabled'));assert(page.text.includes('id="saveApp" disabled'));
+
  assert((await upgrade(a)).includes('X-Test-User: alice'));assert(!(await upgrade(b)).includes('101 Switching'));
  for(const [url,headers] of [['/proxy/alice-demo/hello?x=1',{}],['/hello?x=1',{Host:'alice-demo.apps.test.local'}]]){const r=await request('GET',url,'',a,headers);assert.equal(r.status,200);assert.deepEqual(JSON.parse(r.text),{url:'/hello?x=1',user:'alice',mode:'off'});}
  const on=await login('alice','on');assert.equal((await request('GET','/proxy/alice-demo/','',on)).status,404);
