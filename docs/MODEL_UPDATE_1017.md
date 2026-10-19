@@ -29,7 +29,7 @@ The [17 October release](https://api-docs.deepseek.com/news/news261017/) is a ne
 | Short-client bursts | 31/31 exact persisted replies across 1, 2, 4, 8 and 16 simultaneous native DSH clients; GPU active cap eight, additional clients queue |
 | Managed clients | Claude Code ordinary reply 1.17s; TrueForge ordinary reply 0.73s with persisted assistant output verified. These are new-checkpoint ordinary tests, not fresh near-1M CLI acceptance |
 | History preservation | All 167 original histories / 188 session files across 20 main runtimes retained their IDs and bytes |
-| GPU memory observation | Four H100 NVL devices; minimum observed free memory 38 MiB per GPU in one-second sampling. Temporary headroom remains tight; two full-1M requests are not an accepted case |
+| GPU memory observation | Four H100 NVL devices; minimum observed free memory 36 MiB per GPU over the full one-second trace, including follow-ups (38 MiB during the cold capacity stage). Temporary headroom remains tight; two full-1M requests are not an accepted case |
 
 ### Native DSH client concurrency
 

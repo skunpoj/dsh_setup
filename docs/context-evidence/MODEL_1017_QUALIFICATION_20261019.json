@@ -110,5 +110,19 @@
     "oracle": "Three distributed random values plus complete sequence1\u2013200; cached follow-up sequence1\u2013400",
     "matchingRule": "Exact expected content with whitespace normalization",
     "nativePromptAndResponsePersistenceChecked": true
+  },
+  "memoryObservation": {
+    "samplingIntervalSeconds": 1,
+    "coldCapacityMinimumObservedFreeMiBPerGPU": 38,
+    "fullTraceMinimumObservedFreeMiBPerGPU": 36,
+    "fullTraceSamplesPerGPU": 2399,
+    "scope": "Observed one-second samples, not a bound on shorter allocation peaks"
+  },
+  "disposableAcceptanceRuntime": {
+    "syntheticHistoriesArchived": 183,
+    "regularSessionFilesVerified": 366,
+    "privateArchiveHashAndFileHashesVerified": true,
+    "testPodRemoved": true,
+    "modelPodIdentityAndReadinessPreserved": true
   }
 }
