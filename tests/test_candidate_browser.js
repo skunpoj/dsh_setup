@@ -12,7 +12,9 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{try{
  const deadline=Date.now()+90000;let ready;
  while(Date.now()<deadline&&!closed&&!spawnError){ready=log.split(/\r?\n/).map(line=>{try{return JSON.parse(line)}catch{return null}}).find(value=>value?.browserReady);if(ready)break;await sleep(200);}
- assert(!spawnError,spawnError?.message);assert(ready,'Disposable upstream app did not become ready (startup logs deliberately withheld)');
+ assert(!spawnError,spawnError?.message);
+ if(!ready){const diagnostic={stage:'disposable-upstream-startup',closed,log:log.replace(/token[=:]\s*[A-Za-z0-9_-]+/gi,'token=[REDACTED]').replace(/synthetic-browser-no-inference/g,'[SYNTHETIC KEY REDACTED]').slice(-16000)};fs.writeFileSync(path.join(output,'startup-failure.json'),JSON.stringify(diagnostic,null,2)+'\n');console.error(JSON.stringify(diagnostic));}
+ assert(ready,'Disposable upstream app did not become ready; sanitized startup-failure.json saved');
  const {chromium}=require(process.env.DSH_PLAYWRIGHT||'playwright');
  browser=await chromium.launch({headless:true,args:['--host-resolver-rules=MAP dsh-ci.test 127.0.0.1','--no-proxy-server',`--unsafely-treat-insecure-origin-as-secure=http://dsh-ci.test:${port}`]});
  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'en-US'});

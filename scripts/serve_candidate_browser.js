@@ -18,7 +18,8 @@ mock.listen(mockPort,'127.0.0.1',()=>{
  let buffer='',reported=false;
  const collect=b=>{buffer=(buffer+b.toString()).slice(-32000);const match=buffer.match(/token=([A-Za-z0-9_-]+)/);if(match&&!reported){reported=true;console.log(JSON.stringify({browserReady:true,token:match[1]}));}};
  child.stdout.on('data',collect);child.stderr.on('data',collect);
- child.on('exit',code=>{console.log(JSON.stringify({modelRequests,childExit:code}));mock.close();process.exitCode=code||0;});
+ child.on('error',error=>console.error(JSON.stringify({startupError:error.message})));
+ child.on('exit',code=>{console.log(JSON.stringify({modelRequests,childExit:code,...(!reported?{startupLog:buffer.replace(/token[=:]\s*[A-Za-z0-9_-]+/gi,'token=[REDACTED]').replace(/synthetic-browser-no-inference/g,'[SYNTHETIC KEY REDACTED]').slice(-12000)}:{})}));mock.close();process.exitCode=code||0;});
 });
 process.on('SIGTERM',()=>{console.log(JSON.stringify({modelRequests}));child?.kill('SIGTERM');setTimeout(()=>process.exit(modelRequests?1:0),1500).unref();});
 setTimeout(()=>{console.error('Disposable browser server deadline exceeded');child?.kill('SIGTERM');process.exit(1);},180000).unref();
