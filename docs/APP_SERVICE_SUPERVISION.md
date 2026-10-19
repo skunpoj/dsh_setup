@@ -12,24 +12,35 @@ The supervisor is a separate container: packages installed only into the DSH con
 
 ```mermaid
 flowchart TB
- B[Authenticated browser] --> G[Authentication gateway and admin dashboard]
- G --> U[User A: No Internet pod]
- G --> I[User A: Internet pod]
- G --> V[User B: separate private pods]
- G --> C[Dedicated persistent service-control volume]
- C -->|Only this runtime's definitions: read-only| S
- subgraph U[User A: No Internet pod]
+ B[Authenticated browser]
+ G[Authentication gateway and admin dashboard]
+ C[Dedicated persistent service-control volume]
+ I[User A: Internet pod]
+ V[User B: separate private pods]
+ L[Shared internal LiteLLM]
+ GPU[Shared local GPU model]
+ subgraph UserPod[User A: No Internet pod]
   D[DSH agent and web terminal container]
   S[Non-root service supervisor container]
-  S --> J[JupyterLab and approved app processes]
-  S --> T[Private runtime status PVC]
-  T -->|Read-only| G
-  D --> W[User A private workspace]
-  J --> W
-  J --> N[User A persistent notebook state]
+  J[JupyterLab and approved app processes]
+  T[Private runtime status PVC]
+  W[User A private workspace]
+  N[User A persistent notebook state]
  end
- D --> L[Shared internal LiteLLM]
- L --> GPU[Shared local GPU model]
+ B --> G
+ G --> D
+ G --> I
+ G --> V
+ G --> C
+ C -->|Only this runtime's definitions: read-only| S
+ S --> J
+ S --> T
+ T -->|Read-only| G
+ D --> W
+ J --> W
+ J --> N
+ D --> L
+ L --> GPU
 ```
 
 The main platform assigns each user a private No Internet runtime and a separate private Internet runtime. A runtime is a Kubernetes pod managed by a Deployment. Its DSH agent, terminal and tools operate as a non-root identity. Different users do not share the same process or workspace mounts. The two environments have separate workspaces, histories, attachment storage and credential state. The expensive inference endpoint remains shared.

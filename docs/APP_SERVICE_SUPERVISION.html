@@ -7,43 +7,65 @@
 <p>The supervisor is a separate container: packages installed only into the DSH container’s ephemeral root are not automatically available to it. Use dependencies included in the pinned runtime image, approved offline artifacts, or project-local dependencies visible through the shared owner workspace. The recorded acceptance covers JupyterLab and a standard-library Python application; it does not qualify every framework or virtual-environment launcher.</p>
 <h2>Architecture and user isolation</h2>
 <section class="mermaid-wrapper"><div class="mermaid-header"><span>Deployment architecture</span><div class="mermaid-toolbar"><button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button><button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button><button onclick="panZoomMermaid(this,'reset')">Reset</button><button onclick="panZoomMermaid(this,'fullscreen')">Fullscreen</button><button onclick="exportMermaid(this,'svg')">Save SVG</button><button onclick="exportMermaid(this,'png')">Save PNG</button></div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="flowchart TB
- B[Authenticated browser] --&gt; G[Authentication gateway and admin dashboard]
- G --&gt; U[User A: No Internet pod]
- G --&gt; I[User A: Internet pod]
- G --&gt; V[User B: separate private pods]
- G --&gt; C[Dedicated persistent service-control volume]
- C --&gt;|Only this runtime&#39;s definitions: read-only| S
- subgraph U[User A: No Internet pod]
+ B[Authenticated browser]
+ G[Authentication gateway and admin dashboard]
+ C[Dedicated persistent service-control volume]
+ I[User A: Internet pod]
+ V[User B: separate private pods]
+ L[Shared internal LiteLLM]
+ GPU[Shared local GPU model]
+ subgraph UserPod[User A: No Internet pod]
   D[DSH agent and web terminal container]
   S[Non-root service supervisor container]
-  S --&gt; J[JupyterLab and approved app processes]
-  S --&gt; T[Private runtime status PVC]
-  T --&gt;|Read-only| G
-  D --&gt; W[User A private workspace]
-  J --&gt; W
-  J --&gt; N[User A persistent notebook state]
+  J[JupyterLab and approved app processes]
+  T[Private runtime status PVC]
+  W[User A private workspace]
+  N[User A persistent notebook state]
  end
- D --&gt; L[Shared internal LiteLLM]
- L --&gt; GPU[Shared local GPU model]
+ B --&gt; G
+ G --&gt; D
+ G --&gt; I
+ G --&gt; V
+ G --&gt; C
+ C --&gt;|Only this runtime&#39;s definitions: read-only| S
+ S --&gt; J
+ S --&gt; T
+ T --&gt;|Read-only| G
+ D --&gt; W
+ J --&gt; W
+ J --&gt; N
+ D --&gt; L
+ L --&gt; GPU
 ">flowchart TB
- B[Authenticated browser] --&gt; G[Authentication gateway and admin dashboard]
- G --&gt; U[User A: No Internet pod]
- G --&gt; I[User A: Internet pod]
- G --&gt; V[User B: separate private pods]
- G --&gt; C[Dedicated persistent service-control volume]
- C --&gt;|Only this runtime&#39;s definitions: read-only| S
- subgraph U[User A: No Internet pod]
+ B[Authenticated browser]
+ G[Authentication gateway and admin dashboard]
+ C[Dedicated persistent service-control volume]
+ I[User A: Internet pod]
+ V[User B: separate private pods]
+ L[Shared internal LiteLLM]
+ GPU[Shared local GPU model]
+ subgraph UserPod[User A: No Internet pod]
   D[DSH agent and web terminal container]
   S[Non-root service supervisor container]
-  S --&gt; J[JupyterLab and approved app processes]
-  S --&gt; T[Private runtime status PVC]
-  T --&gt;|Read-only| G
-  D --&gt; W[User A private workspace]
-  J --&gt; W
-  J --&gt; N[User A persistent notebook state]
+  J[JupyterLab and approved app processes]
+  T[Private runtime status PVC]
+  W[User A private workspace]
+  N[User A persistent notebook state]
  end
- D --&gt; L[Shared internal LiteLLM]
- L --&gt; GPU[Shared local GPU model]
+ B --&gt; G
+ G --&gt; D
+ G --&gt; I
+ G --&gt; V
+ G --&gt; C
+ C --&gt;|Only this runtime&#39;s definitions: read-only| S
+ S --&gt; J
+ S --&gt; T
+ T --&gt;|Read-only| G
+ D --&gt; W
+ J --&gt; W
+ J --&gt; N
+ D --&gt; L
+ L --&gt; GPU
 </div></div></section>
 <p>The main platform assigns each user a private No Internet runtime and a separate private Internet runtime. A runtime is a Kubernetes pod managed by a Deployment. Its DSH agent, terminal and tools operate as a non-root identity. Different users do not share the same process or workspace mounts. The two environments have separate workspaces, histories, attachment storage and credential state. The expensive inference endpoint remains shared.</p>
 <p>The supervisor is an additional container in the <strong>same user/environment pod</strong>. It shares that pod&#39;s network restrictions, CPU node and approved workspace, but has its own process namespace. It is not a second Internet route. It receives no GPU, Kubernetes management token, gateway account store or model API-key environment. Source code is mounted read-only, privilege escalation is disabled, capabilities are dropped and the root filesystem is read-only. A small temporary volume is provided for runtime files.</p>
