@@ -4,10 +4,11 @@ const http = require('http');
 const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
+const { hashPassword } = require('../scripts/password_store.js');
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-route-'));
 const users = path.join(root, '.user_auth.json');
-fs.writeFileSync(users, JSON.stringify({ alice: 'secret1' }));
+fs.writeFileSync(users, JSON.stringify({ alice: { ...hashPassword('secret1'), internetAllowed: false } }));
 const secureToken = path.join(root, 'secure-token');
 const internetToken = path.join(root, 'internet-token');
 fs.writeFileSync(secureToken, 'secure-first');
@@ -103,7 +104,13 @@ async function waitReady(port) {
     const offResult = JSON.parse((await request(gatewayPort, 'GET', '/probe', '', offCookie)).body);
     assert.deepEqual(offResult, { backend: 'secure-pool', environment: 'off' });
 
+    const deniedInternet = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=on');
+    assert.equal(deniedInternet.status, 403);
+    const approvedUsers = JSON.parse(fs.readFileSync(users, 'utf8'));
+    approvedUsers.alice.internetAllowed = true;
+    fs.writeFileSync(users, JSON.stringify(approvedUsers));
     const onLogin = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=on');
+    assert.equal(onLogin.status, 302);
     const onCookie = onLogin.headers['set-cookie'][0].split(';')[0];
     const onResult = JSON.parse((await request(gatewayPort, 'GET', '/probe', '', onCookie)).body);
     assert.deepEqual(onResult, { backend: 'internet-pool', environment: 'on' });
