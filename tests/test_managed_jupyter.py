@@ -16,6 +16,8 @@ SCRIPT = Path(__file__).resolve().parents[1]/'container/jupyter-managed.py'
 
 class JupyterTests(unittest.TestCase):
     def test_notebook_kernel_auth_xsrf_and_prefix(self):
+        if not hasattr(os, 'getuid'):
+            self.skipTest('Managed Jupyter requires the Linux image user boundary')
         if os.getuid() == 0:
             self.skipTest('Run the integration test as the non-root image user')
         with tempfile.TemporaryDirectory(prefix='jupyter-acceptance-') as folder:
