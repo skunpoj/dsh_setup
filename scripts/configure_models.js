@@ -14,346 +14,13 @@ const mismatches = verify(dshPkgDir,contract);
 if(mismatches.length) throw new Error('Unreviewed upstream package; refusing all configuration writes: '+JSON.stringify(mismatches));
 
 
-// 1. Maintain official DeepSeek models in dsh-llm-deepseek
-const file = `${baseModulesDir}/dsh-llm-deepseek/lib/index.js`;
-if (fs.existsSync(file)) {
-  let content = fs.readFileSync(file, "utf8");
-  const idx1 = content.indexOf("const DEFAULT_MODELS = [");
-  if (idx1 !== -1) {
-    const idx2 = content.indexOf("];", idx1) + 2;
-    const officialModels = `const DEFAULT_MODELS = [
-	{
-		id: "deepseek-chat",
-		name: "DeepSeek Chat",
-		description: "Official DeepSeek Chat Model",
-		contextWindow: 64000
-	},
-	{
-		id: "deepseek-reasoner",
-		name: "DeepSeek Reasoner",
-		description: "Official DeepSeek Reasoner Model (R1)",
-		contextWindow: 64000
-	}
-];`;
-    content = content.substring(0, idx1) + officialModels + content.substring(idx2);
-  }
-  content = content.replace(/const DEFAULT_MAX_TOKENS = 256e3;/g, "const DEFAULT_MAX_TOKENS = 4096;");
-  content = content.replace(/maxTokens:\s*config\.maxTokens\s*\?\?\s*256e3/g, "maxTokens: Math.min(config.maxTokens ?? 4096, 4096)");
-  fs.writeFileSync(file, content, "utf8");
-  console.log("[CONFIG] Restored official DeepSeek models in dsh-llm-deepseek");
+// Use configuration for catalog/UI/persona; preserve upstream access guards.
+const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.example.com';
+if (!/^[a-zA-Z0-9](?:[a-zA-Z0-9.-]*[a-zA-Z0-9])?$/.test(dshHost)) throw new Error('Invalid trusted host');
+function replaceOnce(source, before, after) {
+ if (source.split(before).length !== 2) throw new Error('Reviewed patch anchor is not unique');
+ return source.replace(before, after);
 }
-
-// 2. Set authoritative default model to deepseek-v4.1-flash on litellm-cluster in base cordis.patch.yml
-const basePatch = `${baseModulesDir}/dsh-base/cordis.patch.yml`;
-if (fs.existsSync(basePatch)) {
-  let patchContent = fs.readFileSync(basePatch, "utf8");
-  patchContent = patchContent.replace(
-    /- id: agent-default-model\s*\n\s*name: '@deepseek-ai\/dsh-agent-default-model'\s*\n\s*config:\s*\n\s*provider:\s*[^\n]+\s*\n\s*model:\s*[^\n]+/g,
-    `- id: agent-default-model\n      name: '@deepseek-ai/dsh-agent-default-model'\n      config:\n        provider: litellm-cluster\n        model: deepseek-v4.1-flash`
-  );
-  // Also configure session-title-llm to explicitly use litellm-cluster / deepseek-v4.1-flash
-  patchContent = patchContent.replace(
-    /name: '@deepseek-ai\/dsh-session-title-first-prompt-llm'\s*\n\s*config:\s*\n\s*targetWords: 5/g,
-    `name: '@deepseek-ai/dsh-session-title-first-prompt-llm'\n      config:\n        provider: litellm-cluster\n        model: deepseek-v4.1-flash\n        targetWords: 5`
-  );
-  fs.writeFileSync(basePatch, patchContent, "utf8");
-  console.log("[CONFIG] Updated default model and session-title-llm to litellm-cluster/deepseek-v4.1-flash in cordis.patch.yml");
-}
-
-// 3. Set authoritative catalog in session controller
-const scFile = `${baseModulesDir}/dsh-api-session-controller/lib/index.js`;
-if (fs.existsSync(scFile)) {
-  let scContent = fs.readFileSync(scFile, "utf8");
-  const idx = scContent.indexOf("async function buildModelCatalog(");
-  if (idx !== -1) {
-    const idxEnd = scContent.indexOf("//#endregion", idx);
-    const injectedCatalog = `async function buildModelCatalog(ctx, defaultSelection) {
-	return {
-		default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
-		routableProviders: ["litellm-cluster"],
-		groups: [
-			{
-				id: "litellm-cluster",
-				name: "Cluster LiteLLM Gateway",
-				models: [
-					{
-						id: "deepseek-v4.1-flash",
-						name: "DeepSeek-V4.1-Flash (1M CED MoE)",
-						description: "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)",
-						inputModalities: ["text", "image"]
-					},
-					{
-						id: "deepseek-flash",
-						name: "DeepSeek-Flash (V4.1-Flash Alias)",
-						description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)",
-						inputModalities: ["text", "image"]
-					},
-					{
-						id: "glm-5.3-flash",
-						name: "GLM-5.3-Flash (Cluster LiteLLM Standby)",
-						description: "Standby 4-GPU cluster model",
-						inputModalities: ["text"]
-					},
-					{
-						id: "qwen3.8-27b",
-						name: "Qwen3.8-27B (Cluster LiteLLM Standby)",
-						description: "Agile 27B dense reasoning model",
-						inputModalities: ["text"]
-					}
-				]
-			}
-		],
-		failures: []
-	};
-}
-`;
-    scContent = scContent.substring(0, idx) + injectedCatalog + scContent.substring(idxEnd);
-    fs.writeFileSync(scFile, scContent, "utf8");
-    console.log("[CONFIG] Injected buildModelCatalog cleanly");
-  }
-}
-
-// 3b. Patch dsh-client-connection (bypass isLoopbackHostname for enterprise ingress)
-const ccFile = `${baseModulesDir}/dsh-client-connection/lib/client.js`;
-if (fs.existsSync(ccFile)) {
-  let cc = fs.readFileSync(ccFile, "utf8");
-  if (cc.includes("function isLoopbackHostname(hostname) {\n\t\t\treturn true;\n\t\t}")) {
-    console.log("[CONFIG] client-connection isLoopbackHostname already patched");
-  } else {
-    cc = cc.replace(/function isLoopbackHostname\([a-zA-Z0-9_, ]*\)\s*\{[\s\S]*?Number\(part\) <= 255\);\s*\}/, "function isLoopbackHostname(hostname) {\n\t\t\treturn true;\n\t\t}");
-    cc = cc.replace(/function isLoopbackHostname\(hostname\)\s*\{\s*return true;\s*\}\$\/\.test\(part\) && Number\(part\) <= 255\);\s*\}/, "function isLoopbackHostname(hostname) {\n\t\t\treturn true;\n\t\t}");
-    fs.writeFileSync(ccFile, cc, "utf8");
-    console.log("[CONFIG] Patched client-connection isLoopbackHostname -> return true");
-  }
-}
-
-// 3c. Patch dsh-client-ui-settings (force persistence = "host" for remote enterprise ingress)
-const usFile = `${baseModulesDir}/dsh-client-ui-settings/lib/client.js`;
-if (fs.existsSync(usFile)) {
-  let us = fs.readFileSync(usFile, "utf8");
-  if (us.includes('const persistence = "host";')) {
-    console.log("[CONFIG] client-ui-settings persistence already set to host");
-  } else {
-    us = us.replace(/const persistence = ctx\.remote\.\$host\.isLoopback \? "host" : "memory";/, 'const persistence = "host";');
-    fs.writeFileSync(usFile, us, "utf8");
-    console.log("[CONFIG] Patched client-ui-settings persistence -> host");
-  }
-}
-
-// 4. Patch dsh-client-ui-settings-models to populate cluster models and resilient error fallback
-const smFile = `${baseModulesDir}/dsh-client-ui-settings-models/lib/client.js`;
-if (fs.existsSync(smFile)) {
-  let sm = fs.readFileSync(smFile, "utf8");
-  const oldInherited = `const inheritedModels = () => {
-				return schema.getPath(namespace.base, [...settingsPath, "models"]) ?? schema.nodeAtPath(root, [...settingsPath, "models"])?.meta.default;
-			};`;
-  const newInherited = `const inheritedModels = () => {
-				const fromSchema = schema.getPath(namespace.base, [...settingsPath, "models"]) ?? schema.nodeAtPath(root, [...settingsPath, "models"])?.meta.default;
-				if (Array.isArray(fromSchema) && fromSchema.length > 0) return fromSchema;
-				if (settingsPath.includes("litellm-cluster") || props.provider === "litellm-cluster") {
-					return [
-						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
-						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
-						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] },
-						{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] }
-					];
-				}
-				return fromSchema;
-			};`;
-  if (sm.includes(oldInherited)) {
-    sm = sm.replace(oldInherited, newInherited);
-  }
-
-  // Resilient fallback preventing "settings are unavailable in this browser" fatal load failure
-  if (sm.includes('status: "ready",\n\t\t\t\t\t\tview: {')) {
-    console.log("[CONFIG] client-ui-settings-models error fallback already patched");
-  } else {
-    const oldFail = `const mirrored = this.describeFace.getSnapshot();
-				if (mirrored.view === void 0) {
-					this.failLoad(generation, mirrored.error ?? "settings are unavailable in this browser");
-					return;
-				}`;
-    const newFail = `let mirrored = this.describeFace.getSnapshot();
-				if (mirrored.view === void 0) {
-					mirrored = {
-						status: "ready",
-						view: {
-							writable: true,
-							hasDocument: true,
-							namespaces: [
-								{
-									ns: "llm-pi-ai",
-									value: {
-										providers: {
-											"litellm-cluster": {
-												displayName: "Cluster LiteLLM Gateway",
-												api: "openai-completions",
-												baseURL: "http://litellm.llm.svc.cluster.local:4000/v1",
-												apiKeyEnv: "DEEPSEEK_API_KEY",
-												defaultInput: ["text", "image"],
-												models: [
-													{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
-													{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", contextWindow: 1048576, maxTokens: 8192, input: ["text", "image"] },
-													{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] },
-													{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", contextWindow: 128000, maxTokens: 4096, input: ["text"] }
-												]
-											}
-										}
-									},
-									user: {},
-									base: {}
-								}
-							]
-						},
-						error: null
-					};
-				}`;
-    if (sm.includes(oldFail)) {
-      sm = sm.replace(oldFail, newFail);
-    }
-  }
-
-  sm = sm.replace("disabled: protocols.length === 0 || !state.writable,", "disabled: false,");
-  sm = sm.replace("function providerUsable(row) {", "function providerUsable(row) {\n\t\t\treturn true;");
-
-  fs.writeFileSync(smFile, sm, "utf8");
-  console.log("[CONFIG] Patched client-ui-settings-models cleanly");
-}
-
-// 5. Patch dsh-client-ui-model-selection (ModelCatalogDirectory instant catalog)
-const msFile = `${baseModulesDir}/dsh-client-ui-model-selection/lib/client.js`;
-if (fs.existsSync(msFile)) {
-  let ms = fs.readFileSync(msFile, "utf8");
-  let idx = ms.indexOf("ModelCatalogDirectory = class");
-  if (idx !== -1) {
-    let idxEnd = ms.indexOf("};", idx) + 2;
-    const fallbackCatalog = `ModelCatalogDirectory = class {
-	ctx;
-	store = (0, _deepseek_ai_dsh_client_store.createSnapshotStore)({
-		value: {
-			default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
-			routableProviders: ["litellm-cluster"],
-			groups: [
-				{
-					id: "litellm-cluster",
-					name: "Cluster LiteLLM Gateway",
-					models: [
-						{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", description: "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)", inputModalities: ["text", "image"] },
-						{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)", inputModalities: ["text", "image"] },
-						{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", description: "Standby 4-GPU cluster model", inputModalities: ["text"] },
-						{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", description: "Agile 27B dense reasoning model", inputModalities: ["text"] }
-					]
-				}
-			],
-			failures: []
-		},
-		status: "ready",
-		error: null
-	});
-	generation = 0;
-	inflight;
-	constructor(ctx) { this.ctx = ctx; }
-	load() { return Promise.resolve(this.store.getSnapshot().value); }
-	reasoningFor(selection) {
-		if (!selection) return undefined;
-		const snapshot = this.store.getSnapshot();
-		const group = snapshot?.value?.groups?.find((g) => g.id === selection.provider);
-		const model = group?.models?.find((m) => m.id === selection.model);
-		return model?.reasoning ?? (selection.model === "deepseek-reasoner" ? { defaultEffort: "medium", efforts: [{ id: "low", name: "Low" }, { id: "medium", name: "Medium" }, { id: "high", name: "High" }] } : undefined);
-	}
-	refresh() {}
-	resetGeneration() {}
-};`;
-    ms = ms.substring(0, idx) + fallbackCatalog + ms.substring(idxEnd);
-  }
-
-  // Patch syncInputs in ModelDirectory
-  const oldSync = `syncInputs() {
-				if (this.disposed) return;
-				const catalog = this.catalog.store.getSnapshot();
-				const projected = modelSelectionProjection(this.projected.getSnapshot());
-				if (catalog.status !== "ready" || catalog.value === null || projected === void 0) {
-					if (this.resolved) {
-						if (catalog.status === "error") this.store.update((state) => {
-							state.status = "error";
-							state.error = catalog.error;
-						});
-						return;
-					}
-					this.store.set({
-						current: null,
-						routable: null,
-						groups: [],
-						failures: [],
-						status: catalog.status === "error" ? "error" : "loading",
-						error: catalog.error
-					});
-					return;
-				}
-				const current = projected.next ?? catalog.value.default;
-				this.resolved = true;
-				this.store.set({
-					current,
-					routable: catalog.value.routableProviders.includes(current.provider),
-					groups: catalog.value.groups,
-					failures: catalog.value.failures,
-					status: this.store.getSnapshot().status === "selecting" ? "selecting" : "ready",
-					error: null
-				});
-			}`;
-
-  const newSync = `syncInputs() {
-				if (this.disposed) return;
-				const catalog = this.catalog.store.getSnapshot();
-				const projected = modelSelectionProjection(this.projected?.getSnapshot?.());
-				const catVal = catalog.value ?? {
-					default: { provider: "litellm-cluster", model: "deepseek-v4.1-flash" },
-					routableProviders: ["litellm-cluster"],
-					groups: [
-						{
-							id: "litellm-cluster",
-							name: "Cluster LiteLLM Gateway",
-							models: [
-								{ id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash (1M CED MoE)", description: "Primary in-cluster model with a configured 1M context window (Vision + Tool-Use)", inputModalities: ["text", "image"] },
-								{ id: "deepseek-flash", name: "DeepSeek-Flash (V4.1-Flash Alias)", description: "DeepSeek-V4.1-Flash model alias (Vision + Tool-Use)", inputModalities: ["text", "image"] },
-								{ id: "glm-5.3-flash", name: "GLM-5.3-Flash (Cluster LiteLLM Standby)", description: "Standby 4-GPU cluster model", inputModalities: ["text"] },
-								{ id: "qwen3.8-27b", name: "Qwen3.8-27B (Cluster LiteLLM Standby)", description: "Agile 27B dense reasoning model", inputModalities: ["text"] }
-							]
-						}
-					],
-					failures: []
-				};
-				const current = projected?.next ?? catVal.default;
-				this.resolved = true;
-				this.store.set({
-					current,
-					routable: catVal.routableProviders.includes(current.provider),
-					groups: catVal.groups,
-					failures: catVal.failures,
-					status: "ready",
-					error: null
-				});
-			}`;
-
-  if (ms.includes(oldSync)) {
-    ms = ms.replace(oldSync, newSync);
-  }
-
-  // Patch waiting in ModelSelect
-  const oldWaiting = `const waiting = state.current === null && state.status === "loading";
-			const modelLabel = waiting ? t("trigger.loading") : currentChoice?.model.name ?? (state.current === null ? t("trigger.fallback") : \`\${state.current.provider}/\${state.current.model}\`);`;
-
-  const newWaiting = `const waiting = state.current === null && state.status === "loading";
-			const modelLabel = waiting ? t("trigger.loading") : currentChoice?.model.name ?? (state.current ? \`\${state.current.provider}/\${state.current.model} (catalog details unavailable)\` : "Model unavailable");`;
-
-  if (ms.includes(oldWaiting)) {
-    ms = ms.replace(oldWaiting, newWaiting);
-  }
-
-  fs.writeFileSync(msFile, ms, "utf8");
-  console.log("[CONFIG] Patched dsh-client-ui-model-selection with instant ModelCatalogDirectory and uses truthful loading and unavailable states");
-}
-
 // 6. Write valid settings.yaml into persistent storage directory
 try {
   fs.mkdirSync(dshHome, { recursive: true });
@@ -410,32 +77,6 @@ llm-pi-ai:
 } catch(e) {
   console.error(e);
   throw e;
-}
-
-// 8. Patch dsh-system-prompt with enterprise grounding and dynamic app gateway awareness
-const sysPromptFile = `${baseModulesDir}/dsh-system-prompt/lib/index.js`;
-if (fs.existsSync(sysPromptFile)) {
-  let spContent = fs.readFileSync(sysPromptFile, "utf8");
-  const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.example.com';
-  const tenantPrefix = (dshHost.split('.')[0] || 'dsh').trim();
-  const baseDomain = dshHost.includes('.') ? dshHost.substring(dshHost.indexOf('.') + 1) : 'local';
-
-  const newText = `text: "You are DeepSeek Harness (DSH), an expert software engineering assistant on private enterprise cluster infrastructure.\\n- Primary Model: DeepSeek-V4.1-Flash (1M CED MoE).\\n- Dynamic Application Reverse Proxy Gateway:\\n  When running web servers, APIs, or dashboards (e.g. Streamlit, FastAPI, Vite, Flask, Next.js) on any container port <port>, ALWAYS inform the user that their application is accessible via:\\n  • Subdomain (Root URL): https://${tenantPrefix}-<port>.${baseDomain}\\n  • Path Proxy: https://${dshHost}/proxy/<port>/\\n  NEVER instruct users to visit localhost or 127.0.0.1 directly because those are container-internal. Always provide the external HTTPS links above.\\n  WebSockets are fully supported for Streamlit and live-reload.\\n  Optional port aliases can be configured in /workspace/.ports.json.\\n- Core Invariants:\\n1. Always respond concisely, professionally, and directly to the user.\\n2. Never output unclosed thinking, meta-deliberation, prompt injection analysis, or internal self-talk.\\n3. Greet users politely and offer direct assistance with code, architecture, and debugging."`;
-
-  const oldText = 'text: "You are an AI agent powered by DeepSeek Harness."';
-  if (spContent.includes(oldText)) {
-    spContent = spContent.replace(oldText, newText);
-    fs.writeFileSync(sysPromptFile, spContent, "utf8");
-    console.log("[CONFIG] Grounded dsh-system-prompt with gateway capabilities");
-  } else if (spContent.includes('You are DeepSeek Harness (DSH)')) {
-    const startIdx = spContent.indexOf('text: "You are DeepSeek Harness (DSH)');
-    const endIdx = spContent.indexOf('debugging."', startIdx) + 11;
-    if (startIdx !== -1 && endIdx !== -1) {
-      spContent = spContent.substring(0, startIdx) + newText + spContent.substring(endIdx);
-      fs.writeFileSync(sysPromptFile, spContent, "utf8");
-      console.log("[CONFIG] Refreshed grounded dsh-system-prompt with gateway capabilities");
-    }
-  }
 }
 
 // 9. Auto-populate /root/.dsh/AGENTS.md and /workspace/AGENTS.md with dynamic gateway capabilities
@@ -513,7 +154,7 @@ if (fs.existsSync(piAiFile)) {
 		try {
 			return await attachments.readImageRequest(ref, requestImageTarget(ref, budget), signal);
 		} catch (error) {
-			console.warn(\`[DSH-LLM-PI-AI] Attachment \${ref.attachmentId} missing or unreadable; omitting: \${error.message}\`);
+			if (signal?.aborted || error?.code !== "ATTACHMENT_NOT_FOUND") throw error;
 			return null;
 		}
 	}));
@@ -524,8 +165,8 @@ if (fs.existsSync(piAiFile)) {
 	return versions;
 }`;
 
-  if (piContent.includes(oldPrepare)) {
-    piContent = piContent.replace(oldPrepare, newPrepare);
+  {
+    piContent = replaceOnce(piContent, oldPrepare, newPrepare);
   }
 
   // 10b. Patch userContent: handle omitted/missing image gracefully
@@ -564,15 +205,15 @@ if (fs.existsSync(piAiFile)) {
 			break;
 		}`;
 
-  if (piContent.includes(oldUserContent)) {
-    piContent = piContent.replace(oldUserContent, newUserContent);
+  {
+    piContent = replaceOnce(piContent, oldUserContent, newUserContent);
   }
 
   // 10c. Safe access in requiredImageOffload
   const oldOffload = `(block) => requestImages.get(block.attachment.attachmentId).bytes`;
   const newOffload = `(block) => requestImages.get(block.attachment.attachmentId)?.bytes ?? 0`;
-  if (piContent.includes(oldOffload)) {
-    piContent = piContent.replace(oldOffload, newOffload);
+  {
+    piContent = replaceOnce(piContent, oldOffload, newOffload);
   }
 
   fs.writeFileSync(piAiFile, piContent, "utf8");
@@ -590,8 +231,8 @@ if (fs.existsSync(alFile)) {
 		throw new AttachmentError("Unable to read image attachment.", "ATTACHMENT_READ_FAILED", { cause: error });
 	}`;
 
-  if (alContent.includes(oldReadImage)) {
-    alContent = alContent.replace(oldReadImage, newReadImage);
+  {
+    alContent = replaceOnce(alContent, oldReadImage, newReadImage);
     fs.writeFileSync(alFile, alContent, "utf8");
     console.log("[CONFIG] Patched dsh-attachment-local to report unavailable originals explicitly");
   }
@@ -602,7 +243,25 @@ try {
   const profileDir = `${dshHome}/profiles/web`;
   fs.mkdirSync(profileDir, { recursive: true });
   const patchYmlPath = `${profileDir}/cordis.patch.yml`;
+  const dshHost = process.env.DSH_TRUSTED_HOST || 'dsh.example.com';
+  const tenantPrefix = dshHost.split('.')[0], baseDomain = dshHost.substring(dshHost.indexOf('.') + 1);
+  const persona = `Private enterprise deployment. Managed model: deepseek-v4.1-flash (configured 1M context). Respond directly and concisely. For container apps provide https://${dshHost}/proxy/<port>/ or https://${tenantPrefix}-<port>.${baseDomain}; localhost is container-internal. Port aliases are in /workspace/.ports.json. Preserve upstream safety, tool, working-directory and access policies.`;
   const cordisContent = `# Enterprise Cordis Profile Configuration for DSH Web UI
+- id: agent-default-model
+  config:
+    provider: litellm-cluster
+    model: deepseek-v4.1-flash
+- id: session-title-llm
+  config:
+    provider: litellm-cluster
+    model: deepseek-v4.1-flash
+- id: llm-deepseek
+  disabled: true
+- id: llm-deepseek-account
+  disabled: true
+- id: system-prompt
+  config:
+    personaPrefix: ${JSON.stringify(persona)}
 - id: workspace-controller
   name: "@deepseek-ai/dsh-api-workspace-controller"
   config:
@@ -681,14 +340,15 @@ try {
 
 
 
-// Read back every mutation and reject no-op or syntactically broken output.
+// Read back every patched and intentionally preserved upstream input.
 const {spawnSync} = require('child_process');
 const applied = contract.targets.map(entry => {
  const target=path.join(baseModulesDir,entry.path),source=fs.readFileSync(target);
  const sha256=crypto.createHash('sha256').update(source).digest('hex');
- if(sha256===entry.sha256) throw new Error('Expected patch did not change target: '+entry.path);
+ if(entry.patched !== false && sha256===entry.sha256) throw new Error('Expected patch did not change target: '+entry.path);
+ if(entry.patched === false && sha256!==entry.sha256) throw new Error('Protected upstream target was changed: '+entry.path);
  if(target.endsWith('.js')){const syntax=spawnSync(process.execPath,['--check',target],{encoding:'utf8'});if(syntax.status!==0)throw new Error('Patched target syntax rejected: '+entry.path+' '+syntax.stderr);}
- return {path:entry.path,upstreamSHA256:entry.sha256,patchedSHA256:sha256};
+ return {path:entry.path,patched:entry.patched!==false,upstreamSHA256:entry.sha256,patchedSHA256:sha256};
 });
 if(fs.readFileSync(alFile,'utf8').includes('fallbackPng'))throw new Error('Synthetic missing-image fallback is forbidden');
 console.log(JSON.stringify({reviewedUpstreamVersion:contract.baselineVersion,appliedPatches:applied,scope:'Build-time compatibility overlay; no Production deployment'}));

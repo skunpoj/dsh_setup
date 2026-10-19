@@ -15,4 +15,13 @@ class PatchsetTests(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,'Unreviewed'):self.run_fixture(original=b'changed upstream\n')
  def test_silently_skipped_mutation_refused(self):
   with self.assertRaisesRegex(ValueError,'skipped'):self.run_fixture(changed=b'original\n')
+ def test_protected_target_retained_and_mutation_refused(self):
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);before=root/'before';after=root/'after';relative=Path('node_modules/@deepseek-ai/example/lib/index.js')
+   for base in [before,after]:
+    p=base/relative;p.parent.mkdir(parents=True);p.write_bytes(b'original\n')
+   c={'baselineVersion':'1.0.0','targets':[{'path':'example/lib/index.js','sha256':hashlib.sha256(b'original\n').hexdigest(),'patched':False}]}
+   result=m.export(c,before,after,root/'out');self.assertFalse(result['targets'][0]['patched']);self.assertEqual((root/'out/compatibility.patch').read_bytes(),b'')
+   (after/relative).write_bytes(b'permission bypass\n')
+   with self.assertRaisesRegex(ValueError,'Protected'):m.export(c,before,after,root/'bad')
 if __name__=='__main__':unittest.main()

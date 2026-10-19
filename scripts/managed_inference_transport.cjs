@@ -20,7 +20,8 @@ function createManagedDispatcher(base, origin) {
 // The SDK's chars/4 estimate must not silently turn a valid managed 1M
 // request into max_tokens=1. Exact full-envelope counting remains fail-closed
 // in the internal gateway. All other model/provider routes retain SDK guards.
-const SIMPLE_OPTIONS_SHA256 = '1caf860e028e22639578aba3ec8b79e5be9650c27bd3f19471c78502976555f3';
+// Reviewed @earendil-works/pi-ai 1.3.0; any dependency drift fails closed.
+const SIMPLE_OPTIONS_SHA256 = '9b3cc0ae6daa86fdc050bc0cb0f3f986401e64ccddbde6757183c9f8ad411be2';
 function patchManagedBudget(source, origin) {
   const anchor = '    const available = model.contextWindow - estimateContextTokens(context).tokens - CONTEXT_SAFETY_TOKENS;';
   if (require('node:crypto').createHash('sha256').update(source).digest('hex') !== SIMPLE_OPTIONS_SHA256 || source.split(anchor).length !== 2) {
@@ -35,10 +36,10 @@ function patchManagedBudget(source, origin) {
     }
 ${anchor}`);
 }
-function registerManagedBudget(origin) {
+function registerManagedBudget(origin, sdkPath = '/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@earendil-works/pi-ai/dist/api/simple-options.js') {
   if (origin !== 'http://litellm.llm.svc.cluster.local:4000') return;
   const {pathToFileURL} = require('node:url');
-  const target = pathToFileURL('/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@earendil-works/pi-ai/dist/api/simple-options.js').href;
+  const target = pathToFileURL(sdkPath).href;
   const {registerHooks} = require('node:module');
   if (typeof registerHooks !== 'function') throw new Error('Managed budget requires qualified Node loader hooks');
   registerHooks({load(url, context, nextLoad) {
@@ -54,4 +55,4 @@ if (process.env.DSH_MANAGED_TRANSPORT === '1') {
   registerManagedBudget(origin);
   undici.setGlobalDispatcher(createManagedDispatcher(undici.getGlobalDispatcher(), origin));
 }
-module.exports = {createManagedDispatcher, patchManagedBudget, SIMPLE_OPTIONS_SHA256};
+module.exports = {createManagedDispatcher, patchManagedBudget, registerManagedBudget, SIMPLE_OPTIONS_SHA256};

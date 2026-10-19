@@ -3,7 +3,7 @@ const {verify}=require('../scripts/verify_upstream_contract');
 const source=fs.readFileSync(path.join(__dirname,'../scripts/configure_models.js'),'utf8');
 const targets=[...new Set([...source.matchAll(/\$\{baseModulesDir\}\/([^`]+)/g)].map(m=>m[1]))].sort();
 const reviewed=JSON.parse(fs.readFileSync(path.join(__dirname,'../scripts/upstream_patch_contract.json'),'utf8'));
-assert.deepEqual(reviewed.targets.map(t=>t.path).sort(),targets,'Every current configurator target must have a reviewed contract');
+assert.deepEqual(reviewed.targets.filter(t=>t.patched!==false).map(t=>t.path).sort(),targets,'Every mutated configurator target must have a reviewed contract');
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'dsh-contract-'));
 try{
  const file=path.join(root,'node_modules/@deepseek-ai/example/lib/index.js');fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,'reviewed');
@@ -32,7 +32,7 @@ try{
 // The existing candidate job runs this suite; cover the managed transport too.
 require('./test_managed_inference_transport.js');
 
-const patchset=JSON.parse(fs.readFileSync(path.join(__dirname,'../patches/dsh-0.2.0-rc.2/manifest.json'),'utf8'));
+const patchset=JSON.parse(fs.readFileSync(path.join(__dirname,'../patches/dsh-0.2.1-rc.2/manifest.json'),'utf8'));
 assert.equal(patchset.configuratorSHA256,crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'../scripts/configure_models.js'))).digest('hex'),'Regenerate reviewed patch export after changing configurator');
-assert.equal(patchset.patchSHA256,crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'../patches/dsh-0.2.0-rc.2/compatibility.patch'))).digest('hex'));
+assert.equal(patchset.patchSHA256,crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'../patches/dsh-0.2.1-rc.2/compatibility.patch'))).digest('hex'));
 assert.deepEqual(patchset.targets.map(x=>x.path).sort(),reviewed.targets.map(x=>x.path).sort());

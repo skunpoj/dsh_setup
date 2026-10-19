@@ -24,25 +24,15 @@ vm.runInNewContext(source, {
   process: { env: { HOME: '/fixture', DSH_HOME: '/fixture/.dsh' } },
   console: { log() {}, error(error) { throw error; } }, Buffer,
 });
-function check(catalog) {
-  assert.deepEqual(Array.from(catalog.routableProviders), ['litellm-cluster']);
-  assert.deepEqual(Array.from(catalog.groups, group => group.id), ['litellm-cluster']);
-  assert.equal(catalog.default.provider, 'litellm-cluster');
-  assert(catalog.groups[0].models.some(model => model.id === 'deepseek-v4.1-flash'));
-}
-(async () => {
-  const server = {};
-  vm.runInNewContext(files.get(`${base}/dsh-api-session-controller/lib/index.js`), server);
-  check(await server.buildModelCatalog());
-  const client = { _deepseek_ai_dsh_client_store: {
-    createSnapshotStore: snapshot => ({ getSnapshot: () => snapshot }),
-  } };
-  vm.runInNewContext(files.get(`${base}/dsh-client-ui-model-selection/lib/client.js`), client);
-  check(await new client.ModelCatalogDirectory({}).load());
-  const settings = files.get('/fixture/.dsh/settings.yaml');
-  assert(settings.includes('baseURL: "http://litellm.llm.svc.cluster.local:4000/v1"'));
-  for (const [filename, content] of files) {
-    assert(!content.includes('deepseek-official'), `external catalog in ${filename}`);
-  }
-  console.log('Generated server/client catalogs expose only internal LiteLLM; default inference retained.');
-})().catch(error => { console.error(error); process.exitCode = 1; });
+// The former fake server/client catalog replacements are intentionally gone.
+assert.equal(files.get(`${base}/dsh-api-session-controller/lib/index.js`),'async function buildModelCatalog(ctx, defaultSelection) {}\n//#endregion');
+assert.equal(files.get(`${base}/dsh-client-ui-model-selection/lib/client.js`),'ModelCatalogDirectory = class {};');
+const profile=files.get('/fixture/.dsh/profiles/web/cordis.patch.yml');
+assert(profile.includes('- id: llm-deepseek\n  disabled: true'));
+assert(profile.includes('- id: llm-deepseek-account\n  disabled: true'));
+assert(profile.includes('personaPrefix:') && profile.includes('configured 1M context'));
+assert(profile.includes('provider: litellm-cluster') && profile.includes('contextWindow: 1048576'));
+assert(profile.includes('headroomTokens: 65536') && profile.includes('thresholdRatio: 0.875'));
+const settings=files.get('/fixture/.dsh/settings.yaml');
+assert(settings.includes('baseURL: "http://litellm.llm.svc.cluster.local:4000/v1"'));
+console.log('Managed catalog/persona/compaction emitted as configuration; upstream server/client code preserved.');

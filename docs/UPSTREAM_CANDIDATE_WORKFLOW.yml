@@ -2,9 +2,9 @@ name: DSH upstream candidate
 on:
   push:
     branches: [main]
-    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', .gitattributes]
+    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', 'config/**', 'plugins/**', 'k8s/**', 'package*.json', '*requirements*.txt', '*lock*', .gitattributes]
   pull_request:
-    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', .gitattributes]
+    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', 'config/**', 'plugins/**', 'k8s/**', 'package*.json', '*requirements*.txt', '*lock*', .gitattributes]
   schedule:
     - cron: '17 2 * * *'
   workflow_dispatch:
@@ -24,7 +24,6 @@ jobs:
     timeout-minutes: 30
     outputs:
       candidate: ${{ steps.detect.outputs.candidate }}
-      needs_update: ${{ steps.detect.outputs.needs_update }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -37,13 +36,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p candidate-evidence
-          python3 -m unittest discover -s tests -p test_upstream_check.py
-          node tests/test_upstream_contract.js
+          python3 -m unittest discover -s tests -p 'test_upstream*.py'
           # Push/PR CI must qualify the checked-out package pin, not an
           # unrelated new npm release whose patch contracts need review.
           args=(--event "$EVENT_NAME")
           if [ -n "$CANDIDATE_VERSION" ]; then args+=(--candidate "$CANDIDATE_VERSION"); fi
-          python3 scripts/check_upstream.py --output candidate-evidence/upstream.json "${args[@]}"
+          python3 scripts/check_upstream.py --output candidate-evidence/upstream.json --source-diff candidate-evidence/source-diff.json "${args[@]}"
           python3 - <<'PY'
           import json,os
           d=json.load(open('candidate-evidence/upstream.json'))
@@ -51,6 +49,15 @@ jobs:
               f.write('candidate='+d['candidateVersion']+'\n')
               f.write('needs_update='+str(d['candidateChangeRequired']).lower()+'\n')
           PY
+      - name: Require reviewed compatible source before executing candidate
+        run: |
+          python3 - <<'PY'
+          import json
+          d=json.load(open('candidate-evidence/source-diff.json'))
+          if not d['buildAllowed']:
+              raise SystemExit(d['status']+': '+d['nextAction'])
+          PY
+          node tests/test_upstream_contract.js
       - name: Build candidate with reviewed upstream patch contracts
         env:
           CANDIDATE: ${{ steps.detect.outputs.candidate }}
@@ -104,40 +111,3 @@ jobs:
           name: dsh-candidate-${{ github.run_id }}-${{ github.run_attempt }}
           path: candidate-evidence/
           retention-days: 30
-  propose:
-    needs: qualify
-    if: github.event_name != 'pull_request' && needs.qualify.outputs.needs_update == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Propose tested pin without overwriting existing candidates
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          CANDIDATE: ${{ needs.qualify.outputs.candidate }}
-        run: |
-          set -euo pipefail
-          branch="automation/dsh-$CANDIDATE"
-          existing=$(gh pr list --head "$branch" --state open --json number --jq 'length')
-          if [ "$existing" != 0 ]; then echo 'Existing candidate PR retained'; exit 0; fi
-          if git ls-remote --exit-code origin "refs/heads/$branch" >/dev/null 2>&1; then
-            echo 'Existing candidate branch retained; review manually'; exit 1
-          fi
-          python3 scripts/check_upstream.py --candidate "$CANDIDATE" --prepare-candidate --output /tmp/candidate.json
-          git checkout -b "$branch"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add Dockerfile
-          git commit -m "Prepare DSH $CANDIDATE candidate"
-          gh auth setup-git
-          git push origin "$branch"
-          printf 'Official package candidate %s passed the upstream target contracts, actual installed-module checks, disposable web startup/RPC/Host/auth checks and local overlay tests.\n\nEvidence: %s/%s/actions/runs/%s\n\nSource tested: %s. No auto-merge or Production deployment. Complete copied-state migration, real browser/WebSocket/tool/compaction, network/user boundaries, restart and rollback gates before release.\n' "$CANDIDATE" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_SHA" > /tmp/pr-body.txt
-          gh pr create --head "$branch" --base main --title "Prepare DSH $CANDIDATE candidate" --body-file /tmp/pr-body.txt
-

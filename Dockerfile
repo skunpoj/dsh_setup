@@ -1,6 +1,7 @@
 FROM node:22-bookworm-slim
 
-ARG DSH_VERSION=0.2.0-rc.2
+ARG DSH_VERSION=0.2.1-rc.2
+ARG PI_AI_VERSION=1.3.0
 ARG CLAUDE_CODE_VERSION=2.1.301
 ARG TRUEFORGE_VERSION=0.179.2
 ARG KILO_VERSION=7.8.12
@@ -10,6 +11,7 @@ ARG IPYKERNEL_VERSION=7.4.0
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends bash ca-certificates curl git jq krb5-user openssl procps python3 python3-pip python3-venv socat \
  && npm install -g --ignore-scripts "@deepseek-ai/dsh@${DSH_VERSION}" \
+ && npm install --prefix /usr/local/lib/node_modules/@deepseek-ai/dsh --no-save --ignore-scripts --package-lock=false "@earendil-works/pi-ai@${PI_AI_VERSION}" \
  && npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" "@truefoundry/trueforge@${TRUEFORGE_VERSION}" \
  && npm install -g "@kilocode/cli@${KILO_VERSION}" \
  && rm -rf /var/lib/apt/lists/* /root/.npm
@@ -44,10 +46,13 @@ RUN mkdir -p /etc/kilo /etc/dsh-kilo-config/kilo \
  && ln -s /usr/local/bin/kilo-managed /usr/local/bin/kilocode \
  && node /usr/local/lib/node_modules/@kilocode/cli/bin/kilo --version \
  && python3 -m unittest discover -s /opt/dsh/tests -p test_managed_kilo.py
-RUN python3 /opt/dsh/scripts/configure_managed_harnesses.py \
+RUN node /opt/dsh/tests/test_release_dependencies.js \
+ && node /opt/dsh/scripts/verify_release_dependencies.js "${DSH_VERSION}" "${PI_AI_VERSION}" \
+ && python3 /opt/dsh/scripts/configure_managed_harnesses.py \
  && node /opt/dsh/tests/test_managed_harnesses.mjs \
  && node /opt/dsh/tests/test_managed_inference_transport.js \
  && node /opt/dsh/tests/test_managed_budget.js \
+ && node /opt/dsh/tests/test_managed_budget_loader.js \
  && DSH_MANAGED_TRANSPORT=1 NODE_OPTIONS='--require /opt/dsh/scripts/managed_inference_transport.cjs' node /opt/dsh/tests/test_managed_budget_hook.mjs \
  && node /opt/dsh/scripts/verify_upstream_contract.js \
  && node /opt/dsh/scripts/configure_models.js \

@@ -15,11 +15,13 @@ class UpstreamCheckTests(unittest.TestCase):
     def run_check(self,extra=(),package_override=None,latest='0.2.0-rc.2'):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);docker=root/'Dockerfile';docker.write_text('ARG DSH_VERSION=0.2.0-rc.2\n')
-            def get(url,timeout):
+            (root/'scripts').mkdir()
+            (root/'scripts/upstream_patch_contract.json').write_text(json.dumps({'baselineVersion':'0.2.0-rc.2','targets':[]}))
+            def get(url,limit):
                 value={'latest':latest,'alpha':'0.2.1-alpha.4'} if url.endswith('/dist-tags') else {'name':'@deepseek-ai/dsh','version':url.rsplit('/',1)[1],'dist':{'integrity':'sha512-'+'A'*86+'=='}}
                 if not url.endswith('/dist-tags') and package_override:value.update(package_override)
-                return contextlib.closing(io.BytesIO(json.dumps(value).encode()))
-            with patch.object(upstream,'ROOT',root),patch.object(upstream.urllib.request,'urlopen',side_effect=get),patch.object(upstream.subprocess,'check_output',return_value='a'*40+'\trefs/heads/master\n'),patch('sys.argv',['check','--output',str(root/'result.json'),*extra]),contextlib.redirect_stdout(io.StringIO()):
+                return json.dumps(value).encode()
+            with patch.object(upstream,'ROOT',root),patch.object(upstream,'fetch',side_effect=get),patch.object(upstream.subprocess,'check_output',return_value='a'*40+'\trefs/heads/master\n'),patch('sys.argv',['check','--output',str(root/'result.json'),*extra]),contextlib.redirect_stdout(io.StringIO()):
                 upstream.main()
             return json.loads((root/'result.json').read_text()),docker.read_text()
 
@@ -27,10 +29,14 @@ class UpstreamCheckTests(unittest.TestCase):
         result,docker=self.run_check()
         self.assertFalse(result['candidateChangeRequired']);self.assertIn('0.2.0-rc.2',docker)
 
-    def test_explicit_preview_changes_only_candidate_pin(self):
-        result,docker=self.run_check(['--candidate','0.2.1-alpha.4','--prepare-candidate'])
-        self.assertTrue(result['candidateChangeRequired']);self.assertFalse(result['productionChanged'])
-        self.assertEqual(docker,'ARG DSH_VERSION=0.2.1-alpha.4\n')
+    def test_unreviewed_preview_pin_preparation_refused(self):
+        with self.assertRaisesRegex(ValueError,'reviewed complete source port'):
+            self.run_check(['--candidate','0.2.1-alpha.4','--prepare-candidate'])
+
+    def test_reviewed_pin_preparation(self):
+        result,docker=self.run_check(['--prepare-candidate'])
+        self.assertTrue(result['candidatePinPrepared'])
+        self.assertEqual(docker,'ARG DSH_VERSION=0.2.0-rc.2\n')
 
     def test_push_and_pull_request_keep_source_pin_when_latest_changes(self):
         for event in ('push', 'pull_request'):

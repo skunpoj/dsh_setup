@@ -15,10 +15,11 @@ def export(contract,pristine,patched,output):
         original=(pristine/'node_modules/@deepseek-ai'/rel).read_bytes()
         result=(patched/'node_modules/@deepseek-ai'/rel).read_bytes()
         if digest(original)!=e['sha256']:raise ValueError('Unreviewed upstream input: '+e['path'])
-        if original==result:raise ValueError('Expected mutation was skipped: '+e['path'])
+        if e.get('patched',True) and original==result:raise ValueError('Expected mutation was skipped: '+e['path'])
+        if not e.get('patched',True) and original!=result:raise ValueError('Protected upstream target was changed: '+e['path'])
         name='node_modules/@deepseek-ai/'+e['path']
         pieces.extend(difflib.unified_diff(original.decode().splitlines(keepends=True),result.decode().splitlines(keepends=True),fromfile='a/'+name,tofile='b/'+name))
-        rows.append({'path':e['path'],'upstreamSHA256':digest(original),'patchedSHA256':digest(result)})
+        rows.append({'path':e['path'],'upstreamSHA256':digest(original),'patchedSHA256':digest(result),'patched':e.get('patched',True)})
     output.mkdir(parents=True,exist_ok=True)
     data=''.join(pieces).encode();(output/'compatibility.patch').write_bytes(data)
     record={'baselineVersion':contract['baselineVersion'],'patchSHA256':digest(data),'targets':rows,'configuratorSHA256':digest((ROOT/'scripts/configure_models.js').read_bytes()),'purpose':'Review artifact, normalized dsh.example.com host; generated from official integrity-verified package targets. Runtime application uses guarded configure_models.js, not this example-host diff.'}

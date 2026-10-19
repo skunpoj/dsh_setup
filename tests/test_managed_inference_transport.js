@@ -14,4 +14,8 @@ for(const origin of ['https://github.com','http://litellm.llm.svc.cluster.local:
 assert.deepEqual(dispatcher.close('close'),['close']);assert.deepEqual(dispatcher.destroy('reason'),['reason']);
 assert.throws(()=>createManagedDispatcher(base,'http://user:pass@host:4000'));
 assert.throws(()=>createManagedDispatcher(base,'http://host/path'));
+for(const origin of ['ftp://host','http://host/?x=1','http://host/#fragment']) assert.throws(()=>createManagedDispatcher(base,origin));
+const abortReason=new Error('caller cancelled');
+const throwing=createManagedDispatcher({...base,dispatch(){throw abortReason}},'http://litellm.llm.svc.cluster.local:4000');
+assert.throws(()=>throwing.dispatch(managed,handler),error=>error===abortReason);
 console.log(JSON.stringify({passed:true,managedOriginOnly:true,callerAbortSignalPreserved:true,otherOriginsUnchanged:true}));

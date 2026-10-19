@@ -1,6 +1,16 @@
 # DSH upstream maintenance and release policy
 
-## Current release and session-recovery review — 19 October 2026
+## Candidate port and automatic source review - 19 October 2026
+
+This working candidate ports reviewed source to `0.2.1-rc.2`; Production acceptance and deployment remain separate. Earlier reviews below are historical pre-port evidence. Read the checked-out Dockerfile, current patch manifest and qualification receipts for candidate identity.
+
+Daily/manual discovery now downloads public allowlisted npm archives as data before build and compares every target in `scripts/upstream_patch_contract.json`. Root and module archives require SHA-512 verification and package identity/version checks. Exact official dependencies are resolved through a bounded graph, including transitive modules under dsh-base. Receipts distinguish compatible, changed, missing, missing-package, unresolved-version and changed-package-contract targets with expected/actual hashes. A candidate version must also match the reviewed contract before build can proceed.
+
+Detection rejects redirects, other hosts, excessive time/bytes, traversal, duplicates, links and special archive files. It never extracts or executes package code. Inspection errors produce blocked receipts. `candidate-evidence/source-diff.json` gives the paths and next action; an unreviewed release fails before Docker build. Review changed targets, adapt overlays and tests, and prepare a complete reviewed port PR. Automation never approves hashes or updates contracts.
+
+The former automatic pin-only proposal job is removed. Scheduled detection and reviewed-source qualification remain automatic with read-only permissions and checkout credentials disabled. Complete upgrade PRs require human source review. There is no automatic merge, image publication or deployment.
+
+## Historical pre-port release and session-recovery review — 19 October 2026
 
 The official npm latest/next channel is now `0.2.1-rc.2`; alpha remains `0.2.1-alpha.5`. Production and the Dockerfile remain on the qualified `0.2.0-rc.2`. Official master is `687f282e8625c6b8d11ff58211a90524be2e4317`. This supersedes the earlier statement that the pinned version still matches npm latest.
 
@@ -86,10 +96,10 @@ The expanded `.github/workflows/upstream-candidate.yml` and its [tracked referen
 
 1. Daily release checks at 02:17 UTC (09:17 ICT), manual dispatch, and checks on relevant source pushes/pull requests.
 2. Scheduled and manual discovery track npm latest by default. A manual `candidate_version` can explicitly select a preview. Push and pull-request CI instead qualify the checked-out Dockerfile pin; newer npm releases are still reported in detection evidence.
-3. A Docker candidate build even when the selected version is unchanged, so source changes exercise their own baseline. All exact-source compatibility guards remain enforced; an unreviewed scheduled candidate still fails qualification and cannot produce an upgrade proposal.
+3. A data-only source comparison runs before build. Matching reviewed candidates continue to Docker qualification; unreviewed or changed releases persist actionable receipts and fail before build.
 4. Pre-patch SHA-256 contracts for all ten upstream files our configurator mutates. The reviewed baseline hashes were derived from official npm package archives after SHA-512 integrity verification. Changed/missing targets stop the build; the automation never updates those hashes for itself.
 5. Actual installed-module syntax/budget/profile checks, disposable DSH web startup and session/model-catalog RPC, anonymous/Host denial, gateway routing and forged-header tests, package promotion, Python rollback/manifests tests, and browser admin-dashboard checks. The actual runtime smoke test has no network or Production storage. The test directory is now included in the Docker context; its earlier exclusion was incompatible with the Dockerfile's test copy.
-6. A package-pin branch and PR only after qualification succeeds. Existing branches/PRs are retained rather than overwritten. The write-capable proposal job is separate from the read-only candidate execution job.
+6. Human review of a complete source-port PR is required for upgrades. The former automatic pin-only proposal job is removed; the current workflow has no write-capable job.
 7. Thirty-day build, package, test, image-ID and browser evidence artifacts plus a workflow summary. Failure blocks the proposal and is visible as a failed Actions run; no external notification service is configured.
 8. No auto-merge, registry image publication or Production deployment in this GitHub workflow.
 

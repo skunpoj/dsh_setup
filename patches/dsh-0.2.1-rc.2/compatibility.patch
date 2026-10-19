@@ -1,0 +1,57 @@
+--- a/node_modules/@deepseek-ai/dsh-attachment-local/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-attachment-local/lib/index.js
+@@ -599,7 +599,7 @@
+ 		data = new Uint8Array(await readFile(normalizedImagePath(root, ref), { signal }));
+ 	} catch (error) {
+ 		signal?.throwIfAborted();
+-		if (error instanceof Error && "code" in error && error.code === "ENOENT") throw new AttachmentError("Attachment object is missing.", "ATTACHMENT_NOT_FOUND");
++		if (error instanceof Error && "code" in error && error.code === "ENOENT") throw new AttachmentError("Original image is unavailable; no replacement image was generated.", "ATTACHMENT_NOT_FOUND");
+ 		throw new AttachmentError("Unable to read image attachment.", "ATTACHMENT_READ_FAILED", { cause: error });
+ 	}
+ 	signal?.throwIfAborted();
+--- a/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js
+@@ -1228,6 +1228,13 @@
+ 			break;
+ 		case "image": {
+ 			const version = requestImages.get(block.attachment.attachmentId);
++			if (!version) {
++				content.push({
++					type: "text",
++					text: `[image omitted: attachment ${block.attachment?.name || block.attachment?.attachmentId} not found on host]`
++				});
++				break;
++			}
+ 			content.push({
+ 				type: "text",
+ 				text: requestImageHandleText(block.attachment, version, resolveImageAccess(block.attachment))
+@@ -1253,9 +1260,18 @@
+ 	const refs = /* @__PURE__ */ new Map();
+ 	for (const message of messages) collectImageRefs(message.content, refs);
+ 	const orderedRefs = [...refs.values()];
+-	const prepared = await Promise.all(orderedRefs.map((ref) => attachments.readImageRequest(ref, requestImageTarget(ref, budget), signal)));
++	const prepared = await Promise.all(orderedRefs.map(async (ref) => {
++		try {
++			return await attachments.readImageRequest(ref, requestImageTarget(ref, budget), signal);
++		} catch (error) {
++			if (signal?.aborted || error?.code !== "ATTACHMENT_NOT_FOUND") throw error;
++			return null;
++		}
++	}));
+ 	const versions = /* @__PURE__ */ new Map();
+-	for (const [index, ref] of orderedRefs.entries()) versions.set(ref.attachmentId, prepared[index]);
++	for (const [index, ref] of orderedRefs.entries()) {
++		if (prepared[index]) versions.set(ref.attachmentId, prepared[index]);
++	}
+ 	return versions;
+ }
+ /** Convert a projected declaration without its harness-owned activation marker. */
+@@ -1398,7 +1414,7 @@
+ 		const offloadImages = requiredImageOffload(split.messages, {
+ 			representation: "base64",
+ 			maxBytes: maxRequestImageBytes
+-		}, (block) => requestImages.get(block.attachment.attachmentId).bytes);
++		}, (block) => requestImages.get(block.attachment.attachmentId)?.bytes ?? 0);
+ 		if (offloadImages > 0) throw new LlmError(`pi-ai request images exceed the ${maxRequestImageBytes}-byte base64 bound; ${offloadImages} more oldest occurrence(s) must be offloaded.`, IMAGE_OFFLOAD_REQUIRED_CODE, { offloadImages });
+ 	}
+ 	const exactMessages = projectOffloadedImages(split.messages, (ref) => offloadedImageText(ref, resolveImageAccess(ref)));
