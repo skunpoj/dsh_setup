@@ -8,7 +8,9 @@ Enterprise Agentic Coding & Knowledge Gateway
 
 [Self-service signup and admin Internet approval](docs/SELF_SERVICE_SIGNUP.md): users create an account from the login page and receive an exclusive No Internet workspace. Internet is denied until an administrator approves it. Signup uses bounded, prepared private capacity; a full pool refuses signup rather than sharing a workspace.
 
-Managed coding clients: **Claude Code, TrueForge and Kilo CLI**, inside private DSH environments through internal LiteLLM. See [client setup, controls and qualification](docs/MANAGED_CLIENT_SUPPORT.html).
+Managed tools: **Claude Code, TrueForge, Kilo CLI and JupyterLab**, inside private DSH environments. Coding clients use the approved LiteLLM API; notebooks run in the selected private worker. See [client setup, controls and qualification](docs/MANAGED_CLIENT_SUPPORT.html).
+
+DSH, LiteLLM and the GPU server can run on different machines. The portable renderer supports a private remote GPU FQDN without deploying local GPU resources. Current managed clients retain their stable gateway alias; moving LiteLLM outside the cluster requires an approved relay or coordinated operator policy changes. See [flexible deployment, endpoint configuration and boundaries](docs/FLEXIBLE_DEPLOYMENT.html).
 
 For the consolidated DSpark decisions, failed trials, memory corrections, preparation overhead and accepted measurements, see the [inference optimization experience record](docs/INFERENCE_OPTIMIZATION_EXPERIENCE.html).
 

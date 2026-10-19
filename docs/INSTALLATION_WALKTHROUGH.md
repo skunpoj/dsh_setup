@@ -4,6 +4,8 @@ For the consolidated DSpark decisions, failed trials, memory corrections, prepar
 
 This walkthrough follows the repository's actual build, manifest-generation and inference-rendering interfaces. Run commands from the repository root in a POSIX operator shell. Windows operators can use WSL; Python-only generation also works in PowerShell. The recorded deployment and performance results appear separately under **What is deployed** and **Qualification results**.
 
+Choose the inference topology first. Components in the same cluster can occupy different nodes. For a GPU server on another machine, the portable renderer accepts `backendOrigin` and explicit private host CIDRs; it then omits local GPU/model-storage objects. If LiteLLM itself moves outside the cluster, retain the managed logical gateway through an approved relay or qualify all operator-owned client policies together. Complete the DNS, TLS, firewall and endpoint checks in the [flexible deployment guide](FLEXIBLE_DEPLOYMENT.html); a new FQDN alone does not update client policy or network authorization.
+
 ### Installation sequence and completion gates
 
 Follow steps 1–8 in order. Keep one private installation record with the source commit, chosen input values, rendered manifest hashes and acceptance results. Complete each gate before proceeding.

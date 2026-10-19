@@ -19,8 +19,8 @@
     "checkpoints/deepseek-v4.1-flash-1017.json": "e869c605ed65b94f4db62d438fea78df59abb132e23eca0d8b26afc8d10964db",
     "ci-example.yml": "553d0999a9914ab3ceaa8e108e35851364e4bb379a82395ec740a65975e371b1",
     "QUALIFICATION.md": "1bc2a97641ed44599fd3fecca595d0c88c46d196284f3e3319c25270a56ab847",
-    "README.md": "be4559570220a9bfc88d6984cacbe07f28b16042ff8a14d19c6090940b35f6ba",
-    "render.py": "0e6044bec5eb62e726cc21dbfbf7bc15b7906db11b56c4b388f1c464b6652595",
+    "README.md": "b980cbc310d292b0a25a42ccd21823b0353debb75326d9d67562fc7581b66602",
+    "render.py": "02a0f11d043a9303a460f6f67843a0d029e071597a2f6e760b543de487b1b52d",
     "runtime/context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
     "runtime/context_forwarder.py": "aa4b061f8b3609dffc79350bf47be646c1e715c4536655e1e7d9298332e5a9a2",
     "runtime/gateway_output_guard.py": "13a4fcac8054f1546b22ae9d82e0e752a8bc3b0727f4e4323078d692b90c3947",
@@ -39,8 +39,9 @@
     "tests/test_indexer_scratch_patch.py": "30d515b64cb443024c1c5b27cb03b686c93a986ced83a12136335fd8997ac29d",
     "tests/test_indexer_tile_patch.py": "518564d82f71f4b5410c34094eba29044eeb232430237a7acac6e3021fa47aa4",
     "tests/test_long_context_guard.py": "d2ad032597e3d42ed59c2d96fa06efd807f060bcca65a9109bab3661dbced434",
-    "tests/test_portable.py": "a521feee09ed479bbe243ff5e3ffd4d984646978bc8e3d6a54734191d2180e09",
-    "tests/test_qualification_python_mode.py": "6f7732e57bda5b9c71b49223dd92760f296106ed75908b5d2231be808efbe81f"
+    "tests/test_portable.py": "297074661bf7168a8943a25209387aa1e81058fa9719a3578bd0dc58b854ac9a",
+    "tests/test_qualification_python_mode.py": "6f7732e57bda5b9c71b49223dd92760f296106ed75908b5d2231be808efbe81f",
+    "settings.remote-backend.example.json": "02926c59012f3aa03f3c8156f4c18f3faf83ab29836da6010e0fde79f8878069"
   },
   "sourceHashNormalization": "UTF-8 text with LF newlines and no BOM"
 }

@@ -77,6 +77,8 @@ Read preparation latency, streaming speed and total throughput separately. A con
 
 The following operator walkthrough covers prerequisites, private inputs, images, storage, identity, routing, network policy, verification and rollback. Run it from the repository root using the stated shell. Supply site-specific values privately.
 
+DSH, LiteLLM and GPU inference need not share a machine. Choose a same-cluster Service route, a separate GPU backend FQDN, or an approved relay to remote LiteLLM. Keep the managed-client policies and No Internet boundaries consistent. See [deployment topology, endpoint forms and setup steps](FLEXIBLE_DEPLOYMENT.html).
+
 ## 9 LLM and GPU setup
 
 This final chapter covers the shared local inference stack and its client budgets. The model is shared; user workspaces and credentials are not.

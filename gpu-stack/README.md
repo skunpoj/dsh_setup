@@ -1,5 +1,18 @@
 # Portable GPU + LiteLLM + 1M setup
 
+## Model server on another machine
+
+The default renderer deploys LiteLLM and the GPU workload in one Kubernetes namespace; Kubernetes can schedule them on different nodes. To use an already qualified GPU server on another machine or cluster, copy `settings.remote-backend.example.json` into a private settings file and supply its private `backendOrigin` plus explicit `/32` or `/128` destination `backendCIDRs` instead of `modelClaim`.
+
+```sh
+python gpu-stack/render.py --settings /private/remote-backend.json --output /private/inference-remote.yaml
+kubectl apply --dry-run=server -f /private/inference-remote.yaml
+```
+
+This mode emits four objects: gateway ConfigMap, LiteLLM/forwarder Deployment, Service and boundary policy. It emits no model Deployment, GPU allocation, weights PVC or scheduler-patch workload. Remote network, TLS/trust, backend authorization and SGLang API compatibility must be qualified separately. Settings contain no credentials; existing Secret references remain in use. The example address is reserved documentation space and must be replaced.
+
+The managed DSH clients currently target the stable `litellm` Service alias, while this renderer creates `local-inference`. Operators must connect the intended logical gateway during a reviewed handover; rendering does not retarget existing workspaces. See [separate-machine deployment and all client addresses](../docs/FLEXIBLE_DEPLOYMENT.html) for remote LiteLLM routing, TLS, DNS, limits and the preserved feature set.
+
 For the consolidated DSpark decisions, failed trials, memory corrections, preparation overhead and accepted measurements, see the [inference optimization experience record](../docs/INFERENCE_OPTIMIZATION_EXPERIENCE.html).
 
 **DeepSeek-V4.1-Flash-1017 is deployed on the existing four GPUs.** The pinned checkpoint preserves 1,048,576 total tokens and DSpark block five. Actual DSH processed 1,007,752 input / 431 output tokens, with the complete correct saved answer in **27m33.97s**. All **60/60** tracked short replies passed alongside it, with a paired median of **5.11s**. The accepted cold run had zero automatic retries, allocator mapping warnings or unexpected model restarts. The corrected 128 MiB temporary score tiles retain the full KV pool; preparation is slower than the rejected 256 MiB trial. [Checkpoint setup and complete results](../docs/MODEL_UPDATE_1017.html).

@@ -1,5 +1,7 @@
 # Managed coding clients inside DSH
 
+DSH and its clients can use shared inference on another machine through the approved gateway. Current policies use the stable internal LiteLLM alias; moving that service outside the cluster needs an operator-managed relay or coordinated endpoint policy changes. OpenAI clients use `/v1`, while Claude's base origin omits that suffix. Jupyter runs locally in the private runtime and calls inference only when notebook code explicitly requests it. See [flexible deployment and client address configuration](FLEXIBLE_DEPLOYMENT.html).
+
 ## JupyterLab notebooks
 
 Run `jupyter lab` in the selected environment's terminal, then open `/proxy/8888/lab` on the same DSH site. Python notebooks use that user's workspace and existing network/permission boundary. No Internet notebooks retain central CIFS storage; Internet notebooks stay separate. See [JupyterLab usage, security and setup](JUPYTERLAB.html).

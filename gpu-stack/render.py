@@ -2,24 +2,52 @@
 import argparse
 import ast
 import hashlib
+import ipaddress
 import json
 from pathlib import Path
 import re
 import yaml
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent
 ALIASES = ['deepseek-v4.1-flash', 'deepseek-flash']
 
 def render(settings):
-    required = {'namespace', 'modelClaim', 'gatewayImage', 'credentialSecret', 'databaseSecret'}
+    remote = 'backendOrigin' in settings
+    required = {'namespace', 'gatewayImage', 'credentialSecret', 'databaseSecret'} | ({'backendOrigin','backendCIDRs'} if remote else {'modelClaim'})
     if set(settings) != required:
         raise ValueError('Exactly the documented settings are required')
-    for key in required - {'gatewayImage'}:
+    for key in required - {'gatewayImage','backendOrigin','backendCIDRs'}:
         if not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?', settings[key]):
             raise ValueError('Invalid Kubernetes name: '+key)
     if not re.fullmatch(r'[a-z0-9./_-]+@sha256:[a-f0-9]{64}', settings['gatewayImage']):
         raise ValueError('Gateway image must use an immutable digest')
     ns = settings['namespace']
+    backend = f'http://local-model.{ns}.svc.cluster.local:8000'
+    backend_port = 8000
+    destinations = [{'podSelector':{'matchLabels':{'app':'local-model'}}}]
+    if remote:
+        origin = settings['backendOrigin']
+        if not isinstance(origin,str) or re.search(r'[\s\\?#]',origin):raise ValueError('Invalid backend origin')
+        u = urlsplit(origin)
+        if u.scheme not in {'http','https'} or not u.hostname or u.username or u.password or u.path not in {'','/'} or u.query or u.fragment:
+            raise ValueError('Backend must be a plain HTTP(S) origin without credentials, path or query')
+        backend_port = u.port or (443 if u.scheme=='https' else 80)
+        if not 1 <= backend_port <= 65535:raise ValueError('Invalid backend port')
+        try:ipaddress.ip_address(u.hostname)
+        except ValueError:
+            if not all(re.fullmatch(r'[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?',label)for label in u.hostname.rstrip('.').split('.')):
+                raise ValueError('Invalid backend DNS hostname')
+        backend = origin.rstrip('/')
+        cidrs = settings['backendCIDRs']
+        if not isinstance(cidrs,list) or not cidrs:raise ValueError('Explicit backend host CIDRs required')
+        destinations=[]
+        for value in cidrs:
+            if not isinstance(value,str) or '/' not in value:raise ValueError('Backend CIDRs must be explicit host-prefix strings')
+            network=ipaddress.ip_network(value,strict=True)
+            if network.prefixlen!=network.max_prefixlen or network.is_global or network.is_loopback or network.is_multicast:
+                raise ValueError('Use explicit private backend host /32 or /128 CIDRs')
+            destinations.append({'ipBlock':{'cidr':str(network)}})
     def obj(kind, name, spec=None, **extra):
         d = {'apiVersion': 'apps/v1' if kind=='Deployment' else 'networking.k8s.io/v1' if kind=='NetworkPolicy' else 'v1',
              'kind':kind, 'metadata':{'name':name,'namespace':ns}, **extra}
@@ -44,12 +72,13 @@ def render(settings):
     # Source-addressed immutable objects allow an exact rollback without editing old content.
     digest=lambda data:hashlib.sha256(json.dumps(data,sort_keys=True).encode()).hexdigest()[:12]
     pname='local-scheduler-'+digest(patches);gname='local-gateway-'+digest(guard)
-    docs=list(yaml.safe_load_all((ROOT/'templates/model.yaml').read_text(encoding='utf-8')))
+    docs=[] if remote else list(yaml.safe_load_all((ROOT/'templates/model.yaml').read_text(encoding='utf-8')))
     for d in docs:d['metadata']['namespace']=ns
-    m=docs[0]['spec']['template']['spec']
-    for v in m['volumes']:
-        if v['name']=='model-cache':v['persistentVolumeClaim']['claimName']=settings['modelClaim']
-        if v['name']=='scheduler-patch-source':v['configMap']['name']=pname
+    if not remote:
+        m=docs[0]['spec']['template']['spec']
+        for v in m['volumes']:
+            if v['name']=='model-cache':v['persistentVolumeClaim']['claimName']=settings['modelClaim']
+            if v['name']=='scheduler-patch-source':v['configMap']['name']=pname
     secret=lambda name,key:{'name':key,'valueFrom':{'secretKeyRef':{'name':name,'key':key}}}
     mounts=[{'name':'config','mountPath':'/etc/litellm','readOnly':True}]
     security={'allowPrivilegeEscalation':False,'capabilities':{'drop':['ALL']}}
@@ -65,7 +94,7 @@ def render(settings):
       {'name':'context-forwarder','image':settings['gatewayImage'],
        'command':['python','-m','uvicorn','context_forwarder:app','--app-dir','/etc/litellm','--host','127.0.0.1','--port','4001'],
        'env':[{'name':'PYTHONPATH','value':'/etc/litellm'},
-              {'name':'DSH_TOKENIZER_URL','value':f'http://local-model.{ns}.svc.cluster.local:8000/v1/tokenize'}],
+              {'name':'DSH_TOKENIZER_URL','value':backend+'/v1/tokenize'}],
        'volumeMounts':mounts,'securityContext':security,
        'readinessProbe':{'exec':{'command':['python','-c',"import urllib.request; urllib.request.urlopen('http://127.0.0.1:4001/health', timeout=3).read()"]},'periodSeconds':10},
        'resources':{'requests':{'cpu':'500m','memory':'512Mi'},'limits':{'cpu':'4','memory':'4Gi'}}}]
@@ -80,7 +109,7 @@ def render(settings):
     policies=[obj('NetworkPolicy','local-inference-boundaries',{
       'podSelector':{'matchLabels':{'app':'local-inference'}},'policyTypes':['Ingress','Egress'],
       'ingress':[{'from':[{'podSelector':{'matchLabels':{'inference-client':'allowed'}}}], 'ports':[port(4000)]}],
-      'egress':[{'to':[peer('local-model')],'ports':[port(8000)]},
+      'egress':[{'to':destinations,'ports':[port(backend_port)]},
                 {'to':[peer('llm-database')],'ports':[port(5432)]},
                 {'to':[{'namespaceSelector':{'matchLabels':{'kubernetes.io/metadata.name':'kube-system'}},
                         'podSelector':{'matchLabels':{'k8s-app':'kube-dns'}}}],
@@ -89,6 +118,10 @@ def render(settings):
         'podSelector':{'matchLabels':{'app':'local-model'}},'policyTypes':['Ingress','Egress'],
         'ingress':[{'from':[peer('local-inference')],'ports':[port(8000)]}],'egress':[]})]
     # Namespace must exist, with a CNI that actually enforces these policies.
+    if remote:
+        # The GPU runtime is deployed and qualified on its own machine/cluster.
+        # Do not reserve GPUs, model storage or patch a remote server from here.
+        return [obj('ConfigMap',gname,immutable=True,data=guard),deployment,service,policies[0]]
     return [obj('ConfigMap',pname,immutable=True,data=patches),obj('ConfigMap',gname,immutable=True,data=guard),*docs,deployment,service,*policies]
 
 if __name__=='__main__':

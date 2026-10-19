@@ -95,6 +95,36 @@ class PortableTests(unittest.TestCase):
                     if 'configMap' in v:self.assertIn(v['configMap']['name'],cms)
         self.assertIn('local-model.isolated-test.svc.cluster.local',yaml.safe_dump_all(docs))
 
+    def test_remote_backend_has_no_local_gpu_or_weights(self):
+        s=json.loads((ROOT/'settings.remote-backend.example.json').read_text())
+        docs=module.render(s)
+        self.assertEqual(len(docs),4)
+        self.assertEqual([d['metadata']['name']for d in docs if d['kind']=='Deployment'],['local-inference'])
+        text=yaml.safe_dump_all(docs)
+        self.assertNotIn('nvidia.com/gpu',text)
+        self.assertNotIn('persistentVolumeClaim',text)
+        self.assertNotIn('local-model-boundaries',text)
+        d=next(d for d in docs if d['kind']=='Deployment')
+        c=next(c for c in d['spec']['template']['spec']['containers']if c['name']=='context-forwarder')
+        self.assertEqual(next(e['value']for e in c['env']if e['name']=='DSH_TOKENIZER_URL'),s['backendOrigin']+'/v1/tokenize')
+        p=next(d for d in docs if d['kind']=='NetworkPolicy')
+        self.assertEqual(p['spec']['egress'][0],{'to':[{'ipBlock':{'cidr':'192.0.2.40/32'}}],'ports':[{'protocol':'TCP','port':8443}]})
+
+    def test_remote_origin_and_egress_fail_closed(self):
+        s=json.loads((ROOT/'settings.remote-backend.example.json').read_text())
+        for change in [{'backendOrigin':'https://user:password@gpu.example.internal'},
+                       {'backendOrigin':'https://gpu.example.internal/v1'},
+                       {'backendOrigin':'https://gpu.example.internal?key=x'},
+                       {'backendOrigin':'https://gpu.example.internal?'},
+                       {'backendOrigin':'https://gpu.example.internal#'},
+                       {'backendOrigin':'file:///etc/passwd'},
+                       {'backendOrigin':'https://gpu.example.internal:99999'},
+                       {'backendCIDRs':[]},{'backendCIDRs':['0.0.0.0/0']},
+                       {'backendCIDRs':['10.0.0.0/8']},{'backendCIDRs':['8.8.8.8/32']},
+                       {'backendCIDRs':['127.0.0.1/32']},{'backendCIDRs':[1]},
+                       {'backendCIDRs':['10.20.30.40']},{'modelClaim':'unused-weights'}]:
+            with self.assertRaises(ValueError,msg=str(change)):module.render({**s,**change})
+
     def test_publication_hashes_and_canonical_source_drift(self):
         manifest=json.loads((ROOT/'SOURCE_MANIFEST.json').read_text(encoding='utf-8'))
         for name,expected in manifest['publicContentSha256'].items():

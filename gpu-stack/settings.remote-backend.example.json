@@ -1,0 +1,8 @@
+{
+  "namespace": "ai-workspace",
+  "gatewayImage": "ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f",
+  "credentialSecret": "local-inference-credentials",
+  "databaseSecret": "local-inference-database",
+  "backendOrigin": "https://gpu-inference.example.internal:8443",
+  "backendCIDRs": ["192.0.2.40/32"]
+}
