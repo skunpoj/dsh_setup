@@ -5,12 +5,12 @@ Use DSH in your browser to work with code, documents and analysis tools. This ma
 ## 1 Get started
 
 1. Open the DSH address supplied by your administrator. The floating **User manual** button opens this guide before sign-in.
-2. Enter your local DSH username and password. Your DSH login selects your private workspace; it is separate from an AD or Kerberos login.
+2. If you are new, select **Create account**, choose a unique username and confirm a password of at least 12 characters. Then enter your local DSH username and password. Your DSH login selects your private workspace; it is separate from an AD or Kerberos login.
 3. Leave **No Internet / Internal** selected for internal work. **Internet** is a separate environment for approved users preparing packages or working with public material.
 4. Sign in, select a workspace and start a conversation. Give the assistant a bounded task and identify the files it should use.
 5. Inspect its answer and saved outputs. Ask it to verify changes before relying on a result.
 
-New accounts currently require administrator creation and provisioned private environments. Internet permission is granted separately by an administrator. Self-service signup with automatic private-environment provisioning is not yet available.
+Anyone reaching the login page can create an account while private capacity is available. Signup assigns an exclusive No Internet/Internet runtime pair, but Internet access stays denied until an administrator grants it. A full pool refuses signup without creating an account. See [Create an account and approve Internet access](SELF_SERVICE_SIGNUP.html) for the complete flow.
 
 ### Pick the correct environment
 
@@ -46,7 +46,7 @@ The controls act at the network, execution/storage and authenticated access boun
 
 ## 5 Admin tasks and account lifecycle
 
-An administrator opens `/admin` to review accounts, enable or disable access, sign out gateway sessions and grant or revoke Internet permission. Create an account only after its private environments are provisioned. Revoking gateway access closes tracked connections; it does not cancel a tool already running inside an execution environment.
+An administrator opens `/admin` to review accounts, enable or disable access, sign out gateway sessions and grant or revoke Internet permission. Users can self-register, or an admin can create an account from available private-pair capacity. Use **Allow Internet** or **Disable Internet** beside an account to approve or revoke that separate permission. Revoking gateway access closes tracked connections; it does not cancel a tool already running inside an execution environment.
 
 Use the usage panels to distinguish stored histories from active browser sessions, queued messages from running agents, and cumulative token counts from decoding speed. Storage figures belong to the selected runtime scope. Recorded token rates are not live GPU utilization and do not include every separately launched client.
 

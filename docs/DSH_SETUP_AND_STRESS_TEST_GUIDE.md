@@ -212,7 +212,7 @@ kubectl -n "$APP_NS" apply -f "$PRIVATE_DIR/private-users.site.yaml"
 kubectl -n "$APP_NS" get deployments,pods,pvc,services,networkpolicies
 ```
 
-The two `.site.yaml` bundles are operator-prepared outputs, not files supplied by this repository. Resolve every referenced resource before this step. Configure the gateway's trusted host and TLS, default No Internet selection, server-side private routing and disabled registration. Grant Internet separately per named account. Seed the initial administrator through the protected account-store procedure; do not introduce a factory password. Use Admin → User management for additional already-provisioned private runtimes.
+The two `.site.yaml` bundles are operator-prepared outputs, not files supplied by this repository. Resolve every referenced resource before this step. Configure the gateway's trusted host and TLS, default No Internet selection and private routing. Keep signup disabled until empty private capacity passes the [self-service signup acceptance procedure](SELF_SERVICE_SIGNUP.html), then enable Create account. Grant Internet separately per named account. Seed the administrator through the protected account-store procedure; do not introduce a factory password.
 
 ### Publish the on-site user manual
 
@@ -364,7 +364,7 @@ Choose the intended environment before starting. The examples below cover common
 
 ### 1 Sign in and choose the environment
 
-1. Open the main DSH address and sign in with your provisioned local account.
+1. Open the main DSH address. If you are new, use Create account and set a unique username and a password of at least 12 characters. Then sign in to your private workspace.
 2. Leave No Internet / Internal selected for protected local work. Choose Internet only for its intended staging work.
 3. Open the intended workspace or create a new session. Verify which environment you are using before adding files or authenticating to connected services.
 4. To switch environments, logout and sign in again. To change a password, use the authenticated password-change flow; do not put credentials in chat or project files.
@@ -464,7 +464,7 @@ DSH sessions/attachments and managed-client state are distinct stores. Claude us
 
 ### User and audit administration
 
-Operators provision private runtime mappings through the identity and routing procedure. Administrators then manage provisioned local accounts through the dashboard. Account changes require an authenticated administrator session and a session-bound management token; ordinary users and cross-origin requests cannot perform these actions. Passwords are stored as salted scrypt records. Disabling access preserves ownership, files and histories; removing workloads or data is a separate operator procedure.
+Operators replenish qualified private runtime capacity. Users can self-register into an exclusive pair, and administrators manage accounts and Internet grants through the dashboard. See the [signup and approval guide](SELF_SERVICE_SIGNUP.html). Account changes require an authenticated administrator session and a session-bound management token; ordinary users and cross-origin requests cannot perform these actions. Passwords are stored as salted scrypt records. Disabling access preserves ownership, files and histories; removing workloads or data is a separate operator procedure.
 
 The access audit records bounded metadata such as time, event, user and environment. It is not a terminal-command recorder or an archive of all prompts/responses. Additional-instance access projections and main gateway events are combined under the admin boundary. Retention capacity, off-platform archival and remote-job correlation need the defined operational policy.
 

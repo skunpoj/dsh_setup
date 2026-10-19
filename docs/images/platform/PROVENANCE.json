@@ -34,8 +34,8 @@
     {
       "file": "manual-login.png",
       "capturedDate": "2026-10-19",
-      "sha256": "2777d0c6aa51fe9d3b624e8cd80b6a6b0fe7607109f460cf8bec5e6f73951270",
-      "kind": "Page-content capture of the current gateway source in a disposable local process with an empty account store; floating User manual control; no personal credentials or browser chrome."
+      "sha256": "f868a0ee1886a4a363afe9ffc106e946d27fde19d41d7314ace34429e600d8cf",
+      "kind": "Current gateway source in a disposable local process with an empty account store and prepared test pool; Create account tab and floating manual button; no credentials or browser chrome."
     }
   ],
   "authenticatedWorkingSessionsCaptured": true,

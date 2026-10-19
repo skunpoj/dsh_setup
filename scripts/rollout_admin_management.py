@@ -22,11 +22,27 @@ def main():
     ap.add_argument('--expected-source-sha256', required=True)
     ap.add_argument('--snapshot', type=Path, help='Optional reviewed status JSON; replace it in the same gateway-only handover')
     ap.add_argument('--manual-dir', help='Already published versioned manual directory on the gateway auth volume')
+    ap.add_argument('--signup-config', type=Path, help='Reviewed read-only signup pool/token mounts; no runtime data mounts or management token')
+    ap.add_argument('--signup-acceptance', type=Path, help='Matching real signup/isolation/persistence result required before enabling signup')
     args = ap.parse_args()
     if args.manual_dir:
         import re
         if not re.fullmatch(r'/auth/manuals/[a-f0-9]{16}', args.manual_dir):
             raise ValueError('Expected a versioned operator-published manual directory')
+    signup = json.loads(args.signup_config.read_text(encoding='utf-8')) if args.signup_config else None
+    if signup:
+        import re
+        if not isinstance(signup.get('registrationEnabled'), bool):
+            raise ValueError('Explicit signup state required')
+        if signup['registrationEnabled'] and signup.get('poolFile') != '/signup-pool/live.json':
+            raise ValueError('Publish the reviewed live pool before enabling registration')
+        for v in signup['volumes']:
+            if not re.fullmatch(r'signup-[a-z0-9-]+', v['name']) or set(v)-{'name','persistentVolumeClaim','configMap'} or ('persistentVolumeClaim' in v)==('configMap' in v):
+                raise ValueError('Only bounded signup configuration and token claims may be added')
+        names={v['name'] for v in signup['volumes']}
+        for m in signup['mounts']:
+            if m['name'] not in names or m.get('readOnly') is not True or not (m['mountPath']=='/signup-pool' or re.fullmatch(r'/runtime-tokens/signup/[a-f0-9]{16}/(secure|internet)',m['mountPath'])):
+                raise ValueError('Signup gateway mounts must be read-only configuration or launch tokens')
 
     def kube(*parts, data=None):
         p = subprocess.run(['kubectl', '-n', args.namespace, '--request-timeout=30s', *parts],
@@ -38,6 +54,12 @@ def main():
     source = (ROOT/'scripts/auth_proxy.js').read_text(encoding='utf-8')
     helper = (ROOT/'scripts/password_store.js').read_text(encoding='utf-8')
     source_hash = hashlib.sha256(source.encode()).hexdigest()
+    if signup and signup['registrationEnabled']:
+        if not args.signup_acceptance:
+            raise ValueError('Matching real signup acceptance is required before activation')
+        accepted=json.loads(args.signup_acceptance.read_text(encoding='utf-8'))
+        if accepted.get('status')!='passed' or accepted.get('gatewaySourceSHA256')!=source_hash or not accepted.get('accountAssignmentSurvivedGatewayRestart') or any(accepted.get(k,0)<n for k,n in {'defaultInternetDenials':2,'actualDshReplies':2,'crossUserHistoryDenials':4,'terminalReadbacks':4}.items()):
+            raise ValueError('Signup acceptance is incomplete or belongs to another gateway source')
     snapshot_text=args.snapshot.read_text(encoding='utf-8')if args.snapshot else None
     snapshot=json.loads(snapshot_text)if snapshot_text is not None else None
     if snapshot is not None:
@@ -52,10 +74,15 @@ def main():
     read_hash = "console.log(require('crypto').createHash('sha256').update(require('fs').readFileSync('/gateway-source/auth_proxy.js')).digest('hex'))"
     if kube('exec', 'deploy/'+args.deployment, '--', 'node', '-e', read_hash).strip() != args.expected_source_sha256:
         raise RuntimeError('Live gateway changed; review before replacing')
-    store_probe = "const f=require('fs'),c=require('crypto'),u=JSON.parse(f.readFileSync(process.env.DSH_USER_STORE_PATH));console.log(JSON.stringify({count:Object.keys(u).length,hash:c.createHash('sha256').update(JSON.stringify(Object.keys(u).sort().map(k=>[k,u[k]]))).digest('hex')}))"
+    store_probe = "const f=require('fs'),c=require('crypto'),u=JSON.parse(f.readFileSync(process.env.DSH_USER_STORE_PATH)),digest=x=>c.createHash('sha256').update(x).digest('hex');console.log(JSON.stringify({count:Object.keys(u).length,hash:digest(JSON.stringify(Object.keys(u).sort().map(k=>[k,u[k]]))),records:Object.fromEntries(Object.keys(u).map(k=>[k,digest(JSON.stringify(u[k]))]))}))"
     def store():
         return json.loads(kube('exec', 'deploy/'+args.deployment, '--', 'node', '-e', store_probe))
     original_store = store()
+    def original_accounts_preserved():
+        current=store()
+        if signup and signup['registrationEnabled']:
+            return all(current['records'].get(k)==v for k,v in original_store['records'].items())
+        return current==original_store
     record = {'timeUTC': datetime.now(timezone.utc).isoformat(), 'gatewaySourceSHA256': source_hash,
               'modelOrRuntimeRestartRequested': False, 'beforeAccounts': original_store['count']}
     changed = False
@@ -64,6 +91,18 @@ def main():
         kube('apply', '-f', '-', data=json.dumps({'apiVersion': 'v1', 'kind': 'ConfigMap', 'immutable': True,
              'metadata': {'name': name}, 'data': {'auth_proxy.js': source, 'password_store.js': helper}}))
         template = json.loads(json.dumps(before['spec']['template']))
+        if signup:
+            pod=template['spec'];container=pod['containers'][0]
+            if pod.get('automountServiceAccountToken') is not False or before['spec']['replicas']!=1:
+                raise RuntimeError('Signup allocation requires a single non-privileged gateway writer')
+            names={v['name'] for v in signup['volumes']}
+            pod['volumes']=[v for v in pod['volumes'] if not v['name'].startswith('signup-')]+signup['volumes']
+            container['volumeMounts']=[m for m in container['volumeMounts'] if not m['name'].startswith('signup-')]+signup['mounts']
+            container['env']=[e for e in container['env'] if e['name'] not in {'DSH_ALLOW_REGISTRATION','DSH_SIGNUP_POOL_FILE'}]
+            container['env'].append({'name':'DSH_ALLOW_REGISTRATION','value':str(signup['registrationEnabled']).lower()})
+            if signup.get('poolFile'):
+                container['env'].append({'name':'DSH_SIGNUP_POOL_FILE','value':signup['poolFile']})
+            record['selfServiceRegistrationEnabled']=signup['registrationEnabled']
         if args.manual_dir:
             env=template['spec']['containers'][0].setdefault('env',[])
             env[:]=[e for e in env if e['name']!='DSH_MANUAL_DIR']
@@ -91,11 +130,16 @@ def main():
             if json.loads(kube('exec','deploy/'+args.deployment,'--','node','-e',read))!=snapshot:
                 raise RuntimeError('Mounted model/environment status differs')
             record['snapshotContentVerified']=True
-        if store() != original_store:
+        if not original_accounts_preserved():
             raise RuntimeError('Account content changed unexpectedly; preserve current store and investigate')
-        probe = (ROOT/'scripts/verify_hashed_gateway_live.js').read_text(encoding='utf-8')
+        if signup and signup['registrationEnabled']:
+            # Once public signup is active, never run another process that
+            # rewrites the account file; the gateway remains its sole writer.
+            probe="""const h=require('http');function r(path,method='GET',body=''){return new Promise((ok,no)=>{const q=h.request({host:'127.0.0.1',port:3080,path,method,headers:{host:process.env.DSH_TRUSTED_HOST,'Content-Type':'application/x-www-form-urlencoded'}},s=>{let text='';s.on('data',b=>text+=b);s.on('end',()=>ok({status:s.statusCode,text}));});q.setTimeout(10000,()=>q.destroy(Error('timeout')));q.on('error',no);q.end(body);});}(async()=>{const p=await r('/login');if(!p.text.includes('id="tab-register"'))throw Error('Signup tab missing');const x=await r('/login','POST','username=admin&password=invalid-synthetic-verification');if(x.status!==401)throw Error('Incorrect password accepted');console.log(JSON.stringify({liveCreateAccountTabVisible:true,wrongPasswordDenied:true,accountStoreWritesByProbe:0,authenticatedSignupQualifiedOnMatchingCandidate:true}));})().catch(e=>{console.error(e.message);process.exitCode=1;});"""
+        else:
+            probe = (ROOT/'scripts/verify_hashed_gateway_live.js').read_text(encoding='utf-8')
         record['liveAuthChecks'] = json.loads(kube('exec', '-i', 'deploy/'+args.deployment, '--', 'node', '-', data=probe))
-        if store() != original_store:
+        if not original_accounts_preserved():
             raise RuntimeError('Account probe did not preserve original accounts')
         record.update(status='passed', accountContentPreserved=True, configMap=name,
                       positiveAdminFlow='Disposable-account browser/HTTP suite; not a live administrator login')

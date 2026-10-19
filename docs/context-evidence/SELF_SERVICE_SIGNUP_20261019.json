@@ -1,0 +1,40 @@
+{
+  "scope": "Loopback candidate using deployed gateway code and four real empty private runtimes",
+  "accountsCreated": 2,
+  "nativeSessions": 4,
+  "crossUserHistoryDenials": 4,
+  "crossEnvironmentHistoryDenials": 4,
+  "defaultInternetDenials": 2,
+  "ordinaryAdminDenials": 2,
+  "terminalWrites": 4,
+  "terminalReadbacks": 4,
+  "actualDshReplies": 2,
+  "fullPoolRefused": true,
+  "adminInternetRevocation": true,
+  "accountAssignmentSurvivedGatewayRestart": true,
+  "status": "passed",
+  "gatewaySourceSHA256": "856de0fd82dfa40cda2275774e5d0d6263d4aeb759e0a8a72ac8435cb9d86c02",
+  "date": "2026-10-19",
+  "publicPrivatePairsAtPublication": 4,
+  "noInternetRuntimePublicDomainDirectIpAndPeerDenials": 4,
+  "internetRuntimePublicHttps200": 4,
+  "publicPoolEmptyNativeHistories": 8,
+  "temporaryTestRuntimesRetired": 4,
+  "browserCreateAccountFormPassed": true,
+  "liveSelfRegistrationEnabled": true,
+  "originalAccountRecordsPreserved": true,
+  "liveActivationAuthenticationChecks": {
+    "liveCreateAccountTabVisible": true,
+    "wrongPasswordDenied": true,
+    "accountStoreWritesByProbe": 0,
+    "authenticatedSignupQualifiedOnMatchingCandidate": true
+  },
+  "publicIngressRegistrationValidationPassed": true,
+  "invalidRegistrationCreatedAccount": false,
+  "liveDocumentationFilesHashVerified": 18,
+  "liveResponsiveViewports": [
+    1440,
+    768,
+    390
+  ]
+}

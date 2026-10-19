@@ -169,7 +169,7 @@ async function adminTelemetry() {
   if(telemetryCache && Date.now()-telemetryCache.sampledAt<15000)return {...telemetryCache.public,storage:capacityProjection()};
   if(telemetryPending)return telemetryPending;
   telemetryPending=(async()=>{
-    const targets=USER_TARGETS ? Object.entries(USER_TARGETS).flatMap(([user,environments])=>
+    const targets=USER_TARGETS ? Object.entries(allUserTargets()).flatMap(([user,environments])=>
       Object.entries(environments).filter(([environment])=>['secure','internet'].includes(environment)).map(([environment,target])=>({user,environment,target}))) : [];
     if(targets.length>128)throw new Error('Too many provisioned runtime targets');
     const samples=new Array(targets.length);let cursor=0;
@@ -240,7 +240,7 @@ function renderAdminDashboard() {
 <style>body{font:16px/1.6 system-ui;background:#f1f5f9;color:#172033;margin:0}main{max-width:1100px;margin:auto;padding:32px}a{color:#075985}header{display:flex;gap:24px;align-items:center;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}section{background:white;border:1px solid #cbd5e1;border-radius:12px;padding:20px;margin:18px 0}h1,h2{line-height:1.2}strong{font-size:24px}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0}.muted{color:#475569}.notice{border-left:5px solid #d97706}button{padding:8px 16px;cursor:pointer}</style>
 <main><header><h1>DSH Admin overview</h1><a href="/">Back to DSH</a><a href="/logout">Logout</a><button id="refresh">Refresh</button></header><p id="error" role="alert"></p><p id="time" class="muted"></p>
 <div class="cards"><section>Registered accounts<br><strong id="accounts">—</strong></section><section>Main gateway browser sessions<br><strong id="sessions">—</strong><div id="sessionDetail"></div></section><section>User routing<br><strong id="routing">—</strong></section></div>
-<section><h2>User management</h2><p>Manage access to existing private runtimes. Disabling an account preserves its files and history. Sign out closes browser and terminal connections; it does not cancel already-running tools.</p><p id="userMessage" role="status"></p><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Role</th><th>Status</th><th>Environments</th><th>Sessions</th><th>Actions</th></tr></thead><tbody id="users"></tbody></table></div><form id="createUser"><h3>Create a provisioned account</h3><label>Identity <select id="newUser" required></select></label> <label>Initial password <input id="newPassword" type="password" minlength="12" maxlength="1024" autocomplete="new-password" required></label> <button id="createButton">Create account</button></form><p id="provisionHelp">New identities require operator-provisioned private environments. Administrator roles are managed by the operator.</p></section>
+<section><h2>User management</h2><p>Manage access to existing private runtimes. Disabling an account preserves its files and history. Sign out closes browser and terminal connections; it does not cancel already-running tools.</p><p id="userMessage" role="status"></p><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Role</th><th>Status</th><th>Environments</th><th>Sessions</th><th>Actions</th></tr></thead><tbody id="users"></tbody></table></div><form id="createUser"><h3>Create account</h3><label>Identity ${SIGNUP_POOL ? '<input id="newUser" pattern="[a-z0-9_.-]{3,30}" minlength="3" maxlength="30" required>' : '<select id="newUser" required></select>'}</label> <label>Initial password <input id="newPassword" type="password" minlength="12" maxlength="1024" autocomplete="new-password" required></label> <button id="createButton">Create account</button></form><p id="provisionHelp">${SIGNUP_POOL ? 'New accounts receive an exclusive prepared workspace. Capacity: <span id="signupCapacity">—</span>. Internet requires a separate approval.' : 'New identities require operator-provisioned private environments.'} Administrator roles are managed by the operator.</p></section>
 <section><h2>DSH usage and activity</h2><p id="usageFreshness">Loading runtime summaries…</p><div class="cards"><div>Stored conversations<br><strong id="usageSessions">—</strong></div><div>Running DSH agents<br><strong id="usageAgents">—</strong></div><div>Queued DSH messages<br><strong id="usageQueued">—</strong></div><div>Recorded turns / LLM steps<br><strong id="usageTurns">—</strong></div><div>Accumulated input / output tokens<br><strong id="usageTokens">—</strong></div><div>All-history decode tokens/sec<br><strong id="usageDecode">—</strong></div><div>Recent conversation decode tokens/sec<br><strong id="usageRecentDecode">—</strong></div><div>Recent output tokens/sec<br><strong id="usageRate">—</strong></div></div><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Environment</th><th>Agents</th><th>Conversations</th><th>Turns</th><th>LLM steps</th><th>Input tokens</th><th>Output tokens</th><th>Recorded decode tok/sec</th><th>Workspace / durable files GiB</th><th>Local state used / capacity GiB</th></tr></thead><tbody id="usageRows"></tbody></table></div><p class="muted">Stored totals include imported or copied histories. Decode speed uses recorded decode time; recent output rate uses changes between samples. This panel covers DSH application sessions, not independent terminal-client accounting. Conversation text, files and credentials are excluded.</p><p id="storageFreshness" class="muted"></p></section>
 <section class="notice"><h2>Infrastructure observation</h2><p id="freshness"></p><p>Usage is sampled from runtime summaries. Account/browser-session counts and routing are current gateway values. The environment health, model limits and recorded performance below are an operator snapshot. Browser logins and conversations are separate counts.</p></section>
 <section><h2>Execution environments</h2><div style="overflow:auto"><table><thead><tr><th>Environment</th><th>Recorded readiness</th><th>Storage</th><th>Recorded network behavior</th></tr></thead><tbody id="environments"></tbody></table></div></section>
@@ -249,7 +249,7 @@ function renderAdminDashboard() {
 const put=(id,value)=>document.getElementById(id).textContent=value;
 let managementToken='';
 async function userAction(action,user,password){try{const body=new URLSearchParams({action,user});if(password)body.set('password',password);const r=await fetch('/api/admin/users',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':managementToken},body});const d=await r.json();if(!r.ok)throw Error(d.error||'Account update failed.');put('userMessage',action+' completed for '+user+'.');await refreshUsers();await refresh();}catch(e){put('userMessage',e.message);}}
-async function refreshUsers(){try{const r=await fetch('/api/admin/users',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('User management unavailable.');const d=await r.json();managementToken=d.csrfToken;const root=document.getElementById('users');root.replaceChildren();for(const u of d.users){const tr=document.createElement('tr');for(const value of [u.user,u.role,u.enabled?'Enabled':'Disabled',u.environments.join(', '),u.sessions]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(u.role!=='Administrator'){for(const action of [u.enabled?'disable':'enable','revoke',u.internetAllowed?'deny-internet':'allow-internet']){const b=document.createElement('button');b.type='button';b.textContent=action==='revoke'?'Sign out':action==='disable'?'Disable':action==='allow-internet'?'Allow Internet':action==='deny-internet'?'Disable Internet':'Enable';b.addEventListener('click',()=>{if(confirm(b.textContent+' '+u.user+'?'))userAction(action,u.user);});td.append(b);}}else td.textContent='Operator-managed';tr.append(td);root.append(tr);}const select=document.getElementById('newUser');select.replaceChildren();for(const user of d.provisionedIdentities){const opt=document.createElement('option');opt.value=user;opt.textContent=user;select.append(opt);}document.getElementById('createButton').disabled=!d.provisionedIdentities.length;}catch(e){put('userMessage',e.message);}}
+async function refreshUsers(){try{const r=await fetch('/api/admin/users',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('User management unavailable.');const d=await r.json();managementToken=d.csrfToken;const root=document.getElementById('users');root.replaceChildren();for(const u of d.users){const tr=document.createElement('tr');for(const value of [u.user,u.role,u.enabled?'Enabled':'Disabled',u.environments.join(', '),u.sessions]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(u.role!=='Administrator'){for(const action of [u.enabled?'disable':'enable','revoke',u.internetAllowed?'deny-internet':'allow-internet']){const b=document.createElement('button');b.type='button';b.textContent=action==='revoke'?'Sign out':action==='disable'?'Disable':action==='allow-internet'?'Allow Internet':action==='deny-internet'?'Disable Internet':'Enable';b.addEventListener('click',()=>{if(confirm(b.textContent+' '+u.user+'?'))userAction(action,u.user);});td.append(b);}}else td.textContent='Operator-managed';tr.append(td);root.append(tr);}const select=document.getElementById('newUser');if(select.tagName==='SELECT'){select.replaceChildren();for(const user of d.provisionedIdentities){const opt=document.createElement('option');opt.value=user;opt.textContent=user;select.append(opt);}}const capacity=document.getElementById('signupCapacity');if(capacity)capacity.textContent=d.signupWorkspacesAvailable+' available';document.getElementById('createButton').disabled=select.tagName==='SELECT'?!d.provisionedIdentities.length:!(d.signupWorkspacesAvailable>0||d.provisionedIdentities.length);}catch(e){put('userMessage',e.message);}}
 document.getElementById('createUser').addEventListener('submit',e=>{e.preventDefault();const field=document.getElementById('newPassword');const password=field.value;field.value='';userAction('create',document.getElementById('newUser').value,password);});
 function list(id,values){const root=document.getElementById(id);root.replaceChildren();for(const value of values){const li=document.createElement('li');li.textContent=value;root.append(li);}}
 async function refresh(){try{const r=await fetch('/api/admin/summary',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('Admin access unavailable ('+r.status+').');const d=await r.json();put('error','');put('time','Gateway read at '+d.generatedAt);put('accounts',d.registeredAccounts);put('sessions',d.activeBrowserSessions.secure+d.activeBrowserSessions.internet);put('sessionDetail','No Internet: '+d.activeBrowserSessions.secure+' · Internet: '+d.activeBrowserSessions.internet);put('routing',d.privateUserRouting?'Per user':'Shared pools');put('freshness',d.snapshot.observedAt?'Snapshot observed at '+d.snapshot.observedAt+'. Refresh does not rerun infrastructure tests.':'No snapshot available. Infrastructure status is unknown.');const root=document.getElementById('environments');root.replaceChildren();for(const e of d.snapshot.environments){const tr=document.createElement('tr');for(const text of [e.name,e.ready?'Ready at observation':'Not verified ready',e.storage,e.network]){const td=document.createElement('td');td.textContent=text;tr.append(td);}root.append(tr);}const m=d.snapshot.model;put('model',m?(m.checkpoint?'Checkpoint: '+m.checkpoint+(m.revision?' ('+m.revision.slice(0,12)+')':'')+' · ':'')+'Backend context: '+m.backendContext+' tokens · DSH/LiteLLM budget: '+m.userContext+' tokens · Running-request ceiling: '+m.concurrencyCeiling+(m.longConcurrencyCeiling?' · Requests above 128K input: '+m.longConcurrencyCeiling+' at a time':'')+(m.maxOutputTokens?' · Maximum output: '+m.maxOutputTokens+' tokens':'')+(m.observedAt?' · Model observed at '+m.observedAt:''):'No recorded limits.');list('performance',d.snapshot.performance);list('gaps',d.snapshot.gaps);}catch(e){put('error',e.message);}}
@@ -295,11 +295,13 @@ const ENVIRONMENT_TARGETS = {
 // Enabling isolation makes missing identities fail closed rather than share a pool.
 const USER_TARGETS = process.env.DSH_USER_TARGETS_FILE
   ? JSON.parse(fs.readFileSync(process.env.DSH_USER_TARGETS_FILE, 'utf8')) : null;
-// Pilot accounts are provisioned by an administrator. Isolated routing always
-// disables registration, including when a legacy opt-in variable is present.
+// Signup can assign only an operator-qualified, empty private runtime pair.
+// The gateway has no Kubernetes management token and never falls back to a pool.
 const LEGACY_OWNER = !USER_TARGETS ? (process.env.DSH_SINGLE_USER || process.env.AUTH_USER || '') : '';
 const LEGACY_INTERNET_ONLY = !USER_TARGETS && Boolean(process.env.AUTH_USER);
-const ALLOW_REGISTRATION = !USER_TARGETS && !LEGACY_OWNER && process.env.DSH_ALLOW_REGISTRATION === 'true';
+const SIGNUP_POOL = process.env.DSH_SIGNUP_POOL_FILE
+  ? JSON.parse(fs.readFileSync(process.env.DSH_SIGNUP_POOL_FILE, 'utf8')) : null;
+const ALLOW_REGISTRATION = Boolean(USER_TARGETS && SIGNUP_POOL && !LEGACY_OWNER && process.env.DSH_ALLOW_REGISTRATION === 'true');
 if (USER_TARGETS) {
   for (const [user, targets] of Object.entries(USER_TARGETS)) {
     if (!/^[a-z0-9_\-.]{3,30}$/.test(user)) throw new Error('Invalid provisioned identity');
@@ -312,10 +314,60 @@ if (USER_TARGETS) {
     }
   }
 }
+if (SIGNUP_POOL) {
+  if (!USER_TARGETS || !SIGNUP_POOL.slots || Array.isArray(SIGNUP_POOL.slots) || Object.keys(SIGNUP_POOL.slots).length>32) throw Error('Invalid signup pool');
+  const hosts=new Set(Object.values(USER_TARGETS).flatMap(v=>Object.values(v).map(t=>t.host)));
+  const tokens=new Set(Object.values(USER_TARGETS).flatMap(v=>Object.values(v).map(t=>t.tokenFile)));
+  for(const [slot,targets] of Object.entries(SIGNUP_POOL.slots)) {
+    if(!/^[a-z0-9-]{3,40}$/.test(slot) || Object.keys(targets).sort().join(',')!=='internet,secure')throw Error('Invalid signup slot');
+    for(const target of Object.values(targets)) {
+      if(!target || !/^[a-zA-Z0-9.-]+$/.test(target.host) || target.port!==3081 ||
+        !/^\/runtime-tokens\/[a-zA-Z0-9_./-]+$/.test(target.tokenFile) || target.tokenFile.split('/').includes('..') ||
+        hosts.has(target.host) || tokens.has(target.tokenFile))throw Error('Signup runtime must be exclusive');
+      hosts.add(target.host);tokens.add(target.tokenFile);
+    }
+  }
+}
+function privateTargetsFor(user, users=loadUsers()) {
+  if(USER_TARGETS && Object.hasOwn(USER_TARGETS,user))return USER_TARGETS[user];
+  const slot=Object.hasOwn(users,user)&&users[user].runtimeSlot;
+  if(!slot || !SIGNUP_POOL || !Object.hasOwn(SIGNUP_POOL.slots,slot) ||
+    Object.values(users).filter(u=>u.runtimeSlot===slot).length!==1)return null;
+  return SIGNUP_POOL.slots[slot];
+}
+function allUserTargets() {
+  const users=loadUsers(),result={...USER_TARGETS};
+  for(const user of Object.keys(users)){const targets=privateTargetsFor(user,users);if(targets)result[user]=targets;}
+  return result;
+}
+function freeSignupSlots(users=loadUsers()) {
+  const used=new Set(Object.values(users).map(u=>u.runtimeSlot).filter(Boolean));
+  return SIGNUP_POOL ? Object.keys(SIGNUP_POOL.slots).filter(slot=>!used.has(slot)) : [];
+}
+function newAccountRecord(users,user,password) {
+  if(ADMIN_USERS.has(user)||['__proto__','constructor','prototype'].includes(user)||Object.hasOwn(users,user))return {status:409,error:'Account is reserved or already exists.'};
+  if(password.length<12||Buffer.byteLength(password)>1024||password!==password.trim())return {status:400,error:'Use a password of at least 12 characters without surrounding spaces.'};
+  if(USER_TARGETS && Object.hasOwn(USER_TARGETS,user) && USER_TARGETS[user].secure && USER_TARGETS[user].internet)
+    return {record:{...hashPassword(password),internetAllowed:false}};
+  if(!SIGNUP_POOL)return {status:409,error:'Provision both private environments before creating this account.'};
+  const slot=freeSignupSlots(users)[0];
+  if(!slot)return {status:503,error:'No private workspace is available. Please contact the administrator.'};
+  return {record:{...hashPassword(password),internetAllowed:false,runtimeSlot:slot,createdAt:new Date().toISOString()}};
+}
+const registrationAttempts=new Map();
+function admitRegistration(address) {
+  const now=Date.now(),window=15*60*1000;
+  for(const [key,value]of registrationAttempts)if(now-value.start>=window)registrationAttempts.delete(key);
+  if(!registrationAttempts.has(address)){
+    if(registrationAttempts.size>=256)return false;
+    registrationAttempts.set(address,{start:now,count:0});
+  }
+  return ++registrationAttempts.get(address).count<=30;
+}
 function getEnvironmentTarget(mode, user) {
   if (USER_TARGETS) {
     const environment = normalizeInternetMode(mode) === 'on' ? 'internet' : 'secure';
-    const targets = Object.prototype.hasOwnProperty.call(USER_TARGETS, user) ? USER_TARGETS[user] : null;
+    const targets = privateTargetsFor(user);
     const target = targets && targets[environment];
     return target ? { ...target, name: environment } : null;
   }
@@ -363,7 +415,7 @@ function adminAccounts() {
   const users=loadUsers();
   return Object.keys(users).sort().map(user=>({user, enabled:users[user].disabled!==true,
     role:ADMIN_USERS.has(user)?'Administrator':'User', internetAllowed:internetAllowed(user),
-    environments:USER_TARGETS ? ['secure','internet'].filter(mode=>Object.hasOwn(USER_TARGETS,user)&&USER_TARGETS[user][mode]) : ['instance'],
+    environments:USER_TARGETS ? ['secure','internet'].filter(mode=>privateTargetsFor(user,users)?.[mode]) : ['instance'],
     sessions:[...SESSIONS.values()].filter(s=>s.user===user).length}));
 }
 
@@ -911,7 +963,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
 
     <div class="auth-tabs">
       <div id="tab-login" class="auth-tab ${tab === 'login' ? 'active' : ''}" onclick="switchTab('login')">เข้าสู่ระบบ</div>
-      ${ALLOW_REGISTRATION ? `<div id="tab-register" class="auth-tab ${tab === 'register' ? 'active' : ''}" onclick="switchTab('register')">สร้างบัญชีผู้ใช้ใหม่</div>` : ''}
+      ${ALLOW_REGISTRATION ? `<div id="tab-register" class="auth-tab ${tab === 'register' ? 'active' : ''}" onclick="switchTab('register')">Create account</div>` : ''}
       <div id="tab-change" class="auth-tab ${tab === 'change' ? 'active' : ''}" onclick="switchTab('change')">เปลี่ยนรหัสผ่าน</div>
     </div>
 
@@ -944,19 +996,20 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
     ${ALLOW_REGISTRATION ? `<!-- 2. Form: สร้างบัญชีผู้ใช้ใหม่ -->
     <div id="pane-register" class="tab-pane" style="display: ${tab === 'register' ? 'block' : 'none'};">
       <form method="POST" action="/register">
+        <p class="env-note">Create your private No Internet workspace. Internet access requires administrator approval. ${freeSignupSlots().length} private workspace(s) available.</p>
         <div class="form-group">
           <label class="form-label" for="reg_username">ชื่อผู้ใช้งานใหม่ (New Username)</label>
           <input type="text" id="reg_username" name="username" class="form-control" placeholder="ตัวอักษรภาษาอังกฤษหรือตัวเลข (เช่น johndoe)" pattern="[a-zA-Z0-9_\-\.]{3,30}" title="ยาว 3-30 ตัวอักษร ใช้ได้เฉพาะ a-z, 0-9, _, -" required>
         </div>
         <div class="form-group">
           <label class="form-label" for="reg_password">รหัสผ่าน (Password)</label>
-          <input type="password" id="reg_password" name="password" class="form-control" placeholder="รหัสผ่านอย่างน้อย 6 ตัวอักษร" minlength="6" required>
+          <input type="password" id="reg_password" name="password" class="form-control" placeholder="At least 12 characters" minlength="12" maxlength="1024" autocomplete="new-password" required>
         </div>
         <div class="form-group">
           <label class="form-label" for="reg_confirm">ยืนยันรหัสผ่าน (Confirm Password)</label>
-          <input type="password" id="reg_confirm" name="confirm_password" class="form-control" placeholder="กรอกรหัสผ่านอีกครั้ง" minlength="6" required>
+          <input type="password" id="reg_confirm" name="confirm_password" class="form-control" placeholder="Confirm your password" minlength="12" maxlength="1024" autocomplete="new-password" required>
         </div>
-        <button type="submit" class="btn-submit">สร้างบัญชีผู้ใช้ใหม่ (Create Account)</button>
+        <button type="submit" class="btn-submit">Create account</button>
       </form>
     </div>
 
@@ -1073,22 +1126,24 @@ const server = http.createServer((req, res) => {
       res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
       return res.end('Self-registration is disabled. Contact the pilot administrator.');
     }
+    if(req.headers.origin){try{if(new URL(req.headers.origin).host!==(process.env.DSH_TRUSTED_HOST||req.headers.host)){res.writeHead(403);return res.end('Cross-origin registration denied.');}}catch{res.writeHead(403);return res.end('Invalid origin.');}}
+    if(!admitRegistration(req.socket.remoteAddress||'unknown')){res.writeHead(429,{'Retry-After':'900'});return res.end('Too many registration attempts. Please try again later.');}
     let body = '';
     req.on('data', chunk => { body += chunk; });
     req.on('end', () => {
       const params = new URLSearchParams(body);
       const username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
-      const password = params.get('password') ? params.get('password').trim() : '';
-      const confirmPassword = params.get('confirm_password') ? params.get('confirm_password').trim() : '';
+      const password = params.get('password') || '';
+      const confirmPassword = params.get('confirm_password') || '';
 
       if (!username || !/^[a-z0-9_\-\.]{3,30}$/.test(username)) {
         res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(renderAuthPage({ tab: 'register', errorMsg: 'ชื่อผู้ใช้งานต้องเป็นภาษาอังกฤษ/ตัวเลข ความยาว 3-30 ตัวอักษร' }));
       }
 
-      if (!password || password.length < 6 || Buffer.byteLength(password) > 1024) {
+      if (!password || password.length < 12 || Buffer.byteLength(password) > 1024 || password!==password.trim()) {
         res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
-        return res.end(renderAuthPage({ tab: 'register', errorMsg: 'รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร' }));
+        return res.end(renderAuthPage({ tab: 'register', errorMsg: 'Use a password of at least 12 characters without surrounding spaces.' }));
       }
 
       if (password !== confirmPassword) {
@@ -1097,19 +1152,22 @@ const server = http.createServer((req, res) => {
       }
 
       USERS = loadUsers();
-      if (USERS[username]) {
+      if (Object.hasOwn(USERS,username) || ADMIN_USERS.has(username) || Object.hasOwn(USER_TARGETS,username)) {
         res.writeHead(409, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(renderAuthPage({ tab: 'register', errorMsg: `ชื่อผู้ใช้งาน "${username}" มีอยู่ในระบบแล้ว กรุณาใช้ชื่ออื่นหรือเข้าสู่ระบบ` }));
       }
 
-      USERS[username] = hashPassword(password);
+      const created=newAccountRecord(USERS,username,password);
+      if(created.error){res.writeHead(created.status,{'Content-Type':'text/html; charset=utf-8'});return res.end(renderAuthPage({tab:'register',errorMsg:created.error}));}
+      if(!auditEvent('account.create',username,'off',username)){res.writeHead(503);return res.end('Audit storage unavailable.');}
+      USERS[username] = created.record;
       if (saveUsers(USERS)) {
         try {
           fs.mkdirSync(`${USER_ROOT}/${username}`, { recursive: true });
         } catch (e) {}
         console.log(`[AUTH-PROXY] Successfully registered new user: ${username}`);
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        return res.end(renderAuthPage({ tab: 'login', successMsg: `สร้างบัญชี "${username}" เรียบร้อยแล้ว สามารถเข้าสู่ระบบได้ทันที` }));
+        return res.end(renderAuthPage({ tab: 'login', successMsg: `Account "${username}" created. Sign in to your private No Internet workspace. Internet requires admin approval.` }));
       } else {
         res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(renderAuthPage({ tab: 'register', errorMsg: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง' }));
@@ -1224,6 +1282,7 @@ const server = http.createServer((req, res) => {
       if(req.method==='GET') {
         activeSession.adminCsrf ||= crypto.randomBytes(32).toString('hex');
         return reply(200,{users:adminAccounts(),csrfToken:activeSession.adminCsrf,
+          registrationEnabled:ALLOW_REGISTRATION,signupWorkspacesAvailable:freeSignupSlots().length,
           provisionedIdentities:USER_TARGETS ? Object.keys(USER_TARGETS).filter(u=>!ADMIN_USERS.has(u)&&!Object.hasOwn(loadUsers(),u)&&USER_TARGETS[u].secure&&USER_TARGETS[u].internet).sort() : []});
       }
       if(req.method!=='POST') return reply(405,{error:'Use GET or POST.'});
@@ -1246,10 +1305,10 @@ const server = http.createServer((req, res) => {
           if(ADMIN_USERS.has(user)) return reply(409,{error:'Administrator accounts are maintained by the operator.'});
           if(action==='create') {
             if(Object.hasOwn(users,user))return reply(409,{error:'Account already exists.'});
-            if(!USER_TARGETS || !Object.hasOwn(USER_TARGETS,user) || !USER_TARGETS[user].secure || !USER_TARGETS[user].internet) return reply(409,{error:'Provision both private environments before creating this account.'});
             const password=fields.get('password')||'';
-            if(password.length<12||Buffer.byteLength(password)>1024||password!==password.trim())return reply(400,{error:'Use a password of 12 or more characters without surrounding spaces.'});
-            users[user]=hashPassword(password);
+            const created=newAccountRecord(users,user,password);
+            if(created.error)return reply(created.status,{error:created.error});
+            users[user]=created.record;
           } else {
             if(!Object.hasOwn(users,user))return reply(404,{error:'Account not found.'});
             if(action==='enable'||action==='disable')users[user]={...users[user],disabled:action==='disable'};
@@ -1472,6 +1531,6 @@ server.on('upgrade', (req, socket, head) => {
   });
 });
 
-server.listen(PROXY_PORT, '0.0.0.0', () => {
+server.listen(PROXY_PORT, process.env.DSH_LISTEN_HOST || '0.0.0.0', () => {
   console.log(`[AUTH-PROXY] Enterprise DSH Auth Gate running on port ${PROXY_PORT}; secure=${ENVIRONMENT_TARGETS.off.host}:${ENVIRONMENT_TARGETS.off.port}; internet=${ENVIRONMENT_TARGETS.on.host}:${ENVIRONMENT_TARGETS.on.port}`);
 });

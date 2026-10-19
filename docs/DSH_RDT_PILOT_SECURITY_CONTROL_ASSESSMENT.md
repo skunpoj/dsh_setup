@@ -141,7 +141,7 @@ Keep histories, reports, files, attachments and terminal access within authorize
 
 ### Authenticate access and bind it to private storage
 
-The gateway admits provisioned named accounts, disables self-registration and binds each authenticated user to the assigned runtime. Reports, files, attachments and terminal WebSockets use the authenticated boundary. Server-side identity and route checks reject forged roles, peer-runtime selection and direct bypass paths.
+The gateway assigns an exclusive prepared private runtime pair when a user creates an account. Internet permission is denied by default and granted separately by an administrator. Each authenticated user is bound to the assigned runtime; full capacity refuses signup instead of sharing another user's execution environment. Reports, files, attachments and terminal WebSockets use the authenticated boundary. Server-side identity and route checks reject forged roles, peer-runtime selection and direct bypass paths.
 
 Each user/environment has separate working files and history storage. Switching environments does not automatically transfer content or credentials. Logout invalidates the gateway session. Legacy instances admit only their designated owners; shared guest and cross-account logins are disabled.
 

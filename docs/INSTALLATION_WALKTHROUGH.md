@@ -163,7 +163,7 @@ kubectl -n "$APP_NS" apply -f "$PRIVATE_DIR/private-users.site.yaml"
 kubectl -n "$APP_NS" get deployments,pods,pvc,services,networkpolicies
 ```
 
-The two `.site.yaml` bundles are operator-prepared outputs, not files supplied by this repository. Resolve every referenced resource before this step. Configure the gateway's trusted host and TLS, default No Internet selection, server-side private routing and disabled registration. Grant Internet separately per named account. Seed the initial administrator through the protected account-store procedure; do not introduce a factory password. Use Admin → User management for additional already-provisioned private runtimes.
+The two `.site.yaml` bundles are operator-prepared outputs, not files supplied by this repository. Resolve every referenced resource before this step. Configure the gateway's trusted host and TLS, default No Internet selection and private routing. Keep signup disabled until empty private capacity passes the [self-service signup acceptance procedure](SELF_SERVICE_SIGNUP.html), then enable Create account. Grant Internet separately per named account. Seed the administrator through the protected account-store procedure; do not introduce a factory password.
 
 ### Publish the on-site user manual
 

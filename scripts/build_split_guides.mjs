@@ -25,7 +25,7 @@ const security=`# DSH — Security, Environments and Features\n\nThis guide expl
  find('Platform features and intended use').replace(/### Installed clients[\s\S]*/, '')+'\n'+
  `## Who can create accounts and use Internet
 
-Self-registration is disabled. Only administrators can create accounts for provisioned private runtimes through Admin overview → User management. Creating an account does not automatically provision compute or storage.
+Use **Create account** on the login page to sign up and receive an exclusive prepared private runtime pair. Internet stays denied until an administrator grants it through User management. Administrators can also create accounts from available private capacity. Full capacity refuses signup; operators add new empty pairs. See the [signup and approval guide](SELF_SERVICE_SIGNUP.html).
 
 Internet access is a separate per-user permission. Every non-admin account starts without it; administrators retain access and may grant or revoke it individually. The Internet radio option is disabled until valid credentials confirm the permission. The server rejects a forged Internet selection regardless of the browser state. Revocation signs the user out and closes tracked gateway connections; it does not cancel tools already executing. Password changes preserve the permission. No Internet remains the default even for approved users.
 

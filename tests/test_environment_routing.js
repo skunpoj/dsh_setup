@@ -129,4 +129,8 @@ async function waitReady(port) {
     internet.close();
     fs.rmSync(root, { recursive: true, force: true });
   }
-})().catch(error => { console.error(error); process.exitCode = 1; });
+})().then(() => {
+  // Existing upstream and image pipelines already run this entry point.
+  require('child_process').execFileSync(process.execPath,
+    [path.join(__dirname, 'test_self_registration.js')], { stdio: 'inherit', timeout: 60000 });
+}).catch(error => { console.error(error); process.exitCode = 1; });

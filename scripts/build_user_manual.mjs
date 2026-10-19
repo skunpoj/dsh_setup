@@ -15,7 +15,7 @@ insert('## 4 Understand',section('Example usage').replace('## Example usage','##
 insert('## 5 Admin', ['1 Prevent external leakage','2 Prevent damage or excessive access','3 Keep results contained','Connected services and responsibilities'].map(n=>section(n).replace(/^## /,'### ')).join('\n'));
 insert('## 6 Troubleshoot',section('Platform features and intended use').replace(/^## /,'### ')+'\n'+section('Interface screenshots').replace(/^## /,'### '));
 insert('## 8 Install',gpu.slice(profile,first));
-insert('## 9 LLM',read('INSTALLATION_WALKTHROUGH.md').replace(/^## /,'### '));
+insert('## 9 LLM',read('INSTALLATION_WALKTHROUGH.md').replace(/^## /,'### ')+'\n'+read('SELF_SERVICE_SIGNUP.md').replace(/^(#{1,4}) /gm,(_,h)=>'#'.repeat(Math.min(6,h.length+2))+' '));
 md+='\n'+gpu.slice('## LLM and GPU setup'.length,profile)+'\n'+gpu.slice(first);
 md=md.replace(/\]\(\.\.\/([^)]*)\)/g,'](https://github.com/skunpoj/dsh_setup/blob/main/$1)');
 md+='\n## Reference library\n\n- [Security, environments and features](DSH_SECURITY_ENVIRONMENT_AND_FEATURES.html)\n- [Detailed setup and stress tests](DSH_SETUP_AND_STRESS_TEST_GUIDE.html)\n- [Claude Code, TrueForge and Kilo support](MANAGED_CLIENT_SUPPORT.html)\n- [Platform architecture reference](DSH_PLATFORM_GUIDE.html)\n';
@@ -29,11 +29,12 @@ const head=shell.slice(0,shell.indexOf('<body>')).replace(/<title>.*?<\/title>/,
 const firstChapter=html.indexOf('<h2 ');
 const output=head+'<body><main><p class="manual-label">DeepSeek Harness · User manual</p>'+html.slice(0,firstChapter)+'<a class="tour-link" href="DSH_GUIDED_TOUR.html">▶ Play the guided tour</a><nav aria-label="Manual chapters">'+toc.join('')+'</nav>'+html.slice(firstChapter)+'</main>'+shell.slice(shell.indexOf('</main>')+7);
 fs.writeFileSync(path.join(docs,'DSH_USER_MANUAL.html'),output);
+fs.writeFileSync(path.join(docs,'SELF_SERVICE_SIGNUP.html'),head.replace(/<title>.*?<\/title>/,'<title>DSH — Create an Account and Approve Internet</title>')+'<body><main><p><a href="DSH_USER_MANUAL.html">← User manual</a></p>'+marked.parse(read('SELF_SERVICE_SIGNUP.md'))+'</main>'+shell.slice(shell.indexOf('</main>')+7));
 const snapshot=JSON.parse(read('context-evidence/platform-deployment-inventory-20261017.json'));
 fs.writeFileSync(path.join(docs,'OPERATOR_DEPLOYMENT_INVENTORY.md'),'# Operator deployment inventory\n\nHistorical inventory captured '+snapshot.observedAtUTC+'. Use this to reconcile infrastructure, not as a user-facing service availability display.\n\n| Workload | Desired | Ready | Observed state |\n|---|---:|---:|---|\n'+snapshot.workloads.map(x=>`| ${x.workload} | ${x.desired} | ${x.ready} | ${x.state} |`).join('\n')+'\n');
 const scenes=[
  ['Welcome to DSH','Work with code, documents and analysis in your browser. Use the manual for the full steps and operator setup.','Overview','working-synthetic-tool-session.png'],
- ['Sign in','Enter your DSH account. Leave No Internet / Internal selected. Use the floating User manual button whenever you need help.','Sign-in layout','manual-login.png'],
+ ['Sign in','New here? Select Create account and set your username and password. Sign in with No Internet / Internal selected. Internet requires admin approval.','Sign-in layout','manual-login.png'],
  ['Choose your environment','No Internet is the default. Internet needs an administrator grant and uses separate files, history and credentials.','Environment design',null],
  ['Start a project','Choose a workspace and working directory. Ask a bounded question, name the files and request source citations.','Actual synthetic tool-session capture','working-synthetic-tool-session.png'],
  ['Verify tools and outputs','Review changes, inspect generated files and open previews through authenticated routes. The terminal runs in your private environment.','Execution boundaries',null],

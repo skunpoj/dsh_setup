@@ -6,6 +6,8 @@ Enterprise Agentic Coding & Knowledge Gateway
 
 [User manual](docs/DSH_USER_MANUAL.html) · [Video-style guided tour](docs/DSH_GUIDED_TOUR.html) · The floating login button opens the on-site `/manual/` guide.
 
+[Self-service signup and admin Internet approval](docs/SELF_SERVICE_SIGNUP.md): users create an account from the login page and receive an exclusive No Internet workspace. Internet is denied until an administrator approves it. Signup uses bounded, prepared private capacity; a full pool refuses signup rather than sharing a workspace.
+
 Managed coding clients: **Claude Code, TrueForge and Kilo CLI**, inside private DSH environments through internal LiteLLM. See [client setup, controls and qualification](docs/MANAGED_CLIENT_SUPPORT.html).
 
 For the consolidated DSpark decisions, failed trials, memory corrections, preparation overhead and accepted measurements, see the [inference optimization experience record](docs/INFERENCE_OPTIMIZATION_EXPERIENCE.html).
