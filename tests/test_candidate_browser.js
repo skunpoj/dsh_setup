@@ -6,7 +6,7 @@ const image=process.env.DSH_CANDIDATE_IMAGE||'dsh-upstream-candidate';
 fs.mkdirSync(output,{recursive:true});
 const args=['run','--rm','--name',name,'--network','host','--user','10001:10001','--cap-drop','ALL','--security-opt','no-new-privileges','--read-only','--tmpfs','/tmp:rw,nosuid,nodev,size=256m,mode=1777','--tmpfs','/workspace:rw,nosuid,nodev,size=16m,uid=10001,gid=10001','--tmpfs','/native-cache:rw,exec,nosuid,nodev,size=16m,uid=10001,gid=10001','--entrypoint','node',image,'/opt/dsh/scripts/serve_candidate_browser.js'];
 const server=spawn('docker',args,{stdio:['ignore','pipe','pipe']});
-let log='',closed=false,spawnError,browser;
+let log='',closed=false,spawnError,browser,page;const browserDiagnostics=[];
 server.stdout.on('data',b=>{log=(log+b.toString()).slice(-32000);});server.stderr.on('data',b=>{log=(log+b.toString()).slice(-32000);});server.on('error',e=>spawnError=e);server.on('exit',()=>closed=true);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{try{
@@ -20,7 +20,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'en-US'});
  const externalRequests=[],pageErrors=[],inferenceRequests=[];
  await context.route('**/*',route=>{const url=new URL(route.request().url());if(!['127.0.0.1','dsh-ci.test'].includes(url.hostname)){externalRequests.push(url.origin);return route.abort();}if(/\/v1\/(chat|responses|completions)/.test(url.pathname)){inferenceRequests.push(url.pathname);return route.abort();}return route.continue();});
- const page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>pageErrors.push(e.message));
+ page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>pageErrors.push(e.message));page.on('console',message=>{if(message.type()==='error')browserDiagnostics.push({type:'console',message:message.text().replace(/token[=:]\s*[A-Za-z0-9_-]+/gi,'token=[REDACTED]').slice(0,1000)});});page.on('response',response=>{if(response.status()>=400)browserDiagnostics.push({type:'http',status:response.status(),path:new URL(response.url()).pathname});});
  await page.goto(`http://dsh-ci.test:${port}/?token=${encodeURIComponent(ready.token)}`,{waitUntil:'domcontentloaded'});
  const settings=()=>page.getByRole('button',{name:'Settings',exact:true});
  await settings().waitFor({state:'visible'});
@@ -59,4 +59,11 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  assert(receipts.length,'Mock inference counter receipt missing');assert(receipts.every(item=>item.modelRequests===0),'App attempted inference during UI qualification');
  const result={actualUpstreamBrowser:true,ownerScopeOnly:true,syntheticNonLoopbackTrustedHost:true,tlsAcceptance:false,managedModelSelectorDOM:rows,hostBackedModelsSettingsRendered:true,reloadReconnect:true,pageErrors:[],blockedExternalOrigins:[...new Set(externalRequests)],modelRequests:0,hostOwnerPreferencePersistedAcrossReload:true,settingsWritesTested:true,ordinaryPeerPolicyTested:false,inferenceAcceptance:false};
  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
+ }catch(error){
+ if(page&&!page.isClosed()){
+  await page.screenshot({path:path.join(output,'upstream-browser-failure.png'),fullPage:true}).catch(()=>{});
+  const snapshot=await page.locator('body').ariaSnapshot().catch(()=>'(DOM unavailable)');
+  fs.writeFileSync(path.join(output,'browser-failure.json'),JSON.stringify({error:error.message,diagnostics:browserDiagnostics.slice(-30),dom:snapshot.replaceAll('synthetic-browser-no-inference','[SYNTHETIC KEY REDACTED]').slice(-24000)},null,2)+'\n');
+ }
+ throw error;
  }finally{if(browser)await browser.close();spawnSync('docker',['rm','--force',name],{stdio:'ignore',timeout:10000});}})().catch(error=>{console.error(error.message);process.exitCode=1;});
