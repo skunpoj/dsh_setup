@@ -147,5 +147,35 @@
       "turn.done": 1
     }
   },
-  "testRuntimeCleanup": "Both disposable workers scaled to zero; private test state retained"
+  "testRuntimeCleanup": "Both disposable workers scaled to zero; private test state retained",
+  "applicationGuidance": {
+    "expected": "/applications|NO|NO",
+    "meaning": [
+      "Use applications registry",
+      "Do not invent hostname",
+      "An app name does not create a private workspace"
+    ],
+    "clients": [
+      {
+        "client": "dsh",
+        "exact": true,
+        "seconds": 1.677
+      },
+      {
+        "client": "claude",
+        "exact": true,
+        "seconds": 1.123
+      },
+      {
+        "client": "kilo",
+        "exact": true,
+        "seconds": 6.056
+      },
+      {
+        "client": "trueforge",
+        "exact": true,
+        "seconds": 0.319
+      }
+    ]
+  }
 }
