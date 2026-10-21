@@ -120,7 +120,7 @@ function handleExternalAlias(req,res) {
   return true;
 }
 const APP_DOMAIN = (process.env.DSH_APP_DOMAIN || '').toLowerCase();
-const APP_SIGNIN = process.env.DSH_APP_LOGIN_ENABLED === 'true' ? new (require('./app_signin').AppSignIn)({domain:APP_DOMAIN, issuer:'https://'+process.env.DSH_TRUSTED_HOST, mappings:appLinks}) : null;
+const APP_SIGNIN = process.env.DSH_APP_LOGIN_ENABLED === 'true' ? new (require('./app_signin').AppSignIn)({domain:APP_DOMAIN, issuer:'https://'+process.env.DSH_TRUSTED_HOST, mappings:appLinks, allowedName:validAppName, testIssuer:process.env.DSH_TEST_ISSUER==='true'}) : null;
 if(APP_DOMAIN && !/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/.test(APP_DOMAIN))throw Error('Invalid approved app domain');
 function appHostnameState(name) {
   const file=process.env.DSH_APP_INVENTORY_FILE;
@@ -532,7 +532,7 @@ function showCapacity(c,observed){
  const usage=c.observedUsage;const usageText=usage?' · Measured CPU '+usage.cpu.toFixed(2)+' cores / reserved '+usage.reservedCPU.toFixed(2)+' · Measured RAM '+usage.memoryGiB.toFixed(1)+' GiB / reserved '+usage.reservedMemoryGiB.toFixed(1)+' · Usage sampled '+capacityTime(usage.timestamp):'';
  put('capacityAdditional',usageText+' · '+c.additionalDeployments.map(x=>x.label+': '+x.accounts+' account, '+x.readyWorkers+'/'+x.desiredWorkers+' workers ready').join(' · ')+(c.centralStorageFreeGiB===null?' · Central share free space unavailable':' · Central share free '+c.centralStorageFreeGiB.toLocaleString(undefined,{maximumFractionDigits:1})+' GiB'));
 }
-async function refreshCapacity(){try{const r=await fetch('/api/admin/capacity',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Capacity unavailable');capacityToken=d.csrfToken;const p=d.automaticProvisioning.policy;if(document.activeElement?.closest('#capacityForm')===null){document.getElementById('capacityMax').value=p.maxAccounts;document.getElementById('capacitySpares').value=p.warmSpareSlots;document.getElementById('capacityEnabled').checked=p.enabled;}document.getElementById('capacitySave').disabled=false;const c=d.automaticProvisioning.controller;showCapacity(c?.capacity,c?.observedAt);put('capacityStatus',c?'Observed '+capacityTime(c.observedAt)+' · '+(c.available?'Provisioner: '+c.action+' / '+c.reason:'Provisioning paused; infrastructure review required'):'Provisioner status unavailable or older than one minute.');}catch(e){put('capacityStatus',e.message);showCapacity(null);document.getElementById('capacitySave').disabled=true;}}
+async function refreshCapacity(){try{const r=await fetch('/api/admin/capacity',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Capacity unavailable');capacityToken=d.csrfToken;const p=d.automaticProvisioning.policy;if(document.activeElement?.closest('#capacityForm')===null){document.getElementById('capacityMax').value=p.maxAccounts;document.getElementById('capacitySpares').value=p.warmSpareSlots;document.getElementById('capacityEnabled').checked=p.enabled;}document.getElementById('capacitySave').disabled=false;const c=d.automaticProvisioning.controller;showCapacity(c?.capacity,c?.observedAt);put('capacityStatus',(d.signupAdmission?(d.signupAdmission.allowed?'Signup admission: open. ':'Signup admission: paused ('+d.signupAdmission.reason+'). '):'')+(c?'Observed '+capacityTime(c.observedAt)+' · '+(c.available?'Provisioner: '+c.action+' / '+c.reason:'Provisioning paused; infrastructure review required'):'Provisioner status unavailable or older than one minute.'));}catch(e){put('capacityStatus',e.message);showCapacity(null);document.getElementById('capacitySave').disabled=true;}}
 document.getElementById('capacityForm').addEventListener('submit',async event=>{event.preventDefault();const b=document.getElementById('capacitySave');b.disabled=true;try{const r=await fetch('/api/admin/capacity',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':capacityToken},body:new URLSearchParams({maxAccounts:document.getElementById('capacityMax').value,warmSpareSlots:document.getElementById('capacitySpares').value,enabled:String(document.getElementById('capacityEnabled').checked)})});const d=await r.json();if(!r.ok)throw Error(d.error||'Capacity settings unavailable');put('capacityStatus','Capacity settings saved. Existing workspaces are retained.');await refresh();}catch(e){put('capacityStatus',e.message);}finally{b.disabled=false;}});
 refreshCapacity();setInterval(()=>{if(!document.hidden)refreshCapacity();},15000);
 async function refresh(){try{const r=await fetch('/api/admin/summary',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('Admin access unavailable ('+r.status+').');const d=await r.json();put('error','');put('time','Gateway read at '+d.generatedAt);put('accounts',d.registeredAccounts);const c=d.capacity;if(c){put('newUserSlots',c.remainingSlots);put('slotDetail',c.assignedSlots+' / '+c.provisionedSlots+' prepared slots assigned · '+c.enabledAccounts+' enabled / '+c.disabledAccounts+' disabled accounts'+(c.registrationEnabled?'':' · registration disabled'));const label=document.getElementById('signupCapacity');if(label)label.textContent=c.remainingSlots+' new-user slots available';}put('sessions',d.activeBrowserSessions.secure+d.activeBrowserSessions.internet);put('sessionDetail','No Internet: '+d.activeBrowserSessions.secure+' · Internet: '+d.activeBrowserSessions.internet);put('routing',d.privateUserRouting?'Per user':'Shared pools');put('freshness',d.snapshot.observedAt?'Snapshot observed at '+d.snapshot.observedAt+'. Refresh does not rerun infrastructure tests.':'No snapshot available. Infrastructure status is unknown.');const root=document.getElementById('environments');root.replaceChildren();for(const e of d.snapshot.environments){const tr=document.createElement('tr');for(const text of [e.name,e.ready?'Ready at observation':'Not verified ready',e.storage,e.network]){const td=document.createElement('td');td.textContent=text;tr.append(td);}root.append(tr);}const m=d.snapshot.model;put('model',m?(m.checkpoint?'Checkpoint: '+m.checkpoint+(m.revision?' ('+m.revision.slice(0,12)+')':'')+' · ':'')+'Backend context: '+m.backendContext+' tokens · DSH/LiteLLM budget: '+m.userContext+' tokens · Running-request ceiling: '+m.concurrencyCeiling+(m.longConcurrencyCeiling?' · Requests above 128K input: '+m.longConcurrencyCeiling+' at a time':'')+(m.maxOutputTokens?' · Maximum output: '+m.maxOutputTokens+' tokens':'')+(m.observedAt?' · Model observed at '+m.observedAt:''):'No recorded limits.');list('performance',d.snapshot.performance);list('gaps',d.snapshot.gaps);}catch(e){put('error',e.message);put('newUserSlots','—');put('slotDetail','Current capacity unavailable');const label=document.getElementById('signupCapacity');if(label)label.textContent='Current capacity unavailable';}}
@@ -629,6 +629,7 @@ function allUserTargets() {
   return result;
 }
 function freeSignupSlots(users=loadUsers()) {
+  if(CAPACITY&&!CAPACITY.admission(users).allowed)return [];
   const used=new Set(Object.values(users).map(u=>u.runtimeSlot).filter(Boolean));
   const pool=activeSignupPool();const slots=pool?Object.keys(pool.slots).filter(slot=>!used.has(slot)):[];
   return CAPACITY?slots.slice(0,Math.max(0,CAPACITY.policy(users).maxAccounts-Object.keys(users).length)):slots;
@@ -638,12 +639,13 @@ function signupCapacitySummary(users=loadUsers()) {
   const remaining=freeSignupSlots(users).length;
   return {observedAt:new Date().toISOString(),registrationEnabled:ALLOW_REGISTRATION,
     provisionedSlots:provisioned,assignedSlots:Object.values(users).filter(u=>u.runtimeSlot).length,remainingSlots:remaining,
-    ...(CAPACITY?{automaticProvisioning:CAPACITY.summary(users)}:{}),
+    ...(CAPACITY?{automaticProvisioning:CAPACITY.summary(users),signupAdmission:CAPACITY.admission(users)}:{}),
     enabledAccounts:Object.values(users).filter(user=>user.disabled!==true).length,
     disabledAccounts:Object.values(users).filter(user=>user.disabled===true).length};
 }
 function newAccountRecord(users,user,password) {
   if(CAPACITY&&Object.keys(users).length>=CAPACITY.policy(users).maxAccounts)return {status:503,error:'The account capacity limit has been reached. Please contact the administrator.'};
+  if(CAPACITY&&!CAPACITY.admission(users).allowed)return {status:503,error:'New signups are temporarily paused while infrastructure capacity is busy or unavailable. Existing users can still sign in. Please retry after capacity recovers.'};
   if(ADMIN_USERS.has(user)||['__proto__','constructor','prototype'].includes(user)||Object.hasOwn(users,user))return {status:409,error:'Account is reserved or already exists.'};
   if(password.length<12||Buffer.byteLength(password)>1024||password!==password.trim())return {status:400,error:'Use a password of at least 12 characters without surrounding spaces.'};
   if(USER_TARGETS && Object.hasOwn(USER_TARGETS,user) && USER_TARGETS[user].secure && USER_TARGETS[user].internet)
@@ -1279,7 +1281,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
     }
   </script>
 </head>
-<body><aside style="padding:12px;background:#fff3cd;color:#332701">Dedicated DSH Test gateway. Normal DSH admin and khunkim password hashes are mirrored for this Test only; demonstration application login is separate. This is not the Production workspace.</aside>
+<body>${process.env.DSH_TEST_ISSUER==='true'?'<aside>Isolated Test issuer: synthetic review accounts only. This is not normal DSH.</aside>':''}
   <div class="login-card">
     <div class="brand-header">
       <div class="brand-logo">
@@ -1384,7 +1386,7 @@ async function update(){if(pending||document.hidden)return;pending=true;const co
 try{const response=await fetch('/api/signup-capacity',{cache:'no-store',credentials:'omit',signal:controller.signal});if(!response.ok)throw Error('unavailable');const data=await response.json();
 if(!data.registrationEnabled){label.textContent='New account registration is unavailable.';return;}
 if(!Number.isSafeInteger(data.remainingSlots)||data.remainingSlots<0)throw Error('invalid count');
-label.textContent=data.remainingSlots+' new-user slots available';
+label.textContent=data.remainingSlots+' new-user slots available'+(data.signupAdmission&&!data.signupAdmission.allowed?' — signup temporarily paused; retries reopen automatically after capacity recovers.':'');
 }catch{label.textContent='New-user capacity unavailable. Please refresh or contact the administrator.';}finally{clearTimeout(timeout);pending=false;}}
 update();setInterval(update,15000);window.addEventListener('focus',update);document.addEventListener('visibilitychange',update);})();
 </script>
@@ -1404,7 +1406,8 @@ const server = http.createServer((req, res) => {
     const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
     if(req.method!=='GET'){res.writeHead(405,{...headers,Allow:'GET'});return res.end(JSON.stringify({error:'Method not allowed'}));}
     try{const data=signupCapacitySummary();res.writeHead(200,headers);return res.end(JSON.stringify({observedAt:data.observedAt,
-      registrationEnabled:data.registrationEnabled,remainingSlots:data.registrationEnabled?data.remainingSlots:null}));}
+      registrationEnabled:data.registrationEnabled,remainingSlots:data.registrationEnabled?data.remainingSlots:null,
+      ...(data.signupAdmission?{signupAdmission:data.signupAdmission}:{})}));}
     catch{res.writeHead(503,headers);return res.end(JSON.stringify({error:'New-user capacity unavailable'}));}
   }
   // Platform pages always use the canonical host; app roots keep their owned port.
@@ -1444,7 +1447,13 @@ const server = http.createServer((req, res) => {
         try {if(!APP_SIGNIN)throw Error();appContext=APP_SIGNIN.consume(req,params);}
         catch {res.writeHead(403,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'});return res.end('Application sign-in expired or access denied. Reopen the application.');}
       }
-      const loginPage=options=>appContext?APP_SIGNIN.begin(appContext.name,res,options.errorMsg||'',appContext.internet):renderAuthPage(options);
+      let loginPageFailureStatus=0;
+      const loginPage=options=>{
+        if(!appContext)return renderAuthPage(options);
+        try {APP_SIGNIN.assertCurrent(appContext);}catch {loginPageFailureStatus=403;return 'Application access changed. Reopen the application.';}
+        try {return APP_SIGNIN.begin(appContext.name,res,options.errorMsg||'',appContext.internet);}
+        catch {loginPageFailureStatus=503;return 'Application sign-in unavailable. Reopen the application and retry.';}
+      };
       const internet = appContext ? appContext.internet : normalizeInternetMode(params.get('internet'));
       const launchPaths = {dsh:'/', terminal:'/terminal', jupyter:'/proxy/8888/lab', applications:'/applications'};
       const application = appContext ? 'dsh' : params.get('application') || process.env.DSH_DEFAULT_APPLICATION || 'dsh';
@@ -1452,6 +1461,7 @@ const server = http.createServer((req, res) => {
 
       USERS = loadUsers();
       if ((!LEGACY_OWNER || username === LEGACY_OWNER) && USERS[username]?.disabled !== true && await verifyPassword(password, USERS[username]) && accountEnabled(username)) {
+        if(appContext){try{APP_SIGNIN.assertCurrent(appContext);}catch{res.writeHead(403,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'});return res.end('Application access changed. Reopen the application.');}}
         if (internet === 'on' && !internetAllowed(username)) { res.writeHead(403); return res.end('Internet environment requires administrator approval.'); }
         if (!getEnvironmentTarget(internet, username)) {
           res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
@@ -1459,7 +1469,7 @@ const server = http.createServer((req, res) => {
         }
         if (!setUserInternetMode(username, internet)) {
           const body=loginPage({ tab: 'login', errorMsg: 'ไม่สามารถบันทึกนโยบาย Internet access ได้ กรุณาลองใหม่อีกครั้ง' });
-          res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control':'no-store' });
+          res.writeHead(loginPageFailureStatus||500, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control':'no-store' });
           return res.end(body);
         }
         if (!auditEvent('login.success', username, internet)) { res.writeHead(503); return res.end('Audit storage unavailable.'); }
@@ -1496,7 +1506,7 @@ const server = http.createServer((req, res) => {
         auditEvent('login.denied', username, 'off');
         console.log(`[AUTH-PROXY] Failed login attempt for user: ${username}`);
         const body=loginPage({ tab: 'login', errorMsg: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง' });
-          res.writeHead(401, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control':'no-store' });
+          res.writeHead(loginPageFailureStatus||401, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control':'no-store' });
           return res.end(body);
       }
     });

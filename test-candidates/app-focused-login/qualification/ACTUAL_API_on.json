@@ -1,0 +1,24 @@
+{
+  "phase": "on",
+  "observed_epoch": 1792585560.3149722,
+  "checks": [
+    {
+      "check": "Expected feature on presentation",
+      "status": 200
+    },
+    {
+      "check": "Retained issuer and destination sessions return actual content",
+      "content": {
+        "application": "Isolated DSH app-sign-in demonstration",
+        "source_reference": "app-focused-login-8ba09e26",
+        "authenticated": true,
+        "received_dsh_cookie": false,
+        "received_authorization": false
+      }
+    }
+  ],
+  "read_Main_credentials_or_sessions": false,
+  "Main_logout_performed": false,
+  "historical_resend": 0,
+  "cookie_values_exported_in_report": false
+}

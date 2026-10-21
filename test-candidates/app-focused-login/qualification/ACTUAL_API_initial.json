@@ -1,0 +1,77 @@
+{
+  "phase": "initial",
+  "observed_epoch": 1792584890.2583408,
+  "checks": [
+    {
+      "check": "Anonymous gated app returns app context to Test issuer",
+      "status": 303,
+      "location": "https://dsh-app-signin-test.aiportal.bot.or.th/login?app=app-signin-gated-test"
+    },
+    {
+      "check": "Main-cookie-shaped sentinel does not authenticate Test issuer",
+      "status": 401
+    },
+    {
+      "check": "Public alias bypasses DSH form and serves destination login",
+      "status": 200
+    },
+    {
+      "check": "Wrong password retains app-focused page",
+      "status": 401
+    },
+    {
+      "check": "Synthetic issuer login returns directly to registered app",
+      "status": 303,
+      "location": "https://app-signin-gated-test.aiportal.bot.or.th/"
+    },
+    {
+      "check": "Persisted Test identity",
+      "identity": {
+        "user": "appreviewer",
+        "internet": "off",
+        "environment": "secure"
+      }
+    },
+    {
+      "check": "Actual settings return both saved access modes",
+      "access_modes": {
+        "app-signin-gated-test": "authenticated",
+        "app-signin-public-test": "public"
+      }
+    },
+    {
+      "check": "Actual private application content and credential stripping",
+      "content": {
+        "application": "Isolated DSH app-sign-in demonstration",
+        "source_reference": "app-focused-login-8ba09e26",
+        "authenticated": true,
+        "received_dsh_cookie": false,
+        "received_authorization": false
+      }
+    },
+    {
+      "check": "Authenticated WebSocket handshake and masked frame echo",
+      "status": 101
+    },
+    {
+      "check": "Test logout revokes own session and active socket",
+      "api_status": 401,
+      "gated_status": 303,
+      "active_socket_closed": true
+    },
+    {
+      "check": "Retained issuer and destination sessions return actual content",
+      "content": {
+        "application": "Isolated DSH app-sign-in demonstration",
+        "source_reference": "app-focused-login-8ba09e26",
+        "authenticated": true,
+        "received_dsh_cookie": false,
+        "received_authorization": false
+      }
+    }
+  ],
+  "read_Main_credentials_or_sessions": false,
+  "Main_logout_performed": false,
+  "historical_resend": 0,
+  "cookie_values_exported_in_report": false
+}

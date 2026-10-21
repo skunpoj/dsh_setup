@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>DSH application URLs and sign-in</title><style>body{font:17px/1.6 system-ui;max-width:1100px;margin:48px auto;padding:0 24px;color:#172033}h2{margin-top:2em}table{border-collapse:collapse;width:100%;margin:24px 0}td,th{border:1px solid #cbd5e1;padding:12px;text-align:left;vertical-align:top}th{background:#edf2f7}code{overflow-wrap:anywhere}a{overflow-wrap:anywhere}</style></head><body><h1>DSH application URLs and sign-in</h1>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>DSH application URLs and sign-in</title><style>body{font:17px/1.6 system-ui;max-width:1100px;margin:48px auto;padding:0 24px;color:#172033}h2{margin-top:2em}table{border-collapse:collapse;width:100%;margin:24px 0}td,th{border:1px solid #cbd5e1;padding:12px;text-align:left;vertical-align:top}th{background:#edf2f7}code,a{overflow-wrap:anywhere}</style></head><body><h1>DSH application URLs and sign-in</h1>
 <p>An application visitor opens the application's URL directly. A separate proxy-test portal is not a required user step.</p>
 <h2>Two access choices</h2>
 <table>
@@ -37,12 +37,12 @@
 </tr>
 <tr>
 <td>Gated internal demonstration</td>
-<td><a href="https://proxy-test-app5.aiportal.bot.or.th/login">https://proxy-test-app5.aiportal.bot.or.th/login</a></td>
-<td>Requires the existing normal DSH session, then the demonstration application's own login</td>
+<td><a href="https://app-signin-gated-test.aiportal.bot.or.th/">https://app-signin-gated-test.aiportal.bot.or.th/</a></td>
+<td>Uses the isolated synthetic Test issuer, then the demonstration application's own login</td>
 </tr>
 <tr>
 <td>Public internal demonstration</td>
-<td><a href="https://proxy-test-app6.aiportal.bot.or.th/login">https://proxy-test-app6.aiportal.bot.or.th/login</a></td>
+<td><a href="https://app-signin-public-test.aiportal.bot.or.th/login">https://app-signin-public-test.aiportal.bot.or.th/login</a></td>
 <td>Opens the demonstration application's login without a DSH gate</td>
 </tr>
 <tr>
@@ -57,15 +57,16 @@
 </tr>
 </tbody>
 </table>
-<p>These demonstration aliases still contain Test in their names. They remain on the dedicated Test gateway. They are not evidence that the normal DSH gateway already serves the new general-domain feature.</p>
+<p>These app-focused demonstrations use a separate synthetic Test issuer. They do not require visiting a proxy manager. They do not establish that the normal live DSH gateway has been promoted to this release. The public state-data example remains on the preserved earlier Test bridge.</p>
 <h2>Routing</h2>
 <p>A reverse proxy connects to the local port, approved internal destination or permitted external HTTPS destination on the server side. The browser keeps the app alias for proxied requests. A redirect instructs the browser to open another URL, so its address changes. A webhook triggers an action; it does not transport ongoing application traffic.</p>
 <p>DSH must handle pages, assets, APIs, cookies, redirects and WebSockets. The upstream application may still navigate to another hostname, especially during external SSO. Each application needs its own compatibility check.</p>
 <h2>App-focused normal sign-in</h2>
-<p>The integrated candidate sends signed-out app visitors to the normal DSH issuer with a registered app context. It shows only the app's sign-in form and returns to that app after successful ordinary DSH authentication. It does not show workspace, terminal, Jupyter or platform setup choices. Existing platform users retain those options through the ordinary platform login.</p>
-<p>The candidate does not create another authentication service or account store. A five-minute, one-use browser challenge binds the submitted form to the current registered app, owner and environment. No arbitrary return URL is accepted.</p>
+<p>The implemented app-focused flow sends signed-out app visitors to the normal DSH issuer with a registered app context. It shows only the app's sign-in form and returns to that app after successful ordinary DSH authentication. It does not show workspace, terminal, Jupyter or platform setup choices. Existing platform users retain those options through the ordinary platform login.</p>
+<p>The intended normal deployment uses the existing issuer and account store. The isolated Test deployment deliberately uses synthetic accounts and its own store, without copying Main credentials or sessions. A five-minute, one-use browser challenge binds the submitted form to the current registered app, owner and environment. No arbitrary return URL is accepted.</p>
 <p>After the DSH gate, the destination application's session is separate. DSH login does not automatically sign the visitor into that application. Bearer/Basic credentials are not forwarded by the current proxy. Application SSO would require a separately designed integration.</p>
 <h2>Current release status</h2>
-<p>At the fresh 21 October readback, the normal DSH gateway still uses the capacity/session source <code>9e2e8779</code>; the dedicated Test gateway uses normal-session validation source <code>0a679fce34de</code>. The new combined candidate passed 75 isolated Linux checks, including feature-off recovery, but is not yet live. Live browser acceptance, exact deployment review and normal-gateway promotion remain before the Test gateway can be retired.</p>
-<p>SMP is intentionally separated: Test loads triage V4 (<code>e91f8d53</code>, prompt SHA-256 <code>cd860e2b3694f32a091b2b7c294c820d8cc715f6b84d40c8a639a7b6251c4274</code>); Production loads the original prompt (<code>137b80ef39</code>, SHA-256 <code>ff5ef1ff5b0ed7f966a4637325828be37bbd14e6b9ea800a779665829b39f277</code>). Both actual prompt loaders matched their files, both watchers were enabled with fresh heartbeats, and all six checked Core containers were ready with zero restarts. This is a runtime/source check, not a new classification-accuracy experiment.</p>
-<p>No Production deployment or historical resend was performed for this candidate work. Existing evidence and the working Test demonstrations are preserved pending replacement. The English video/PPTX have not been regenerated for this candidate and must not be described as current coverage of it.</p></body></html>
+<p>The isolated Test issuer serves the reviewed source <code>fec53f…</code> / <code>8ba09e26…</code>. Eighty-two Linux checks and three additional asynchronous race cases passed. Live API tests verified returned identity/content, both access modes, destination authentication, credential stripping, WebSocket echo, logout and feature-off/on recovery with unchanged persistent state.</p>
+<p>The browser page visibly contains only the app-focused form, but native browser submission remains pending a manual check: the tested IAB controls also failed to submit a harmless local form. This is an observed browser-control limitation, not a proven application defect. The existing normal DSH gateway and working earlier bridge were not replaced or retired by this rollout.</p>
+<p>At the fresh 19:16 Bangkok readback, SMP Test still loads triage V4 (<code>e91f8d53</code>, SHA-256 <code>cd860e2b3694f32a091b2b7c294c820d8cc715f6b84d40c8a639a7b6251c4274</code>); Production loads the original prompt (<code>137b80ef39</code>, SHA-256 <code>ff5ef1ff5b0ed7f966a4637325828be37bbd14e6b9ea800a779665829b39f277</code>). Both actual loaders matched their files; both watchers were enabled with fresh heartbeats. This check did not run a new classification-accuracy experiment.</p>
+<p>A separately authorized Main signup-helper hardening was preserved and was not part of this Test rollout. No Main/Production promotion or historical resend was performed by this work. The English video, PowerPoint and Test documentation site have not been republished for this new flow; they must not be described as current coverage of it. Full API/recovery and known-limit evidence is saved with the candidate.</p></body></html>

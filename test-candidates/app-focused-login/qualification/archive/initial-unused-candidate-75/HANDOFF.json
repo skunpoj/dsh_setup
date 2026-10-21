@@ -1,0 +1,27 @@
+{
+  "runtime_hashes": {
+    "app_signin.js": "3680012125da70867c5b80561dc4ad216e63af2482348ed1d1b1c70da5e4ce48",
+    "auth_proxy.js": "15f2d19bbb4bc3059be80dfa0e06dcb5129291a0647c324db179662b7dc3383c",
+    "capacity_policy.js": "98b67399979eaa908782bcb40d45c6e265d8ae73e3c42b9ddd584dde3798d46b",
+    "course_files.js": "19e4ef943ab7fa416cadc100b6159b866812f843e88d431a8e70b5afe5ff85ed",
+    "external_upstream.js": "519e8dba1359d3f6834787a550d2ebdbe2dd9a59a5511aef3bb8523d96147513",
+    "package_portal.js": "c57a3edfd6bf8a88a354edc020b6b1c07d06bfc9740b5bfd5bec215d78d76159",
+    "password_store.js": "6a46ebe7e47a89b448a2bc555f39797aafeed1450d5b964701b801e3c16a59cb",
+    "session_store.js": "bb2c216e4fcb69ca6ea087eda352b13864ba8bc4fe41912d2cfdef8bd1232c20"
+  },
+  "qualification_log_sha256": "9716903edade588904922607e6bc96594ed18aaba7db299d0683e5c0eabba4df",
+  "passed": 75,
+  "shared_Test_deployed": false,
+  "normal_DSH_deployed": false,
+  "Test_retired": false,
+  "coordination": "Existing-task messaging attempted but not confirmed; owner/reviewer acknowledgement remains required before shared changes.",
+  "cleanup": "All own isolated qualification resources removed using exact UID preconditions; evidence preserved.",
+  "remaining": [
+    "Independent review and stable normal-gateway ownership window",
+    "Live normal-gateway authorization under no-Production boundary",
+    "Exact deployment/storage/mapping rollback plan",
+    "Live browser and app acceptance",
+    "Publication of matching HTML/PPTX/English media",
+    "Retire only the replaced owned Test resources after verification"
+  ]
+}

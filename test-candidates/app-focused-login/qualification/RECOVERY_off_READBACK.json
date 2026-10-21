@@ -1,0 +1,21 @@
+{
+  "uid": "f1fbf9b2-1fa6-42b6-8d0f-dbb236077c58",
+  "pod_uid": "b0c4160c-e147-4004-b016-c9a02d764a05",
+  "source_hashes_verified": true,
+  "new_mode": "off",
+  "own_PVC_preserved": true,
+  "state_hashes_unchanged": true,
+  "state_after": {
+    "users.json": "4c223065efa2e1229b8acb7534268681921cebaad8360b3d09ed7902490c1b2e",
+    "routes.json": "7057262a4d31d6595c4b222715744e500bc250a2d5d85366c067d11507d61fe7",
+    "app-links.json": "a92f37d6fd8ab60fe493d96999da22c1ff441c7defe1be8f5fbc9a8d09128a34",
+    "browser/sessions.json": "07f9d9d683326dda544c5a41d681e604ba979662d3042b067de81395cd318f1f",
+    "app-links.before-alias-fix-v3.json": "f57d494b54767f747d7d22fbdcb871b354097e7639ca1f30c6f39342196bb808",
+    "names": [
+      "app-signin-gated-test",
+      "app-signin-public-test"
+    ],
+    "reconstructed_old_sha256": "f57d494b54767f747d7d22fbdcb871b354097e7639ca1f30c6f39342196bb808"
+  },
+  "actual_application_acceptance_pending": true
+}

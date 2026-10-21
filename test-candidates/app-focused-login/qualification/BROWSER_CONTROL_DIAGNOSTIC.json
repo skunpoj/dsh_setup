@@ -1,0 +1,17 @@
+{
+  "local_plain_form_post_count": 0,
+  "implicit_AX_submit": "unchanged/noPOST",
+  "explicit_AX_submit": "unchanged/noPOST",
+  "explicit_coordinate_submit": "unchanged/noPOST",
+  "application_form_submit": "unchanged/noPOST observed",
+  "available_browsers": [
+    "ChatGPT in-app browser",
+    "Codex MCP Apps"
+  ],
+  "no_native_computer_API_enabled": true,
+  "scope_limit": "This demonstrates an observed submission-control failure in this IAB session, not a proven application defect or every browser limitation.",
+  "screenshots": [
+    "LOCAL_FORM_PROBE_NO_SUBMIT.png",
+    "BROWSER_APP_FORM_NO_SUBMIT.png"
+  ]
+}

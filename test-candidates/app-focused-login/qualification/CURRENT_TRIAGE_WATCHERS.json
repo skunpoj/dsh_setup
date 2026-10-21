@@ -1,14 +1,14 @@
 {
-  "observed_bangkok": "2026-10-21T17:27:41.351210+07:00",
+  "observed_bangkok": "2026-10-21T19:16:14.736341+07:00",
   "environments": {
     "smp1213": {
       "actual_loader_sha256": "cd860e2b3694f32a091b2b7c294c820d8cc715f6b84d40c8a639a7b6251c4274",
       "file_sha256": "cd860e2b3694f32a091b2b7c294c820d8cc715f6b84d40c8a639a7b6251c4274",
       "build": "e91f8d53 (2026-10-21 10:01:08 +0700)",
       "watcher_enabled": true,
-      "heartbeat_age_seconds": 1.2266325950622559,
+      "heartbeat_age_seconds": 1.558027744293213,
       "deployment_uid": "4278392a-72b8-4ace-b0a4-93d7c2e49175",
-      "generation": 461,
+      "generation": 464,
       "containers": [
         {
           "name": "local-asr",
@@ -35,7 +35,7 @@
       "file_sha256": "ff5ef1ff5b0ed7f966a4637325828be37bbd14e6b9ea800a779665829b39f277",
       "build": "137b80ef39 (2026-10-19 11:49:02 +0700)",
       "watcher_enabled": true,
-      "heartbeat_age_seconds": 0.27782487869262695,
+      "heartbeat_age_seconds": 1.9743237495422363,
       "deployment_uid": "55d8539a-a6c1-4a9f-b1c4-a1e9349dedce",
       "generation": 23,
       "containers": [

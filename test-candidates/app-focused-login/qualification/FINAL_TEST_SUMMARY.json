@@ -1,0 +1,42 @@
+{
+  "status": "Test backend, actual API outcomes and off/on recovery verified; manual browser submission pending",
+  "source_identity": "fec53f838ef52984f6ea8977f8ac0c3280c99279ebfffa5eee13539f0a6a512a",
+  "source_hashes": {
+    "app_signin.js": "3899827b5ac8603b6bfb8f29d6b317ea22a1f79a21f883866bf0c84c3af7a846",
+    "auth_proxy.js": "8ba09e26058f8ae610ef89b35ef9810ce7fce914337d78e22d19f83c31601059",
+    "capacity_policy.js": "c59b8e62e1216e6ec3f0116bf09d1f9e6de3a7c26997dc574ff5a230cadcb5d0",
+    "course_files.js": "19e4ef943ab7fa416cadc100b6159b866812f843e88d431a8e70b5afe5ff85ed",
+    "external_upstream.js": "519e8dba1359d3f6834787a550d2ebdbe2dd9a59a5511aef3bb8523d96147513",
+    "package_portal.js": "c57a3edfd6bf8a88a354edc020b6b1c07d06bfc9740b5bfd5bec215d78d76159",
+    "password_store.js": "6a46ebe7e47a89b448a2bc555f39797aafeed1450d5b964701b801e3c16a59cb",
+    "session_store.js": "bb2c216e4fcb69ca6ea087eda352b13864ba8bc4fe41912d2cfdef8bd1232c20",
+    "signup_admission.js": "eb7079f7a34bd1e04285bf6099392ba2a240ec62427ac51b28d07d6f94828f17",
+    "bootstrap.js": "e917890f1edb84fcccfa2326defb2647461c63b8bfb09d9e6739da402aa29335",
+    "isolation_headers.js": "e98c5fe000a62f242040a8dba481ad298f5edc7a163eea86494dc1a03c505cf3",
+    "target.js": "b1eb7c80b8c81f3ddf529b6bf90cbe3ccd730c7fefe113aebb89c1441f6aca14"
+  },
+  "runtime_image_digest": "sha256:1397e17507bba66f33d1901518db9a97b80bd1b9fee2e2268656731f8a840016",
+  "Test_Deployment_UID": "f1fbf9b2-1fa6-42b6-8d0f-dbb236077c58",
+  "Linux_passed": 82,
+  "additional_actual_async_race_cases": 3,
+  "API_initial_passed": true,
+  "API_recovery_off_and_on_passed": true,
+  "owned_PVC_sessions_accounts_mapping_bytes_preserved": true,
+  "browser_form_layout_verified": true,
+  "browser_native_submission_verified": false,
+  "browser_observed_limit": "Two IAB profiles and a harmless local implicit/explicit form did not submit via semantic or coordinate controls; local server received zero POST. Human manual check pending. No app change was made solely to force automation.",
+  "Main_or_existing_bridge_changed_by_this_rollout": false,
+  "historical_resend": 0,
+  "old_working_proxy_Test_bridge_retired": false,
+  "old_bridge_reason": "No Main promotion or retirement authority; preserve until replacement is independently accepted.",
+  "Test_Main_base_cutoff": {
+    "auth_proxy": "7a682dbef2c68fa0831bddeac292d5f9f10694d99ed82f6b3e6e4ac4988d8e4b",
+    "capacity_policy": "c59b8e62e1216e6ec3f0116bf09d1f9e6de3a7c26997dc574ff5a230cadcb5d0",
+    "signup_admission": "eb7079f7a34bd1e04285bf6099392ba2a240ec62427ac51b28d07d6f94828f17",
+    "note": "Main received a separately authorized helper hardening to736e6b; Test signup is disabled. Preserve the current Main helper before any future promotion; do not overwrite it with this frozen Test snapshot."
+  },
+  "triage_intended_separation": true,
+  "both_watchers_enabled": true,
+  "credentials_keys_cookie_values_exported_in_this_package": false,
+  "PPTX_video_or_Test_document_site_publication_changed": false
+}

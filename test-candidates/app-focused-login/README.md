@@ -1,35 +1,31 @@
-# Integrated DSH application sign-in candidate
+# App-focused DSH sign-in — verified isolated Test release
 
-Status: **candidate only; not deployed to shared Test or normal DSH**. The final Linux qualification passed 75 checks. It uses the latest running normal DSH source (`9e2e8779`) and integrates the previously qualified general-domain/Public proxy support. The normal DSH source and the dedicated Test source are intentionally not yet identical.
+The new Test issuer and demonstration apps are deployed with source identity `fec53f838ef52984f6ea8977f8ac0c3280c99279ebfffa5eee13539f0a6a512a` and `auth_proxy.js` SHA-256 `8ba09e26058f8ae610ef89b35ef9810ce7fce914337d78e22d19f83c31601059`. The actual mounted files match all twelve reviewed source hashes. The pinned Node runtime image is unchanged; this is a source ConfigMap rollout, not a new application image build.
 
-## Visitor flow
+## Actual Test links
 
-Visitors open the application URL directly. They do not visit a separate proxy manager.
+| Flow | URL |
+| --- | --- |
+| Gated app | https://app-signin-gated-test.aiportal.bot.or.th/ |
+| App-focused issuer screen | https://dsh-app-signin-test.aiportal.bot.or.th/login?app=app-signin-gated-test |
+| Public app | https://app-signin-public-test.aiportal.bot.or.th/login |
 
-- Gated application: existing authorized DSH session continues to the application. A signed-out visitor reaches an app-focused screen at the normal DSH issuer, without workspace, terminal, Jupyter, registration or environment options. The ordinary issuer checks the password, account, runtime entitlement, environment policy, audit storage and session storage. It then returns the browser to the registered application's root URL.
-- Public application: the DSH visitor gate is bypassed. The destination may still require its own login. DSH management remains authenticated.
-- Platform user: the ordinary DSH login retains the existing platform options.
+These are isolated Test demonstrations using synthetic accounts and their own persistent session store. Do not enter normal DSH credentials into this Test issuer. No Main account/session data was copied. The existing real-normal-login bridge remains unchanged and was not retired. Visitors open an app link directly; a separate proxy manager is not a required visitor step.
 
-The application owner restriction is unchanged. This does not grant every DSH account access to another owner's gated app. The form uses a five-minute, single-use, browser-bound challenge. The return hostname is derived from the persisted mapping; arbitrary return URLs are ignored. Removed/changed mappings, other accounts, expired forms and cross-origin submissions fail closed.
+## Behavior and verification
 
-## Session boundaries
+The gated flow hides workspace, terminal, Jupyter and registration options, authenticates the mapping owner in its configured environment, and returns to the registered alias. Public access bypasses the DSH visitor gate while preserving destination authentication. Password verification, audit/account checks and persistent session creation use the normal issuer implementation; the deployed Test instance has its own synthetic account store.
 
-The same normal DSH password verifier and persistent session store are used. No second account database or copied password records are needed for the integrated design. The app flow avoids minting a workspace runtime cookie. DSH credentials and Authorization are stripped from upstream app requests. A destination cookie login remains separate. This is not implementation of OIDC SSO, identity-header SSO or Bearer/Basic credential forwarding.
+The final Linux run passed **82 tests**, plus **three additional asynchronous verifier race cases**. Tests use the actual configured alias names and Host headers. Live API checks verified wrong/correct passwords, exact returned identity and content, both saved access modes, credential stripping, real WebSocket echo and logout revocation. The feature-off and return-to-on rehearsal preserved account, route, mapping, session and backup bytes and returned the same authenticated application content afterward.
 
-## Qualification
+**Native browser submission remains unverified.** The app page renders correctly, but two IAB profiles and a harmless local form control did not submit through the tested semantic or coordinate actions. That observation is not proof of an application defect or of every browser's behavior. A human manual check remains pending. See qualification/FINAL_TEST_SUMMARY.json and the actual API/recovery reports; do not claim complete browser end-to-end acceptance.
 
-See `qualification/FINAL_QUALIFICATION.log` and `qualification/FINAL_SOURCE_PINS.json` for the actual executed bytes. The 75 checks include actual candidate gateway processes, correct/incorrect synthetic passwords, persisted issuer sessions, app return, owner/environment isolation, default quota eight, external content with a source reference, destination login, Public setting persistence, credential stripping, WebSocket frames/revocation, restart persistence and feature-off recovery. Counts overlap earlier runs and must not be added together.
+## Safety and history
 
-These are isolated Linux tests with synthetic accounts and targets. They do not establish live normal-DSH browser acceptance, adoption by both remotes, or completion of documentation/video publication.
+The form challenge is browser-bound, single-use and expires after five minutes. Mapping ownership/stamp is rechecked after asynchronous password verification. Changed mappings fail closed; challenge-capacity failures cannot crash the gateway. The unchanged routing-name predicate rejects reserved `dsh-` aliases. The initial invalid-alias rollout and its evidence are preserved; the own registry migration kept an exact private backup and changed only its two keys.
 
-## Recovery and cleanup
+Recovery keeps this source and switches only `DSH_APP_LOGIN_ENABLED` off/on using reviewed own-UID/resourceVersion/full-spec fences. It retains the corrected aliases, external/Public routing and persistent sessions. Prior Main sources without external proxy support are not the preferred fallback. Reviewed operator sources are under qualification/operators; the private execution plans, synthetic credentials, keys and cookie jars are not published.
 
-The tested feature-off recovery uses this integrated source with `DSH_APP_LOGIN_ENABLED=false`. It restores the platform login presentation while retaining external proxy support, mappings and persistent sessions. Returning to `true` restores the app-focused form. The prior normal DSH source lacks general-domain proxy support and is not the preferred recovery for new external applications.
+The source preserves the qualified Main auth/capacity cutoff 7a682/c59b and signup helper eb707. A separate authorized Main helper hardening later became 736e6b. Test registration is disabled; future Main promotion must preserve that current helper rather than overwrite Main with this frozen snapshot. SMP Test intentionally uses triage V4 while Production keeps the original prompt. Both watchers were freshly checked enabled. No Main/Production promotion or historical resend was performed by this rollout.
 
-Before any live promotion: obtain the normal DSH owner's stable window, independently review the exact source/deployment/storage diffs, verify the current session-store mounts, preserve all mappings/history, capture exact UIDs/resourceVersions/specs and old immutable source, and reconcile unknown patch outcomes without retrying blindly. Do not recreate the gateway or change parent cookie scope.
-
-The existing proxy-test gateway, demo routes and storage must remain until their replacement is proven. After successful replacement and a retention review, remove only resources owned by that Test release using recorded UID preconditions. Do not delete historical evidence, existing normal accounts or unrelated Test work.
-
-## Build
-
-`build_candidate.py` constructs the reviewed runtime from pinned local source snapshots. It does not deploy. The feature flag is disabled by default. The source inputs and candidate hash are recorded in `BUILD.json`.
+PPTX, English video and Test documentation-site publication were not changed by this Test qualification. Original evidence is preserved under qualification/archive and the versioned private output folders.

@@ -1,0 +1,41 @@
+{
+  "source_identity": "fec53f838ef52984f6ea8977f8ac0c3280c99279ebfffa5eee13539f0a6a512a",
+  "pod_uid": "d6367df7-e826-4abf-b61d-40bf4062ad25",
+  "actual_source_hashes_match": true,
+  "migrated_registry_readback": {
+    "users.json": "4c223065efa2e1229b8acb7534268681921cebaad8360b3d09ed7902490c1b2e",
+    "routes.json": "7057262a4d31d6595c4b222715744e500bc250a2d5d85366c067d11507d61fe7",
+    "app-links.json": "a92f37d6fd8ab60fe493d96999da22c1ff441c7defe1be8f5fbc9a8d09128a34",
+    "browser/sessions.json": null,
+    "app-links.before-alias-fix-v3.json": "f57d494b54767f747d7d22fbdcb871b354097e7639ca1f30c6f39342196bb808",
+    "names": [
+      "app-signin-gated-test",
+      "app-signin-public-test"
+    ],
+    "reconstructed_old_sha256": "f57d494b54767f747d7d22fbdcb871b354097e7639ca1f30c6f39342196bb808"
+  },
+  "anonymous_actual_HTTP": [
+    {
+      "url": "https://app-signin-gated-test.aiportal.bot.or.th/private",
+      "status": 303,
+      "location": "https://dsh-app-signin-test.aiportal.bot.or.th/login?app=app-signin-gated-test",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "url": "https://app-signin-public-test.aiportal.bot.or.th/login",
+      "status": 200,
+      "location": null,
+      "sha256": "f58787fd311d2ad190995855ca1272edbdff57b845f82b0b0b1a73e40c4321e5"
+    },
+    {
+      "url": "https://dsh-app-signin-test.aiportal.bot.or.th/login?app=app-signin-gated-test",
+      "status": 200,
+      "location": null,
+      "sha256": "b0a978891ff07979ba91b0d5246152449b1a6552f7a9818796ad82d783ed365d"
+    }
+  ],
+  "existing_protected_unchanged": true,
+  "no_Main_or_existing_bridge_changes_by_operator": true,
+  "historical_resend": 0,
+  "authenticated_and_recovery_acceptance_pending": true
+}

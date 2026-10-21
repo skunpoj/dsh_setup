@@ -1,0 +1,57 @@
+{
+  "source_identity": "fec53f838ef52984f6ea8977f8ac0c3280c99279ebfffa5eee13539f0a6a512a",
+  "source_hashes": {
+    "app_signin.js": "3899827b5ac8603b6bfb8f29d6b317ea22a1f79a21f883866bf0c84c3af7a846",
+    "auth_proxy.js": "8ba09e26058f8ae610ef89b35ef9810ce7fce914337d78e22d19f83c31601059",
+    "capacity_policy.js": "c59b8e62e1216e6ec3f0116bf09d1f9e6de3a7c26997dc574ff5a230cadcb5d0",
+    "course_files.js": "19e4ef943ab7fa416cadc100b6159b866812f843e88d431a8e70b5afe5ff85ed",
+    "external_upstream.js": "519e8dba1359d3f6834787a550d2ebdbe2dd9a59a5511aef3bb8523d96147513",
+    "package_portal.js": "c57a3edfd6bf8a88a354edc020b6b1c07d06bfc9740b5bfd5bec215d78d76159",
+    "password_store.js": "6a46ebe7e47a89b448a2bc555f39797aafeed1450d5b964701b801e3c16a59cb",
+    "session_store.js": "bb2c216e4fcb69ca6ea087eda352b13864ba8bc4fe41912d2cfdef8bd1232c20",
+    "signup_admission.js": "eb7079f7a34bd1e04285bf6099392ba2a240ec62427ac51b28d07d6f94828f17",
+    "bootstrap.js": "e917890f1edb84fcccfa2326defb2647461c63b8bfb09d9e6739da402aa29335",
+    "isolation_headers.js": "e98c5fe000a62f242040a8dba481ad298f5edc7a163eea86494dc1a03c505cf3",
+    "target.js": "b1eb7c80b8c81f3ddf529b6bf90cbe3ccd730c7fefe113aebb89c1441f6aca14"
+  },
+  "Linux_tests_passed": 82,
+  "actual_async_races": [
+    {
+      "case": "mapping removed during wrong-password verification",
+      "response": {
+        "status": 403,
+        "session_cookie_created": false
+      },
+      "gateway_alive": true,
+      "rejected_session_persisted": false,
+      "following_login_status": 200,
+      "pass": true
+    },
+    {
+      "case": "mapping removed during correct-password verification",
+      "response": {
+        "status": 403,
+        "session_cookie_created": false
+      },
+      "gateway_alive": true,
+      "rejected_session_persisted": false,
+      "following_login_status": 200,
+      "pass": true
+    },
+    {
+      "case": "pending capacity filled during wrong-password verification",
+      "response": {
+        "status": 503,
+        "session_cookie_created": false
+      },
+      "gateway_alive": true,
+      "rejected_session_persisted": false,
+      "following_login_status": 200,
+      "subsequent_valid_login_status": 303,
+      "pass": true
+    }
+  ],
+  "actual_configured_Hosts_used": true,
+  "reserved_predicate_unchanged": true,
+  "alias_migration_backup_and_idempotence_tested": true
+}

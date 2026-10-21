@@ -64,6 +64,12 @@ class Manager {
     return value;
   }
   project(users) {atomicJSON(path.join(this.root,'policy','assignments.json'),projection(users));}
+  admission(users) {
+    try {
+      const snapshot=readJSON(path.join(this.root,'inventory','status.json'),65536);
+      return require('./signup_admission').signupAdmission(snapshot,Object.keys(users).length);
+    } catch { return {allowed:false,reason:'capacity-unavailable'}; }
+  }
   save(value,users) {
     const p=validatePolicy(value,Object.keys(users).length),old=this.policy(users);
     if(p.maxAccounts>old.maxAccounts){

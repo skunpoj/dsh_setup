@@ -1,6 +1,6 @@
 {
-  "baseline_live_source_sha256": "9e2e87791cb1bbba29ad1c53b340d06706302a49f6df9427c645726169643e51",
-  "candidate_auth_proxy_sha256": "15f2d19bbb4bc3059be80dfa0e06dcb5129291a0647c324db179662b7dc3383c",
+  "baseline_live_source_sha256": "7a682dbef2c68fa0831bddeac292d5f9f10694d99ed82f6b3e6e4ac4988d8e4b",
+  "candidate_auth_proxy_sha256": "8ba09e26058f8ae610ef89b35ef9810ce7fce914337d78e22d19f83c31601059",
   "feature_flag": "DSH_APP_LOGIN_ENABLED=true",
   "production_deployment": false,
   "integration_scope": "Latest Main capacity/session source plus already-qualified general-domain/Public proxy feature and new app-focused normal issuer login. Not deployed.",

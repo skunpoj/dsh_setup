@@ -16,12 +16,12 @@ Owners configure mappings; visitors use app links. Public access does not expose
 | Example | URL | Current verified purpose |
 | --- | --- | --- |
 | Normal DSH | https://dsh.aiportal.bot.or.th/login | Existing normal authentication and platform login |
-| Gated internal demonstration | https://proxy-test-app5.aiportal.bot.or.th/login | Requires the existing normal DSH session, then the demonstration application's own login |
-| Public internal demonstration | https://proxy-test-app6.aiportal.bot.or.th/login | Opens the demonstration application's login without a DSH gate |
+| Gated internal demonstration | https://app-signin-gated-test.aiportal.bot.or.th/ | Uses the isolated synthetic Test issuer, then the demonstration application's own login |
+| Public internal demonstration | https://app-signin-public-test.aiportal.bot.or.th/login | Opens the demonstration application's login without a DSH gate |
 | Public data through DSH | https://proxy-test-app4.aiportal.bot.or.th/us-states.json | Fifty US-state records, without a DSH login |
 | Original data | https://storage.googleapis.com/cloud-samples-data/bigquery/us-states/us-states.json | Upstream source for byte comparison |
 
-These demonstration aliases still contain Test in their names. They remain on the dedicated Test gateway. They are not evidence that the normal DSH gateway already serves the new general-domain feature.
+These app-focused demonstrations use a separate synthetic Test issuer. They do not require visiting a proxy manager. They do not establish that the normal live DSH gateway has been promoted to this release. The public state-data example remains on the preserved earlier Test bridge.
 
 ## Routing
 
@@ -31,16 +31,18 @@ DSH must handle pages, assets, APIs, cookies, redirects and WebSockets. The upst
 
 ## App-focused normal sign-in
 
-The integrated candidate sends signed-out app visitors to the normal DSH issuer with a registered app context. It shows only the app's sign-in form and returns to that app after successful ordinary DSH authentication. It does not show workspace, terminal, Jupyter or platform setup choices. Existing platform users retain those options through the ordinary platform login.
+The implemented app-focused flow sends signed-out app visitors to the normal DSH issuer with a registered app context. It shows only the app's sign-in form and returns to that app after successful ordinary DSH authentication. It does not show workspace, terminal, Jupyter or platform setup choices. Existing platform users retain those options through the ordinary platform login.
 
-The candidate does not create another authentication service or account store. A five-minute, one-use browser challenge binds the submitted form to the current registered app, owner and environment. No arbitrary return URL is accepted.
+The intended normal deployment uses the existing issuer and account store. The isolated Test deployment deliberately uses synthetic accounts and its own store, without copying Main credentials or sessions. A five-minute, one-use browser challenge binds the submitted form to the current registered app, owner and environment. No arbitrary return URL is accepted.
 
 After the DSH gate, the destination application's session is separate. DSH login does not automatically sign the visitor into that application. Bearer/Basic credentials are not forwarded by the current proxy. Application SSO would require a separately designed integration.
 
 ## Current release status
 
-At the fresh 21 October readback, the normal DSH gateway still uses the capacity/session source `9e2e8779`; the dedicated Test gateway uses normal-session validation source `0a679fce34de`. The new combined candidate passed 75 isolated Linux checks, including feature-off recovery, but is not yet live. Live browser acceptance, exact deployment review and normal-gateway promotion remain before the Test gateway can be retired.
+The isolated Test issuer serves the reviewed source `fec53f…` / `8ba09e26…`. Eighty-two Linux checks and three additional asynchronous race cases passed. Live API tests verified returned identity/content, both access modes, destination authentication, credential stripping, WebSocket echo, logout and feature-off/on recovery with unchanged persistent state.
 
-SMP is intentionally separated: Test loads triage V4 (`e91f8d53`, prompt SHA-256 `cd860e2b3694f32a091b2b7c294c820d8cc715f6b84d40c8a639a7b6251c4274`); Production loads the original prompt (`137b80ef39`, SHA-256 `ff5ef1ff5b0ed7f966a4637325828be37bbd14e6b9ea800a779665829b39f277`). Both actual prompt loaders matched their files, both watchers were enabled with fresh heartbeats, and all six checked Core containers were ready with zero restarts. This is a runtime/source check, not a new classification-accuracy experiment.
+The browser page visibly contains only the app-focused form, but native browser submission remains pending a manual check: the tested IAB controls also failed to submit a harmless local form. This is an observed browser-control limitation, not a proven application defect. The existing normal DSH gateway and working earlier bridge were not replaced or retired by this rollout.
 
-No Production deployment or historical resend was performed for this candidate work. Existing evidence and the working Test demonstrations are preserved pending replacement. The English video/PPTX have not been regenerated for this candidate and must not be described as current coverage of it.
+At the fresh 19:16 Bangkok readback, SMP Test still loads triage V4 (`e91f8d53`, SHA-256 `cd860e2b3694f32a091b2b7c294c820d8cc715f6b84d40c8a639a7b6251c4274`); Production loads the original prompt (`137b80ef39`, SHA-256 `ff5ef1ff5b0ed7f966a4637325828be37bbd14e6b9ea800a779665829b39f277`). Both actual loaders matched their files; both watchers were enabled with fresh heartbeats. This check did not run a new classification-accuracy experiment.
+
+A separately authorized Main signup-helper hardening was preserved and was not part of this Test rollout. No Main/Production promotion or historical resend was performed by this work. The English video, PowerPoint and Test documentation site have not been republished for this new flow; they must not be described as current coverage of it. Full API/recovery and known-limit evidence is saved with the candidate.
