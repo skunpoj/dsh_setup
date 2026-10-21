@@ -12,7 +12,7 @@ function signupAdmission(snapshot, registered, now = Date.now()) {
       !Array.isArray(c.additionalDeployments) || !Number.isSafeInteger(c.additionalAccounts) ||
       c.additionalAccounts < 0 || c.additionalAccounts > 8 ||
       c.additionalDeployments.length !== c.additionalAccounts ||
-      c.additionalDeployments.some(x => x.accounts !== 1 || typeof x.label !== 'string') ||
+      c.additionalDeployments.some(x => !x || x.accounts !== 1 || typeof x.label !== 'string') ||
       new Set(c.additionalDeployments.map(x => x.label)).size !== c.additionalAccounts)
     return deny('capacity-incomplete');
   const usage = c.observedUsage, usageAge = now - Date.parse(usage?.timestamp);
@@ -20,9 +20,9 @@ function signupAdmission(snapshot, registered, now = Date.now()) {
       !['cpu','memoryGiB','reservedCPU','reservedMemoryGiB'].every(k => Number.isFinite(usage[k]) && usage[k] >= 0))
     return deny('usage-unavailable');
   if (!Array.isArray(c.resources) || c.resources.length !== 4 ||
-      new Set(c.resources.map(x => x.resource)).size !== 4 ||
-      c.resources.some(x => !RESOURCES.includes(x.resource) ||
-        !['available','reserve','pairBudget'].every(k => Number.isFinite(x[k]) && x[k] >= 0) || x.pairBudget <= 0))
+      c.resources.some(x => !x || !RESOURCES.includes(x.resource) ||
+        !['available','reserve','pairBudget'].every(k => Number.isFinite(x[k]) && x[k] >= 0) || x.pairBudget <= 0) ||
+      new Set(c.resources.map(x => x.resource)).size !== 4)
     return deny('capacity-incomplete');
   const blocked = c.resources.filter(x => x.available + 1e-9 < x.reserve + x.pairBudget).map(x => x.resource);
   if (blocked.length) return {...deny('resource-pressure'), resources:blocked};

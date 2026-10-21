@@ -15,6 +15,7 @@ for(const resource of ['cpu','memoryGiB','pods','storageGiB']){
 for(const mutate of [s=>s.available=false,s=>s.observedAt=new Date(now-60000).toISOString(),
  s=>s.capacity.observedUsage.timestamp=new Date(now-90000).toISOString(),
  s=>s.capacity.additionalDeploymentsComplete=false,s=>s.capacity.additionalDeployments.pop(),
+ s=>s.capacity.additionalDeployments[0]=null,s=>s.capacity.resources[0]=null,
  s=>s.capacity.resources[0].available=NaN,s=>s.capacity.resources[0].pairBudget=0,
  s=>s.capacity.resources[0].resource='memoryGiB',s=>s.capacity.mainRegistered=11]){
  const s=fresh();mutate(s);assert(!signupAdmission(s,12,now).allowed);
