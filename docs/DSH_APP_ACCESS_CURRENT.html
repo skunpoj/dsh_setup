@@ -1,0 +1,71 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>DSH application URLs and sign-in</title><style>body{font:17px/1.6 system-ui;max-width:1100px;margin:48px auto;padding:0 24px;color:#172033}h2{margin-top:2em}table{border-collapse:collapse;width:100%;margin:24px 0}td,th{border:1px solid #cbd5e1;padding:12px;text-align:left;vertical-align:top}th{background:#edf2f7}code{overflow-wrap:anywhere}a{overflow-wrap:anywhere}</style></head><body><h1>DSH application URLs and sign-in</h1>
+<p>An application visitor opens the application's URL directly. A separate proxy-test portal is not a required user step.</p>
+<h2>Two access choices</h2>
+<table>
+<thead>
+<tr>
+<th>Owner's setting</th>
+<th>Visitor experience</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Require DSH sign-in</td>
+<td>DSH checks the visitor's account before forwarding application traffic. The currently verified Test policy permits the mapping owner in the configured environment.</td>
+</tr>
+<tr>
+<td>Public access</td>
+<td>DSH forwards traffic without its visitor login gate. The application can still require its own authentication.</td>
+</tr>
+</tbody>
+</table>
+<p>Owners configure mappings; visitors use app links. Public access does not expose the DSH application manager or platform administration.</p>
+<h2>Actual configured examples</h2>
+<table>
+<thead>
+<tr>
+<th>Example</th>
+<th>URL</th>
+<th>Current verified purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Normal DSH</td>
+<td><a href="https://dsh.aiportal.bot.or.th/login">https://dsh.aiportal.bot.or.th/login</a></td>
+<td>Existing normal authentication and platform login</td>
+</tr>
+<tr>
+<td>Gated internal demonstration</td>
+<td><a href="https://proxy-test-app5.aiportal.bot.or.th/login">https://proxy-test-app5.aiportal.bot.or.th/login</a></td>
+<td>Requires the existing normal DSH session, then the demonstration application's own login</td>
+</tr>
+<tr>
+<td>Public internal demonstration</td>
+<td><a href="https://proxy-test-app6.aiportal.bot.or.th/login">https://proxy-test-app6.aiportal.bot.or.th/login</a></td>
+<td>Opens the demonstration application's login without a DSH gate</td>
+</tr>
+<tr>
+<td>Public data through DSH</td>
+<td><a href="https://proxy-test-app4.aiportal.bot.or.th/us-states.json">https://proxy-test-app4.aiportal.bot.or.th/us-states.json</a></td>
+<td>Fifty US-state records, without a DSH login</td>
+</tr>
+<tr>
+<td>Original data</td>
+<td><a href="https://storage.googleapis.com/cloud-samples-data/bigquery/us-states/us-states.json">https://storage.googleapis.com/cloud-samples-data/bigquery/us-states/us-states.json</a></td>
+<td>Upstream source for byte comparison</td>
+</tr>
+</tbody>
+</table>
+<p>These demonstration aliases still contain Test in their names. They remain on the dedicated Test gateway. They are not evidence that the normal DSH gateway already serves the new general-domain feature.</p>
+<h2>Routing</h2>
+<p>A reverse proxy connects to the local port, approved internal destination or permitted external HTTPS destination on the server side. The browser keeps the app alias for proxied requests. A redirect instructs the browser to open another URL, so its address changes. A webhook triggers an action; it does not transport ongoing application traffic.</p>
+<p>DSH must handle pages, assets, APIs, cookies, redirects and WebSockets. The upstream application may still navigate to another hostname, especially during external SSO. Each application needs its own compatibility check.</p>
+<h2>App-focused normal sign-in</h2>
+<p>The integrated candidate sends signed-out app visitors to the normal DSH issuer with a registered app context. It shows only the app's sign-in form and returns to that app after successful ordinary DSH authentication. It does not show workspace, terminal, Jupyter or platform setup choices. Existing platform users retain those options through the ordinary platform login.</p>
+<p>The candidate does not create another authentication service or account store. A five-minute, one-use browser challenge binds the submitted form to the current registered app, owner and environment. No arbitrary return URL is accepted.</p>
+<p>After the DSH gate, the destination application's session is separate. DSH login does not automatically sign the visitor into that application. Bearer/Basic credentials are not forwarded by the current proxy. Application SSO would require a separately designed integration.</p>
+<h2>Current release status</h2>
+<p>At the fresh 21 October readback, the normal DSH gateway still uses the capacity/session source <code>9e2e8779</code>; the dedicated Test gateway uses normal-session validation source <code>0a679fce34de</code>. The new combined candidate passed 75 isolated Linux checks, including feature-off recovery, but is not yet live. Live browser acceptance, exact deployment review and normal-gateway promotion remain before the Test gateway can be retired.</p>
+<p>SMP is intentionally separated: Test loads triage V4 (<code>e91f8d53</code>, prompt SHA-256 <code>cd860e2b3694f32a091b2b7c294c820d8cc715f6b84d40c8a639a7b6251c4274</code>); Production loads the original prompt (<code>137b80ef39</code>, SHA-256 <code>ff5ef1ff5b0ed7f966a4637325828be37bbd14e6b9ea800a779665829b39f277</code>). Both actual prompt loaders matched their files, both watchers were enabled with fresh heartbeats, and all six checked Core containers were ready with zero restarts. This is a runtime/source check, not a new classification-accuracy experiment.</p>
+<p>No Production deployment or historical resend was performed for this candidate work. Existing evidence and the working Test demonstrations are preserved pending replacement. The English video/PPTX have not been regenerated for this candidate and must not be described as current coverage of it.</p></body></html>

@@ -1,0 +1,11 @@
+{
+  "baseline_live_source_sha256": "9e2e87791cb1bbba29ad1c53b340d06706302a49f6df9427c645726169643e51",
+  "candidate_auth_proxy_sha256": "15f2d19bbb4bc3059be80dfa0e06dcb5129291a0647c324db179662b7dc3383c",
+  "feature_flag": "DSH_APP_LOGIN_ENABLED=true",
+  "production_deployment": false,
+  "integration_scope": "Latest Main capacity/session source plus already-qualified general-domain/Public proxy feature and new app-focused normal issuer login. Not deployed.",
+  "proxy_merge_inputs_sha256": {
+    "C:\\Users\\skunpojt\\outputs\\dsh-proxy-triage-Test-20261021\\dsh-live-source\\auth_proxy.js": "e210db23eef7fecc5ba75dcd02b86acac823c56e60559ae2bdcd2ab4238e3ad1",
+    "C:\\Users\\skunpojt\\outputs\\dsh-normal-login-Test-20261021\\dsh-proxy-test-gateway\\auth_proxy.js": "90d62a7a7d5452fe70b9fffb554011e56e3bd3b418b8a59b63474af299a2af44"
+  }
+}
