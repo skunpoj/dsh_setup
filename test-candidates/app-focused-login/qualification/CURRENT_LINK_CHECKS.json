@@ -1,0 +1,61 @@
+{
+  "observed_bangkok": "2026-10-21T17:37:30.516526+07:00",
+  "checks": [
+    {
+      "url": "https://dsh.aiportal.bot.or.th/login",
+      "status": 200,
+      "location": null,
+      "bytes": 14915,
+      "sha256": "c6bd839f00522bc132b6f7b7780d1ca4423fa2e4ab9503d841125a3c5262d202",
+      "password_form": true,
+      "normal_login_bridge": false,
+      "destination_login": false
+    },
+    {
+      "url": "https://proxy-test-app5.aiportal.bot.or.th/login",
+      "status": 200,
+      "location": null,
+      "bytes": 1452,
+      "sha256": "7c746357694decf8fa8afa412872f8ee8f89e2e2f80085bb3643e77063073bde",
+      "password_form": false,
+      "normal_login_bridge": true,
+      "destination_login": false
+    },
+    {
+      "url": "https://proxy-test-app6.aiportal.bot.or.th/login",
+      "status": 200,
+      "location": null,
+      "bytes": 214,
+      "sha256": "154265bc0817fdc934dc088c9852f9100968d018382883e49e1075026fdf791b",
+      "password_form": true,
+      "normal_login_bridge": false,
+      "destination_login": true
+    },
+    {
+      "url": "https://proxy-test-app4.aiportal.bot.or.th/us-states.json",
+      "status": 200,
+      "location": null,
+      "bytes": 2023,
+      "sha256": "6337fd331f71a9272519b8e14c7ae58215e56cf3ffc57ce7f09990f6e56f2971",
+      "password_form": false,
+      "normal_login_bridge": false,
+      "destination_login": false,
+      "record_count": 50,
+      "first_state": "Alabama"
+    },
+    {
+      "url": "https://storage.googleapis.com/cloud-samples-data/bigquery/us-states/us-states.json",
+      "status": 200,
+      "location": null,
+      "bytes": 2023,
+      "sha256": "6337fd331f71a9272519b8e14c7ae58215e56cf3ffc57ce7f09990f6e56f2971",
+      "password_form": false,
+      "normal_login_bridge": false,
+      "destination_login": false,
+      "record_count": 50,
+      "first_state": "Alabama"
+    }
+  ],
+  "read_only": true,
+  "public_data_matches_upstream_exactly": true
+}
