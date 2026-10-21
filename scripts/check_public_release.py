@@ -15,6 +15,7 @@ RULES={
  'credential-url':r'://[^\s/:]+:[^\s/@]+@',
 }
 def scan(root,private_terms=()):
+ if not root.is_dir():raise ValueError('Public scan root must be an existing directory')
  findings=[]
  def check(name,text):
   for key,pattern in RULES.items():

@@ -9,6 +9,9 @@ spec=importlib.util.spec_from_file_location('public_gate',ROOT/'scripts/check_pu
 gate=importlib.util.module_from_spec(spec);spec.loader.exec_module(gate)
 
 class PublicReleaseGateTests(unittest.TestCase):
+ def test_missing_root_is_not_a_clean_scan(self):
+  with TemporaryDirectory() as t:
+   with self.assertRaises(ValueError):gate.scan(Path(t)/'missing')
  def test_personal_path_is_rejected_without_echoing_value(self):
   with TemporaryDirectory() as t:
    p=Path(t);(p/'note.txt').write_text('C:'+chr(92)+'Users'+chr(92)+'private-owner'+chr(92)+'file')
