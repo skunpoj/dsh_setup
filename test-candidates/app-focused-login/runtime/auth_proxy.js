@@ -46,6 +46,7 @@ const DEFAULT_APP_LIMIT = 8;
 const SITE_APP_LIMIT = 4096; // Registry safety bound, not a user approval tier.
 const APP_CONNECTIONS = new Map();
 const EXTERNAL_PROXY = require('./external_upstream');
+const EXTERNAL_LOOKUP=process.env.DSH_EXTERNAL_DNS_SERVERS?require('./external_dns').createLookup(process.env.DSH_EXTERNAL_DNS_SERVERS):undefined;
 function externalPolicies() {
   const file=process.env.DSH_EXTERNAL_TARGETS_FILE;
   if(!file)return {};
@@ -60,7 +61,7 @@ function customAppAvailable(alias,user,mode) {return Boolean(customAppPort(alias
 function externalProxyOptions(req,target) {
   const host=String(req.headers['x-forwarded-host']||req.headers.host||'').toLowerCase();
   if(!appHostName(host))throw Error('External mappings require an application hostname');
-  return {target,publicOrigin:'https://'+host,protectedCookies:[COOKIE_NAME,'dsh_auth']};
+  return {target,publicOrigin:'https://'+host,protectedCookies:[COOKIE_NAME,'dsh_auth'],lookup:EXTERNAL_LOOKUP};
 }
 
 // Explicit public aliases only. Owner configuration remains behind normal auth+CSRF.

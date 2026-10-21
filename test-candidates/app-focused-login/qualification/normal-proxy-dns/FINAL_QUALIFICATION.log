@@ -1,0 +1,537 @@
+TAP version 13
+# Subtest: actual configured demo aliases pass the unmodified routing-name predicate
+ok 1 - actual configured demo aliases pass the unmodified routing-name predicate
+  ---
+  duration_ms: 12.4341
+  type: 'test'
+  ...
+# Subtest: Test issuer discards all normal DSH cookies and retains only its own session and app cookies
+ok 2 - Test issuer discards all normal DSH cookies and retains only its own session and app cookies
+  ---
+  duration_ms: 0.593894
+  type: 'test'
+  ...
+# Subtest: Only normal credentials means no cookie reaches the Test issuer session parser
+ok 3 - Only normal credentials means no cookie reaches the Test issuer session parser
+  ---
+  duration_ms: 0.356797
+  type: 'test'
+  ...
+# Subtest: PVC group-mode correction preserves existing Test session bytes
+ok 4 - PVC group-mode correction preserves existing Test session bytes
+  ---
+  duration_ms: 1.92717
+  type: 'test'
+  ...
+# Subtest: Test state refuses symlinked session files
+ok 5 - Test state refuses symlinked session files
+  ---
+  duration_ms: 1.396942
+  type: 'test'
+  ...
+# Subtest: Own alias migration preserves entries and original bytes and is idempotent
+ok 6 - Own alias migration preserves entries and original bytes and is idempotent
+  ---
+  duration_ms: 7.438994
+  type: 'test'
+  ...
+# Subtest: Changed registry or wrong owner refuses migration without changing bytes
+ok 7 - Changed registry or wrong owner refuses migration without changing bytes
+  ---
+  duration_ms: 2.170205
+  type: 'test'
+  ...
+# Subtest: app form has no workspace/environment/platform actions and returns registered alias
+ok 8 - app form has no workspace/environment/platform actions and returns registered alias
+  ---
+  duration_ms: 1.469281
+  type: 'test'
+  ...
+# Subtest: one use and same browser required
+ok 9 - one use and same browser required
+  ---
+  duration_ms: 0.619062
+  type: 'test'
+  ...
+# Subtest: reject foreign Origin and Host
+ok 10 - reject foreign Origin and Host
+  ---
+  duration_ms: 0.346192
+  type: 'test'
+  ...
+# Subtest: reject expired and removed mappings
+ok 11 - reject expired and removed mappings
+  ---
+  duration_ms: 0.247062
+  type: 'test'
+  ...
+# Subtest: reject changed owner, target, enabled state and Public mode
+ok 12 - reject changed owner, target, enabled state and Public mode
+  ---
+  duration_ms: 0.403206
+  type: 'test'
+  ...
+# Subtest: reject wrong user and duplicate fields
+ok 13 - reject wrong user and duplicate fields
+  ---
+  duration_ms: 0.193371
+  type: 'test'
+  ...
+# Subtest: no open return URL, unknown mode or prototype application
+ok 14 - no open return URL, unknown mode or prototype application
+  ---
+  duration_ms: 0.595266
+  type: 'test'
+  ...
+# Subtest: bounded pending forms; capacity returns after expiry
+ok 15 - bounded pending forms; capacity returns after expiry
+  ---
+  duration_ms: 0.170126
+  type: 'test'
+  ...
+# Subtest: Public mappings never create DSH password form
+ok 16 - Public mappings never create DSH password form
+  ---
+  duration_ms: 0.191448
+  type: 'test'
+  ...
+# Subtest: Internet-only app chooses registered mode without presenting platform choices
+ok 17 - Internet-only app chooses registered mode without presenting platform choices
+  ---
+  duration_ms: 0.301654
+  type: 'test'
+  ...
+# Subtest: actual latest normal gateway integrates app form, normal auth and safe return
+    # Subtest: standard platform login still exposes existing platform options
+    ok 1 - standard platform login still exposes existing platform options
+      ---
+      duration_ms: 1.177862
+      type: 'test'
+      ...
+    # Subtest: incorrect password stays in app presentation
+    ok 2 - incorrect password stays in app presentation
+      ---
+      duration_ms: 55.136929
+      type: 'test'
+      ...
+    # Subtest: normal credential creates actual issuer session and returns to app
+    ok 3 - normal credential creates actual issuer session and returns to app
+      ---
+      duration_ms: 54.484848
+      type: 'test'
+      ...
+    # Subtest: malformed context and arbitrary target do not redirect
+    ok 4 - malformed context and arbitrary target do not redirect
+      ---
+      duration_ms: 1.969925
+      type: 'test'
+      ...
+    1..4
+ok 18 - actual latest normal gateway integrates app form, normal auth and safe return
+  ---
+  duration_ms: 362.980355
+  type: 'test'
+  ...
+# Subtest: Dedicated resolver returns all families without changing system DNS
+ok 19 - Dedicated resolver returns all families without changing system DNS
+  ---
+  duration_ms: 3.619376
+  type: 'test'
+  ...
+# Subtest: Reject invalid operator server configuration and URL-like host input
+ok 20 - Reject invalid operator server configuration and URL-like host input
+  ---
+  duration_ms: 0.933645
+  type: 'test'
+  ...
+# Subtest: Mixed private answer blocks public forwarding before connection
+ok 21 - Mixed private answer blocks public forwarding before connection
+  ---
+  duration_ms: 0.709909
+  type: 'test'
+  ...
+# Subtest: DNS timeouts fail closed; no fallback to system resolver
+ok 22 - DNS timeouts fail closed; no fallback to system resolver
+  ---
+  duration_ms: 0.257567
+  type: 'test'
+  ...
+# Subtest: Unavailable family is allowed only when another family has answers
+ok 23 - Unavailable family is allowed only when another family has answers
+  ---
+  duration_ms: 0.263596
+  type: 'test'
+  ...
+# Subtest: isolated HTTPS proxy qualification
+    # Subtest: owner and environment isolation
+    ok 1 - owner and environment isolation
+      ---
+      duration_ms: 0.567124
+      type: 'test'
+      ...
+    # Subtest: reject invalid upstream http://example.test/
+    ok 2 - reject invalid upstream http://example.test/
+      ---
+      duration_ms: 0.266471
+      type: 'test'
+      ...
+    # Subtest: reject invalid upstream https://u:p@example.test/
+    ok 3 - reject invalid upstream https://u:p@example.test/
+      ---
+      duration_ms: 0.137888
+      type: 'test'
+      ...
+    # Subtest: reject invalid upstream https://example.test/?token=x
+    ok 4 - reject invalid upstream https://example.test/?token=x
+      ---
+      duration_ms: 0.118589
+      type: 'test'
+      ...
+    # Subtest: reject invalid upstream https://127.0.0.1/
+    ok 5 - reject invalid upstream https://127.0.0.1/
+      ---
+      duration_ms: 0.081693
+      type: 'test'
+      ...
+    # Subtest: reject invalid upstream https://[::1]/
+    ok 6 - reject invalid upstream https://[::1]/
+      ---
+      duration_ms: 0.091518
+      type: 'test'
+      ...
+    # Subtest: reject invalid upstream https://[2606:4700:4700::1111]/
+    ok 7 - reject invalid upstream https://[2606:4700:4700::1111]/
+      ---
+      duration_ms: 0.071097
+      type: 'test'
+      ...
+    # Subtest: reject invalid upstream https://example.test/\#fragment
+    ok 8 - reject invalid upstream https://example.test/\#fragment
+      ---
+      duration_ms: 0.129084
+      type: 'test'
+      ...
+    # Subtest: unapproved origin refused
+    ok 9 - unapproved origin refused
+      ---
+      duration_ms: 0.311119
+      type: 'test'
+      ...
+    # Subtest: loopback metadata IPv6 multicast denied
+    ok 10 - loopback metadata IPv6 multicast denied
+      ---
+      duration_ms: 0.175124
+      type: 'test'
+      ...
+    # Subtest: DNS change refused before connection
+    ok 11 - DNS change refused before connection
+      ---
+      duration_ms: 0.459842
+      type: 'test'
+      ...
+    # Subtest: request path cannot replace origin or escape encoded base
+    ok 12 - request path cannot replace origin or escape encoded base
+      ---
+      duration_ms: 0.250056
+      type: 'test'
+      ...
+    # Subtest: DSH credentials stripped actual HTTPS request
+    ok 13 - DSH credentials stripped actual HTTPS request
+      ---
+      duration_ms: 31.947774
+      type: 'test'
+      ...
+    # Subtest: cross-origin write refused
+    ok 14 - cross-origin write refused
+      ---
+      duration_ms: 1.559938
+      type: 'test'
+      ...
+    # Subtest: actual fixture login and redirect remain under alias
+    ok 15 - actual fixture login and redirect remain under alias
+      ---
+      duration_ms: 2.181042
+      type: 'test'
+      ...
+    # Subtest: authenticated content and source reference read back
+    ok 16 - authenticated content and source reference read back
+      ---
+      duration_ms: 1.485335
+      type: 'test'
+      ...
+    # Subtest: anonymous upstream access remains refused
+    ok 17 - anonymous upstream access remains refused
+      ---
+      duration_ms: 1.763063
+      type: 'test'
+      ...
+    # Subtest: full download and Range bytes preserved
+    ok 18 - full download and Range bytes preserved
+      ---
+      duration_ms: 2.632341
+      type: 'test'
+      ...
+    # Subtest: SSE stream content preserved
+    ok 19 - SSE stream content preserved
+      ---
+      duration_ms: 21.822949
+      type: 'test'
+      ...
+    # Subtest: WebSocket 101 and frame transport without DSH credential
+    ok 20 - WebSocket 101 and frame transport without DSH credential
+      ---
+      duration_ms: 3.023069
+      type: 'test'
+      ...
+    # Subtest: TLS verification is always enabled
+    ok 21 - TLS verification is always enabled
+      ---
+      duration_ms: 0.159049
+      type: 'test'
+      ...
+    # Subtest: actual TLS request rejects an untrusted certificate
+    ok 22 - actual TLS request rejects an untrusted certificate
+      ---
+      duration_ms: 4.33941
+      type: 'test'
+      ...
+    # Subtest: actual TLS request rejects wrong upstream hostname
+    ok 23 - actual TLS request rejects wrong upstream hostname
+      ---
+      duration_ms: 2.973505
+      type: 'test'
+      ...
+    # Subtest: upstream cannot overwrite DSH session cookies
+    ok 24 - upstream cannot overwrite DSH session cookies
+      ---
+      duration_ms: 0.165108
+      type: 'test'
+      ...
+    # Subtest: upstream cannot redirect outside mapped base path
+    ok 25 - upstream cannot redirect outside mapped base path
+      ---
+      duration_ms: 0.176586
+      type: 'test'
+      ...
+    # Subtest: external HTTPS SSO redirect is explicit browser navigation
+    ok 26 - external HTTPS SSO redirect is explicit browser navigation
+      ---
+      duration_ms: 0.078909
+      type: 'test'
+      ...
+    1..26
+ok 24 - isolated HTTPS proxy qualification
+  ---
+  duration_ms: 87.191024
+  type: 'test'
+  ...
+# Subtest: general public HTTPS policy without individual-origin registration
+    # Subtest: public IPv4 and IPv6 are supported and pinned
+    ok 1 - public IPv4 and IPv6 are supported and pinned
+      ---
+      duration_ms: 0.23269
+      type: 'test'
+      ...
+    # Subtest: private metadata reserved mapped and transition addresses refused
+    ok 2 - private metadata reserved mapped and transition addresses refused
+      ---
+      duration_ms: 0.463687
+      type: 'test'
+      ...
+    # Subtest: mixed DNS answers and later DNS rebinding refused
+    ok 3 - mixed DNS answers and later DNS rebinding refused
+      ---
+      duration_ms: 0.147342
+      type: 'test'
+      ...
+    # Subtest: explicit global enable and allowed port required
+    ok 4 - explicit global enable and allowed port required
+      ---
+      duration_ms: 0.18634
+      type: 'test'
+      ...
+    # Subtest: private or single-label names cannot use public policy
+    ok 5 - private or single-label names cannot use public policy
+      ---
+      duration_ms: 0.163085
+      type: 'test'
+      ...
+    1..5
+ok 25 - general public HTTPS policy without individual-origin registration
+  ---
+  duration_ms: 1.602021
+  type: 'test'
+  ...
+# Subtest: actual DSH source, external-target registry and persistent login
+    # Subtest: anonymous API is refused by actual DSH code
+    ok 1 - anonymous API is refused by actual DSH code
+      ---
+      duration_ms: 1.415059
+      type: 'test'
+      ...
+    # Subtest: actual DSH login produces a persisted session
+    ok 2 - actual DSH login produces a persisted session
+      ---
+      duration_ms: 108.195641
+      type: 'test'
+      ...
+    # Subtest: registration retains default limit eight
+    ok 3 - registration retains default limit eight
+      ---
+      duration_ms: 1.959849
+      type: 'test'
+      ...
+    # Subtest: application-manager login uses a fixed local landing path
+    ok 4 - application-manager login uses a fixed local landing path
+      ---
+      duration_ms: 53.036187
+      type: 'test'
+      ...
+    # Subtest: optional Test-host allowlist refuses aliases without a Test ingress
+    ok 5 - optional Test-host allowlist refuses aliases without a Test ingress
+      ---
+      duration_ms: 5.86136
+      type: 'test'
+      ...
+    # Subtest: external target requires approved origin
+    ok 6 - external target requires approved origin
+      ---
+      duration_ms: 4.965782
+      type: 'test'
+      ...
+    # Subtest: CSRF is checked before a mapping is saved
+    ok 7 - CSRF is checked before a mapping is saved
+      ---
+      duration_ms: 0.969639
+      type: 'test'
+      ...
+    # Subtest: external mapping is persisted under the signed-in owner
+    ok 8 - external mapping is persisted under the signed-in owner
+      ---
+      duration_ms: 3.873148
+      type: 'test'
+      ...
+    # Subtest: actual application list includes external URL and type
+    ok 9 - actual application list includes external URL and type
+      ---
+      duration_ms: 2.358389
+      type: 'test'
+      ...
+    # Subtest: anonymous alias redirects to canonical DSH sign-in
+    ok 10 - anonymous alias redirects to canonical DSH sign-in
+      ---
+      duration_ms: 1.225384
+      type: 'test'
+      ...
+    # Subtest: another account cannot access or overwrite the alias
+    ok 11 - another account cannot access or overwrite the alias
+      ---
+      duration_ms: 3.051862
+      type: 'test'
+      ...
+    # Subtest: target /login reaches target instead of DSH login handler
+    ok 12 - target /login reaches target instead of DSH login handler
+      ---
+      duration_ms: 12.313669
+      type: 'test'
+      ...
+    # Subtest: target authenticated content and sources are actually returned
+    ok 13 - target authenticated content and sources are actually returned
+      ---
+      duration_ms: 3.128217
+      type: 'test'
+      ...
+    # Subtest: target logout does not intercept DSH sign-out
+    ok 14 - target logout does not intercept DSH sign-out
+      ---
+      duration_ms: 2.630468
+      type: 'test'
+      ...
+    # Subtest: local port mapping still saves and consumes the same quota
+    ok 15 - local port mapping still saves and consumes the same quota
+      ---
+      duration_ms: 4.76463
+      type: 'test'
+      ...
+    # Subtest: candidate restart retains sessions and external mappings
+    ok 16 - candidate restart retains sessions and external mappings
+      ---
+      duration_ms: 142.527573
+      type: 'test'
+      ...
+    # Subtest: baseline rollback retains storage and local mappings
+    ok 17 - baseline rollback retains storage and local mappings
+      ---
+      duration_ms: 115.62489
+      type: 'test'
+      ...
+    # Subtest: return to candidate restores external route with retained login
+    ok 18 - return to candidate restores external route with retained login
+      ---
+      duration_ms: 121.0416
+      type: 'test'
+      ...
+    # Subtest: recovery disables app presentation while preserving external content and login
+    ok 19 - recovery disables app presentation while preserving external content and login
+      ---
+      duration_ms: 249.906614
+      type: 'test'
+      ...
+    # Subtest: actual DSH WebSocket denies anonymous and other account at origin guard
+    ok 20 - actual DSH WebSocket denies anonymous and other account at origin guard
+      ---
+      duration_ms: 2.553202
+      type: 'test'
+      ...
+    # Subtest: actual DSH WebSocket authenticates and forwards a masked client frame
+    ok 21 - actual DSH WebSocket authenticates and forwards a masked client frame
+      ---
+      duration_ms: 4.230246
+      type: 'test'
+      ...
+    # Subtest: same alias does not cross the selected environment
+    ok 22 - same alias does not cross the selected environment
+      ---
+      duration_ms: 56.157014
+      type: 'test'
+      ...
+    # Subtest: Public option saves in actual settings and retains destination login
+    ok 23 - Public option saves in actual settings and retains destination login
+      ---
+      duration_ms: 10.851168
+      type: 'test'
+      ...
+    # Subtest: Public alias forwards no DSH credentials or authorization
+    ok 24 - Public alias forwards no DSH credentials or authorization
+      ---
+      duration_ms: 1.987882
+      type: 'test'
+      ...
+    # Subtest: Public alias returns application content rather than DSH management
+    ok 25 - Public alias returns application content rather than DSH management
+      ---
+      duration_ms: 2.563928
+      type: 'test'
+      ...
+    # Subtest: canonical DSH logout revokes alias access and active WebSocket
+    ok 26 - canonical DSH logout revokes alias access and active WebSocket
+      ---
+      duration_ms: 2.59868
+      type: 'test'
+      ...
+    1..26
+ok 26 - actual DSH source, external-target registry and persistent login
+  ---
+  duration_ms: 1219.009119
+  type: 'test'
+  ...
+1..26
+# tests 87
+# suites 0
+# pass 87
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1973.297054
+{"result_path":"/tmp/qualification/race-1792586831208/RESULT.json","observed_at":"2026-10-21T12:47:12.322Z","runtime":"/tmp/qualification/runtime","hashes":{"app_signin.js":"3899827b5ac8603b6bfb8f29d6b317ea22a1f79a21f883866bf0c84c3af7a846","auth_proxy.js":"813f5632b2829a32b663bb242db1b470ebcf324ad81493f706c163940748e8b7","capacity_policy.js":"c59b8e62e1216e6ec3f0116bf09d1f9e6de3a7c26997dc574ff5a230cadcb5d0","course_files.js":"19e4ef943ab7fa416cadc100b6159b866812f843e88d431a8e70b5afe5ff85ed","external_dns.js":"4b15041fac9babd164c117807fda4ee9c32ab574d5a17a1595448dbae3d47f25","external_upstream.js":"519e8dba1359d3f6834787a550d2ebdbe2dd9a59a5511aef3bb8523d96147513","package_portal.js":"c57a3edfd6bf8a88a354edc020b6b1c07d06bfc9740b5bfd5bec215d78d76159","password_store.js":"6a46ebe7e47a89b448a2bc555f39797aafeed1450d5b964701b801e3c16a59cb","session_store.js":"bb2c216e4fcb69ca6ea087eda352b13864ba8bc4fe41912d2cfdef8bd1232c20","signup_admission.js":"736e6b87b681499f1ebe9d937e0518accf5eb35dcd59ec0a197e07e6092c4a01"},"scope":"Local synthetic accounts and held real password verifier; no production or external calls","cases":[{"case":"mapping removed during wrong-password verification","response":{"status":403,"session_cookie_created":false},"gateway_alive":true,"rejected_session_persisted":false,"following_login_status":200,"pass":true},{"case":"mapping removed during correct-password verification","response":{"status":403,"session_cookie_created":false},"gateway_alive":true,"rejected_session_persisted":false,"following_login_status":200,"pass":true},{"case":"pending capacity filled during wrong-password verification","response":{"status":503,"session_cookie_created":false},"gateway_alive":true,"rejected_session_persisted":false,"following_login_status":200,"subsequent_valid_login_status":303,"pass":true}],"pass":true}
