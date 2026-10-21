@@ -94,3 +94,5 @@ Pinned package/image compatibility checks fail closed on upstream changes. A
 source or schema test is not proof of successful GPU inference. Keep local
 configuration, generated manifests, keys, tickets, backups and results out of Git.
 See [release validation](docs/VALIDATION.md) and [third-party notices](docs/THIRD_PARTY.md).
+
+For custom automatic provisioning, see [signup capacity, pressure gating and automatic recovery](docs/SIGNUP_CAPACITY.md). The portable evaluator is supplied for integration; it does not install a collector or enable registration.
