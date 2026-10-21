@@ -1,0 +1,854 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dns-source
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+data:
+  resolver.py: "\"\"\"Non-forwarding-by-default DNS relay for explicitly named internal\
+    \ services.\n\nRebuilds upstream questions: client EDNS data, IDs and extra sections\
+    \ are never\nforwarded. Unknown names are answered locally; query names are not\
+    \ logged.\n\"\"\"\nimport json\nimport re\nimport os\nimport secrets\nimport socket\n\
+    import socketserver\nimport struct\nimport threading\nfrom http.server import\
+    \ BaseHTTPRequestHandler, HTTPServer\nfrom pathlib import Path\n\nALLOWED = {x.lower().rstrip('.')\
+    \ for x in json.loads(Path(os.environ.get('DNS_ALLOWLIST', '/config/allowed.json')).read_text(encoding='utf-8'))}\n\
+    # Only fully qualified private runtime Services; never short names or public suffixes.\n\
+    # CoreDNS must remain authoritative for cluster.local (no public fallthrough).\n\
+    PRIVATE_RUNTIME = re.compile(r'user-[a-f0-9]{16}-(?:secure|internet)\\.' + re.escape(os.environ.get('DNS_RUNTIME_NAMESPACE','ai-workspace'))\
+    \ + r'\\.svc\\.' + re.escape(os.environ.get('DNS_CLUSTER_DOMAIN','cluster.local'))\
+    \ + r'\\Z')\nUPSTREAM = os.environ['DNS_UPSTREAM']\nUPSTREAM_PORT = int(os.environ.get('DNS_UPSTREAM_PORT',\
+    \ '53'))\nLIMIT = threading.BoundedSemaphore(16)\nCOUNTS = {'allowed': 0, 'denied':\
+    \ 0, 'errors': 0}\n\n\ndef question(packet):\n    if len(packet) < 12 or len(packet)\
+    \ > 512:\n        raise ValueError('Invalid query length')\n    _, flags, count,\
+    \ _, _, _ = struct.unpack('!6H', packet[:12])\n    if flags & 0xF800 or count\
+    \ != 1:\n        raise ValueError('Unsupported query')\n    position = 12\n  \
+    \  labels = []\n    while True:\n        length = packet[position];position +=\
+    \ 1\n        if not length:break\n        if length > 63 or position + length\
+    \ > len(packet):raise ValueError('Invalid name')\n        labels.append(packet[position:position+length].decode('ascii').lower());position\
+    \ += length\n    if position + 4 > len(packet):raise ValueError('Missing query\
+    \ type')\n    kind, klass = struct.unpack('!HH', packet[position:position+4])\n\
+    \    if kind not in (1, 28, 33) or klass != 1:raise ValueError('Unsupported query\
+    \ type')\n    wire = b''.join(bytes([len(x)])+x.encode() for x in labels)+b'\\\
+    0'+struct.pack('!HH',kind,1)\n    return '.'.join(labels), wire\n\n\ndef exact(stream,\
+    \ length):\n    result=b''\n    while len(result)<length:\n        part=stream.recv(length-len(result))\n\
+    \        if not part:raise OSError('Incomplete DNS frame')\n        result+=part\n\
+    \    return result\n\n\ndef answer(packet):\n    identifier=packet[:2] if len(packet)>=2\
+    \ else b'\\0\\0'\n    try:\n        name, wire=question(packet)\n        if name\
+    \ not in ALLOWED and not PRIVATE_RUNTIME.fullmatch(name):\n            COUNTS['denied']+=1\n\
+    \            return identifier+struct.pack('!5H',0x8183,1,0,0,0)+wire\n      \
+    \  if not LIMIT.acquire(blocking=False):raise OSError('DNS request capacity')\n\
+    \        try:\n            nonce=secrets.token_bytes(2)\n            query=nonce+struct.pack('!5H',0x0100,1,0,0,0)+wire\n\
+    \            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as upstream:\n\
+    \                upstream.settimeout(2);upstream.connect((UPSTREAM,UPSTREAM_PORT));upstream.send(query);response=upstream.recv(4096)\n\
+    \            if len(response)<12 or response[:2]!=nonce:raise OSError('Invalid\
+    \ upstream response')\n            if struct.unpack('!H',response[2:4])[0]&0x0200:\n\
+    \                with socket.create_connection((UPSTREAM,UPSTREAM_PORT),timeout=2)\
+    \ as upstream:\n                    upstream.sendall(struct.pack('!H',len(query))+query)\n\
+    \                    length=struct.unpack('!H',exact(upstream,2))[0]\n       \
+    \             if length>4096:raise OSError('Oversized upstream response')\n  \
+    \                  response=exact(upstream,length)\n                if response[:2]!=nonce:raise\
+    \ OSError('Invalid upstream response')\n            COUNTS['allowed']+=1\n   \
+    \         return identifier+response[2:]\n        finally:LIMIT.release()\n  \
+    \  except Exception:\n        COUNTS['errors']+=1\n        return identifier+struct.pack('!5H',0x8182,0,0,0,0)\n\
+    \n\nclass UDP(socketserver.BaseRequestHandler):\n    def handle(self):\n     \
+    \   packet, transport=self.request\n        transport.sendto(answer(packet),self.client_address)\n\
+    \n\nclass TCP(socketserver.BaseRequestHandler):\n    def handle(self):\n     \
+    \   self.request.settimeout(3)\n        try:\n            length=struct.unpack('!H',exact(self.request,2))[0]\n\
+    \            if length>512:return\n            response=answer(exact(self.request,length));self.request.sendall(struct.pack('!H',len(response))+response)\n\
+    \        except OSError:pass\n\n\nclass Health(BaseHTTPRequestHandler):\n    def\
+    \ log_message(self,*_):pass\n    def do_GET(self):\n        if self.path not in\
+    \ ('/health','/metrics'):self.send_error(404);return\n        body=json.dumps({'ready':True,'allowedNameCount':len(ALLOWED),'counts':COUNTS}).encode()\n\
+    \        self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)\n\
+    \n\nclass BoundedThreads(socketserver.ThreadingMixIn):\n    daemon_threads=True\n\
+    \    slots=threading.BoundedSemaphore(16)\n    def process_request(self,request,client_address):\n\
+    \        if not self.slots.acquire(blocking=False):self.shutdown_request(request);return\n\
+    \        try:super().process_request(request,client_address)\n        except Exception:self.slots.release();raise\n\
+    \    def process_request_thread(self,request,client_address):\n        try:super().process_request_thread(request,client_address)\n\
+    \        finally:self.slots.release()\n\n\nclass UDPServer(BoundedThreads,socketserver.UDPServer):pass\n\
+    class TCPServer(BoundedThreads,socketserver.TCPServer):pass\n\n\nif __name__=='__main__':\n\
+    \    for cls,handler in [(UDPServer,UDP),(TCPServer,TCP)]:\n        server=cls(('0.0.0.0',5353),handler);threading.Thread(target=server.serve_forever,daemon=True).start()\n\
+    \    HTTPServer(('0.0.0.0',8080),Health).serve_forever()\n"
+  allowed.json: '["litellm", "litellm.ai-workspace-example.svc.cluster.local", "model",
+    "model.ai-workspace-example.svc.cluster.local", "database", "database.ai-workspace-example.svc.cluster.local",
+    "gateway", "gateway.ai-workspace-example.svc.cluster.local", "filtered-dns", "filtered-dns.ai-workspace-example.svc.cluster.local"]'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filtered-dns
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: filtered-dns
+  template:
+    metadata:
+      labels:
+        app: filtered-dns
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: resolver
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        command:
+        - python3
+        - /config/resolver.py
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 10001
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: DNS_UPSTREAM
+          value: 192.0.2.53
+        - name: DNS_RUNTIME_NAMESPACE
+          value: ai-workspace-example
+        - name: DNS_CLUSTER_DOMAIN
+          value: cluster.local
+        volumeMounts:
+        - name: source
+          mountPath: /config
+          readOnly: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+      volumes:
+      - name: source
+        configMap:
+          name: dns-source
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: filtered-dns
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  clusterIP: 192.0.2.54
+  selector:
+    app: filtered-dns
+  ports:
+  - name: udp
+    protocol: UDP
+    port: 53
+    targetPort: 5353
+  - name: tcp
+    protocol: TCP
+    port: 53
+    targetPort: 5353
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: postgres
+        image: docker.io/library/postgres@sha256:f8e2cc2a36ddb8700e639570f0bc70d0c1495951ba61df903a015dc87db07d02
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: platform-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_USER
+          value: gateway
+        - name: POSTGRES_DB
+          value: gateway
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+          subPath: data
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - gateway
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: '2'
+            memory: 2Gi
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: database
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  selector:
+    app: database
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-source
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+data:
+  context_forwarder.py: "\"\"\"Loopback-only final-wire 1M guard between LiteLLM and\
+    \ internal SGLang.\n\nBind to 127.0.0.1 in the authenticated LiteLLM pod. Never\
+    \ expose this listener\nas a Service. Prompts/keys are not logged. Only canaries\
+    \ may enable capture.\n\"\"\"\nimport asyncio\nimport contextlib\nimport json\n\
+    import os\nfrom pathlib import Path\nimport time\nimport uuid\n\nimport httpx\n\
+    from fastapi import FastAPI, HTTPException, Request\nfrom fastapi.responses import\
+    \ JSONResponse, StreamingResponse\nfrom starlette.background import BackgroundTask\n\
+    \nfrom long_context_callbacks import CONTEXT, OUTPUT, RESERVE, TOKENIZER, LongContextGuard,\
+    \ count_request\nfrom context_envelope import normalize_conditioning\n\napp =\
+    \ FastAPI(docs_url=None, redoc_url=None, openapi_url=None)\nclass InteractiveLane:\n\
+    \    \"\"\"Let ordinary streams drain between bounded long-prefill steps.\n\n\
+    \    Long work gets a step after at most 8s of uninterrupted foreground load;\n\
+    \    this is cooperative scheduling, not GPU preemption or a latency SLA.\n  \
+    \  \"\"\"\n    def __init__(self, maximum_pause=8):\n        self.active = 0\n\
+    \        self.idle = asyncio.Event()\n        self.idle.set()\n        self.maximum_pause\
+    \ = maximum_pause\n\n    def enter(self):\n        self.active += 1\n        self.idle.clear()\n\
+    \n    def leave(self):\n        if self.active < 1:\n            raise RuntimeError('Interactive\
+    \ lane released without ownership')\n        self.active -= 1\n        if not\
+    \ self.active:\n            self.idle.set()\n\n    async def wait_turn(self):\n\
+    \        start = time.monotonic()\n        if self.active:\n            try:\n\
+    \                await asyncio.wait_for(self.idle.wait(), timeout=self.maximum_pause)\n\
+    \            except asyncio.TimeoutError:\n                pass\n        return\
+    \ time.monotonic() - start\n\n\ninteractive = InteractiveLane()\nguard = LongContextGuard()\n\
+    guard.before_warm_step = interactive.wait_turn\nBACKEND = TOKENIZER.removesuffix('/v1/tokenize')\n\
+    \n\ndef assemble_response(chunks, messages):\n    from litellm import ModelResponseStream,\
+    \ stream_chunk_builder\n    result = stream_chunk_builder([ModelResponseStream(**c)\
+    \ for c in chunks], messages=messages)\n    if result is None:\n        raise\
+    \ HTTPException(503, 'No complete model response was received.')\n    return result.model_dump(mode='json')\n\
+    \n\nasync def abort(rid):\n    try:\n        async with httpx.AsyncClient(timeout=5,\
+    \ trust_env=False) as client:\n            await client.post(BACKEND+'/abort_request',\
+    \ json={'rid': rid})\n    except Exception:\n        pass\n\n\nasync def watch_client(request,\
+    \ coroutine):\n    task = asyncio.create_task(coroutine)\n    try:\n        while\
+    \ not task.done():\n            await asyncio.wait({task}, timeout=.5)\n     \
+    \       if await request.is_disconnected():\n                raise HTTPException(499,\
+    \ 'Client disconnected.')\n        return await task\n    finally:\n        if\
+    \ not task.done():\n            task.cancel()\n            with contextlib.suppress(asyncio.CancelledError):\n\
+    \                await task\n\n\n@app.get('/health')\nasync def health():\n  \
+    \  return {'context': CONTEXT, 'output': OUTPUT, 'finalWireGuard': True}\n\n\n\
+    @app.get('/v1/models')\nasync def models():\n    async with httpx.AsyncClient(timeout=10,\
+    \ trust_env=False) as client:\n        response = await client.get(BACKEND+'/v1/models')\n\
+    \        return JSONResponse(response.json(), status_code=response.status_code)\n\
+    \n\n@app.post('/v1/chat/completions')\nasync def completion(request: Request):\n\
+    \    raw = bytearray()\n    async for part in request.stream():\n        raw.extend(part)\n\
+    \        if len(raw) > 64*1024*1024:\n            raise HTTPException(413, 'Request\
+    \ body exceeds the supported envelope.')\n    try:\n        data = json.loads(raw)\n\
+    \    except Exception:\n        raise HTTPException(400, 'Invalid JSON.')\n  \
+    \  if not isinstance(data, dict) or not isinstance(data.get('messages'), list):\n\
+    \        raise HTTPException(400, 'Chat messages required.')\n    if data.get('model')\
+    \ not in ['deepseek-v4.1-flash', 'deepseek-flash']:\n        raise HTTPException(400,\
+    \ 'Model is outside this context policy.')\n    normalize_conditioning(data)\n\
+    \    if os.environ.get('DSH_CAPTURE_SYNTHETIC_ENVELOPE') == '1':\n        Path('/tmp/dsh-synthetic-envelope.json').write_text(json.dumps(data))\n\
+    \    try:\n        tokenized = await asyncio.to_thread(count_request, data, True)\n\
+    \    except Exception:\n        raise HTTPException(503, 'Final-wire token budgeting\
+    \ unavailable; not dispatched.')\n    available = CONTEXT-RESERVE-tokenized['count']\n\
+    \    if available < 1:\n        raise HTTPException(400, 'Input exceeds 1M total-token\
+    \ budget; compact or reduce it.')\n    limits = [data[k] for k in ['max_tokens',\
+    \ 'max_completion_tokens'] if k in data]\n    if any(type(n) is not int or n <\
+    \ 1 for n in limits):\n        raise HTTPException(400, 'Invalid output budget.')\n\
+    \    data.pop('max_completion_tokens', None)\n    data['max_tokens'] = min([OUTPUT,\
+    \ available]+limits)\n    long = tokenized['count']+data['max_tokens'] > 131072\n\
+    \    non_text = any(isinstance(m.get('content'), list) and any(\n        isinstance(part,\
+    \ dict) and part.get('type') != 'text' for part in m['content'])\n        for\
+    \ m in data['messages'] if isinstance(m, dict))\n    if long and non_text:\n \
+    \       raise HTTPException(400, 'Above 128K, this warming route supports text\
+    \ and tools; reduce multimodal input.')\n    incoming_stream = bool(data.get('stream'))\n\
+    \    if long and not incoming_stream and any(data.get(k) for k in\n        ['return_token_ids',\
+    \ 'return_prompt_token_ids', 'return_meta_info', 'return_hidden_states']):\n \
+    \       raise HTTPException(400, 'Large nonstreaming requests do not support raw\
+    \ backend debug metadata.')\n    lease = {'metadata': {}}\n    rid = 'dsh-final-'+uuid.uuid4().hex\n\
+    \    data['rid'] = rid\n    client = None\n    upstream = None\n    handed_off\
+    \ = False\n    cleaned = False\n    ordinary_owned = False\n    async def cleanup():\n\
+    \        nonlocal cleaned, ordinary_owned\n        if cleaned:\n            return\n\
+    \        cleaned = True\n        if ordinary_owned:\n            interactive.leave()\n\
+    \            ordinary_owned = False\n        try:\n            if upstream is\
+    \ not None:\n                await upstream.aclose()\n            if client is\
+    \ not None:\n                await client.aclose()\n            await abort(rid)\n\
+    \        finally:\n            guard.release(lease)\n    try:\n        if not\
+    \ long:\n            interactive.enter()\n            ordinary_owned = True\n\
+    \        if long:\n            key = uuid.uuid4().hex\n            lease['metadata']['dsh_long_lease']\
+    \ = key\n            async def prepare():\n                await guard.acquire(key)\n\
+    \                summary = await guard.warm(tokenized['tokens'])\n           \
+    \     print(json.dumps({'event': 'dsh_final_wire_warmed', **summary}), flush=True)\n\
+    \            try:\n                await watch_client(request, prepare())\n  \
+    \          except HTTPException:\n                raise\n            except Exception:\n\
+    \                raise HTTPException(503, 'Long-context cache preparation stopped;\
+    \ retry later.')\n        client = httpx.AsyncClient(timeout=httpx.Timeout(3600,\
+    \ connect=10), trust_env=False)\n        wire_data = dict(data)\n        if long\
+    \ and not incoming_stream:\n            wire_data['stream'] = True\n         \
+    \   wire_data['stream_options'] = {**(data.get('stream_options') or {}), 'include_usage':\
+    \ True}\n        upstream = await client.send(client.build_request('POST', BACKEND+'/v1/chat/completions',\
+    \ json=wire_data), stream=True)\n        if upstream.status_code != 200 or (not\
+    \ long and not incoming_stream):\n            body = await upstream.aread()\n\
+    \            return JSONResponse(json.loads(body), status_code=upstream.status_code)\n\
+    \n        async def stream():\n            iterator = upstream.aiter_raw().__aiter__()\n\
+    \            first = not long\n            deadline = time.monotonic()+15\n  \
+    \          buffer = b''\n            try:\n                while True:\n     \
+    \               remaining = deadline-time.monotonic() if not first else 3600\n\
+    \                    if remaining <= 0:\n                        raise TimeoutError('Cache\
+    \ handoff did not produce output')\n                    try:\n               \
+    \         chunk = await asyncio.wait_for(anext(iterator), timeout=remaining)\n\
+    \                    except StopAsyncIteration:\n                        break\n\
+    \                    if not first:\n                        buffer += chunk\n\
+    \                        while b'\\n' in buffer:\n                           \
+    \ line, buffer = buffer.split(b'\\n', 1)\n                            if line.startswith(b'data:\
+    \ ') and line[6:].strip() != b'[DONE]':\n                                try:\n\
+    \                                    item = json.loads(line[6:])\n           \
+    \                         first = first or any(any(c.get('delta', {}).get(k) for\
+    \ k in\n                                        ['content', 'reasoning_content',\
+    \ 'tool_calls']) for c in item.get('choices', []))\n                         \
+    \       except Exception:\n                                    pass\n        \
+    \            yield chunk\n            except (TimeoutError, httpx.TimeoutException):\n\
+    \                yield b'data: '+json.dumps({'error': {'code': 'context_cache_handoff_failed',\n\
+    \                    'message': 'Long-context cache handoff failed; request stopped\
+    \ without full-prefill fallback.'}}).encode()+b'\\n\\n'\n            finally:\n\
+    \                await asyncio.shield(cleanup())\n        if not incoming_stream:\n\
+    \            async def collect():\n                packets = []\n            \
+    \    buffer = b''\n                async for chunk in stream():\n            \
+    \        buffer += chunk\n                    while b'\\n' in buffer:\n      \
+    \                  line, buffer = buffer.split(b'\\n', 1)\n                  \
+    \      if not line.startswith(b'data: ') or line[6:].strip() == b'[DONE]':\n \
+    \                           continue\n                        packet = json.loads(line[6:])\n\
+    \                        if 'error' in packet:\n                            raise\
+    \ HTTPException(503, 'Long-context response stopped before completion.')\n   \
+    \                     packets.append(packet)\n                return assemble_response(packets,\
+    \ data['messages'])\n            return JSONResponse(await watch_client(request,\
+    \ collect()))\n        handed_off = True\n        return StreamingResponse(stream(),\
+    \ media_type='text/event-stream', headers={'Cache-Control': 'no-cache'},\n   \
+    \                              background=BackgroundTask(cleanup))\n    finally:\n\
+    \        if not handed_off:\n            await asyncio.shield(cleanup())\n"
+  context_envelope.py: "\"\"\"Make prompt-affecting SGLang defaults explicit on both\
+    \ code paths.\"\"\"\n\n\ndef normalize_conditioning(data):\n    data.setdefault('continue_final_message',\
+    \ False)\n    for tool in data.get('tools') or []:\n        if isinstance(tool,\
+    \ dict) and tool.get('type') == 'function':\n            function = tool.get('function')\n\
+    \            if isinstance(function, dict) and function.get('strict') is None:\n\
+    \                # The pinned TokenizeRequest converter materializes this\n  \
+    \              # default. Forward it too so actual prompt IDs are identical.\n\
+    \                function['strict'] = False\n    return data\n"
+  long_context_callbacks.py: "\"\"\"Exact backend budgeting and one-at-a-time long-prefill\
+    \ admission.\n\nRun in one LiteLLM replica. The process-shared flock remains held\
+    \ until the\nstream closes, including cancellation/failure. Ordinary requests\
+    \ do not wait\non this lock. No prompt content or credentials are logged.\n\"\"\
+    \"\nimport asyncio\nimport fcntl\nimport json\nimport os\nimport time\nimport\
+    \ urllib.request\nimport urllib.error\nimport uuid\n\nfrom fastapi import HTTPException\n\
+    from litellm.integrations.custom_logger import CustomLogger\n\nCONTEXT = 1048576\n\
+    OUTPUT = 8192\nRESERVE = 256\nLONG_THRESHOLD = 131072\nMODELS = {'deepseek-v4.1-flash',\
+    \ 'deepseek-flash'}\nTOKENIZER = os.environ.get('DSH_TOKENIZER_URL',\n    'http://model:8000/v1/tokenize')\n\
+    WARM_STEP = 2048\nCACHE_PROBE_SECONDS = 2\n\n\nclass CacheProbeMiss(TimeoutError):\n\
+    \    \"\"\"The bounded cache probe was cold and its own request was aborted.\"\
+    \"\"\n\n\ndef count_request(data, final_envelope=False):\n    allowed = ('messages',\
+    \ 'tools', 'tool_choice', 'reasoning_effort',\n               'continue_final_message',\
+    \ 'chat_template_kwargs')\n    payload = dict(data) if final_envelope else {k:\
+    \ data[k] for k in allowed if k in data}\n    if final_envelope:\n        # Tokenization\
+    \ has no streaming transport. Preserve every conditioning\n        # field from\
+    \ the final wire payload, excluding only SSE output controls.\n        payload['stream']\
+    \ = False\n        payload.pop('stream_options', None)\n    payload['model'] =\
+    \ 'deepseek-v4.1-flash'\n    req = urllib.request.Request(TOKENIZER, data=json.dumps(payload).encode(),\n\
+    \        headers={'Content-Type': 'application/json'})\n    try:\n        with\
+    \ urllib.request.build_opener(urllib.request.ProxyHandler({})).open(req, timeout=120)\
+    \ as response:\n            result = json.load(response)\n    except urllib.error.HTTPError\
+    \ as error:\n        # Debug only validation locations/types, never the rejected\
+    \ input.\n        details = []\n        try:\n            body = json.load(error)\n\
+    \            if isinstance(body.get('detail'), list):\n                details\
+    \ = [{'location': d.get('loc'), 'type': d.get('type')}\n                     \
+    \      for d in body['detail'] if isinstance(d, dict)]\n        except Exception:\n\
+    \            pass\n        print(json.dumps({'event': 'dsh_tokenizer_rejected',\n\
+    \                          'status': error.code, 'validation': details}), flush=True)\n\
+    \        raise\n    count = result.get('count')\n    if type(count) is not int\
+    \ or count < 0 or result.get('max_model_len') != CONTEXT:\n        raise ValueError('Unexpected\
+    \ backend tokenizer result')\n    ids = result.get('tokens')\n    if not isinstance(ids,\
+    \ list) or len(ids) != count or any(type(x) is not int for x in ids):\n      \
+    \  raise ValueError('Exact tokenizer IDs unavailable')\n    return result\n\n\n\
+    def warm_prefix(ids, timeout=15):\n    rid = 'dsh-warm-'+uuid.uuid4().hex\n  \
+    \  base = TOKENIZER.removesuffix('/v1/tokenize')\n    request = urllib.request.Request(TOKENIZER.removesuffix('/v1/tokenize')+'/generate',\n\
+    \        data=json.dumps({'input_ids': ids, 'rid': rid,\n            'sampling_params':\
+    \ {'max_new_tokens': 1, 'temperature': 0}}).encode(),\n        headers={'Content-Type':\
+    \ 'application/json'})\n    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))\n\
+    \    try:\n        with opener.open(request, timeout=timeout) as response:\n \
+    \           result = json.load(response)\n    except BaseException as error:\n\
+    \        aborted = False\n        try:\n            abort = urllib.request.Request(base+'/abort_request',\n\
+    \                data=json.dumps({'rid': rid}).encode(), headers={'Content-Type':\
+    \ 'application/json'})\n            with opener.open(abort, timeout=5) as reply:\n\
+    \                aborted = reply.status == 200\n        except Exception:\n  \
+    \          pass\n        if isinstance(error, TimeoutError):\n            if aborted:\n\
+    \                raise CacheProbeMiss('Cold prefix probe cancelled') from error\n\
+    \            raise RuntimeError('Warm request cancellation not acknowledged; stop\
+    \ escalation') from error\n        raise\n    return result['meta_info']\n\n\n\
+    class LongContextGuard(CustomLogger):\n    def __init__(self):\n        super().__init__()\n\
+    \        self.leases = {}\n\n    async def warm(self, ids):\n        \"\"\"Finish\
+    \ small cached-prefill requests so cold DSH requests get turns.\n\n        Discard\
+    \ the one-token warmup outputs; they never enter the conversation\n        or\
+    \ execute tools. Cancellation stops the loop after at most one small\n       \
+    \ outstanding step. Cache loss fails closed rather than silently retrying\n  \
+    \      the whole prompt. Measured latency is not an absolute SLA.\n        \"\"\
+    \"\n        previous = 0\n        steps = 0\n        start = time.monotonic()\n\
+    \        yielded_seconds = 0\n        async def foreground_turn():\n         \
+    \   nonlocal yielded_seconds\n            before_step = getattr(self, 'before_warm_step',\
+    \ None)\n            if before_step is not None:\n                yielded_seconds\
+    \ += await before_step()\n        if CACHE_PROBE_SECONDS:\n            await foreground_turn()\n\
+    \            try:\n                meta = await asyncio.to_thread(warm_prefix,\
+    \ ids, CACHE_PROBE_SECONDS)\n            except CacheProbeMiss:\n            \
+    \    pass\n            else:\n                if meta.get('prompt_tokens') !=\
+    \ len(ids):\n                    raise RuntimeError('Unexpected cache-probe token\
+    \ usage')\n                return {'steps': 1, 'tokens': len(ids), 'mode': 'bounded-cache-probe',\n\
+    \                    'cachedTokens': meta.get('cached_tokens'),\n            \
+    \        'seconds': round(time.monotonic()-start, 3),\n                    'foregroundYieldSeconds':\
+    \ round(yielded_seconds, 3),\n                    'probeSeconds': CACHE_PROBE_SECONDS}\n\
+    \        for end in range(WARM_STEP, len(ids)+WARM_STEP, WARM_STEP):\n       \
+    \     end = min(end, len(ids))\n            await foreground_turn()\n        \
+    \    meta = await asyncio.to_thread(warm_prefix, ids[:end])\n            cached\
+    \ = meta.get('cached_tokens', 0)\n            if previous and cached < previous-512:\n\
+    \                raise RuntimeError('Long prefix was evicted; defer and retry\
+    \ the request')\n            previous = end\n            steps += 1\n        \
+    \    await asyncio.sleep(.05)\n        return {'steps': steps, 'tokens': len(ids),\n\
+    \                'seconds': round(time.monotonic()-start, 3), 'stepTokens': WARM_STEP,\n\
+    \                'mode': 'chunked-prefix-warming', 'probeSeconds': CACHE_PROBE_SECONDS,\n\
+    \                'foregroundYieldSeconds': round(yielded_seconds, 3)}\n\n    async\
+    \ def acquire(self, key):\n        os.makedirs('/tmp/dsh-long-admission', mode=0o700,\
+    \ exist_ok=True)\n        fd = os.open('/tmp/dsh-long-admission/active.lock',\
+    \ os.O_CREAT | os.O_RDWR, 0o600)\n        try:\n            deadline = time.monotonic()\
+    \ + 300\n            while True:\n                try:\n                    fcntl.flock(fd,\
+    \ fcntl.LOCK_EX | fcntl.LOCK_NB)\n                    self.leases[key] = fd\n\
+    \                    return\n                except BlockingIOError:\n       \
+    \             if time.monotonic() >= deadline:\n                        raise\
+    \ HTTPException(429, 'Long-context capacity busy; retry later.',\n           \
+    \                 headers={'Retry-After': '30'})\n                    await asyncio.sleep(.1)\n\
+    \        except BaseException:\n            os.close(fd)\n            raise\n\n\
+    \    def release(self, data):\n        if not isinstance(data, dict):\n      \
+    \      return\n        key = (data.get('metadata') or {}).get('dsh_long_lease')\n\
+    \        fd = self.leases.pop(key, None)\n        if fd is not None:\n       \
+    \     fcntl.flock(fd, fcntl.LOCK_UN)\n            os.close(fd)\n\n    async def\
+    \ async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):\n    \
+    \    if not isinstance(data, dict):\n            return data\n        model =\
+    \ str(data.get('model', '')).removeprefix('openai/')\n        if model not in\
+    \ MODELS:\n            # Preserve the existing limits on unrelated production\
+    \ routes.\n            from custom_callbacks import proxy_handler_instance as\
+    \ legacy\n            return await legacy.async_pre_call_hook(user_api_key_dict,\
+    \ cache, data, call_type)\n        if not isinstance(data.get('messages'), list)\
+    \ or not data['messages']:\n            raise HTTPException(400, 'This route requires\
+    \ Chat Completions messages.')\n        if 'input' in data or 'max_output_tokens'\
+    \ in data:\n            raise HTTPException(400, 'Responses format is not supported\
+    \ on this route.')\n        try:\n            tokenized = await asyncio.to_thread(count_request,\
+    \ data)\n            count = tokenized['count']\n        except Exception:\n \
+    \           raise HTTPException(503, 'Backend token budgeting unavailable; request\
+    \ not dispatched.')\n        available = CONTEXT - RESERVE - count\n        if\
+    \ available < 1:\n            raise HTTPException(400, 'Input exceeds 1M total\
+    \ budget; compact or reduce the input.')\n        limits = [data[k] for k in ('max_tokens',\
+    \ 'max_completion_tokens') if k in data]\n        if any(type(x) is not int or\
+    \ x < 1 for x in limits):\n            raise HTTPException(400, 'Output token\
+    \ limits must be positive integers.')\n        maximum = min(limits or [OUTPUT])\n\
+    \        data.pop('max_completion_tokens', None)\n        data['max_tokens'] =\
+    \ min(maximum, OUTPUT, available)\n        # Lease identity is generated server-side,\
+    \ never accepted from a client.\n        metadata = dict(data.get('metadata')\
+    \ or {})\n        metadata.pop('dsh_long_lease', None)\n        data['metadata']\
+    \ = metadata\n        if count + data['max_tokens'] > LONG_THRESHOLD:\n      \
+    \      key = uuid.uuid4().hex\n            metadata['dsh_long_lease'] = key\n\
+    \            await self.acquire(key)\n            try:\n                metadata['dsh_prefix_warmup']\
+    \ = await self.warm(tokenized['tokens'])\n                print(json.dumps({'event':\
+    \ 'dsh_prefix_warmup_complete',\n                                  **metadata['dsh_prefix_warmup']}),\
+    \ flush=True)\n            except BaseException:\n                self.release(data)\n\
+    \                raise\n        return data\n\n    async def async_post_call_success_hook(self,\
+    \ data, user_api_key_dict, response):\n        if not data.get('stream'):\n  \
+    \          self.release(data)\n        return response\n\n    async def async_post_call_failure_hook(self,\
+    \ request_data, original_exception,\n                                        \
+    \  user_api_key_dict, traceback_str=None):\n        self.release(request_data)\n\
+    \n    async def async_post_call_streaming_iterator_hook(self, user_api_key_dict,\n\
+    \                                                     response, request_data):\n\
+    \        try:\n            async for item in response:\n                yield\
+    \ item\n        finally:\n            self.release(request_data)\n\n\nproxy_handler_instance\
+    \ = LongContextGuard()\n"
+  gateway_output_guard.py: "\"\"\"Keep output aliases bounded; final-wire budgeting\
+    \ lives in the loopback proxy.\"\"\"\nfrom fastapi import HTTPException\nfrom\
+    \ litellm.integrations.custom_logger import CustomLogger\n\n\nclass OutputGuard(CustomLogger):\n\
+    \    async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):\n\
+    \        if not isinstance(data, dict):\n            return data\n        if str(data.get('model',\
+    \ '')).removeprefix('openai/') not in {'deepseek-v4.1-flash', 'deepseek-flash'}:\n\
+    \            raise HTTPException(400, 'Unknown model; this deployment serves only\
+    \ configured local aliases.')\n        if any(data.get(k) is not None for k in\
+    \ ['api_base', 'base_url', 'custom_llm_provider']):\n            raise HTTPException(400,\
+    \ 'Managed context route does not accept endpoint/provider overrides.')\n    \
+    \    if not isinstance(data.get('messages'), list) or not data['messages']:\n\
+    \            raise HTTPException(400, 'This model route requires Chat Completions\
+    \ messages.')\n        limits = [data[k] for k in ['max_tokens', 'max_completion_tokens']\
+    \ if k in data]\n        if any(type(n) is not int or n < 1 for n in limits):\n\
+    \            raise HTTPException(400, 'Output limits must be positive integers.')\n\
+    \        data.pop('max_completion_tokens', None)\n        data['max_tokens'] =\
+    \ min([8192]+limits)\n        return data\n\n\nproxy_handler_instance = OutputGuard()\n"
+  config.yaml: "model_list:\n- model_name: deepseek-v4.1-flash\n  litellm_params:\n\
+    \    model: openai/deepseek-v4.1-flash\n    api_base: http://127.0.0.1:4001/v1\n\
+    \    api_key: not-required-internal\n    max_tokens: 8192\n    timeout: 3600\n\
+    \    num_retries: 0\n  model_info:\n    max_input_tokens: 1048576\n    max_output_tokens:\
+    \ 8192\n- model_name: deepseek-flash\n  litellm_params:\n    model: openai/deepseek-v4.1-flash\n\
+    \    api_base: http://127.0.0.1:4001/v1\n    api_key: not-required-internal\n\
+    \    max_tokens: 8192\n    timeout: 3600\n    num_retries: 0\n  model_info:\n\
+    \    max_input_tokens: 1048576\n    max_output_tokens: 8192\ngeneral_settings:\n\
+    \  master_key: os.environ/LITELLM_MASTER_KEY\n  database_url: os.environ/DATABASE_URL\n\
+    litellm_settings:\n  callbacks:\n  - gateway_output_guard.proxy_handler_instance\n\
+    \  drop_params: false\n  set_verbose: false\nrouter_settings:\n  num_retries:\
+    \ 0\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: litellm
+  template:
+    metadata:
+      labels:
+        app: litellm
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: litellm
+        image: ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f
+        command:
+        - litellm
+        args:
+        - --config
+        - /etc/litellm/config.yaml
+        - --port
+        - '4000'
+        env:
+        - name: LITELLM_MASTER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: platform-secrets
+              key: LITELLM_MASTER_KEY
+        - name: LITELLM_SALT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: platform-secrets
+              key: LITELLM_SALT_KEY
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: platform-secrets
+              key: DATABASE_URL
+        - name: PYTHONPATH
+          value: /etc/litellm
+        volumeMounts: &id001
+        - name: source
+          mountPath: /etc/litellm
+          readOnly: true
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: '4'
+            memory: 4Gi
+        startupProbe:
+          tcpSocket:
+            port: 4000
+          periodSeconds: 5
+          failureThreshold: 120
+        readinessProbe:
+          tcpSocket:
+            port: 4000
+      - name: context-forwarder
+        image: ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f
+        command:
+        - python
+        - -m
+        - uvicorn
+        - context_forwarder:app
+        - --app-dir
+        - /etc/litellm
+        - --host
+        - 127.0.0.1
+        - --port
+        - '4001'
+        env:
+        - name: PYTHONPATH
+          value: /etc/litellm
+        - name: HOME
+          value: /tmp
+        - name: DSH_TOKENIZER_URL
+          value: http://model:8000/v1/tokenize
+        volumeMounts: *id001
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 10001
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: '2'
+            memory: 2Gi
+        readinessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - import urllib.request; urllib.request.urlopen('http://127.0.0.1:4001/health',timeout=2).read()
+          periodSeconds: 10
+      volumes:
+      - name: source
+        configMap:
+          name: gateway-source
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 192.0.2.54
+        searches:
+        - ai-workspace-example.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+        options:
+        - name: ndots
+          value: '1'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litellm
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  selector:
+    app: litellm
+  ports:
+  - port: 4000
+    targetPort: 4000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: gateway
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        command:
+        - node
+        - /opt/dsh/scripts/auth_proxy.js
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 10001
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: DSH_USER_TARGETS_FILE
+          value: /routing/users.json
+        - name: DSH_USER_STORE_PATH
+          value: /auth/users.json
+        - name: DSH_USER_SETTINGS_PATH
+          value: /auth/settings.json
+        - name: DSH_AUDIT_DIR
+          value: /auth/audit
+        - name: DSH_ADMIN_USERS
+          value: admin
+        - name: DSH_TRUSTED_HOST
+          value: workspace.example.com
+        - name: DSH_ALLOW_REGISTRATION
+          value: 'false'
+        - name: PORT
+          value: '3080'
+        volumeMounts:
+        - name: auth
+          mountPath: /auth
+        - name: routing
+          mountPath: /routing
+          readOnly: true
+        - name: tokens
+          mountPath: /runtime-tokens
+          readOnly: true
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: '2'
+            memory: 1Gi
+        readinessProbe:
+          tcpSocket:
+            port: 3080
+      volumes:
+      - name: auth
+        persistentVolumeClaim:
+          claimName: gateway-auth
+      - name: routing
+        configMap:
+          name: user-routing
+      - name: tokens
+        persistentVolumeClaim:
+          claimName: routing-tokens
+      - name: seed
+        secret:
+          secretName: account-seed
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 192.0.2.54
+        searches:
+        - ai-workspace-example.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+        options:
+        - name: ndots
+          value: '1'
+      initContainers:
+      - name: initialize-account-store
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        command:
+        - sh
+        - -ec
+        - mkdir -p /auth; if [ ! -f /auth/users.json ]; then cp /seed/users.json /auth/users.json;
+          fi; chmod 0600 /auth/users.json; chown -R 10001:10001 /auth; mkdir -p /tokens/8c6976e5b5410415/secure;
+          chown 10001:10001 /tokens/8c6976e5b5410415/secure; mkdir -p /tokens/8c6976e5b5410415/internet;
+          chown 10001:10001 /tokens/8c6976e5b5410415/internet; mkdir -p /tokens/2a97516c354b6884/secure;
+          chown 10001:10001 /tokens/2a97516c354b6884/secure; mkdir -p /tokens/2a97516c354b6884/internet;
+          chown 10001:10001 /tokens/2a97516c354b6884/internet
+        volumeMounts:
+        - name: auth
+          mountPath: /auth
+        - name: seed
+          mountPath: /seed
+          readOnly: true
+        - name: tokens
+          mountPath: /tokens
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  selector:
+    app: gateway
+  ports:
+  - port: 3080
+    targetPort: 3080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gateway
+  namespace: ai-workspace-example
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-buffering: 'off'
+    nginx.ingress.kubernetes.io/proxy-body-size: 32m
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - workspace.example.com
+    secretName: workspace-tls
+  rules:
+  - host: workspace.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gateway
+            port:
+              number: 3080

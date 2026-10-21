@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {patchManagedBudget}=require('../scripts/managed_inference_transport.cjs');
+const sdk=process.argv[2]||'/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@earendil-works/pi-ai/dist/api/simple-options.js';
+const source=fs.readFileSync(sdk,'utf8');const patched=patchManagedBudget(source,'http://litellm:4000');
+const start=patched.indexOf('export function clampMaxTokensToContext'),end=patched.indexOf('export function buildBaseOptions');
+const clamp=new Function('estimateContextTokens','MIN_MAX_TOKENS','CONTEXT_SAFETY_TOKENS',patched.slice(start,end).replace('export function','return function'))(()=>({tokens:1400000}),1,4096);
+const model={provider:'litellm-cluster',api:'openai-completions',id:'deepseek-v4.1-flash',baseUrl:'http://litellm:4000/v1',contextWindow:1048576,maxTokens:8192};
+assert.equal(clamp(model,{},8192),8192);assert.equal(clamp(model,{},1),1);assert.equal(clamp(model,{},40),40);assert.equal(clamp(model,{},16000),8192);
+for(const change of [{provider:'other'},{baseUrl:'https://external.example/v1'},{id:'unrelated'},{contextWindow:131072},{api:'anthropic-messages'}])assert.equal(clamp({...model,...change},{},8192),1);
+assert.equal(clamp({...model,baseUrl:model.baseUrl+'/'},{},8192),8192);
+assert.throws(()=>patchManagedBudget(source+'\n','http://litellm:4000'),/source changed/);
+console.log(JSON.stringify({passed:true,managedExactBudget:true,explicitSmallLimitsPreserved:true,otherRoutesUnchanged:true,sourceDriftRefused:true}));

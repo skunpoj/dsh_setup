@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: download-model
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: download-model
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      containers:
+      - name: download
+        image: lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860
+        command:
+        - python3
+        - -c
+        - from huggingface_hub import snapshot_download; import os; snapshot_download(repo_id=os.environ["MODEL_REPO"],
+          revision=os.environ["MODEL_REVISION"], local_dir="/models/model")
+        env:
+        - name: MODEL_REPO
+          value: deepseek-ai/DeepSeek-V4.1-Flash
+        - name: MODEL_REVISION
+          value: dba1be0a40aa45a94ad051997016db3960a90277
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: model-download
+              key: token
+              optional: true
+        resources:
+          requests:
+            cpu: '1'
+            memory: 2Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+        volumeMounts:
+        - name: models
+          mountPath: /models
+      volumes:
+      - name: models
+        persistentVolumeClaim:
+          claimName: model-cache
+      nodeSelector:
+        ai-workspace/gpu-node: 'true'

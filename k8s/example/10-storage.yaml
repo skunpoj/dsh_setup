@@ -1,0 +1,239 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-cache
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 2Ti
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: database
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gateway-auth
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: routing-tokens
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: operator-rwx
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: approved-packages
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: operator-rwx
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-8c6976e5b5410415-secure-state
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-8c6976e5b5410415-secure-workspace
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-8c6976e5b5410415-internet-state
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-8c6976e5b5410415-internet-workspace
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-8c6976e5b5410415-internet-incoming
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-2a97516c354b6884-secure-state
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-2a97516c354b6884-secure-workspace
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-2a97516c354b6884-internet-state
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-2a97516c354b6884-internet-workspace
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-2a97516c354b6884-internet-incoming
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: operator-rwo
+  resources:
+    requests:
+      storage: 10Gi

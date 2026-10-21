@@ -1,0 +1,14 @@
+generated/
+private/
+*.env
+*.key
+*.pem
+*.keytab
+*.kubeconfig
+__pycache__/
+.pytest_cache/
+config.local.yaml
+*.local.yaml
+*.bundle
+*.tar
+*.zip

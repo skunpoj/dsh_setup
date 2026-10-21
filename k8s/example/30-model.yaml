@@ -1,0 +1,247 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scheduler-source
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+data:
+  scheduler_fairness_patch.py: "\"\"\"Narrow, fail-closed overlay for the pinned SGLang\
+    \ DSV4 image.\n\nReserve part of the existing chunk budget for small uncached\
+    \ input tails. This\ndoes not increase the total chunk budget, park requests or\
+    \ alter KV ownership.\n\"\"\"\nimport ast\nimport hashlib\nimport sys\nfrom pathlib\
+    \ import Path\n\nEXPECTED_SHA256 = 'a27879971d17033955847d79b2e6ebc5604da419fe6ffee43c5c107479ffc97e'\n\
+    ANCHOR = '''        if self.chunked_req is not None:\n            self.chunked_req.init_next_round_input()\n\
+    \            self.chunked_req = adder.add_chunked_req(self.chunked_req)\n'''\n\
+    REPLACEMENT = '''        # DSH_INTERACTIVE_PREFILL_RESERVATION_V2\n        # Keep\
+    \ a lane for <=512 uncached input tokens. A long resumed chunk\n        # otherwise\
+    \ consumes the entire budget before the waiting queue runs.\n        # All KV/SWA\
+    \ admission checks below remain the upstream implementation.\n        interactive_reserve\
+    \ = 0\n        if (\n            self.chunked_req is not None\n            and\
+    \ self.waiting_queue\n            and adder.rem_chunk_tokens is not None\n   \
+    \         and adder.rem_chunk_tokens >= 2 * self.page_size\n        ):\n     \
+    \       def interactive_tail(req):\n                # FCFS leaves this counter\
+    \ unset for the DSV4 cache, which\n                # does not advertise fast prefix\
+    \ matching. Classify once;\n                # upstream admission refreshes the\
+    \ match before allocation.\n                if not getattr(req, \"_bot_interactive_classified\"\
+    , False):\n                    from sglang.srt.managers.schedule_policy import\
+    \ match_prefix_for_req\n                    match_prefix_for_req(self.tree_cache,\
+    \ req, include_req=True)\n                    req._bot_interactive_classified\
+    \ = True\n                return max(1, len(req.origin_input_ids) + len(req.output_ids)\n\
+    \                           - getattr(req, \"num_matched_prefix_tokens\", 0))\n\
+    \n            interactive = [req for req in self.waiting_queue\n             \
+    \              if interactive_tail(req) <= 512]\n            if interactive:\n\
+    \                # Stable partition: preserve FCFS within each lane. Long work\n\
+    \                # always retains at least one page of prefill progress.\n   \
+    \             selected = set(interactive)\n                self.waiting_queue\
+    \ = interactive + [\n                    req for req in self.waiting_queue if\
+    \ req not in selected]\n                interactive_reserve = min(\n         \
+    \           512,\n                    ((adder.rem_chunk_tokens // 2) // self.page_size)\n\
+    \                    * self.page_size,\n                )\n                adder.rem_chunk_tokens\
+    \ -= interactive_reserve\n\n        if self.chunked_req is not None:\n       \
+    \     self.chunked_req.init_next_round_input()\n            self.chunked_req =\
+    \ adder.add_chunked_req(self.chunked_req)\n        adder.rem_chunk_tokens = (\n\
+    \            adder.rem_chunk_tokens + interactive_reserve\n            if adder.rem_chunk_tokens\
+    \ is not None else None\n        )\n'''\n\n\ndef patch(original):\n    if hashlib.sha256(original).hexdigest()\
+    \ != EXPECTED_SHA256:\n        raise ValueError('SGLang scheduler differs from\
+    \ reviewed image; refusing overlay')\n    source = original.decode()\n    if source.count(ANCHOR)\
+    \ != 1:\n        raise ValueError('Expected scheduler insertion point is not unique')\n\
+    \    result = source.replace(ANCHOR, REPLACEMENT)\n    ast.parse(result)\n   \
+    \ return result\n\n\nif __name__ == '__main__':\n    source, destination = map(Path,\
+    \ sys.argv[1:])\n    destination.write_text(patch(source.read_bytes()))\n"
+  scheduler_chunk_guard_patch.py: "\"\"\"Preserve the pinned scheduler's single chunked-request\
+    \ invariant.\n\nV2 reserves prefill space for short requests. The pinned PrefillAdder\
+    \ accepts\nhas_chunked_req but otherwise can create a second chunked request from\
+    \ that\nreserved space. Defer that branch; complete, fitting short prefills still\
+    \ run.\n\"\"\"\nimport ast\nimport hashlib\nimport sys\nfrom pathlib import Path\n\
+    \nEXPECTED_SHA256 = '0e45c0bd4648998fb9dbf3d903380521bd7911941ce96b501e89c1b395861d9d'\n\
+    ANCHOR = '''            else:\n                # Make sure at least one page is\
+    \ available\n                trunc_len = chunk_tokens_limit // self.page_size\
+    \ * self.page_size\n'''\nREPLACEMENT = '''            else:\n                #\
+    \ DSH_SINGLE_CHUNK_OWNER_V3\n                # The interactive reservation must\
+    \ not create a second\n                # chunked_req while a resumed long prefill\
+    \ owns that slot.\n                # Return through upstream rejection/cleanup\
+    \ handling.\n                if has_chunked_req:\n                    return AddReqResult.OTHER\n\
+    \                # Make sure at least one page is available\n                trunc_len\
+    \ = chunk_tokens_limit // self.page_size * self.page_size\n'''\n\n\ndef patch(original):\n\
+    \    if hashlib.sha256(original).hexdigest() != EXPECTED_SHA256:\n        raise\
+    \ ValueError('Pinned PrefillAdder source changed; refusing chunk guard')\n   \
+    \ text = original.decode()\n    if text.count(ANCHOR) != 1:\n        raise ValueError('Chunk-admission\
+    \ anchor is not unique')\n    result = text.replace(ANCHOR, REPLACEMENT)\n   \
+    \ ast.parse(result)\n    return result\n\n\nif __name__ == '__main__':\n    source,\
+    \ destination = map(Path, sys.argv[1:])\n    destination.write_text(patch(source.read_bytes()))\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: model
+  template:
+    metadata:
+      labels:
+        app: model
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: model
+        image: lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860
+        command:
+        - python3
+        - -m
+        - sglang.launch_server
+        args:
+        - --model-path
+        - /models/model
+        - --served-model-name
+        - deepseek-v4.1-flash,deepseek-flash
+        - --host
+        - 0.0.0.0
+        - --port
+        - '8000'
+        - --tp-size
+        - '4'
+        - --moe-runner-backend
+        - marlin
+        - --trust-remote-code
+        - --mem-fraction-static
+        - '0.90'
+        - --max-running-requests
+        - '16'
+        - --chunked-prefill-size
+        - '1024'
+        - --max-prefill-tokens
+        - '2048'
+        - --swa-prefix-tails
+        - '0'
+        - --context-length
+        - '1048576'
+        - --reasoning-parser
+        - deepseek-v41
+        - --tool-call-parser
+        - deepseekv41
+        - --enable-mixed-chunk
+        - --enable-metrics
+        - --prefill-decode-interval
+        - '4'
+        env:
+        - name: HF_HUB_OFFLINE
+          value: '1'
+        - name: TRANSFORMERS_OFFLINE
+          value: '1'
+        - name: HF_HOME
+          value: /models/huggingface
+        - name: SGLANG_ENABLE_DSV41_ENGRAM_HOST_TABLE
+          value: '1'
+        - name: SGLANG_DSV41_ENGRAM_HOST_TABLE_LAYOUT
+          value: private
+        - name: SGLANG_DSV41_ENGRAM_HOST_TABLE_PIN
+          value: '1'
+        - name: SGLANG_ENABLE_DSV41_ENGRAM_KV_PREFETCH
+          value: '1'
+        - name: SGLANG_ENABLE_DSV41_ENGRAM_DROP_PAGE_CACHE
+          value: '1'
+        - name: PYTORCH_CUDA_ALLOC_CONF
+          value: expandable_segments:True
+        resources:
+          requests:
+            nvidia.com/gpu: 4
+            cpu: '16'
+            memory: 256Gi
+          limits:
+            nvidia.com/gpu: 4
+            cpu: '32'
+            memory: 512Gi
+        volumeMounts:
+        - name: models
+          mountPath: /models
+        - name: shm
+          mountPath: /dev/shm
+        - name: overlay
+          mountPath: /sgl-workspace/sglang/python/sglang/srt/managers/scheduler.py
+          subPath: scheduler.py
+          readOnly: true
+        - name: overlay
+          mountPath: /sgl-workspace/sglang/python/sglang/srt/managers/schedule_policy.py
+          subPath: schedule_policy.py
+          readOnly: true
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 15
+          timeoutSeconds: 15
+          failureThreshold: 120
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 10
+          timeoutSeconds: 15
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 30
+          timeoutSeconds: 15
+          failureThreshold: 5
+      volumes:
+      - name: models
+        persistentVolumeClaim:
+          claimName: model-cache
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 128Gi
+      - name: overlay
+        emptyDir: {}
+      - name: patch
+        configMap:
+          name: scheduler-source
+      initContainers:
+      - name: scheduler-overlay
+        image: lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860
+        command:
+        - sh
+        - -ec
+        - 'python3 /patch/scheduler_fairness_patch.py /sgl-workspace/sglang/python/sglang/srt/managers/scheduler.py
+          /overlay/scheduler.py
+
+          python3 /patch/scheduler_chunk_guard_patch.py /sgl-workspace/sglang/python/sglang/srt/managers/schedule_policy.py
+          /overlay/schedule_policy.py'
+        volumeMounts:
+        - name: overlay
+          mountPath: /overlay
+        - name: patch
+          mountPath: /patch
+          readOnly: true
+      nodeSelector:
+        ai-workspace/gpu-node: 'true'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: model
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  selector:
+    app: model
+  ports:
+  - port: 8000
+    targetPort: 8000

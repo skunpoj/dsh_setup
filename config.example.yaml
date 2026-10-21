@@ -1,0 +1,28 @@
+namespace: ai-workspace
+storage_class: CHANGE_ME
+shared_storage_class: CHANGE_ME
+dsh_image: registry.example.invalid/ai-workspace@sha256:CHANGE_ME
+sglang_image: lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860
+litellm_image: ghcr.io/berriai/litellm@sha256:4870893763aca143f590bd5685a25219037af027d1d27e97abcb17ac9ec5d09f
+postgres_image: docker.io/library/postgres@sha256:f8e2cc2a36ddb8700e639570f0bc70d0c1495951ba61df903a015dc87db07d02
+cluster_domain: cluster.local
+cluster_dns_ip: CHANGE_ME
+filtered_dns_ip: CHANGE_ME
+model_repository: deepseek-ai/DeepSeek-V4.1-Flash
+model_revision: dba1be0a40aa45a94ad051997016db3960a90277
+model_storage: 2Ti
+gpu_node_selector:
+  ai-workspace/gpu-node: "true"
+public_hostname: workspace.example.invalid
+ingress_enabled: true
+ingress_class: nginx
+ingress_namespace: ingress-nginx
+ingress_pod_selector:
+  app.kubernetes.io/name: ingress-nginx
+  app.kubernetes.io/component: controller
+tls_secret: workspace-tls
+users:
+  - admin
+  - demo
+admin_users:
+  - admin

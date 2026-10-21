@@ -1,0 +1,615 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-8c6976e5b5410415-secure
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: user-8c6976e5b5410415-secure
+  template:
+    metadata:
+      labels:
+        app: user-8c6976e5b5410415-secure
+        component: runtime
+        environment: secure
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: dsh
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        env:
+        - name: DSH_ENVIRONMENT
+          value: secure
+        - name: DSH_TRUSTED_HOST
+          value: workspace.example.com
+        - name: DSH_CONTEXT_TOKENS
+          value: '1048576'
+        - name: DSH_LLM_TRANSPORT_ORIGIN
+          value: http://litellm:4000
+        - name: DEEPSEEK_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-8c6976e5b5410415-secure-inference
+              key: key
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-8c6976e5b5410415-secure-inference
+              key: key
+        - name: LITELLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-8c6976e5b5410415-secure-inference
+              key: key
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 10001
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: state
+          mountPath: /state
+        - name: workspace
+          mountPath: /workspace
+        - name: tokens
+          mountPath: /runtime-tokens
+          subPath: 8c6976e5b5410415/secure
+        - name: harness-credentials
+          mountPath: /harness-credentials
+          readOnly: true
+        - name: packages
+          mountPath: /packages/approved
+          readOnly: true
+        resources:
+          requests:
+            cpu: 250m
+            memory: 1Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+        startupProbe:
+          tcpSocket:
+            port: 3081
+          periodSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          tcpSocket:
+            port: 3081
+      volumes:
+      - name: state
+        persistentVolumeClaim:
+          claimName: user-8c6976e5b5410415-secure-state
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: user-8c6976e5b5410415-secure-workspace
+      - name: tokens
+        persistentVolumeClaim:
+          claimName: routing-tokens
+      - name: harness-credentials
+        secret:
+          secretName: user-8c6976e5b5410415-secure-inference
+          items:
+          - key: key
+            path: api-key
+      - name: packages
+        persistentVolumeClaim:
+          claimName: approved-packages
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 192.0.2.54
+        searches:
+        - ai-workspace-example.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+        options:
+        - name: ndots
+          value: '1'
+      initContainers:
+      - name: prepare-private-storage
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        command:
+        - sh
+        - -ec
+        - chown -R 10001:10001 /state /workspace
+        volumeMounts:
+        - name: state
+          mountPath: /state
+        - name: workspace
+          mountPath: /workspace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-8c6976e5b5410415-secure
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  selector:
+    app: user-8c6976e5b5410415-secure
+  ports:
+  - name: dsh
+    port: 3081
+    targetPort: 3081
+  - name: terminal
+    port: 7681
+    targetPort: 7681
+  - name: application
+    port: 3000
+    targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-8c6976e5b5410415-internet
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: user-8c6976e5b5410415-internet
+  template:
+    metadata:
+      labels:
+        app: user-8c6976e5b5410415-internet
+        component: runtime
+        environment: internet
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: dsh
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        env:
+        - name: DSH_ENVIRONMENT
+          value: internet
+        - name: DSH_TRUSTED_HOST
+          value: workspace.example.com
+        - name: DSH_CONTEXT_TOKENS
+          value: '1048576'
+        - name: DSH_LLM_TRANSPORT_ORIGIN
+          value: http://litellm:4000
+        - name: DEEPSEEK_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-8c6976e5b5410415-internet-inference
+              key: key
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-8c6976e5b5410415-internet-inference
+              key: key
+        - name: LITELLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-8c6976e5b5410415-internet-inference
+              key: key
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 10001
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: state
+          mountPath: /state
+        - name: workspace
+          mountPath: /workspace
+        - name: tokens
+          mountPath: /runtime-tokens
+          subPath: 8c6976e5b5410415/internet
+        - name: harness-credentials
+          mountPath: /harness-credentials
+          readOnly: true
+        - name: packages
+          mountPath: /packages/incoming
+        resources:
+          requests:
+            cpu: 250m
+            memory: 1Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+        startupProbe:
+          tcpSocket:
+            port: 3081
+          periodSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          tcpSocket:
+            port: 3081
+      volumes:
+      - name: state
+        persistentVolumeClaim:
+          claimName: user-8c6976e5b5410415-internet-state
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: user-8c6976e5b5410415-internet-workspace
+      - name: tokens
+        persistentVolumeClaim:
+          claimName: routing-tokens
+      - name: harness-credentials
+        secret:
+          secretName: user-8c6976e5b5410415-internet-inference
+          items:
+          - key: key
+            path: api-key
+      - name: packages
+        persistentVolumeClaim:
+          claimName: user-8c6976e5b5410415-internet-incoming
+      initContainers:
+      - name: prepare-private-storage
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        command:
+        - sh
+        - -ec
+        - chown -R 10001:10001 /state /workspace /incoming
+        volumeMounts:
+        - name: state
+          mountPath: /state
+        - name: workspace
+          mountPath: /workspace
+        - name: packages
+          mountPath: /incoming
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-8c6976e5b5410415-internet
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  selector:
+    app: user-8c6976e5b5410415-internet
+  ports:
+  - name: dsh
+    port: 3081
+    targetPort: 3081
+  - name: terminal
+    port: 7681
+    targetPort: 7681
+  - name: application
+    port: 3000
+    targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-2a97516c354b6884-secure
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: user-2a97516c354b6884-secure
+  template:
+    metadata:
+      labels:
+        app: user-2a97516c354b6884-secure
+        component: runtime
+        environment: secure
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: dsh
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        env:
+        - name: DSH_ENVIRONMENT
+          value: secure
+        - name: DSH_TRUSTED_HOST
+          value: workspace.example.com
+        - name: DSH_CONTEXT_TOKENS
+          value: '1048576'
+        - name: DSH_LLM_TRANSPORT_ORIGIN
+          value: http://litellm:4000
+        - name: DEEPSEEK_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-2a97516c354b6884-secure-inference
+              key: key
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-2a97516c354b6884-secure-inference
+              key: key
+        - name: LITELLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-2a97516c354b6884-secure-inference
+              key: key
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 10001
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: state
+          mountPath: /state
+        - name: workspace
+          mountPath: /workspace
+        - name: tokens
+          mountPath: /runtime-tokens
+          subPath: 2a97516c354b6884/secure
+        - name: harness-credentials
+          mountPath: /harness-credentials
+          readOnly: true
+        - name: packages
+          mountPath: /packages/approved
+          readOnly: true
+        resources:
+          requests:
+            cpu: 250m
+            memory: 1Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+        startupProbe:
+          tcpSocket:
+            port: 3081
+          periodSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          tcpSocket:
+            port: 3081
+      volumes:
+      - name: state
+        persistentVolumeClaim:
+          claimName: user-2a97516c354b6884-secure-state
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: user-2a97516c354b6884-secure-workspace
+      - name: tokens
+        persistentVolumeClaim:
+          claimName: routing-tokens
+      - name: harness-credentials
+        secret:
+          secretName: user-2a97516c354b6884-secure-inference
+          items:
+          - key: key
+            path: api-key
+      - name: packages
+        persistentVolumeClaim:
+          claimName: approved-packages
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 192.0.2.54
+        searches:
+        - ai-workspace-example.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+        options:
+        - name: ndots
+          value: '1'
+      initContainers:
+      - name: prepare-private-storage
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        command:
+        - sh
+        - -ec
+        - chown -R 10001:10001 /state /workspace
+        volumeMounts:
+        - name: state
+          mountPath: /state
+        - name: workspace
+          mountPath: /workspace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-2a97516c354b6884-secure
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  selector:
+    app: user-2a97516c354b6884-secure
+  ports:
+  - name: dsh
+    port: 3081
+    targetPort: 3081
+  - name: terminal
+    port: 7681
+    targetPort: 7681
+  - name: application
+    port: 3000
+    targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-2a97516c354b6884-internet
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: user-2a97516c354b6884-internet
+  template:
+    metadata:
+      labels:
+        app: user-2a97516c354b6884-internet
+        component: runtime
+        environment: internet
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: dsh
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        env:
+        - name: DSH_ENVIRONMENT
+          value: internet
+        - name: DSH_TRUSTED_HOST
+          value: workspace.example.com
+        - name: DSH_CONTEXT_TOKENS
+          value: '1048576'
+        - name: DSH_LLM_TRANSPORT_ORIGIN
+          value: http://litellm:4000
+        - name: DEEPSEEK_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-2a97516c354b6884-internet-inference
+              key: key
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-2a97516c354b6884-internet-inference
+              key: key
+        - name: LITELLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: user-2a97516c354b6884-internet-inference
+              key: key
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 10001
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: state
+          mountPath: /state
+        - name: workspace
+          mountPath: /workspace
+        - name: tokens
+          mountPath: /runtime-tokens
+          subPath: 2a97516c354b6884/internet
+        - name: harness-credentials
+          mountPath: /harness-credentials
+          readOnly: true
+        - name: packages
+          mountPath: /packages/incoming
+        resources:
+          requests:
+            cpu: 250m
+            memory: 1Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+        startupProbe:
+          tcpSocket:
+            port: 3081
+          periodSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          tcpSocket:
+            port: 3081
+      volumes:
+      - name: state
+        persistentVolumeClaim:
+          claimName: user-2a97516c354b6884-internet-state
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: user-2a97516c354b6884-internet-workspace
+      - name: tokens
+        persistentVolumeClaim:
+          claimName: routing-tokens
+      - name: harness-credentials
+        secret:
+          secretName: user-2a97516c354b6884-internet-inference
+          items:
+          - key: key
+            path: api-key
+      - name: packages
+        persistentVolumeClaim:
+          claimName: user-2a97516c354b6884-internet-incoming
+      initContainers:
+      - name: prepare-private-storage
+        image: registry.example.com/ai-workspace@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        command:
+        - sh
+        - -ec
+        - chown -R 10001:10001 /state /workspace /incoming
+        volumeMounts:
+        - name: state
+          mountPath: /state
+        - name: workspace
+          mountPath: /workspace
+        - name: packages
+          mountPath: /incoming
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-2a97516c354b6884-internet
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+spec:
+  selector:
+    app: user-2a97516c354b6884-internet
+  ports:
+  - name: dsh
+    port: 3081
+    targetPort: 3081
+  - name: terminal
+    port: 7681
+    targetPort: 7681
+  - name: application
+    port: 3000
+    targetPort: 3000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-routing
+  namespace: ai-workspace-example
+  annotations:
+    ai-workspace/reference-only: Render local configuration before applying; documentation
+      addresses are reserved.
+data:
+  users.json: '{"admin": {"secure": {"host": "user-8c6976e5b5410415-secure", "port":
+    3081, "tokenFile": "/runtime-tokens/8c6976e5b5410415/secure/secure"}, "internet":
+    {"host": "user-8c6976e5b5410415-internet", "port": 3081, "tokenFile": "/runtime-tokens/8c6976e5b5410415/internet/internet"}},
+    "demo": {"secure": {"host": "user-2a97516c354b6884-secure", "port": 3081, "tokenFile":
+    "/runtime-tokens/2a97516c354b6884/secure/secure"}, "internet": {"host": "user-2a97516c354b6884-internet",
+    "port": 3081, "tokenFile": "/runtime-tokens/2a97516c354b6884/internet/internet"}}}'
