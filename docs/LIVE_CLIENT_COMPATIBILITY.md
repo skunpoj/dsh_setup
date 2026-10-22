@@ -69,9 +69,12 @@ to processes that already loaded them; rollback never kills those processes.
 
 ## Workspace replacement
 
-The release and recovery copies persist in `/state`. The current container's
-`.bashrc` may be ephemeral, so automatic shell activation is not guaranteed after
-a full pod replacement. The explicit activation command remains available.
+The release and recovery copies persist in `/state`. Without the registered
+startup plugin, a container with an ephemeral HOME or `.bashrc` can require the
+explicit activation command after a full pod replacement. With the qualified
+persistent native DSH startup plugin registered, normal replacement restores
+Bash activation automatically. Instances with a persistent complete HOME retain
+the activation directly. Full image/template adoption remains a separate step.
 Adopt the full immutable tools overlay at the next separately authorized safe
 maintenance window. Do not repair boot scripts, change an immutable ConfigMap,
 or roll a deployment merely to make this temporary layer permanent.
