@@ -1,4 +1,4 @@
-# Private AI Workspaces โ€” Kubernetes and 1M Context
+# Private AI Workspaces - Kubernetes and 1M Context
 
 ## Three risk controls
 
@@ -77,7 +77,7 @@ implicitly configured. [Security boundaries](docs/SECURITY.md).
 
 ## Context and performance
 
-A recent actual DSH experiment completed 128K/384K stages at **71.75–73.26 output tokens/sec**. Its near-1M run processed **1,002,081 input tokens** but failed after **24m35s preparation** because the private test route did not register the managed output-budget correction. Compaction was not reached. **100+ tokens/sec was not established** for substantial output. The candidate is not promoted; portable defaults remain unchanged. [Results, concurrent short-request latency and remaining gates](docs/GPU_PREPARATION_REVIEW_20261022.html).
+The corrected-route qualification reserved **1,002,081 input / 8,192 output tokens**, but failed its memory-warning gate before a substantial near-1M answer. **53 ordinary replies** passed with median **4.66 s** and maximum **11.78 s**, without retries. Compaction was not started and no new 100+ tokens/sec result is claimed. The compatible unfused profile was restored with the 1M ceiling retained; a fresh canonical native DSH recovery reply passed in **3.825 s**, zero retries. Earlier trials remain separate records. [Qualification results and recovery scope](docs/GPU_PREPARATION_REVIEW_20261022.html).
 
 The reference profile reserves up to 8,192 output tokens and 256 proxy tokens.
 With that full output reservation, maximum counted input is 1,040,128 tokens.

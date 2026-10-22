@@ -2,7 +2,7 @@
 
 ## Corrected-route qualification — 22 October 2026
 
-The later actual DSH trial reserved 1,002,085 input tokens and 8,192 output tokens, but stopped at the strict memory-warning gate before a substantial answer. The prepared prefix reached 765,952 tokens. Four 20 MiB allocator mapping requests found only 15.75–17.75 MiB free. No uncaught CUDA out-of-memory exception or unexpected model restart was recorded during the trial.
+The later actual DSH trial reserved 1,002,081 input tokens and 8,192 output tokens, but stopped at the strict memory-warning gate before a substantial answer. The last model cached-prefix counter was 765,952 tokens. The last acknowledged warming step was 720,896 tokens at 773.296 seconds; neither value is a completed full preparation. Four 20 MiB allocator mapping requests found only 15.75–17.75 MiB free. No uncaught CUDA out-of-memory exception or unexpected model restart was recorded during the trial.
 
 | Check | Recorded outcome |
 |---|---|
@@ -13,12 +13,20 @@ The later actual DSH trial reserved 1,002,085 input tokens and 8,192 output toke
 | Near-limit compaction | Not started after the prerequisite failed |
 | Short native reply after cancellation | 11,906 input / 7 output tokens; exact recovery reply, 0.996 s, zero retries |
 
-The corrected V4 fusion is rejected rather than promoted. The short recovery reply occurred before the separate saved-profile rollback; it is not acceptance of a full near-1M task after rollback. Restoration and its startup verification are separate operator actions. Retain the failed trial and earlier qualified profiles without presenting these results as a new near-1M or 100+ tokens/sec improvement.
+The corrected V4 fusion is rejected rather than promoted. The short recovery reply occurred before the separate saved-profile rollback; it is not acceptance of a full near-1M task after rollback. The compatible unfused rollback profile has since passed actual loaded-source/image/argument checks: the 1,048,576 total-token ceiling, memory fraction 0.922, eight running requests and session-cache flag remain, while the rejected fusion is absent. A fresh native DSH request through canonical LiteLLM returned the exact recovery answer with 11,912 input / 12 output tokens in 3.825 seconds, zero retries and one matching canonical forwarding record. That short recovery does not qualify a fresh full near-1M workload. Retain the failed trial and earlier qualified profiles without presenting these results as a new near-1M or 100+ tokens/sec improvement.
+
+## Persistence and cleanup
+
+Only the disposable test worker was replaced. Its 130 histories / 260 compressed files remained byte-identical across replacement, including the original 61 histories / 122 files. Synthetic workspace data and a saved notebook survived. Final retained test state contained 131 histories / 262 files. The owned test workers were returned to their original stopped specifications, the admission holder was released and test credentials were revoked. Existing human workers were not restarted by this test.
+
+## Output-budget qualification
+
+The corrected private qualification route reserved 8,192 output tokens. A deliberately tiny near-1M reservation was refused before admission, warming or final dispatch. This is a private test-quality gate; ordinary production requests that legitimately request one output token remain allowed.
 
 ## Earlier output-budget trial
 
 
-This earlier DSH run finished, but near-1M acceptance failed. Compaction was not started. The experimental GPU fusion is not accepted; the saved qualified 1M deployment specification was restored. Rollback recovery was subsequently verified with an exact direct-model reply and an exact canonical LiteLLM reply; these short checks do not qualify near-1M output or compaction. The context ceiling remains 1,048,576 total tokens.
+This earlier DSH run finished, but near-1M acceptance failed. Compaction was not started. The experimental GPU fusion is not accepted; the compatible unfused rollback profile was restored. Rollback recovery was subsequently verified with an exact direct-model reply and an exact canonical LiteLLM reply; these short checks do not qualify near-1M output or compaction. The context ceiling remains 1,048,576 total tokens.
 
 ## Results
 
