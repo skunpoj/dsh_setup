@@ -6,7 +6,7 @@ An application URL is a routing record, not a new workspace or process. Each loc
 
 1. Sign into the intended private environment and open `/applications`.
 2. Choose **Local application port** or **External HTTPS application**. Local ports refer to that owner's runtime; external URLs require operator-approved origins and network rules.
-3. Choose **Require DSH sign-in** (default), or explicitly choose **Public access** for an application intended for those visitors. The destination keeps its own login and permissions.
+3. Choose **Require DSH sign-in** (default), or explicitly choose **Public access** for an application intended for those visitors. For an approved external application with no private-port mapping, its owner may explicitly choose access for enabled DSH accounts. Existing mappings remain owner-only until that choice is saved. The destination keeps its own login and permissions.
 4. Check the alias and save it. A local alias can also use `/proxy/<name>/`; an external app uses its approved alias hostname. DNS, TLS and the wildcard/exact route must already be configured by the operator.
 5. Start the local application separately, or enable its approved managed startup definition. Saving a URL does not start code or approve Internet access.
 
@@ -14,7 +14,7 @@ The default quota is eight names per user across environments. Administrators ca
 
 ## Sign-in and destination boundaries
 
-App-focused sign-in uses the normal DSH verifier, fixed owner/environment binding and a short-lived, one-use browser-bound challenge. It returns only to the registered app. It does not offer workspace, terminal, notebook or account-registration actions. Mapping changes are rechecked after asynchronous password verification. Public mappings bypass the DSH visitor gate only for that mapping; they do not bypass destination authentication or publish DSH management.
+App-focused sign-in uses the normal DSH verifier, fixed saved application target and a short-lived, one-use browser-bound challenge. Private local apps remain owner/environment-bound. An explicitly shared external app accepts enabled DSH visitors while forwarding only to its saved owner/environment target; it does not select the visitor's workspace or change their environment preference. It returns only to the registered app. It does not offer workspace, terminal, notebook or account-registration actions. Mapping changes are rechecked after asynchronous password verification. Public mappings bypass the DSH visitor gate only for that mapping; they do not bypass destination authentication or publish DSH management.
 
 Forwarding strips DSH authentication cookies, bearer/basic authorization and proxy identity credentials. Destination session cookies remain the destination's responsibility. Approved SSO redirects may leave the alias. Destination applications retain their own models and data permissions: an app proxy does not change them to the DSH inference configuration.
 
@@ -62,3 +62,9 @@ One initial Windows logout-fixture run returned the intended storage-unavailable
 | Webhook | Receives an event or command | Can automate a mapping update, but does not carry ongoing app traffic |
 
 External HTTPS means outside the local workspace, and can still be an internal application. Destination authentication remains separate from the DSH gate. An SSO login can navigate away from the alias; retaining the alias afterward needs supported callback/custom-host and per-user session handling. Test the completed login, real app content, assets, API/WebSockets, expiry and logout before describing an alias as operational end to end. A successful redirect or page shell alone is insufficient. Do not repair incompatible SSO by sharing an administrator cookie, patching vendor authentication checks, disabling TLS, broadening cookie domains or granting unrestricted CORS.
+
+## Shared application recovery and concurrent saves
+
+A browser with an unrelated DSH session can explicitly sign into the registered app. API calls receive a structured access error rather than a login HTML body. Successful form redirects allow only the validated app origin in the form-action policy. Recheck account, permission and mapping state after asynchronous verification and destination lookup; revocation closes tracked HTTP and WebSocket connections.
+
+Registry saves use a shared exclusive lock and compare the original bytes before replacing the file. A stale writer must refresh instead of silently overwriting another owner's update. No app access choice grants new dataset permissions or changes a private runtime.

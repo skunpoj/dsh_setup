@@ -138,6 +138,7 @@ function responseHeaders(input, target, publicOrigin, protectedCookies) {
 async function proxyHTTP(req, res, options) {
   const {target, publicOrigin, protectedCookies, lookup} = options;
   const connection = await connectionOptions(target, lookup);
+  if(options.authorize&&!options.authorize())reject('Application access changed',403);
   const path = requestPath(req.url, target);
   const headers = outgoingHeaders(req, target, publicOrigin, protectedCookies);
   const adaptFrontend = gradioAlias.enabled(target, publicOrigin);
@@ -181,6 +182,7 @@ async function proxyHTTP(req, res, options) {
 async function proxyWebSocket(req, socket, head, options) {
   const {target, publicOrigin, protectedCookies, lookup} = options;
   const connection = await connectionOptions(target, lookup);
+  if(options.authorize&&!options.authorize())reject('Application access changed',403);
   const upstream = https.request({...connection, path: requestPath(req.url,target), method: 'GET',
     headers: outgoingHeaders(req,target,publicOrigin,protectedCookies,true)});
   upstream.setTimeout(60_000, () => upstream.destroy(new Error('Upstream timeout')));

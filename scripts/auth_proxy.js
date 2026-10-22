@@ -58,10 +58,29 @@ function externalAppTarget(alias,user,mode) {
   try {return EXTERNAL_PROXY.resolveTarget(appLinks()[alias],user,mode,externalPolicies());}catch{return null;}
 }
 function customAppAvailable(alias,user,mode) {return Boolean(customAppPort(alias,user,mode)||externalAppTarget(alias,user,mode));}
-function externalProxyOptions(req,target) {
+// Shared remote apps use the owner's saved target, never a visitor's runtime.
+// Legacy mappings and every private local application remain owner-only.
+function sharedExternalApp(alias,visitor) {
+  const app=gatedAliasRecoveryContext(alias);
+  if(!app||app.visitorPolicy!=='signed-in-users'||!accountEnabled(visitor))return null;
+  const target=externalAppTarget(alias,app.owner,app.internet);
+  return target?{app,target}:null;
+}
+function sharedAppStillAuthorized(alias,active,stamp) {
+  const current=sharedExternalApp(alias,active.user);
+  return Boolean(current&&current.app.stamp===stamp&&
+    active.accountStamp===sessionAccountStamp(active.user)&&
+    (active.internet!=='on'||internetAllowed(active.user))&&
+    Date.now()<active.created+SESSION_TTL_MS&&[...SESSIONS.values()].includes(active));
+}
+function monitorSharedApp(alias,active,stamp,connection) {
+  const timer=setInterval(()=>{try{if(!sharedAppStillAuthorized(alias,active,stamp))connection.destroy();}catch{connection.destroy();}},2000);
+  timer.unref();connection.once('close',()=>clearInterval(timer));
+}
+function externalProxyOptions(req,target,authorize) {
   const host=String(req.headers['x-forwarded-host']||req.headers.host||'').toLowerCase();
   if(!appHostName(host))throw Error('External mappings require an application hostname');
-  return {target,publicOrigin:'https://'+host,protectedCookies:[COOKIE_NAME,'dsh_auth'],lookup:EXTERNAL_LOOKUP};
+  return {target,publicOrigin:'https://'+host,protectedCookies:[COOKIE_NAME,'dsh_auth'],lookup:EXTERNAL_LOOKUP,authorize};
 }
 
 // Explicit public aliases only. Owner configuration remains behind normal auth+CSRF.
@@ -92,6 +111,30 @@ function handlePublicAlias(req,res,socket,head) {
  return true;
 }
 
+// A browser arriving with an unrelated platform session can explicitly sign in
+// for this registered app. Never grant access or silently change its environment.
+function gatedAliasRecoveryContext(alias) {
+  if(!APP_SIGNIN)return null;
+  try {
+    const app=APP_SIGNIN.mapping(alias);
+    if(!accountEnabled(app.owner)||(app.internet==='on'&&!internetAllowed(app.owner))||!customAppAvailable(alias,app.owner,app.internet))return null;
+    const inventory=appHostnameState(alias);
+    if(process.env.DSH_APP_INVENTORY_FILE&&(!inventory.ready||!inventory.available))return null;
+    return app;
+  } catch {return null;}
+}
+function offerGatedAliasSignIn(req,res,alias) {
+  if(!gatedAliasRecoveryContext(alias))return false;
+  const login='https://'+process.env.DSH_TRUSTED_HOST+'/login?app='+encodeURIComponent(alias);
+  if(/^\/api(?:\/|$)/.test(url.parse(req.url).pathname||'')){
+    res.writeHead(403,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});
+    res.end(JSON.stringify({error:'APP_ACCESS_REQUIRED',message:'Sign in with an account authorized for this application.',loginUrl:login}));return true;
+  }
+  if(req.method!=='GET'||!String(req.headers.accept||'').toLowerCase().includes('text/html')||(req.headers['sec-fetch-mode']&&req.headers['sec-fetch-mode']!=='navigate')||(req.headers['sec-fetch-dest']&&req.headers['sec-fetch-dest']!=='document'))return false;
+  res.writeHead(303,{Location:login,'Cache-Control':'no-store'});
+    res.end();return true;
+}
+
 function handleExternalAlias(req,res) {
   const alias=appHostName(req.headers['x-forwarded-host']||req.headers.host);
   if(!alias)return false;
@@ -106,18 +149,25 @@ function handleExternalAlias(req,res) {
   }
   const login='https://'+process.env.DSH_TRUSTED_HOST+'/login'+(APP_SIGNIN?'?app='+encodeURIComponent(alias):'');
   if(!active||!accountEnabled(active.user)||(active.internet==='on'&&!internetAllowed(active.user))){
-    if(req.url.startsWith('/api/')){res.writeHead(401,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:'AUTHENTICATION_REQUIRED',loginUrl:login}));}
+    if(/^\/api(?:\/|$)/.test(url.parse(req.url).pathname||'')){res.writeHead(401,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:'AUTHENTICATION_REQUIRED',loginUrl:login}));}
     else{res.writeHead(303,{Location:login,'Cache-Control':'no-store'});res.end();}
     return true;
   }
-  const mode=normalizeInternetMode(active.internet),target=externalAppTarget(alias,active.user,mode),inventory=appHostnameState(alias);
-  if(!target||(process.env.DSH_APP_INVENTORY_FILE&&(!inventory.ready||!inventory.available))){res.writeHead(404);res.end('Application unavailable for this account and environment.');return true;}
+  const shared=sharedExternalApp(alias,active.user);
+  if(entry.visitorPolicy==='signed-in-users'&&!shared){res.writeHead(404);res.end('Shared application unavailable.');return true;}
+  const mode=shared?shared.app.internet:normalizeInternetMode(active.internet);
+  // The same alias may use an external target in one environment and a local
+  // port in the other. Let the normal owned local route handle the latter.
+  if(!shared&&entry.targets?.[mode]?.type!=='external'&&customAppPort(alias,active.user,mode))return false;
+  const target=shared?shared.target:externalAppTarget(alias,active.user,mode),inventory=appHostnameState(alias);
+  if(!target||(process.env.DSH_APP_INVENTORY_FILE&&(!inventory.ready||!inventory.available))){if(!target&&offerGatedAliasSignIn(req,res,alias))return true;res.writeHead(404);res.end('Application unavailable for this account and environment.');return true;}
   if(!auditEvent('application.external.http',active.user,mode,undefined,{name:alias,outcome:'requested'})){res.writeHead(503);res.end('Audit storage unavailable.');return true;}
   trackAppConnection(alias,res);
   const connections=SESSION_SOCKETS.get(active)||new Set();SESSION_SOCKETS.set(active,connections);connections.add(res);
+  if(shared)monitorSharedApp(alias,active,shared.app.stamp,res);
   const timer=setTimeout(()=>res.destroy(),Math.max(1,active.created+SESSION_TTL_MS-Date.now()));timer.unref();
   res.once('close',()=>{clearTimeout(timer);connections.delete(res);});
-  EXTERNAL_PROXY.proxyHTTP(req,res,externalProxyOptions(req,target)).catch(error=>{if(!res.headersSent){res.writeHead(error.status||502);res.end('External application unavailable.');}else res.destroy();});
+  EXTERNAL_PROXY.proxyHTTP(req,res,externalProxyOptions(req,target,shared?()=>sharedAppStillAuthorized(alias,active,shared.app.stamp):undefined)).catch(error=>{if(!res.headersSent){res.writeHead(error.status||502);res.end('External application unavailable.');}else res.destroy();});
   return true;
 }
 const APP_DOMAIN = (process.env.DSH_APP_DOMAIN || '').toLowerCase();
@@ -141,17 +191,29 @@ function appHostName(host) {
   const name=value.slice(0,-APP_DOMAIN.length-1);
   return validAppName(name)?name:null;
 }
+const APP_LINK_READ_STAMPS=new WeakMap();
 function appLinks() {
-  if (!fs.existsSync(APP_LINKS_PATH)) return {};
-  const value=JSON.parse(fs.readFileSync(APP_LINKS_PATH,'utf8'));
+  if (!fs.existsSync(APP_LINKS_PATH)) {const value={};APP_LINK_READ_STAMPS.set(value,null);return value;}
+  const bytes=fs.readFileSync(APP_LINKS_PATH),value=JSON.parse(bytes);
   if (!value || typeof value!=='object' || Array.isArray(value)) throw Error('Invalid app links');
+  APP_LINK_READ_STAMPS.set(value,crypto.createHash('sha256').update(bytes).digest('hex'));
   return value;
 }
 function saveAppLinks(value) {
   fs.mkdirSync(path.dirname(APP_LINKS_PATH),{recursive:true,mode:0o700});
-  const tmp=APP_LINKS_PATH+'.tmp-'+crypto.randomBytes(8).toString('hex');let fd;
-  try {fd=fs.openSync(tmp,'wx',0o600);fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.renameSync(tmp,APP_LINKS_PATH);}
-  finally {if(fd!==undefined)fs.closeSync(fd);if(fs.existsSync(tmp))fs.unlinkSync(tmp);}
+  const tmp=APP_LINKS_PATH+'.tmp-'+crypto.randomBytes(8).toString('hex'),lock=APP_LINKS_PATH+'.lock';let fd,lockFd;
+  try {
+    lockFd=fs.openSync(lock,'wx',0o600);
+    if(!APP_LINK_READ_STAMPS.has(value))throw Error('Untracked application registry update');
+    const current=fs.existsSync(APP_LINKS_PATH)?crypto.createHash('sha256').update(fs.readFileSync(APP_LINKS_PATH)).digest('hex'):null;
+    if(current!==APP_LINK_READ_STAMPS.get(value))throw Error('Application registry changed; refresh before saving');
+    fd=fs.openSync(tmp,'wx',0o600);fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.renameSync(tmp,APP_LINKS_PATH);
+    if(process.platform!=='win32'){const dir=fs.openSync(path.dirname(APP_LINKS_PATH),'r');try{fs.fsyncSync(dir);}finally{fs.closeSync(dir);}}
+  }
+  finally {
+    if(fd!==undefined)fs.closeSync(fd);if(fs.existsSync(tmp))fs.unlinkSync(tmp);
+    if(lockFd!==undefined){const owned=fs.fstatSync(lockFd);fs.closeSync(lockFd);const actual=fs.lstatSync(lock);if(actual.dev!==owned.dev||actual.ino!==owned.ino)throw Error('Registry lock ownership changed');fs.unlinkSync(lock);}
+  }
 }
 function appPolicy() {
   if(!fs.existsSync(APP_POLICY_PATH))return {limits:{}};
@@ -279,7 +341,7 @@ function customAppPort(alias,user,mode) {
   const entry=appLinks()[alias];
   return entry && entry.enabled!==false && entry.owner===user && validAppPort(entry.ports?.[mode]) ? entry.ports[mode] : null;
 }
-function renderApplications() {return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>My applications</title><style>body{font:16px system-ui;max-width:900px;margin:40px auto;padding:20px;line-height:1.6;background:#0b1220;color:#eef}a{color:#8cf}input,button{font:inherit;padding:9px;margin:5px}li{margin:14px 0}</style><h1>My applications</h1><p><a href="/">DSH</a> · <a href="/terminal">Web Terminal</a> · <a href="/proxy/8888/lab">JupyterLab</a> · <a href="/manual/APP_URLS_AND_INGRESS.html">URL guide</a> · <a href="/packages">My Python environments</a></p><p>Choose a name for a local application port or an external HTTPS application. Choose whether visitors must sign into DSH or can open this application publicly. Application login remains separate. Public access exposes only the selected mapping, not DSH management. This does not start an application or enable Internet access.</p><p id="domainHint"></p><p id="quota"></p><form id="appForm"><label>Name <input id="appName" pattern="[a-z0-9-]{3,63}" maxlength="63" required></label><label>Target <select id="targetType"><option value="port">Local application port</option><option value="external">External HTTPS application</option></select></label><label>Visitor access <select id="accessMode"><option value="authenticated">Require DSH sign-in (default)</option><option value="public">Public access — no DSH sign-in</option></select></label><label>External URL <input id="targetUrl" type="url" placeholder="https://app.example.org/"></label><label>Port <input id="appPort" type="number" min="1024" max="65535" value="8888" required></label><button type="button" id="check" disabled>Check name</button><button id="saveApp" disabled>Save URL</button></form><p id="status" role="status"></p><ul id="links"></ul><script>let token='';const status=document.getElementById('status');async function load(){const r=await fetch('/api/app-links');if(!r.ok)throw Error('Sign in again to manage applications.');const d=await r.json();token=d.csrfToken;document.getElementById('quota').textContent=d.used+' / '+d.limit+' application names used across both environments.';document.getElementById('check').disabled=false;document.getElementById('saveApp').disabled=false;document.getElementById('domainHint').textContent=d.hostnameDomain?'Choose a name for https://NAME.'+d.hostnameDomain+'/ and its local port or external HTTPS application.':'';if(!document.getElementById('appName').value)document.getElementById('appName').value=d.defaultName;const list=document.getElementById('links');list.replaceChildren();for(const e of d.links){const li=document.createElement('li'),a=document.createElement('a'),b=document.createElement('button');a.href=e.url;a.textContent=e.name+' ['+e.accessMode+'] → '+(e.type==='external'?e.targetUrl:'port '+e.port)+(e.enabled?'':' (disabled by administrator)');li.append(a);if(e.hostnameUrl){const host=document.createElement('a');host.href=e.hostnameUrl;host.textContent=' · '+e.hostname;li.append(host);}else if(e.hostname){li.append(document.createTextNode(' · hostname awaiting setup'));}b.textContent='Remove URL';b.onclick=()=>save('delete',e.name,e.port);li.append(b);list.append(li)}}async function save(action,name,port){if(!token)throw Error('Wait for application settings to load.');const r=await fetch('/api/app-links',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-App-CSRF':token},body:new URLSearchParams({action,name,port,type:document.getElementById('targetType').value,targetUrl:document.getElementById('targetUrl').value,accessMode:document.getElementById('accessMode').value})});const d=await r.json();status.textContent=d.message||d.error;await load()}document.getElementById('appForm').onsubmit=e=>{e.preventDefault();save('save',document.getElementById('appName').value,document.getElementById('appPort').value).catch(e=>status.textContent=e.message)};document.getElementById('check').onclick=async()=>{const r=await fetch('/api/app-links?name='+encodeURIComponent(document.getElementById('appName').value));const d=await r.json();status.textContent=d.available?'Name available in the application registry.':(d.error||'Name reserved.');};load().catch(e=>status.textContent=e.message);</script></html>`;}
+function renderApplications() {return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>My applications</title><style>body{font:16px system-ui;max-width:900px;margin:40px auto;padding:20px;line-height:1.6;background:#0b1220;color:#eef}a{color:#8cf}input,button{font:inherit;padding:9px;margin:5px}li{margin:14px 0}</style><h1>My applications</h1><p><a href="/">DSH</a> · <a href="/terminal">Web Terminal</a> · <a href="/proxy/8888/lab">JupyterLab</a> · <a href="/manual/APP_URLS_AND_INGRESS.html">URL guide</a> · <a href="/packages">My Python environments</a></p><p>Choose a name for a local application port or an external HTTPS application. Choose whether visitors must sign into DSH or can open this application publicly. Application login remains separate. Public access exposes only the selected mapping, not DSH management. This does not start an application or enable Internet access.</p><p id="domainHint"></p><p id="quota"></p><form id="appForm"><label>Name <input id="appName" pattern="[a-z0-9-]{3,63}" maxlength="63" required></label><label>Target <select id="targetType"><option value="port">Local application port</option><option value="external">External HTTPS application</option></select></label><label>Visitor access <select id="accessMode"><option value="authenticated">Require DSH sign-in (default)</option><option value="public">Public access — no DSH sign-in</option></select></label><label>Authenticated visitors <select id="visitorPolicy"><option value="owner-only">Owner only — private application</option><option value="signed-in-users">Any enabled DSH account — shared external app</option></select></label><label>External URL <input id="targetUrl" type="url" placeholder="https://app.example.org/"></label><label>Port <input id="appPort" type="number" min="1024" max="65535" value="8888" required></label><button type="button" id="check" disabled>Check name</button><button id="saveApp" disabled>Save URL</button></form><p id="status" role="status"></p><ul id="links"></ul><script>const syncVisitorPolicy=()=>{const v=document.getElementById('visitorPolicy'),privatePort=document.getElementById('targetType').value==='port',publicAccess=document.getElementById('accessMode').value==='public';v.disabled=privatePort||publicAccess;if(v.disabled)v.value='owner-only';};document.getElementById('targetType').onchange=syncVisitorPolicy;document.getElementById('accessMode').onchange=syncVisitorPolicy;syncVisitorPolicy();let token='';const status=document.getElementById('status');async function load(){const r=await fetch('/api/app-links');if(!r.ok)throw Error('Sign in again to manage applications.');const d=await r.json();token=d.csrfToken;document.getElementById('quota').textContent=d.used+' / '+d.limit+' application names used across both environments.';document.getElementById('check').disabled=false;document.getElementById('saveApp').disabled=false;document.getElementById('domainHint').textContent=d.hostnameDomain?'Choose a name for https://NAME.'+d.hostnameDomain+'/ and its local port or external HTTPS application.':'';if(!document.getElementById('appName').value)document.getElementById('appName').value=d.defaultName;const list=document.getElementById('links');list.replaceChildren();for(const e of d.links){const li=document.createElement('li'),a=document.createElement('a'),b=document.createElement('button');a.href=e.url;a.textContent=e.name+' ['+e.accessMode+(e.accessMode==='authenticated'?' / '+(e.visitorPolicy==='signed-in-users'?'any enabled DSH account':'owner only'):'')+'] → '+(e.type==='external'?e.targetUrl:'port '+e.port)+(e.enabled?'':' (disabled by administrator)');li.append(a);if(e.hostnameUrl){const host=document.createElement('a');host.href=e.hostnameUrl;host.textContent=' · '+e.hostname;li.append(host);}else if(e.hostname){li.append(document.createTextNode(' · hostname awaiting setup'));}b.textContent='Remove URL';b.onclick=()=>save('delete',e.name,e.port);li.append(b);list.append(li)}}async function save(action,name,port){if(!token)throw Error('Wait for application settings to load.');const r=await fetch('/api/app-links',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-App-CSRF':token},body:new URLSearchParams({action,name,port,type:document.getElementById('targetType').value,targetUrl:document.getElementById('targetUrl').value,accessMode:document.getElementById('accessMode').value,visitorPolicy:document.getElementById('visitorPolicy').value})});const d=await r.json();status.textContent=d.message||d.error;await load()}document.getElementById('appForm').onsubmit=e=>{e.preventDefault();save('save',document.getElementById('appName').value,document.getElementById('appPort').value).catch(e=>status.textContent=e.message)};document.getElementById('check').onclick=async()=>{const r=await fetch('/api/app-links?name='+encodeURIComponent(document.getElementById('appName').value));const d=await r.json();status.textContent=d.available?'Name available in the application registry.':(d.error||'Name reserved.');};load().catch(e=>status.textContent=e.message);</script></html>`;}
 const COOKIE_NAME = process.env.DSH_COOKIE_NAME || 'dsh_auth';
 const COOKIE_TRANSPORT = process.env.DSH_COOKIE_SECURE === 'false' ? '' : '; Secure';
 const ADMIN_USERS = new Set((process.env.DSH_ADMIN_USERS || 'admin').split(',').map(x => x.trim()).filter(Boolean));
@@ -1402,7 +1464,7 @@ const server = http.createServer((req, res) => {
     // Native form POSTs need a same-origin Origin header for the strict CSRF check.
     // no-referrer makes browsers send Origin: null, even for this same-origin form.
     const headers={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'same-origin','X-Frame-Options':'DENY', 'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"};
-    try {if(req.headers.host!==process.env.DSH_TRUSTED_HOST)throw Error();const body=APP_SIGNIN.begin(parsedUrl.query.app,res,'',parsedUrl.query.environment);res.writeHead(200,headers);return res.end(body);}
+    try {if(req.headers.host!==process.env.DSH_TRUSTED_HOST)throw Error();const body=APP_SIGNIN.begin(parsedUrl.query.app,res,'',parsedUrl.query.environment);headers['Content-Security-Policy']=res.getHeader('Content-Security-Policy');res.writeHead(200,headers);return res.end(body);}
     catch {res.writeHead(404,headers);return res.end('Application sign-in unavailable.');}
   }
   if(parsedUrl.pathname==='/api/signup-capacity') {
@@ -1457,20 +1519,20 @@ const server = http.createServer((req, res) => {
         try {return APP_SIGNIN.begin(appContext.name,res,options.errorMsg||'',appContext.internet);}
         catch {loginPageFailureStatus=503;return 'Application sign-in unavailable. Reopen the application and retry.';}
       };
-      const internet = appContext ? appContext.internet : normalizeInternetMode(params.get('internet'));
+      const internet = appContext ? appContext.sessionInternet : normalizeInternetMode(params.get('internet'));
       const launchPaths = {dsh:'/', terminal:'/terminal', jupyter:'/proxy/8888/lab', applications:'/applications'};
       const application = appContext ? 'dsh' : params.get('application') || process.env.DSH_DEFAULT_APPLICATION || 'dsh';
       if (!Object.hasOwn(launchPaths, application)) { res.writeHead(400); return res.end('Choose DSH, Web Terminal or JupyterLab.'); }
 
       USERS = loadUsers();
       if ((!LEGACY_OWNER || username === LEGACY_OWNER) && USERS[username]?.disabled !== true && await verifyPassword(password, USERS[username]) && accountEnabled(username)) {
-        if(appContext){try{APP_SIGNIN.assertCurrent(appContext);}catch{res.writeHead(403,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'});return res.end('Application access changed. Reopen the application.');}}
+        if(appContext){try{APP_SIGNIN.assertCurrent(appContext);if(gatedAliasRecoveryContext(appContext.name)?.stamp!==appContext.stamp)throw Error('Application access changed');}catch{res.writeHead(403,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'});return res.end('Application access changed. Reopen the application.');}}
         if (internet === 'on' && !internetAllowed(username)) { res.writeHead(403); return res.end('Internet environment requires administrator approval.'); }
-        if (!getEnvironmentTarget(internet, username)) {
+        if (appContext?.visitorPolicy!=='signed-in-users' && !getEnvironmentTarget(internet, username)) {
           res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
           return res.end('No dedicated runtime provisioned for this identity and environment.');
         }
-        if (!setUserInternetMode(username, internet)) {
+        if (appContext?.visitorPolicy!=='signed-in-users' && !setUserInternetMode(username, internet)) {
           const body=loginPage({ tab: 'login', errorMsg: 'ไม่สามารถบันทึกนโยบาย Internet access ได้ กรุณาลองใหม่อีกครั้ง' });
           res.writeHead(loginPageFailureStatus||500, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control':'no-store' });
           return res.end(body);
@@ -1727,6 +1789,7 @@ const server = http.createServer((req, res) => {
           }else{
             if(!validAppName(name)||!Object.hasOwn(all,name)||all[name].owner!==owner)return reply(404,{error:'Application mapping not found for this owner.'});
             if(action==='edit') {
+              if(all[name].visitorPolicy==='signed-in-users')return reply(400,{error:'Shared external applications cannot be changed to a private port here.'});
               const mode=f.get('environment'),port=Number(f.get('port'));
               if(!['off','on'].includes(mode)||!validAppPort(port)||!getEnvironmentTarget(mode,owner))return reply(400,{error:'Choose a provisioned environment and valid application port.'});
               details.mode=mode;details.previousPort=all[name].ports?.[mode];details.port=port;all[name].ports={...all[name].ports,[mode]:port};
@@ -1838,7 +1901,7 @@ const server = http.createServer((req, res) => {
         const all=appLinks();activeSession.appCsrf ||= crypto.randomBytes(32).toString('hex');
         const name=parsedUrl.query.name;
         if(name!==undefined) {if(!validAppName(name))return reply(400,{error:'Use 3–63 lowercase letters, digits and hyphens; built-in names are reserved.'});const host=appHostnameState(name);if(host.error)return reply(503,{error:host.error});return reply(200,{available:host.available&&(!Object.hasOwn(all,name)||all[name].owner===sessionUser),hostname:APP_DOMAIN?name+'.'+APP_DOMAIN:null});}
-        return reply(200,{used:Object.values(all).filter(e=>e.owner===sessionUser).length,limit:appLimit(sessionUser),defaultName:sessionUser.replace(/[_.]/g,'-')+'-jupyter',csrfToken:activeSession.appCsrf,hostnameDomain:APP_DOMAIN||null,links:Object.entries(all).filter(([name,e])=>e.owner===sessionUser&&(validAppPort(e.ports?.[internetMode])||externalAppTarget(name,sessionUser,internetMode))).map(([name,e])=>{const host=appHostnameState(name),external=externalAppTarget(name,sessionUser,internetMode);return {name,accessMode:e.accessMode||'authenticated',publicEnvironment:e.publicEnvironment||null,enabled:e.enabled!==false,type:external?'external':'port',targetUrl:external?external.url.href:null,port:e.ports?.[internetMode]||null,url:external?'https://'+name+'.'+APP_DOMAIN+'/':'/proxy/'+name+'/'+(e.ports[internetMode]===8888?'lab':''),hostname:APP_DOMAIN?name+'.'+APP_DOMAIN:null,hostnameUrl:APP_DOMAIN&&host.available&&host.ready?'https://'+name+'.'+APP_DOMAIN+'/':null};})});
+        return reply(200,{used:Object.values(all).filter(e=>e.owner===sessionUser).length,limit:appLimit(sessionUser),defaultName:sessionUser.replace(/[_.]/g,'-')+'-jupyter',csrfToken:activeSession.appCsrf,hostnameDomain:APP_DOMAIN||null,links:Object.entries(all).filter(([name,e])=>e.owner===sessionUser&&(validAppPort(e.ports?.[internetMode])||externalAppTarget(name,sessionUser,internetMode))).map(([name,e])=>{const host=appHostnameState(name),external=externalAppTarget(name,sessionUser,internetMode);return {name,accessMode:e.accessMode||'authenticated',visitorPolicy:e.visitorPolicy||'owner-only',sharedEnvironment:e.sharedEnvironment||null,publicEnvironment:e.publicEnvironment||null,enabled:e.enabled!==false,type:external?'external':'port',targetUrl:external?external.url.href:null,port:e.ports?.[internetMode]||null,url:external?'https://'+name+'.'+APP_DOMAIN+'/':'/proxy/'+name+'/'+(e.ports[internetMode]===8888?'lab':''),hostname:APP_DOMAIN?name+'.'+APP_DOMAIN:null,hostnameUrl:APP_DOMAIN&&host.available&&host.ready?'https://'+name+'.'+APP_DOMAIN+'/':null};})});
       }
       if(req.method!=='POST')return reply(405,{error:'Use GET or POST.'});
       if(!activeSession.appCsrf||req.headers['x-dsh-app-csrf']!==activeSession.appCsrf)return reply(403,{error:'Invalid application token.'});
@@ -1847,11 +1910,14 @@ const server = http.createServer((req, res) => {
       let body='',large=false;req.on('data',b=>{if(large)return;body+=b;if(Buffer.byteLength(body)>2048){large=true;reply(413,{error:'Request too large.'});}});
       req.on('end',()=>{if(large)return;try {
         if(!accountEnabled(sessionUser)||![...SESSIONS.values()].includes(activeSession))return reply(403,{error:'Session ended.'});
-        const f=new URLSearchParams(body),name=f.get('name'),port=Number(f.get('port')),type=f.get('type')||'port',action=f.get('action'),all=appLinks(),accessMode=f.get('accessMode')||all[f.get('name')]?.accessMode||'authenticated';
+        const f=new URLSearchParams(body),name=f.get('name'),port=Number(f.get('port')),type=f.get('type')||'port',action=f.get('action'),all=appLinks(),accessMode=f.get('accessMode')||all[f.get('name')]?.accessMode||'authenticated',visitorPolicy=f.get('visitorPolicy')||all[f.get('name')]?.visitorPolicy||'owner-only';
         if(!validAppName(name)||!['save','delete'].includes(action))return reply(400,{error:'Invalid application name or action.'});
         if(Object.hasOwn(all,name)&&all[name].owner!==sessionUser)return reply(409,{error:'Name reserved. Choose another name.'});
         if(action==='save') {
           if(!['authenticated','public'].includes(accessMode))return reply(400,{error:'Choose authenticated or public access.'});
+          if(!['owner-only','signed-in-users'].includes(visitorPolicy))return reply(400,{error:'Choose owner-only or enabled DSH accounts.'});
+          const shared=accessMode==='authenticated'&&visitorPolicy==='signed-in-users';
+          if(shared&&(type!=='external'||Object.keys(all[name]?.ports||{}).some(mode=>mode!==internetMode)))return reply(400,{error:'Shared sign-in is available only for external applications without private ports. Use a separate alias for private ports.'});
           if(accessMode==='public'&&type==='port'&&[7681,8888].includes(port))return reply(400,{error:'Terminal and notebook management ports cannot be published without DSH authentication.'});
           const host=appHostnameState(name);if(host.error)return reply(503,{error:host.error});if(!host.available)return reply(409,{error:'This name belongs to an existing site. Choose another name.'});
           if(!['port','external'].includes(type))return reply(400,{error:'Choose a local port or external HTTPS URL.'});
@@ -1863,9 +1929,11 @@ const server = http.createServer((req, res) => {
           }else if(!validAppPort(port))return reply(400,{error:'Choose an application port from 1024–65535; management ports are reserved.'});
           if(!Object.hasOwn(all,name)&&(Object.keys(all).length>=SITE_APP_LIMIT||Object.values(all).filter(e=>e.owner===sessionUser).length>=appLimit(sessionUser)))return reply(409,{error:'Application URL quota reached.'});
           all[name]={...all[name],owner:sessionUser,accessMode,publicEnvironment:accessMode==='public'?internetMode:null,updatedAt:new Date().toISOString(),updatedBy:sessionUser,ports:{...(all[name]?.ports||{})},targets:{...(all[name]?.targets||{})}};
+          if(shared){all[name].visitorPolicy='signed-in-users';all[name].sharedEnvironment=internetMode;}
+          else{delete all[name].visitorPolicy;delete all[name].sharedEnvironment;}
           if(type==='external'){delete all[name].ports[internetMode];all[name].targets[internetMode]={type:'external',url:approved.url.href};}
           else{all[name].ports[internetMode]=port;delete all[name].targets[internetMode];}
-        } else if(Object.hasOwn(all,name)) {if(all[name].ports)delete all[name].ports[internetMode];if(all[name].targets)delete all[name].targets[internetMode];if(!Object.keys(all[name].ports||{}).length&&!Object.keys(all[name].targets||{}).length)delete all[name];}
+        } else if(Object.hasOwn(all,name)) {if(all[name].ports)delete all[name].ports[internetMode];if(all[name].targets)delete all[name].targets[internetMode];if(all[name].sharedEnvironment===internetMode){delete all[name].visitorPolicy;delete all[name].sharedEnvironment;}if(!Object.keys(all[name].ports||{}).length&&!Object.keys(all[name].targets||{}).length)delete all[name];}
         if(!auditEvent('application.'+action,sessionUser,internetMode,undefined,{owner:sessionUser,name,mode:internetMode,outcome:'requested'}))return reply(503,{error:'Audit storage unavailable.'});
         saveAppLinks(all);closeAppConnections(name);if(!auditEvent('application.'+action,sessionUser,internetMode,undefined,{owner:sessionUser,name,mode:internetMode,outcome:'applied'}))return reply(503,{error:'Change saved; audit confirmation unavailable.'});return reply(200,{message:action==='save'?'Application URL saved.':'Application URL removed.'});
       }catch{return reply(503,{error:'Application URL storage unavailable.'});}});return;
@@ -1896,7 +1964,7 @@ const server = http.createServer((req, res) => {
     trackAppConnection(hostAlias,res);
     return EXTERNAL_PROXY.proxyHTTP(req,res,externalProxyOptions(req,externalTarget)).catch(error=>{if(!res.headersSent){res.writeHead(error.status||502);res.end('External application unavailable.');}else res.destroy();});
   }
-  if(hostAlias && (!customAppPort(hostAlias,sessionUser,internetMode) || (process.env.DSH_APP_INVENTORY_FILE && (!appHostnameState(hostAlias).ready||!appHostnameState(hostAlias).available)))) {res.writeHead(404);return res.end('Application hostname unavailable for this account and environment.');}
+  if(hostAlias && (!customAppPort(hostAlias,sessionUser,internetMode) || (process.env.DSH_APP_INVENTORY_FILE && (!appHostnameState(hostAlias).ready||!appHostnameState(hostAlias).available)))) {if(offerGatedAliasSignIn(req,res,hostAlias))return;res.writeHead(404);return res.end('Application hostname unavailable for this account and environment.');}
   const appTarget = parseAppTarget(incomingHost, req.url, sessionUser, internetMode);
   if(hostAlias && appTarget.port===8888) {res.writeHead(302,{Location:'https://'+process.env.DSH_TRUSTED_HOST+'/proxy/8888'+(req.url==='/'?'/lab':req.url)});return res.end();}
   const namedPath=parsedUrl.pathname.match(/^\/proxy\/([a-z0-9][a-z0-9-]{2,62})(?:\/|$)/);
@@ -2025,6 +2093,8 @@ server.on('upgrade', (req, socket, head) => {
     return;
   }
 
+  const sharedAlias=appHostName(req.headers['x-forwarded-host']||req.headers.host);
+  const shared=sharedAlias&&sharedExternalApp(sharedAlias,activeSession.user);
   if(req.headers.origin){
     let allowed=false;
     try{
@@ -2033,7 +2103,7 @@ server.on('upgrade', (req, socket, head) => {
       const incoming=(req.headers['x-forwarded-host']||req.headers.host||'').toLowerCase();
       const alias=appHostName(incoming);
       allowed=['http:','https:'].includes(origin.protocol) && !origin.username && !origin.password &&
-        (host===canonical || (host===incoming && alias && customAppAvailable(alias,activeSession.user,normalizeInternetMode(activeSession.internet))));
+        (host===canonical || (host===incoming && alias && (shared||customAppAvailable(alias,activeSession.user,normalizeInternetMode(activeSession.internet)))));
     }catch{}
     if(!allowed)return rejectUpgrade(socket,403,'ORIGIN_DENIED');
   }
@@ -2049,6 +2119,13 @@ server.on('upgrade', (req, socket, head) => {
   SESSION_SOCKETS.set(activeSession,sessionSockets);sessionSockets.add(socket);
   socket.once('close',()=>sessionSockets.delete(socket));
 
+  if(shared){
+    if(!auditEvent('application.websocket',activeSession.user,shared.app.internet,undefined,{name:sharedAlias,outcome:'requested'}))return rejectUpgrade(socket,503,'AUDIT_UNAVAILABLE');
+    trackAppConnection(sharedAlias,socket);
+    monitorSharedApp(sharedAlias,activeSession,shared.app.stamp,socket);
+    return EXTERNAL_PROXY.proxyWebSocket(req,socket,head,externalProxyOptions(req,shared.target,()=>sharedAppStillAuthorized(sharedAlias,activeSession,shared.app.stamp))).catch(()=>socket.destroy());
+  }
+
   const internetMode = normalizeInternetMode(activeSession && activeSession.internet);
   const environmentTarget = getEnvironmentTarget(internetMode, activeSession.user);
   if (!environmentTarget) return rejectUpgrade(socket,403,'ENVIRONMENT_UNAVAILABLE');
@@ -2058,6 +2135,7 @@ server.on('upgrade', (req, socket, head) => {
   const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';
   const hostAlias=appHostName(incomingHost);
   const externalTarget=hostAlias&&externalAppTarget(hostAlias,activeSession.user,internetMode);
+  if(hostAlias&&gatedAliasRecoveryContext(hostAlias)&&!customAppAvailable(hostAlias,activeSession.user,internetMode))return rejectUpgrade(socket,403,'APP_ACCESS_REQUIRED');
   if(externalTarget&&(!process.env.DSH_APP_INVENTORY_FILE||(appHostnameState(hostAlias).ready&&appHostnameState(hostAlias).available))){
     if(!auditEvent('application.websocket',activeSession.user,internetMode))return rejectUpgrade(socket,503,'AUDIT_UNAVAILABLE');
     trackAppConnection(hostAlias,socket);
