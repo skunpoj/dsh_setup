@@ -75,3 +75,7 @@ a full pod replacement. The explicit activation command remains available.
 Adopt the full immutable tools overlay at the next separately authorized safe
 maintenance window. Do not repair boot scripts, change an immutable ConfigMap,
 or roll a deployment merely to make this temporary layer permanent.
+
+## Automatic activation after worker replacement
+
+For existing-workspace deployments, the optional persistent native DSH startup plugin restores the qualified Bash activation block after normal replacement. Instances with a persistent complete HOME retain that activation directly. This restores compatibility for newly launched clients; it does not start agents or resume an in-memory process. Existing running clients keep their loaded code. New images still require their own qualification. See [automatic activation setup and recovery](AUTOMATIC_CLIENT_ACTIVATION.md).

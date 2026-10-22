@@ -18,6 +18,12 @@ App-focused sign-in uses the normal DSH verifier, fixed saved application target
 
 Forwarding strips DSH authentication cookies, bearer/basic authorization and proxy identity credentials. Destination session cookies remain the destination's responsibility. Approved SSO redirects may leave the alias. Destination applications retain their own models and data permissions: an app proxy does not change them to the DSH inference configuration.
 
+## Public and DSH-protected aliases for one destination
+
+An operator may publish two separately named aliases for the same approved HTTPS application: `public-app.apps.example.com` with Public access and `private-app.apps.example.com` with Require DSH sign-in. The protected alias uses the normal DSH identity and its focused sign-in screen; it does not create a second account database or authenticate the destination on the visitor's behalf. A destination may still require its own SSO.
+
+The protected alias controls only that entry point. If the public alias or original destination remains reachable, the application is not exclusively restricted to DSH users. Use destination-side access controls when exclusivity is required. Private local-port applications retain their owner/environment boundary.
+
 ## Operator setup
 
 1. Build the runtime with the complete `scripts/` directory. `auth_proxy.js` requires the app-sign-in, external-upstream, external-DNS and Gradio adapter modules in addition to the existing password, session, capacity, signup, course and package helpers. Never replace only the entry file.
