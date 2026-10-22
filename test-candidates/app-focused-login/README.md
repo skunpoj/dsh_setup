@@ -29,3 +29,32 @@ Recovery keeps this source and switches only `DSH_APP_LOGIN_ENABLED` off/on usin
 The source preserves the qualified Main auth/capacity cutoff 7a682/c59b and signup helper eb707. A separate authorized Main helper hardening later became 736e6b. Test registration is disabled; future Main promotion must preserve that current helper rather than overwrite Main with this frozen snapshot. SMP Test intentionally uses triage V4 while Production keeps the original prompt. Both watchers were freshly checked enabled. No Main/Production promotion or historical resend was performed by this rollout.
 
 PPTX, English video and Test documentation-site publication were not changed by this Test qualification. Original evidence is preserved under qualification/archive and the versioned private output folders.
+# Explicit shared external-app access
+
+The candidate supports an opt-in shared gate for an external application:
+`accessMode: "authenticated"`, `visitorPolicy: "signed-in-users"`, and a saved
+`sharedEnvironment: "off"` or `"on"`. An enabled DSH account may pass this gate;
+the upstream application continues to enforce its own permissions. The proxy
+uses the mapping owner's approved destination and saved environment, without
+granting the visitor that owner's identity, workspace, or Internet permission.
+Shared sign-in does not rewrite the visitor's saved environment preference.
+
+Legacy authenticated mappings remain owner-only. Private local ports cannot
+use the shared policy. Public access remains a separate choice and bypasses
+only the DSH gate. DSH session cookies and incoming Authorization headers are
+not forwarded as upstream credentials.
+
+Shared connections recheck account state, password stamps, session presence,
+Internet approval and mapping state after DNS resolution and during open HTTP
+or WebSocket connections. Browser navigation to a known private app can offer
+an explicit app-focused sign-in; API requests and unsafe methods are not
+silently redirected or replayed. An alias with an external target in one
+environment and a local port in the other uses the currently authorized target.
+
+`test_alias_session_recovery.cjs` exercises the real gateway using synthetic
+accounts and an explicitly intercepted fixture transport. It covers shared and
+private access, Public access, persisted settings, after-DNS revocation and
+active HTTP/WebSocket revocation. These local checks do not substitute for
+deployed TLS, browser acceptance or Main rollout evidence. At this source
+revision, Main activation is a separate, coordinated operation.
+
