@@ -33,3 +33,5 @@ The reference repository supplies gateway integration code. Operators supply app
 ## Slide companions
 
 Publish reviewed slide companions with clear labels describing their scope. Keep original Pilot material separate from appended routing lessons, and retain exact source hashes. Where the existing manual route permits only HTML assets, a small self-contained HTML download page can embed the reviewed PowerPoint bytes with a native download link and displayed SHA-256. Validate the downloaded bytes against the original deck; do not rename a PowerPoint file to HTML or weaken the route whitelist. Keep site-specific decks in the private deployment repository. Updating these manual downloads does not require recutting or replacing an in-flight video package.
+
+Promote revised companion descriptions, slide counts and embedded PowerPoint bytes together as one atomic manual edition. Verify original slides against their retained renders, retain the prior edition and leave an in-progress video release untouched. Slide publication does not establish that a matching video has been deployed.
