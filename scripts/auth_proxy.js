@@ -7,6 +7,8 @@ const { createCourseServer, routeFor } = require('./course_files');
 const serveCourse = createCourseServer();
 const { hashPassword, verifyPassword, migrateUsers, writeAtomicUsers } = require('./password_store');
 const { SessionStore, TTL_MS: SESSION_TTL_MS } = require('./session_store');
+const JUPYTER_DEMAND_MODULE = require('./jupyter_on_demand');
+const JUPYTER_DEMAND = process.env.DSH_JUPYTER_ON_DEMAND === 'false' ? null : JUPYTER_DEMAND_MODULE.createController();
 const {Directory, DirectoryError, normalizeUsername} = require('./ldap_auth');
 const LDAP_DIRECTORY = process.env.DSH_LDAP_CONFIG_FILE ? new Directory(process.env.DSH_LDAP_CONFIG_FILE) : null;
 const PACKAGE_PORTAL = process.env.DSH_PACKAGES_ROOT ? new (require('./package_portal').PackagePortal)(process.env.DSH_PACKAGES_ROOT) : null;
@@ -1918,6 +1920,20 @@ const server = http.createServer((req, res) => {
   }
   bindAuthenticatedProxyIdentity(req, sessionUser, internetMode);
 
+  // Only this authenticated user's selected Main runtime can receive a fixed start.
+  const jupyterContext = USER_TARGETS && JUPYTER_DEMAND ? {
+    user:sessionUser,mode:internetMode,target:environmentTarget,session:activeSession,
+    trustedHost:process.env.DSH_TRUSTED_HOST,
+    authorized:()=>accountEnabled(sessionUser)&&(internetMode==='off'||internetAllowed(sessionUser))&&
+      JUPYTER_DEMAND_MODULE.sessionAuthorized(activeSession,SESSIONS,sessionAccountStamp(sessionUser),SESSION_TTL_MS)&&getEnvironmentTarget(internetMode,sessionUser)?.host===environmentTarget.host,
+    allowed:()=>{try{const d=readServices(sessionUser,internetMode);return d.allowed&&!(d.services.jupyter&&d.services.jupyter.enabled===false);}catch{return false;}},
+    managed:()=>{try{return readServices(sessionUser,internetMode).services.jupyter?.enabled===true;}catch{return false;}},
+    audit:()=>auditEvent('jupyter.start',sessionUser,internetMode)
+  } : null;
+  if(parsedUrl.pathname==='/api/jupyter/start' && jupyterContext) {
+    JUPYTER_DEMAND.start(req,res,jupyterContext).catch(()=>{if(!res.destroyed&&!res.headersSent){res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:'JUPYTER_START_UNAVAILABLE'}));}});return;
+  }
+
   if (parsedUrl.pathname === '/applications') {
     res.writeHead(200, {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'});
     return res.end(renderApplications());
@@ -1999,6 +2015,11 @@ const server = http.createServer((req, res) => {
   if(namedPath && Object.hasOwn(appLinks(),namedPath[1]) && !customAppPort(namedPath[1],sessionUser,internetMode)) {res.writeHead(404);return res.end('Application URL unavailable for this account and environment.');}
   if(appTarget.port===8888 && namedPath && customAppPort(namedPath[1],sessionUser,internetMode)) {res.writeHead(302,{Location:'/proxy/8888'+appTarget.targetPath});return res.end();}
   if (appTarget && appTarget.port) {
+    if(jupyterContext && appTarget.port===8888 && req.method==='GET' && /^\/(?:lab(?:[/?#]|$)|(?:[?#]|$))/.test(appTarget.targetPath)) {
+      return JUPYTER_DEMAND.navigation(req,res,jupyterContext,'/proxy/8888'+appTarget.targetPath).then(handled=>{
+        if(!handled&&!res.destroyed)forwardToLocalApp(8888,appTarget.targetPath,req,res,environmentTarget.host);
+      }).catch(()=>{if(!res.destroyed&&!res.headersSent){res.writeHead(503,{'Content-Type':'text/plain','Cache-Control':'no-store'});res.end('Jupyter is unavailable. Reopen Jupyter to try again.');}});
+    }
     trackAppConnection(hostAlias||namedPath?.[1],res);
     return forwardToLocalApp(appTarget.port, appTarget.targetPath, req, res, environmentTarget.host);
   }
