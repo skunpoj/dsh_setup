@@ -9,6 +9,9 @@ const { hashPassword, verifyPassword, migrateUsers, writeAtomicUsers } = require
  assert(!await verifyPassword('example-password','example-password'));
  assert(!await verifyPassword('example-password',{...a,hash:'invalid'}));
  assert(!await verifyPassword('x'.repeat(1025),a));
+ const ad={...a,authProvider:'ldap',ldapSubject:'ab'.repeat(16)};
+ assert(!await verifyPassword('example-password',ad));
+ assert.deepEqual(migrateUsers({person:ad}).person,ad);
  assert.throws(()=>migrateUsers({alice:{scheme:'unknown'}}));
  const users=migrateUsers({alice:'example-password',bob:b});
  assert(await verifyPassword('example-password',users.alice));

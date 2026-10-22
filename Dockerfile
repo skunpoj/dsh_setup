@@ -10,6 +10,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* /root/.npm
 
 COPY vendor/ttyd /usr/local/bin/ttyd
+COPY vendor/ldapts/ /opt/dsh/vendor/ldapts/
+RUN echo "addd5d000792577dff58be59a3314e8efe570689989df6c3f085c8d28efd3f1c  /opt/dsh/vendor/ldapts/ldapts.cjs" | sha256sum -c -
 RUN chmod 0755 /usr/local/bin/ttyd \
  && echo "8a217c968aba172e0dbf3f34447218dc015bc4d5e59bf51db2f2cd12b7be4f55  /usr/local/bin/ttyd" | sha256sum -c -
 
@@ -21,7 +23,8 @@ ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh KRB5CCNAME=FILE:/state/kerberos/ccach
 COPY scripts/ /opt/dsh/scripts/
 COPY tests/ /opt/dsh/tests/
 COPY container/ /opt/dsh/container/
-RUN python3 /opt/dsh/scripts/configure_managed_harnesses.py \
+RUN node --test /opt/dsh/tests/test_ldap_auth.cjs /opt/dsh/tests/test_identity_auth.cjs /opt/dsh/tests/test_ldap_gateway.cjs \
+ && python3 /opt/dsh/scripts/configure_managed_harnesses.py \
  && node /opt/dsh/tests/test_managed_harnesses.mjs \
  && node /opt/dsh/tests/test_managed_inference_transport.js \
  && node /opt/dsh/tests/test_managed_budget.js \

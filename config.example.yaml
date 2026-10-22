@@ -26,3 +26,6 @@ users:
   - demo
 admin_users:
   - admin
+# Optional AD identities already listed in users. Bootstrap skips local passwords
+# for these accounts. Enable the gateway-only LDAP Secret separately; see LDAP guide.
+ldap_users: []

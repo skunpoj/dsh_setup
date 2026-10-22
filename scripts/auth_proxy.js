@@ -7,6 +7,8 @@ const { createCourseServer, routeFor } = require('./course_files');
 const serveCourse = createCourseServer();
 const { hashPassword, verifyPassword, migrateUsers, writeAtomicUsers } = require('./password_store');
 const { SessionStore, TTL_MS: SESSION_TTL_MS } = require('./session_store');
+const {Directory, DirectoryError} = require('./ldap_auth');
+const LDAP_DIRECTORY = process.env.DSH_LDAP_CONFIG_FILE ? new Directory(process.env.DSH_LDAP_CONFIG_FILE) : null;
 const PACKAGE_PORTAL = process.env.DSH_PACKAGES_ROOT ? new (require('./package_portal').PackagePortal)(process.env.DSH_PACKAGES_ROOT) : null;
 function projectPackageAccess(){if(PACKAGE_PORTAL)PACKAGE_PORTAL.project(loadUsers(),privateTargetsFor,accountEnabled,internetAllowed);}
 setInterval(()=>{try{projectPackageAccess();}catch{}},5000).unref();
@@ -171,7 +173,7 @@ function handleExternalAlias(req,res) {
   return true;
 }
 const APP_DOMAIN = (process.env.DSH_APP_DOMAIN || '').toLowerCase();
-const APP_SIGNIN = process.env.DSH_APP_LOGIN_ENABLED === 'true' ? new (require('./app_signin').AppSignIn)({domain:APP_DOMAIN, issuer:'https://'+process.env.DSH_TRUSTED_HOST, mappings:appLinks, allowedName:validAppName, testIssuer:process.env.DSH_TEST_ISSUER==='true'}) : null;
+const APP_SIGNIN = process.env.DSH_APP_LOGIN_ENABLED === 'true' ? new (require('./app_signin').AppSignIn)({domain:APP_DOMAIN, issuer:'https://'+process.env.DSH_TRUSTED_HOST, mappings:appLinks, allowedName:validAppName, testIssuer:process.env.DSH_TEST_ISSUER==='true', ldapEnabled:Boolean(LDAP_DIRECTORY)}) : null;
 if(APP_DOMAIN && !/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/.test(APP_DOMAIN))throw Error('Invalid approved app domain');
 function appHostnameState(name) {
   const file=process.env.DSH_APP_INVENTORY_FILE;
@@ -560,7 +562,7 @@ function renderAdminDashboard() {
 <style>body{font:16px/1.6 system-ui;background:#f1f5f9;color:#172033;margin:0}main{max-width:1100px;margin:auto;padding:32px}a{color:#075985}header{display:flex;gap:24px;align-items:center;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}section{background:white;border:1px solid #cbd5e1;border-radius:12px;padding:20px;margin:18px 0;overflow-wrap:anywhere}h1,h2{line-height:1.2}strong{font-size:24px}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0}.muted{color:#475569}.notice{border-left:5px solid #d97706}button{padding:8px 16px;cursor:pointer}#capacityForm{display:flex;gap:12px;flex-wrap:wrap;align-items:center}#capacityForm label{display:inline-flex;gap:6px;align-items:center}#capacityForm input[type=number]{width:70px}#capacityControls table{min-width:650px}</style>
 <main><header><h1>DSH Admin overview</h1><a href="/">Back to DSH</a><a href="/logout">Logout</a><button id="refresh">Refresh</button><a href="#applications">Applications</a></header><p id="error" role="alert"></p><p id="time" class="muted"></p>
 <div class="cards"><section>Registered accounts<br><strong id="accounts">—</strong></section><section>New-user slots<br><strong id="newUserSlots">—</strong><div id="slotDetail"></div></section><section>Main gateway browser sessions<br><strong id="sessions">—</strong><div id="sessionDetail"></div></section><section>User routing<br><strong id="routing">—</strong></section></div>
-<section><h2>User management</h2><p>Manage access to existing private runtimes. Disabling an account preserves its files and history. Sign out closes browser and terminal connections; it does not cancel already-running tools.</p><p id="userMessage" role="status"></p><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Role</th><th>Status</th><th>Environments</th><th>Sessions</th><th>Actions</th></tr></thead><tbody id="users"></tbody></table></div><form id="createUser"><h3>Create account</h3><label>Identity ${SIGNUP_POOL ? '<input id="newUser" pattern="[a-z0-9_.-]{3,30}" minlength="3" maxlength="30" required>' : '<select id="newUser" required></select>'}</label> <label>Initial password <input id="newPassword" type="password" minlength="12" maxlength="1024" autocomplete="new-password" required></label> <button id="createButton">Create account</button></form><p id="provisionHelp">${SIGNUP_POOL ? 'New accounts receive an exclusive private environment pair. Capacity: <span id="signupCapacity">—</span>. Internet requires a separate approval.' : 'New identities require operator-provisioned private environments.'} Administrator roles are managed by the operator.</p></section>
+<section><h2>User management</h2><p>Manage access to existing private runtimes. Disabling an account preserves its files and history. Sign out closes browser and terminal connections; it does not cancel already-running tools.</p><p id="userMessage" role="status"></p><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Role</th><th>Sign-in</th><th>Status</th><th>Environments</th><th>Sessions</th><th>Actions</th></tr></thead><tbody id="users"></tbody></table></div><form id="createUser"><h3>Create account</h3><label>Identity ${SIGNUP_POOL ? '<input id="newUser" pattern="[a-z0-9_.-]{3,30}" minlength="3" maxlength="30" required>' : '<select id="newUser" required></select>'}</label> <label>Initial password <input id="newPassword" type="password" minlength="12" maxlength="1024" autocomplete="new-password" required></label> <button id="createButton">Create account</button></form><p id="provisionHelp">${SIGNUP_POOL ? 'New accounts receive an exclusive private environment pair. Capacity: <span id="signupCapacity">—</span>. Internet requires a separate approval.' : 'New identities require operator-provisioned private environments.'} Administrator roles are managed by the operator.</p></section>
 <section id="applications"><h2>Applications</h2><p>New users receive 8 names. Set one limit per user; both environments share it. A lower limit preserves existing names. Disabling or removing a mapping closes its named-URL connections, while files and running applications stay in place.</p><p id="appMessage" role="status"></p><p id="appTotals"></p><div style="overflow:auto"><table><thead><tr><th>User</th><th>Account</th><th>Internet approval</th><th>Names used</th><th>Name limit</th></tr></thead><tbody id="appQuotas"></tbody></table></div><p><label>Find owner or name <input id="appFilter" type="search"></label></p><div style="overflow:auto"><table><thead><tr><th>Owner / name</th><th>No Internet port</th><th>Internet port</th><th>Status / actions</th></tr></thead><tbody id="adminApps"></tbody></table></div><p class="muted">This manages URL mappings, not access to another user's app contents. Direct numeric port URLs remain available to the owner. Quotas count names, not processes or GPU requests.</p></section>
 <section id="capacityControls"><h2>Account capacity and automatic provisioning</h2><p>Keep a small pool of ready private workspace pairs. Existing accounts, files and histories are retained when limits are reduced or replenishment is paused.</p><form id="capacityForm"><label>Maximum accounts <input id="capacityMax" type="number" min="1" max="32" required value="16"></label><label>Warm spare slots <input id="capacitySpares" type="number" min="0" max="8" required value="2"></label><label><input id="capacityEnabled" type="checkbox" checked> Automatic replenishment</label><button id="capacitySave" disabled>Save capacity settings</button></form><p id="capacityStatus" role="status">Loading provisioner status…</p><h3>Shared infrastructure capacity</h3><p><a href="/manual/SELF_SERVICE_SIGNUP.html#capacity-planning">Capacity calculation and administrator instructions</a></p><p id="capacityAssessment">Waiting for a current calculation.</p><div style="overflow:auto"><table><thead><tr><th>Resource</th><th>Available before reserve</th><th>Protected reserve</th><th>Budget per new account pair</th><th>Additional pairs</th></tr></thead><tbody id="capacityResources"></tbody></table></div><p id="capacityAdditional"></p><p class="muted">The infrastructure ceiling uses the larger of measured usage and reservations, plus qualified future worker templates. It includes other services and DSH2/DSH3 when configured. It is separate from GPU request concurrency, application-name limits and guaranteed simultaneous workload performance. Central file-share free space is shown separately; per-user growth and backups need storage quotas and monitoring. Existing users are never removed when capacity decreases.</p></section><section id="managedServices"><h2>Managed startup services</h2><p>Only explicitly approved services start automatically. URL enable/disable is separate. A service runs as its owner in the selected environment, never as admin. Maximum four per environment.</p><p>Choose an account, environment and existing app name, or use <b>jupyter</b> for the managed notebook. Supply a JSON argv array for a command, without passwords or tokens. Supported commands: python3/node workspace scripts, npm run SCRIPT, python3 -m http.server.</p><form id="serviceForm"><label>Runtime <select id="serviceTarget"><option value="main">Main DSH private runtime</option></select></label><label>Owner <input id="serviceOwner" required></label><label>Environment <select id="serviceMode"><option value="off">No Internet</option><option value="on">Internet</option></select></label><label>Service / app name <input id="serviceName" required></label><label>Kind <select id="serviceKind"><option value="jupyter">Jupyter</option><option value="command">Command</option></select></label><label>Directory <input id="serviceCwd" value="/workspace" required></label><label id="servicePortWrap" hidden>App port (owner-only runtime) <input id="servicePort" type="number" min="1024" max="65535"></label><label>Command argv JSON <input id="serviceArgv" placeholder='["python3","app.py"]'></label><button>Save definition (stopped until started)</button></form><div id="serviceRows"></div><p>Stop prevents automatic restart. Restart replaces the supervised process. Files remain. Process status is supervisor-reported; unavailable is not healthy.</p></section><section><h2>DSH usage and activity</h2><p id="usageFreshness">Loading runtime summaries…</p><p id="usageHealth" role="status"></p><div class="cards"><div>Stored conversations<br><strong id="usageSessions">—</strong></div><div>Running DSH agents<br><strong id="usageAgents">—</strong></div><div>Queued DSH messages<br><strong id="usageQueued">—</strong></div><div>Recorded turns / LLM steps<br><strong id="usageTurns">—</strong></div><div>Accumulated input / output tokens<br><strong id="usageTokens">—</strong></div><div>All-history decode tokens/sec<br><strong id="usageDecode">—</strong></div><div>Recent conversation decode tokens/sec<br><strong id="usageRecentDecode">—</strong></div><div>Recent output tokens/sec<br><strong id="usageRate">—</strong></div></div><div style="overflow:auto"><table><thead><tr><th>Account</th><th>Environment</th><th>Agents</th><th>Conversations</th><th>Turns</th><th>LLM steps</th><th>Input tokens</th><th>Output tokens</th><th>Recorded decode tok/sec</th><th>Workspace / durable files GiB</th><th>Local state used / capacity GiB</th></tr></thead><tbody id="usageRows"></tbody></table></div><p class="muted">Stored totals include imported or copied histories. Decode speed uses recorded decode time; recent output rate uses changes between samples. This panel covers DSH application sessions, not independent terminal-client accounting. Conversation text, files and credentials are excluded.</p><p id="storageFreshness" class="muted"></p></section>
 
@@ -571,7 +573,7 @@ function renderAdminDashboard() {
 const put=(id,value)=>document.getElementById(id).textContent=value;
 let managementToken='';
 async function userAction(action,user,password){try{const body=new URLSearchParams({action,user});if(password)body.set('password',password);const r=await fetch('/api/admin/users',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':managementToken},body});const d=await r.json();if(!r.ok)throw Error(d.error||'Account update failed.');put('userMessage',action+' completed for '+user+'.');await refreshUsers();await refresh();}catch(e){put('userMessage',e.message);}}
-async function refreshUsers(){try{const r=await fetch('/api/admin/users',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('User management unavailable.');const d=await r.json();managementToken=d.csrfToken;const root=document.getElementById('users');root.replaceChildren();for(const u of d.users){const tr=document.createElement('tr');for(const value of [u.user,u.role,u.enabled?'Enabled':'Disabled',u.environments.join(', '),u.sessions]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(u.role!=='Administrator'){for(const action of [u.enabled?'disable':'enable','revoke',u.internetAllowed?'deny-internet':'allow-internet']){const b=document.createElement('button');b.type='button';b.textContent=action==='revoke'?'Sign out':action==='disable'?'Disable':action==='allow-internet'?'Allow Internet':action==='deny-internet'?'Disable Internet':'Enable';b.addEventListener('click',()=>{if(confirm(action==='disable'?'Disable sign-in for account '+u.user+'? Saved files and histories will remain.':b.textContent+' '+u.user+'?'))userAction(action,u.user);});td.append(b);}}else td.textContent='Operator-managed';tr.append(td);root.append(tr);}const select=document.getElementById('newUser');if(select.tagName==='SELECT'){select.replaceChildren();for(const user of d.provisionedIdentities){const opt=document.createElement('option');opt.value=user;opt.textContent=user;select.append(opt);}}const capacity=document.getElementById('signupCapacity');if(capacity)capacity.textContent=d.signupWorkspacesAvailable+' new-user slots available';document.getElementById('createButton').disabled=select.tagName==='SELECT'?!d.provisionedIdentities.length:!(d.signupWorkspacesAvailable>0||d.provisionedIdentities.length);}catch(e){put('userMessage',e.message);}}
+async function refreshUsers(){try{const r=await fetch('/api/admin/users',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('User management unavailable.');const d=await r.json();managementToken=d.csrfToken;const root=document.getElementById('users');root.replaceChildren();for(const u of d.users){const tr=document.createElement('tr');for(const value of [u.user,u.role,u.authProvider,u.enabled?'Enabled':'Disabled',u.environments.join(', '),u.sessions]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(u.role!=='Administrator'){for(const action of [u.enabled?'disable':'enable','revoke',u.internetAllowed?'deny-internet':'allow-internet']){const b=document.createElement('button');b.type='button';b.textContent=action==='revoke'?'Sign out':action==='disable'?'Disable':action==='allow-internet'?'Allow Internet':action==='deny-internet'?'Disable Internet':'Enable';b.addEventListener('click',()=>{if(confirm(action==='disable'?'Disable sign-in for account '+u.user+'? Saved files and histories will remain.':b.textContent+' '+u.user+'?'))userAction(action,u.user);});td.append(b);}}else td.textContent='Operator-managed';tr.append(td);root.append(tr);}const select=document.getElementById('newUser');if(select.tagName==='SELECT'){select.replaceChildren();for(const user of d.provisionedIdentities){const opt=document.createElement('option');opt.value=user;opt.textContent=user;select.append(opt);}}const capacity=document.getElementById('signupCapacity');if(capacity)capacity.textContent=d.signupWorkspacesAvailable+' new-user slots available';document.getElementById('createButton').disabled=select.tagName==='SELECT'?!d.provisionedIdentities.length:!(d.signupWorkspacesAvailable>0||d.provisionedIdentities.length);}catch(e){put('userMessage',e.message);}}
 let appManagementToken='',appInventory=null;
 async function appAction(fields){try{const r=await fetch('/api/admin/apps',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':appManagementToken},body:new URLSearchParams(fields)});const d=await r.json();if(!r.ok)throw Error(d.error||'Application change failed.');put('appMessage',d.message);await refreshApps();}catch(e){put('appMessage',e.message);}}
 function appButton(label,fields){const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=!appManagementToken;b.onclick=()=>{if(confirm(label+' for '+(fields.name||fields.user)+'?'))appAction(fields);};return b;}
@@ -718,6 +720,7 @@ function newAccountRecord(users,user,password) {
   if(!slot)return {status:503,error:CAPACITY?'A private workspace is being prepared. Please retry shortly.':'No new-user slot is available. Please contact the administrator.'};
   return {record:{...hashPassword(password),internetAllowed:false,runtimeSlot:slot,createdAt:new Date().toISOString()}};
 }
+const authenticateIdentity = require('./identity_auth').createAuthenticator({directory:LDAP_DIRECTORY, loadUsers, saveUsers, verifyPassword, newAccountRecord, isAdmin:user=>ADMIN_USERS.has(user), audit:(event,user)=>auditEvent(event,user,'off')});
 const registrationAttempts=new Map();
 function admitRegistration(address) {
   const now=Date.now(),window=15*60*1000;
@@ -767,7 +770,8 @@ function stripAuthCookies(cookieHeader) {
 function sessionAccountStamp(user) {
   const account=loadUsers()[user];
   if(!account||account.disabled===true)return null;
-  return crypto.createHash('sha256').update(JSON.stringify([account.scheme,account.salt,account.hash])).digest('hex');
+  const stamp=account.authProvider==='ldap' ? ['ldap',account.ldapSubject,account.scheme,account.salt,account.hash] : [account.scheme,account.salt,account.hash];
+  return crypto.createHash('sha256').update(JSON.stringify(stamp)).digest('hex');
 }
 const SESSIONS = new SessionStore(process.env.DSH_SESSION_STORE_PATH || path.join(path.dirname(USER_STORE_PATH),'.browser-sessions','sessions.json'), {
   verify:session=>session.accountStamp===sessionAccountStamp(session.user) && (session.internet!=='on'||internetAllowed(session.user))
@@ -790,7 +794,7 @@ function internetAllowed(user) {
 function adminAccounts() {
   const users=loadUsers();
   return Object.keys(users).sort().map(user=>({user, enabled:users[user].disabled!==true,
-    role:ADMIN_USERS.has(user)?'Administrator':'User', internetAllowed:internetAllowed(user),
+    role:ADMIN_USERS.has(user)?'Administrator':'User', authProvider:users[user].authProvider==='ldap'?'AD / LDAP':'Local', internetAllowed:internetAllowed(user),
     environments:USER_TARGETS ? ['secure','internet'].filter(mode=>privateTargetsFor(user,users)?.[mode]) : ['instance'],
     sessions:[...SESSIONS.values()].filter(s=>s.user===user).length}));
 }
@@ -1124,7 +1128,7 @@ function getDshToken(tokenFile = '/tmp/dsh_token.txt') {
   return '';
 }
 
-function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) {
+function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '', authProvider = LDAP_DIRECTORY ? 'ldap' : 'local' } = {}) {
   return `<!DOCTYPE html>
 <html lang="th">
 <head>
@@ -1367,6 +1371,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
     <!-- 1. Form: เข้าสู่ระบบ -->
     <div id="pane-login" class="tab-pane" style="display: ${tab === 'login' ? 'block' : 'none'};">
       <form method="POST" action="/login">
+        ${LDAP_DIRECTORY ? `<div class="form-group"><label class="form-label" for="auth_provider">Sign in using</label><select id="auth_provider" name="auth_provider" class="form-control"><option value="ldap" ${authProvider==='ldap'?'selected':''}>AD / LDAP</option><option value="local" ${authProvider==='local'?'selected':''}>Local DSH account</option></select><p class="form-help">AD creates a private No Internet workspace on first sign-in. Internet access still requires administrator approval.</p></div>` : ''}
         <div class="form-group">
           <label class="form-label" for="login_username">ชื่อผู้ใช้งาน (Username)</label>
           <input type="text" id="login_username" name="username" class="form-control" placeholder="เช่น admin หรือชื่อของคุณ" required autofocus>
@@ -1441,9 +1446,9 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '' } = {}) 
   <a class="manual-fab" href="/manual/" target="_blank" rel="noopener"><span aria-hidden="true">?</span> User manual</a>
 <script>
 (()=>{const u=document.getElementById('login_username'),p=document.getElementById('login_password'),on=document.getElementById('internet-option');if(!u||!p||!on)return;let generation=0;
-function reset(){generation++;on.disabled=true;on.checked=false;const off=document.querySelector('input[name="internet"][value="off"]');if(off&&!off.disabled)off.checked=true;}
-async function check(){reset();const g=generation;if(!u.value||!p.value)return;try{const r=await fetch('/api/login-environments',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:u.value,password:p.value})});const d=await r.json();if(g===generation)on.disabled=!d.internetAllowed;}catch{}}
-u.addEventListener('input',reset);p.addEventListener('input',reset);u.addEventListener('change',check);p.addEventListener('change',check);})();
+function reset(){generation++;on.disabled=document.getElementById('auth_provider')?.value!=='ldap';on.checked=false;const off=document.querySelector('input[name="internet"][value="off"]');if(off&&!off.disabled)off.checked=true;}
+async function check(){reset();const provider=document.getElementById('auth_provider');if(provider&&provider.value==='ldap'){on.disabled=false;return;}const g=generation;if(!u.value||!p.value)return;try{const r=await fetch('/api/login-environments',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:u.value,password:p.value})});const d=await r.json();if(g===generation)on.disabled=!d.internetAllowed;}catch{}}
+u.addEventListener('input',reset);p.addEventListener('input',reset);u.addEventListener('change',check);p.addEventListener('change',check);const provider=document.getElementById('auth_provider');if(provider){provider.addEventListener('change',check);if(provider.value==='ldap')on.disabled=false;}})();
 (()=>{const label=document.getElementById('signupSlots');if(!label)return;let pending=false;
 async function update(){if(pending||document.hidden)return;pending=true;const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),8000);
 try{const response=await fetch('/api/signup-capacity',{cache:'no-store',credentials:'omit',signal:controller.signal});if(!response.ok)throw Error('unavailable');const data=await response.json();
@@ -1505,8 +1510,9 @@ const server = http.createServer((req, res) => {
     req.on('data', chunk => { body += chunk; });
     req.on('end', async () => {
       const params = new URLSearchParams(body);
-      const username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
-      const password = params.get('password') ? params.get('password').trim() : '';
+      let username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
+      const password = params.get('password') || '';
+      const authProvider = params.get('auth_provider') || (LDAP_DIRECTORY ? 'ldap' : 'local');
       let appContext=null;
       if(params.has('app_login')) {
         try {if(!APP_SIGNIN)throw Error();appContext=APP_SIGNIN.consume(req,params);}
@@ -1514,9 +1520,9 @@ const server = http.createServer((req, res) => {
       }
       let loginPageFailureStatus=0;
       const loginPage=options=>{
-        if(!appContext)return renderAuthPage(options);
+        if(!appContext)return renderAuthPage({...options,authProvider});
         try {APP_SIGNIN.assertCurrent(appContext);}catch {loginPageFailureStatus=403;return 'Application access changed. Reopen the application.';}
-        try {return APP_SIGNIN.begin(appContext.name,res,options.errorMsg||'',appContext.internet);}
+        try {return APP_SIGNIN.begin(appContext.name,res,options.errorMsg||'',appContext.internet,authProvider);}
         catch {loginPageFailureStatus=503;return 'Application sign-in unavailable. Reopen the application and retry.';}
       };
       const internet = appContext ? appContext.sessionInternet : normalizeInternetMode(params.get('internet'));
@@ -1524,8 +1530,17 @@ const server = http.createServer((req, res) => {
       const application = appContext ? 'dsh' : params.get('application') || process.env.DSH_DEFAULT_APPLICATION || 'dsh';
       if (!Object.hasOwn(launchPaths, application)) { res.writeHead(400); return res.end('Choose DSH, Web Terminal or JupyterLab.'); }
 
+      let identity;
+      try { identity = await authenticateIdentity(username, password, authProvider); }
+      catch(error) {
+        const known=error instanceof DirectoryError;
+        if(!known||error.code!=='LDAP_LOCAL_ACCOUNT_CONFLICT')auditEvent('login.directory-denied',username,'off');
+        const response=loginPage({tab:'login',authProvider,errorMsg:known?error.message:'AD sign-in is temporarily unavailable. Contact the administrator.'});
+        res.writeHead(loginPageFailureStatus||(known?error.status:503),{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-DSH-Auth-Error':known?error.code:'LDAP_UNAVAILABLE'});return res.end(response);
+      }
+      if(identity)username=identity.user;
       USERS = loadUsers();
-      if ((!LEGACY_OWNER || username === LEGACY_OWNER) && USERS[username]?.disabled !== true && await verifyPassword(password, USERS[username]) && accountEnabled(username)) {
+      if (identity && (!LEGACY_OWNER || username === LEGACY_OWNER) && USERS[username]?.disabled !== true && accountEnabled(username)) {
         if(appContext){try{APP_SIGNIN.assertCurrent(appContext);if(gatedAliasRecoveryContext(appContext.name)?.stamp!==appContext.stamp)throw Error('Application access changed');}catch{res.writeHead(403,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'});return res.end('Application access changed. Reopen the application.');}}
         if (internet === 'on' && !internetAllowed(username)) { res.writeHead(403); return res.end('Internet environment requires administrator approval.'); }
         if (appContext?.visitorPolicy!=='signed-in-users' && !getEnvironmentTarget(internet, username)) {
@@ -1655,6 +1670,7 @@ const server = http.createServer((req, res) => {
       }
 
       USERS = loadUsers();
+      if(USERS[username]?.authProvider==='ldap'){res.writeHead(403,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(renderAuthPage({tab:'change',errorMsg:'AD passwords are managed by the corporate directory. Use the corporate password-change process.'}));}
       if ((LEGACY_OWNER && username !== LEGACY_OWNER) || USERS[username]?.disabled === true || !await verifyPassword(oldPassword, USERS[username])) {
         res.writeHead(401, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(renderAuthPage({ tab: 'change', errorMsg: 'ชื่อผู้ใช้งานหรือรหัสผ่านเดิมไม่ถูกต้อง' }));

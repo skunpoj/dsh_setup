@@ -15,7 +15,7 @@ const dummy = hashPassword(crypto.randomBytes(32).toString('hex'));
 let pending = 0;
 async function verifyPassword(password, record) {
   if (typeof password !== 'string' || Buffer.byteLength(password) > 1024 || pending >= 4) return false;
-  const valid = isPasswordRecord(record);
+  const valid = isPasswordRecord(record) && (!record.authProvider || record.authProvider === 'local');
   const target = valid ? record : dummy;
   pending++;
   try {

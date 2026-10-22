@@ -20,6 +20,9 @@ def validate(c):
     for user in c['users']:
         if not re.fullmatch(r'[a-z0-9_.-]{3,30}',user):raise ValueError('Invalid local identity')
     if len(set(c['users']))!=len(c['users']) or not set(c['admin_users']).issubset(c['users']):raise ValueError('Invalid account mapping')
+    ldap_users=c.get('ldap_users',[])
+    if not isinstance(ldap_users,list) or len(set(ldap_users))!=len(ldap_users) or not set(ldap_users).issubset(c['users']) or set(ldap_users).intersection(c['admin_users']):
+        raise ValueError('LDAP identities must be provisioned non-admin users')
     if not re.fullmatch(r'[a-f0-9]{40}',c['model_revision']):raise ValueError('Pin a model commit')
     for key in ['cluster_dns_ip','filtered_dns_ip']:ipaddress.IPv4Address(c[key])
 

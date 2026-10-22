@@ -5,10 +5,10 @@ const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<'
 // Presentation and return routing only. Password verification and session creation
 // remain in the normal issuer. No caller-supplied URL or identity is trusted.
 class AppSignIn {
-  constructor({domain, issuer, mappings, now = Date.now, limit = 1024, allowedName = () => true, testIssuer = false}) {
+  constructor({domain, issuer, mappings, now = Date.now, limit = 1024, allowedName = () => true, testIssuer = false, ldapEnabled = false}) {
     if (!/^(?:[a-z0-9-]+\.)+[a-z]{2,}$/.test(domain)) throw Error('Invalid app domain');
     if (new URL(issuer).origin !== issuer || !issuer.startsWith('https://')) throw Error('Invalid issuer');
-    Object.assign(this, {domain, issuer, mappings, now, limit, allowedName, testIssuer});
+    Object.assign(this, {domain, issuer, mappings, now, limit, allowedName, testIssuer, ldapEnabled});
     this.pending = new Map();
   }
   mapping(name, internet) {
@@ -22,7 +22,7 @@ class AppSignIn {
     if (!item || item.enabled === false || !/^[a-z0-9_.-]{1,64}$/.test(item.owner || '') || !['off','on'].includes(internet) || (!item.targets?.[internet] && !item.ports?.[internet]) || item.accessMode === 'public') throw Error('Unavailable gated application');
     return {name, owner:item.owner, internet, visitorPolicy:shared?'signed-in-users':'owner-only', sessionInternet:shared?'off':internet, destination:`https://${name}.${this.domain}/`, stamp:crypto.createHash('sha256').update(JSON.stringify(item)).digest('hex')};
   }
-  begin(name, res, error = '', internet) {
+  begin(name, res, error = '', internet, authProvider = this.ldapEnabled ? 'ldap' : 'local') {
     const app = this.mapping(name, internet);
     // Chromium applies form-action to the post-login redirect as well as POST.
     // Permit only this validated application's origin, never an arbitrary URL.
@@ -33,7 +33,7 @@ class AppSignIn {
     this.pending.set(token, {...app, browser:crypto.createHash('sha256').update(browser).digest('hex'), expires:this.now()+300000});
     res.setHeader('Set-Cookie', `__Host-dsh_app_login=${browser}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=300`);
     const accessText=this.testIssuer?'Isolated Test issuer. Use the synthetic review account, not your normal DSH credentials.':app.visitorPolicy==='signed-in-users'?'Use any enabled DSH account. The destination application keeps its own permissions.':'This private application is restricted to its authorized owner.';
-    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Sign in to ${escape(name)}</title><style>body{font:18px/1.5 system-ui;max-width:420px;margin:10vh auto;padding:24px}label,input,button{display:block;box-sizing:border-box;width:100%;margin:12px 0}input,button{padding:12px}p[role=alert]{color:#b91c1c}</style></head><body><h1>Sign in to ${escape(name)}</h1><p>${escape(accessText)}</p>${error?`<p role="alert">${escape(error)}</p>`:''}<p>Application target environment: ${app.internet==='on'?'Internet':'No Internet'}. Signing in does not grant workspace or network access.</p><form method="post" action="/login"><input type="hidden" name="app_login" value="${token}"><label>Username<input name="username" autocomplete="username" required maxlength="64"></label><label>Password<input type="password" name="password" autocomplete="current-password" required maxlength="1024"></label><button>Sign in and open application</button></form><p>The application may require its own sign-in after this access check.</p></body></html>`;
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Sign in to ${escape(name)}</title><style>body{font:18px/1.5 system-ui;max-width:420px;margin:10vh auto;padding:24px}label,input,select,button{display:block;box-sizing:border-box;width:100%;margin:12px 0}input,select,button{padding:12px}p[role=alert]{color:#b91c1c}</style></head><body><h1>Sign in to ${escape(name)}</h1><p>${escape(accessText)}</p>${error?`<p role="alert">${escape(error)}</p>`:''}<p>Application target environment: ${app.internet==='on'?'Internet':'No Internet'}. Signing in does not grant workspace or network access.</p><form method="post" action="/login"><input type="hidden" name="app_login" value="${token}">${this.ldapEnabled?`<label>Sign in using<select name="auth_provider"><option value="ldap" ${authProvider==='ldap'?'selected':''}>AD / LDAP</option><option value="local" ${authProvider==='local'?'selected':''}>Local DSH account</option></select></label>`:''}<label>Username<input name="username" autocomplete="username" required maxlength="64"></label><label>Password<input type="password" name="password" autocomplete="current-password" required maxlength="1024"></label><button>Sign in and open application</button></form><p>The application may require its own sign-in after this access check.</p></body></html>`;
   }
   consume(req, params) {
     const tokens = params.getAll('app_login');

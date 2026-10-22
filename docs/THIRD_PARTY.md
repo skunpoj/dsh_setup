@@ -11,3 +11,5 @@ The bundled `ttyd` artifact and integrity verification are documented in
 accepted model terms and the exact software bill of materials before publishing
 your own images or offering subscriptions. Do not infer commercial permission
 merely because software or a model can be downloaded.
+
+The optional gateway LDAP client is `ldapts` 9.2.0 (MIT), vendored with its license and package provenance under `vendor/ldapts/`. Its digest is checked before loading and when building the runtime; no LDAP package is downloaded during login.

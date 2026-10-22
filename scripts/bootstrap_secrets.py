@@ -21,8 +21,12 @@ def main():
     for name in ['platform-secrets','account-seed']:
         r=subprocess.run(['kubectl','get','secret',name,'-n',ns,'--ignore-not-found','-o','name'],capture_output=True,text=True,check=True)
         if r.stdout.strip():raise RuntimeError('Existing Secret; refuse credential reset: '+name)
+    ldap_users=set(c.get('ldap_users',[]))
+    if not ldap_users.issubset(c['users']) or ldap_users.intersection(c['admin_users']):
+        raise ValueError('LDAP identities must be provisioned non-admin users; retain a local administrator')
     users={}
     for user in c['users']:
+        if user in ldap_users:continue  # AD authenticates these users; never seed a conflicting local password.
         password=getpass.getpass('Initial private password for '+user+': ')
         again=getpass.getpass('Confirm: ')
         if password!=again or password!=password.strip() or len(password)<12 or len(password.encode())>1024:raise ValueError('Passwords must match, have no leading/trailing whitespace and be 12+ characters')

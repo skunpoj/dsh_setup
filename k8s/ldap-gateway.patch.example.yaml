@@ -1,0 +1,18 @@
+# Apply as a strategic Deployment patch, not a replacement Deployment.
+spec:
+  template:
+    spec:
+      containers:
+        - name: gateway
+          env:
+            - name: DSH_LDAP_CONFIG_FILE
+              value: /ldap/config.json
+          volumeMounts:
+            - name: directory-auth
+              mountPath: /ldap
+              readOnly: true
+      volumes:
+        - name: directory-auth
+          secret:
+            secretName: directory-auth
+            defaultMode: 0444
