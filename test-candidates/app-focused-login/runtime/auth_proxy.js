@@ -191,17 +191,29 @@ function appHostName(host) {
   const name=value.slice(0,-APP_DOMAIN.length-1);
   return validAppName(name)?name:null;
 }
+const APP_LINK_READ_STAMPS=new WeakMap();
 function appLinks() {
-  if (!fs.existsSync(APP_LINKS_PATH)) return {};
-  const value=JSON.parse(fs.readFileSync(APP_LINKS_PATH,'utf8'));
+  if (!fs.existsSync(APP_LINKS_PATH)) {const value={};APP_LINK_READ_STAMPS.set(value,null);return value;}
+  const bytes=fs.readFileSync(APP_LINKS_PATH),value=JSON.parse(bytes);
   if (!value || typeof value!=='object' || Array.isArray(value)) throw Error('Invalid app links');
+  APP_LINK_READ_STAMPS.set(value,crypto.createHash('sha256').update(bytes).digest('hex'));
   return value;
 }
 function saveAppLinks(value) {
   fs.mkdirSync(path.dirname(APP_LINKS_PATH),{recursive:true,mode:0o700});
-  const tmp=APP_LINKS_PATH+'.tmp-'+crypto.randomBytes(8).toString('hex');let fd;
-  try {fd=fs.openSync(tmp,'wx',0o600);fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.renameSync(tmp,APP_LINKS_PATH);}
-  finally {if(fd!==undefined)fs.closeSync(fd);if(fs.existsSync(tmp))fs.unlinkSync(tmp);}
+  const tmp=APP_LINKS_PATH+'.tmp-'+crypto.randomBytes(8).toString('hex'),lock=APP_LINKS_PATH+'.lock';let fd,lockFd;
+  try {
+    lockFd=fs.openSync(lock,'wx',0o600);
+    if(!APP_LINK_READ_STAMPS.has(value))throw Error('Untracked application registry update');
+    const current=fs.existsSync(APP_LINKS_PATH)?crypto.createHash('sha256').update(fs.readFileSync(APP_LINKS_PATH)).digest('hex'):null;
+    if(current!==APP_LINK_READ_STAMPS.get(value))throw Error('Application registry changed; refresh before saving');
+    fd=fs.openSync(tmp,'wx',0o600);fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.renameSync(tmp,APP_LINKS_PATH);
+    if(process.platform!=='win32'){const dir=fs.openSync(path.dirname(APP_LINKS_PATH),'r');try{fs.fsyncSync(dir);}finally{fs.closeSync(dir);}}
+  }
+  finally {
+    if(fd!==undefined)fs.closeSync(fd);if(fs.existsSync(tmp))fs.unlinkSync(tmp);
+    if(lockFd!==undefined){const owned=fs.fstatSync(lockFd);fs.closeSync(lockFd);const actual=fs.lstatSync(lock);if(actual.dev!==owned.dev||actual.ino!==owned.ino)throw Error('Registry lock ownership changed');fs.unlinkSync(lock);}
+  }
 }
 function appPolicy() {
   if(!fs.existsSync(APP_POLICY_PATH))return {limits:{}};
