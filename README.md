@@ -4,19 +4,9 @@
 
 Start with [the design and operating principles](docs/THREE_RISK_CONTROLS.md) or its [HTML guide](docs/THREE_RISK_CONTROLS.html): prevent external leakage, prevent damage or excessive access, and keep results within authorized users. GPU configuration and measurements belong in the technical references after the controls. [Risk-first course delivery](docs/COURSE_DELIVERY.md) explains authenticated video, captions, source snapshots and safe updates.
 
-## DeepInfer on four H100 GPUs
-
-The 23 October read-only review found that official DeepInfer revision `9bd9cf2`
-still requires SM100 attention/MoE paths; the installed four H100s are SM90.
-DeepInfer was not installed or benchmarked, and SGLang remains in use. There is
-no matched DeepInfer-versus-SGLang 1M compaction or throughput result.
-See the [compatibility and comparison status](docs/DEEPINFER_INTEGRATION.html)
-or [Markdown guide](docs/DEEPINFER_INTEGRATION.md) for the source checks,
-recorded SGLang results and same-node qualification gates.
-
 ## AD / LDAP authentication
 
-Start with the [user manual](docs/DSH_USER_MANUAL.md) or its [standalone HTML version](docs/DSH_USER_MANUAL.html) for sign-in, private environments, tools, application URLs and administrator controls.
+Start with the [user manual](docs/DSH_USER_MANUAL.md) or its [standalone HTML version](docs/DSH_USER_MANUAL.html) for sign-in, private environments, tools, application URLs and administrator controls. The [current-guide policy](docs/CURRENT_GUIDE.md) describes the single deployment guide and preserved archives.
 
 Optional verified LDAPS sign-in supports private No Internet accounts with Internet access approved separately by an administrator. An AD username that conflicts with an existing local account is rejected with a clear instruction to contact an administrator to delete that local account; no account or history is automatically merged or deleted. Existing local recovery sign-in remains available. The 23 October main-gateway rollout verified AD/UPN application sign-in, conflict refusal and history preservation; see the [acceptance record](docs/LDAP_APP_LOGIN_ACCEPTANCE_20261023.md). See [configuration, collision handling and tests](docs/LDAP_AUTHENTICATION.md).
 
@@ -133,3 +123,13 @@ read-only hardware/source gate and the H100 porting requirements. The reviewed
 official candidate requires SM100 kernels; the existing four H100/SM90 GPUs fail
 that gate. DeepInfer is not installed or benchmarked; SGLang remains the serving
 engine. This gate does not change DSH accounts, files, histories or model routing.
+
+## DeepInfer on four H100 GPUs
+
+The 23 October read-only review found that official DeepInfer revision `9bd9cf2`
+still requires SM100 attention/MoE paths; the installed four H100s are SM90.
+DeepInfer was not installed or benchmarked, and SGLang remains in use. There is
+no matched DeepInfer-versus-SGLang 1M compaction or throughput result.
+See the [compatibility and comparison status](docs/DEEPINFER_INTEGRATION.html)
+or [Markdown guide](docs/DEEPINFER_INTEGRATION.md) for the source checks,
+recorded SGLang results and same-node qualification gates.

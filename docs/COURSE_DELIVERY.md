@@ -43,3 +43,7 @@ Prefer ordinary HTTP attachments using the [bounded slide delivery service](SLID
 The user flow is to open a slide companion page, select **Download PowerPoint (.pptx)**, save the file, and open that saved file in PowerPoint or a compatible presentation application. Preserve the `.pptx` extension. Use the hash shown on the page to check file integrity when needed.
 
 Qualify both companions on every deployed site. For each case, record the source page, browser, actual saved filename, byte count and SHA-256; then open that saved file and check its slide count and representative slides. A decoded embedded payload, a valid ZIP archive, an HTTP success response or a download-event timeout alone does not establish whether the browser saved and the presentation application opened the file. Keep browser save/open checks separate from payload validation. Publishing ordinary manual files must not restart active workspaces.
+
+## One current guide
+
+Use the [canonical guide and archive policy](CURRENT_GUIDE.md) for the shared PowerPoint, HTML and Markdown source, old download compatibility and publication checks. Keep one primary current guide per deployment; site-specific settings remain private.
