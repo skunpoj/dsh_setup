@@ -1,7 +1,43 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH preparation and concurrency — 22 October 2026</title><style>body{font:16px/1.65 system-ui,sans-serif;color:#172b40;background:#eef3f7;margin:0}main{max-width:1080px;margin:24px auto;padding:36px;background:white}h1,h2{line-height:1.25}a{color:#0757a6}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:10px;border:1px solid #ccd6df;text-align:left;vertical-align:top}th{background:#eaf1f8}.scroll{overflow:auto}code{overflow-wrap:anywhere} @media(max-width:760px){main{margin:0;padding:18px}table{font-size:12px}th,td{padding:6px}}</style></head><body><main><h1>DSH preparation and concurrency review - 22 October 2026</h1>
-<p>The latest actual DSH run finished, but near-1M acceptance failed. Compaction was not started. The experimental GPU fusion is not accepted; the saved qualified 1M deployment specification was restored. Rollback recovery was subsequently verified with an exact direct-model reply and an exact canonical LiteLLM reply; these short checks do not qualify near-1M output or compaction. The context ceiling remains 1,048,576 total tokens.</p>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH preparation and concurrency review - 22 October 2026</title><style>*{box-sizing:border-box}body{margin:0;background:#edf2f7;color:#193047;font:17px/1.75 system-ui}main{max-width:1040px;margin:28px auto;padding:36px;background:white;border-radius:12px}h1,h2{color:#07536c;line-height:1.3}h2{margin-top:2em}a{color:#076a91}table{border-collapse:collapse;display:block;max-width:100%;overflow:auto}td,th{padding:12px;border:1px solid #d5e0e9;text-align:left}th{background:#e9f3f9}@media(max-width:640px){main{margin:0;padding:20px}h1{font-size:28px}}</style></head><body><main><h1>DSH preparation and concurrency review - 22 October 2026</h1>
+<h2>Corrected-route qualification — 22 October 2026</h2>
+<p>The later actual DSH trial reserved 1,002,085 input tokens and 8,192 output tokens, but stopped at the strict memory-warning gate before a substantial answer. The prepared prefix reached 765,952 tokens. Four 20 MiB allocator mapping requests found only 15.75–17.75 MiB free. No uncaught CUDA out-of-memory exception or unexpected model restart was recorded during the trial.</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Recorded outcome</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Full near-1M answer</td>
+<td>Not obtained; reserved input is not completed model processing</td>
+</tr>
+<tr>
+<td>Ordinary replies alongside preparation</td>
+<td>53 passed their content checks, zero retries</td>
+</tr>
+<tr>
+<td>Ordinary native turn latency</td>
+<td>Median 4.66 s; maximum 11.78 s</td>
+</tr>
+<tr>
+<td>Full preparation time / substantial-answer tokens per second</td>
+<td>Not available because the long task did not complete</td>
+</tr>
+<tr>
+<td>Near-limit compaction</td>
+<td>Not started after the prerequisite failed</td>
+</tr>
+<tr>
+<td>Short native reply after cancellation</td>
+<td>11,906 input / 7 output tokens; exact recovery reply, 0.996 s, zero retries</td>
+</tr>
+</tbody></table>
+<p>The corrected V4 fusion is rejected rather than promoted. The short recovery reply occurred before the separate saved-profile rollback; it is not acceptance of a full near-1M task after rollback. Restoration and its startup verification are separate operator actions. Retain the failed trial and earlier qualified profiles without presenting these results as a new near-1M or 100+ tokens/sec improvement.</p>
+<h2>Earlier output-budget trial</h2>
+<p>This earlier DSH run finished, but near-1M acceptance failed. Compaction was not started. The experimental GPU fusion is not accepted; the saved qualified 1M deployment specification was restored. Rollback recovery was subsequently verified with an exact direct-model reply and an exact canonical LiteLLM reply; these short checks do not qualify near-1M output or compaction. The context ceiling remains 1,048,576 total tokens.</p>
 <h2>Results</h2>
-<div class="scroll"><table>
+<table>
 <thead>
 <tr>
 <th>Actual DSH workload</th>
@@ -44,11 +80,11 @@
 <td>Not run</td>
 <td>Not reached after near-1M failure</td>
 </tr>
-</tbody></table></div>
+</tbody></table>
 <p>The completed 384K stage reduced preparation from 287.13 to 238.75 seconds, a 16.85% reduction in this ordered matched sample. Preparation-request time fell from 238.235 to 195.507 seconds; deliberate yielding to short requests fell from 44.488 to 38.853 seconds. This intermediate result does not establish a successful near-1M improvement.</p>
 <h2>Short requests during near-1M preparation</h2>
 <p>Only requests that started and completed entirely inside the long turn are included below. These are complete native DSH turn latencies, not time to first token.</p>
-<div class="scroll"><table>
+<table>
 <thead>
 <tr>
 <th>Concurrent short workload</th>
@@ -79,7 +115,7 @@
 <td>10.50 s</td>
 <td>11.23 s</td>
 </tr>
-</tbody></table></div>
+</tbody></table>
 <p>All 87 replies met the recorded correctness/word-band checks and 15-second limit without retries. There were 106 short replies across all stages. One earlier candidate attempt stopped because a short prose answer exceeded its word-band check; that failure is retained separately rather than counted as a passed 384K run.</p>
 <h2>Why the near-1M stage failed</h2>
 <p>The persisted DSH turn ended with <code>max-tokens</code>, one output token and zero retries. The final forwarding log independently recorded an output budget of one token. At the exact counted input of 1,002,081 tokens, a 1,048,576-token context with a 256-token reserve leaves 46,239 tokens before applying the configured output ceiling. Therefore the total context capacity alone does not explain the one-token allowance. A source readback found that the disposable runtimes managed-budget hook registers only for the canonical production origin. The private test proxy used a different origin, so that correction was not registered. A pure source-branch check confirmed one hook registration for the canonical origin and zero for the private test origin, without inference. This fixture mismatch leaves the SDKs character-based estimate in place. Correcting and retesting that fixture remains necessary; the observation is not evidence that the canonical production route lost its qualified budget handling.</p>

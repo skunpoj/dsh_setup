@@ -1,6 +1,24 @@
 # DSH preparation and concurrency review - 22 October 2026
 
-The latest actual DSH run finished, but near-1M acceptance failed. Compaction was not started. The experimental GPU fusion is not accepted; the saved qualified 1M deployment specification was restored. Rollback recovery was subsequently verified with an exact direct-model reply and an exact canonical LiteLLM reply; these short checks do not qualify near-1M output or compaction. The context ceiling remains 1,048,576 total tokens.
+## Corrected-route qualification — 22 October 2026
+
+The later actual DSH trial reserved 1,002,085 input tokens and 8,192 output tokens, but stopped at the strict memory-warning gate before a substantial answer. The prepared prefix reached 765,952 tokens. Four 20 MiB allocator mapping requests found only 15.75–17.75 MiB free. No uncaught CUDA out-of-memory exception or unexpected model restart was recorded during the trial.
+
+| Check | Recorded outcome |
+|---|---|
+| Full near-1M answer | Not obtained; reserved input is not completed model processing |
+| Ordinary replies alongside preparation | 53 passed their content checks, zero retries |
+| Ordinary native turn latency | Median 4.66 s; maximum 11.78 s |
+| Full preparation time / substantial-answer tokens per second | Not available because the long task did not complete |
+| Near-limit compaction | Not started after the prerequisite failed |
+| Short native reply after cancellation | 11,906 input / 7 output tokens; exact recovery reply, 0.996 s, zero retries |
+
+The corrected V4 fusion is rejected rather than promoted. The short recovery reply occurred before the separate saved-profile rollback; it is not acceptance of a full near-1M task after rollback. Restoration and its startup verification are separate operator actions. Retain the failed trial and earlier qualified profiles without presenting these results as a new near-1M or 100+ tokens/sec improvement.
+
+## Earlier output-budget trial
+
+
+This earlier DSH run finished, but near-1M acceptance failed. Compaction was not started. The experimental GPU fusion is not accepted; the saved qualified 1M deployment specification was restored. Rollback recovery was subsequently verified with an exact direct-model reply and an exact canonical LiteLLM reply; these short checks do not qualify near-1M output or compaction. The context ceiling remains 1,048,576 total tokens.
 
 ## Results
 
