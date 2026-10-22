@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "engine": "DeepInfer",
+  "commit": "9bd9cf243fc53ef9afbf8f04d391d989117d6ab9",
+  "dependencies": {
+    "FlashMLA": "2e5429fc5653bab6e081f09477126f731882a6a9",
+    "DeepGEMM": "1fc9c66975ee322d628b3288534ca0e9ce12a64d"
+  },
+  "kernelBlobSHA256": {
+    "FlashMLA/csrc/api/common.h": "fe6e8cc96f243fdf745e7faa0b202cd51be07febe2a9114e19919381f4000270",
+    "FlashMLA/csrc/api/sparse_decode.cpp": "95e80b055de6da3471f27f49296368c8c17392e90bc745d188c5af31e21a6bb6",
+    "FlashMLA/csrc/api/fused_norm_rope_attn_rope_cast_fwd.cpp": "0103ce28d411df8824d550c9f86676309001b76a18e56e929ad5d230a7f9be99",
+    "DeepGEMM/csrc/apis/mega_moe.hpp": "b52f852760daf2e3a54c20920b8d5dc2f88320daa05c9b0ca21331108c8625c7"
+  },
+  "hardware": [
+    {
+      "name": "NVIDIA H100 NVL",
+      "computeCapability": [
+        9,
+        0
+      ],
+      "driverVersion": "580.178.04"
+    },
+    {
+      "name": "NVIDIA H100 NVL",
+      "computeCapability": [
+        9,
+        0
+      ],
+      "driverVersion": "580.178.04"
+    },
+    {
+      "name": "NVIDIA H100 NVL",
+      "computeCapability": [
+        9,
+        0
+      ],
+      "driverVersion": "580.178.04"
+    },
+    {
+      "name": "NVIDIA H100 NVL",
+      "computeCapability": [
+        9,
+        0
+      ],
+      "driverVersion": "580.178.04"
+    }
+  ],
+  "offlineArchitectureEligible": false,
+  "status": "blocked-unsupported-gpu",
+  "productionEligible": false,
+  "reason": "Pinned FlashMLA and Mega-MoE require SM100; no validated SM90 fallback exists in this candidate",
+  "gpuAllocationRequested": false,
+  "packagesInstalled": false,
+  "weightsLoaded": false,
+  "serviceChanged": false,
+  "observedAtUTC": "2026-10-22T14:51:30.423932+00:00"
+}

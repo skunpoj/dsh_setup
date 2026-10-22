@@ -113,3 +113,11 @@ For custom automatic provisioning, see [signup capacity, pressure gating and aut
 Private local applications and explicitly approved HTTPS destinations can use owner-bound app URLs, with DSH sign-in required by default. See the [application proxy setup and regression checks](docs/APP_PROXY.md) for origin policies, DNS/TLS, optional Gradio compatibility and destination-authentication boundaries.
 
 For existing installations that cannot restart immediately, the optional [managed-client compatibility layer](docs/LIVE_CLIENT_COMPATIBILITY.md) applies only to new launches. It preserves existing processes and history; permanent image adoption remains separate.
+
+## DeepInfer candidate
+
+The [DeepInfer integration guide](docs/DEEPINFER_INTEGRATION.md) includes a pinned,
+read-only hardware/source gate and the H100 porting requirements. The reviewed
+official candidate requires SM100 kernels; the existing four H100/SM90 GPUs fail
+that gate. DeepInfer is not installed or benchmarked; SGLang remains the serving
+engine. This gate does not change DSH accounts, files, histories or model routing.
