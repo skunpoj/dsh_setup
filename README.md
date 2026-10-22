@@ -1,5 +1,9 @@
 # Private AI Workspaces โ€” Kubernetes and 1M Context
 
+## Three risk controls
+
+Start with [the design and operating principles](docs/THREE_RISK_CONTROLS.md) or its [HTML guide](docs/THREE_RISK_CONTROLS.html): prevent external leakage, prevent damage or excessive access, and keep results within authorized users. GPU configuration and measurements belong in the technical references after the controls.
+
 ## Public presentation and speaker guide
 
 [Editable PowerPoint](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pptx) · [Slide PDF](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pdf) · [Detailed storytelling PDF](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream_Story.pdf)

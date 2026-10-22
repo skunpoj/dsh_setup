@@ -1,0 +1,54 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH — Controlling Three Security Risks</title><style>*{box-sizing:border-box}body{margin:0;background:#edf2f7;color:#193047;font:17px/1.75 system-ui}main{max-width:1040px;margin:28px auto;padding:36px;background:white;border-radius:12px}h1,h2{color:#07536c;line-height:1.3}h2{margin-top:2em}a{color:#076a91}table{border-collapse:collapse;display:block;max-width:100%;overflow:auto}td,th{padding:12px;border:1px solid #d5e0e9;text-align:left}th{background:#e9f3f9}@media(max-width:640px){main{margin:0;padding:20px}h1{font-size:28px}}</style></head><body><main><h1>DSH — Controlling Three Security Risks</h1>
+<p>DSH provides private AI workspaces for code, documents and analysis. The deployment design controls three risks: unauthorized external transmission, damage or excessive access, and exposure of results to the wrong people. Infrastructure, execution identities, storage permissions and authenticated routes enforce the boundaries. Model instructions describe the task; they do not replace enforcement.</p>
+<h2>1 Prevent external leakage</h2>
+<p>Make No Internet the default environment. Give each user a separate Internet environment for dependency preparation, with different compute, workspace, history and credential mounts. Pin the authenticated session to its assigned user and environment.</p>
+<p>Enforce destination restrictions on execution workers, the gateway, inference services and supporting databases. Allow only required internal services and a controlled resolver. Disable external model fallback on the managed inference route. Test public-domain and direct-IP attempts from the actual executing workloads; ordinary DNS access or a browser preference is not an egress boundary.</p>
+<p>Transfer approved package artifacts through incoming, review and read-only approved-cache areas. Do not share writable protected workspaces with Internet staging. Verify artifact hashes and review package provenance; integrity does not establish that a package is harmless.</p>
+<p>An internal service connection remains connected, so describe this as restricted egress rather than a strict air gap. A submitted job executing on another platform needs that platform&#39;s own outbound controls.</p>
+<h2>2 Prevent damage or excessive access</h2>
+<p>Use one restricted non-root execution workload per user and environment, with only its own workspace, history and credentials mounted. Disable privilege escalation, drop capabilities, apply a restrictive security context and avoid management tokens, host sockets and host paths. Share the model service without sharing user execution or storage.</p>
+<p>Enforce CPU, memory and storage budgets where the work runs. Bound costly model admission and waiting independently of account authorization. A private writable workspace remains writable by its owner and generated code: where originals must not change, mount approved inputs read-only and place results in a separate writable working area.</p>
+<p>Connected services enforce their own execution identity and existing permissions. A DSH login does not grant database or datalake rights. Use a sandbox-scoped or read-only entitlement when the task requires one. Preserve private credentials; never place passwords, tickets or API keys in prompts, generated reports or public configuration.</p>
+<p>Persist durable files and history on appropriately scoped storage. Validate permissions and restart persistence. Central storage is persistence; independent backups and deletion recovery remain storage operations.</p>
+<h2>3 Keep results contained</h2>
+<p>Authenticate file, history, attachment, terminal and notebook routes, then authorize them against the server-side identity and assigned runtime. Reject peer selection, forged owner headers and direct bypass paths. Self-service signup must assign an exclusive prepared workspace and refuse safely when capacity is exhausted; Internet permission is a separate administrator grant.</p>
+<p>Keep reports private by default. Register an application through an explicit mapping and choose its audience deliberately. Private local applications remain user/environment-bound. A Public mapping publishes that application&#39;s route, not its owner&#39;s whole workspace. Destination authentication remains independent. Protect built-in terminals and notebooks from Public publication.</p>
+<p>Keep account stores and access logs outside execution mounts. Use salted password records and a protected password-change flow. Provide an administrator dashboard for access, capacity and application management without automatically transferring ownership of private content.</p>
+<p>Audit bounded access metadata without recording credentials or conversation bodies. Display freshness for saved operational snapshots. Access logs are not a complete command ledger or GPU monitor. An authorized browser can display and download results; additional copying restrictions require an agreed handling policy and endpoint controls.</p>
+<h2>Responsibilities on connected systems</h2>
+<table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Responsible control</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Remote jobs</td>
+<td>Remote platform identity, permissions, network restrictions, quotas and cancellation</td>
+</tr>
+<tr>
+<td>Protected inputs</td>
+<td>Data/storage owner provisions the required read-only or sandbox entitlement</td>
+</tr>
+<tr>
+<td>Browser handling</td>
+<td>Organization defines recipients, permitted downloads and any required endpoint controls</td>
+</tr>
+<tr>
+<td>Identity lifecycle</td>
+<td>Operator manages membership, recovery, exposed-password changes and optional SSO/MFA</td>
+</tr>
+<tr>
+<td>Recovery</td>
+<td>Storage owner manages server ACLs, independent backups and restore procedures</td>
+</tr>
+<tr>
+<td>Inference qualification</td>
+<td>Operator tests the exact model/runtime profile, concurrency, cancellation and memory stability</td>
+</tr>
+</tbody></table>
+<h2>Setup, use and technical appendices</h2>
+<p>Follow the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/INSTALL.md">complete installation guide</a>, then the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/ACCEPTANCE.md">acceptance checks</a>. Use the <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/APP_PROXY.md">application proxy guide</a> for routes and destination boundaries. Consult <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/LIVE_CLIENT_COMPATIBILITY.md">managed-client compatibility</a> for existing-workspace launch scope.</p>
+<p>GPU setup is maintained in <a href="https://github.com/skunpoj/dsh_setup/blob/main/gpu-stack/README.md">gpu-stack</a>. <a href="https://github.com/skunpoj/dsh_setup/blob/main/docs/CONTEXT_1M.md">Context configuration</a> explains counting, output reserve and admission. Treat any recorded GPU result as specific to its checkpoint, runtime, input size and concurrency: configured capacity, analytical accuracy, cold preparation and streaming speed are distinct measurements.</p>
+</main></body></html>
