@@ -19,12 +19,23 @@ from litellm.integrations.custom_logger import CustomLogger
 CONTEXT = 1048576
 OUTPUT = 8192
 RESERVE = 256
-LONG_THRESHOLD = 131072
+LONG_THRESHOLD = 32768
 MODELS = {'deepseek-v4.1-flash', 'deepseek-flash'}
-TOKENIZER = os.environ.get('DSH_TOKENIZER_URL',
-    'http://model:8000/v1/tokenize')
-WARM_STEP = 2048
+TOKENIZER = os.environ['DSH_TOKENIZER_URL']
+def configured_warm_step():
+    value = os.environ.get('DSH_LONG_WARM_STEP_TOKENS', '8192')
+    if not value.isdecimal() or not 512 <= int(value) <= 8192 or int(value) % 512:
+        raise ValueError('DSH_LONG_WARM_STEP_TOKENS must be a multiple of 512 between 512 and 8192')
+    return int(value)
+
+
+WARM_STEP = configured_warm_step()
 CACHE_PROBE_SECONDS = 2
+# HTTP preparation extensions are separate from GPU prefill chunks. Retain
+# the previously qualified smaller extension above 512K until larger cold
+# extensions at that depth pass latency and cancellation qualification.
+CONSERVATIVE_TAIL_START = 524288
+CONSERVATIVE_TAIL_STEP = 2048
 
 
 class CacheProbeMiss(TimeoutError):
@@ -68,11 +79,12 @@ def count_request(data, final_envelope=False):
     return result
 
 
-def warm_prefix(ids, timeout=15):
+def warm_prefix(ids, timeout=30, cache_session_id=None):
     rid = 'dsh-warm-'+uuid.uuid4().hex
     base = TOKENIZER.removesuffix('/v1/tokenize')
     request = urllib.request.Request(TOKENIZER.removesuffix('/v1/tokenize')+'/generate',
         data=json.dumps({'input_ids': ids, 'rid': rid,
+            **({'session_id': cache_session_id} if cache_session_id is not None else {}),
             'sampling_params': {'max_new_tokens': 1, 'temperature': 0}}).encode(),
         headers={'Content-Type': 'application/json'})
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
@@ -96,12 +108,35 @@ def warm_prefix(ids, timeout=15):
     return result['meta_info']
 
 
+async def async_warm_prefix(ids, timeout=None, cache_session_id=None):
+    # Cancelling to_thread does not stop its HTTP request. Drain the bounded
+    # step before the caller can release admission to another long request.
+    pending = asyncio.create_task(asyncio.to_thread(warm_prefix, ids, *(() if timeout is None else (timeout,)), **({'cache_session_id': cache_session_id} if cache_session_id is not None else {})))
+    try:
+        return await asyncio.shield(pending)
+    except asyncio.CancelledError:
+        # Streaming disconnect and application Stop can cancel the owner more
+        # than once. Every cancellation must leave admission held until the
+        # same bounded HTTP operation has actually ended.
+        while not pending.done():
+            try:
+                await asyncio.shield(pending)
+            except asyncio.CancelledError:
+                continue
+            except Exception:
+                break
+        if not pending.cancelled():
+            pending.exception()  # Retrieve a failed step without hiding Stop.
+        raise
+
+
 class LongContextGuard(CustomLogger):
     def __init__(self):
         super().__init__()
         self.leases = {}
+        self.waiters = []
 
-    async def warm(self, ids):
+    async def warm(self, ids, cache_session_id=None):
         """Finish small cached-prefill requests so cold DSH requests get turns.
 
         Discard the one-token warmup outputs; they never enter the conversation
@@ -113,6 +148,7 @@ class LongContextGuard(CustomLogger):
         steps = 0
         start = time.monotonic()
         yielded_seconds = 0
+        request_seconds = 0
         async def foreground_turn():
             nonlocal yielded_seconds
             before_step = getattr(self, 'before_warm_step', None)
@@ -121,7 +157,7 @@ class LongContextGuard(CustomLogger):
         if CACHE_PROBE_SECONDS:
             await foreground_turn()
             try:
-                meta = await asyncio.to_thread(warm_prefix, ids, CACHE_PROBE_SECONDS)
+                meta = await async_warm_prefix(ids, CACHE_PROBE_SECONDS, **({'cache_session_id': cache_session_id} if cache_session_id is not None else {}))
             except CacheProbeMiss:
                 pass
             else:
@@ -132,39 +168,88 @@ class LongContextGuard(CustomLogger):
                     'seconds': round(time.monotonic()-start, 3),
                     'foregroundYieldSeconds': round(yielded_seconds, 3),
                     'probeSeconds': CACHE_PROBE_SECONDS}
-        for end in range(WARM_STEP, len(ids)+WARM_STEP, WARM_STEP):
-            end = min(end, len(ids))
+        end = 0
+        while end < len(ids):
+            step = min(WARM_STEP, CONSERVATIVE_TAIL_STEP) if end >= CONSERVATIVE_TAIL_START else WARM_STEP
+            boundary = CONSERVATIVE_TAIL_START if end < CONSERVATIVE_TAIL_START else len(ids)
+            end = min(end + step, len(ids), boundary)
             await foreground_turn()
-            meta = await asyncio.to_thread(warm_prefix, ids[:end])
+            request_start = time.monotonic()
+            try:
+                meta = await async_warm_prefix(ids[:end], **({'cache_session_id': cache_session_id} if cache_session_id is not None else {}))
+            except Exception as exc:
+                print(json.dumps({'event': 'dsh_warm_step_failed',
+                    'previousTokens': previous, 'targetTokens': end, 'steps': steps,
+                    'errorType': type(exc).__name__}), flush=True)
+                raise
+            request_seconds += time.monotonic() - request_start
             cached = meta.get('cached_tokens', 0)
             if previous and cached < previous-512:
+                print(json.dumps({'event': 'dsh_prefix_cache_lost',
+                    'previousTokens': previous, 'targetTokens': end,
+                    'cachedTokens': cached, 'steps': steps}), flush=True)
                 raise RuntimeError('Long prefix was evicted; defer and retry the request')
             previous = end
             steps += 1
+            if steps == 1 or steps % 32 == 0 or end == len(ids):
+                print(json.dumps({'event': 'dsh_warm_progress', 'steps': steps,
+                    'preparedTokens': end, 'cachedTokens': cached, 'stepTokens': step,
+                    'elapsedSeconds': round(time.monotonic()-start, 3),
+                    'requestSeconds': round(request_seconds, 3),
+                    'foregroundYieldSeconds': round(yielded_seconds, 3)}), flush=True)
             await asyncio.sleep(.05)
         return {'steps': steps, 'tokens': len(ids),
                 'seconds': round(time.monotonic()-start, 3), 'stepTokens': WARM_STEP,
                 'mode': 'chunked-prefix-warming', 'probeSeconds': CACHE_PROBE_SECONDS,
+                'requestSeconds': round(request_seconds, 3),
+                'conservativeTailStart': CONSERVATIVE_TAIL_START,
+                'conservativeTailStep': min(WARM_STEP, CONSERVATIVE_TAIL_STEP),
                 'foregroundYieldSeconds': round(yielded_seconds, 3)}
 
-    async def acquire(self, key):
+    async def acquire(self, key, wait_seconds=300, max_waiters=1):
+        """One active long request plus a bounded FIFO waiting lane.
+
+        Waiting does not occupy the ordinary-request lane or GPU. The final
+        forwarding route supplies a longer budget within its client deadline;
+        legacy callers retain their existing five-minute budget.
+        """
         os.makedirs('/tmp/dsh-long-admission', mode=0o700, exist_ok=True)
         fd = os.open('/tmp/dsh-long-admission/active.lock', os.O_CREAT | os.O_RDWR, 0o600)
+        transferred = False
+        queued = False
         try:
-            deadline = time.monotonic() + 300
-            while True:
+            if not self.waiters:
                 try:
                     fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     self.leases[key] = fd
-                    return
+                    transferred = True
+                    return {'queued': False, 'waitBudgetSeconds': wait_seconds}
                 except BlockingIOError:
-                    if time.monotonic() >= deadline:
-                        raise HTTPException(429, 'Long-context capacity busy; retry later.',
-                            headers={'Retry-After': '30'})
-                    await asyncio.sleep(.1)
-        except BaseException:
-            os.close(fd)
-            raise
+                    pass
+            if len(self.waiters) >= max_waiters:
+                raise HTTPException(429, 'Long-context waiting queue full; retry later.',
+                                    headers={'Retry-After': '30'})
+            self.waiters.append(key)
+            queued = True
+            deadline = time.monotonic() + wait_seconds
+            while True:
+                if self.waiters[0] == key:
+                    try:
+                        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        self.leases[key] = fd
+                        transferred = True
+                        return {'queued': True, 'waitBudgetSeconds': wait_seconds}
+                    except BlockingIOError:
+                        pass
+                if time.monotonic() >= deadline:
+                    raise HTTPException(429, 'Long-context capacity busy; retry later.',
+                                        headers={'Retry-After': '30'})
+                await asyncio.sleep(.1)
+        finally:
+            if queued:
+                self.waiters.remove(key)
+            if not transferred:
+                os.close(fd)
 
     def release(self, data):
         if not isinstance(data, dict):

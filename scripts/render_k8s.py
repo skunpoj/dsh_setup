@@ -80,7 +80,7 @@ def build(c):
     args=['--model-path','/models/model','--served-model-name','deepseek-v4.1-flash,deepseek-flash','--host','0.0.0.0','--port','8000',
       '--tp-size','4','--moe-runner-backend','marlin','--trust-remote-code','--mem-fraction-static','0.90','--max-running-requests','16',
       '--chunked-prefill-size','1024','--max-prefill-tokens','2048','--swa-prefix-tails','0','--context-length','1048576',
-      '--reasoning-parser','deepseek-v41','--tool-call-parser','deepseekv41','--enable-mixed-chunk','--enable-metrics','--prefill-decode-interval','4']
+      '--reasoning-parser','deepseek-v41','--tool-call-parser','deepseekv41','--enable-mixed-chunk','--enable-metrics','--prefill-decode-interval','4','--enable-session-radix-cache']
     model={'name':'model','image':c['sglang_image'],'command':['python3','-m','sglang.launch_server'],'args':args,
       'env':[{'name':k,'value':v} for k,v in {'HF_HUB_OFFLINE':'1','TRANSFORMERS_OFFLINE':'1','HF_HOME':'/models/huggingface',
         'SGLANG_ENABLE_DSV41_ENGRAM_HOST_TABLE':'1','SGLANG_DSV41_ENGRAM_HOST_TABLE_LAYOUT':'private','SGLANG_DSV41_ENGRAM_HOST_TABLE_PIN':'1',
