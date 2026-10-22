@@ -24,6 +24,9 @@ class AppSignIn {
   }
   begin(name, res, error = '', internet) {
     const app = this.mapping(name, internet);
+    // Chromium applies form-action to the post-login redirect as well as POST.
+    // Permit only this validated application's origin, never an arbitrary URL.
+    res.setHeader('Content-Security-Policy', `default-src 'none'; style-src 'unsafe-inline'; form-action 'self' ${new URL(app.destination).origin}; base-uri 'none'; frame-ancestors 'none'`);
     for (const [key, value] of this.pending) if (value.expires <= this.now()) this.pending.delete(key);
     if (this.pending.size >= this.limit) throw Error('Sign-in capacity unavailable');
     const token = crypto.randomBytes(32).toString('hex'), browser = crypto.randomBytes(32).toString('hex');
