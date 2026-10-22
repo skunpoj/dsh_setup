@@ -1,61 +1,59 @@
-# DSH application URLs and sign-in
+# DSH application aliases and sign-in
 
-An application visitor opens the application's URL directly. A separate proxy-test portal is not a required user step.
+Normal DSH now provides the application destination and visitor-access controls at [https://dsh.aiportal.bot.or.th/applications](https://dsh.aiportal.bot.or.th/applications). Owners configure mappings there; visitors open the application alias directly. A separate proxy-test sign-in portal is not a required user step.
 
-## Two access choices
+## Actual examples
 
-| Owner's setting | Visitor experience |
+| Application | AI Portal URL | Destination | DSH access and verified scope |
+| --- | --- | --- | --- |
+| Suprisk — registered on normal DSH | https://suprisk.aiportal.bot.or.th/ | https://suprisk.test.apps.mlops.bot.or.th/ | **Public access** at DSH. The alias returns the real MLOps SSO redirect; Suprisk's own authentication remains required. |
+| RegChat — registered on normal DSH | https://regchat.aiportal.bot.or.th/ | https://regchat.dev.apps.mlops.bot.or.th/ | **Require DSH sign-in**. The existing admin/Internal session opened the actual RegChat interface through the alias. |
+| Public external data — existing Test example | https://proxy-test-app4.aiportal.bot.or.th/us-states.json | https://storage.googleapis.com/cloud-samples-data/bigquery/us-states/us-states.json | No DSH or application login. Fresh verification returned 50 JSON Lines records, byte-identical to Google's source. |
+
+The two MLOps mappings are active on normal DSH. The public-data example remains on the existing Test bridge. Normal DSH's current upstream policy permits the two approved MLOps origins; the external-URL selector does not grant access to every public or internal destination automatically. General public HTTPS forwarding has been qualified in Test, not enabled by this Main MLOps rollout.
+
+## Owner settings
+
+| Control | Purpose |
 | --- | --- |
-| Require DSH sign-in | DSH checks the visitor's account before forwarding application traffic. The currently verified Test policy permits the mapping owner in the configured environment. |
-| Public access | DSH forwards traffic without its visitor login gate. The application can still require its own authentication. |
+| Name | Registers `NAME.aiportal.bot.or.th`. |
+| Target | Chooses a local application port or an approved HTTPS destination. |
+| Visitor access | Chooses Require DSH sign-in or Public access for this mapping. |
+| Check name / Save URL | Checks hostname availability and saves the mapping. |
 
-Owners configure mappings; visitors use app links. Public access does not expose the DSH application manager or platform administration.
+The default application-name limit is eight per user, with an administrator-editable numeric limit. Registering a URL does not start an application or grant Internet access. Private destinations require approved routing, valid TLS and the configured address restrictions.
 
-## Real applications and selected access settings
+## Two visitor-access choices
 
-These are the user's selected final mappings, not a claim that normal DSH has activated them.
+**Require DSH sign-in:** DSH checks its session and the visitor's permission for the registered app and environment. When sign-in is needed, the normal DSH issuer presents an app-focused form without workspace, terminal, Jupyter or platform setup choices. Successful authentication returns to the registered application alias.
 
-| Application alias | Actual destination | Selected DSH setting |
-| --- | --- | --- |
-| https://suprisk.aiportal.bot.or.th/ | https://suprisk.test.apps.mlops.bot.or.th/ | **Public access** at DSH; retain Suprisk's own MLOps authentication. |
-| https://regchat.aiportal.bot.or.th/ | https://regchat.dev.apps.mlops.bot.or.th/ | **Require DSH sign-in**, demonstrating the DSH gate. |
+The currently implemented gated policy is bound to the mapping owner and environment, rather than every enabled DSH account. The RegChat example is owned by `admin` in the Internal environment. Another account or environment does not acquire access just because its DSH password is valid.
 
-Owners will use https://dsh.aiportal.bot.or.th/applications once the candidate controls are activated there. The current normal settings page remains port-only. The initial alias responses were generic DSH login pages, not proof that either requested mapping was active.
+**Public access:** the gateway skips its DSH visitor sign-in gate for that app mapping. The destination can still require its own authentication. Suprisk uses this option while retaining its MLOps login. Public access does not expose DSH management pages or remove network-access requirements.
 
-Public access bypasses only DSH authentication. It does not disable application authentication or expose DSH management pages. The currently qualified gated-app authorization policy is bound to the mapping owner and configured environment; it does not automatically grant every DSH account access.
+## Reverse proxy and browser address
 
-The actual Suprisk upstream redirects to `https://test.apps.mlops.bot.or.th/login` with its original URL as `next`. Its own SSO remains intact, and the browser may leave the alias during that login flow. A reverse proxy alone does not establish SSO trust or guarantee the alias remains visible after SSO.
+```text
+Browser → Application alias → DSH gateway → Approved destination
+        ← Application response returned through DSH
+```
 
-## Routing
+A reverse proxy forwards requests on the server and returns the responses, keeping the alias for proxied requests. A redirect tells the browser to navigate to another URL, changing its address. A webhook triggers an action; it does not transport the application's ongoing traffic.
 
-A reverse proxy connects to the local port, approved internal destination or permitted external HTTPS destination on the server side. The browser keeps the app alias for proxied requests. A redirect instructs the browser to open another URL, so its address changes. A webhook triggers an action; it does not transport ongoing application traffic.
+Application-generated absolute links and SSO redirects can leave the alias. In the actual Suprisk flow, the upstream redirects to `https://test.apps.mlops.bot.or.th/login` with the original Suprisk MLOps URL as `next`. The address therefore leaves the alias during SSO and may return to the original MLOps address. Keeping the alias throughout SSO requires a separately qualified application/identity-provider integration; it is not achieved by blindly rewriting authentication callbacks.
 
-DSH must handle pages, assets, APIs, cookies, redirects and WebSockets. The upstream application may still navigate to another hostname, especially during external SSO. Each application needs its own compatibility check.
+RegChat's narrowly scoped adapter changes only its top-level Gradio configuration root to the registered alias. Actual upstream HTML, configuration and JavaScript were verified; every other configuration field matched the original response. The real browser loaded RegChat on the alias with 66 components and 17 dependencies. This does not establish that a business question or every application workflow has been tested.
 
-## App-focused normal sign-in
+## Separate sessions and authentication limitations
 
-The implemented app-focused flow sends signed-out app visitors to the normal DSH issuer with a registered app context. It shows only the app's sign-in form and returns to that app after successful ordinary DSH authentication. It does not show workspace, terminal, Jupyter or platform setup choices. Existing platform users retain those options through the ordinary platform login.
+DSH authentication and destination authentication are separate. DSH does not forward its password or session cookie to the application. The destination manages its own login and session, and logging into DSH does not automatically log into that application.
 
-The intended normal deployment uses the existing issuer and account store. The isolated Test deployment deliberately uses synthetic accounts and its own store, without copying Main credentials or sessions. A five-minute, one-use browser challenge binds the submitted form to the current registered app, owner and environment. No arbitrary return URL is accepted.
+The present proxy strips incoming `Authorization` headers, including Bearer and Basic credentials. An application depending on those headers needs a separately qualified integration. Do not put credentials in destination URLs or assume platform credentials should be forwarded. External SSO also needs registered callbacks and an application-specific trust design.
 
-After the DSH gate, the destination application's session is separate. DSH login does not automatically sign the visitor into that application. Bearer/Basic credentials are not forwarded by the current proxy. Application SSO would require a separately designed integration.
+## Verification boundary
 
-## Current verification and remaining acceptance
+The deployed Main source matches the qualified candidate runtime modules from commit `bd168a2`, with the existing runtime image unchanged. Existing account, settings, session and route bytes and the manual/course roots and manifests were preserved during activation. The current application manager shows two registered names out of eight.
 
-On 22 October, strict TLS and hostname validation passed for both real MLOps destinations using an existing trusted BOT root and the approved private address. Suprisk returned its actual SSO redirect. RegChat returned its Gradio interface and JavaScript asset. These were read-only checks: no business question or model inference was submitted, and Suprisk's authenticated business workflow was not completed.
+Native fresh sign-in, incorrect-password rejection, separate destination login, DSH logout and Public access were verified against the isolated Test issuer using synthetic accounts. On normal DSH, the existing authorized admin/Internal browser session was preserved and opened the actual RegChat interface. Independent anonymous checks verified RegChat's normal DSH app-focused gate and API refusal, and Suprisk's own MLOps SSO redirect. No real Main session was logged out merely to run a test.
 
-The current normal DSH deployment has not been replaced by this work. Activation and retirement of the old proxy-test infrastructure await coordinated cleanup, a fresh baseline and acceptance of the replacement. The isolated Test issuer is a qualification tool, not a separate portal that application users must visit.
-
-### App form compatibility correction
-
-A fresh native browser submission reached the Test backend and returned HTTP 403. Sanitized diagnostics showed matching Host and a valid challenge shape, but a failed Origin check. The app form page's `Referrer-Policy: no-referrer` causes a native POST to send a null Origin. The narrow candidate correction uses `same-origin` for that app-focused page; strict rejection of null, absent and foreign Origins remains in place. Sixteen local checks and three asynchronous race checks passed. Native browser verification after deploying the correction remains pending.
-
-This supersedes the earlier explanation that browser controls could not submit the form. The original refusal and earlier evidence are preserved.
-
-### RegChat frontend compatibility
-
-RegChat's actual Gradio configuration embeds its MLOps URL as `config.root`. Serving initial HTML and assets through an alias does not establish that its frontend API requests stay on that alias. A narrowly scoped candidate correction now changes only that top-level root. Against the real upstream through a local candidate proxy, HTML, the JavaScript asset and `/config` passed; every other configuration field matched the direct upstream response. This is not acceptance of the deployed alias: the integrated Linux qualification, normal-gateway activation and native browser/API checks remain required.
-
-### Publication boundary
-
-This source guide records the selected real application settings and current evidence. HTML, PowerPoint, English video and served Test publication must each be checked against the accepted implementation before being marked current. Updating the guide does not deploy a feature, change SMP Production or resend historical records. Existing media and historical evidence remain preserved.
+Authenticated Suprisk business use and RegChat model inference were not tested. Existing Test infrastructure has not yet been retired. Manuals, PowerPoint and English video publication have separate acceptance records; deployment of the proxy does not establish that every published format has already been updated. No historical resend was performed by this work.
