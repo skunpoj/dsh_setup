@@ -56,6 +56,7 @@ used the same image and real corporate directory. All **nine scenarios passed**
 - Local recovery login and visible AD/Local choices.
 - Valid AD credentials colliding with a manual account: HTTP 409, the administrator
   instruction, no session and byte-identical fixture account data.
+- Application-focused login displaying both providers and retaining its collision error.
 - Approved-domain UPN and domain-style identifiers reaching the collision check.
 - First AD sign-in creating an ordinary No Internet fixture identity.
 - Application return for its canonical owner; denial of another owner, an
@@ -87,3 +88,31 @@ older account or conversation data. Ten offline operator guard tests passed;
 these are separate from the live login and persistence checks above.
 
 See [LDAP configuration and identity rules](LDAP_AUTHENTICATION.md).
+
+## Public application sign-in correction after restart
+
+The subsequent gateway-only correction is deployed as generation 91. A public
+application's focused sign-in URL returns directly to that registered public
+application without creating a DSH session. Authenticated applications retain
+their existing owner/access checks and AD/Local sign-in. Unknown, disabled or
+invalid aliases do not become open redirects. This does not make a protected
+application public or alter its saved access policy.
+
+Independent real-directory checks after the replacement passed on both ordinary
+DSH and authenticated application login. The canonical account entered No Internet,
+received HTTP 403 from the administration API, and opened the actual application
+and manual HTML. Both owned test sessions signed out and subsequently received
+HTTP 401. These checks did not submit a model question or sign out another
+person's browser session.
+
+Readback matched all 25 intended mounted authentication/helper source files and
+the retained application image. Thirteen account records, four existing unexpired
+sessions, application routes/settings, manual and course state were preserved.
+The rollout owner's comparison retained all 32 original execution workers.
+An independent content capture additionally compared all 30 original main workers:
+their identities, restart counts and volume definitions were unchanged, and all
+220 existing history/attachment files (9,840,775 bytes) retained identical lengths
+and SHA-256 hashes. A separately owned concurrent test worker was excluded from
+the original-worker comparison; it was not removed or assigned to another user.
+This verifies preservation across the gateway replacement, not a restart of every
+user worker or resumption of every historical tool operation.
