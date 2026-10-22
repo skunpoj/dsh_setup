@@ -21,7 +21,7 @@ class OutputGuardTests(unittest.TestCase):
         scope = {}
         with patch.dict(sys.modules, {'fastapi': api, 'litellm': types.ModuleType('litellm'),
             'litellm.integrations': types.ModuleType('litellm.integrations'),
-            'litellm.integrations.custom_logger': logger}):
+            'litellm.integrations.custom_logger': logger, 'stream_admission_errors': types.SimpleNamespace(install=lambda: None)}):
             exec((Path(__file__).parents[1]/'scripts/gateway_output_guard.py').read_text(), scope)
         self.guard = scope['OutputGuard']()
 

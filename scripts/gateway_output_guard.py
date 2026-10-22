@@ -1,6 +1,9 @@
 """Keep output aliases bounded; final-wire budgeting lives in the loopback proxy."""
 from fastapi import HTTPException
 from litellm.integrations.custom_logger import CustomLogger
+from stream_admission_errors import install
+
+install()
 
 
 class OutputGuard(CustomLogger):

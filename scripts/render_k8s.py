@@ -109,7 +109,7 @@ def build(c):
          'max_tokens':8192,'timeout':3600,'num_retries':0},'model_info':{'max_input_tokens':1048576,'max_output_tokens':8192}} for name in ['deepseek-v4.1-flash','deepseek-flash']],
        'general_settings':{'master_key':'os.environ/LITELLM_MASTER_KEY','database_url':'os.environ/DATABASE_URL'},
        'litellm_settings':{'callbacks':['gateway_output_guard.proxy_handler_instance'],'drop_params':False,'set_verbose':False},'router_settings':{'num_retries':0}}
-    sources={n:(ROOT/'scripts'/n).read_text(encoding='utf-8') for n in ['context_forwarder.py','context_envelope.py','long_context_callbacks.py','gateway_output_guard.py']}
+    sources={n:(ROOT/'scripts'/n).read_text(encoding='utf-8') for n in ['context_forwarder.py','context_envelope.py','long_context_callbacks.py','gateway_output_guard.py','stream_admission_errors.py']}
     sources['config.yaml']=yaml.safe_dump(config,sort_keys=False);obj('ConfigMap','gateway-source',data=sources)
     mount=[{'name':'source','mountPath':'/etc/litellm','readOnly':True}]
     proxy={'name':'litellm','image':c['litellm_image'],'command':['litellm'],'args':['--config','/etc/litellm/config.yaml','--port','4000'],
