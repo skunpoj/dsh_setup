@@ -32,8 +32,9 @@ personal accounts, operational transcripts or credential values.
 - SGLang tensor parallelism across four GPUs, 1,048,576 total-token capacity,
   chunked prefill and fail-closed scheduler compatibility checks.
 - LiteLLM authentication, PostgreSQL-backed virtual keys and a loopback final-wire
-  context guard. One request above 128K is admitted at a time; short requests can
-  remain concurrent. That is not two simultaneous full-1M requests or an SLA.
+  context guard. Text above 32K counted input plus reserved output uses bounded
+  managed admission; shorter requests can remain concurrent. Input includes the
+  complete conversation and tool context, not only the latest prompt. That is not two simultaneous full-1M requests or an SLA.
 - Persistent storage and read-only approved packages. Persistence is not backup.
 
 ## Start here
