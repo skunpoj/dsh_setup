@@ -1,11 +1,24 @@
 {
   "baseline_live_source_sha256": "7a682dbef2c68fa0831bddeac292d5f9f10694d99ed82f6b3e6e4ac4988d8e4b",
-  "candidate_auth_proxy_sha256": "8ba09e26058f8ae610ef89b35ef9810ce7fce914337d78e22d19f83c31601059",
+  "candidate_auth_proxy_sha256": "dfeb4a3969856fb4a82f2c30d70b8841b243cd7978a9acf0c9f40f02eb76a693",
   "feature_flag": "DSH_APP_LOGIN_ENABLED=true",
   "production_deployment": false,
   "integration_scope": "Latest Main capacity/session source plus already-qualified general-domain/Public proxy feature and new app-focused normal issuer login. Not deployed.",
   "proxy_merge_inputs_sha256": {
     "C:\\Users\\skunpojt\\outputs\\dsh-proxy-triage-Test-20261021\\dsh-live-source\\auth_proxy.js": "e210db23eef7fecc5ba75dcd02b86acac823c56e60559ae2bdcd2ab4238e3ad1",
     "C:\\Users\\skunpojt\\outputs\\dsh-normal-login-Test-20261021\\dsh-proxy-test-gateway\\auth_proxy.js": "90d62a7a7d5452fe70b9fffb554011e56e3bd3b418b8a59b63474af299a2af44"
+  },
+  "runtime_files_sha256": {
+    "app_signin.js": "3899827b5ac8603b6bfb8f29d6b317ea22a1f79a21f883866bf0c84c3af7a846",
+    "auth_proxy.js": "dfeb4a3969856fb4a82f2c30d70b8841b243cd7978a9acf0c9f40f02eb76a693",
+    "capacity_policy.js": "c59b8e62e1216e6ec3f0116bf09d1f9e6de3a7c26997dc574ff5a230cadcb5d0",
+    "course_files.js": "19e4ef943ab7fa416cadc100b6159b866812f843e88d431a8e70b5afe5ff85ed",
+    "external_dns.js": "4b15041fac9babd164c117807fda4ee9c32ab574d5a17a1595448dbae3d47f25",
+    "external_upstream.js": "0532dfe5785f7cbc684dc8e294cc5f236fc4cb46501e17c6dd79d4466de9e950",
+    "gradio_alias.js": "a7b17a016ceeb72ce22548068aaa4c99d715e74a39ec1460a5730012062863cc",
+    "package_portal.js": "c57a3edfd6bf8a88a354edc020b6b1c07d06bfc9740b5bfd5bec215d78d76159",
+    "password_store.js": "6a46ebe7e47a89b448a2bc555f39797aafeed1450d5b964701b801e3c16a59cb",
+    "session_store.js": "bb2c216e4fcb69ca6ea087eda352b13864ba8bc4fe41912d2cfdef8bd1232c20",
+    "signup_admission.js": "736e6b87b681499f1ebe9d937e0518accf5eb35dcd59ec0a197e07e6092c4a01"
   }
 }

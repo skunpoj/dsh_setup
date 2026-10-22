@@ -5,6 +5,7 @@
 const https = require('node:https');
 const dns = require('node:dns').promises;
 const net = require('node:net');
+const gradioAlias = require('./gradio_alias');
 
 function reject(message, status = 400) {
   const error = new Error(message); error.status = status; throw error;
@@ -139,8 +140,32 @@ async function proxyHTTP(req, res, options) {
   const connection = await connectionOptions(target, lookup);
   const path = requestPath(req.url, target);
   const headers = outgoingHeaders(req, target, publicOrigin, protectedCookies);
+  const adaptFrontend = gradioAlias.enabled(target, publicOrigin);
+  if (adaptFrontend) {
+    headers['accept-encoding'] = 'identity';
+    if (req.method === 'GET' && ['/', '/config'].includes(new URL(req.url, publicOrigin).pathname)) {
+      // A cached upstream body may contain the original origin. Always qualify
+      // a complete fresh configuration rather than forwarding 304/206 results.
+      for (const key of ['if-none-match','if-modified-since','if-range','range']) delete headers[key];
+    }
+  }
   const upstream = https.request({...connection, path, method: req.method, headers}, response => {
     try {
+      if (gradioAlias.eligible(target, publicOrigin, req.method, req.url, response.statusCode, response.headers)) {
+        const chunks = []; let bytes = 0, failed = false;
+        const fail = () => { if (failed) return; failed = true; response.destroy(); if (!res.headersSent) {res.writeHead(502);res.end('Unqualified application frontend response');} else res.destroy(); };
+        response.on('error', fail);
+        response.on('data', chunk => { bytes += chunk.length; if (bytes > gradioAlias.MAX_BYTES) fail(); else chunks.push(chunk); });
+        response.on('end', () => {
+          if (failed) return;
+          try {
+            const adapted = gradioAlias.transform(Buffer.concat(chunks), response.headers, req.url, target, publicOrigin);
+            res.writeHead(response.statusCode, responseHeaders(adapted.headers, target, publicOrigin, protectedCookies));
+            res.end(adapted.body);
+          } catch { fail(); }
+        });
+        return;
+      }
       res.writeHead(response.statusCode, responseHeaders(response.headers, target, publicOrigin, protectedCookies));
       response.on('error', () => res.destroy());
       response.pipe(res);

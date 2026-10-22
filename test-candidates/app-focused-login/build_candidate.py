@@ -1,10 +1,16 @@
 from pathlib import Path
-import hashlib,json,shutil,re,subprocess
+import hashlib,json,shutil,re,subprocess,os
 HERE=Path(__file__).parent
 BASE=Path('C:/Users/skunpojt/outputs/dsh-app-entry-completion-20261021/latest-main-pressure/dsh-environment-gateway')
-OUT=HERE/'runtime';OUT.mkdir(exist_ok=True)
-for p in BASE.glob('*.js'):shutil.copy2(p,OUT/p.name)
-shutil.copy2(HERE/'app_signin.js',OUT/'app_signin.js')
+CANONICAL=HERE/'runtime'
+OUT=Path(os.environ.get('DSH_CANDIDATE_OUTPUT',str(CANONICAL)));OUT.mkdir(parents=True,exist_ok=True)
+for name in ['external_upstream.js','external_dns.js','gradio_alias.js','signup_admission.js']:
+ assert (CANONICAL/name).is_file(),name
+ if OUT.resolve()!=CANONICAL.resolve():shutil.copy2(CANONICAL/name,OUT/name)
+for p in BASE.glob('*.js'):
+ if p.name!='signup_admission.js':shutil.copy2(p,OUT/p.name)
+assert hashlib.sha256((CANONICAL/'signup_admission.js').read_bytes()).hexdigest()=='736e6b87b681499f1ebe9d937e0518accf5eb35dcd59ec0a197e07e6092c4a01'
+(OUT/'app_signin.js').write_text((HERE/'app_signin.js').read_text(encoding='utf8'),encoding='utf8',newline='\n')
 s=(BASE/'auth_proxy.js').read_text(encoding='utf8')
 baseline=hashlib.sha256(s.encode()).hexdigest()
 assert baseline=='7a682dbef2c68fa0831bddeac292d5f9f10694d99ed82f6b3e6e4ac4988d8e4b'
@@ -16,7 +22,9 @@ patch("const APP_DOMAIN = (process.env.DSH_APP_DOMAIN || '').toLowerCase();", ""
 const APP_SIGNIN = process.env.DSH_APP_LOGIN_ENABLED === 'true' ? new (require('./app_signin').AppSignIn)({domain:APP_DOMAIN, issuer:'https://'+process.env.DSH_TRUSTED_HOST, mappings:appLinks, allowedName:validAppName, testIssuer:process.env.DSH_TEST_ISSUER==='true'}) : null;""")
 patch("  const parsedUrl = url.parse(req.url, true);\n  if(parsedUrl.pathname==='/api/signup-capacity')", """  const parsedUrl = url.parse(req.url, true);
   if(APP_SIGNIN && req.method==='GET' && parsedUrl.pathname==='/login' && Object.hasOwn(parsedUrl.query,'app')) {
-    const headers={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY', 'Content-Security-Policy':\"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'\"};
+    // Native form POSTs need a same-origin Origin header for the strict CSRF check.
+    // no-referrer makes browsers send Origin: null, even for this same-origin form.
+    const headers={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'same-origin','X-Frame-Options':'DENY', 'Content-Security-Policy':\"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'\"};
     try {if(req.headers.host!==process.env.DSH_TRUSTED_HOST)throw Error();const body=APP_SIGNIN.begin(parsedUrl.query.app,res,'',parsedUrl.query.environment);res.writeHead(200,headers);return res.end(body);}
     catch {res.writeHead(404,headers);return res.end('Application sign-in unavailable.');}
   }
@@ -89,10 +97,16 @@ s=s.replace(marker,"  if (!authenticated && APP_SIGNIN && appHostName(req.header
 old='<body><aside style="padding:12px;background:#fff3cd;color:#332701">Dedicated DSH Test gateway. Normal DSH admin and khunkim password hashes are mirrored for this Test only; demonstration application login is separate. This is not the Production workspace.</aside>'
 assert s.count(old)==1
 s=s.replace(old,"<body>${process.env.DSH_TEST_ISSUER==='true'?'<aside>Isolated Test issuer: synthetic review accounts only. This is not normal DSH.</aside>':''}")
+old="const EXTERNAL_PROXY = require('./external_upstream');"
+assert s.count(old)==1
+s=s.replace(old,old+"\nconst EXTERNAL_LOOKUP=process.env.DSH_EXTERNAL_DNS_SERVERS?require('./external_dns').createLookup(process.env.DSH_EXTERNAL_DNS_SERVERS):undefined;")
+old="return {target,publicOrigin:'https://'+host,protectedCookies:[COOKIE_NAME,'dsh_auth']};"
+assert s.count(old)==1
+s=s.replace(old,"return {target,publicOrigin:'https://'+host,protectedCookies:[COOKIE_NAME,'dsh_auth'],lookup:EXTERNAL_LOOKUP};")
 (OUT/'auth_proxy.js').write_text(s,encoding='utf8',newline='\n')
-shutil.copy2(FEATURE.parent/'external_upstream.js',OUT/'external_upstream.js')
 receipt={'baseline_live_source_sha256':baseline,'candidate_auth_proxy_sha256':hashlib.sha256(s.encode()).hexdigest(),'feature_flag':'DSH_APP_LOGIN_ENABLED=true','production_deployment':False,'integration_scope':'Normal issuer app-focused presentation and fixed registered-alias return only. General-domain proxy integration remains separate.'}
 receipt['integration_scope']='Latest Main capacity/session source plus already-qualified general-domain/Public proxy feature and new app-focused normal issuer login. Not deployed.'
 receipt['proxy_merge_inputs_sha256']={str(p):hashlib.sha256(p.read_bytes()).hexdigest()for p in [COMMON,FEATURE]}
-(HERE/'BUILD.json').write_text(json.dumps(receipt,indent=2),encoding='utf8')
+receipt['runtime_files_sha256']={p.name:hashlib.sha256(p.read_bytes()).hexdigest()for p in sorted(OUT.glob('*.js'))}
+((HERE if OUT.resolve()==CANONICAL.resolve()else OUT)/'BUILD.json').write_text(json.dumps(receipt,indent=2),encoding='utf8')
 print(json.dumps(receipt))

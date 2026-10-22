@@ -1399,7 +1399,9 @@ const server = http.createServer((req, res) => {
   try{if(handlePublicAlias(req,res))return;if(handleExternalAlias(req,res))return;}catch{res.writeHead(503);return res.end('External application policy unavailable.');}
   const parsedUrl = url.parse(req.url, true);
   if(APP_SIGNIN && req.method==='GET' && parsedUrl.pathname==='/login' && Object.hasOwn(parsedUrl.query,'app')) {
-    const headers={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY', 'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"};
+    // Native form POSTs need a same-origin Origin header for the strict CSRF check.
+    // no-referrer makes browsers send Origin: null, even for this same-origin form.
+    const headers={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'same-origin','X-Frame-Options':'DENY', 'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"};
     try {if(req.headers.host!==process.env.DSH_TRUSTED_HOST)throw Error();const body=APP_SIGNIN.begin(parsedUrl.query.app,res,'',parsedUrl.query.environment);res.writeHead(200,headers);return res.end(body);}
     catch {res.writeHead(404,headers);return res.end('Application sign-in unavailable.');}
   }
