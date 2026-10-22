@@ -1,6 +1,6 @@
 # DSH preparation and concurrency review - 22 October 2026
 
-The latest actual DSH run finished, but near-1M acceptance failed. Compaction was not started. The experimental GPU fusion is not accepted; the saved qualified 1M deployment specification was restored. Runtime recovery is checked separately. The context ceiling remains 1,048,576 total tokens.
+The latest actual DSH run finished, but near-1M acceptance failed. Compaction was not started. The experimental GPU fusion is not accepted; the saved qualified 1M deployment specification was restored. Rollback recovery was subsequently verified with an exact direct-model reply and an exact canonical LiteLLM reply; these short checks do not qualify near-1M output or compaction. The context ceiling remains 1,048,576 total tokens.
 
 ## Results
 
@@ -49,3 +49,5 @@ These measurements used actual DSH, its LiteLLM forwarding path and the shared f
 ## Preservation and cleanup
 
 All 36 original disposable test histories and their 72 session files remained hash-identical; all 61 resulting synthetic histories were retained. The test runtime profile was restored exactly, its worker and proxy were returned to their original stopped specifications, and the owned long-request reservation was released. No human workspace was restarted by this cleanup. These checks preserve recorded data; they are not the unrun compaction/replacement acceptance test.
+
+The restored backend readback remains 1,048,576 total tokens, DSpark block size 5, 1,024-token GPU prefill chunks, static memory fraction 0.923 and at most eight running requests. The saved model specification and source hash match exactly, with zero unexpected restarts. Direct-model and canonical-route health replies completed in 0.19 and 0.23 seconds respectively; these tiny replies are recovery checks, not throughput benchmarks.

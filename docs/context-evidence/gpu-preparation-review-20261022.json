@@ -107,5 +107,18 @@
     "originalSessionFilesHashIdentical": 72,
     "resultingHistoriesRetained": 61,
     "temporaryKeyRevoked": true
+  },
+  "rollbackRecovery": {
+    "exactSavedSpecification": true,
+    "exactSavedSource": true,
+    "zeroUnexpectedRestarts": true,
+    "contextTokens": 1048576,
+    "dsparkBlockSize": 5,
+    "gpuPrefillChunkTokens": 1024,
+    "staticMemoryFraction": 0.923,
+    "maxRunningRequests": 8,
+    "directModelExactReplySeconds": 0.19013619422912598,
+    "canonicalLiteLLMExactReplySeconds": 0.22790002822875977,
+    "scope": "Short health checks only; not near-1M or compaction acceptance."
   }
 }
