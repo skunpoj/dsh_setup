@@ -29,3 +29,5 @@ inventory or credentials into this public repository.
 Do not mark every boundary closed from one successful credential, a Ready flag,
 an empty filtered screen or a saved test report. Recheck affected behavior after
 changes, and state what remains unverified.
+
+For the four-client, two-user, two-environment matrix, follow [managed-client validation](MANAGED_CLIENT_VALIDATION.md).
