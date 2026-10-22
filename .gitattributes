@@ -1,0 +1,3 @@
+
+# Preserve the verified third-party runtime bytes on Windows checkouts.
+vendor/ldapts/ldapts.cjs -text
