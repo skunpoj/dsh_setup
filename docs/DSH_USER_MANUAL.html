@@ -22,8 +22,16 @@
 <p>Use <strong>Require DSH sign-in</strong> for private applications. Public access is an explicit choice for an approved mapping; it must not be used for protected data. An external application&#39;s own authentication remains separate from the DSH gateway session.</p>
 <p>The administrator controls the per-user name limit, allowed domains, reserved names and available hostname/path routes. Managed Jupyter or application restart requires an administrator-approved service configuration. An unregistered process is not automatically relaunched after replacement. See <a href="APP_PROXY.md">application URLs, routing and restart controls</a>.</p>
 <h2 id="5-prepare-packages-for-no-internet-work">5 Prepare packages for No Internet work</h2>
-<p>Use the Internet environment for approved package preparation and public material. Downloads enter a staging area. The operator reviews and promotes approved artifacts into a read-only package cache; the No Internet environment installs from that cache without public network access.</p>
-<p>The Internet environment does not mount the protected workspace to install into it directly. Do not copy protected prompts, datasets or credentials into Internet staging. See <a href="THREE_RISK_CONTROLS.html">the three risk controls</a>.</p>
+<p>Where self-service packages are enabled, use <strong>My Python environments</strong>:</p>
+<ol>
+<li>Obtain the administrator&#39;s Internet approval for your account. You can keep your interactive session in No Internet; an isolated Internet job performs the download.</li>
+<li>Enter a new environment name and one to eight exact package pins such as <code>six==1.17.0</code>.</li>
+<li>Select <strong>Download and install privately</strong> and follow the request status. Only one package request can run for your account at a time.</li>
+<li>The service downloads supported Python wheels, validates the artifacts and installs them offline into a new private No Internet virtual environment. Existing environments remain unchanged.</li>
+<li>When the request completes, use the displayed Python path or select its named Jupyter kernel.</li>
+</ol>
+<p>This self-service wheel path does not require an operator to promote every request manually. Source builds, direct URLs and startup <code>.pth</code> hooks require operator review. For separately maintained shared packages, the operator can review and promote artifacts from incoming staging into an approved read-only cache.</p>
+<p>The two workspaces remain separate; the Internet job does not receive a writable mount of the protected workspace. Do not copy protected prompts, datasets or credentials into Internet staging. See <a href="THREE_RISK_CONTROLS.html">the three risk controls</a>.</p>
 <h2 id="6-use-shared-long-context-inference">6 Use shared long-context inference</h2>
 <p>The conversation, attached content and tool definitions all consume context. A configured 1M ceiling does not mean every request uses one million tokens. Output space also counts toward the total budget.</p>
 <p>Large requests use admission control and may wait or receive a busy response while ordinary requests remain schedulable. A shared ceiling does not guarantee simultaneous maximum-length requests or a particular token rate. Follow the operator&#39;s qualified limits and compaction policy. See <a href="CONTEXT_1M.md">1M context operation</a> and <a href="../gpu-stack/README.md">GPU setup</a>.</p>

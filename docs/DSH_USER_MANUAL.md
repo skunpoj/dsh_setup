@@ -38,9 +38,17 @@ The administrator controls the per-user name limit, allowed domains, reserved na
 
 ## 5 Prepare packages for No Internet work
 
-Use the Internet environment for approved package preparation and public material. Downloads enter a staging area. The operator reviews and promotes approved artifacts into a read-only package cache; the No Internet environment installs from that cache without public network access.
+Where self-service packages are enabled, use **My Python environments**:
 
-The Internet environment does not mount the protected workspace to install into it directly. Do not copy protected prompts, datasets or credentials into Internet staging. See [the three risk controls](THREE_RISK_CONTROLS.html).
+1. Obtain the administrator's Internet approval for your account. You can keep your interactive session in No Internet; an isolated Internet job performs the download.
+2. Enter a new environment name and one to eight exact package pins such as `six==1.17.0`.
+3. Select **Download and install privately** and follow the request status. Only one package request can run for your account at a time.
+4. The service downloads supported Python wheels, validates the artifacts and installs them offline into a new private No Internet virtual environment. Existing environments remain unchanged.
+5. When the request completes, use the displayed Python path or select its named Jupyter kernel.
+
+This self-service wheel path does not require an operator to promote every request manually. Source builds, direct URLs and startup `.pth` hooks require operator review. For separately maintained shared packages, the operator can review and promote artifacts from incoming staging into an approved read-only cache.
+
+The two workspaces remain separate; the Internet job does not receive a writable mount of the protected workspace. Do not copy protected prompts, datasets or credentials into Internet staging. See [the three risk controls](THREE_RISK_CONTROLS.html).
 
 ## 6 Use shared long-context inference
 
