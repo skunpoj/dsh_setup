@@ -10,6 +10,8 @@ Enforce destination restrictions on execution workers, the gateway, inference se
 
 Transfer approved package artifacts through incoming, review and read-only approved-cache areas. Do not share writable protected workspaces with Internet staging. Verify artifact hashes and review package provenance; integrity does not establish that a package is harmless.
 
+For supported pinned Python wheels, **My Python environments** provides a self-service path after the administrator grants the account Internet access. An isolated Internet job downloads artifacts; validation and offline installation create a new private No Internet environment and Jupyter kernel without replacing existing environments. Source builds, direct URLs and startup `.pth` hooks require operator review. This path does not share protected workspaces or require manual promotion of every wheel request. See the [user workflow](DSH_USER_MANUAL.md#5-prepare-packages-for-no-internet-work).
+
 An internal service connection remains connected, so describe this as restricted egress rather than a strict air gap. A submitted job executing on another platform needs that platform's own outbound controls.
 
 ## 2 Prevent damage or excessive access
