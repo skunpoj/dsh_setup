@@ -1,124 +1,188 @@
 {
   "date": "2026-10-22",
+  "schemaVersion": 2,
   "qualificationPassed": false,
-  "failure": "Near-1M final forwarding budget was one output token; native endReason max-tokens. Compaction not launched.",
-  "stages": [
-    {
-      "label": "128K",
-      "inputTokens": 124076,
-      "outputTokens": 647,
-      "nativeSeconds": 53.45581865310669,
-      "preparationSeconds": 43.350567000000005,
-      "streamSeconds": 9.016999959945679,
-      "streamTokensPerSecond": 71.75335509305,
-      "endReason": {
-        "kind": "completed"
-      },
-      "zeroRetries": true,
-      "shorts": {
-        "numeric": {
-          "count": 1,
-          "medianSeconds": 5.923486948013306,
-          "p95Seconds": 5.923486948013306,
-          "maxSeconds": 5.923486948013306
-        },
-        "prose": {
-          "count": 1,
-          "medianSeconds": 4.154717206954956,
-          "p95Seconds": 4.154717206954956,
-          "maxSeconds": 4.154717206954956
-        }
-      },
-      "allShortsPassed": true
-    },
-    {
-      "label": "384K",
-      "inputTokens": 384075,
-      "outputTokens": 533,
-      "nativeSeconds": 248.27131390571594,
-      "preparationSeconds": 238.752354,
-      "streamSeconds": 7.275000095367432,
-      "streamTokensPerSecond": 73.26460385057635,
-      "endReason": {
-        "kind": "completed"
-      },
-      "zeroRetries": true,
-      "shorts": {
-        "fresh-numeric": {
-          "count": 1,
-          "medianSeconds": 4.3276824951171875,
-          "p95Seconds": 4.3276824951171875,
-          "maxSeconds": 4.3276824951171875
-        },
-        "numeric": {
-          "count": 7,
-          "medianSeconds": 4.022886037826538,
-          "p95Seconds": 8.012282180786132,
-          "maxSeconds": 8.236066102981567
-        },
-        "prose": {
-          "count": 7,
-          "medianSeconds": 3.8064887523651123,
-          "p95Seconds": 7.183554053306578,
-          "maxSeconds": 8.074807405471802
-        }
-      },
-      "allShortsPassed": true
-    },
-    {
-      "label": "near1M",
-      "inputTokens": 1002081,
-      "outputTokens": 1,
-      "nativeSeconds": 1480.7705583572388,
-      "preparationSeconds": 1475.291467,
-      "streamSeconds": 0.0,
-      "streamTokensPerSecond": null,
-      "endReason": {
-        "kind": "max-tokens"
-      },
-      "zeroRetries": true,
-      "shorts": {
-        "fresh-numeric": {
-          "count": 5,
-          "medianSeconds": 5.409789800643921,
-          "p95Seconds": 10.4969651222229,
-          "maxSeconds": 11.226937055587769
-        },
-        "numeric": {
-          "count": 41,
-          "medianSeconds": 4.790015459060669,
-          "p95Seconds": 10.238679885864258,
-          "maxSeconds": 13.214853048324585
-        },
-        "prose": {
-          "count": 41,
-          "medianSeconds": 5.483822345733643,
-          "p95Seconds": 9.125194787979126,
-          "maxSeconds": 11.11115026473999
-        }
-      },
-      "allShortsPassed": true
-    }
-  ],
-  "totalShortReplies": 106,
-  "fixtureLimitation": "Private proxy origin did not register canonical-only managed-budget hook; source branch verified without inference. Corrected near-1M output and compaction remain untested.",
-  "preservation": {
-    "originalHistories": 36,
-    "originalSessionFilesHashIdentical": 72,
-    "resultingHistoriesRetained": 61,
-    "temporaryKeyRevoked": true
+  "failure": "strict-memory-warning-gate",
+  "inputReservationTokens": 1002081,
+  "outputReservationTokens": 8192,
+  "lastModelCachedPrefixCounter": 765952,
+  "lastAcknowledgedWarmStepTokens": 720896,
+  "fullPreparationCompleted": false,
+  "substantialLongAnswerObtained": false,
+  "substantialAnswerTokensPerSecond": null,
+  "totalShortReplies": 53,
+  "shortReplies": {
+    "medianNativeSeconds": 4.658603668212891,
+    "maxNativeSeconds": 11.780581951141357,
+    "retries": 0,
+    "allContentChecksPassed": true
   },
+  "allocatorMappingWarnings": 4,
+  "uncaughtCudaOOM": 0,
+  "unexpectedModelRestartsDuringTrial": 0,
+  "nearLimitCompaction": "not-started",
   "rollbackRecovery": {
-    "exactSavedSpecification": true,
-    "exactSavedSource": true,
-    "zeroUnexpectedRestarts": true,
-    "contextTokens": 1048576,
-    "dsparkBlockSize": 5,
-    "gpuPrefillChunkTokens": 1024,
-    "staticMemoryFraction": 0.923,
+    "state": "verified-compatible-unfused",
+    "totalContextTokens": 1048576,
+    "memoryFractionStatic": 0.922,
     "maxRunningRequests": 8,
-    "directModelExactReplySeconds": 0.19013619422912598,
-    "canonicalLiteLLMExactReplySeconds": 0.22790002822875977,
-    "scope": "Short health checks only; not near-1M or compaction acceptance."
+    "sessionCacheEnabled": true,
+    "rejectedFusionPresent": false,
+    "canonicalNative": {
+      "inputTokens": 11912,
+      "outputTokens": 12,
+      "elapsedSeconds": 3.825,
+      "retries": 0,
+      "exactReply": true,
+      "matchingCanonicalWireRecords": 1
+    }
+  },
+  "preservation": {
+    "scope": "disposable-test-worker",
+    "historiesAcrossReplacement": 130,
+    "filesAcrossReplacement": 260,
+    "allReplacementHashesUnchanged": true,
+    "originalHistories": 61,
+    "originalFiles": 122,
+    "finalRetainedHistories": 131,
+    "finalRetainedFiles": 262,
+    "humanWorkersRestarted": 0
+  },
+  "cleanup": {
+    "ownedWorkersRestoredToStoppedSpecifications": true,
+    "ownedAdmissionHolderReleased": true,
+    "ownedTestCredentialRevoked": true
+  },
+  "remainingPerformanceGates": [
+    "memory-warning gate",
+    "substantial actual DSH near-1M answer and tools/source checks",
+    "concurrent short-response qualification",
+    "near-limit compaction and retained-context verification"
+  ],
+  "historicalTrials": {
+    "earlierOutputBudgetTrial": {
+      "date": "2026-10-22",
+      "qualificationPassed": false,
+      "failure": "Near-1M final forwarding budget was one output token; native endReason max-tokens. Compaction not launched.",
+      "stages": [
+        {
+          "label": "128K",
+          "inputTokens": 124076,
+          "outputTokens": 647,
+          "nativeSeconds": 53.45581865310669,
+          "preparationSeconds": 43.350567000000005,
+          "streamSeconds": 9.016999959945679,
+          "streamTokensPerSecond": 71.75335509305,
+          "endReason": {
+            "kind": "completed"
+          },
+          "zeroRetries": true,
+          "shorts": {
+            "numeric": {
+              "count": 1,
+              "medianSeconds": 5.923486948013306,
+              "p95Seconds": 5.923486948013306,
+              "maxSeconds": 5.923486948013306
+            },
+            "prose": {
+              "count": 1,
+              "medianSeconds": 4.154717206954956,
+              "p95Seconds": 4.154717206954956,
+              "maxSeconds": 4.154717206954956
+            }
+          },
+          "allShortsPassed": true
+        },
+        {
+          "label": "384K",
+          "inputTokens": 384075,
+          "outputTokens": 533,
+          "nativeSeconds": 248.27131390571594,
+          "preparationSeconds": 238.752354,
+          "streamSeconds": 7.275000095367432,
+          "streamTokensPerSecond": 73.26460385057635,
+          "endReason": {
+            "kind": "completed"
+          },
+          "zeroRetries": true,
+          "shorts": {
+            "fresh-numeric": {
+              "count": 1,
+              "medianSeconds": 4.3276824951171875,
+              "p95Seconds": 4.3276824951171875,
+              "maxSeconds": 4.3276824951171875
+            },
+            "numeric": {
+              "count": 7,
+              "medianSeconds": 4.022886037826538,
+              "p95Seconds": 8.012282180786132,
+              "maxSeconds": 8.236066102981567
+            },
+            "prose": {
+              "count": 7,
+              "medianSeconds": 3.8064887523651123,
+              "p95Seconds": 7.183554053306578,
+              "maxSeconds": 8.074807405471802
+            }
+          },
+          "allShortsPassed": true
+        },
+        {
+          "label": "near1M",
+          "inputTokens": 1002081,
+          "outputTokens": 1,
+          "nativeSeconds": 1480.7705583572388,
+          "preparationSeconds": 1475.291467,
+          "streamSeconds": 0.0,
+          "streamTokensPerSecond": null,
+          "endReason": {
+            "kind": "max-tokens"
+          },
+          "zeroRetries": true,
+          "shorts": {
+            "fresh-numeric": {
+              "count": 5,
+              "medianSeconds": 5.409789800643921,
+              "p95Seconds": 10.4969651222229,
+              "maxSeconds": 11.226937055587769
+            },
+            "numeric": {
+              "count": 41,
+              "medianSeconds": 4.790015459060669,
+              "p95Seconds": 10.238679885864258,
+              "maxSeconds": 13.214853048324585
+            },
+            "prose": {
+              "count": 41,
+              "medianSeconds": 5.483822345733643,
+              "p95Seconds": 9.125194787979126,
+              "maxSeconds": 11.11115026473999
+            }
+          },
+          "allShortsPassed": true
+        }
+      ],
+      "totalShortReplies": 106,
+      "fixtureLimitation": "Private proxy origin did not register canonical-only managed-budget hook; source branch verified without inference. Corrected near-1M output and compaction remain untested.",
+      "preservation": {
+        "originalHistories": 36,
+        "originalSessionFilesHashIdentical": 72,
+        "resultingHistoriesRetained": 61,
+        "temporaryKeyRevoked": true
+      },
+      "rollbackRecovery": {
+        "exactSavedSpecification": true,
+        "exactSavedSource": true,
+        "zeroUnexpectedRestarts": true,
+        "contextTokens": 1048576,
+        "dsparkBlockSize": 5,
+        "gpuPrefillChunkTokens": 1024,
+        "staticMemoryFraction": 0.923,
+        "maxRunningRequests": 8,
+        "directModelExactReplySeconds": 0.19013619422912598,
+        "canonicalLiteLLMExactReplySeconds": 0.22790002822875977,
+        "scope": "Short health checks only; not near-1M or compaction acceptance."
+      }
+    }
   }
 }
