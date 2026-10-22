@@ -1744,7 +1744,7 @@ const server = http.createServer((req, res) => {
   }
 
   if (authenticated && (!accountEnabled(sessionUser) || (activeSession.internet === 'on' && !internetAllowed(sessionUser)))) { revokeUserSessions(sessionUser); authenticated=false; }
-  if (!authenticated && APP_SIGNIN && appHostName(req.headers.host) && req.method==='GET' && !parsedUrl.pathname.startsWith('/api/')) {
+  if (!authenticated && APP_SIGNIN && !(courseRoute && courseRoute.hostAllowed) && appHostName(req.headers.host) && req.method==='GET' && !parsedUrl.pathname.startsWith('/api/')) {
     res.writeHead(303,{Location:'https://'+process.env.DSH_TRUSTED_HOST+'/login?app='+encodeURIComponent(appHostName(req.headers.host)), 'Cache-Control':'no-store'});return res.end();
   }
   if (!authenticated) {
