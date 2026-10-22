@@ -116,3 +116,20 @@ and SHA-256 hashes. A separately owned concurrent test worker was excluded from
 the original-worker comparison; it was not removed or assigned to another user.
 This verifies preservation across the gateway replacement, not a restart of every
 user worker or resumption of every historical tool operation.
+
+## Final authentication and preservation check on generation 92
+
+After the subsequent source-only on-demand Jupyter gateway update, independent
+readback matched all 27 intended mounted source files and the exact target
+specification. Real AD/UPN login, authenticated application return, ordinary-user
+admin denial, manual HTML and both owned-session logouts passed again. The
+account remained in No Internet. DSH and GPU course indexes, reproduction ZIPs,
+sampled chapter HTML/captions and video HEAD/range responses matched their
+pinned content; protected course access was denied after logout.
+
+A fresh independent capture again found all 30 original main workers unchanged
+in identity, restart count and mounts. All 220 original history/attachment files
+(9,840,775 bytes) retained their lengths and SHA-256 hashes. Additional synthetic
+test files and the separately owned concurrent test worker were kept outside the
+original-file comparison. No user worker was restarted by this gateway change,
+and these checks did not submit model questions or restore persistent state.
