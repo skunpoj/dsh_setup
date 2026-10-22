@@ -145,3 +145,7 @@ human account store as the fixture.
 The client version, upstream package and digest are recorded in
 [`vendor/ldapts/PROVENANCE.json`](../vendor/ldapts/PROVENANCE.json); its MIT license
 is included. Review and retest the pinned dependency before updating it.
+
+For the dated application-login correction and the distinction between isolated
+qualification and Production rollout, see the
+[23 October acceptance record](LDAP_APP_LOGIN_ACCEPTANCE_20261023.md).
