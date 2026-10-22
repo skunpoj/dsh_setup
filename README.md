@@ -4,6 +4,16 @@
 
 Start with [the design and operating principles](docs/THREE_RISK_CONTROLS.md) or its [HTML guide](docs/THREE_RISK_CONTROLS.html): prevent external leakage, prevent damage or excessive access, and keep results within authorized users. GPU configuration and measurements belong in the technical references after the controls. [Risk-first course delivery](docs/COURSE_DELIVERY.md) explains authenticated video, captions, source snapshots and safe updates.
 
+## DeepInfer on four H100 GPUs
+
+The 23 October read-only review found that official DeepInfer revision `9bd9cf2`
+still requires SM100 attention/MoE paths; the installed four H100s are SM90.
+DeepInfer was not installed or benchmarked, and SGLang remains in use. There is
+no matched DeepInfer-versus-SGLang 1M compaction or throughput result.
+See the [compatibility and comparison status](docs/DEEPINFER_INTEGRATION.html)
+or [Markdown guide](docs/DEEPINFER_INTEGRATION.md) for the source checks,
+recorded SGLang results and same-node qualification gates.
+
 ## AD / LDAP authentication
 
 Start with the [user manual](docs/DSH_USER_MANUAL.md) or its [standalone HTML version](docs/DSH_USER_MANUAL.html) for sign-in, private environments, tools, application URLs and administrator controls.

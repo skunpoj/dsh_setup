@@ -23,6 +23,41 @@ Fresh discovery on the existing node reports **four H100 NVL GPUs, SM90**.
 Consequently this candidate is blocked before installation; DeepInfer is
 **not deployed or benchmarked**. The working SGLang service remains in use.
 
+## Fresh compatibility review - 23 October 2026 (ICT)
+
+The current official main revision remains `9bd9cf243fc53ef9afbf8f04d391d989117d6ab9`.
+Read-only checks at 03:09-03:12 ICT confirmed the same dependency pins and
+architecture restrictions. FlashMLA sparse decode checks `is_sm100f()`;
+Mega-MoE dispatches to the SM100 implementation and otherwise rejects the
+architecture. Actual NVML discovery reported four H100 NVL GPUs with compute
+capability 9.0. No validated SM90 fallback was found in this candidate.
+
+**Decision: do not install or switch to this DeepInfer release on the existing
+four H100s.** No engine build, model reload, inference call, history migration
+or storage change was performed for this review. SGLang remains the serving
+engine. This is a compatibility failure for the reviewed release, not a claim
+that an H100 port is theoretically impossible.
+
+### Actual comparison status
+
+| Required comparison | DeepInfer | SGLang recorded reference |
+| --- | --- | --- |
+| Existing four-H100 compatibility | Blocked by reviewed kernel paths | Existing serving engine |
+| Current matched near-1M answer and compaction | Not run | Latest corrected 22 October candidate stopped at its memory-warning gate; near-1M compaction did not start |
+| Concurrent ordinary requests | Not benchmarked | 53 short replies during that partial preparation; median 4.66 s, maximum 11.78 s, zero retries |
+| Throughput advantage | No measurement | No matched engine comparison; historical near-1M success is a different profile |
+
+The SGLang numbers are dated recorded samples, not fresh benchmarks or an SLA.
+See the [full preparation and rollback review](GPU_PREPARATION_REVIEW_20261022.html).
+No DeepInfer speedup, completed comparison, or current full near-1M acceptance
+is claimed. A supported H100 implementation must first pass numerical/cache
+compatibility and memory checks. Only then should an isolated same-node
+handover compare the same checkpoint, tokenizer, complete DSH payload, output
+budget and short-request schedule, followed by real compaction, cancellation,
+recall and persistence checks. Preserve the working SGLang image/profile and
+routes for rollback, without changing history/workspace mounts. This plan uses
+the existing node; it does not require or recommend purchasing hardware.
+
 ## Reproduce the compatibility check
 
 Run this in a separate checkout and environment. Never run upstream `build.sh`
