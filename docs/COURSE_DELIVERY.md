@@ -29,3 +29,7 @@ The authenticated gateway checks the session and approved hostname before bounde
 6. Check existing users and durable history. Restore only the reviewed course fields on regression; preserve newer unrelated state and user writes.
 
 The reference repository supplies gateway integration code. Operators supply approved learning assets, image repositories, registry authentication and site routing privately, then qualify their installation. See [installation](INSTALL.md), [acceptance](ACCEPTANCE.md), [publication boundaries](PUBLICATION.md) and [GPU setup](../gpu-stack/README.md).
+
+## Slide companions
+
+Publish reviewed slide companions with clear labels describing their scope. Keep original Pilot material separate from appended routing lessons, and retain exact source hashes. Where the existing manual route permits only HTML assets, a small self-contained HTML download page can embed the reviewed PowerPoint bytes with a native download link and displayed SHA-256. Validate the downloaded bytes against the original deck; do not rename a PowerPoint file to HTML or weaken the route whitelist. Keep site-specific decks in the private deployment repository. Updating these manual downloads does not require recutting or replacing an in-flight video package.
