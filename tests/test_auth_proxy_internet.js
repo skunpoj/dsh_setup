@@ -8,7 +8,8 @@ const { spawn } = require('child_process');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-auth-proxy-'));
 const users = path.join(root, '.user_auth.json');
 const settings = path.join(root, '.user_settings.json');
-fs.writeFileSync(users, JSON.stringify({ alice: 'secret1', bob: 'secret2' }));
+const {hashPassword} = require('../scripts/password_store');
+fs.writeFileSync(users, JSON.stringify({ alice: {...hashPassword('secret1'), internetAllowed: true}, bob: 'secret2' }));
 
 const backend = http.createServer((req, res) => {
   if (req.url === '/ui') {
@@ -30,6 +31,7 @@ function request(port, method, requestPath, body = '', cookie = '') {
   return new Promise((resolve, reject) => {
     const req = http.request({ host: '127.0.0.1', port, method, path: requestPath, headers: {
       host: 'dsh.test.local',
+      ...(method === 'POST' ? {origin: 'http://dsh.test.local', referer: 'http://dsh.test.local/login'} : {}),
       ...(body ? { 'content-type': 'application/x-www-form-urlencoded', 'content-length': Buffer.byteLength(body) } : {}),
       ...(cookie ? { cookie } : {}),
     } }, res => {
@@ -70,6 +72,8 @@ async function waitReady(port) {
 
     const persisted = JSON.parse(fs.readFileSync(users, 'utf8'));
     assert.equal(persisted.alice.scheme, 'scrypt-v1');
+    assert.equal(persisted.bob.scheme, 'scrypt-v1');
+    assert(!fs.readFileSync(users, 'utf8').includes('secret2'));
     assert(!fs.readFileSync(users, 'utf8').includes('secret1'));
     assert.equal((await request(proxyPort, 'POST', '/login', 'username=bob&password=secret2')).status, 401);
     assert.equal((await request(proxyPort, 'POST', '/register', 'username=other&password=secret3')).status, 403);
@@ -105,8 +109,9 @@ async function waitReady(port) {
     assert.match(logout.headers['set-cookie'][0], /^test_auth=;/);
     assert.match(logout.headers['set-cookie'][0], /; Secure(?:;|$)/);
     const afterLogout = await request(proxyPort, 'GET', '/api/auth/session', '', onCookie);
-    assert.equal(afterLogout.status, 200);
-    assert.match(afterLogout.body, /เข้าสู่ระบบ/);
+    assert.equal(afterLogout.status, 401);
+    assert.match(afterLogout.headers['content-type'], /application\/json/);
+    assert.equal(typeof JSON.parse(afterLogout.body).error, 'string');
     assert.equal((await request(proxyPort, 'POST', '/change-password', 'username=alice&old_password=secret1&new_password='+ 'x'.repeat(1025))).status, 400);
     assert.equal((await request(proxyPort, 'POST', '/login', 'x'.repeat(17000))).status, 413);
     const changed = await request(proxyPort, 'POST', '/change-password', 'username=alice&old_password=secret1&new_password=newsecret');

@@ -7,7 +7,8 @@ const { spawn } = require('child_process');
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-route-'));
 const users = path.join(root, '.user_auth.json');
-fs.writeFileSync(users, JSON.stringify({ alice: 'secret1' }));
+const {hashPassword} = require('../scripts/password_store');
+fs.writeFileSync(users, JSON.stringify({ alice: {...hashPassword('secret1'), internetAllowed: true} }));
 const secureToken = path.join(root, 'secure-token');
 const internetToken = path.join(root, 'internet-token');
 fs.writeFileSync(secureToken, 'secure-first');
@@ -92,7 +93,11 @@ async function waitReady(port) {
     const registration = await request(gatewayPort, 'POST', '/register', 'username=mallory&password=secret1&confirm_password=secret1');
     assert.equal(registration.status, 403);
     assert(!JSON.parse(fs.readFileSync(users, 'utf8')).mallory);
-    for (const protectedPath of ['/proxy/8000/report', '/api/sessions', '/report.html']) {
+    const anonymousApi = await request(gatewayPort, 'GET', '/api/sessions');
+    assert.equal(anonymousApi.status, 401);
+    assert.match(anonymousApi.headers['content-type'], /application\/json/);
+    assert.equal(typeof JSON.parse(anonymousApi.body).error, 'string');
+    for (const protectedPath of ['/proxy/8000/report', '/report.html']) {
       const anonymous = await request(gatewayPort, 'GET', protectedPath);
       assert.equal(anonymous.status, 200); // Gateway's login page, not backend content.
       assert(anonymous.body.includes('id="pane-login"'));

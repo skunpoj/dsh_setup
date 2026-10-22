@@ -98,3 +98,7 @@ configuration, generated manifests, keys, tickets, backups and results out of Gi
 See [release validation](docs/VALIDATION.md) and [third-party notices](docs/THIRD_PARTY.md).
 
 For custom automatic provisioning, see [signup capacity, pressure gating and automatic recovery](docs/SIGNUP_CAPACITY.md). The portable evaluator is supplied for integration; it does not install a collector or enable registration.
+
+## Application access and proxy setup
+
+Private local applications and explicitly approved HTTPS destinations can use owner-bound app URLs, with DSH sign-in required by default. See the [application proxy setup and regression checks](docs/APP_PROXY.md) for origin policies, DNS/TLS, optional Gradio compatibility and destination-authentication boundaries.
