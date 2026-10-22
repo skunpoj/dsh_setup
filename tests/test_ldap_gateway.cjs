@@ -34,7 +34,7 @@ test('actual gateway enforces directory identity, conflict, approval and restart
   fs.writeFileSync(root+'/routes.json',JSON.stringify({admin:{secure:dest,internet:dest},[user]:{secure:dest,internet:dest}}));
   fs.writeFileSync(root+'/app-links.json',JSON.stringify({'private-ldap-app':{owner:user,ports:{off:3000},accessMode:'authenticated'}}));
   const preload=root+'/directory-fixture.cjs';
-  fs.writeFileSync(preload,`const key=require.resolve(${JSON.stringify(path.join(runtime,'ldap_auth'))});const actual=require(key);require.cache[key].exports={...actual,Directory:class{constructor(){this.config={allowSignUp:true};}async authenticate(name,password){if(password!==${JSON.stringify(credential.password)})throw new actual.DirectoryError('INVALID_CREDENTIALS',401,'Denied');return {username:actual.normalizeUsername(name,${JSON.stringify(credential.domain)}),subject:'ab'.repeat(16)};}}};`);
+  fs.writeFileSync(preload,`const key=require.resolve(${JSON.stringify(path.join(runtime,'ldap_auth'))});const actual=require(key);require.cache[key].exports={...actual,Directory:class{constructor(){this.config={allowSignUp:true,domain:${JSON.stringify(credential.domain)}};}async authenticate(name,password){if(password!==${JSON.stringify(credential.password)})throw new actual.DirectoryError('INVALID_CREDENTIALS',401,'Denied');return {username:actual.normalizeUsername(name,${JSON.stringify(credential.domain)}),subject:'ab'.repeat(16)};}}};`);
   async function start() {
     const env=Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('DSH_')&&!key.startsWith('AUTH_')&&key!=='WORKSPACE_ROOT'));
     Object.assign(env,{PORT:String(port),DSH_TRUSTED_HOST:issuer,WORKSPACE_ROOT:root+'/users',DSH_USER_STORE_PATH:usersFile,
@@ -63,6 +63,17 @@ test('actual gateway enforces directory identity, conflict, approval and restart
     const r=await request(port,'/login',{fields:{app_login:token,username:user,password:credential.password,auth_provider:'ldap'},cookie});
     assert.equal(r.status,409);assert.match(r.body,/administrator to delete/);assert.match(r.body,/Sign in to private-ldap-app/);
   });
+  const adNames=[user+'@'+credential.domain,credential.domain.split('.')[0].toUpperCase()+'\\'+user];
+  async function focused(name,provider='ldap') {
+    const page=await request(port,'/login?app=private-ldap-app');assert.equal(page.status,200);
+    const token=page.body.match(/name="app_login" value="([a-f0-9]+)"/)[1];
+    return request(port,'/login',{fields:{app_login:token,username:name,password:credential.password,auth_provider:provider},cookie:cookieFor(page,'__Host-dsh_app_login')});
+  }
+  await t.test('app-focused UPN and domain names reach the same local collision check',async()=>{
+    const before=fs.readFileSync(usersFile);
+    for(const name of adNames){const r=await focused(name);assert.equal(r.status,409);assert.equal(r.headers['x-dsh-auth-error'],'LDAP_LOCAL_ACCOUNT_CONFLICT');}
+    assert.deepEqual(fs.readFileSync(usersFile),before);
+  });
   // Remove only the locally generated fixture record, never a live user account.
   await stop();const existing=JSON.parse(fs.readFileSync(usersFile));delete existing[user];fs.writeFileSync(usersFile,JSON.stringify(existing));await start();
   let adCookie;
@@ -71,6 +82,11 @@ test('actual gateway enforces directory identity, conflict, approval and restart
     const stored=JSON.parse(fs.readFileSync(usersFile));assert.equal(stored[user].authProvider,'ldap');assert.equal(stored[user].internetAllowed,false);assert.match(stored[user].ldapSubject,/^[a-f0-9]{32}$/);
     assert.ok(!fs.readFileSync(usersFile,'utf8').includes(credential.password));
     const session=await request(port,'/api/auth/session',{cookie:adCookie});assert.equal(session.status,200);assert.equal(JSON.parse(session.body).user,user);assert.equal(JSON.parse(session.body).internet,'off');
+  });
+  await t.test('app-focused AD aliases return to the same owner app while other identities remain denied',async()=>{
+    for(const name of adNames){const r=await focused(name);assert.equal(r.status,303);assert.equal(r.headers.location,'https://private-ldap-app.apps.example.test/');assert.ok(cookieFor(r));}
+    for(const name of ['another-owner@'+credential.domain,user+'@unapproved.example.test'])assert.equal((await focused(name)).status,403);
+    assert.equal((await focused(adNames[0],'local')).status,403);
   });
   await t.test('AD user cannot choose Internet until an administrator grants access',async()=>{
     assert.equal((await login('ldap',credential.password,'on')).status,403);

@@ -7,7 +7,7 @@ const { createCourseServer, routeFor } = require('./course_files');
 const serveCourse = createCourseServer();
 const { hashPassword, verifyPassword, migrateUsers, writeAtomicUsers } = require('./password_store');
 const { SessionStore, TTL_MS: SESSION_TTL_MS } = require('./session_store');
-const {Directory, DirectoryError} = require('./ldap_auth');
+const {Directory, DirectoryError, normalizeUsername} = require('./ldap_auth');
 const LDAP_DIRECTORY = process.env.DSH_LDAP_CONFIG_FILE ? new Directory(process.env.DSH_LDAP_CONFIG_FILE) : null;
 const PACKAGE_PORTAL = process.env.DSH_PACKAGES_ROOT ? new (require('./package_portal').PackagePortal)(process.env.DSH_PACKAGES_ROOT) : null;
 function projectPackageAccess(){if(PACKAGE_PORTAL)PACKAGE_PORTAL.project(loadUsers(),privateTargetsFor,accountEnabled,internetAllowed);}
@@ -1515,7 +1515,7 @@ const server = http.createServer((req, res) => {
       const authProvider = params.get('auth_provider') || (LDAP_DIRECTORY ? 'ldap' : 'local');
       let appContext=null;
       if(params.has('app_login')) {
-        try {if(!APP_SIGNIN)throw Error();appContext=APP_SIGNIN.consume(req,params);}
+        try {if(!APP_SIGNIN)throw Error();appContext=APP_SIGNIN.consume(req,params,value=>authProvider==='ldap'&&LDAP_DIRECTORY?normalizeUsername(value,LDAP_DIRECTORY.config.domain):value.trim().toLowerCase());}
         catch {res.writeHead(403,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'});return res.end('Application sign-in expired or access denied. Reopen the application.');}
       }
       let loginPageFailureStatus=0;

@@ -5,6 +5,17 @@ const issuer='https://dsh.aiportal.example.internal',domain='aiportal.example.in
 function fixture(){let now=0;const maps={demo:{owner:'alice',ports:{off:8501},accessMode:'authenticated'}};const auth=new AppSignIn({domain,issuer,mappings:()=>maps,now:()=>now,limit:2});return{auth,maps,advance:()=>now=300001};}
 function form(auth){const headers={};const html=auth.begin('demo',{setHeader:(n,v)=>headers[n]=v});return{html,token:html.match(/name="app_login" value="([a-f0-9]+)"/)[1],cookie:headers['Set-Cookie'].split(';')[0]};}
 function submit(auth,f,extra={}){return auth.consume({headers:{origin:issuer,host:new URL(issuer).host,cookie:f.cookie,...extra}},new URLSearchParams({app_login:f.token,username:'alice',password:'synthetic-only'}));}
+
+test('issuer canonicalization supports an AD UPN for a shared app without granting owner access',()=>{
+ const {normalizeUsername}=require('../../scripts/ldap_auth');
+ const {auth,maps}=fixture();
+ maps.demo={owner:'alice',ports:{},targets:{off:{type:'external',origin:'https://upstream.example.test'}},visitorPolicy:'signed-in-users',sharedEnvironment:'off',accessMode:'authenticated'};
+ const f=form(auth),headers={origin:issuer,host:new URL(issuer).host,cookie:f.cookie};
+ const params=new URLSearchParams({app_login:f.token,username:'bobby@example.com',password:'synthetic-only'});
+ const app=auth.consume({headers},params,value=>normalizeUsername(value,'example.com'));
+ assert.equal(app.visitorPolicy,'signed-in-users');assert.equal(app.sessionInternet,'off');assert.equal(app.owner,'alice');
+ assert.equal(app.destination,'https://demo.aiportal.example.internal/');
+});
 test('app form has no workspace/environment/platform actions and returns registered alias',()=>{const {auth}=fixture(),f=form(auth);for(const term of ['Web Terminal','Jupyter','type="radio"','/register','/change-password'])assert(!f.html.includes(term));assert.equal(submit(auth,f).destination,'https://demo.aiportal.example.internal/');});
 test('one use and same browser required',()=>{const {auth}=fixture(),f=form(auth);submit(auth,f);assert.throws(()=>submit(auth,f));const g=form(auth);assert.throws(()=>submit(auth,g,{cookie:'__Host-dsh_app_login='+'f'.repeat(64)}));});
 test('reject foreign, null or absent Origin and foreign Host',()=>{for(const headers of [{origin:'https://evil.example'},{host:'evil.example'},{origin:'null'},{origin:undefined}]){const {auth}=fixture();assert.throws(()=>submit(auth,form(auth),headers));}});

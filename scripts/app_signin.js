@@ -35,7 +35,7 @@ class AppSignIn {
     const accessText=this.testIssuer?'Isolated Test issuer. Use the synthetic review account, not your normal DSH credentials.':app.visitorPolicy==='signed-in-users'?'Use any enabled DSH account. The destination application keeps its own permissions.':'This private application is restricted to its authorized owner.';
     return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Sign in to ${escape(name)}</title><style>body{font:18px/1.5 system-ui;max-width:420px;margin:10vh auto;padding:24px}label,input,select,button{display:block;box-sizing:border-box;width:100%;margin:12px 0}input,select,button{padding:12px}p[role=alert]{color:#b91c1c}</style></head><body><h1>Sign in to ${escape(name)}</h1><p>${escape(accessText)}</p>${error?`<p role="alert">${escape(error)}</p>`:''}<p>Application target environment: ${app.internet==='on'?'Internet':'No Internet'}. Signing in does not grant workspace or network access.</p><form method="post" action="/login"><input type="hidden" name="app_login" value="${token}">${this.ldapEnabled?`<label>Sign in using<select name="auth_provider"><option value="ldap" ${authProvider==='ldap'?'selected':''}>AD / LDAP</option><option value="local" ${authProvider==='local'?'selected':''}>Local DSH account</option></select></label>`:''}<label>Username<input name="username" autocomplete="username" required maxlength="64"></label><label>Password<input type="password" name="password" autocomplete="current-password" required maxlength="1024"></label><button>Sign in and open application</button></form><p>The application may require its own sign-in after this access check.</p></body></html>`;
   }
-  consume(req, params) {
+  consume(req, params, canonicalize = value => value.trim().toLowerCase()) {
     const tokens = params.getAll('app_login');
     if (tokens.length !== 1) throw Error('Invalid application sign-in');
     const token = tokens[0], saved = this.pending.get(token);
@@ -49,7 +49,11 @@ class AppSignIn {
     if (!crypto.timingSafeEqual(Buffer.from(digest,'hex'),Buffer.from(saved.browser,'hex'))) throw Error('Sign-in browser mismatch');
     const current = this.mapping(saved.name, saved.internet);
     if (current.stamp !== saved.stamp) throw Error('Application configuration changed');
-    if (params.getAll('username').length !== 1 || params.getAll('password').length !== 1 || !/^[a-z0-9_.-]{1,64}$/.test(params.get('username').trim().toLowerCase()) || (current.visitorPolicy!=='signed-in-users'&&params.get('username').trim().toLowerCase() !== current.owner)) throw Error('Account cannot access this application');
+    if (params.getAll('username').length !== 1 || params.getAll('password').length !== 1 || params.get('username').length > 320) throw Error('Account cannot access this application');
+    // The issuer supplies its configured AD normalizer. Canonicalization is not
+    // authentication; the normal directory bind still runs before session creation.
+    const username = canonicalize(params.get('username'));
+    if (!/^[a-z0-9_.-]{1,64}$/.test(username) || (current.visitorPolicy!=='signed-in-users'&&username !== current.owner)) throw Error('Account cannot access this application');
     return current;
   }
   assertCurrent(saved) {

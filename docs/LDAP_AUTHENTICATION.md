@@ -22,6 +22,11 @@ approved-domain `DOMAIN\username` resolve to the same canonical identity. DSH
 does not silently link accounts, replace local credentials or assign the local
 workspace to the AD identity. The existing local sign-in remains available.
 
+Application-specific sign-in must use that same configured-domain normalizer
+before comparing an app's owner. UPN and domain-style forms must reach the
+normal AD credential and local-account collision checks. Canonicalization alone
+never authenticates a user or grants access to another user's private app.
+
 The administrator must confirm ownership and preserve the account's storage and
 runtime reservation before deleting its local sign-in record. Disabling an
 account is not deletion. Do not delete workspace/history volumes or free an
