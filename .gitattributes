@@ -1,3 +1,5 @@
 
 # Preserve the verified third-party runtime bytes on Windows checkouts.
 vendor/ldapts/ldapts.cjs -text
+scripts/auth_proxy.js text eol=lf
+scripts/app_signin.js text eol=lf
