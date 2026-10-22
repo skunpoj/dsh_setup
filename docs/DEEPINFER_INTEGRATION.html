@@ -4,7 +4,7 @@ from the SGLang service currently used by DSH through LiteLLM. Installing the
 Python package or renaming a model alias does not switch that engine.</p>
 <h2>Current implementation status</h2>
 <p>The read-only candidate gate is implemented in
-<a href="../scripts/deepinfer_preflight.py"><code>scripts/deepinfer_preflight.py</code></a>. It checks
+<a href="https://github.com/skunpoj/dsh_setup/blob/58960acb9c1db7e458ccba8cd7c0fea185e52524/scripts/deepinfer_preflight.py"><code>scripts/deepinfer_preflight.py</code></a>. It checks
 the exact engine revision, attention/MoE dependency pins, actual kernel-source
 bytes and observed GPU compute capabilities. It does not install packages,
 allocate a CUDA context, load model weights, or change the service. Even an
