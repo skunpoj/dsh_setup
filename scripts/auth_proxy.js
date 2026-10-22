@@ -1469,7 +1469,19 @@ const server = http.createServer((req, res) => {
     // Native form POSTs need a same-origin Origin header for the strict CSRF check.
     // no-referrer makes browsers send Origin: null, even for this same-origin form.
     const headers={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'same-origin','X-Frame-Options':'DENY', 'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"};
-    try {if(req.headers.host!==process.env.DSH_TRUSTED_HOST)throw Error();const body=APP_SIGNIN.begin(parsedUrl.query.app,res,'',parsedUrl.query.environment);headers['Content-Security-Policy']=res.getHeader('Content-Security-Policy');res.writeHead(200,headers);return res.end(body);}
+    try {
+      if(req.headers.host!==process.env.DSH_TRUSTED_HOST)throw Error();
+      const app=parsedUrl.query.app;
+      // Public mappings have no DSH sign-in step. Reuse the live route policy;
+      // never accept a caller-supplied destination or create a session.
+      if(typeof app==='string' && appHostName(app+'.'+APP_DOMAIN)===app && publicApp(app)) {
+        res.writeHead(303,{'Location':'https://'+app+'.'+APP_DOMAIN+'/', 'Cache-Control':'no-store'});
+        return res.end();
+      }
+      const body=APP_SIGNIN.begin(app,res,'',parsedUrl.query.environment);
+      headers['Content-Security-Policy']=res.getHeader('Content-Security-Policy');
+      res.writeHead(200,headers);return res.end(body);
+    }
     catch {res.writeHead(404,headers);return res.end('Application sign-in unavailable.');}
   }
   if(parsedUrl.pathname==='/api/signup-capacity') {
