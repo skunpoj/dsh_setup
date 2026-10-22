@@ -34,7 +34,7 @@ Open **My applications**, select an available name, and register your applicatio
 
 Use **Require DSH sign-in** for private applications. Public access is an explicit choice for an approved mapping; it must not be used for protected data. An external application's own authentication remains separate from the DSH gateway session.
 
-The administrator controls the per-user name limit, allowed domains, reserved names and available hostname/path routes. Managed Jupyter or application restart requires an administrator-approved service configuration. An unregistered process is not automatically relaunched after replacement. See [application URLs, routing and restart controls](APP_PROXY.md).
+The administrator controls the per-user name limit, allowed domains, reserved names and available hostname/path routes. Opening Jupyter in Main DSH starts it when needed and reuses a running server and kernels. Internet approval and administrator service restrictions still apply. A worker restart ends in-memory kernels; saved notebooks remain in the private workspace. Other application restart requires an administrator-approved service configuration; unregistered processes are not automatically relaunched. See [application URLs, routing and restart controls](APP_PROXY.md).
 
 ## 5 Prepare packages for No Internet work
 
