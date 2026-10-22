@@ -53,8 +53,13 @@ def bundle(qualified, old_guide, trueforge_launcher):
     expected = json.loads(json.dumps(old_policy))
     expected['permission']['edit'] = 'allow'
     assert expected == policy and policy['permission']['external_directory'] == 'deny'
+    # Kilo adds this schema on first use if absent, rewriting the pinned asset.
+    # Include it canonically so normal session operations leave bytes unchanged.
+    qualified = dict(qualified)
+    policy['$schema'] = 'https://app.kilo.ai/config.json'
+    qualified['kilo.json'] = json.dumps(policy, indent=2) + '\n'
     identity = digest(json.dumps({'qualified': qualified, 'launcher': trueforge_launcher,
-                                  'hook': HOOK, 'version': 2}, sort_keys=True))[:16]
+                                  'hook': HOOK, 'version': 3}, sort_keys=True))[:16]
     release = BASE + '/releases/' + identity
     files = {}
     files['workspace-file-tools.py'] = qualified['workspace-file-tools.py']
