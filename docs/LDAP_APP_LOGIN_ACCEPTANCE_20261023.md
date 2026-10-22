@@ -44,7 +44,8 @@ inspection of every conversation's future tool behavior.
 ## Collision and regression checks
 
 After deployment, an isolated gateway mounted the exact installed source and
-used the same image and real corporate directory. All **10 HTTP tests passed**:
+used the same image and real corporate directory. All **nine scenarios passed**
+(the test runner reports **10 passes**, counting their parent test as well):
 
 - Local recovery login and visible AD/Local choices.
 - Valid AD credentials colliding with a manual account: HTTP 409, the administrator
