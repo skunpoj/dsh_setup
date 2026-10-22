@@ -73,6 +73,8 @@ implicitly configured. [Security boundaries](docs/SECURITY.md).
 
 ## Context and performance
 
+A recent actual DSH experiment completed 128K/384K stages at **71.75–73.26 output tokens/sec**. Its near-1M run processed **1,002,081 input tokens** but failed after **24m35s preparation** because the private test route did not register the managed output-budget correction. Compaction was not reached. **100+ tokens/sec was not established** for substantial output. The candidate is not promoted; portable defaults remain unchanged. [Results, concurrent short-request latency and remaining gates](docs/GPU_PREPARATION_REVIEW_20261022.html).
+
 The reference profile reserves up to 8,192 output tokens and 256 proxy tokens.
 With that full output reservation, maximum counted input is 1,040,128 tokens.
 DSH automatic compaction is configured near 917,504 estimated tokens, with exact
