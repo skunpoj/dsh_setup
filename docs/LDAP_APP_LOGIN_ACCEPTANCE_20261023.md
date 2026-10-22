@@ -29,6 +29,12 @@ The ordinary AD account received HTTP 403 from the administration API. The
 published manual also returned its HTML after the gateway restart. No model
 question was submitted by these authentication checks.
 
+After the course-only gateway update, the same actual UPN/main/application checks
+passed again: the ordinary account remained in No Internet, administration was
+denied, the manual and registered application returned their HTML, and both
+owned test sessions signed out. Live readback retained the same application
+image and all 25 accepted LDAP source files.
+
 The rollout changed exactly **two authentication modules among 25 source files**.
 The running application image, directory configuration, workspace mounts, course
 and manual state were retained. Independent readback matched all 25 installed
