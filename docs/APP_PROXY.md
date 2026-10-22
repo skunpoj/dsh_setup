@@ -39,7 +39,7 @@ Run from the repository root with Node.js and Python installed:
 node --test tests/app_proxy/test_app_signin.cjs tests/app_proxy/test_external_dns.cjs tests/app_proxy/test_gradio_alias.cjs
 node tests/app_proxy/verify_app_login_races.cjs
 python tests/run_app_proxy_tls.py
-python -m unittest discover -s tests -p test_render_manifests.py
+python -m unittest discover -s tests -p test_public_manifests.py
 python scripts/scan_public.py
 ```
 
@@ -50,3 +50,15 @@ The TLS runner generates temporary synthetic certificates and state, keeps verif
 The portable source checks cover 30 focused sign-in/DNS/Gradio cases, three asynchronous login races, six existing authentication/routing/password/signup suites and three manifest cases. The strict-TLS forwarding fixture passed 26 cases; its optional previous-source recovery case is skipped unless a previous source directory is supplied. These checks used Node.js 24 on Windows. The accepted site deployment was qualified separately on its pinned Linux runtime. No new public application image was built by this source-only promotion.
 
 One initial Windows logout-fixture run returned the intended storage-unavailable response instead of completing logout; an unchanged rerun passed. The cause was not established. This local observation must not be presented as a demonstrated production failure or an eliminated filesystem risk.
+
+## Choosing an integration mechanism
+
+| Mechanism | What it does | Alias and authentication implications |
+| --- | --- | --- |
+| Reverse proxy | Forwards ongoing application HTTP and WebSocket traffic | Can retain the alias; destination URLs, cookies, APIs and SSO must support it |
+| CNAME | Resolves one hostname through another DNS name | Does not add an HTTP path, port, sign-in gate or certificate; destination custom-host support is still needed |
+| Redirect | Sends the browser to another URL | Uses the destination address and its own browser session; does not retain the alias |
+| Forward proxy | Makes outbound requests for a client | Controls outbound access; does not itself publish an app alias |
+| Webhook | Receives an event or command | Can automate a mapping update, but does not carry ongoing app traffic |
+
+External HTTPS means outside the local workspace, and can still be an internal application. Destination authentication remains separate from the DSH gate. An SSO login can navigate away from the alias; retaining the alias afterward needs supported callback/custom-host and per-user session handling. Test the completed login, real app content, assets, API/WebSockets, expiry and logout before describing an alias as operational end to end. A successful redirect or page shell alone is insufficient. Do not repair incompatible SSO by sharing an administrator cookie, patching vendor authentication checks, disabling TLS, broadening cookie domains or granting unrestricted CORS.
