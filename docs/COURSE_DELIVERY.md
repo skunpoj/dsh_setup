@@ -35,3 +35,9 @@ The reference repository supplies gateway integration code. Operators supply app
 Publish reviewed slide companions with clear labels describing their scope. Keep original Pilot material separate from appended routing lessons, and retain exact source hashes. Where the existing manual route permits only HTML assets, a small self-contained HTML download page can embed the reviewed PowerPoint bytes with a native download link and displayed SHA-256. Validate the downloaded bytes against the original deck; do not rename a PowerPoint file to HTML or weaken the route whitelist. Keep site-specific decks in the private deployment repository. Updating these manual downloads does not require recutting or replacing an in-flight video package.
 
 Promote revised companion descriptions, slide counts and embedded PowerPoint bytes together as one atomic manual edition. Verify original slides against their retained renders, retain the prior edition and leave an in-progress video release untouched. Slide publication does not establish that a matching video has been deployed.
+
+### Download and opening checks
+
+The user flow is to open a slide companion page, select **Download PowerPoint (.pptx)**, save the file, and open that saved file in PowerPoint or a compatible presentation application. Preserve the `.pptx` extension. Use the hash shown on the page to check file integrity when needed.
+
+Qualify both companions on every deployed site. For each case, record the source page, browser, actual saved filename, byte count and SHA-256; then open that saved file and check its slide count and representative slides. A decoded embedded payload, a valid ZIP archive, an HTTP success response or a download-event timeout alone does not establish whether the browser saved and the presentation application opened the file. Keep browser save/open checks separate from payload validation. Publishing ordinary manual files must not restart active workspaces.
