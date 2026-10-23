@@ -12,7 +12,7 @@ function configure(profile) {
   }
   entry.config ??= {};
   entry.config.documentsDirectory = '/workspace';
-  return profile;
+  return require('./configure_managed_signin.cjs').configure(profile,process.env.DSH_MANAGED_TRANSPORT==='1'?'litellm-cluster':undefined);
 }
 if (require.main === module) {
   const YAML = require(require.resolve('yaml',{paths:['/usr/local/lib/node_modules/@deepseek-ai/dsh']}));

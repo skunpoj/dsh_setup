@@ -598,6 +598,12 @@ try {
   fs.mkdirSync(profileDir, { recursive: true });
   const patchYmlPath = `${profileDir}/cordis.patch.yml`;
   const cordisContent = `# Enterprise Cordis Profile Configuration for DSH Web UI
+- id: agent-default-model
+  config:
+    provider: litellm-cluster
+    model: deepseek-v4.1-flash
+- id: ui-settings-account
+  disabled: true
 - id: workspace-controller
   name: "@deepseek-ai/dsh-api-workspace-controller"
   config:

@@ -12,6 +12,8 @@ Use DSH in your browser for code, documents and analysis. Start with the private
 
 An AD identity that conflicts with an existing local username is refused for administrator review. DSH does not automatically merge identities, replace passwords or assign another identity's history. Keep using the existing local sign-in until the administrator resolves ownership and preserves the required data. See [AD identity and collision rules](LDAP_AUTHENTICATION.md).
 
+Sign in once with your team identity. Managed LiteLLM profiles hide the official DeepSeek account sign-in; the approved model connection is already configured. Team login, private routing and Logout remain available. See [team login and managed model access](MANAGED_PROVIDER_LOGIN.html).
+
 ## 2 Work with chats and files
 
 Select a project workspace and start a conversation. Describe a bounded task, identify the files to use and review the proposed changes and saved outputs. Keep durable work in the workspace location supplied by your operator.
