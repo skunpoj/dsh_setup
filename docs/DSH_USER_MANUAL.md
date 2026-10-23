@@ -90,3 +90,8 @@ process, restart counter, notebooks and kernel variables. Start enables a stoppe
 service; Restart and Stop deliberately interrupt its kernels and retain their
 confirmation prompts. See [administrator steps and behavior](JUPYTER_START_CONTROLS.html)
 and the [captioned walkthrough](JUPYTER_DSH2_DSH3_WALKTHROUGH.html).
+
+
+## Current guide and lifecycle verification
+
+See [document alignment](DOCUMENT_ALIGNMENT_20261023.md) for current controls, tests and historical-media limits.

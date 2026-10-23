@@ -145,3 +145,8 @@ The 23 October GPU candidate was rejected at the allocator-warning gate after pa
 Start safely reuses an already-enabled Jupyter service across Main DSH, DSH2 and DSH3.
 [Administrator controls](docs/JUPYTER_START_CONTROLS.html) and the
 [captioned walkthrough](docs/JUPYTER_DSH2_DSH3_WALKTHROUGH.html) explain Start, Stop and Restart.
+
+
+## Current guide and lifecycle verification
+
+See [document alignment](docs/DOCUMENT_ALIGNMENT_20261023.md) for current controls, tests and historical-media limits.
