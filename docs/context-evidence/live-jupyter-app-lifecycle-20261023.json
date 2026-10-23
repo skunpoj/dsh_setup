@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "atUTC": "2026-10-23T03:57:42.616582+00:00",
+  "verificationMode": "Read-only live code/configuration and process snapshots, linked to prior disposable transition tests. No Start Stop or Restart was invoked on live notebooks.",
+  "allDeployedWorkspaceRuntimesUseTestedSupervisor": 32,
+  "savedControlFilesUnchanged": 48,
+  "observedLiveEnvironments": 3,
+  "jupyterServersUnchanged": 3,
+  "registeredAppProcessesUnchanged": 2,
+  "servicesEnabledAndListeningInThreeObservedEnvironments": true,
+  "podUIDsRestartCountsControlBytesInodesAndMtimesUnchanged": true,
+  "allWorkspaceJupyterDefinitions": {
+    "enabled": 22,
+    "disabled": 0,
+    "notConfiguredAsManagedService": 10,
+    "environmentAccessNotAllowed": 9
+  },
+  "autostartScope": "Enabled registered services with allowed environment access. Ten Internet runtime control files have no managed Jupyter definition; this is not proof of universal Jupyter autostart. No missing definitions were created during read-only verification.",
+  "testedLifecycleSemantics": [
+    "Repeated Start is idempotent",
+    "Stop persists disabled state",
+    "Restart replaces the managed process",
+    "Enabled services autostart when environment access is allowed"
+  ],
+  "priorDisposableEvidence": {
+    "freshUsers": 2,
+    "fullPodReplacements": 4,
+    "durableFilesByteIdentical": 12
+  },
+  "authSHA256": "68dfd5284e51088e303727793c9582a13a757660d7c7c499b94219ec8e2863e2",
+  "supervisorSHA256": "48ed191c780613710494d2cb7ae656c0e323cc72d6f15b7166110df892e33b17",
+  "credentialsPromptsAndCommandBodiesIncluded": false,
+  "runtimeAccountOrUserDataChanges": 0
+}
