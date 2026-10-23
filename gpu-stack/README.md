@@ -1,9 +1,11 @@
 # GPU, LiteLLM and local inference setup
 
 <!-- GPU_PERFORMANCE_STATUS_20261023:START -->
-## GPU performance and 1M operation — 23 October 2026
+## GPU performance and 1M operation - 23 October 2026
 
-- **100+ output tokens/sec is not yet qualified for the latest near-1M optimization.** The last completed cold actual-DSH prose run used 1,008,049 input / 540 output tokens: **28m32.25s preparation**, **66.00 wire-streaming tokens/sec**, zero retries.
+- **Actual DSH retry R completed:** **1,002,051 input / 636 output tokens**, **29m32.09s to first text**, **29m44.28s whole client turn**, **61.56 streaming output tokens/sec**, zero request retries. All **110 short replies** passed their content checks; **104 completed entirely during the long turn**. Client median/p95/maximum: **6.03s / 10.06s / 14.06s**. The startup fix passed all four bounded startup requests. **100+ per near-1M conversation is not reached.** Strict source-only narrative failed; GPU counter coverage ends five seconds before completion. Exact forwarding preparation was not retained; time to first text is reported instead. The saved original model specification and a real READY response were verified after recovery; 32-worker / 256 session-and-attachment-file snapshots matched. The experimental profile was not permanently adopted; R did not run compaction.
+
+- **100+ output tokens/sec is not yet qualified for the latest near-1M optimization.** The earlier 21 October cold actual-DSH prose run used 1,008,049 input / 540 output tokens: **28m32.25s preparation**, **66.00 wire-streaming tokens/sec**, zero retries.
 - **Final N did not qualify:** 1,002,056 input tokens were tokenized, but only partial prefill ran. Correct numeric/prose short replies took **13.70s / 15.83s native** (**14.11s / 16.06s client**), zero retries. Prose exceeded the unchanged **15s client ceiling**, so the owned long request was stopped. No completed near-1M answer, new long-answer tokens/sec or compaction result. Four-rank zero allocator/OOM deltas cover only the captured partial window. The original source/image/spec and native READY route were restored; recorded 32-worker / 256 session-and-attachment-file snapshots matched.
 - Earlier completed full-model candidate M: **74.03 tokens/sec at 128K** and **75.85 at 384K**; its near-1M stage was rejected after one allocation retry on each GPU. No substantial near-1M output or new compaction result was obtained.
 - **Trial M: 136/136 ordinary replies** passed recorded content checks with zero retries. The **86 replies during near-1M preparation** had **4.28s median / 6.48s p95 / 9.40s maximum** native turn time.

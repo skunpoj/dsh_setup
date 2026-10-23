@@ -1,6 +1,6 @@
 {
   "date": "2026-10-23",
-  "latestCompletedModelTrial": "tile64-20261023m",
+  "latestCompletedModelTrial": "tile64-20261023r",
   "candidateAccepted": false,
   "completedStages": [
     {
@@ -123,54 +123,23 @@
   },
   "definition": "Stream-window output rate excludes preparation. Whole-turn output rate includes it. Aggregate multi-request throughput is not per-conversation speed.",
   "lastCompletedColdNear1M": {
-    "date": "2026-10-21",
-    "inputTokens": 1008049,
-    "outputTokens": 540,
-    "preparationSeconds": 1712.246578,
-    "nativeFirstTextSeconds": 1718.1281461715698,
-    "clientWholeTurnSeconds": 1726.8461508750916,
-    "wireStreamingOutputTokensPerSecond": 65.99740410210615,
-    "wholeTurnOutputTokensPerSecond": 0.3127088071663774,
+    "date": "2026-10-23",
+    "run": "R",
+    "inputTokens": 1002051,
+    "outputTokens": 636,
+    "preparationSeconds": null,
+    "nativeFirstTextSeconds": 1772.0919709205627,
+    "clientWholeTurnSeconds": 1784.2754259109497,
+    "nativeStreamSeconds": 10.331000089645386,
+    "nativeStreamingOutputTokensPerSecond": 61.56228772444342,
     "retries": 0,
-    "numericShorts": {
-      "completed": 50,
-      "fullyDuringLongTurn": 49,
-      "contentCheck": "literal integers 1 through 40",
-      "retries": 0,
-      "observedCompletionSeconds": {
-        "minimum": 2.0259482860565186,
-        "median": 4.043010234832764,
-        "maximum": 10.061800003051758
-      },
-      "firstNativeTextMedianSeconds": 2.1782209873199463,
-      "wireStreamingTokensPerSecond": {
-        "minimum": 13.390058082724448,
-        "median": 158.04190764406655,
-        "maximum": 169.17110388374553
-      },
-      "wholeTurnMedianTokensPerSecond": 19.78723887032177,
-      "wireTimingMatches": 50
+    "fullyConcurrentShorts": {
+      "count": 104,
+      "medianClientSeconds": 6.034711599349976,
+      "p95NearestRankClientSeconds": 10.056727170944214,
+      "maximumClientSeconds": 14.057971000671387
     },
-    "proseShorts": {
-      "completed": 48,
-      "fullyDuringLongTurn": 47,
-      "contentCheck": "word count and required concepts; not literal exact output",
-      "retries": 0,
-      "observedCompletionSeconds": {
-        "minimum": 4.0302979946136475,
-        "median": 6.047160029411316,
-        "maximum": 10.097509860992432
-      },
-      "firstNativeTextMedianSeconds": 2.4686381816864014,
-      "wireStreamingTokensPerSecond": {
-        "minimum": 41.356746910795486,
-        "median": 88.53351087637824,
-        "maximum": 132.47318725259325
-      },
-      "wholeTurnMedianTokensPerSecond": 37.65985066024013,
-      "wireTimingMatches": 48
-    },
-    "compactionPassedOnThatProfile": true
+    "strictSourceOnlyNarrativePassed": false
   },
   "historicalCompaction20261021": {
     "passed": true,
@@ -218,8 +187,8 @@
     "historicalCompactionSourceTokens": 948102,
     "reviewIssuedNewLiveRequests": false
   },
-  "reviewedAtICT": "2026-10-23T19:31:29.038042+07:00",
-  "newFullModelQualification": "Final N failed short-request responsiveness during partial prefill; no completed near-1M answer or compaction.",
+  "reviewedAtICT": "2026-10-23T23:12:53.995727+07:00",
+  "newFullModelQualification": "R completed near-1M capacity and concurrent short replies; strict source-only narrative failed and final GPU-counter coverage is incomplete. Original model specification and recorded user snapshots were restored and verified. Compaction was not run in R.",
   "historicalTrials": {
     "earlierGraphBatchTrial": {
       "date": "2026-10-23",
@@ -300,8 +269,65 @@
       }
     }
   },
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "latestFullModelQualification": {
+    "run": "R",
+    "archiveSHA256": "24994486d1fc9fe387e3e2f58845c3f7358ba09eceb4b194669cd1afca445941",
+    "nativeEventsRecomputed": true,
+    "long": {
+      "inputTokens": 1002051,
+      "outputTokens": 636,
+      "clientElapsedSeconds": 1784.2754259109497,
+      "nativeElapsedSeconds": 1782.4249711036682,
+      "firstTextSeconds": 1772.0919709205627,
+      "streamSeconds": 10.331000089645386,
+      "streamTokensPerSecond": 61.56228772444342
+    },
+    "allShorts": {
+      "count": 110,
+      "medianClientSeconds": 6.033309578895569,
+      "p95NearestRankClientSeconds": 10.056727170944214,
+      "maximumClientSeconds": 14.057971000671387
+    },
+    "fullyDuringLong": {
+      "count": 104,
+      "medianClientSeconds": 6.034711599349976,
+      "p95NearestRankClientSeconds": 10.056727170944214,
+      "maximumClientSeconds": 14.057971000671387
+    },
+    "allShortContentChecksPassed": true,
+    "allShortRetries": 0,
+    "strictSourceOnlyNarrativePassed": false,
+    "wirePreparationSeconds": null,
+    "fullTurnAllocatorCoverage": false,
+    "compactionRun": false,
+    "liveCallsIssued": false,
+    "qualificationPassed": false,
+    "capacityCompleted": true,
+    "startupClientGatePassed": true,
+    "shortResponsivenessPassed": true,
+    "requestRetries": 0,
+    "sourceOnlyNarrativePassed": false,
+    "modelProfilePermanentlyAdopted": false,
+    "recoveryStatus": "original model specification restored; native READY response and owned cleanup verified",
+    "compactionStatus": "not run in R",
+    "recordedRecovery": {
+      "rootWatchdogAcknowledged": true,
+      "allFourRecoveryStepsVerified": true,
+      "savedOriginalModelSpecMatchesActualSHA256": true,
+      "nativeReply": "READY",
+      "recordedHumanSnapshotsByteIdentical": true,
+      "workers": 32,
+      "sessionAndAttachmentFiles": 256,
+      "runningKernelsObserved": 0,
+      "allArbitraryWorkspaceFilesHashed": false,
+      "ownedCredentialAbsent": true,
+      "ownedFixturePodsAbsent": true,
+      "originalModelRestoredNotPermanentCandidateAdoption": true,
+      "recoveryCounterTelemetryUnavailable": true
+    }
+  },
+  "historicalFullModelQualificationN": {
     "run": "N",
     "observedAtICT": "2026-10-23T19:31:29.038042+07:00",
     "qualificationPassed": false,
@@ -381,5 +407,55 @@
       "ownedLongReservationReleased": true
     },
     "successorStartupDiagnostic": "CPU-tested only; no further live or long run qualified."
+  },
+  "historicalColdNear1M20261021": {
+    "date": "2026-10-21",
+    "inputTokens": 1008049,
+    "outputTokens": 540,
+    "preparationSeconds": 1712.246578,
+    "nativeFirstTextSeconds": 1718.1281461715698,
+    "clientWholeTurnSeconds": 1726.8461508750916,
+    "wireStreamingOutputTokensPerSecond": 65.99740410210615,
+    "wholeTurnOutputTokensPerSecond": 0.3127088071663774,
+    "retries": 0,
+    "numericShorts": {
+      "completed": 50,
+      "fullyDuringLongTurn": 49,
+      "contentCheck": "literal integers 1 through 40",
+      "retries": 0,
+      "observedCompletionSeconds": {
+        "minimum": 2.0259482860565186,
+        "median": 4.043010234832764,
+        "maximum": 10.061800003051758
+      },
+      "firstNativeTextMedianSeconds": 2.1782209873199463,
+      "wireStreamingTokensPerSecond": {
+        "minimum": 13.390058082724448,
+        "median": 158.04190764406655,
+        "maximum": 169.17110388374553
+      },
+      "wholeTurnMedianTokensPerSecond": 19.78723887032177,
+      "wireTimingMatches": 50
+    },
+    "proseShorts": {
+      "completed": 48,
+      "fullyDuringLongTurn": 47,
+      "contentCheck": "word count and required concepts; not literal exact output",
+      "retries": 0,
+      "observedCompletionSeconds": {
+        "minimum": 4.0302979946136475,
+        "median": 6.047160029411316,
+        "maximum": 10.097509860992432
+      },
+      "firstNativeTextMedianSeconds": 2.4686381816864014,
+      "wireStreamingTokensPerSecond": {
+        "minimum": 41.356746910795486,
+        "median": 88.53351087637824,
+        "maximum": 132.47318725259325
+      },
+      "wholeTurnMedianTokensPerSecond": 37.65985066024013,
+      "wireTimingMatches": 48
+    },
+    "compactionPassedOnThatProfile": true
   }
 }

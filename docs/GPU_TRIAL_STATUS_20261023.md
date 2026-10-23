@@ -2,9 +2,21 @@
 
 ## GPU performance and 1M operation — 23 October 2026
 
-**The latest optimization has not qualified 100+ output tokens/sec for a substantial near-1M conversation.** The last completed cold actual-DSH prose measurement used **1,008,049 input / 540 output tokens**, with **28m32.25s preparation** and **66.00 streaming output tokens/sec**. Generation speed excludes preparation; its whole-turn output rate was **0.31 tokens/sec**.
+**The latest actual DSH near-1M request completed:** **1,002,051 input / 636 output tokens**, **29m32.09s to first text**, **29m44.28s client elapsed**, and **61.56 streaming output tokens/sec**. The streaming rate excludes initial preparation. An exact forwarding-boundary preparation measurement was not retained for this run, so time to first text is reported separately. **100+ tokens/sec per near-1M conversation has not been reached.**
 
-### Latest full-model trial N — stopped at the responsiveness limit
+The startup hook exercises the original kernel implementation before the KV cache is allocated and before readiness. All four GPUs completed the bounded initialization in **9.61–10.09s each**. The model weights and kernel mathematics were not changed. First numeric/prose startup requests completed in **8.73s / 10.32s client elapsed**; the following pair completed in **1.30s / 2.83s**. All four passed their content checks without retries and remained below the unchanged **15s client limit**. The first pair was slightly slower than the matched earlier baseline; this is not a general speedup claim.
+
+The subsequent near-1M turn completed with **zero request retries**. During the test, **110/110 short replies** passed their recorded content checks: **6.03s median, 10.06s p95 and 14.06s maximum client latency**. **104 replies began and finished within the long turn**, with **6.03s median, 10.06s p95 and 14.06s maximum**. These are full client timings, not short-output streaming rates.
+
+The result establishes completed near-1M capacity with concurrent short replies, rather than full acceptance of the optimization. The long answer repeated the supplied core facts but introduced unsupported platform claims, so strict source-only narrative acceptance failed. The last captured GPU counters stop about five seconds before client completion; zero captured allocation/OOM deltas do not establish complete-turn coverage. A large progress-read transport failed after the answer had completed; its compressed, hash-verified archive preserved the native turn and all 110 short results. This observer failure is separate from a model failure. R did not run compaction.
+
+The original model specification was restored and matched its saved SHA-256; an actual native request returned **READY**. The **32-worker / 256 session-and-attachment-file snapshots were byte-identical** before and after the trial. No running kernels were observed; these snapshots did not hash every arbitrary workspace file. All four recovery steps and removal of the owned fixture credential were verified. The startup hook and tile candidate were experimental in R, not permanently adopted. R did not run compaction.
+
+### Earlier cold measurement — 21 October
+
+The earlier actual DSH case used **1,008,049 input / 540 output tokens**, **28m32.25s forwarding-boundary preparation**, and **66.00 wire-streaming tokens/sec**. Its native time to first text was **28m38.13s**. The newer R time to first text is about **54s longer**; its native streaming rate is lower. The workload and timing boundaries differ, so the comparison does not demonstrate a controlled performance gain or identify a single cause.
+
+### Earlier full-model trial N — stopped at the responsiveness limit
 
 The sole final N request tokenized **1,002,056 input tokens**, but completed only partial prefill. Its numeric short reply took **13.70s native / 14.11s client elapsed**; its prose short reply took **15.83s native / 16.06s client elapsed**. Both passed their recorded content checks with zero retries. The prose client time exceeded the unchanged **15-second** safety ceiling, so the owned long request was stopped. **No complete near-1M answer, preparation-time result, long-answer tokens/sec result or compaction result exists for N.**
 
