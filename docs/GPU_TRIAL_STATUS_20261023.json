@@ -116,7 +116,10 @@
     "ooms": 0,
     "fullNear1MQualificationEligible": false,
     "productionReplay": false,
-    "outputTokensPerSecond": null
+    "outputTokensPerSecond": null,
+    "originalSelectedRoundedAllocationMiB": 1748.0,
+    "fixedSelectedRoundedAllocationMiB": 888.0,
+    "selectedAllocationIsNotTotalGPUFootprint": true
   },
   "definition": "Stream-window output rate excludes preparation. Whole-turn output rate includes it. Aggregate multi-request throughput is not per-conversation speed.",
   "lastCompletedColdNear1M": {
@@ -215,8 +218,8 @@
     "historicalCompactionSourceTokens": 948102,
     "reviewIssuedNewLiveRequests": false
   },
-  "reviewedAtICT": "2026-10-23T18:43:11.021637+07:00",
-  "newFullModelQualification": "No completed full-model near-1M result for the N9 allocation fix at this evidence cutoff.",
+  "reviewedAtICT": "2026-10-23T19:31:29.038042+07:00",
+  "newFullModelQualification": "Final N failed short-request responsiveness during partial prefill; no completed near-1M answer or compaction.",
   "historicalTrials": {
     "earlierGraphBatchTrial": {
       "date": "2026-10-23",
@@ -297,5 +300,86 @@
       }
     }
   },
-  "schemaVersion": 2
+  "schemaVersion": 3,
+  "latestFullModelQualification": {
+    "run": "N",
+    "observedAtICT": "2026-10-23T19:31:29.038042+07:00",
+    "qualificationPassed": false,
+    "inputTokenized": 1002056,
+    "partialPrefillOnly": true,
+    "completedNear1M": false,
+    "compactionStarted": false,
+    "preparationSeconds": null,
+    "longAnswerOutputTokensPerSecond": null,
+    "stoppedReason": "Prose short client elapsed 16.064 seconds exceeded the unchanged 15-second responsiveness ceiling; only the owned long request was stopped.",
+    "shorts": [
+      {
+        "kind": "numeric",
+        "nativeElapsedSeconds": 13.700968027114868,
+        "elapsedSeconds": 14.108622550964355,
+        "exact": true,
+        "usage": {
+          "inputTokens": 11905,
+          "outputTokens": 80,
+          "totalTokens": 11985
+        },
+        "retries": 0
+      },
+      {
+        "kind": "prose",
+        "nativeElapsedSeconds": 15.832957744598389,
+        "elapsedSeconds": 16.064345836639404,
+        "exact": true,
+        "usage": {
+          "inputTokens": 11921,
+          "outputTokens": 225,
+          "totalTokens": 12146
+        },
+        "retries": 0
+      }
+    ],
+    "capturedPartialWindowAllocatorDeltas": {
+      "1": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "2": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "0": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "3": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      }
+    },
+    "fullWindowAllocatorOrCapacityPass": false,
+    "servingTimeCompilationObserved": {
+      "kernel": "_hc_mix_stats_reduce_kernel",
+      "ranks": 4,
+      "secondsRange": [
+        1.51,
+        1.57
+      ],
+      "soleCauseProven": false
+    },
+    "repeatedFinalRun": false,
+    "latencyCeilingChanged": false,
+    "recordedRecovery": {
+      "baselineSourceImageSpecReadBack": true,
+      "nativeReply": "READY",
+      "restartCount": 0,
+      "workersCompared": 32,
+      "sessionAttachmentFilesCompared": 256,
+      "beforeAfterIdentical": true,
+      "runningKernelsObserved": 0,
+      "allWorkspaceFilesHashed": false,
+      "ownedFixtureProfileKeyCleanupCompleted": true,
+      "ownedLongReservationReleased": true
+    },
+    "successorStartupDiagnostic": "CPU-tested only; no further live or long run qualified."
+  }
 }
