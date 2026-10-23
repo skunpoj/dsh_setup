@@ -1,7 +1,8 @@
 # Open Jupyter when needed
 
 Main DSH starts Jupyter when its owner opens the Jupyter button in the selected
-Internet or No Internet workspace. This is the default behavior for Main accounts;
+Internet or No Internet workspace. DSH2 and DSH3 provide the same start-on-click
+flow within their assigned owner-only Internet workspace. This is the default behavior for Main accounts;
 it does not grant Internet approval or change administrator service restrictions.
 
 If Jupyter already responds, the gateway forwards the request without launching,
@@ -30,8 +31,12 @@ workspace still ends its in-memory processes; durable notebooks and files persis
   It does not edit notebooks, histories, passwords, permissions, mappings or
   persistent service-enabled settings. Normal Jupyter initialization may create
   its own configuration/runtime metadata and empty IPython session records.
-- The deployment changes only Main's gateway source ConfigMap reference. User
-  pods and app supervisors must not restart. Existing browser sessions persist.
+- Main uses its gateway source ConfigMap. DSH2 and DSH3 use separate gateway
+  layers while retaining their existing authoritative login services. These layers
+  use fixed owner/service bindings and mount only source and read-only owner
+  startup controls, with no workspace, history, credential-store or Kubernetes
+  management-token mounts. User pods and app supervisors are not restarted.
+  Existing browser sessions and notebook processes remain in their workspaces.
   Source-only rollback must retain the current persistent data, accounts, courses
   and manuals; it must never restore an old data snapshot.
 
@@ -46,3 +51,14 @@ startup and a held kernel/variable surviving the gateway-only replacement.
 
 Recorded acceptance belongs to its deployed source hash; tests do not establish
 that every user account or future workspace restart was interactively exercised.
+
+## Owner-only sites
+
+DSH2 and DSH3 keep their designated login identities, existing storage and assigned
+Internet environment. The gateway checks the authenticated owner before requesting
+startup through that owner's existing non-root execution service. Cross-owner and
+cross-origin startup requests are rejected. Existing notebook servers and kernels
+are reused; cold-start qualification uses separate synthetic environments so a
+running user notebook does not need to be stopped.
+
+[Watch the captioned DSH2/DSH3 guide](JUPYTER_DSH2_DSH3_WALKTHROUGH.html).
