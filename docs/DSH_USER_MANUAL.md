@@ -101,3 +101,7 @@ and the [captioned walkthrough](JUPYTER_DSH2_DSH3_WALKTHROUGH.html).
 ## Current guide and lifecycle verification
 
 See [document alignment](DOCUMENT_ALIGNMENT_20261023.md) for current controls, tests and historical-media limits.
+
+## Application links, slides and English video
+
+Use the [application links and Main/Test guide](APP_LINKS_AND_STATUS.html) to distinguish Main workspaces and application controls from the App5/App6 Test fixtures. It links the current slides and English video, explains normal DSH sign-in and return to the original app tab, and distinguishes Public routing from a destination application's own login.

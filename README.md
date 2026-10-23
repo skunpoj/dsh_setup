@@ -1,5 +1,9 @@
 # Private AI Workspaces - Kubernetes and 1M Context
 
+## Application links and learning materials
+
+The [Main/Test application guide](docs/APP_LINKS_AND_STATUS.html) provides the deployment status, application login flow, slides and English video. Main application controls are separate from the controlled App5/App6 Test examples.
+
 ## Application sign-in and return
 
 The [application login guide](docs/APP_SIGNIN_AND_RETURN.html) explains app-focused team login, the Test continuation flow, returning to the requested app, and Public access with separate destination authentication. RegChat, App5 and App6 are examples rather than hardcoded login paths.

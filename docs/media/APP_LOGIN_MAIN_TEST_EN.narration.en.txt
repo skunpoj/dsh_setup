@@ -1,0 +1,8 @@
+Main DSH controls and working examples
+Main D S H already offers local application ports and approved external H T T P S targets. The visitor access selector offers Require D S H sign in and Public access. Authenticated sharing and destination permissions are separate. RegChat is a configured example, rather than a special login mechanism. Use the Main settings page and the approved application links supplied by your operator. Opening a saved link does not create a mapping, start an application, or change its permissions.
+
+Main and Test application links
+Main and Test serve different purposes. The gated and Public RegChat examples are available through Main. App Five and App Six are controlled Test examples. App Five requires a normal D S H session. Sign in through normal D S H, then return to the original application tab. That tab resumes its original application path. App Six uses Public routing, but the destination can still require its own login. Public access does not open a workspace, notebook, terminal, or chat history.
+
+Fresh login checks and the latest course
+A fresh D S H logout and sign in check returned App Five to the correct original path and restored normal No Internet sign in. Its separate destination session remained intact. App Six protected content rejected access before its own login, then opened without a D S H cookie. That Public session could not bypass App Five. The latest full English course is hosted in the Test documentation library. This identifies where the media is hosted. Main application controls are already live. The earlier course chapters remain available.
