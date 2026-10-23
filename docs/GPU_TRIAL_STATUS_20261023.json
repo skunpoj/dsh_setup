@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-23",
+  "candidateAccepted": false,
+  "candidateChange": "Decode CUDA graph maximum batch 8 to 4; private earlier small-step preparation policy",
+  "completedStages": [
+    {
+      "stage": "128K",
+      "inputTokens": 124074,
+      "outputTokens": 576,
+      "nativeTurnSeconds": 57.139,
+      "streamSeconds": 7.92,
+      "streamWindowTokensPerSecond": 72.73,
+      "wholeTurnOutputTokensPerSecond": 10.08
+    },
+    {
+      "stage": "384K",
+      "inputTokens": 384072,
+      "outputTokens": 612,
+      "nativeTurnSeconds": 312.546,
+      "streamSeconds": 7.728,
+      "streamWindowTokensPerSecond": 79.19,
+      "wholeTurnOutputTokensPerSecond": 1.96
+    }
+  ],
+  "fourConcurrentShortRequests": {
+    "exactReplies": 4,
+    "outputTokensEach": 120,
+    "nativeTurnSeconds": [
+      3.554,
+      3.816,
+      3.822,
+      3.991
+    ],
+    "perReplyWholeTurnTokensPerSecond": [
+      33.77,
+      31.45,
+      31.4,
+      30.07
+    ],
+    "clientWallSeconds": 4.077,
+    "aggregateClientWallTokensPerSecond": 117.75
+  },
+  "parallelShortRequests": {
+    "exactReplies": 108,
+    "duringNear1MPreparation": 83,
+    "maximumNativeTurnSeconds": 6.965,
+    "maximumClientElapsedSeconds": 8.051,
+    "retries": 0
+  },
+  "near1MResult": "Stopped at strict allocator-warning gate; no completed near1M answer or compaction",
+  "diagnostics": {
+    "allocatorMappingWarnings": 4,
+    "cudaOutOfMemory": 0,
+    "schedulerAssertions": 0,
+    "illegalMemoryAccess": 0,
+    "tracebacks": 0
+  },
+  "retainedSettings": {
+    "context_length": 1048576,
+    "mem_fraction_static": 0.922,
+    "max_running_requests": 8,
+    "chunked_prefill_size": 1024,
+    "max_prefill_tokens": 1024,
+    "max_total_num_tokens": 1091840,
+    "cuda_graph_max_bs_decode": 8
+  },
+  "nativeRecoveryPassed": true,
+  "testHistoryPreservation": {
+    "originalFilesExact": 472,
+    "originalHistories": 236,
+    "retainedHistories": 269
+  },
+  "definitions": {
+    "nativeTurnSeconds": "Time recorded by the DSH native turn, including preparation and response",
+    "streamWindowTokensPerSecond": "Reported output-token count divided by recorded stream duration; not GPU-only decode speed",
+    "aggregateClientWallTokensPerSecond": "All four outputs divided by earliest client start to latest client end; not per-conversation speed"
+  }
+}

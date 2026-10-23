@@ -67,3 +67,8 @@ Access logs provide operational visibility. Do not assume they contain every ter
 Use the site's **User manual** link, documentation library and available course player. The [course guide](COURSE_DELIVERY.md) explains video, captions and slide companions. On a companion page, select **Download PowerPoint (.pptx)**, save the file and open the saved presentation. See [slide downloads](SLIDE_DOWNLOADS.md).
 
 Use **Logout** when finished. If a session expires, sign in again before retrying. Check your current draft and task state before resubmitting work. Contact the administrator for an identity conflict, unavailable runtime or repeated access failure; do not share your password in the support conversation.
+
+
+## GPU status — 23 October 2026
+
+The 23 October GPU candidate was rejected at the allocator-warning gate after passing 128K/384K stages. Four short DSH conversations overlapped at 117.75 combined output tokens/sec (30.07–33.77 per conversation including whole-turn time); this does not establish 100+ per conversation or two simultaneous 1M requests. The saved baseline retains the 1M ceiling. See the dated results for definitions and recovery checks. [Detailed results](GPU_TRIAL_STATUS_20261023.html).
