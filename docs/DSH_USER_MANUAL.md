@@ -12,6 +12,8 @@ Use DSH in your browser for code, documents and analysis. Start with the private
 
 An AD identity that conflicts with an existing local username is refused for administrator review. DSH does not automatically merge identities, replace passwords or assign another identity's history. Keep using the existing local sign-in until the administrator resolves ownership and preserves the required data. See [AD identity and collision rules](LDAP_AUTHENTICATION.md).
 
+Sign in once with your team identity. Managed LiteLLM profiles hide the official DeepSeek account sign-in; the approved model connection is already configured. Team login, private routing and Logout remain available. See [team login and managed model access](MANAGED_PROVIDER_LOGIN.html).
+
 ## 2 Work with chats and files
 
 Select a project workspace and start a conversation. Describe a bounded task, identify the files to use and review the proposed changes and saved outputs. Keep durable work in the workspace location supplied by your operator.
@@ -37,6 +39,8 @@ Use **Require DSH sign-in** for private applications. Public access is an explic
 To share an ordinary local web app, keep **Require DSH sign-in** and choose **Any enabled DSH account — shared application**. JupyterLab and terminal ports remain owner-only. Sharing exposes only the selected application; its own permissions and write actions still apply. See [sharing and isolation](AUTHENTICATED_APP_SHARING.html).
 
 The administrator controls the per-user name limit, allowed domains, reserved names and available hostname/path routes. Opening Jupyter in Main DSH or the configured DSH2/DSH3 sites starts it when needed and reuses a running server and kernels. The owner-only sites keep their assigned Internet environment. Internet approval and administrator service restrictions still apply. A worker restart ends in-memory kernels; saved notebooks remain in the private workspace. Other application restart requires an administrator-approved service configuration; unregistered processes are not automatically relaunched. See [application URLs, routing and restart controls](APP_PROXY.md).
+
+For an app-focused DSH sign-in page, use your normal DSH identity. If the app instead shows **Continue with your normal DSH login**, sign in through its link and return to the original app tab; use **I have signed in â€” continue** if needed. Public mappings skip the DSH gate but may retain the app's own login. RegChat is an example mapping. See [application sign-in and return](APP_SIGNIN_AND_RETURN.html).
 
 ## 5 Prepare packages for No Internet work
 

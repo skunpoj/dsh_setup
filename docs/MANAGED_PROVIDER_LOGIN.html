@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Team login and managed model access</title><style>body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 system-ui,sans-serif}main{max-width:960px;margin:28px auto;background:white;padding:38px;border-radius:12px}h1,h2{color:#075985}a{color:#0369a1}code{background:#edf2f7;padding:2px 4px;overflow-wrap:anywhere}pre{padding:16px;background:#edf2f7;overflow:auto}table{border-collapse:collapse;width:100%}td,th{padding:12px;border:1px solid #cbd5e1;text-align:left}@media(max-width:640px){main{margin:0;padding:20px}}</style><main><nav><a href="DSH_USER_MANUAL.html">User manual</a> · <a href="MANAGED_PROVIDER_LOGIN.md">Markdown version</a></nav><h1>Team login and managed model access</h1>
+<p>Sign in once at your team's DSH login page. Use the configured local account or AD / LDAP option. The gateway opens your assigned private workspace in the selected environment. Internet approval and application access remain controlled by the administrator.</p>
+<h2>No second DeepSeek sign-in</h2>
+<p>Managed LiteLLM profiles hide the official DeepSeek account page and its sign-in dialog. The approved model connection is already configured. You do not need a personal DeepSeek Platform account, external provider password or personal API key to use that connection.</p>
+<p>The team login and provider login serve different purposes:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Team gateway login</td>
+<td>Identifies the person and selects the authorized private runtime and environment.</td>
+</tr>
+<tr>
+<td>Native DSH Host authentication</td>
+<td>Protects browser/RPC access to that runtime. The gateway establishes the authenticated upstream connection.</td>
+</tr>
+<tr>
+<td>Managed LiteLLM connection</td>
+<td>Authenticates model requests to the approved inference service using the configured deployment credential.</td>
+</tr>
+</tbody>
+</table>
+<p>An official DeepSeek account connects a model-provider account; it does not create private workspaces or replace the team's authorization. Profiles that deliberately use an external provider keep their upstream account interface.</p>
+<h2>Everyday use</h2>
+<ol>
+<li>Open the team login page and select the environment and application.</li>
+<li>Sign in with your team identity and open a workspace or conversation.</li>
+<li>Send your request using the configured model. No additional provider sign-in is required.</li>
+<li>Use <strong>Logout</strong> to end your team session. This does not delete files or history.</li>
+</ol>
+<p>An already-open tab may retain the old account dialog. Preserve any unsent draft, close the dialog and refresh the page to load the current interface. If the team session expired, use the team's <strong>Sign in again</strong> link rather than the official provider sign-in dialog.</p>
+<h2>Operator configuration</h2>
+<p>The managed profile uses the upstream plugin configuration, without modifying its callback validator, Host/Origin checks, native authentication, account grants or credential files:</p>
+<pre><code class="language-yaml">- id: ui-settings-account
+  disabled: true
+</code></pre>
+<p>Apply this override only when the selected provider is the managed LiteLLM provider. <code>scripts/configure_managed_signin.cjs</code> validates that selection, preserves unrelated profile settings, retains original profile bytes for rollback and writes atomically. An explicit managed-transport marker also supports profiles that inherit the managed default from their bundle. An explicitly selected external provider remains unchanged.</p>
+<p>Run the helper inside the intended runtime with its actual state home:</p>
+<pre><code class="language-sh">node /opt/dsh/scripts/configure_managed_signin.cjs &quot;$DSH_HOME&quot;
+</code></pre>
+<p>For an installed image that predates the helper, stage the reviewed helper through the operator's deployment process before running it. DSH profile hot reload applies the plugin change without restarting the worker. Verify the browser's active plugin registry, team login/logout and an actual persisted model reply. Preserve running worker identities, notebook processes and existing histories. If hot reload fails, retain the previous profile and investigate rather than restarting an active workspace automatically.</p>
+<p>Image seeds and the workspace bootstrap apply the same policy for newly provisioned managed runtimes. Already running profiles retain the override in durable state across ordinary worker replacement.</p>
+<p>See the <a href="DSH_USER_MANUAL.html">user manual</a> for environments, tools, applications and administrator controls.</p></main></html>

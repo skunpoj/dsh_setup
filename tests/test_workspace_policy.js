@@ -9,3 +9,6 @@ assert.deepEqual(configure(structuredClone(result)),result);
 assert.equal(configure([])[0].name,'@deepseek-ai/dsh-api-workspace-controller');
 assert.throws(()=>configure({}),/array/);
 console.log('Workspace override is bounded, idempotent and preserves unrelated profile settings');
+
+// Include managed-provider UI regressions in the existing runtime-policy test entry point.
+require('./test_managed_signin.cjs');
