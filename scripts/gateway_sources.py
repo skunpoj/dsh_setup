@@ -39,3 +39,16 @@ def gateway_sources(root):
 
 def gateway_sources_sha256(source):
     return hashlib.sha256(json.dumps(source, sort_keys=True).encode()).hexdigest()
+
+
+def gateway_configmap_items(source):
+    """Project gateway files without shipping the controller-only planner.
+
+    Shared controller ConfigMaps retain the real planner. This projection is for
+    gateway volumes only and does not edit the source dictionary.
+    """
+    if not isinstance(source, dict) or 'auth_proxy.js' not in source:
+        raise ValueError('A gateway source dictionary is required')
+    if any(not isinstance(name, str) or not re.fullmatch(r'[A-Za-z0-9_-][A-Za-z0-9_.-]*', name) for name in source):
+        raise ValueError('Unsupported gateway source filename')
+    return [{'key': name, 'path': name} for name in sorted(source) if name != 'capacity_planner.py']

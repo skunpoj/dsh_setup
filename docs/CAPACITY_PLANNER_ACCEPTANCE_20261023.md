@@ -32,11 +32,13 @@ repository; the public receipt is a portable summary. Main and the legacy sites
 have different roles, owners and protected deployment settings; alignment does
 not mean identical deployments or publication of private infrastructure.
 
-Gateway source bundles still contain an older **unused** planner copy. The login
-gateway does not execute that module: the separate capacity controller does.
-Restarting gateways simply to replace that unused copy would risk active notebook
-connections and is unnecessary for the effective fix. This acceptance does not
-claim every bundled file or every newer unrelated repository change is deployed.
+Subsequent gateway cleanup removed the older unused planner from the active
+Main gateway mount. DSH2 and DSH3 gateway sources already had none. The real
+capacity controller retains the fixed planner. All other gateway modules and
+original workspace processes were preserved. See
+[gateway cleanup acceptance](GATEWAY_SOURCE_CLEANUP_20261023.md).
+Historical source archives remain available for rollback; newer unrelated
+repository/image changes are not implicitly deployed.
 
 The independently coordinated Jupyter Start-idempotence release has its own
 acceptance evidence; it is not part of this controller-only change.

@@ -1,0 +1,17 @@
+{
+  "status": "deployed-and-verified",
+  "gatewaySourceModules": 26,
+  "removedActiveGatewayFile": "capacity_planner.py",
+  "remainingGatewayModulesUnchanged": true,
+  "actualGatewayRegressionTests": 8,
+  "packagingTestsPerRepository": 7,
+  "workspacesPreserved": 33,
+  "DSH2DSH3PlannerAlreadyAbsent": true,
+  "capacityControllerUnchanged": true,
+  "preCutoverRunningKernels": 0,
+  "forcedGatewayConnectionDisconnectExplicitlyAuthorized": true,
+  "browserConnectionContinuityNotClaimed": true,
+  "oldSourceRetainedForRollback": true,
+  "passwordChanges": false,
+  "localWindows": false
+}

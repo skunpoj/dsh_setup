@@ -60,5 +60,18 @@ class GatewaySourceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Unsupported"):
                 gateway_sources(Path(tmp))
 
+
+    def test_gateway_projection_omits_controller_planner_without_mutating_source(self):
+        from gateway_sources import gateway_configmap_items
+        source = {'auth_proxy.js': 'gateway', 'jupyter_launcher.py': 'launcher',
+                  'capacity_planner.py': 'controller-only'}
+        before = dict(source)
+        items = gateway_configmap_items(source)
+        self.assertEqual(items, [{'key':'auth_proxy.js','path':'auth_proxy.js'},
+                                {'key':'jupyter_launcher.py','path':'jupyter_launcher.py'}])
+        self.assertEqual(source, before)
+        for bad in [{}, {'auth_proxy.js':'ok','../bad':'no'}]:
+            with self.assertRaises(ValueError): gateway_configmap_items(bad)
+
 if __name__ == "__main__":
     unittest.main()

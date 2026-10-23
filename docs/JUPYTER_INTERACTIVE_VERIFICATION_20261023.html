@@ -51,8 +51,10 @@ all exported as standalone public files.
 Update, 23 October 2026: the capacity-planner hardening is now qualified and
 deployed in the separate executing capacity controller. Nine planner tests, three
 isolated recovery tests and nine tests of the actual mounted planner passed.
-Gateway source bundles retain an older unused copy; gateways and user workspaces
-were not restarted for this fix. See [capacity-planner acceptance](CAPACITY_PLANNER_ACCEPTANCE_20261023.md).
+The capacity-controller rollout did not restart gateways or workspaces.
+Subsequent gateway packaging cleanup removed the unused planner from the active
+Main gateway source; existing workspace processes were preserved. See gateway
+cleanup acceptance for the explicitly authorized browser-connection interruption. See [capacity-planner acceptance](CAPACITY_PLANNER_ACCEPTANCE_20261023.md).
 Cold-start qualification and earlier browser-layout checks remain separate from
 the authenticated functional run.
 
