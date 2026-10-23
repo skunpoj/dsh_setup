@@ -167,9 +167,9 @@ See [document alignment](docs/DOCUMENT_ALIGNMENT_20261023.md) for current contro
 
 ### Application audiences and checkbox editing
 
-The prepared Main-gateway update replaces typed usernames with a local-user checkbox picker and adds **Edit sharing / URL** for saved applications. New ordinary authenticated apps default to **All authenticated users (local and AD / LDAP)**; owners can choose all local users, all AD / LDAP users, selected local users or owner-only. Existing audiences stay unchanged until saved. JupyterLab and terminal remain owner-only.
+The deployed Main-gateway update replaces typed usernames with a local-user checkbox picker and adds **Edit sharing / URL** for saved applications. New ordinary authenticated apps default to **All authenticated users (local and AD / LDAP)**; owners can choose all local users, all AD / LDAP users, selected local users or owner-only. Existing audiences stay unchanged until saved. JupyterLab and terminal remain owner-only.
 
-Actual gateway tests cover local/directory identity enforcement, private routing and HTTP/WebSocket revocation; form-script tests cover checkbox editing and defaults. This update is **not deployed yet**: the coordinated GPU test holds gateway reloads. The existing typed-list interface remains live. See [audience choices, edit workflow and boundaries](docs/AUTHENTICATED_APP_SHARING.md).
+Actual gateway tests cover local/directory identity enforcement, private routing and HTTP/WebSocket revocation; form-script tests cover checkbox editing and defaults. The update is deployed on Main DSH. The exact deployed source passed 158 tests in the running runtime image; existing accounts, app audiences, sessions and worker/history preservation were verified. Legacy DSH2/DSH3 entrypoints remain owner-only. See [audience choices, edit workflow and boundaries](docs/AUTHENTICATED_APP_SHARING.md).
 
 ## Jupyter automatic startup
 

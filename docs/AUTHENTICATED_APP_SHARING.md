@@ -37,7 +37,7 @@ Sign-in, HTTP and WebSocket routing enforce the saved audience, enabled accounts
 
 ## Verification and rollout status
 
-The checkbox and audience update is implemented and locally tested, but is not yet deployed. The coordinated GPU test currently holds new gateway reloads. Main DSH continues using the previous typed selected-account interface until the gateway update is qualified and rolled out; legacy DSH2/DSH3 entrypoints remain owner-only.
+The checkbox and audience update is deployed on Main DSH. The exact source passed 158 tests in the deployed runtime image, including actual HTTP/WebSocket isolation and revocation with synthetic local and directory identities. Existing accounts, saved app audiences and browser sessions were preserved; worker identities, original history files and notebook processes were compared before and after the gateway-only update. Legacy DSH2/DSH3 entrypoints remain owner-only. These tests do not claim a fresh production AD-directory connection test.
 
 Tests execute the actual gateway with synthetic local and AD identities, separate owner/visitor applications, and real HTTP/WebSocket connections. They verify provider-specific sign-in, owner-bound routing, denied private/management access, saved-list editing, rejection of AD recipients in local selections and closure after revocation. The returned form script is executed to verify checkbox selection, existing-setting prefill, explicit save, new-app defaults and legacy-list preservation. These checks do not modify production accounts, apps or history.
 
