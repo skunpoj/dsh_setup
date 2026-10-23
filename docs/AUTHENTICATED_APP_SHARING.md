@@ -21,7 +21,7 @@ The server checks the stored account type after authentication and again when ro
 5. For an existing app, select **Edit sharing / URL**. Its current settings and local recipients load into the form. The name is locked while editing. Nothing changes until **Save URL** is selected. **New application / cancel edit** resets the form without changing the saved mapping.
 6. To revoke access, untick recipients and save, choose a narrower audience, choose **Owner only**, disable the mapping or remove it.
 
-Old selected-account lists remain compatible. If all saved recipients are enabled local users, editing presents them as local checkboxes. A legacy list containing AD or unavailable recipients is preserved on an unchanged save; the form explains this and requires an explicit audience choice to replace that list. Existing audiences are not migrated on page load or deployment.
+Old selected-account lists remain compatible. If all saved recipients are enabled local users, editing presents them as local checkboxes. A legacy list containing AD or unavailable recipients remains stored until an explicit audience choice replaces it. Enabled AD recipients can be retained with the legacy audience. If a recipient is unavailable, choose a new valid audience before saving a change; the server rejects unavailable recipients. Existing audiences are not migrated on page load or deployment.
 
 ## Keep user environments private
 
@@ -42,3 +42,6 @@ The checkbox and audience update is implemented and locally tested, but is not y
 Tests execute the actual gateway with synthetic local and AD identities, separate owner/visitor applications, and real HTTP/WebSocket connections. They verify provider-specific sign-in, owner-bound routing, denied private/management access, saved-list editing, rejection of AD recipients in local selections and closure after revocation. The returned form script is executed to verify checkbox selection, existing-setting prefill, explicit save, new-app defaults and legacy-list preservation. These checks do not modify production accounts, apps or history.
 
 Run the app-proxy regression tests and `tests/test_ldap_gateway.cjs` before rollout. Then qualify the exact source in the deployed runtime image, retain the previous source for rollback and verify live form content, saved accounts, mappings, sessions and worker identities before claiming deployment.
+
+
+[Watch the sharing walkthrough](AUTHENTICATED_APP_SHARING_WALKTHROUGH.html). This captioned illustration explains the controls; it is not a production recording.
