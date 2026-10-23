@@ -1,110 +1,6 @@
 {
-  "date": "2026-10-23",
-  "latestCompletedModelTrial": "tile64-20261023r",
+  "date": "2026-10-24",
   "candidateAccepted": false,
-  "completedStages": [
-    {
-      "stage": "128K",
-      "inputTokens": 124071,
-      "outputTokens": 603,
-      "nativeTurnSeconds": 56.28365778923035,
-      "clientElapsedSeconds": 58.22564768791199,
-      "firstTextSeconds": 48.13665795326233,
-      "streamSeconds": 8.144999980926514,
-      "streamWindowTokensPerSecond": 74.03314934463724,
-      "wholeTurnOutputTokensPerSecond": 10.713589409169169,
-      "retries": 0,
-      "scopedExecutionGatePassed": true
-    },
-    {
-      "stage": "384K",
-      "inputTokens": 384071,
-      "outputTokens": 583,
-      "nativeTurnSeconds": 313.65413308143616,
-      "clientElapsedSeconds": 313.8332426548004,
-      "firstTextSeconds": 305.9661331176758,
-      "streamSeconds": 7.686000108718872,
-      "streamWindowTokensPerSecond": 75.85219773008517,
-      "wholeTurnOutputTokensPerSecond": 1.8587352708297702,
-      "retries": 0,
-      "scopedExecutionGatePassed": true
-    }
-  ],
-  "parallelShortRequests": {
-    "count": 136,
-    "exactOrRecordedContentCheckPassed": 136,
-    "retries": 0,
-    "medianNativeSeconds": 3.521546244621277,
-    "p95NativeSeconds": 6.369826793670654,
-    "maxNativeSeconds": 9.4035165309906,
-    "maxClientSeconds": 10.043037176132202
-  },
-  "shortRequestsByRecordedPhase": {
-    "128K": {
-      "count": 4,
-      "exactOrRecordedContentCheckPassed": 4,
-      "retries": 0,
-      "medianNativeSeconds": 4.535311818122864,
-      "p95NativeSeconds": 5.7830352783203125,
-      "maxNativeSeconds": 5.7830352783203125,
-      "maxClientSeconds": 6.040202379226685
-    },
-    "384K": {
-      "count": 19,
-      "exactOrRecordedContentCheckPassed": 19,
-      "retries": 0,
-      "medianNativeSeconds": 4.542074680328369,
-      "p95NativeSeconds": 8.590095043182373,
-      "maxNativeSeconds": 8.590095043182373,
-      "maxClientSeconds": 10.043037176132202
-    },
-    "awaiting-stage-gate-128K": {
-      "count": 16,
-      "exactOrRecordedContentCheckPassed": 16,
-      "retries": 0,
-      "medianNativeSeconds": 1.1561247110366821,
-      "p95NativeSeconds": 3.7243566513061523,
-      "maxNativeSeconds": 3.7243566513061523,
-      "maxClientSeconds": 4.0421929359436035
-    },
-    "awaiting-stage-gate-384K": {
-      "count": 11,
-      "exactOrRecordedContentCheckPassed": 11,
-      "retries": 0,
-      "medianNativeSeconds": 1.4971632957458496,
-      "p95NativeSeconds": 2.668095350265503,
-      "maxNativeSeconds": 2.668095350265503,
-      "maxClientSeconds": 4.031910181045532
-    },
-    "near1M": {
-      "count": 86,
-      "exactOrRecordedContentCheckPassed": 86,
-      "retries": 0,
-      "medianNativeSeconds": 4.281155467033386,
-      "p95NativeSeconds": 6.484412908554077,
-      "maxNativeSeconds": 9.4035165309906,
-      "maxClientSeconds": 10.042672157287598
-    }
-  },
-  "near1M": {
-    "completed": false,
-    "substantialLongOutputTokensPerSecond": null,
-    "compaction": "not-run",
-    "reason": "All four GPU allocator retry counters increased by one; strict gate rejected the candidate",
-    "allocatorRetriesByRank": {
-      "2": 1,
-      "1": 1,
-      "3": 1,
-      "0": 1
-    },
-    "oomsByRank": {
-      "2": 0,
-      "1": 0,
-      "3": 0,
-      "0": 0
-    }
-  },
-  "contentScope": "384K core-fact retrieval passed its scoped review; strict three-fact-only source adherence was not passed and not every sentence was directly sourced.",
   "smallGPUAllocationTest": {
     "run": "N9",
     "passed": true,
@@ -188,8 +84,8 @@
     "historicalCompactionSourceTokens": 948102,
     "reviewIssuedNewLiveRequests": false
   },
-  "reviewedAtICT": "2026-10-23T23:12:53.995727+07:00",
-  "newFullModelQualification": "R completed near-1M capacity and concurrent short replies; strict source-only narrative failed and final GPU-counter coverage is incomplete. Original model specification and recorded user snapshots were restored and verified. Compaction was not run in R.",
+  "reviewedAtICT": "2026-10-24T02:41:43.295894+07:00",
+  "newFullModelQualification": "R capacity and concurrent short replies remain the last completed capacity case. The separate compaction-only outcome is recorded in latestCompactionQualification; it does not replay capacity or retroactively accept R narrative quality.",
   "historicalTrials": {
     "earlierGraphBatchTrial": {
       "date": "2026-10-23",
@@ -268,9 +164,116 @@
         "streamWindowTokensPerSecond": "Reported output-token count divided by recorded stream duration; not GPU-only decode speed",
         "aggregateClientWallTokensPerSecond": "All four outputs divided by earliest client start to latest client end; not per-conversation speed"
       }
+    },
+    "M": {
+      "run": "M",
+      "currentQualification": false,
+      "completedStages": [
+        {
+          "stage": "128K",
+          "inputTokens": 124071,
+          "outputTokens": 603,
+          "nativeTurnSeconds": 56.28365778923035,
+          "clientElapsedSeconds": 58.22564768791199,
+          "firstTextSeconds": 48.13665795326233,
+          "streamSeconds": 8.144999980926514,
+          "streamWindowTokensPerSecond": 74.03314934463724,
+          "wholeTurnOutputTokensPerSecond": 10.713589409169169,
+          "retries": 0,
+          "scopedExecutionGatePassed": true
+        },
+        {
+          "stage": "384K",
+          "inputTokens": 384071,
+          "outputTokens": 583,
+          "nativeTurnSeconds": 313.65413308143616,
+          "clientElapsedSeconds": 313.8332426548004,
+          "firstTextSeconds": 305.9661331176758,
+          "streamSeconds": 7.686000108718872,
+          "streamWindowTokensPerSecond": 75.85219773008517,
+          "wholeTurnOutputTokensPerSecond": 1.8587352708297702,
+          "retries": 0,
+          "scopedExecutionGatePassed": true
+        }
+      ],
+      "parallelShortRequests": {
+        "count": 136,
+        "exactOrRecordedContentCheckPassed": 136,
+        "retries": 0,
+        "medianNativeSeconds": 3.521546244621277,
+        "p95NativeSeconds": 6.369826793670654,
+        "maxNativeSeconds": 9.4035165309906,
+        "maxClientSeconds": 10.043037176132202
+      },
+      "shortRequestsByRecordedPhase": {
+        "128K": {
+          "count": 4,
+          "exactOrRecordedContentCheckPassed": 4,
+          "retries": 0,
+          "medianNativeSeconds": 4.535311818122864,
+          "p95NativeSeconds": 5.7830352783203125,
+          "maxNativeSeconds": 5.7830352783203125,
+          "maxClientSeconds": 6.040202379226685
+        },
+        "384K": {
+          "count": 19,
+          "exactOrRecordedContentCheckPassed": 19,
+          "retries": 0,
+          "medianNativeSeconds": 4.542074680328369,
+          "p95NativeSeconds": 8.590095043182373,
+          "maxNativeSeconds": 8.590095043182373,
+          "maxClientSeconds": 10.043037176132202
+        },
+        "awaiting-stage-gate-128K": {
+          "count": 16,
+          "exactOrRecordedContentCheckPassed": 16,
+          "retries": 0,
+          "medianNativeSeconds": 1.1561247110366821,
+          "p95NativeSeconds": 3.7243566513061523,
+          "maxNativeSeconds": 3.7243566513061523,
+          "maxClientSeconds": 4.0421929359436035
+        },
+        "awaiting-stage-gate-384K": {
+          "count": 11,
+          "exactOrRecordedContentCheckPassed": 11,
+          "retries": 0,
+          "medianNativeSeconds": 1.4971632957458496,
+          "p95NativeSeconds": 2.668095350265503,
+          "maxNativeSeconds": 2.668095350265503,
+          "maxClientSeconds": 4.031910181045532
+        },
+        "near1M": {
+          "count": 86,
+          "exactOrRecordedContentCheckPassed": 86,
+          "retries": 0,
+          "medianNativeSeconds": 4.281155467033386,
+          "p95NativeSeconds": 6.484412908554077,
+          "maxNativeSeconds": 9.4035165309906,
+          "maxClientSeconds": 10.042672157287598
+        }
+      },
+      "near1M": {
+        "completed": false,
+        "substantialLongOutputTokensPerSecond": null,
+        "compaction": "not-run",
+        "reason": "All four GPU allocator retry counters increased by one; strict gate rejected the candidate",
+        "allocatorRetriesByRank": {
+          "2": 1,
+          "1": 1,
+          "3": 1,
+          "0": 1
+        },
+        "oomsByRank": {
+          "2": 0,
+          "1": 0,
+          "3": 0,
+          "0": 0
+        }
+      },
+      "contentScope": "384K core-fact retrieval passed its scoped review; strict three-fact-only source adherence was not passed and not every sentence was directly sourced."
     }
   },
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "latestFullModelQualification": {
     "run": "R",
     "archiveSHA256": "24994486d1fc9fe387e3e2f58845c3f7358ba09eceb4b194669cd1afca445941",
@@ -315,7 +318,7 @@
     "sourceOnlyNarrativePassed": false,
     "modelProfilePermanentlyAdopted": false,
     "recoveryStatus": "original model specification restored; native READY response and owned cleanup verified",
-    "compactionStatus": "not run in R",
+    "compactionStatus": "Not run in R; see latestCompactionQualification for the separate follow-up.",
     "recordedRecovery": {
       "rootWatchdogAcknowledged": true,
       "allFourRecoveryStepsVerified": true,
@@ -463,5 +466,157 @@
       "wireTimingMatches": 48
     },
     "compactionPassedOnThatProfile": true
+  },
+  "near1M": {
+    "run": "R",
+    "completed": true,
+    "inputTokens": 1002051,
+    "outputTokens": 636,
+    "substantialLongOutputTokensPerSecond": 61.56228772444342,
+    "capacityQualificationOnly": true,
+    "sourceOnlyNarrativePassed": false,
+    "completeTurnGPUCounterCoverage": "unknown",
+    "newCapacityTestPerformedForCompaction": false
+  },
+  "latestCapacityQualification": {
+    "run": "R",
+    "archiveSHA256": "24994486d1fc9fe387e3e2f58845c3f7358ba09eceb4b194669cd1afca445941",
+    "nativeEventsRecomputed": true,
+    "long": {
+      "inputTokens": 1002051,
+      "outputTokens": 636,
+      "clientElapsedSeconds": 1784.2754259109497,
+      "nativeElapsedSeconds": 1782.4249711036682,
+      "firstTextSeconds": 1772.0919709205627,
+      "streamSeconds": 10.331000089645386,
+      "streamTokensPerSecond": 61.56228772444342,
+      "wirePreparationSeconds": 1766.557604,
+      "wireFirstDeltaSeconds": 1771.226144,
+      "wireWholeTurnSeconds": 1781.552854,
+      "wireStreamTokensPerSecond": 61.58786293020742
+    },
+    "allShorts": {
+      "count": 110,
+      "medianClientSeconds": 6.033309578895569,
+      "p95NearestRankClientSeconds": 10.056727170944214,
+      "maximumClientSeconds": 14.057971000671387
+    },
+    "fullyDuringLong": {
+      "count": 104,
+      "medianClientSeconds": 6.034711599349976,
+      "p95NearestRankClientSeconds": 10.056727170944214,
+      "maximumClientSeconds": 14.057971000671387
+    },
+    "allShortContentChecksPassed": true,
+    "allShortRetries": 0,
+    "strictSourceOnlyNarrativePassed": false,
+    "wirePreparationSeconds": 1766.557604,
+    "fullTurnAllocatorCoverage": false,
+    "compactionRun": false,
+    "liveCallsIssued": false,
+    "qualificationPassed": false,
+    "capacityCompleted": true,
+    "startupClientGatePassed": true,
+    "shortResponsivenessPassed": true,
+    "requestRetries": 0,
+    "sourceOnlyNarrativePassed": false,
+    "modelProfilePermanentlyAdopted": false,
+    "recoveryStatus": "original model specification restored; native READY response and owned cleanup verified",
+    "compactionStatus": "not run in R",
+    "recordedRecovery": {
+      "rootWatchdogAcknowledged": true,
+      "allFourRecoveryStepsVerified": true,
+      "savedOriginalModelSpecMatchesActualSHA256": true,
+      "nativeReply": "READY",
+      "recordedHumanSnapshotsByteIdentical": true,
+      "workers": 32,
+      "sessionAndAttachmentFiles": 256,
+      "runningKernelsObserved": 0,
+      "allArbitraryWorkspaceFilesHashed": false,
+      "ownedCredentialAbsent": true,
+      "ownedFixturePodsAbsent": true,
+      "originalModelRestoredNotPermanentCandidateAdoption": true,
+      "recoveryCounterTelemetryUnavailable": true
+    },
+    "completedWireTimingRowVerified": true
+  },
+  "latestCompletedCapacityTrial": "tile64-20261023r",
+  "latestCompactionQualification": {
+    "run": "S",
+    "result": "failed-before-automatic-compaction",
+    "recoveryVerified": true,
+    "automaticCompactionStarted": false,
+    "compactionAccepted": false,
+    "newCapacityTestPerformed": false,
+    "newNear1MThroughputMeasured": false,
+    "failure": "The pending recent message was admitted after the native pre-step compaction check; the oversized request was rejected by the total-token guard before long model inference.",
+    "startupClientSeconds": {
+      "firstNumeric": 6.4184046,
+      "firstProse": 9.442277,
+      "followingNumeric": 1.8207552,
+      "followingProse": 3.8500504
+    },
+    "firstAttemptShorts": {
+      "count": 2,
+      "medianClientSeconds": 4.058633208274841,
+      "p95NearestRankClientSeconds": 4.066463470458984,
+      "maximumClientSeconds": 4.066463470458984,
+      "maximumNativeSeconds": 3.4364731311798096
+    },
+    "shortsWereConcurrentWithCompaction": false,
+    "shortScope": "Recorded numeric/prose checks, not complete semantic-quality acceptance.",
+    "manualProseLimitation": "One first-attempt prose reply incorrectly implied that reopening a notebook automatically reruns its code; this is not accepted as factual correctness.",
+    "firstAttemptAllFourRankCounterCoverage": true,
+    "firstAttemptAllocationRetriesByRank": {
+      "0": 0,
+      "1": 0,
+      "3": 0,
+      "2": 0
+    },
+    "firstAttemptOOMsByRank": {
+      "0": 0,
+      "1": 0,
+      "3": 0,
+      "2": 0
+    },
+    "recovery": {
+      "allFourActualStatesVerified": true,
+      "servingOriginalModelRestored": true,
+      "backendContextTokens": 1048576,
+      "memoryFractionStatic": 0.922,
+      "maxRunningRequests": 8,
+      "chunkedPrefillTokens": 1024,
+      "maximumPrefillTokens": 1024,
+      "speculativeAlgorithm": "DSPARK",
+      "humanWorkersCompared": 32,
+      "selectedHumanSessionAndAttachmentFiles": 256,
+      "freshCanonicalInventoryMatchedRetainedRawWitness": true,
+      "newRawHumanCaptureByReview": false,
+      "allWorkspaceFilesHashed": false,
+      "fixtureSessionsPreserved": 379,
+      "fixtureFilesPreserved": 758,
+      "fixtureProfileBytesRestored": true,
+      "temporaryTestModelKeyRevokedAndSecretAbsent": true,
+      "oldOwnedProducerGenerationsStopped": true,
+      "currentNumericPIDAbsenceNotClaimed": true,
+      "sharedGPUReservationReleased": true,
+      "candidateOverlayPermanentlyAdopted": false
+    },
+    "correctedContinuation": {
+      "run": "U",
+      "completedRuntimeResultAvailable": false,
+      "usesSavedPrimedNativeHistory": true,
+      "newLargeTailSubmissionPermitted": false,
+      "newCapacitySubmissionPermitted": false
+    },
+    "priorRStrictNarrativeQualityAccepted": false,
+    "priorRFinalCounterGapRepaired": false
+  },
+  "reproducibleQualificationHelpers": {
+    "path": "gpu-stack/qualification/allocator-telemetry/",
+    "CPUChecksPassed": 32,
+    "modelWeightsLoadedByCPUChecks": false,
+    "networkOrClusterCallsByCPUChecks": false,
+    "runtimeInstallationAutomatic": false
   }
 }

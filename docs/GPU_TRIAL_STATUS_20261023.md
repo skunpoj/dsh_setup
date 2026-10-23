@@ -2,6 +2,30 @@
 
 ## GPU performance and 1M operation — 23 October 2026
 
+### Compaction-only follow-up and recovery — 24 October
+
+**Trial S was rejected before automatic compaction began; recovery is verified.** It did not repeat the 1M capacity test. There is no new compaction speed or near-1M throughput measurement.
+
+| S check | Actual result |
+| --- | --- |
+| First startup numeric / prose replies | 6.42s / 9.44s client elapsed |
+| Following startup numeric / prose replies | 1.82s / 3.85s client elapsed |
+| Two short replies during the failed attempt | 4.05s / 4.07s; zero retries; configured checks passed |
+| Automatic compaction | Did not start; total-token guard rejected the oversized request before long model inference |
+| Four-rank GPU observations | Complete coverage of the two short replies; zero allocation retries and OOMs in that window |
+| Recovery | Original model and fixture profiles restored; temporary test key revoked and its Secret absent |
+| User-state integrity scope | 32 workers / 256 selected session-and-attachment files matched the fresh canonical inventory |
+| Separate qualification fixture | 379 original sessions / 758 original files preserved |
+
+The short replies were **not concurrent with compaction**. One prose reply incorrectly implied that opening a saved notebook automatically reruns its cells; the recorded keyword check is narrower than full factual correctness.
+
+The native compaction check runs before pending user messages enter its surface. The first recent tail therefore became durable only after that check, and the next request exceeded the budget. The corrected follow-up forks the saved primed history and sends a small continuation, without another large tail or capacity test. Actual compaction, Stop/resume, persistence and short responsiveness remain a separate runtime result.
+
+The recovered baseline retains **1,048,576 context tokens, DSpark, memory fraction 0.922, running cap 8 and 1,024 / 1,024-token prefill**. Its shared GPU reservation was released. The S overlay was not permanently adopted. R’s narrative-quality failure and final counter gap are not retrospectively repaired.
+
+[Allocator-telemetry helpers](https://github.com/skunpoj/dsh_setup/tree/main/gpu-stack/qualification/allocator-telemetry) include 32 passing CPU checks; they do not install a runtime or run inference.
+
+
 **The latest actual DSH near-1M request completed:** **1,002,051 input / 636 output tokens**, **29m26.56s preparation**, **29m32.09s to first text**, **29m44.28s client elapsed**, and **61.56 streaming output tokens/sec**. The streaming rate excludes initial preparation. Preparation is measured at the forwarding boundary; time to first text also includes tokenization and forwarding overhead. **100+ tokens/sec per near-1M conversation has not been reached.**
 
 The startup hook exercises the original kernel implementation before the KV cache is allocated and before readiness. All four GPUs completed the bounded initialization in **9.61–10.09s each**. The model weights and kernel mathematics were not changed. First numeric/prose startup requests completed in **8.73s / 10.32s client elapsed**; the following pair completed in **1.30s / 2.83s**. All four passed their content checks without retries and remained below the unchanged **15s client limit**. The first pair was slightly slower than the matched earlier baseline; this is not a general speedup claim.
