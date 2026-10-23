@@ -12,3 +12,9 @@ The reference library includes 71 DSH code lessons, 25 GPU code lessons, a 15-ch
 The 44-chapter technical guide preserves its 19 October source edition. Consult the deployment's current GPU results for later measurements. Original source slides and previous recordings remain preserved; a new narration edition does not upgrade their runtime evidence.
 
 See [the narration standard](VIDEO_NARRATION_STANDARD.md) for source binding, voice reuse, caption verification and safe publication. Deployment-specific hostnames, private release URLs, credentials and source recordings are not included in this portable guide.
+
+## Main walkthroughs
+
+The reference Main manual has nine walkthrough pages with eleven narrated clips: course navigation, private Python packages, JupyterLab, Jupyter on the additional owner-only sites, application restart settings, application sharing, administrator application controls, signup capacity, and platform capacity and managed clients.
+
+Open these pages through your deployed manual. Test-library references point to the same current Main walkthroughs rather than maintaining separate copies. Site-specific pages and recordings are supplied by the operator.
