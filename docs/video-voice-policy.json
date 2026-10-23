@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "language": "en",
+  "provider": "Google Vertex AI",
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Fola",
+  "style": "Calm conversational software instructor; clear articulation, moderate pace and natural pauses.",
+  "automatic_voice_fallback": false,
+  "maximum_concurrent_requests": 2,
+  "credential_values_in_media_or_repositories": false,
+  "new_audio_requires_caption_alignment": true,
+  "new_duration_requires_navigation_retiming": true,
+  "retain_original_historical_editions": true,
+  "publish_requires_actual_media_and_link_checks": true
+}
