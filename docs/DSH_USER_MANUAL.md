@@ -22,7 +22,7 @@ Persistent files and settings can survive a worker replacement. Running processe
 
 ## 3 Use the terminal, notebook and coding clients
 
-Open **Web Terminal** or **JupyterLab** from your authenticated site. They execute with your assigned workspace identity and environment permissions. Terminal access does not grant administrator or cluster-management rights.
+Open **Web Terminal** or **JupyterLab** from your authenticated site. They execute with your assigned workspace identity and environment permissions. Terminal access does not grant administrator or cluster-management rights. See [on-demand notebooks and the captioned guide](JUPYTER_ON_DEMAND.md).
 
 Use the installed managed entry points for Claude Code, Kilo Code or TrueForge where your operator has enabled them. Client configuration and supported features can differ; see [client compatibility](LIVE_CLIENT_COMPATIBILITY.md) and [managed-client validation](MANAGED_CLIENT_VALIDATION.md). DSH and these clients use the configured shared model route rather than a separate GPU copy per user.
 
