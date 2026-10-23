@@ -1,0 +1,20 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:18.000
+What the GPU gate checks. The actual gate compares four GPU ranks against the saved baseline. Any additional allocation retry or out-of-memory event rejects the candidate. Ready alone does not pass it.
+
+00:00:18.000 --> 00:00:36.000
+K and L were both rejected. K and L each recorded one allocator retry per GPU and zero OOMs during the 384K attempt. Changing garbage collection from 0.95 to 0.92 did not resolve this failure.
+
+00:00:36.000 --> 00:00:54.000
+L: one completed 128K test. L processed 124,074 input tokens and generated 617 output tokens. The whole turn took 57.588 seconds. Its text-stream interval was 8.362 seconds. These are separate timing measures.
+
+00:00:54.000 --> 00:01:12.000
+Concurrency is a bounded sample. Four native DSH conversations overlapped, each generating 120 output tokens with zero retries. Their combined client-window rate was 117.30 tokens/sec. This is not 117.30 tokens/sec for each user or a sustained load test.
+
+00:01:12.000 --> 00:01:30.000
+What remains unqualified. Neither candidate completed 384K, near-1M generation or automatic compaction. The 128K answer added unsupported details. Verify baseline recovery and history hashes separately; do not convert partial checks into full acceptance.
+
+00:01:30.000 --> 00:01:48.000
+Baseline recovery is verified. The live model specification matches the pre-test baseline. Its exact 80-token reply completed in 1.50 seconds without retries. All 582 original qualification files remain unchanged across 291 histories; new histories were retained.
+

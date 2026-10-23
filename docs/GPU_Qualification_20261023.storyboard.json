@@ -1,0 +1,38 @@
+{
+  "secondsPerScene": 18,
+  "seconds": 108,
+  "scenes": [
+    {
+      "title": "What the GPU gate checks",
+      "caption": "The actual gate compares four GPU ranks against the saved baseline. Any additional allocation retry or out-of-memory event rejects the candidate. Ready alone does not pass it.",
+      "code": "if set(latest) != {\"0\", \"1\", \"2\", \"3\"}:\n    raise ValueError(\"Four-rank evidence missing\")"
+    },
+    {
+      "title": "K and L were both rejected",
+      "caption": "K and L each recorded one allocator retry per GPU and zero OOMs during the 384K attempt. Changing garbage collection from 0.95 to 0.92 did not resolve this failure.",
+      "code": "if any(v != 0 for row in deltas.values()\n       for v in row.values()):\n    raise AllocatorPressure(evidence)"
+    },
+    {
+      "title": "L: one completed 128K test",
+      "caption": "L processed 124,074 input tokens and generated 617 output tokens. The whole turn took 57.588 seconds. Its text-stream interval was 8.362 seconds. These are separate timing measures.",
+      "code": "617 / 57.588 = 10.71 output tokens/sec, whole turn\n617 / 8.362  = 73.79 output tokens/sec, stream"
+    },
+    {
+      "title": "Concurrency is a bounded sample",
+      "caption": "Four native DSH conversations overlapped, each generating 120 output tokens with zero retries. Their combined client-window rate was 117.30 tokens/sec. This is not 117.30 tokens/sec for each user or a sustained load test.",
+      "code": "combined_rate = sum(output_tokens) / wall_window\nper_turn_rate = output_tokens / whole_turn_seconds"
+    },
+    {
+      "title": "What remains unqualified",
+      "caption": "Neither candidate completed 384K, near-1M generation or automatic compaction. The 128K answer added unsupported details. Verify baseline recovery and history hashes separately; do not convert partial checks into full acceptance.",
+      "code": "near_1m_accepted = False\ncompaction_accepted = False\ncanonical_long_context_parity = \"not established\""
+    },
+    {
+      "title": "Baseline recovery is verified",
+      "caption": "The live model specification matches the pre-test baseline. Its exact 80-token reply completed in 1.50 seconds without retries. All 582 original qualification files remain unchanged across 291 histories; new histories were retained.",
+      "code": "live_spec == saved_baseline\nactual_reply == expected_numbers_1_to_40\nremaining_owned_test_keys == 0"
+    }
+  ],
+  "qualificationAccepted": false,
+  "near1MOrCompactionAccepted": false
+}
