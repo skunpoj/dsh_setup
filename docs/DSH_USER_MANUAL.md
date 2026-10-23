@@ -72,3 +72,12 @@ Use **Logout** when finished. If a session expires, sign in again before retryin
 ## GPU status — 23 October 2026
 
 The 23 October GPU candidate was rejected at the allocator-warning gate after passing 128K/384K stages. Four short DSH conversations overlapped at 117.75 combined output tokens/sec (30.07–33.77 per conversation including whole-turn time); this does not establish 100+ per conversation or two simultaneous 1M requests. The saved baseline retains the 1M ceiling. See the dated results for definitions and recovery checks. [Detailed results](GPU_TRIAL_STATUS_20261023.html).
+
+
+## Latest verified interactive results
+
+The 23 October 2026 check passed normal login, terminal commands, Jupyter kernel
+execution and logout for Main DSH in both environments and the DSH2/DSH3 owner
+workspaces. See the [verified results and preservation limits](JUPYTER_INTERACTIVE_VERIFICATION_20261023.html).
+This is documentation of the accepted Jupyter release, not promotion of newer
+capacity-planner source changes.

@@ -62,3 +62,12 @@ are reused; cold-start qualification uses separate synthetic environments so a
 running user notebook does not need to be stopped.
 
 [Watch the captioned DSH2/DSH3 guide](JUPYTER_DSH2_DSH3_WALKTHROUGH.html).
+
+
+## Latest verified interactive results
+
+The 23 October 2026 check passed normal login, terminal commands, Jupyter kernel
+execution and logout for Main DSH in both environments and the DSH2/DSH3 owner
+workspaces. See the [verified results and preservation limits](JUPYTER_INTERACTIVE_VERIFICATION_20261023.html).
+This is documentation of the accepted Jupyter release, not promotion of newer
+capacity-planner source changes.
