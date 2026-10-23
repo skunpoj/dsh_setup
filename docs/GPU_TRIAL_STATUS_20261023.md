@@ -2,6 +2,22 @@
 
 ## GPU performance and 1M operation — 23 October 2026
 
+### Preflight correction and recovery — trial U
+
+**Startup checks passed; automatic compaction did not launch.** A local preflight requested an obsolete tail-tokenizer field absent from the summary-budget configuration. Recovery restored the original model, profile and private test workloads and revoked the temporary key. This was a harness setup failure, not a new near-1M capacity result.
+
+| U check | Recorded result |
+| --- | --- |
+| First numeric / prose startup replies | 7.71s / 10.26s client elapsed |
+| Following numeric / prose startup replies | 1.79s / 3.84s client elapsed |
+| Diagnostic GPU counter points | Zero new allocator retries/OOMs on four GPUs; no raw periodic compaction-window proof |
+| Tokenizer-only summary budget | 1,003,068 input + 8,192 reserved output + 256 reserve = 1,011,516 tokens; no inference |
+| Automatic compaction | Not dispatched; no new compaction speed or concurrent-compaction latency result |
+| Preservation | 32 human workers / 256 selected history-and-attachment files unchanged; 386 original fixture sessions / 772 original files retained |
+| Fixture inventory after recovery | 390 sessions / 780 files, including four new startup-test sessions |
+
+Both prose explanations correctly distinguished saved files and volatile Python state. The following reply used 176 words, exceeding the requested 120–160 range while meeting the declared 85–210-word diagnostic gate. This is not strict format compliance. The local suite missed the stale configuration dependency; the correction adds a complete preflight with the actual saved configuration and current fixture identity checks before changing the model. The verified count and saved conversation are reused without another capacity prompt. U does not establish compaction acceptance; see the latest follow-up above.
+
 ### Compaction-only follow-up and recovery — 24 October
 
 **Trial S was rejected before automatic compaction began; recovery is verified.** It did not repeat the 1M capacity test. There is no new compaction speed or near-1M throughput measurement.
