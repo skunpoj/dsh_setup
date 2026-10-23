@@ -25,6 +25,15 @@ test('reject wrong user and duplicate fields',()=>{for(const fields of [{usernam
 test('no open return URL, unknown mode or prototype application',()=>{const {auth}=fixture();for(const name of ['https://evil.example','//evil.example','__proto__','missing'])assert.throws(()=>auth.begin(name,{setHeader(){}}));assert.throws(()=>auth.begin('demo',{setHeader(){}},'','on'));});
 test('bounded pending forms; capacity returns after expiry',()=>{const f=fixture();form(f.auth);form(f.auth);assert.throws(()=>form(f.auth));f.advance();assert(form(f.auth));});
 test('Public mappings never create DSH password form',()=>{const f=fixture();f.maps.demo.accessMode='public';assert.throws(()=>form(f.auth));});
+
+test('selected recipients bind one-use login and reject changed or malformed lists',()=>{
+ for(const allowedUsers of [undefined,[],['bobby','bobby'],['Bobby'],['bobby',null],Array(129).fill('bobby')]){
+  const {auth,maps}=fixture();Object.assign(maps.demo,{visitorPolicy:'selected-users',sharedEnvironment:'off',allowedUsers});assert.throws(()=>form(auth));
+ }
+ const {auth,maps}=fixture();Object.assign(maps.demo,{visitorPolicy:'selected-users',sharedEnvironment:'off',allowedUsers:['bobby']});
+ const f=form(auth);assert(!f.html.includes('bobby'));maps.demo.allowedUsers=['charlie'];assert.throws(()=>submit(auth,f));
+ const g=form(auth);const current=submit(auth,g);maps.demo.allowedUsers=['bobby'];assert.throws(()=>auth.assertCurrent(current));
+});
 test('Internet-only app chooses registered mode without presenting platform choices',()=>{const f=fixture();f.maps.demo.ports={on:8501};const a=form(f.auth);assert.equal(submit(f.auth,a).internet,'on');});
 
 function request(port,route,{method='GET',cookie='',fields,origin=issuer}={}){return new Promise((resolve,reject)=>{const body=fields?new URLSearchParams(fields).toString():'';const r=http.request({host:'127.0.0.1',port,path:route,method,headers:{Host:new URL(issuer).host,Origin:origin,...(cookie?{Cookie:cookie}:{}),...(fields?{'Content-Type':'application/x-www-form-urlencoded','Content-Length':Buffer.byteLength(body)}:{})}},s=>{let body='';s.on('data',b=>body+=b);s.on('end',()=>resolve({status:s.statusCode,headers:s.headers,body}));});r.setTimeout(5000,()=>r.destroy(Error('timeout')));r.on('error',reject);r.end(body);});}
