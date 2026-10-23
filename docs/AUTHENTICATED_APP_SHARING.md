@@ -31,3 +31,15 @@ Sharing grants access to the application's own behavior, including any write act
 The regression suite runs the actual gateway with synthetic users and separate owner/visitor servers. It checks saved opt-in settings, exact upstream content, owner-bound routing, private-alias refusal, management-port refusal through HTTP/API/WebSocket, app-focused sign-in without a workspace, credential/cookie stripping, Origin/path rejection and revocation of active HTTP/WebSocket streams. It also executes the selector script from the returned HTML to check ordinary and protected ports.
 
 Run `node --test tests/app_proxy/test_shared_local.cjs` and the existing app sign-in, alias recovery and public-login tests before rollout. Use an isolated canary with no production storage or credentials, retain the prior gateway source, and compare existing accounts, mappings, sessions and worker identities after rollout. Local integration tests and a canary do not by themselves prove a production deployment.
+
+## Selected authenticated users
+
+The selected-user candidate adds **Selected authenticated users** alongside Owner only and Any enabled DSH account. It is locally tested; it has not yet replaced the live gateway. The current GPU qualification owns the coordinated restart window.
+
+Choose Selected authenticated users and enter existing DSH usernames separated by commas. The gateway accepts 1–128 distinct enabled accounts, stores the normalized list with that application and always retains owner access. Unknown, disabled, duplicate and malformed accounts are rejected. No account directory, password or private runtime information is exposed to visitors.
+
+The list grants access only to that application's hostname, target and selected environment. It does not grant Internet permission or access to the owner's workspace, histories, JupyterLab or terminal. JupyterLab and terminal ports remain owner-only, even when a request bypasses the page and calls the save API directly.
+
+The gateway enforces the list for sign-in, HTTP and WebSocket requests. Removing a recipient invalidates pending app login challenges and closes existing app connections on the next authorization check (normally within two seconds). Disabled users remain denied even while their names are saved. Owners can update the same alias to replace the recipient list; choosing Owner only or Any enabled DSH account clears the saved list. Existing mappings are not migrated automatically.
+
+Local integration tests verified actual upstream content for allowed users, refused another authenticated user, rejected management-port sharing, persisted the list, rejected disabled recipients and closed active HTTP and WebSocket connections after recipient removal. These are candidate tests, not a live deployment claim.

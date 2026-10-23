@@ -154,3 +154,8 @@ Start safely reuses an already-enabled Jupyter service across Main DSH, DSH2 and
 ## Current guide and lifecycle verification
 
 See [document alignment](docs/DOCUMENT_ALIGNMENT_20261023.md) for current controls, tests and historical-media limits.
+
+
+### Selected-user app sharing candidate
+
+The candidate adds a per-app authenticated username list, with HTTP/WebSocket and sign-in enforcement plus revocation. JupyterLab and terminals remain owner-only. Local integration tests pass; live rollout is pending the coordinated gateway window. See [selection and boundaries](docs/AUTHENTICATED_APP_SHARING.md#selected-authenticated-users).
