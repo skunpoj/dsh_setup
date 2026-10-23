@@ -338,12 +338,43 @@ function serviceAccessState(user,mode,target){
  if(target==='main'&&mode==='on'&&!internetAllowed(user))return 'internet-approval-pending';
  return 'environment-disabled';
 }
+const legacyJupyterChecks=new WeakMap(), jupyterPortChecks=new Map();
+function describeManagedService(entry,status,fresh,identity){
+ const service={name:entry.name,kind:entry.kind,cwd:entry.cwd,argv:entry.argv,port:entry.port,enabled:entry.enabled,generation:entry.generation,...observedServiceStatus(entry,status,fresh)};
+ const observed=fresh&&Array.isArray(status.services)?status.services.find(v=>v.name===entry.name):undefined;
+ if(identity.allowed&&entry.enabled&&entry.kind==='jupyter'&&entry.name==='jupyter'&&entry.port===8888&&['backoff','port-in-use'].includes(service.phase)&&observed&&observed.generation===undefined&&observed.restarts===undefined)
+  legacyJupyterChecks.set(service,{...identity,observedAt:status.observedAt,signature:crypto.createHash('sha256').update(JSON.stringify(entry)).digest('hex')});
+ return service;
+}
+function listeningJupyterPort(host){
+ const existing=jupyterPortChecks.get(host);if(existing&&Date.now()-existing.at<500)return existing.promise;
+ if(jupyterPortChecks.size>=128)jupyterPortChecks.delete(jupyterPortChecks.keys().next().value);
+ const promise=new Promise(resolve=>{let socket,done=false;const finish=v=>{if(done)return;done=true;clearTimeout(timer);if(socket)socket.destroy();resolve(v);};const timer=setTimeout(()=>finish(false),350);try{socket=require('net').connect({host,port:8888},()=>finish(true));socket.once('error',()=>finish(false));}catch{finish(false);}});
+ jupyterPortChecks.set(host,{at:Date.now(),promise});return promise;
+}
+async function clarifyLegacyJupyterLabels(rows){
+ const checks=[];for(const row of rows)for(const service of row.services){const evidence=legacyJupyterChecks.get(service);if(evidence)checks.push({row,service,evidence});}
+ // At most eight concurrent short, data-free connections to configured internal
+ // Jupyter ports. No user-supplied destination, kernel request, or command runs.
+ for(let offset=0;offset<checks.length;offset+=8)await Promise.all(checks.slice(offset,offset+8).map(async({row,service,evidence})=>{
+  try{
+   const now=Date.now()/1000;if(!Number.isFinite(evidence.observedAt)||now-evidence.observedAt>=30||evidence.observedAt>now+2||!servicesAllowed(evidence.user,evidence.mode,evidence.target))return;
+   const current=readServices(evidence.user,evidence.mode,evidence.target),entry=current.services[service.name],file=path.join(serviceFolder(evidence.user,evidence.mode,evidence.target),'config.json');
+   if(!current.allowed||!entry||crypto.createHash('sha256').update(JSON.stringify(entry)).digest('hex')!==evidence.signature||fs.statSync(file).mtimeMs/1000>evidence.observedAt)return;
+   const target=serviceTarget(evidence.user,evidence.mode,evidence.target);if(!await listeningJupyterPort(target.host))return;
+   const after=readServices(evidence.user,evidence.mode,evidence.target);
+   if(Date.now()/1000-evidence.observedAt>=30||!servicesAllowed(evidence.user,evidence.mode,evidence.target)||!after.allowed||!after.services[service.name]||crypto.createHash('sha256').update(JSON.stringify(after.services[service.name])).digest('hex')!==evidence.signature||fs.statSync(file).mtimeMs/1000>evidence.observedAt||serviceTarget(evidence.user,evidence.mode,evidence.target).host!==target.host)return;
+   service.statusLabel='Waiting for existing Jupyter';
+  }catch{}
+ }));
+ return rows;
+}
 function serviceInventory(){
   if(!APP_SERVICES_ROOT)return [];
   const rows=[];for(const {user,mode,target,label}of serviceAssignments()){
     try {const desired=readServices(user,mode,target);let status={};try{const f=path.join(serviceFolder(user,mode,target),'status','status.json');status=readServiceStatus(f);}catch{}
       const fresh=Number.isFinite(status.observedAt)&&Math.abs(Date.now()/1000-status.observedAt)<30;
-      rows.push({user,mode,target,label,available:true,allowed:servicesAllowed(user,mode,target),accessState:serviceAccessState(user,mode,target),services:Object.values(desired.services).map(e=>({name:e.name,kind:e.kind,cwd:e.cwd,argv:e.argv,port:e.port,enabled:e.enabled,generation:e.generation,...observedServiceStatus(e,status,fresh)}))});
+      rows.push({user,mode,target,label,available:true,allowed:servicesAllowed(user,mode,target),accessState:serviceAccessState(user,mode,target),services:Object.values(desired.services).map(e=>describeManagedService(e,status,fresh,{user,mode,target,allowed:servicesAllowed(user,mode,target)}))});
     }catch{rows.push({user,mode,target,label,available:false,services:[]});}
   }return rows;
 }
@@ -1834,7 +1865,7 @@ const server = http.createServer((req, res) => {
     if(parsedUrl.pathname==='/api/admin/apps') {
       const reply=(status,data)=>{res.writeHead(status,{...headers,'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(data));};
       try {
-        if(req.method==='GET'){activeSession.adminCsrf ||= crypto.randomBytes(32).toString('hex');return reply(200,{...adminApps(),csrfToken:activeSession.adminCsrf});}
+        if(req.method==='GET'){activeSession.adminCsrf ||= crypto.randomBytes(32).toString('hex');const data=adminApps();return clarifyLegacyJupyterLabels(data.managedServices).then(()=>{if(!accountEnabled(sessionUser)||!ADMIN_USERS.has(sessionUser)||![...SESSIONS.values()].includes(activeSession))return reply(401,{error:'Administrator session ended.'});return reply(200,{...data,csrfToken:activeSession.adminCsrf});}).catch(()=>reply(503,{error:'Service inventory unavailable.'}));}
         if(req.method!=='POST')return reply(405,{error:'Use GET or POST.'});
         if(!activeSession.adminCsrf||req.headers['x-dsh-admin-csrf']!==activeSession.adminCsrf)return reply(403,{error:'Invalid management token.'});
         try {if(new URL(req.headers.origin).host!==(process.env.DSH_TRUSTED_HOST||req.headers.host))return reply(403,{error:'Same-origin management required.'});}catch{return reply(403,{error:'Same-origin management required.'});}
