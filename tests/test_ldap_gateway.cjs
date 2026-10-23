@@ -2,15 +2,15 @@
 // Default: synthetic directory. An operator may explicitly supply a private
 // credential-file reference to repeat the same gateway checks against real AD.
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),http=require('node:http'),cp=require('node:child_process');
+const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),http=require('node:http'),net=require('node:net'),cp=require('node:child_process');
 const runtime=process.env.DSH_LDAP_TEST_SCRIPTS||path.join(__dirname,'../scripts');
 const realFile=process.env.DSH_LDAP_TEST_CREDENTIAL_FILE;
 const credential=realFile?JSON.parse(fs.readFileSync(realFile,'utf8')):{username:'person',password:'AD-fixture-only',domain:'example.com'};
 const issuer='dsh.example.test',localPassword='local-fixture-only',adminPassword='admin-fixture-only';
-function request(port,route,{fields,cookie,csrf}={}) {
+function request(port,route,{fields,cookie,csrf,host=issuer}={}) {
   return new Promise((resolve,reject)=>{
     const body=fields?new URLSearchParams(fields).toString():'';
-    const req=http.request({host:'127.0.0.1',port,path:route,method:fields?'POST':'GET',headers:{Host:issuer,
+    const req=http.request({host:'127.0.0.1',port,path:route,method:fields?'POST':'GET',headers:{Host:host,
       ...(fields?{Origin:'https://'+issuer,'Content-Type':'application/x-www-form-urlencoded','Content-Length':Buffer.byteLength(body)}:{}),
       ...(cookie?{Cookie:cookie}:{}),...(csrf?{'X-DSH-Admin-CSRF':csrf}:{})}},res=>{
       let text='';res.on('data',x=>text+=x);res.on('end',()=>resolve({status:res.statusCode,headers:res.headers,body:text}));
@@ -27,6 +27,7 @@ test('actual gateway enforces directory identity, conflict, approval and restart
   let child,logs='',backend;const sockets=new Set();
   t.after(async()=>{if(child&&!child.killed){child.kill();await new Promise(r=>child.once('exit',r));}for(const s of sockets)s.destroy();if(backend)await new Promise(r=>backend.close(r));fs.rmSync(root,{recursive:true,force:true});});
   backend=http.createServer((_req,res)=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify({fixture:'private-runtime'}));});
+  backend.on('upgrade',(_req,s)=>s.end('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\nowner-app-socket'));
   backend.on('connection',s=>{sockets.add(s);s.once('close',()=>sockets.delete(s));});
   await new Promise(r=>backend.listen(0,'127.0.0.1',r));
   const probe=http.createServer();await new Promise(r=>probe.listen(0,'127.0.0.1',r));const port=probe.address().port;await new Promise(r=>probe.close(r));
@@ -86,8 +87,10 @@ test('actual gateway enforces directory identity, conflict, approval and restart
   await t.test('app audience uses authenticated provider for AD and local identities',async()=>{
     const accounts=JSON.parse(fs.readFileSync(usersFile));accounts.localvisitor=hashPassword(localPassword);fs.writeFileSync(usersFile,JSON.stringify(accounts));
     const filename=root+'/app-links.json',prior=JSON.parse(fs.readFileSync(filename));
-    async function open(policy,provider){const maps={...prior,'audience-ldap':{owner:'admin',ports:{off:3000},targets:{},accessMode:'authenticated',visitorPolicy:policy,sharedEnvironment:'off',allowedUsers:['localvisitor']}};fs.writeFileSync(filename,JSON.stringify(maps));const page=await request(port,'/login?app=audience-ldap');assert.equal(page.status,200);return request(port,'/login',{fields:{app_login:page.body.match(/name="app_login" value="([a-f0-9]+)"/)[1],username:provider==='ldap'?user:'localvisitor',password:provider==='ldap'?credential.password:localPassword,auth_provider:provider},cookie:cookieFor(page,'__Host-dsh_app_login')});}
-    try{for(const policy of ['signed-in-users','local-users','ldap-users','selected-local-users'])for(const provider of ['local','ldap']){const expected=policy==='signed-in-users'||(provider==='ldap'?policy==='ldap-users':policy!=='ldap-users');const result=await open(policy,provider);assert.equal(result.status,expected?303:403,policy+' '+provider+' '+result.body);}}
+    async function open(policy,provider){const maps={...prior,'audience-ldap':{owner:'admin',ports:{off:backend.address().port},targets:{},accessMode:'authenticated',visitorPolicy:policy,sharedEnvironment:'off',allowedUsers:['localvisitor']}};fs.writeFileSync(filename,JSON.stringify(maps));const page=await request(port,'/login?app=audience-ldap');assert.equal(page.status,200);return request(port,'/login',{fields:{app_login:page.body.match(/name="app_login" value="([a-f0-9]+)"/)[1],username:provider==='ldap'?user:'localvisitor',password:provider==='ldap'?credential.password:localPassword,auth_provider:provider},cookie:cookieFor(page,'__Host-dsh_app_login')});}
+    let localVisitorCookie;const appHost='audience-ldap.apps.example.test';
+    const socket=cookie=>new Promise((resolve,reject)=>{const s=net.connect(port,'127.0.0.1',()=>s.write('GET /socket HTTP/1.1\r\nHost: '+appHost+'\r\nOrigin: https://'+appHost+'\r\nCookie: '+cookie+'\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n'));let body='';s.setTimeout(4000,()=>s.destroy(Error('WebSocket deadline')));s.on('data',b=>{body+=b;if(body.includes('owner-app-socket')||/^HTTP\/1.1 (401|403|404)/.test(body)){s.destroy();resolve(body)}});s.on('end',()=>resolve(body));s.on('error',reject)});
+    try{for(const policy of ['signed-in-users','local-users','ldap-users','selected-local-users'])for(const provider of ['local','ldap']){const expected=policy==='signed-in-users'||(provider==='ldap'?policy==='ldap-users':policy!=='ldap-users');const result=await open(policy,provider);assert.equal(result.status,expected?303:403,policy+' '+provider+' '+result.body);if(expected&&provider==='local')localVisitorCookie=cookieFor(result);const visitor=provider==='ldap'?adCookie:localVisitorCookie;assert(visitor);const response=await request(port,'/',{cookie:visitor,host:appHost});if(expected){assert.equal(response.status,200);assert.equal(JSON.parse(response.body).fixture,'private-runtime')}else assert.notEqual(response.status,200);const ws=await socket(visitor);assert.equal(ws.includes('owner-app-socket'),expected,policy+' '+provider+' WebSocket');}}
     finally{fs.writeFileSync(filename,JSON.stringify(prior))}
   });
 
