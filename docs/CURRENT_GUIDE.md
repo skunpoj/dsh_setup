@@ -22,3 +22,7 @@ An optional topic extract must be generated from the canonical source and labell
 6. Verify actual served content on every deployment, a browser download of the canonical file, its saved bytes and its presentation opening. Compare execution-worker identities, restart counts and relevant preserved state before and after. Guide publication must not restart active workspaces.
 
 Keep site-specific decks and application examples in the private deployment repository. This portable reference describes the publication contract without embedding private assets, account state or credentials. Video lessons retain their own source snapshots; updating a guide does not silently regenerate a video course.
+
+## Current course content
+
+The [portable current guide](current-guide/DSH_CURRENT_GUIDE.html), [Markdown guide](current-guide/DSH_CURRENT_GUIDE.md) and [96-chapter course notes](current-guide/DSH_COURSE_NOTES.html) are maintained together. The [content source](current-guide/DSH_CURRENT_GUIDE.source.json), [notes source](current-guide/DSH_COURSE_NOTES.json) and [file manifest](current-guide/SOURCE_MANIFEST.json) describe the same portable edition. Configure site addresses privately; the site-specific PowerPoint and download assets stay in the private deployment repository.

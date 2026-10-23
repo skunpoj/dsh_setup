@@ -1,0 +1,770 @@
+[
+  {
+    "project": "dsh",
+    "chapter": "chapter-000",
+    "title": "Start with three risks and their enforced boundaries",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example. Caption file contains literal HTML apostrophe entities ('). The readable review decodes them for clarity; original VTT bytes are retained. Check caption rendering/normalization before the next media edition. Latest authenticated-local-app supplement: New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. additional site A/additional site B legacy entrypoints stay owner-only.  The reviewed31-slide revision includes current labels on slides10/23/24, selected local-app sharing on13/14/16/19, and safe handover/recovery notes on12/29/31. Docs are pinned to [deployment edition], including observed approval→waiting→Running transitions in isolated disposable tests. Permission reconciliation and startup are not instantaneous. Existing work must not be interrupted to force a clearer label. These notes accompany the reviewed deck; archived course media remains unchanged.",
+    "retainedSupportingContext": "Slide 10: Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner. | Slide 12: A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path. | Slide 14: Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices. | Slide 16: App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route. | Slide 19: Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor. | Slide 23: Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations. | Slide 24: For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers. | Slide 29: The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users. | Slide 31: Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording. | Slide 13: The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-001",
+    "title": "Follow a client through the managed inference route",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-002",
+    "title": "Open a notebook inside the selected private environment",
+    "currentGuideSlides": "10,12,23,29,31",
+    "clarification": "The code lesson does not replace the current lifecycle guide: opening Jupyter is on demand only when allowed; repeated Start reuses a healthy managed service; Stop persists across replacement; explicit Restart ends kernels and unsaved memory. Only enabled registered services with allowed access autostart. The disposable-user test is not a restart test of real legacy owners. Current56-second lifecycle supplement: new default managed Jupyter definitions apply in both No Internet and Internet, but Internet permission is still a separate prerequisite. Existing customized or disabled definitions are preserved; an older empty policy needs the reviewed one-time backfill. A pre-existing unmanaged on-demand server keeps its port and kernels; the supervisor waits for natural exit. Stop disables future managed startup without terminating that unmanaged server. Start is idempotent; explicit Restart is not a safe way to force handover during active work. Latest status-label supplement: Internet approval pending means an enabled account lacks Internet permission; it is not Account disabled. Waiting for existing Jupyter describes the qualified occupied-port handover path. Failed/repeated launches remain Recovery retry pending or Startup failed; stale/missing status is unavailable. A legacy phase is not enough by itself to claim an existing notebook server; the current source checks freshness/policy consistency and, for legacy frames, its configured listener. No approval, Stop, Restart or handover transition was performed by this review. The reviewed31-slide revision includes current labels on slides10/23/24, selected local-app sharing on13/14/16/19, and safe handover/recovery notes on12/29/31. Docs are pinned to [deployment edition], including observed approval→waiting→Running transitions in isolated disposable tests. Permission reconciliation and startup are not instantaneous. Existing work must not be interrupted to force a clearer label. These notes accompany the reviewed deck; archived course media remains unchanged.",
+    "retainedSupportingContext": "Slide 10: Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner. | Slide 12: A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path. | Slide 14: Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices. | Slide 16: App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route. | Slide 19: Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor. | Slide 23: Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations. | Slide 24: For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers. | Slide 29: The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users. | Slide 31: Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording. | Slide 13: The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-003",
+    "title": "Keep development clients on the approved provider",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-004",
+    "title": "Move inference without bypassing the managed gateway",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-005",
+    "title": "Separate the login session from durable conversation history",
+    "currentGuideSlides": "4,16,17,19,20",
+    "clarification": "Current Local/AD-LDAP provider selection, account collision/disabled checks and protected session storage remain distinct from destination-app SSO. Chapter 070 is the newer identity supplement; older login excerpts should be read with it.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-006",
+    "title": "Budget the final envelope, then admit expensive work separately",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-007",
+    "title": "Read usage and storage observations with their correct scope",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-008",
+    "title": "Build an acceptance argument from more than a ready pod",
+    "currentGuideSlides": "25,30",
+    "clarification": "Recorded near-1M timings and previous accepted/rejected trials belong to their dated source and workload. They are not the current GPU candidate result or a latency/concurrency SLA. New GPU trials remain separately qualified.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-009",
+    "title": "Interpret the recorded GPU results without promising them everywhere",
+    "currentGuideSlides": "25,30",
+    "clarification": "Recorded near-1M timings and previous accepted/rejected trials belong to their dated source and workload. They are not the current GPU candidate result or a latency/concurrency SLA. New GPU trials remain separately qualified.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-010",
+    "title": "Configure the managed model without inventing missing images",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-011",
+    "title": "Remove the legacy worker’s access to account authentication",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-012",
+    "title": "Mount an operator policy and test that users cannot rewrite it",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-013",
+    "title": "Upgrade managed clients while keeping private user state",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-014",
+    "title": "Change an internal transport deadline without undoing a startup repair",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-015",
+    "title": "Replace the gateway without replacing accounts or user runtimes",
+    "currentGuideSlides": "4,16,17,19,20,21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance. Current Local/AD-LDAP provider selection, account collision/disabled checks and protected session storage remain distinct from destination-app SSO. Chapter 070 is the newer identity supplement; older login excerpts should be read with it.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-016",
+    "title": "Bind an identity correction to the gateway source that was tested",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-017",
+    "title": "Stop the writer before taking a coherent runtime archive",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-018",
+    "title": "Migrate password storage without exporting plaintext credentials",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-019",
+    "title": "Reuse the owner’s private home instead of migrating legacy histories",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-020",
+    "title": "Attach a transport overlay only to the legacy execution worker",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-021",
+    "title": "Promote exact approved package bytes without following source symlinks",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-022",
+    "title": "Upgrade idle notebook runtimes while preserving exact history bytes",
+    "currentGuideSlides": "10,12,21,23,26,28,29,31",
+    "clarification": "The code lesson does not replace the current lifecycle guide: opening Jupyter is on demand only when allowed; repeated Start reuses a healthy managed service; Stop persists across replacement; explicit Restart ends kernels and unsaved memory. Only enabled registered services with allowed access autostart. The disposable-user test is not a restart test of real legacy owners. Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance. Current56-second lifecycle supplement: new default managed Jupyter definitions apply in both No Internet and Internet, but Internet permission is still a separate prerequisite. Existing customized or disabled definitions are preserved; an older empty policy needs the reviewed one-time backfill. A pre-existing unmanaged on-demand server keeps its port and kernels; the supervisor waits for natural exit. Stop disables future managed startup without terminating that unmanaged server. Start is idempotent; explicit Restart is not a safe way to force handover during active work. Latest status-label supplement: Internet approval pending means an enabled account lacks Internet permission; it is not Account disabled. Waiting for existing Jupyter describes the qualified occupied-port handover path. Failed/repeated launches remain Recovery retry pending or Startup failed; stale/missing status is unavailable. A legacy phase is not enough by itself to claim an existing notebook server; the current source checks freshness/policy consistency and, for legacy frames, its configured listener. No approval, Stop, Restart or handover transition was performed by this review. The reviewed31-slide revision includes current labels on slides10/23/24, selected local-app sharing on13/14/16/19, and safe handover/recovery notes on12/29/31. Docs are pinned to [deployment edition], including observed approval→waiting→Running transitions in isolated disposable tests. Permission reconciliation and startup are not instantaneous. Existing work must not be interrupted to force a clearer label. These notes accompany the reviewed deck; archived course media remains unchanged.",
+    "retainedSupportingContext": "Slide 10: Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner. | Slide 12: A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path. | Slide 14: Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices. | Slide 16: App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route. | Slide 19: Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor. | Slide 23: Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations. | Slide 24: For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers. | Slide 29: The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users. | Slide 31: Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording. | Slide 13: The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-023",
+    "title": "Prepare empty private runtime pairs without cloning an old user’s authority",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-024",
+    "title": "Install Kerberos support without claiming datalake authorization",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-025",
+    "title": "Render a dedicated secure and Internet runtime for each identity",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-026",
+    "title": "Find missing references before a candidate reaches the cluster",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-027",
+    "title": "Reconcile workspace files while preserving both sides of a conflict",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-028",
+    "title": "Check inputs that names alone cannot establish",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-029",
+    "title": "Inspect a private runtime candidate before deployment",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-030",
+    "title": "Keep secure files, Internet files and recovery evidence separate",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-031",
+    "title": "Separate workspace identity, environment and model service",
+    "currentGuideSlides": "10,12,23,29,31",
+    "clarification": "The code lesson does not replace the current lifecycle guide: opening Jupyter is on demand only when allowed; repeated Start reuses a healthy managed service; Stop persists across replacement; explicit Restart ends kernels and unsaved memory. Only enabled registered services with allowed access autostart. The disposable-user test is not a restart test of real legacy owners. Current56-second lifecycle supplement: new default managed Jupyter definitions apply in both No Internet and Internet, but Internet permission is still a separate prerequisite. Existing customized or disabled definitions are preserved; an older empty policy needs the reviewed one-time backfill. A pre-existing unmanaged on-demand server keeps its port and kernels; the supervisor waits for natural exit. Stop disables future managed startup without terminating that unmanaged server. Start is idempotent; explicit Restart is not a safe way to force handover during active work. Latest status-label supplement: Internet approval pending means an enabled account lacks Internet permission; it is not Account disabled. Waiting for existing Jupyter describes the qualified occupied-port handover path. Failed/repeated launches remain Recovery retry pending or Startup failed; stale/missing status is unavailable. A legacy phase is not enough by itself to claim an existing notebook server; the current source checks freshness/policy consistency and, for legacy frames, its configured listener. No approval, Stop, Restart or handover transition was performed by this review. The reviewed31-slide revision includes current labels on slides10/23/24, selected local-app sharing on13/14/16/19, and safe handover/recovery notes on12/29/31. Docs are pinned to [deployment edition], including observed approval→waiting→Running transitions in isolated disposable tests. Permission reconciliation and startup are not instantaneous. Existing work must not be interrupted to force a clearer label. These notes accompany the reviewed deck; archived course media remains unchanged.",
+    "retainedSupportingContext": "Slide 10: Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner. | Slide 12: A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path. | Slide 14: Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices. | Slide 16: App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route. | Slide 19: Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor. | Slide 23: Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations. | Slide 24: For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers. | Slide 29: The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users. | Slide 31: Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording. | Slide 13: The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-032",
+    "title": "Follow two independent control loops around private runtimes",
+    "currentGuideSlides": "10,12,23,29,31",
+    "clarification": "The code lesson does not replace the current lifecycle guide: opening Jupyter is on demand only when allowed; repeated Start reuses a healthy managed service; Stop persists across replacement; explicit Restart ends kernels and unsaved memory. Only enabled registered services with allowed access autostart. The disposable-user test is not a restart test of real legacy owners. Current56-second lifecycle supplement: new default managed Jupyter definitions apply in both No Internet and Internet, but Internet permission is still a separate prerequisite. Existing customized or disabled definitions are preserved; an older empty policy needs the reviewed one-time backfill. A pre-existing unmanaged on-demand server keeps its port and kernels; the supervisor waits for natural exit. Stop disables future managed startup without terminating that unmanaged server. Start is idempotent; explicit Restart is not a safe way to force handover during active work. Latest status-label supplement: Internet approval pending means an enabled account lacks Internet permission; it is not Account disabled. Waiting for existing Jupyter describes the qualified occupied-port handover path. Failed/repeated launches remain Recovery retry pending or Startup failed; stale/missing status is unavailable. A legacy phase is not enough by itself to claim an existing notebook server; the current source checks freshness/policy consistency and, for legacy frames, its configured listener. No approval, Stop, Restart or handover transition was performed by this review. The reviewed31-slide revision includes current labels on slides10/23/24, selected local-app sharing on13/14/16/19, and safe handover/recovery notes on12/29/31. Docs are pinned to [deployment edition], including observed approval→waiting→Running transitions in isolated disposable tests. Permission reconciliation and startup are not instantaneous. Existing work must not be interrupted to force a clearer label. These notes accompany the reviewed deck; archived course media remains unchanged.",
+    "retainedSupportingContext": "Slide 10: Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner. | Slide 12: A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path. | Slide 14: Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices. | Slide 16: App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route. | Slide 19: Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor. | Slide 23: Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations. | Slide 24: For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers. | Slide 29: The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users. | Slide 31: Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording. | Slide 13: The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-033",
+    "title": "Register a private pair and grant Internet separately",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-034",
+    "title": "Publish a private app route without confusing it with startup",
+    "currentGuideSlides": "10,12,23,29,31",
+    "clarification": "The code lesson does not replace the current lifecycle guide: opening Jupyter is on demand only when allowed; repeated Start reuses a healthy managed service; Stop persists across replacement; explicit Restart ends kernels and unsaved memory. Only enabled registered services with allowed access autostart. The disposable-user test is not a restart test of real legacy owners. Current56-second lifecycle supplement: new default managed Jupyter definitions apply in both No Internet and Internet, but Internet permission is still a separate prerequisite. Existing customized or disabled definitions are preserved; an older empty policy needs the reviewed one-time backfill. A pre-existing unmanaged on-demand server keeps its port and kernels; the supervisor waits for natural exit. Stop disables future managed startup without terminating that unmanaged server. Start is idempotent; explicit Restart is not a safe way to force handover during active work. Latest status-label supplement: Internet approval pending means an enabled account lacks Internet permission; it is not Account disabled. Waiting for existing Jupyter describes the qualified occupied-port handover path. Failed/repeated launches remain Recovery retry pending or Startup failed; stale/missing status is unavailable. A legacy phase is not enough by itself to claim an existing notebook server; the current source checks freshness/policy consistency and, for legacy frames, its configured listener. No approval, Stop, Restart or handover transition was performed by this review. Latest authenticated-local-app supplement: New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. additional site A/additional site B legacy entrypoints stay owner-only.  The reviewed31-slide revision includes current labels on slides10/23/24, selected local-app sharing on13/14/16/19, and safe handover/recovery notes on12/29/31. Docs are pinned to [deployment edition], including observed approval→waiting→Running transitions in isolated disposable tests. Permission reconciliation and startup are not instantaneous. Existing work must not be interrupted to force a clearer label. These notes accompany the reviewed deck; archived course media remains unchanged.",
+    "retainedSupportingContext": "Slide 10: Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner. | Slide 12: A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path. | Slide 14: Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices. | Slide 16: App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route. | Slide 19: Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor. | Slide 23: Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations. | Slide 24: For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers. | Slide 29: The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users. | Slide 31: Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording. | Slide 13: The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-035",
+    "title": "Follow identity from login into the correct private runtime",
+    "currentGuideSlides": "4,10,12,16,17,19,20,23,29,31",
+    "clarification": "The code lesson does not replace the current lifecycle guide: opening Jupyter is on demand only when allowed; repeated Start reuses a healthy managed service; Stop persists across replacement; explicit Restart ends kernels and unsaved memory. Only enabled registered services with allowed access autostart. The disposable-user test is not a restart test of real legacy owners. Current Local/AD-LDAP provider selection, account collision/disabled checks and protected session storage remain distinct from destination-app SSO. Chapter 070 is the newer identity supplement; older login excerpts should be read with it. Caption file contains literal HTML apostrophe entities ('). The readable review decodes them for clarity; original VTT bytes are retained. Check caption rendering/normalization before the next media edition. Current56-second lifecycle supplement: new default managed Jupyter definitions apply in both No Internet and Internet, but Internet permission is still a separate prerequisite. Existing customized or disabled definitions are preserved; an older empty policy needs the reviewed one-time backfill. A pre-existing unmanaged on-demand server keeps its port and kernels; the supervisor waits for natural exit. Stop disables future managed startup without terminating that unmanaged server. Start is idempotent; explicit Restart is not a safe way to force handover during active work. Latest status-label supplement: Internet approval pending means an enabled account lacks Internet permission; it is not Account disabled. Waiting for existing Jupyter describes the qualified occupied-port handover path. Failed/repeated launches remain Recovery retry pending or Startup failed; stale/missing status is unavailable. A legacy phase is not enough by itself to claim an existing notebook server; the current source checks freshness/policy consistency and, for legacy frames, its configured listener. No approval, Stop, Restart or handover transition was performed by this review. Latest authenticated-local-app supplement: New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. additional site A/additional site B legacy entrypoints stay owner-only.  The reviewed31-slide revision includes current labels on slides10/23/24, selected local-app sharing on13/14/16/19, and safe handover/recovery notes on12/29/31. Docs are pinned to [deployment edition], including observed approval→waiting→Running transitions in isolated disposable tests. Permission reconciliation and startup are not instantaneous. Existing work must not be interrupted to force a clearer label. These notes accompany the reviewed deck; archived course media remains unchanged.",
+    "retainedSupportingContext": "Slide 10: Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner. | Slide 12: A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path. | Slide 14: Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices. | Slide 16: App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route. | Slide 19: Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor. | Slide 23: Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations. | Slide 24: For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers. | Slide 29: The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users. | Slide 31: Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording. | Slide 13: The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-036",
+    "title": "Expose a fixed managed provider without a writable provider database",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-037",
+    "title": "Keep notebook HTTP and kernel WebSockets under one authenticated prefix",
+    "currentGuideSlides": "10,12,23,29,31",
+    "clarification": "The code lesson does not replace the current lifecycle guide: opening Jupyter is on demand only when allowed; repeated Start reuses a healthy managed service; Stop persists across replacement; explicit Restart ends kernels and unsaved memory. Only enabled registered services with allowed access autostart. The disposable-user test is not a restart test of real legacy owners. Current56-second lifecycle supplement: new default managed Jupyter definitions apply in both No Internet and Internet, but Internet permission is still a separate prerequisite. Existing customized or disabled definitions are preserved; an older empty policy needs the reviewed one-time backfill. A pre-existing unmanaged on-demand server keeps its port and kernels; the supervisor waits for natural exit. Stop disables future managed startup without terminating that unmanaged server. Start is idempotent; explicit Restart is not a safe way to force handover during active work. Latest status-label supplement: Internet approval pending means an enabled account lacks Internet permission; it is not Account disabled. Waiting for existing Jupyter describes the qualified occupied-port handover path. Failed/repeated launches remain Recovery retry pending or Startup failed; stale/missing status is unavailable. A legacy phase is not enough by itself to claim an existing notebook server; the current source checks freshness/policy consistency and, for legacy frames, its configured listener. No approval, Stop, Restart or handover transition was performed by this review. The reviewed31-slide revision includes current labels on slides10/23/24, selected local-app sharing on13/14/16/19, and safe handover/recovery notes on12/29/31. Docs are pinned to [deployment edition], including observed approval→waiting→Running transitions in isolated disposable tests. Permission reconciliation and startup are not instantaneous. Existing work must not be interrupted to force a clearer label. These notes accompany the reviewed deck; archived course media remains unchanged.",
+    "retainedSupportingContext": "Slide 10: Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner. | Slide 12: A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path. | Slide 14: Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices. | Slide 16: App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route. | Slide 19: Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor. | Slide 23: Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations. | Slide 24: For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers. | Slide 29: The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users. | Slide 31: Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording. | Slide 13: The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-038",
+    "title": "Launch Kilo with private state and operator model policy",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-039",
+    "title": "Check app-hostname conflicts before rendering an Ingress",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-040",
+    "title": "Build a bounded documentation dependency closure",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-041",
+    "title": "Verify documentation bytes before switching to a content-addressed directory",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance. Caption file contains literal HTML apostrophe entities ('). The readable review decodes them for clarity; original VTT bytes are retained. Check caption rendering/normalization before the next media edition.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-042",
+    "title": "Verify passwords without persisting plaintext",
+    "currentGuideSlides": "4,16,17,19,20",
+    "clarification": "Current Local/AD-LDAP provider selection, account collision/disabled checks and protected session storage remain distinct from destination-app SSO. Chapter 070 is the newer identity supplement; older login excerpts should be read with it.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-043",
+    "title": "Probe the application behind the bridge",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-044",
+    "title": "Recognize the legacy 128K budgeting path",
+    "currentGuideSlides": "30",
+    "clarification": "131,072-token character-estimation fallback is explicitly legacy. The managed 1,048,576-token route counts the final conditioned envelope; do not apply the legacy limit or estimator to that route.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-045",
+    "title": "Scope long deadlines and the SDK budget correction to one managed route",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-046",
+    "title": "Align model context, output and compaction in the web profile",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-047",
+    "title": "Keep first-use files in the persistent workspace",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-048",
+    "title": "Make model configuration operator-owned in the managed harness",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-049",
+    "title": "Constrain the shared inference route without changing model weights",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-050",
+    "title": "Recover only the boundary owned by the saved rollout",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-051",
+    "title": "Cut over from legacy pools to explicit private user routes",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-052",
+    "title": "Measure bounded storage summaries without reading file contents",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-053",
+    "title": "Update the admin document snapshot without overstating login acceptance",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-054",
+    "title": "Resolve only the intended internal names",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-055",
+    "title": "Replace filtered-resolver source only after an expected-hash check",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-056",
+    "title": "Understand the explicitly inference-only network profile",
+    "currentGuideSlides": "2,5,9,21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance. Inference-only is an explicit alternative profile. It excludes required Kerberos/data-platform paths; it is not the normal current internal DSH configuration. Use the reviewed data-platform-aware policy where required.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-057",
+    "title": "Preserve the approved internal data-platform network edges",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-058",
+    "title": "Explain No Internet as a set of tested network edges",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-059",
+    "title": "Append bounded-task guidance without replacing user history",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-060",
+    "title": "Issue a restricted harness key and test its actual authority",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-061",
+    "title": "Create a non-admin inference identity without rotating other clients",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-062",
+    "title": "Keep acceptance-only signup pairs out of the live pool",
+    "currentGuideSlides": "21,26,28,29",
+    "clarification": "Keep as a source-bound operator reference, not a command to rerun on the present system. Revalidate current image, source, mounts, writer activity and a fresh recovery point. Viewing this lesson authorizes no migration, rollout, model probe or credential issuance.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-063",
+    "title": "Validate the managed model route and output aliases",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-064",
+    "title": "Make conditioning defaults agree before tokenization and dispatch",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-065",
+    "title": "Follow the final wire request through budgeting, admission and cleanup",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-066",
+    "title": "Budget DSH long requests and release their admission leases",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-067",
+    "title": "Prepare Python packages online and install them privately offline",
+    "currentGuideSlides": "11",
+    "clarification": "Package lesson aligns with current pinned-wheel workflow. Internet approval is separate; installer has no network, existing environments are preserved and remote jobs need their own controls.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-068",
+    "title": "Read and write private workspace files through a bounded local tool",
+    "currentGuideSlides": "2,3,7,8,24,25",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-069",
+    "title": "Route External application and Example application through the DSH application access policy",
+    "currentGuideSlides": "4,14,15,16,17,18,19,20",
+    "clarification": "Current Local/AD-LDAP provider selection, account collision/disabled checks and protected session storage remain distinct from destination-app SSO. Chapter 070 is the newer identity supplement; older login excerpts should be read with it. The latest application access explanation is substantially aligned. Public Example application remains an alternative public entry; the protected alias cannot make the destination globally DSH-only. Platform login/logout is not destination SSO/logout. Caption file contains literal HTML apostrophe entities ('). The readable review decodes them for clarity; original VTT bytes are retained. Check caption rendering/normalization before the next media edition. Latest authenticated-local-app supplement: New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. additional site A/additional site B legacy entrypoints stay owner-only.  The reviewed31-slide revision includes current labels on slides10/23/24, selected local-app sharing on13/14/16/19, and safe handover/recovery notes on12/29/31. Docs are pinned to [deployment edition], including observed approval→waiting→Running transitions in isolated disposable tests. Permission reconciliation and startup are not instantaneous. Existing work must not be interrupted to force a clearer label. These notes accompany the reviewed deck; archived course media remains unchanged.",
+    "retainedSupportingContext": "Slide 10: Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner. | Slide 12: A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path. | Slide 14: Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices. | Slide 16: App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route. | Slide 19: Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor. | Slide 23: Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations. | Slide 24: For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers. | Slide 29: The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users. | Slide 31: Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording. | Slide 13: The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  },
+  {
+    "project": "dsh",
+    "chapter": "chapter-070",
+    "title": "Example application Public and DSH sign-in: shared Local and LDAP identity",
+    "currentGuideSlides": "4,14,15,16,17,18,19,20",
+    "clarification": "Current Local/AD-LDAP provider selection, account collision/disabled checks and protected session storage remain distinct from destination-app SSO. Chapter 070 is the newer identity supplement; older login excerpts should be read with it. The latest application access explanation is substantially aligned. Public Example application remains an alternative public entry; the protected alias cannot make the destination globally DSH-only. Platform login/logout is not destination SSO/logout. Caption file contains literal HTML apostrophe entities ('). The readable review decodes them for clarity; original VTT bytes are retained. Check caption rendering/normalization before the next media edition. Latest authenticated-local-app supplement: New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. additional site A/additional site B legacy entrypoints stay owner-only.  The reviewed31-slide revision includes current labels on slides10/23/24, selected local-app sharing on13/14/16/19, and safe handover/recovery notes on12/29/31. Docs are pinned to [deployment edition], including observed approval→waiting→Running transitions in isolated disposable tests. Permission reconciliation and startup are not instantaneous. Existing work must not be interrupted to force a clearer label. These notes accompany the reviewed deck; archived course media remains unchanged.",
+    "retainedSupportingContext": "Slide 10: Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner. | Slide 12: A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path. | Slide 14: Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices. | Slide 16: App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route. | Slide 19: Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor. | Slide 23: Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations. | Slide 24: For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers. | Slide 29: The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users. | Slide 31: Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording. | Slide 13: The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-001",
+    "title": "Render the intended topology before applying anything",
+    "currentGuideSlides": "26,30",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-002",
+    "title": "Validate the managed model route and output aliases",
+    "currentGuideSlides": "26,30",
+    "clarification": "Chapter 002 shows the configured OutputGuard rejecting unknown aliases. Chapter 025 shows a reusable LongContextGuard helper containing a legacy delegation branch. The renderer configures OutputGuard; this internal branch is not permission for the portable endpoint to accept arbitrary models or external fallback. Compare the actual configured entry point.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-003",
+    "title": "Make conditioning defaults agree before tokenization and dispatch",
+    "currentGuideSlides": "26,30",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-004",
+    "title": "Follow the final wire request through budgeting, admission and cleanup",
+    "currentGuideSlides": "26,30",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-005",
+    "title": "Locate the GPU service in the complete request path",
+    "currentGuideSlides": "26,30",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-006",
+    "title": "Verify the dependencies the manifest does not install",
+    "currentGuideSlides": "26,30",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-007",
+    "title": "Keep operator keys distinct from client authorization",
+    "currentGuideSlides": "26,30",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-008",
+    "title": "Separate model-file existence from model integrity",
+    "currentGuideSlides": "26,30",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-009",
+    "title": "Turn private settings into a reviewable candidate",
+    "currentGuideSlides": "26,30",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-010",
+    "title": "Move inference across machines without bypassing its gateway",
+    "currentGuideSlides": "26,30",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-011",
+    "title": "Read network access as caller, destination and port",
+    "currentGuideSlides": "26,30",
+    "clarification": "No contradiction with the mapped current guide principle was identified in the reviewed captions and source scene. This is a dated code lesson, not a fresh runtime acceptance or permission to execute its example.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-012",
+    "title": "Fit input and output into one total context",
+    "currentGuideSlides": "26,30",
+    "clarification": "The 1,048,576-token budget is a configuration contract including prompt, tools, reserve and output. One long lease plus one waiter is separate from ordinary request concurrency. Successful syntax/counting or pending stream comments do not prove a completed near-1M answer.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-013",
+    "title": "Keep long admission separate from ordinary concurrency",
+    "currentGuideSlides": "26,30",
+    "clarification": "The 1,048,576-token budget is a configuration contract including prompt, tools, reserve and output. One long lease plus one waiter is separate from ordinary request concurrency. Successful syntax/counting or pending stream comments do not prove a completed near-1M answer.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-014",
+    "title": "Separate persistent model state from temporary work",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-015",
+    "title": "Align every client with the guarded route",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work. The 1,048,576-token budget is a configuration contract including prompt, tools, reserve and output. One long lease plus one waiter is separate from ordinary request concurrency. Successful syntax/counting or pending stream comments do not prove a completed near-1M answer.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-016",
+    "title": "Read evidence at the layer it actually tests",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work. The 1,048,576-token budget is a configuration contract including prompt, tools, reserve and output. One long lease plus one waiter is separate from ordinary request concurrency. Successful syntax/counting or pending stream comments do not prove a completed near-1M answer.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-017",
+    "title": "Recover a qualified route without overwriting newer user work",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-018",
+    "title": "Reuse temporary scores without changing caller-owned inputs",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-019",
+    "title": "Shrink the temporary score tile, not the conversation window",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-020",
+    "title": "Decode FP4 keys with fewer temporary allocations",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-021",
+    "title": "Reserve prefill space for short work while a long request progresses",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-022",
+    "title": "Keep one owner of the chunked-prefill slot",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-023",
+    "title": "Read the score-rewrite qualification as a mathematical experiment",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-024",
+    "title": "Qualify packed-key decoding on CPU before an exclusive GPU gate",
+    "currentGuideSlides": "26,30",
+    "clarification": "Patch design, CPU equivalence, selected GPU-memory gates and scheduler invariants are different evidence. The lesson does not establish that this optimization is active or newly qualified end to end. Do not run GPU gates beside shared serving work.",
+    "retainedSupportingContext": ""
+  },
+  {
+    "project": "gpu",
+    "chapter": "chapter-025",
+    "title": "Budget the exact prompt and hold one long-request lease",
+    "currentGuideSlides": "26,30",
+    "clarification": "Chapter 002 shows the configured OutputGuard rejecting unknown aliases. Chapter 025 shows a reusable LongContextGuard helper containing a legacy delegation branch. The renderer configures OutputGuard; this internal branch is not permission for the portable endpoint to accept arbitrary models or external fallback. Compare the actual configured entry point. The 1,048,576-token budget is a configuration contract including prompt, tools, reserve and output. One long lease plus one waiter is separate from ordinary request concurrency. Successful syntax/counting or pending stream comments do not prove a completed near-1M answer.",
+    "retainedSupportingContext": ""
+  }
+]

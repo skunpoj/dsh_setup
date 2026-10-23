@@ -1,0 +1,422 @@
+{
+  "title": "DSH Current Guide",
+  "language": "en",
+  "edition": "2026-10-23",
+  "scope": "Portable teaching counterpart. Configure deployment addresses and identities privately; this source does not describe a fresh installation or live test.",
+  "slides": [
+    {
+      "title": "DSH Current Guide",
+      "lead": "A guide to main DSH workflows, with site-specific access and storage.",
+      "points": [
+        "Main DSH workflows and shared inference",
+        "Three risk controls guide every workflow",
+        "Other sites retain their configured access and storage"
+      ],
+      "sources": [
+        "DSH_USER_MANUAL.md",
+        "DSH_PLATFORM_GUIDE.md"
+      ]
+    },
+    {
+      "title": "Three risk controls",
+      "lead": "Protect data at the network, execution and access boundaries.",
+      "points": [
+        "Data leaving the environment: enforced network policy and approved model routes. Remote compute needs its own controls.",
+        "Unintended changes: private runtimes, non-root execution, scoped storage and existing data permissions.",
+        "Unauthorized access: authenticated routes, per-user state and explicit application audiences."
+      ],
+      "sources": [
+        "DSH_PLATFORM_GUIDE.md",
+        "DSH_USER_MANUAL.md"
+      ]
+    },
+    {
+      "title": "A bounded task produces a reviewable result",
+      "lead": "Define inputs, permitted actions and expected evidence before asking the assistant.",
+      "points": [
+        "Identify the project and approved files. Start with read-only inspection when the scope is uncertain.",
+        "Keep changes inside the selected project and generated results separate from original inputs.",
+        "Inspect saved outputs and meaningful checks. An AI answer or successful status alone is not acceptance."
+      ],
+      "sources": [
+        "DSH_USER_MANUAL.md"
+      ]
+    },
+    {
+      "title": "Sign in with the correct identity",
+      "lead": "Local DSH and corporate AD / LDAP use explicit provider selection.",
+      "points": [
+        "Local: use a provisioned account or Create account when private capacity is available. New passwords need at least 12 characters.",
+        "AD / LDAP: use an approved short name, corporate UPN or DOMAIN\\username. A Local-name collision is refused.",
+        "New accounts receive private Internal access. Internet needs a separate grant. DSH sign-in does not create a Kerberos ticket."
+      ],
+      "sources": [
+        "DSH_USER_MANUAL.md",
+        "APP_URLS_AND_INGRESS.md"
+      ]
+    },
+    {
+      "title": "Choose the environment for the data",
+      "lead": "Internal and Internet are separate private environments.",
+      "points": [
+        "No Internet / Internal is the normal place for approved internal work. Explicitly approved internal services can remain reachable.",
+        "Internet is for approved public work and dependency preparation. Its workspace, history and credentials remain separate.",
+        "Log out and sign in to change environments. Files are not copied automatically. A remote job follows its own platform policy."
+      ],
+      "sources": [
+        "DSH_USER_MANUAL.md",
+        "MULTI_TENANT_STORAGE_AND_PERSISTENCE.md"
+      ]
+    },
+    {
+      "title": "Four clients share files, not conversations",
+      "lead": "DSH, Claude Code, Kilo and TrueForge use one selected project within an account and environment.",
+      "points": [
+        "Select the same /workspace/<project> in each client. Their current directories are not synchronized automatically.",
+        "The shared platform guide explains storage, network and managed-model conventions. The gateway still enforces permissions.",
+        "Each client keeps its own conversations. Other users and the opposite environment retain separate files, histories and credentials."
+      ],
+      "sources": [
+        "DSH_USER_MANUAL.md",
+        "AUTOMATIC_CLIENT_ACTIVATION.md"
+      ]
+    },
+    {
+      "title": "Persistence is separate from a running process",
+      "lead": "Saved work survives a qualified replacement; in-memory state does not.",
+      "points": [
+        "Internal /workspace and durable DSH state use account-scoped CIFS subpaths. Internet uses separate private local volumes.",
+        "Credentials and profiles stay in their assigned private state storage. The legacy owner has a separately preserved layout.",
+        "Saved notebooks, files and supported histories persist. Unsaved edits, kernels and unmanaged processes need separate handling. A live share is not a backup."
+      ],
+      "sources": [
+        "MULTI_TENANT_STORAGE_AND_PERSISTENCE.md"
+      ]
+    },
+    {
+      "title": "Verify tools against the intended project",
+      "lead": "Read, write and readback establish the actual working directory.",
+      "points": [
+        "Ask the selected client to read a named source file and quote a relevant section. Confirm the complete path.",
+        "Save a harmless result in the project output folder and read that exact file back in Terminal or Jupyter.",
+        "Use synthetic files for access tests. A folder name or permission label alone does not establish cross-user isolation."
+      ],
+      "sources": [
+        "DSH_USER_MANUAL.md",
+        "AUTOMATIC_CLIENT_ACTIVATION.md"
+      ]
+    },
+    {
+      "title": "Internal Git does not require public Internet",
+      "lead": "Network reachability, certificate trust and repository authorization are separate checks.",
+      "points": [
+        "Use the operator-approved HTTPS address with TLS verification. A connection timeout occurs before authentication.",
+        "Use your authorized private credential mechanism. Never put a PAT in a clone URL, prompt or notebook.",
+        "Verify the branch, commit and diff before pushing. Repository access grants neither datalake rights nor public network access."
+      ],
+      "sources": [
+        "CORPORATE_GIT_BOOTSTRAP.md",
+        "DSH_USER_MANUAL.md"
+      ]
+    },
+    {
+      "title": "Open Jupyter without interrupting work",
+      "lead": "Startup state, Internet permission and running notebook memory are separate.",
+      "points": [
+        "Open Jupyter in your allowed environment. Repeated Start leaves an already-enabled service and its restart generation unchanged.",
+        "An existing on-demand server keeps running. The supervisor waits for its port; after natural exit, managed startup can take over.",
+        "Stop disables managed startup; Restart replaces the managed process. Save notebooks first: kernel variables and unsaved memory do not persist."
+      ],
+      "sources": [
+        "JUPYTER_APP_LIFECYCLE.md",
+        "JUPYTER_START_CONTROLS.md",
+        "JUPYTER_AUTOSTART_BACKFILL.md"
+      ]
+    },
+    {
+      "title": "Install supported Python wheels privately",
+      "lead": "My apps → My Python environments creates a new offline environment after an Internet grant.",
+      "points": [
+        "Request exact versions. A separate downloader receives package artifacts without mounting the protected workspace.",
+        "The offline installer verifies wheel hashes and structure, has no network access, and creates a versioned environment and Jupyter kernel.",
+        "Select the displayed kernel or Python path explicitly. Source builds and system packages use the operator-reviewed process. Existing environments remain intact."
+      ],
+      "sources": [
+        "SELF_SERVICE_PACKAGES.md",
+        "DSH_USER_MANUAL.md"
+      ]
+    },
+    {
+      "title": "An app URL, its audience and its process are separate",
+      "lead": "Saving or sharing a URL does not start an application.",
+      "points": [
+        "My applications maps a name to a local port or approved HTTPS target. Sharing an app does not grant workspace access.",
+        "Start leaves an already-enabled service unchanged. New custom service definitions remain stopped until Start; Restart deliberately replaces the managed process.",
+        "Stop disables managed autostart. A pre-existing unmanaged server stays running; enabled services start after replacement only when environment access is allowed."
+      ],
+      "sources": [
+        "AUTHENTICATED_APP_SHARING.md",
+        "APP_URLS_AND_INGRESS.md"
+      ]
+    },
+    {
+      "title": "One editable name limit per user",
+      "lead": "The default remains eight registered names across both environments.",
+      "points": [
+        "One alias may have a port in each environment. Its path and hostname count as one name. Disabled names count until removed.",
+        "Lowering the limit preserves existing mappings and blocks new registrations at or above the limit. There are no approval tiers.",
+        "App-name quota, recipient-list size, service limits and inference concurrency are separate. Selected local sharing accepts 1–128 enabled local recipients."
+      ],
+      "sources": [
+        "AUTHENTICATED_APP_SHARING.md",
+        "APP_URLS_AND_INGRESS.md"
+      ]
+    },
+    {
+      "title": "Choose the application’s visitor audience",
+      "lead": "Main DSH supports explicit app sharing. additional site A/additional site B legacy entrypoints stay owner-only.",
+      "points": [
+        "New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Existing apps keep their saved audience until Save URL.",
+        "Other audiences: All local DSH users, All AD / LDAP users, Selected local DSH users (checkboxes), or Owner only. Select up to 128 distinct enabled local recipients.",
+        "Jupyter (8888), Terminal (7681) and management ports cannot be shared. Public access and the destination application’s authentication are separate policies."
+      ],
+      "sources": [
+        "AUTHENTICATED_APP_SHARING.md",
+        "APP_URLS_AND_INGRESS.md"
+      ]
+    },
+    {
+      "title": "Current application entry points",
+      "lead": "These aliases illustrate different access policies for existing destinations.",
+      "points": [
+        "Example application public: https://public-app.example.com/ opens the destination without a DSH gate.",
+        "Example application protected: https://protected-app.example.com/ accepts enabled DSH accounts. Both aliases reach the same destination.",
+        "External application: https://external-app.example.com/ uses destination-managed authentication. Its SSO may finish at the original identity-provider address."
+      ],
+      "sources": [
+        "APP_URLS_AND_INGRESS.md"
+      ]
+    },
+    {
+      "title": "Share an app without sharing a workspace",
+      "lead": "Use a dedicated application hostname and the intended audience.",
+      "points": [
+        "On Main DSH: My applications → ordinary Local application port → Require DSH sign-in. Choose the audience; tick recipients for Selected local DSH users.",
+        "Edit sharing / URL loads saved settings; the name stays locked. Only Save URL applies changes. New application / cancel edit discards unsaved edits.",
+        "Share the approved hostname for one owner, target and environment. Untick and save, narrow the audience, or disable the mapping to revoke access."
+      ],
+      "sources": [
+        "AUTHENTICATED_APP_SHARING.md",
+        "APP_URLS_AND_INGRESS.md"
+      ]
+    },
+    {
+      "title": "Directory sign-in preserves identity boundaries",
+      "lead": "Corporate authentication does not merge users or grant administrator rights.",
+      "points": [
+        "The configured verifier uses strict directory certificate trust and bounded requests. Invalid credentials fail closed.",
+        "First sign-in needs the configured account-creation permission. A colliding Local identity is not silently converted.",
+        "The directory subject identifies the account. The AD password is not saved or forwarded as an app credential; Internet remains separately controlled."
+      ],
+      "sources": [
+        "APP_URLS_AND_INGRESS.md",
+        "DSH_USER_MANUAL.md"
+      ]
+    },
+    {
+      "title": "Proxy, redirect, DNS and webhook have distinct roles",
+      "lead": "The alias can remain visible for proxied traffic; application redirects may navigate elsewhere.",
+      "points": [
+        "DNS resolves a hostname. A reverse proxy forwards compatible pages, assets, APIs and WebSockets through the gateway.",
+        "A redirect asks the browser to visit another URL. A webhook delivers an event or action, not ongoing browser traffic.",
+        "SSO, absolute links and framework roots need destination-specific qualification. The Example application adapter is narrowly scoped to approved aliases."
+      ],
+      "sources": [
+        "APP_URLS_AND_INGRESS.md"
+      ]
+    },
+    {
+      "title": "DSH sharing does not replace app authorization",
+      "lead": "The shared app retains its own login, permissions and responsibilities.",
+      "points": [
+        "DSH checks visitor access to the saved app; the destination may still require its own login. DSH sign-out does not promise destination sign-out.",
+        "Forwarding strips DSH cookies, credentials and caller-supplied identity headers. Application cookies are separate; sharing does not grant the owner’s files or notebook.",
+        "Visitors can use any write actions the app exposes. Do not share a shell, file browser or management proxy through an ordinary port."
+      ],
+      "sources": [
+        "AUTHENTICATED_APP_SHARING.md",
+        "APP_URLS_AND_INGRESS.md"
+      ]
+    },
+    {
+      "title": "Recover a browser session without replaying work",
+      "lead": "Disconnecting the browser does not delete files or automatically stop an agent.",
+      "points": [
+        "Where offered, Sign in again uses the same identity and environment. Return to the draft and submit it yourself. Save drafts before reloading an older tab.",
+        "Logout, expiry, account disablement or revocation can close tracked app and terminal connections. They do not undo saved files.",
+        "Use Stop for the active conversation turn. After a network error, inspect the conversation and output before resending the task."
+      ],
+      "sources": [
+        "DSH_USER_MANUAL.md"
+      ]
+    },
+    {
+      "title": "Client fixes activate at a safe startup boundary",
+      "lead": "The compatibility layer validates retained assets before restoring missing launch integration.",
+      "points": [
+        "New Bash terminals select current retained launchers. Already-running clients keep their loaded code.",
+        "After replacement, the startup plugin checks release fingerprints and private file properties. Legacy persistent-HOME runtimes use a distinct retained-profile path.",
+        "Integrity failures record a bounded failure and leave DSH available. Never weaken fingerprints or restart an active workspace just to refresh guidance."
+      ],
+      "sources": [
+        "AUTOMATIC_CLIENT_ACTIVATION.md"
+      ]
+    },
+    {
+      "title": "A small complete exercise checks the workflow",
+      "lead": "Verify an expected result before relying on a larger analysis.",
+      "points": [
+        "Create synthetic data in /workspace/<project>. Ask a client to read it and compute a known answer.",
+        "Save the result and inspect it in another tool in the same environment. Compare the actual contents with the known answer.",
+        "For an app, test the intended audience, assets and a real interaction. Preserve exact inputs and resulting evidence without including secrets."
+      ],
+      "sources": [
+        "DSH_USER_MANUAL.md",
+        "DSH_PLATFORM_GUIDE.md"
+      ]
+    },
+    {
+      "title": "Access approval and service state are different",
+      "lead": "Read the label before granting access or restarting a service.",
+      "points": [
+        "Internet approval pending: the account is enabled but lacks Internet permission. Account disabled: the account itself is disabled. These require different access decisions.",
+        "Waiting for existing Jupyter: leave its server and notebooks running. Managed startup takes over after the port is released; closing a tab may not stop it.",
+        "Allow Internet does not override Admin Stop. Enabled services start only when access is allowed; stopped services stay stopped after replacement."
+      ],
+      "sources": [
+        "JUPYTER_APP_LIFECYCLE.md",
+        "JUPYTER_START_CONTROLS.md",
+        "JUPYTER_AUTOSTART_BACKFILL.md"
+      ]
+    },
+    {
+      "title": "Distinguish waiting, recovery and failure",
+      "lead": "Status labels explain observations; they do not change permissions or processes.",
+      "points": [
+        "Recovery retry pending means a managed process failed or exited and is waiting to retry. Startup failed identifies a failed start attempt.",
+        "Status unavailable means missing or stale status. Neither a loading page nor an open port proves a healthy notebook, kernel or saved-file workflow.",
+        "Review the owner, environment, saved definition and fresh supervisor status. Use Start to enable; use Restart only when interruption is intended."
+      ],
+      "sources": [
+        "JUPYTER_APP_LIFECYCLE.md",
+        "JUPYTER_START_CONTROLS.md",
+        "JUPYTER_AUTOSTART_BACKFILL.md"
+      ]
+    },
+    {
+      "title": "Current guidance and historical evidence",
+      "lead": "This guide is the canonical workflow; dated records describe what was tested then.",
+      "points": [
+        "The canonical PowerPoint and its HTML/Markdown share one authored source. The three sites serve the same approved deck bytes.",
+        "Original Pilot and Routing files retain their content and hashes in the archive. Their old pages point to this replacement.",
+        "A Test success applies to its source, inputs and workflow. It does not certify every application or future model response."
+      ],
+      "sources": [
+        "COURSE_DELIVERY.md",
+        "SLIDE_DOWNLOADS.md"
+      ]
+    },
+    {
+      "title": "Operator appendix: platform layers",
+      "lead": "Gateway routing, worker processes and capacity reconciliation have separate owners.",
+      "points": [
+        "Gateway: identity, sessions and routing. Private workers: tools and saved state. Supervisors: approved service startup and lifecycle controls.",
+        "The trimmed Main gateway projects 26 source modules. Its unused planner copy was removed; the corrected capacity planner remains in the controller.",
+        "Packaging and source-only cleanup do not upgrade the base image. Compare the live image plus mounted source; a newer repository commit is not proof of deployment."
+      ],
+      "sources": [
+        "JUPYTER_APP_LIFECYCLE.md",
+        "AUTOMATIC_ACCOUNT_CAPACITY.md",
+        "DSH_PLATFORM_GUIDE.md"
+      ]
+    },
+    {
+      "title": "Operator appendix: shared routing checks",
+      "lead": "An unchanged Ingress specification does not prove unchanged shared-controller behavior.",
+      "points": [
+        "DNS, certificate coverage and wildcard rules are separate. Exact-host applications retain precedence and reserved names.",
+        "Wildcard certificate registration can affect other services’ HTTP redirects. Qualify the selected dedicated or controller-default TLS mode.",
+        "Check no-follow HTTP, normal HTTPS, original Qdrant calls and WebSockets. Keep certificate verification enabled and retain reviewed recovery evidence."
+      ],
+      "sources": [
+        "APP_URLS_AND_INGRESS.md"
+      ]
+    },
+    {
+      "title": "Operator appendix: document publication",
+      "lead": "Stage approved content and switch the document edition atomically.",
+      "points": [
+        "Preserve the prior manifest, source revision and archive hashes. Add only approved attachment names and retain the existing audience.",
+        "Verify HTTP bytes and a browser download. Import and render the saved file, then check navigation to the canonical edition.",
+        "Compare worker identities, restart counts and existing state before and after publication. Publishing a guide does not authorize worker restarts."
+      ],
+      "sources": [
+        "COURSE_DELIVERY.md",
+        "SLIDE_DOWNLOADS.md"
+      ]
+    },
+    {
+      "title": "Use isolated evidence for recovery decisions",
+      "lead": "Saved files persist; live kernel memory does not.",
+      "points": [
+        "Two users and four replacements preserved 12 saved files. Separate disposable tests verified approval → waiting → Running with real supervisors and Jupyter.",
+        "These were isolated tests. They do not justify restarting active owners or promise that kernel variables survive Stop, Restart or natural server exit.",
+        "Keep a fresh backup and specification for recovery. Preserve newer writes and conflicts; an offline fixture is not a backup of current user data."
+      ],
+      "sources": [
+        "JUPYTER_APP_LIFECYCLE.md",
+        "JUPYTER_START_CONTROLS.md",
+        "JUPYTER_AUTOSTART_BACKFILL.md"
+      ]
+    },
+    {
+      "title": "Operator appendix: context and performance",
+      "lead": "A context budget is not a promise of latency or concurrent full-size requests.",
+      "points": [
+        "The documented budget is 1,048,576 tokens including instructions, tools, history, output and reserve. Confirm the selected deployment profile.",
+        "Distinguish preparation latency, streaming rate and end-to-end completion. A small prompt can carry a large existing conversation.",
+        "Use dated acceptance reports for throughput and trial results. Historical near-1M and short-request measurements are not a current SLA."
+      ],
+      "sources": [
+        "DSH_USER_MANUAL.md",
+        "DSH_PLATFORM_GUIDE.md"
+      ]
+    },
+    {
+      "title": "Continue with the current manuals and course notes",
+      "lead": "Use the matching guide edition and retain dated evidence separately.",
+      "points": [
+        "Use the current guide, lifecycle manual and 56-second walkthrough for status labels, access approval and safe Jupyter handover.",
+        "Use the authenticated app-sharing guide for selected users, protected ports, recipient revocation and application responsibilities.",
+        "Read the accompanying course crosswalk with older code lessons. Archived media and experiments are dated references, not current runtime acceptance."
+      ],
+      "sources": [
+        "JUPYTER_APP_LIFECYCLE.md",
+        "AUTHENTICATED_APP_SHARING.md",
+        "COURSE_DELIVERY.md"
+      ]
+    }
+  ],
+  "speaker_supporting_context": {
+    "10": "Save notebooks beneath /workspace. Web Terminal uses the same assigned runtime and network policy. Main has separate environments; additional site A/additional site B use their assigned Internet owner.",
+    "12": "A URL mapping does not allocate compute or grant data rights. The application must listen on its mapped port and support the visible path.",
+    "14": "Authenticated sharing does not make an application public. Approved external HTTPS targets and public mappings remain separate choices; destination permissions still apply. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Approved external targets and public links remain separate choices.",
+    "16": "App-focused sign-in verifies the visitor identity and saved mapping permissions. The application heading supplies return context, not a separate account database. A browser-bound, one-use challenge limits return to the validated alias. New ordinary authenticated apps default to All authenticated users (local and AD / LDAP). Other choices are All local DSH users, All AD / LDAP users, Selected local DSH users and Owner only. Select 1–128 distinct enabled local recipients using checkboxes; owner access is retained. Existing saved audiences stay unchanged until an explicit save. Edit sharing / URL preloads settings and locks the name; Save URL applies changes, while New application / cancel edit discards unsaved edits. Enabled legacy AD recipients can remain under their saved legacy audience; a new local selection replaces that audience. Unavailable recipients require a valid replacement before saving. Initial protected notebook port8888 disables sharing; ordinary app ports enable the audience control. No workspace, Internet, notebook, terminal or management access is granted. Shared apps may expose write actions and need their own authorization. Logout, session expiry or revocation and account disablement also end access. Revocation closes active streams on the next authorization check; observed timing is not a service guarantee. Cross-user sharing uses the approved hostname, never another owner’s /proxy/PORT route.",
+    "19": "Shared OIDC/SAML or validated signed assertions need explicit identity integration and separate qualification. A shared service credential does not identify each visitor.",
+    "23": "Account disablement retains assignment and saved data. Account ceiling, warm-spare target, service state and inference capacity are independent controls. Administrative access does not grant ownership of private conversations.",
+    "24": "For missing files or chats, first check identity, environment and project. For an unavailable app, check mapping, audience and listening process. Slow responses require separate context, tool, queue and provider diagnosis; Git, TLS and authorization are distinct layers.",
+    "29": "The two-user, four-replacement test preserved twelve notebook, theme, history and app files byte-for-byte, with enabled and disabled startup settings. It used common Main code in isolated workspaces, not a restart of live additional site A/additional site B users.",
+    "31": "Start at /manual/DSH_CURRENT_GUIDE.html on the selected DSH site. Course contents include English videos, captions, chapters and source views. Report the account/environment, guide edition, exact step and expected versus observed result. Exclude private history and secrets from shared evidence. The captioned walkthrough is an illustration, not a new live-screen recording.",
+    "13": "The app-name quota and selected-recipient limit are separate. The default eight app names is unchanged; lowering the quota preserves existing names."
+  }
+}
