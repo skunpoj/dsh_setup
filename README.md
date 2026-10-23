@@ -1,5 +1,7 @@
 # Private AI Workspaces - Kubernetes and 1M Context
 
+
+[English Fola video guide](docs/COURSE_GUIDE.md) · [Video and presentation index](docs/PRESENTATION_EDITION.md)
 ## Application links and learning materials
 
 The [Main/Test application guide](docs/APP_LINKS_AND_STATUS.html) provides the deployment status, application login flow, slides and English video. Main application controls are separate from the controlled App5/App6 Test examples.
