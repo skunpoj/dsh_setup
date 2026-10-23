@@ -14,6 +14,17 @@ Use **Admin overview → Managed startup services** to manage a service in one u
 
 These labels describe status; they do not change service settings or permissions. Raw machine phases remain available for diagnostics. A missing or stale status is shown as unavailable rather than healthy. Closing a browser tab does not necessarily end the Jupyter server, so it may continue waiting until the server itself exits.
 
+## What happens when the condition changes?
+
+| Before | What changes | Expected dashboard result |
+| --- | --- | --- |
+| Waiting for existing Jupyter | The existing server exits naturally and releases port 8888 | Managed Jupyter starts automatically; the label changes to **Running** |
+| Internet approval pending | An administrator chooses **User management → Allow Internet** for that user | The approval label clears; an enabled Jupyter service starts, or shows **Waiting for existing Jupyter** if another server holds its port |
+
+Allow Internet grants environment access; it does not override a service disabled with **Stop**. A running account's No Internet access is independent of this approval. The display follows the next permission reconciliation and supervisor/status refresh; it is not an instantaneous browser-only switch. Use **Refresh** to read the latest state.
+
+Do not stop an active server just to clear a waiting label. Save work and let its owner close the server when appropriate. Closing a browser tab alone may leave the server running. Automatic handover starts a new server: saved notebooks and preferences remain, while kernel variables from the exited server do not transfer.
+
 ## What each control does
 
 | Control | Running process | Saved setting after a workspace replacement |
