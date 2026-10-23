@@ -34,6 +34,30 @@ Keep account stores and access logs outside execution mounts. Use salted passwor
 
 Audit bounded access metadata without recording credentials or conversation bodies. Display freshness for saved operational snapshots. Access logs are not a complete command ledger or GPU monitor. An authorized browser can display and download results; additional copying restrictions require an agreed handling policy and endpoint controls.
 
+
+## How the three controls relate to OWASP Agentic Top 10 (2026)
+
+This is a mapping of documented DSH controls to OWASP risks, not a certification or a new security test. Containment reduces possible harm; it does not prove that a model will reject malicious instructions or that every workflow is safe. Coverage below is partial unless a specific saved acceptance test establishes the stated boundary.
+
+Control 1 limits unauthorized network transmission. Control 2 limits execution and access. Control 3 keeps files and outputs behind explicit authorization. Apply these controls together; review the residual risks below for each pilot.
+
+| OWASP risk | Documented overlap and remaining test |
+| --- | --- |
+| ASI01 — Agent Goal Hijack | Execution and network containment limit consequences; no explicit goal-integrity/injection test matrix. |
+| ASI02 — Tool Misuse and Exploitation | Restricted workloads and existing service permissions; no complete tool/argument approval assessment. |
+| ASI03 — Identity and Privilege Abuse | Private identities, routes and mounts; remote entitlements and identity lifecycle remain separately owned. |
+| ASI04 — Agentic Supply Chain Vulnerabilities | Pinned dependency transfer, offline validation and review of source builds/hooks; no full agent/MCP provenance assessment. |
+| ASI05 — Unexpected Code Execution | Non-root execution, limited mounts/capabilities and restricted egress constrain execution; do not prevent all hostile code in writable scope. |
+| ASI06 — Memory and Context Poisoning | Private history isolation is described; persisted malicious context, provenance and safe reset are not explicitly assessed. |
+| ASI07 — Insecure Inter-Agent Communication | User routing does not establish authenticated agent messages, replay protection or delegated authority. |
+| ASI08 — Cascading Failures | Resource admission and local limits; downstream failure propagation, circuit breaking and end-to-end recovery remain workflow-specific. |
+| ASI09 — Human-Agent Trust Exploitation | Explicit sharing and handling responsibilities; misleading output and meaningful human review require workflow tests. |
+| ASI10 — Rogue Agents | Runtime restrictions limit blast radius; autonomous scope drift, detection and containment need explicit tests. |
+
+Practical example: a claims file could contain instructions to send customer data elsewhere. A blocked public connection limits that route, but does not prevent a misleading local report. Use a harmless test file to check the full path: input provenance, permitted tools, saved context, output review and attempted external requests. Test agent messages and downstream jobs separately where used. Record the exact version, expected refusal or containment, actual result and remaining owner action; do not mark a gap closed from a prompt or configuration alone.
+
+Source and attribution: [OWASP GenAI Security Project — OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/), December 2025. Risk names are attributed to OWASP; the DSH mapping and examples are our analysis, not OWASP endorsement. No claim of full compliance is made.
+
 ## Responsibilities on connected systems
 
 | Boundary | Responsible control |
