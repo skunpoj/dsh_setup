@@ -20,8 +20,8 @@ Run the migration in a narrow, non-root operator workload with no Kubernetes tok
 ## Verify the result
 
 1. Read each saved definition back and compare its unchanged Internet entitlement and other services. Check original backup hashes and requested/applied audit records. A second dry run must report no eligible policies and preserve all existing Jupyter definitions.
-2. For approved Internet workspaces, inspect the supervisor and the actual listening server. An already-running on-demand server must retain its process and kernels. A busy-port status is expected until natural handover; never stop active notebooks to make the status look clean.
-3. For workspaces without Internet approval, confirm access-disabled and no new server. Do not grant Internet merely to test startup.
+2. For approved Internet workspaces, inspect the supervisor and the actual listening server. An already-running on-demand server must retain its process and kernels. **Waiting for existing Jupyter** is expected until natural handover; never stop active notebooks to make the status look clean.
+3. For workspaces without Internet approval, confirm **Internet approval pending** and no new server. Do not grant Internet merely to test startup.
 4. Qualify full replacement and Stop persistence on disposable private runtimes using synthetic notebooks, settings and native DSH histories. Verify autostart before opening Jupyter, then compare saved file hashes across replacements. Do not replace active production runtimes for this test.
 5. Remove only the task's temporary test and operator workloads. Retain the private original-policy backups and central audit records.
 

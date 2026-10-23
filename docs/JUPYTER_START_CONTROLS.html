@@ -17,5 +17,6 @@ variables are in-memory state and do not survive a full workspace restart.</p>
 <a href="JUPYTER_ON_DEMAND.md">Opening Jupyter</a></p>
 <p><a href="JUPYTER_APP_LIFECYCLE.html">Stop, Restart and automatic startup for Jupyter and managed apps</a></p>
 <h2>Existing on-demand server</h2>
-<p>If the dashboard reports <strong>port-in-use</strong>, a server started before managed autostart may still be running. Leave it in place while notebooks are active. The supervisor waits for its natural exit and then launches the enabled managed service. Stop disables future startup but does not stop this unowned server during the handover.</p>
-<p><a href="JUPYTER_APP_LIFECYCLE.html">Autostart defaults and Internet approval</a> · <a href="JUPYTER_AUTOSTART_BACKFILL.html">Operator backfill procedure</a></p></main></body></html>
+<p>If the dashboard reports <strong>Waiting for existing Jupyter</strong>, a server started before managed autostart may still be running. Leave it in place while notebooks are active. The supervisor waits for its natural exit and then launches the enabled managed service. Stop disables future startup but does not stop this unowned server during the handover.</p>
+<p><a href="JUPYTER_APP_LIFECYCLE.html">Autostart defaults and Internet approval</a> · <a href="JUPYTER_AUTOSTART_BACKFILL.html">Operator backfill procedure</a></p>
+<p><strong>Internet approval pending</strong> means the account is enabled but its Internet environment is not approved. It is different from <strong>Account disabled</strong>. Failed startup retries remain <strong>Recovery retry pending</strong>, rather than being described as an existing server.</p></main></body></html>

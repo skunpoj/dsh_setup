@@ -2,6 +2,18 @@
 
 Use **Admin overview → Managed startup services** to manage a service in one user's selected environment. Check the owner, runtime and environment before making a change. The same service controls are available for the assigned DSH2 and DSH3 owners.
 
+## Understand the dashboard status
+
+| Label | Meaning | Administrator action |
+| --- | --- | --- |
+| Waiting for existing Jupyter | A pre-existing server holds the notebook port; managed startup waits for natural handover | Leave active notebooks running. Managed startup resumes after that server exits |
+| Internet approval pending | The account is enabled, but Internet access has not been approved | Use User management → Allow Internet only when approval is intended |
+| Account disabled | The whole account has been disabled | Review account access separately from Internet approval |
+| Recovery retry pending | A managed process failed or exited and the supervisor is waiting before retrying | Inspect the failure; this does not mean an existing notebook server was found |
+| Startup failed | The last start attempt failed | Inspect the service command, dependencies and runtime |
+
+These labels describe status; they do not change service settings or permissions. Raw machine phases remain available for diagnostics. A missing or stale status is shown as unavailable rather than healthy. Closing a browser tab does not necessarily end the Jupyter server, so it may continue waiting until the server itself exits.
+
 ## What each control does
 
 | Control | Running process | Saved setting after a workspace replacement |
@@ -32,7 +44,7 @@ New-user provisioning seeds a default only when no service-policy file exists. I
 
 ## Add autostart without interrupting an existing server
 
-When a previously on-demand Jupyter server is already using port 8888, the supervisor waits and reports **port-in-use** or recovery backoff. It does not adopt the server, launch a duplicate or end its kernels. Automatic management takes over after that server exits naturally. An administrator must not use Restart to force the handover while someone is working.
+When a previously on-demand Jupyter server is already using port 8888, the supervisor waits and reports **Waiting for existing Jupyter**. It does not adopt the server, launch a duplicate or end its kernels. Automatic management takes over after that server exits naturally. An administrator must not use Restart to force the handover while someone is working.
 
 While waiting for that handover, Stop disables future automatic startup; it does not terminate the pre-existing, unmanaged server. Start is safe to repeat for the saved managed definition. Save a changed definition or use Restart only when ending the managed process is intended.
 
