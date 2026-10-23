@@ -1,0 +1,58 @@
+{
+  "feature": "DSH2 and DSH3 on-demand Jupyter transport layer",
+  "acceptedAtUTC": "2026-10-23T01:23:39.771574+00:00",
+  "sourceSHA256": "ef083fccf62d1c4406878f78f08e54aca1160bfb3fb7220b8f063a0e0acc8e45",
+  "sourceFiles": {
+    "jupyter_launcher.py": "92c0efb514a43bb5138108238725bb70452a68d8bcba93f1bc3e07cea0c0f241",
+    "jupyter_on_demand.js": "0e5aa887dfa789cc03afb06584c742b4d2154c388577de8916ac9f043c4007af",
+    "legacy_jupyter_gateway.js": "195fbbaa4de3d4a2b89cdb6f91f30638581653d0a478a2bbffb23a5063fcf53a"
+  },
+  "sites": [
+    "DSH2",
+    "DSH3"
+  ],
+  "actualLiveAcceptance": {
+    "bothExistingOwnerLogins": true,
+    "bothSamePreCutoverKernelWebSocketsSurvived": true,
+    "bothSameKernelsRetainedVariable42": true,
+    "startEndpointReusedExistingServers": true,
+    "originalKernelIDsRetained": true,
+    "terminalUIDAndExpectedPodVerified": true,
+    "ownLogout401": true,
+    "anonymousKernelListDenied": true,
+    "foreignOrigin403": true,
+    "crossOwner401": true,
+    "loginHintUpdated": true
+  },
+  "coldStartupAcceptance": "Both exact-source synthetic legacy owner fixtures performed real cold startup, three concurrent requests, kernel math 42 and front-process replacement with kernel/server state retained. Live servers were not stopped.",
+  "preservation": {
+    "originalWorkspacePodsUnchanged": 2,
+    "originalServersPIDStartTimeCommandUnchanged": 2,
+    "originalMountedFileEntries": 16208,
+    "byteIdenticalFileEntries": 16204,
+    "removedFiles": 0,
+    "changedPhysicalFiles": 2,
+    "changedFileExplanation": "Two physical IPython history.sqlite files contain test-session metadata; each is visible through two mount aliases. Existing input/output history rows were retained.",
+    "allExistingNotebooksUnchanged": true,
+    "accountPasswordsSettingsAppsPolicyBytesUnchanged": true,
+    "existingUnexpiredBrowserSessionsRetained": true,
+    "userWorkspacesOrSupervisorsRestarted": false
+  },
+  "isolation": {
+    "newLayerRootAndOwnerControlMountReadOnlyVerified": true,
+    "newLayerNoKubernetesServiceAccountToken": true,
+    "newLayerFixedOwnAuthService3080OnlyEgress": true,
+    "originalInternetApprovalUnchanged": true
+  },
+  "tests": {
+    "localNodeReverseLayerPassed": 16,
+    "actualIsolatedOwnerColdStartupFixtures": 2,
+    "actualLiveOwnersVerified": 2
+  },
+  "passwordChanges": false,
+  "localNativeWindows": false,
+  "WindowsCredentialAccess": false,
+  "modelCalls": false,
+  "recovery": "Original legacy gateways and Services remain unchanged; reviewed Ingress-only reverse CAS is prepared. No data or credential restoration.",
+  "scope": "Legacy owner Internet workspaces only; no No Internet access was enabled and Main DSH remains unchanged."
+}
