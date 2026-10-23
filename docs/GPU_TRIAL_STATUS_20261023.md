@@ -2,7 +2,7 @@
 
 ## GPU performance and 1M operation — 23 October 2026
 
-**The latest actual DSH near-1M request completed:** **1,002,051 input / 636 output tokens**, **29m32.09s to first text**, **29m44.28s client elapsed**, and **61.56 streaming output tokens/sec**. The streaming rate excludes initial preparation. An exact forwarding-boundary preparation measurement was not retained for this run, so time to first text is reported separately. **100+ tokens/sec per near-1M conversation has not been reached.**
+**The latest actual DSH near-1M request completed:** **1,002,051 input / 636 output tokens**, **29m26.56s preparation**, **29m32.09s to first text**, **29m44.28s client elapsed**, and **61.56 streaming output tokens/sec**. The streaming rate excludes initial preparation. Preparation is measured at the forwarding boundary; time to first text also includes tokenization and forwarding overhead. **100+ tokens/sec per near-1M conversation has not been reached.**
 
 The startup hook exercises the original kernel implementation before the KV cache is allocated and before readiness. All four GPUs completed the bounded initialization in **9.61–10.09s each**. The model weights and kernel mathematics were not changed. First numeric/prose startup requests completed in **8.73s / 10.32s client elapsed**; the following pair completed in **1.30s / 2.83s**. All four passed their content checks without retries and remained below the unchanged **15s client limit**. The first pair was slightly slower than the matched earlier baseline; this is not a general speedup claim.
 
@@ -14,7 +14,7 @@ The original model specification was restored and matched its saved SHA-256; an 
 
 ### Earlier cold measurement — 21 October
 
-The earlier actual DSH case used **1,008,049 input / 540 output tokens**, **28m32.25s forwarding-boundary preparation**, and **66.00 wire-streaming tokens/sec**. Its native time to first text was **28m38.13s**. The newer R time to first text is about **54s longer**; its native streaming rate is lower. The workload and timing boundaries differ, so the comparison does not demonstrate a controlled performance gain or identify a single cause.
+The earlier actual DSH case used **1,008,049 input / 540 output tokens**, **28m32.25s forwarding-boundary preparation**, and **66.00 wire-streaming tokens/sec**. Its native time to first text was **28m38.13s**. R forwarding preparation is about **54s longer**; its native streaming rate is lower. The workload and timing boundaries differ, so the comparison does not demonstrate a controlled performance gain or identify a single cause.
 
 ### Earlier full-model trial N — stopped at the responsiveness limit
 

@@ -127,7 +127,7 @@
     "run": "R",
     "inputTokens": 1002051,
     "outputTokens": 636,
-    "preparationSeconds": null,
+    "preparationSeconds": 1766.557604,
     "nativeFirstTextSeconds": 1772.0919709205627,
     "clientWholeTurnSeconds": 1784.2754259109497,
     "nativeStreamSeconds": 10.331000089645386,
@@ -139,7 +139,8 @@
       "p95NearestRankClientSeconds": 10.056727170944214,
       "maximumClientSeconds": 14.057971000671387
     },
-    "strictSourceOnlyNarrativePassed": false
+    "strictSourceOnlyNarrativePassed": false,
+    "wireStreamingOutputTokensPerSecond": 61.58786293020742
   },
   "historicalCompaction20261021": {
     "passed": true,
@@ -281,7 +282,11 @@
       "nativeElapsedSeconds": 1782.4249711036682,
       "firstTextSeconds": 1772.0919709205627,
       "streamSeconds": 10.331000089645386,
-      "streamTokensPerSecond": 61.56228772444342
+      "streamTokensPerSecond": 61.56228772444342,
+      "wirePreparationSeconds": 1766.557604,
+      "wireFirstDeltaSeconds": 1771.226144,
+      "wireWholeTurnSeconds": 1781.552854,
+      "wireStreamTokensPerSecond": 61.58786293020742
     },
     "allShorts": {
       "count": 110,
@@ -298,7 +303,7 @@
     "allShortContentChecksPassed": true,
     "allShortRetries": 0,
     "strictSourceOnlyNarrativePassed": false,
-    "wirePreparationSeconds": null,
+    "wirePreparationSeconds": 1766.557604,
     "fullTurnAllocatorCoverage": false,
     "compactionRun": false,
     "liveCallsIssued": false,
@@ -325,7 +330,8 @@
       "ownedFixturePodsAbsent": true,
       "originalModelRestoredNotPermanentCandidateAdoption": true,
       "recoveryCounterTelemetryUnavailable": true
-    }
+    },
+    "completedWireTimingRowVerified": true
   },
   "historicalFullModelQualificationN": {
     "run": "N",
