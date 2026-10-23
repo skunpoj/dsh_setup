@@ -1,5 +1,14 @@
 'use strict';
 const crypto = require('node:crypto');
+const privateLocalPort = port => !Number.isInteger(port) || port < 1024 || port > 65535 || [3080,3081,4000,4001,7681,8888].includes(port);
+function sharedTarget(item) {
+  const mode=item?.sharedEnvironment;
+  if(item?.accessMode!=='authenticated'||item.visitorPolicy!=='signed-in-users'||!['off','on'].includes(mode))throw Error('Unavailable shared application');
+  const ports=Object.keys(item.ports||{}),targets=Object.keys(item.targets||{});
+  if(item.targets?.[mode]?.type==='external'&&!ports.length)return {type:'external',mode};
+  if(ports.length===1&&ports[0]===mode&&!targets.length&&!privateLocalPort(item.ports[mode]))return {type:'port',mode,port:item.ports[mode]};
+  throw Error('Shared local applications require one non-management port in one environment');
+}
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 // Presentation and return routing only. Password verification and session creation
@@ -16,7 +25,7 @@ class AppSignIn {
     const all = this.mappings(), item = Object.hasOwn(all, name) ? all[name] : null;
     const shared=item?.visitorPolicy==='signed-in-users';
     if(shared){
-      if(item.accessMode!=='authenticated'||!['off','on'].includes(item.sharedEnvironment)||item.targets?.[item.sharedEnvironment]?.type!=='external'||Object.keys(item.ports||{}).length)throw Error('Unavailable shared application');
+      sharedTarget(item);
       internet=item.sharedEnvironment;
     } else if (internet === undefined && item) internet = item.targets?.off || item.ports?.off ? 'off' : 'on';
     if (!item || item.enabled === false || !/^[a-z0-9_.-]{1,64}$/.test(item.owner || '') || !['off','on'].includes(internet) || (!item.targets?.[internet] && !item.ports?.[internet]) || item.accessMode === 'public') throw Error('Unavailable gated application');
@@ -62,4 +71,4 @@ class AppSignIn {
     return current;
   }
 }
-module.exports = {AppSignIn};
+module.exports = {AppSignIn,sharedTarget,privateLocalPort};

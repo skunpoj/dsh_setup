@@ -10,6 +10,10 @@ Start with the [user manual](docs/DSH_USER_MANUAL.md) or its [standalone HTML ve
 
 Optional verified LDAPS sign-in supports private No Internet accounts with Internet access approved separately by an administrator. An AD username that conflicts with an existing local account is rejected with a clear instruction to contact an administrator to delete that local account; no account or history is automatically merged or deleted. Existing local recovery sign-in remains available. The 23 October main-gateway rollout verified AD/UPN application sign-in, conflict refusal and history preservation; see the [acceptance record](docs/LDAP_APP_LOGIN_ACCEPTANCE_20261023.md). See [configuration, collision handling and tests](docs/LDAP_AUTHENTICATION.md).
 
+## Authenticated application sharing
+
+Owners can explicitly share an ordinary local web app with enabled DSH users while keeping JupyterLab, terminals, workspaces and histories private. Existing mappings remain owner-only. See the [sharing guide](docs/AUTHENTICATED_APP_SHARING.md) or its [HTML version](docs/AUTHENTICATED_APP_SHARING.html) for setup, isolation boundaries and application responsibilities.
+
 ## Public presentation and speaker guide
 
 [Editable PowerPoint](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pptx) ยท [Slide PDF](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pdf) ยท [Detailed storytelling PDF](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream_Story.pdf)
