@@ -69,8 +69,8 @@ running user notebook does not need to be stopped.
 The 23 October 2026 check passed normal login, terminal commands, Jupyter kernel
 execution and logout for Main DSH in both environments and the DSH2/DSH3 owner
 workspaces. See the [verified results and preservation limits](JUPYTER_INTERACTIVE_VERIFICATION_20261023.html).
-This is documentation of the accepted Jupyter release, not promotion of newer
-capacity-planner source changes.
+The executing capacity controller now includes the qualified finite-number guard;
+see the verified results for the controller-only deployment scope.
 
 
 ## Jupyter Start controls

@@ -48,11 +48,12 @@ Its configurable Gradio adapter intentionally differs from the privately pinned
 site adapter. Deployment-specific manifests and vendored support modules are not
 all exported as standalone public files.
 
-A newer capacity-planner hardening change exists in both repository main branches
-but is not included in the currently accepted Main gateway source. Repository
-synchronization does not mean every newer change has been deployed. This edition
-updates documentation only; it does not promote that candidate or change runtime
-code. Cold-start qualification and earlier browser-layout checks remain separate
-from this fresh authenticated functional run.
+Update, 23 October 2026: the capacity-planner hardening is now qualified and
+deployed in the separate executing capacity controller. Nine planner tests, three
+isolated recovery tests and nine tests of the actual mounted planner passed.
+Gateway source bundles retain an older unused copy; gateways and user workspaces
+were not restarted for this fix. See [capacity-planner acceptance](CAPACITY_PLANNER_ACCEPTANCE_20261023.md).
+Cold-start qualification and earlier browser-layout checks remain separate from
+the authenticated functional run.
 
 [On-demand Jupyter guide](JUPYTER_ON_DEMAND.md).
