@@ -26,3 +26,4 @@ Keep site-specific decks and application examples in the private deployment repo
 ## Current course content
 
 The [portable current guide](current-guide/DSH_CURRENT_GUIDE.html), [Markdown guide](current-guide/DSH_CURRENT_GUIDE.md) and [96-chapter course notes](current-guide/DSH_COURSE_NOTES.html) are maintained together. The [content source](current-guide/DSH_CURRENT_GUIDE.source.json), [notes source](current-guide/DSH_COURSE_NOTES.json) and [file manifest](current-guide/SOURCE_MANIFEST.json) describe the same portable edition. Configure site addresses privately; the site-specific PowerPoint and download assets stay in the private deployment repository.
+

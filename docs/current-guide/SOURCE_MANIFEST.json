@@ -7,7 +7,7 @@
     "DSH_CURRENT_GUIDE.md": "e5af417f55d57808fe3047d3c29b584657fd5c18e5f91f523691b18c3f4c9690",
     "DSH_CURRENT_GUIDE.html": "00c9979c26c9c47e963a74d1e6c5612ed7a5005192b4c507ad720fb785243b6b",
     "DSH_COURSE_NOTES.json": "e288808e4bd5120b68830b31c001126983d4aac3815b6fd208de615cb96884ce",
-    "DSH_COURSE_NOTES.html": "cfe08f45651aa6d2e7917e986e2e71b6d6590d40765f326dc71f35dcd27339b9"
+    "DSH_COURSE_NOTES.html": "75e1340dffddaeb7796fdf3f5a532c8c0b68943ab832e9b6a5087c42b2abeced"
   },
   "scope": "Portable counterpart. Deployment addresses, identities, private commit references and raw execution metadata are omitted. Site-specific PowerPoint/CSV assets remain in the private deployment repository."
 }
