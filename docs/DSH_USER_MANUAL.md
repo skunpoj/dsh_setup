@@ -81,3 +81,12 @@ execution and logout for Main DSH in both environments and the DSH2/DSH3 owner
 workspaces. See the [verified results and preservation limits](JUPYTER_INTERACTIVE_VERIFICATION_20261023.html).
 This is documentation of the accepted Jupyter release, not promotion of newer
 capacity-planner source changes.
+
+
+## Jupyter Start controls
+
+**Start is safe to repeat:** an already-enabled managed Jupyter service keeps its
+process, restart counter, notebooks and kernel variables. Start enables a stopped
+service; Restart and Stop deliberately interrupt its kernels and retain their
+confirmation prompts. See [administrator steps and behavior](JUPYTER_START_CONTROLS.html)
+and the [captioned walkthrough](JUPYTER_DSH2_DSH3_WALKTHROUGH.html).

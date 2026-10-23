@@ -138,3 +138,10 @@ recorded SGLang results and same-node qualification gates.
 ## GPU status — 23 October 2026
 
 The 23 October GPU candidate was rejected at the allocator-warning gate after passing 128K/384K stages. Four short DSH conversations overlapped at 117.75 combined output tokens/sec (30.07–33.77 per conversation including whole-turn time); this does not establish 100+ per conversation or two simultaneous 1M requests. The saved baseline retains the 1M ceiling. See the dated results for definitions and recovery checks. [Detailed results](docs/GPU_TRIAL_STATUS_20261023.html).
+
+
+### Jupyter Start
+
+Start safely reuses an already-enabled Jupyter service across Main DSH, DSH2 and DSH3.
+[Administrator controls](docs/JUPYTER_START_CONTROLS.html) and the
+[captioned walkthrough](docs/JUPYTER_DSH2_DSH3_WALKTHROUGH.html) explain Start, Stop and Restart.
