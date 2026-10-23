@@ -71,8 +71,7 @@ Use **Logout** when finished. If a session expires, sign in again before retryin
 
 ## GPU status — 23 October 2026
 
-The 23 October GPU candidate was rejected at the allocator-warning gate after passing 128K/384K stages. Four short DSH conversations overlapped at 117.75 combined output tokens/sec (30.07–33.77 per conversation including whole-turn time); this does not establish 100+ per conversation or two simultaneous 1M requests. The saved baseline retains the 1M ceiling. See the dated results for definitions and recovery checks. [Detailed results](GPU_TRIAL_STATUS_20261023.html).
-
+L passed 128K and four overlapping native DSH requests, then failed the allocator-retry gate during 384K (one retry per GPU; zero OOMs). The saved serving profile was restored. Near-1M and compaction remain unqualified. Throughput was 117.30 tokens/sec combined, 30.07–33.84 per conversation over the whole turn. [Qualification results and remaining gates](GPU_NEAR1M_COMPACTION_20261023.html).
 
 ## Latest verified interactive results
 
