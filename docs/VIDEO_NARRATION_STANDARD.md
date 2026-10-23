@@ -12,6 +12,8 @@ Record a SHA-256 hash of each script. Reuse an existing audio result only when i
 
 Use finite batches with a request count, output budget, deadline and concurrency limit. Save the request intent before calling the provider and save the returned audio and provider receipt. If a connection fails, reconcile the recorded outcome before making another generation request. A download retry must not silently become another paid generation.
 
+Use the qualified speech request shape: English narration in `contents[].parts[].text`, teaching directions in `speechMetadata.style`, `responseModalities: ["AUDIO"]`, and `speechConfig.voiceConfig.voice: "Fola"`. The current generator leaves `maxOutputTokens` unset and applies a separate four-MiB response-file bound. In a controlled comparison, adding a 4,096-token override returned `INVALID_ARGUMENT`; removing that override returned valid Fola audio for the same script. This result qualifies that request shape, rather than establishing that every output-token override is unsupported. Preserve both failure and success receipts when changing generation settings.
+
 ## Rebuild captions and navigation
 
 Align captions against the actual generated speech. Recalculate chapter boundaries and function-seek positions whenever audio duration changes. Preserve the complete reviewed script, use readable plain-text WebVTT cues, and check cue ordering and bounds. Listen to representative passages, including technical names and numbers; inspect any substantial difference between recognized speech and the script.

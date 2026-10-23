@@ -7,6 +7,8 @@
   "style": "Calm conversational software instructor; clear articulation, moderate pace and natural pauses.",
   "automatic_voice_fallback": false,
   "maximum_concurrent_requests": 2,
+  "generation_output_token_override": null,
+  "maximum_audio_response_bytes": 4194304,
   "credential_values_in_media_or_repositories": false,
   "new_audio_requires_caption_alignment": true,
   "new_duration_requires_navigation_retiming": true,
