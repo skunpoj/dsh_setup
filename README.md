@@ -165,9 +165,11 @@ See [document alignment](docs/DOCUMENT_ALIGNMENT_20261023.md) for current contro
 
 
 
-### Selected-user app sharing
+### Application audiences and checkbox editing
 
-The Main gateway supports per-app selected authenticated usernames, with HTTP/WebSocket and sign-in enforcement plus revocation. JupyterLab and terminals remain owner-only. Exact-image integration tests and live source/selector/preservation checks passed. Existing app audiences were not changed; legacy DSH2/DSH3 remain owner-only. See [selection and boundaries](docs/AUTHENTICATED_APP_SHARING.md#selected-authenticated-users).
+The prepared Main-gateway update replaces typed usernames with a local-user checkbox picker and adds **Edit sharing / URL** for saved applications. New ordinary authenticated apps default to **All authenticated users (local and AD / LDAP)**; owners can choose all local users, all AD / LDAP users, selected local users or owner-only. Existing audiences stay unchanged until saved. JupyterLab and terminal remain owner-only.
+
+Actual gateway tests cover local/directory identity enforcement, private routing and HTTP/WebSocket revocation; form-script tests cover checkbox editing and defaults. This update is **not deployed yet**: the coordinated GPU test holds gateway reloads. The existing typed-list interface remains live. See [audience choices, edit workflow and boundaries](docs/AUTHENTICATED_APP_SHARING.md).
 
 ## Jupyter automatic startup
 
@@ -176,3 +178,5 @@ Private workspaces seed managed Jupyter in both environments. Internet startup s
 
 
 Jupyter dashboard status distinguishes **Waiting for existing Jupyter**, **Internet approval pending**, **Account disabled** and **Recovery retry pending**. These labels do not change startup or access permissions. See the [status explanation](docs/JUPYTER_APP_LIFECYCLE.html) and [captioned walkthrough](docs/JUPYTER_DSH2_DSH3_WALKTHROUGH.html).
+
+Jupyter status transitions are verified using disposable users: Internet approval clears the pending label, and exiting an existing server permits automatic handover to **Running**. Existing saved notebook/settings markers remained unchanged. See the [lifecycle guide](docs/JUPYTER_APP_LIFECYCLE.html) and [walkthrough](docs/JUPYTER_DSH2_DSH3_WALKTHROUGH.html).

@@ -83,6 +83,14 @@ test('actual gateway enforces directory identity, conflict, approval and restart
     assert.ok(!fs.readFileSync(usersFile,'utf8').includes(credential.password));
     const session=await request(port,'/api/auth/session',{cookie:adCookie});assert.equal(session.status,200);assert.equal(JSON.parse(session.body).user,user);assert.equal(JSON.parse(session.body).internet,'off');
   });
+  await t.test('app audience uses authenticated provider for AD and local identities',async()=>{
+    const accounts=JSON.parse(fs.readFileSync(usersFile));accounts.localvisitor=hashPassword(localPassword);fs.writeFileSync(usersFile,JSON.stringify(accounts));
+    const filename=root+'/app-links.json',prior=JSON.parse(fs.readFileSync(filename));
+    async function open(policy,provider){const maps={...prior,'audience-ldap':{owner:'admin',ports:{off:3000},targets:{},accessMode:'authenticated',visitorPolicy:policy,sharedEnvironment:'off',allowedUsers:['localvisitor']}};fs.writeFileSync(filename,JSON.stringify(maps));const page=await request(port,'/login?app=audience-ldap');assert.equal(page.status,200);return request(port,'/login',{fields:{app_login:page.body.match(/name="app_login" value="([a-f0-9]+)"/)[1],username:provider==='ldap'?user:'localvisitor',password:provider==='ldap'?credential.password:localPassword,auth_provider:provider},cookie:cookieFor(page,'__Host-dsh_app_login')});}
+    try{for(const policy of ['signed-in-users','local-users','ldap-users','selected-local-users'])for(const provider of ['local','ldap']){const expected=policy==='signed-in-users'||(provider==='ldap'?policy==='ldap-users':policy!=='ldap-users');const result=await open(policy,provider);assert.equal(result.status,expected?303:403,policy+' '+provider+' '+result.body);}}
+    finally{fs.writeFileSync(filename,JSON.stringify(prior))}
+  });
+
   await t.test('app-focused AD aliases return to the same owner app while other identities remain denied',async()=>{
     for(const name of adNames){const r=await focused(name);assert.equal(r.status,303);assert.equal(r.headers.location,'https://private-ldap-app.apps.example.test/');assert.ok(cookieFor(r));}
     for(const name of ['another-owner@'+credential.domain,user+'@unapproved.example.test'])assert.equal((await focused(name)).status,403);

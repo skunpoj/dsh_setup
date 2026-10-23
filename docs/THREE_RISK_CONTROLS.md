@@ -50,3 +50,8 @@ Audit bounded access metadata without recording credentials or conversation bodi
 Follow the [complete installation guide](INSTALL.md), then the [acceptance checks](ACCEPTANCE.md). Use the [application proxy guide](APP_PROXY.md) for routes and destination boundaries. Consult [managed-client compatibility](LIVE_CLIENT_COMPATIBILITY.md) for existing-workspace launch scope.
 
 GPU setup is maintained in [gpu-stack](../gpu-stack/README.md). [Context configuration](CONTEXT_1M.md) explains counting, output reserve and admission. Treat any recorded GPU result as specific to its checkpoint, runtime, input size and concurrency: configured capacity, analytical accuracy, cold preparation and streaming speed are distinct measurements.
+
+
+## Application audience controls
+
+Application audiences are separate from workspace permissions. The prepared checkbox editor offers all authenticated accounts, local accounts, AD / LDAP accounts, selected local users or owner-only. New ordinary apps default to all authenticated users; saved mappings retain their existing audience until explicitly saved. The gateway checks stored identity type, strips platform credentials and revokes active app connections when eligibility changes. JupyterLab and terminals stay owner-only. This editor is locally verified and awaits the coordinated gateway rollout.
