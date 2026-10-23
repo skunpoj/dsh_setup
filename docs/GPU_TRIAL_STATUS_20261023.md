@@ -1,47 +1,22 @@
-# GPU and 1M qualification results — 23 October 2026
+# GPU performance and near-1M results
 
-The latest candidate finished its test cycle and was **rejected**, then the saved baseline was restored. The 1,048,576-token configuration remains available. This candidate did not finish a near-1M answer or compaction, and does not establish a 100+ output-token/sec conversation.
+## GPU performance and 1M operation — 23 October 2026
 
-## Completed actual DSH measurements
+**The latest optimization has not qualified 100+ output tokens/sec for a substantial near-1M conversation.** The last completed cold actual-DSH prose measurement used **1,008,049 input / 540 output tokens**, with **28m32.25s preparation** and **66.00 streaming output tokens/sec**. Generation speed excludes preparation; its whole-turn output rate was **0.31 tokens/sec**.
 
-| Stage | Input tokens | Output tokens | Native whole turn | Stream-window output tokens/sec | Whole-turn output tokens/sec |
-|---|---:|---:|---:|---:|---:|
-| 128K | 124,074 | 576 | 57.139 s | 72.73 | 10.08 |
-| 384K | 384,072 | 612 | 312.546 s | 79.19 | 1.96 |
+| Latest completed full-model trial M | Input / output tokens | Native time to first text | Native whole turn | Output stream tokens/sec |
+| --- | --- | --- | --- | --- |
+| 128K | 124,071 / 603 | 48.14 s | 56.28 s | 74.03 |
+| 384K | 384,071 / 583 | 305.97 s | 313.65 s | 75.85 |
 
-Both stages completed with zero retries and passed the recorded full-window latency and GPU diagnostic gates. They used synthetic numeric context with distributed reference facts, not a realistic repository-quality benchmark.
+The near-1M stage stopped when each of the four GPUs recorded one allocation retry. There was no completed long answer or new compaction result; the candidate was rejected. These retries are distinct from an uncaught CUDA out-of-memory failure: the captured OOM counters remained zero.
 
-Four ordinary DSH conversations overlapped. Each returned the exact 120-token numeric reply in **3.554–3.991 seconds**, with zero retries. Their individual whole-turn rates were **30.07–33.77 output tokens/sec**. Combined throughput was **117.75 output tokens/sec** across the **4.077-second client wall window**. Combined throughput is not 100+ tokens/sec for each conversation; this was one bounded four-client sample, not a sustained load test.
+Short requests remained responsive in that bounded run: **136/136** passed their recorded content checks with **zero retries**. The **86 replies recorded during near-1M preparation** had **4.28s median**, **6.48s p95**, and **9.40s maximum** native turn time. Numeric exact-match and prose content-band checks are different checks; these are measured samples, not a service guarantee.
 
-The final saved progress contains **108 exact short replies**, including **83 during near-1M preparation**. Maximum native turn time was **6.965 seconds**; maximum client elapsed time including polling/transport was **8.051 seconds**. All recorded short replies had zero retries. Earlier operator updates counted 105 before the final progress snapshot; 108 is the final saved count.
+The newer **N9 small GPU allocation test passed five BF16 numerical cases**, with zero maximum absolute difference, zero allocation retries and zero OOMs on the fixed path. It used synthetic metadata without loading model weights. It does not measure output tokens/sec, cold preparation, full-model near-1M stability or compaction; full-model qualification of that change is not complete at this check.
 
-## Why the near-1M candidate was rejected
+The 21 October run also recorded a **158.04 tokens/sec median across 50 short numeric streams**, 49 of which completed entirely within the concurrent long turn. That is a short-output result, not the speed of its long prose answer. Likewise, the earlier four-client **117.75 tokens/sec combined** result is aggregate throughput, not 100+ per conversation. Cold preparation, answer streaming, full-turn latency and aggregate throughput must remain separate.
 
-The candidate reduced the decode CUDA graph maximum batch from eight to four and tested an earlier switch to smaller preparation increments. At the near-1M stage, the model log recorded **four recoverable allocator-mapping warnings**. The strict memory gate stopped the test before promoting an unstable profile. The saved log recorded **zero uncaught CUDA out-of-memory errors, scheduler assertions, illegal-memory-access errors or tracebacks**. No completed near-1M response or compaction result exists for this candidate. Two simultaneous maximum-context conversations were not qualified.
+The restored **18:16 ICT snapshot** records **SGLang on four H100s**, not DeepInfer: memory fraction **0.922**, prefill **1,024 / 1,024 tokens**, a **1,048,576-token ceiling** and **8 active backend requests**. The long-input policy admits **one above-128K request at a time**, leaving shorter work concurrent; this does not qualify two simultaneous maximum-context requests.
 
-The latest completed 128K/384K measurements must not be substituted for a full-context result. Historical near-1M successes belong to their dated profiles; they remain historical evidence, not acceptance of this optimization.
-
-## Retained operating profile
-
-| Setting | Restored value |
-|---|---:|
-| Total context ceiling | 1,048,576 tokens |
-| Static GPU memory fraction | 0.922 |
-| Maximum running requests | 8 |
-| GPU prefill chunk / maximum prefill | 1,024 / 1,024 tokens |
-| Allocated token pool | 1,091,840 slots |
-| Decode graph maximum batch | 8 |
-
-The running-request cap is a scheduler ceiling, not a guarantee that eight maximum-length contexts fit. Admission and bounded preparation remain necessary. Ordinary short work can overlap long preparation; long work still competes for the same four GPUs.
-
-After restoration, an actual native DSH recovery reply returned READY in **3.736 seconds**. A second exact 80-output-token reply completed in **1.545 seconds**, with zero retries. These verify recovery through the canonical route, not a new near-1M performance pass. Further allocator/compaction and alternative-runtime trials remain pending a controlled GPU test window.
-
-## Reading the rates correctly
-
-Native whole-turn time includes preparation and generation. Stream-window output rate divides reported output tokens by the recorded streaming interval; it is an application timing estimate, not a GPU-only decoding benchmark. Client elapsed time also includes client transport/polling. A fast cached short reply does not measure cold million-token preparation. A configured million-token ceiling does not mean every request sends a million tokens.
-
-## Preservation and operating procedure
-
-The GPU operator retained all 472 pre-existing files in its isolated qualification-history set byte-for-byte and retained all 236 original histories; the set grew to 269 histories from test activity. This is the synthetic test store, not a count of production user histories. Owned test credentials and admission reservations were removed. Documentation publication does not restart workspaces, change accounts, rewrite histories or replace course media.
-
-For the next trial, snapshot the current source/settings, use disposable test state, record exact input/output counts and short-request latency throughout preparation, enforce the warning gate, then verify the canonical native route after any restoration. Promote only after a substantial near-1M answer, compaction, tool continuation and ordinary-request responsiveness all pass on that exact profile.
+Earlier compaction passed on the **21 October profile**, from **948,102 source tokens**: summary **393.12s**, continuation **388.90s**; **23 short replies** had **6.04s median / 10.06s maximum**. Cancellation took **0.024s**, the reference was recalled after process replacement, and the recorded original/history replacement hashes matched. This is preserved historical acceptance, not requalification of the latest candidate. The 384K scoped retrieval review also does not establish strict sentence-by-sentence citation adherence.

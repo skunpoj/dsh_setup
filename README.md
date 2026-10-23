@@ -98,6 +98,19 @@ operator-provisioned user/environment mapping. Runtime pods have no account-stor
 mount or Kubernetes API token. No corporate identity provider or datalake is
 implicitly configured. [Security boundaries](docs/SECURITY.md).
 
+<!-- GPU_PERFORMANCE_STATUS_20261023:START -->
+## GPU performance and 1M operation — 23 October 2026
+
+- **100+ output tokens/sec is not yet qualified for the latest near-1M optimization.** The last completed cold actual-DSH prose run used 1,008,049 input / 540 output tokens: **28m32.25s preparation**, **66.00 wire-streaming tokens/sec**, zero retries.
+- Latest completed full-model candidate M: **74.03 tokens/sec at 128K** and **75.85 at 384K**; its near-1M stage was rejected after one allocation retry on each GPU. No substantial near-1M output or new compaction result was obtained.
+- **136/136 ordinary replies** passed recorded content checks with zero retries. The **86 replies during near-1M preparation** had **4.28s median / 6.48s p95 / 9.40s maximum** native turn time.
+- N9 passed five bounded BF16 numerical cases with zero allocation retries/OOMs, using synthetic metadata and no model weights. Full-model near-1M throughput for that fix is not yet qualified.
+- The restored 18:16 ICT snapshot is **SGLang on four H100s**, not DeepInfer: memory fraction **0.922**, **1,024 / 1,024-token prefill**, **1,048,576 context tokens**, eight active requests and one above-128K input admission lane; shorter work remains parallel. The older 158.04 tokens/sec numeric-short median and 117.75 combined four-client rate are different measures.
+- Earlier 21 October compaction from **948,102 source tokens** passed with **393.12s summary / 388.90s continuation**, **23 short replies** (6.04s median / 10.06s maximum), 0.024s cancellation and preserved recall/history after replacement. That is a dated profile, not acceptance of the latest candidate.
+
+[Full results and definitions](docs/GPU_TRIAL_STATUS_20261023.html). Generation speed excludes cold preparation; these workloads and timing methods are not a matched before/after benchmark.
+<!-- GPU_PERFORMANCE_STATUS_20261023:END -->
+
 ## Context and performance
 
 The corrected-route qualification reserved **1,002,081 input / 8,192 output tokens**, but failed its memory-warning gate before a substantial near-1M answer. **53 ordinary replies** passed with median **4.66 s** and maximum **11.78 s**, without retries. Compaction was not started and no new 100+ tokens/sec result is claimed. The compatible unfused profile was restored with the 1M ceiling retained; a fresh canonical native DSH recovery reply passed in **3.825 s**, zero retries. Earlier trials remain separate records. [Qualification results and recovery scope](docs/GPU_PREPARATION_REVIEW_20261022.html).
@@ -151,7 +164,7 @@ or [Markdown guide](docs/DEEPINFER_INTEGRATION.md) for the source checks,
 recorded SGLang results and same-node qualification gates.
 
 
-## GPU status — 23 October 2026
+## Earlier graph-batch GPU status — 23 October 2026
 
 The 23 October GPU candidate was rejected at the allocator-warning gate after passing 128K/384K stages. Four short DSH conversations overlapped at 117.75 combined output tokens/sec (30.07–33.77 per conversation including whole-turn time); this does not establish 100+ per conversation or two simultaneous 1M requests. The saved baseline retains the 1M ceiling. See the dated results for definitions and recovery checks. [Detailed results](docs/GPU_TRIAL_STATUS_20261023.html).
 

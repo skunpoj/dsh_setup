@@ -1,78 +1,301 @@
 {
   "date": "2026-10-23",
+  "latestCompletedModelTrial": "tile64-20261023m",
   "candidateAccepted": false,
-  "candidateChange": "Decode CUDA graph maximum batch 8 to 4; private earlier small-step preparation policy",
   "completedStages": [
     {
       "stage": "128K",
-      "inputTokens": 124074,
-      "outputTokens": 576,
-      "nativeTurnSeconds": 57.139,
-      "streamSeconds": 7.92,
-      "streamWindowTokensPerSecond": 72.73,
-      "wholeTurnOutputTokensPerSecond": 10.08
+      "inputTokens": 124071,
+      "outputTokens": 603,
+      "nativeTurnSeconds": 56.28365778923035,
+      "clientElapsedSeconds": 58.22564768791199,
+      "firstTextSeconds": 48.13665795326233,
+      "streamSeconds": 8.144999980926514,
+      "streamWindowTokensPerSecond": 74.03314934463724,
+      "wholeTurnOutputTokensPerSecond": 10.713589409169169,
+      "retries": 0,
+      "scopedExecutionGatePassed": true
     },
     {
       "stage": "384K",
-      "inputTokens": 384072,
-      "outputTokens": 612,
-      "nativeTurnSeconds": 312.546,
-      "streamSeconds": 7.728,
-      "streamWindowTokensPerSecond": 79.19,
-      "wholeTurnOutputTokensPerSecond": 1.96
+      "inputTokens": 384071,
+      "outputTokens": 583,
+      "nativeTurnSeconds": 313.65413308143616,
+      "clientElapsedSeconds": 313.8332426548004,
+      "firstTextSeconds": 305.9661331176758,
+      "streamSeconds": 7.686000108718872,
+      "streamWindowTokensPerSecond": 75.85219773008517,
+      "wholeTurnOutputTokensPerSecond": 1.8587352708297702,
+      "retries": 0,
+      "scopedExecutionGatePassed": true
     }
   ],
-  "fourConcurrentShortRequests": {
-    "exactReplies": 4,
-    "outputTokensEach": 120,
-    "nativeTurnSeconds": [
-      3.554,
-      3.816,
-      3.822,
-      3.991
-    ],
-    "perReplyWholeTurnTokensPerSecond": [
-      33.77,
-      31.45,
-      31.4,
-      30.07
-    ],
-    "clientWallSeconds": 4.077,
-    "aggregateClientWallTokensPerSecond": 117.75
-  },
   "parallelShortRequests": {
-    "exactReplies": 108,
-    "duringNear1MPreparation": 83,
-    "maximumNativeTurnSeconds": 6.965,
-    "maximumClientElapsedSeconds": 8.051,
-    "retries": 0
+    "count": 136,
+    "exactOrRecordedContentCheckPassed": 136,
+    "retries": 0,
+    "medianNativeSeconds": 3.521546244621277,
+    "p95NativeSeconds": 6.369826793670654,
+    "maxNativeSeconds": 9.4035165309906,
+    "maxClientSeconds": 10.043037176132202
   },
-  "near1MResult": "Stopped at strict allocator-warning gate; no completed near1M answer or compaction",
-  "diagnostics": {
-    "allocatorMappingWarnings": 4,
-    "cudaOutOfMemory": 0,
-    "schedulerAssertions": 0,
-    "illegalMemoryAccess": 0,
-    "tracebacks": 0
+  "shortRequestsByRecordedPhase": {
+    "128K": {
+      "count": 4,
+      "exactOrRecordedContentCheckPassed": 4,
+      "retries": 0,
+      "medianNativeSeconds": 4.535311818122864,
+      "p95NativeSeconds": 5.7830352783203125,
+      "maxNativeSeconds": 5.7830352783203125,
+      "maxClientSeconds": 6.040202379226685
+    },
+    "384K": {
+      "count": 19,
+      "exactOrRecordedContentCheckPassed": 19,
+      "retries": 0,
+      "medianNativeSeconds": 4.542074680328369,
+      "p95NativeSeconds": 8.590095043182373,
+      "maxNativeSeconds": 8.590095043182373,
+      "maxClientSeconds": 10.043037176132202
+    },
+    "awaiting-stage-gate-128K": {
+      "count": 16,
+      "exactOrRecordedContentCheckPassed": 16,
+      "retries": 0,
+      "medianNativeSeconds": 1.1561247110366821,
+      "p95NativeSeconds": 3.7243566513061523,
+      "maxNativeSeconds": 3.7243566513061523,
+      "maxClientSeconds": 4.0421929359436035
+    },
+    "awaiting-stage-gate-384K": {
+      "count": 11,
+      "exactOrRecordedContentCheckPassed": 11,
+      "retries": 0,
+      "medianNativeSeconds": 1.4971632957458496,
+      "p95NativeSeconds": 2.668095350265503,
+      "maxNativeSeconds": 2.668095350265503,
+      "maxClientSeconds": 4.031910181045532
+    },
+    "near1M": {
+      "count": 86,
+      "exactOrRecordedContentCheckPassed": 86,
+      "retries": 0,
+      "medianNativeSeconds": 4.281155467033386,
+      "p95NativeSeconds": 6.484412908554077,
+      "maxNativeSeconds": 9.4035165309906,
+      "maxClientSeconds": 10.042672157287598
+    }
   },
-  "retainedSettings": {
-    "context_length": 1048576,
-    "mem_fraction_static": 0.922,
-    "max_running_requests": 8,
-    "chunked_prefill_size": 1024,
-    "max_prefill_tokens": 1024,
-    "max_total_num_tokens": 1091840,
-    "cuda_graph_max_bs_decode": 8
+  "near1M": {
+    "completed": false,
+    "substantialLongOutputTokensPerSecond": null,
+    "compaction": "not-run",
+    "reason": "All four GPU allocator retry counters increased by one; strict gate rejected the candidate",
+    "allocatorRetriesByRank": {
+      "2": 1,
+      "1": 1,
+      "3": 1,
+      "0": 1
+    },
+    "oomsByRank": {
+      "2": 0,
+      "1": 0,
+      "3": 0,
+      "0": 0
+    }
   },
-  "nativeRecoveryPassed": true,
-  "testHistoryPreservation": {
-    "originalFilesExact": 472,
-    "originalHistories": 236,
-    "retainedHistories": 269
+  "contentScope": "384K core-fact retrieval passed its scoped review; strict three-fact-only source adherence was not passed and not every sentence was directly sourced.",
+  "smallGPUAllocationTest": {
+    "run": "N9",
+    "passed": true,
+    "modelWeightsLoaded": false,
+    "inputIsSyntheticMetadata": true,
+    "numericalCases": 5,
+    "maxBF16AbsoluteDifference": 0.0,
+    "allocationRetries": 0,
+    "ooms": 0,
+    "fullNear1MQualificationEligible": false,
+    "productionReplay": false,
+    "outputTokensPerSecond": null
   },
-  "definitions": {
-    "nativeTurnSeconds": "Time recorded by the DSH native turn, including preparation and response",
-    "streamWindowTokensPerSecond": "Reported output-token count divided by recorded stream duration; not GPU-only decode speed",
-    "aggregateClientWallTokensPerSecond": "All four outputs divided by earliest client start to latest client end; not per-conversation speed"
-  }
+  "definition": "Stream-window output rate excludes preparation. Whole-turn output rate includes it. Aggregate multi-request throughput is not per-conversation speed.",
+  "lastCompletedColdNear1M": {
+    "date": "2026-10-21",
+    "inputTokens": 1008049,
+    "outputTokens": 540,
+    "preparationSeconds": 1712.246578,
+    "nativeFirstTextSeconds": 1718.1281461715698,
+    "clientWholeTurnSeconds": 1726.8461508750916,
+    "wireStreamingOutputTokensPerSecond": 65.99740410210615,
+    "wholeTurnOutputTokensPerSecond": 0.3127088071663774,
+    "retries": 0,
+    "numericShorts": {
+      "completed": 50,
+      "fullyDuringLongTurn": 49,
+      "contentCheck": "literal integers 1 through 40",
+      "retries": 0,
+      "observedCompletionSeconds": {
+        "minimum": 2.0259482860565186,
+        "median": 4.043010234832764,
+        "maximum": 10.061800003051758
+      },
+      "firstNativeTextMedianSeconds": 2.1782209873199463,
+      "wireStreamingTokensPerSecond": {
+        "minimum": 13.390058082724448,
+        "median": 158.04190764406655,
+        "maximum": 169.17110388374553
+      },
+      "wholeTurnMedianTokensPerSecond": 19.78723887032177,
+      "wireTimingMatches": 50
+    },
+    "proseShorts": {
+      "completed": 48,
+      "fullyDuringLongTurn": 47,
+      "contentCheck": "word count and required concepts; not literal exact output",
+      "retries": 0,
+      "observedCompletionSeconds": {
+        "minimum": 4.0302979946136475,
+        "median": 6.047160029411316,
+        "maximum": 10.097509860992432
+      },
+      "firstNativeTextMedianSeconds": 2.4686381816864014,
+      "wireStreamingTokensPerSecond": {
+        "minimum": 41.356746910795486,
+        "median": 88.53351087637824,
+        "maximum": 132.47318725259325
+      },
+      "wholeTurnMedianTokensPerSecond": 37.65985066024013,
+      "wireTimingMatches": 48
+    },
+    "compactionPassedOnThatProfile": true
+  },
+  "historicalCompaction20261021": {
+    "passed": true,
+    "sourceInputTokens": 948102,
+    "summarySeconds": 393.1170001029968,
+    "summaryUsage": {
+      "inputTokens": 480348,
+      "outputTokens": 334,
+      "totalTokens": 480682
+    },
+    "postSummarySeconds": 388.89599990844727,
+    "postSummaryInputTokens": 480438,
+    "shortCount": 23,
+    "shortMedianSeconds": 6.043618440628052,
+    "shortMaxSeconds": 10.060764074325562,
+    "fullyDuringSummary": 11,
+    "fullyDuringPostSummary": 10,
+    "stopSeconds": 0.023669958114624023,
+    "oldHistories": 23,
+    "oldFiles": 46,
+    "historiesAcrossRestart": 25,
+    "filesAcrossRestart": 50,
+    "originalEventPrefixRetained": true,
+    "sourceHistoryUnmodified": true,
+    "referenceInSummaryAndRecalledAfterRestart": true,
+    "recallSeconds": 4.17897891998291,
+    "allOriginalHistoryFilesExact": true,
+    "allFilesExactAcrossReplacement": true,
+    "runtimeProfileUnchanged": true
+  },
+  "coordinatedReview20261023": {
+    "runtime": "SGLang",
+    "snapshot": "23 October 18:16 ICT restored four-GPU model; final N qualification pending",
+    "imageDigest": "sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+    "contextTokens": 1048576,
+    "gpuCount": 4,
+    "maxRunningRequests": 8,
+    "memoryFraction": 0.922,
+    "prefillChunkTokens": 1024,
+    "maximumPrefillTokens": 1024,
+    "smallSyntheticPassed": true,
+    "fullCandidateNear1MAccepted": false,
+    "historicalDSH1MDate": "2026-10-21",
+    "historicalInputTokens": 1008049,
+    "historicalCompactionSourceTokens": 948102,
+    "reviewIssuedNewLiveRequests": false
+  },
+  "reviewedAtICT": "2026-10-23T18:43:11.021637+07:00",
+  "newFullModelQualification": "No completed full-model near-1M result for the N9 allocation fix at this evidence cutoff.",
+  "historicalTrials": {
+    "earlierGraphBatchTrial": {
+      "date": "2026-10-23",
+      "candidateAccepted": false,
+      "candidateChange": "Decode CUDA graph maximum batch 8 to 4; private earlier small-step preparation policy",
+      "completedStages": [
+        {
+          "stage": "128K",
+          "inputTokens": 124074,
+          "outputTokens": 576,
+          "nativeTurnSeconds": 57.139,
+          "streamSeconds": 7.92,
+          "streamWindowTokensPerSecond": 72.73,
+          "wholeTurnOutputTokensPerSecond": 10.08
+        },
+        {
+          "stage": "384K",
+          "inputTokens": 384072,
+          "outputTokens": 612,
+          "nativeTurnSeconds": 312.546,
+          "streamSeconds": 7.728,
+          "streamWindowTokensPerSecond": 79.19,
+          "wholeTurnOutputTokensPerSecond": 1.96
+        }
+      ],
+      "fourConcurrentShortRequests": {
+        "exactReplies": 4,
+        "outputTokensEach": 120,
+        "nativeTurnSeconds": [
+          3.554,
+          3.816,
+          3.822,
+          3.991
+        ],
+        "perReplyWholeTurnTokensPerSecond": [
+          33.77,
+          31.45,
+          31.4,
+          30.07
+        ],
+        "clientWallSeconds": 4.077,
+        "aggregateClientWallTokensPerSecond": 117.75
+      },
+      "parallelShortRequests": {
+        "exactReplies": 108,
+        "duringNear1MPreparation": 83,
+        "maximumNativeTurnSeconds": 6.965,
+        "maximumClientElapsedSeconds": 8.051,
+        "retries": 0
+      },
+      "near1MResult": "Stopped at strict allocator-warning gate; no completed near1M answer or compaction",
+      "diagnostics": {
+        "allocatorMappingWarnings": 4,
+        "cudaOutOfMemory": 0,
+        "schedulerAssertions": 0,
+        "illegalMemoryAccess": 0,
+        "tracebacks": 0
+      },
+      "retainedSettings": {
+        "context_length": 1048576,
+        "mem_fraction_static": 0.922,
+        "max_running_requests": 8,
+        "chunked_prefill_size": 1024,
+        "max_prefill_tokens": 1024,
+        "max_total_num_tokens": 1091840,
+        "cuda_graph_max_bs_decode": 8
+      },
+      "nativeRecoveryPassed": true,
+      "testHistoryPreservation": {
+        "originalFilesExact": 472,
+        "originalHistories": 236,
+        "retainedHistories": 269
+      },
+      "definitions": {
+        "nativeTurnSeconds": "Time recorded by the DSH native turn, including preparation and response",
+        "streamWindowTokensPerSecond": "Reported output-token count divided by recorded stream duration; not GPU-only decode speed",
+        "aggregateClientWallTokensPerSecond": "All four outputs divided by earliest client start to latest client end; not per-conversation speed"
+      }
+    }
+  },
+  "schemaVersion": 2
 }
