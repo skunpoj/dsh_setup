@@ -1,0 +1,118 @@
+{
+  "runId": "tile64-20261023m",
+  "finalReviewed": true,
+  "candidateAccepted": false,
+  "summary": "M was rejected during near-1M preparation: each GPU added one allocation retry. The scoped 128K/384K GPU gates passed, but near-1M and compaction did not complete. The original serving specification, source and image were restored and actual native replies verified. This is a rejected candidate with verified recovery, not a completed allocator fix.",
+  "gates": {
+    "compaction": {
+      "status": "not-tested",
+      "explanation": "Not reached after near-1M allocator rejection",
+      "evidence": []
+    },
+    "stopDrainResume": {
+      "status": "not-tested",
+      "explanation": "Not reached after near-1M allocator rejection",
+      "evidence": []
+    },
+    "recallAndTool": {
+      "status": "not-tested",
+      "explanation": "Not reached after near-1M allocator rejection",
+      "evidence": []
+    },
+    "persistence": {
+      "status": "not-tested",
+      "explanation": "Not reached after near-1M allocator rejection",
+      "evidence": []
+    },
+    "startup": {
+      "status": "passed",
+      "explanation": "Candidate startup captured; subsequent qualification failed. Startup is not full acceptance.",
+      "evidence": [
+        "startup"
+      ]
+    },
+    "allocator": {
+      "status": "failed",
+      "explanation": "During near-1M preparation each of all four GPU ranks added one allocation retry; terminal num_ooms remained zero.",
+      "evidence": [
+        "failure"
+      ]
+    },
+    "near1m": {
+      "status": "failed",
+      "explanation": "Near-1M gate rejected by allocator retries; latest prepared prefix reported by operator was 819,200 tokens. This is not a completed near-1M turn.",
+      "evidence": [
+        "failure"
+      ]
+    },
+    "content": {
+      "status": "failed",
+      "explanation": "128K/384K core-fact checks passed their scoped gates. Strict three-fact-only/source adherence did not pass; the 384K addendum identifies an unsupported shared-base-environment statement.",
+      "evidence": [
+        "gate128",
+        "gate384",
+        "addendum384"
+      ]
+    },
+    "canonicalPolicyParity": {
+      "status": "not-tested",
+      "explanation": "Canonical long-context policy parity was not run; private fixture threshold differs from canonical proxy.",
+      "evidence": []
+    },
+    "baselineRecovery": {
+      "status": "passed",
+      "explanation": "Exact original specification, application source and image restored; actual READY in 3.6815 seconds and exact 1\u201340 output in 1.4913 seconds, zero retries. Human workspaces and original files preserved; the kernel probe is limited and is not proof about every process.",
+      "evidence": [
+        "modelRecovery",
+        "nativeRecovery",
+        "humanPreserved"
+      ]
+    },
+    "cleanup": {
+      "status": "passed",
+      "explanation": "Original fixture files exact; added histories retained. Owned alias revoked and Secret absent; stopped original workload specifications read back. Reservation released; holder exited with a zombie awaiting reap, not claimed PID absent. Initial cleanup missing-prerequisite attention retained; reconciliation resumed recovery without M source changes.",
+      "evidence": [
+        "privateCleanup",
+        "keyRevoked",
+        "leaseRelease",
+        "finalOperator",
+        "cleanupAttention",
+        "prereqReconciled"
+      ]
+    }
+  },
+  "timings": [
+    {
+      "label": "128K",
+      "inputTokens": 124071,
+      "outputTokens": 603,
+      "wholeTurnSeconds": 58.22564768791199,
+      "nativeElapsedSeconds": 56.28365778923035,
+      "streamSeconds": 8.144999980926514
+    },
+    {
+      "label": "384K",
+      "inputTokens": 384071,
+      "outputTokens": 583,
+      "wholeTurnSeconds": 313.8332426548004,
+      "nativeElapsedSeconds": 313.65413308143616,
+      "streamSeconds": 7.686000108718872
+    }
+  ],
+  "clarifications": [
+    {
+      "text": "The prior blanket claim that L invented the No Internet default was too broad: captured system context explicitly supplied it. Strict three-fact adherence and ambiguous approval/recovery wording remain separate caveats.",
+      "evidence": [
+        "lClarification"
+      ]
+    },
+    {
+      "text": "M saved-log diagnosis: four native allocation failures requested 1,832,910,848 bytes (1,748 MiB), with 1,765,539,840 bytes (1,683.75 MiB) free, a 64.25 MiB shortfall. A successful guard reclaim about 0.55 seconds earlier does not prove the exact intervening tensor/callsite. Prepared bounded diagnostic helper passed 19 CPU tests only and was not activated; it is not an actual GPU fix.",
+      "evidence": [
+        "diagnosis",
+        "failure"
+      ]
+    }
+  ],
+  "computedCandidateAccepted": false
+}

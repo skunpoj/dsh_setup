@@ -1,0 +1,375 @@
+{
+  "date": "2026-10-23",
+  "latestCompletedAttempt": "L",
+  "accepted": false,
+  "J": {
+    "candidateAccepted": false,
+    "rejectionStage": "Startup readback before workload",
+    "candidateSettings": {
+      "contextLength": 1048576,
+      "memoryFraction": 0.918,
+      "maxRunningRequests": 8,
+      "decodeGraphMaxBatch": 4,
+      "allocator": "native",
+      "garbageCollectionThreshold": 0.95
+    },
+    "readyAfterSeconds": 656,
+    "minimumRequiredPool": 1064960,
+    "actualPool": null,
+    "actualPoolUnavailableReason": "Readback was validated before persistence; old pod absent. Numeric value unavailable.",
+    "near1MTestStarted": false,
+    "compactionTestStarted": false,
+    "restorationVerified": true
+  },
+  "K": {
+    "startupPool": 1064960,
+    "contextWindow": 1048576,
+    "memoryFraction": 0.922,
+    "decodeGraphCap": 4,
+    "allocatorGCThreshold": 0.95,
+    "fourNativeRequests": {
+      "trial": "K",
+      "candidateAccepted": false,
+      "fourNativeTurnsOverlap": true,
+      "outputsEach": 120,
+      "samples": [
+        {
+          "nativeElapsedSeconds": 3.8145699501037598,
+          "firstTextSeconds": 2.3395700454711914,
+          "streamSeconds": 1.4739999771118164,
+          "usage": {
+            "inputTokens": 11905,
+            "outputTokens": 120,
+            "totalTokens": 12025
+          },
+          "retries": 0
+        },
+        {
+          "nativeElapsedSeconds": 3.5495073795318604,
+          "firstTextSeconds": 1.51350736618042,
+          "streamSeconds": 2.0339999198913574,
+          "usage": {
+            "inputTokens": 11905,
+            "outputTokens": 120,
+            "totalTokens": 12025
+          },
+          "retries": 0
+        },
+        {
+          "nativeElapsedSeconds": 3.8124310970306396,
+          "firstTextSeconds": 2.3404312133789062,
+          "streamSeconds": 1.4700000286102295,
+          "usage": {
+            "inputTokens": 11905,
+            "outputTokens": 120,
+            "totalTokens": 12025
+          },
+          "retries": 0
+        },
+        {
+          "nativeElapsedSeconds": 3.987572431564331,
+          "firstTextSeconds": 2.7125723361968994,
+          "streamSeconds": 1.2739999294281006,
+          "usage": {
+            "inputTokens": 11905,
+            "outputTokens": 120,
+            "totalTokens": 12025
+          },
+          "retries": 0
+        }
+      ],
+      "clientWallSeconds": 4.095914363861084,
+      "maxObservedDecodeBatch": 3,
+      "aggregateClientWallTokensPerSecond": 117.18995012081253,
+      "perConversationWholeTurnRates": [
+        31.458329921761138,
+        33.80750824522208,
+        31.475978698595636,
+        30.093497249133055
+      ],
+      "perConversationStreamWindowRates": [
+        81.4111274513927,
+        58.99705247107856,
+        81.63265147242933,
+        94.19152798059265
+      ]
+    },
+    "completed128K": {
+      "usage": {
+        "inputTokens": 124075,
+        "outputTokens": 641,
+        "totalTokens": 124716
+      },
+      "nativeElapsedSeconds": 57.679641008377075,
+      "firstTextSeconds": 48.91464114189148,
+      "streamSeconds": 8.70300006866455,
+      "reportedStreamWindowTokensPerSecond": 73.65276283381203
+    },
+    "contentReview": {
+      "stage": "128K",
+      "actualInputTokens": 124075,
+      "actualOutputTokens": 641,
+      "outputSHA256": "3e327b05ccde3b615afa6a9f75dce1205365cd57c6505a5d9d49a20060f272c8",
+      "words": 527,
+      "sourceFactsAndLabelsPresent": true,
+      "strictSourceFidelityAccepted": false,
+      "findings": [
+        "Notebook no-prior-output claim is unsupported/ambiguous: saved notebook cell outputs may survive kernel replacement.",
+        "Separate credentials/history assertion exceeds explicit source fact A, even if the platform has those controls.",
+        "527 words exceeds requested 400-500 target; capacity rubric only requires substantial output."
+      ],
+      "replacementCharacters": 0,
+      "encodingDefectEstablished": false,
+      "capacityAndTimingNotInvalidatedByThisReview": true,
+      "newNear1MAcceptance": false
+    },
+    "failureStage": "384K attempt before completion",
+    "failureCounters": {
+      "passed": false,
+      "source": "Saved full-stage model log, compared to allocator baseline",
+      "ranks": {
+        "0": {
+          "retryDelta": 1,
+          "oomDelta": 0,
+          "allocatedGiB": 85.088,
+          "reservedGiB": 88.125,
+          "inactiveSplitGiB": 0.197,
+          "reservedPeakGiB": 91.422
+        },
+        "2": {
+          "retryDelta": 1,
+          "oomDelta": 0,
+          "allocatedGiB": 85.088,
+          "reservedGiB": 88.125,
+          "inactiveSplitGiB": 0.197,
+          "reservedPeakGiB": 91.422
+        },
+        "3": {
+          "retryDelta": 1,
+          "oomDelta": 0,
+          "allocatedGiB": 85.088,
+          "reservedGiB": 88.125,
+          "inactiveSplitGiB": 0.197,
+          "reservedPeakGiB": 91.422
+        },
+        "1": {
+          "retryDelta": 1,
+          "oomDelta": 0,
+          "allocatedGiB": 85.088,
+          "reservedGiB": 88.125,
+          "inactiveSplitGiB": 0.197,
+          "reservedPeakGiB": 91.422
+        }
+      }
+    },
+    "near1MCompleted": false,
+    "compactionCompleted": false,
+    "recovery": [
+      {
+        "nativeElapsedSeconds": 3.3130667209625244,
+        "firstTextSeconds": 3.3080668449401855,
+        "usage": {
+          "inputTokens": 11892,
+          "outputTokens": 3,
+          "totalTokens": 11895
+        },
+        "retries": 0
+      },
+      {
+        "nativeElapsedSeconds": 1.4990177154541016,
+        "firstTextSeconds": 1.0280177593231201,
+        "usage": {
+          "inputTokens": 11905,
+          "outputTokens": 80,
+          "totalTokens": 11985
+        },
+        "retries": 0
+      }
+    ],
+    "originalSyntheticFilesExact": 550,
+    "originalSyntheticHistories": 275,
+    "retainedSyntheticHistories": 291
+  },
+  "L": {
+    "status": "Rejected at 384K; recovery verified",
+    "settings": {
+      "context_length": 1048576,
+      "mem_fraction_static": 0.922,
+      "max_running_requests": 8,
+      "chunked_prefill_size": 1024,
+      "max_prefill_tokens": 1024,
+      "max_total_num_tokens": 1064960,
+      "cuda_graph_max_bs_decode": 4
+    },
+    "allocatorGCThreshold": 0.92,
+    "fourNativeRequests": {
+      "receiptSHA256": "1231cbd07341c039a7f4f578bd3324a52476fd2dca792f9ac0e05446848e137e",
+      "scope": "Bounded overlap and timing only; output exactness asserted by harness; complete output strings not retained in this receipt",
+      "clientWallSeconds": 4.092188119888306,
+      "combinedOutputTokensPerSecond": 117.29666035321499,
+      "wholeTurnOutputTokensPerSecond": [
+        31.400936906397142,
+        33.8370571477283,
+        31.440875723091477,
+        30.06581168582142
+      ],
+      "streamWindowOutputTokensPerSecond": [
+        80.97165377056058,
+        58.451048008188685,
+        81.19080246245431,
+        93.89670506673015
+      ],
+      "maxObservedDecodeBatch": 1,
+      "sample": {
+        "passed": true,
+        "fourNativeTurnsOverlap": true,
+        "samples": [
+          {
+            "startedUTC": 1792729001.683458,
+            "endedUTC": 1792729005.7668417,
+            "nativeElapsedSeconds": 3.8215420246124268,
+            "firstTextSeconds": 2.3385419845581055,
+            "streamSeconds": 1.4820001125335693,
+            "usage": {
+              "inputTokens": 11905,
+              "outputTokens": 120,
+              "totalTokens": 12025
+            },
+            "retries": 0
+          },
+          {
+            "startedUTC": 1792729001.6865923,
+            "endedUTC": 1792729005.7756462,
+            "nativeElapsedSeconds": 3.546407699584961,
+            "firstTextSeconds": 1.4924075603485107,
+            "streamSeconds": 2.052999973297119,
+            "usage": {
+              "inputTokens": 11905,
+              "outputTokens": 120,
+              "totalTokens": 12025
+            },
+            "retries": 0
+          },
+          {
+            "startedUTC": 1792729001.6843123,
+            "endedUTC": 1792729005.7733228,
+            "nativeElapsedSeconds": 3.81668758392334,
+            "firstTextSeconds": 2.3366875648498535,
+            "streamSeconds": 1.4779999256134033,
+            "usage": {
+              "inputTokens": 11905,
+              "outputTokens": 120,
+              "totalTokens": 12025
+            },
+            "retries": 0
+          },
+          {
+            "startedUTC": 1792729001.6857557,
+            "endedUTC": 1792729005.7745287,
+            "nativeElapsedSeconds": 3.991244316101074,
+            "firstTextSeconds": 2.7102441787719727,
+            "streamSeconds": 1.2780001163482666,
+            "usage": {
+              "inputTokens": 11905,
+              "outputTokens": 120,
+              "totalTokens": 12025
+            },
+            "retries": 0
+          }
+        ],
+        "maxObservedDecodeBatch": 1,
+        "zeroRetries": true,
+        "scope": "One bounded four-native-client exact119-token response sample; not sustained throughput acceptance"
+      }
+    },
+    "completed128K": {
+      "stage": "128K",
+      "sourceOutputSHA256": "6c07b99023b70e790a4fce315c84fa1e83570b5d6fe6d598f4623624ac49f7c7",
+      "usage": {
+        "inputTokens": 124074,
+        "outputTokens": 617,
+        "totalTokens": 124691
+      },
+      "nativeElapsedSeconds": 57.58836078643799,
+      "firstTextSeconds": 49.223360776901245,
+      "streamSeconds": 8.361999988555908,
+      "wholeTurnOutputTokensPerSecond": 10.713970524149786,
+      "streamWindowOutputTokensPerSecond": 73.78617565706958,
+      "coreThreeFactsPresent": true,
+      "fullSourceFidelityAccepted": false,
+      "issues": [
+        "Approval for one environment does not appear in the other is unsupported and ambiguous under supplied fact A.",
+        "Opening sentence adds credentials and conversation-state separation beyond supplied three facts.",
+        "No Internet default and separate approval from account creation are not established by supplied A alone."
+      ],
+      "scope": "Full actual 128K output read; capacity and timing distinct from narrative-source acceptance"
+    },
+    "failureDeltas": {
+      "2": {
+        "num_alloc_retries": 1,
+        "num_ooms": 0
+      },
+      "0": {
+        "num_alloc_retries": 1,
+        "num_ooms": 0
+      },
+      "1": {
+        "num_alloc_retries": 1,
+        "num_ooms": 0
+      },
+      "3": {
+        "num_alloc_retries": 1,
+        "num_ooms": 0
+      }
+    },
+    "shortMaximumNativeSeconds": 6.352140665054321,
+    "near1MCompleted": false,
+    "compactionCompleted": false,
+    "recovery": [
+      {
+        "nativeElapsedSeconds": 3.332629919052124,
+        "firstTextSeconds": 3.327629804611206,
+        "usage": {
+          "inputTokens": 11892,
+          "outputTokens": 3,
+          "totalTokens": 11895
+        },
+        "retries": 0
+      },
+      {
+        "nativeElapsedSeconds": 1.50071120262146,
+        "firstTextSeconds": 1.0297112464904785,
+        "usage": {
+          "inputTokens": 11905,
+          "outputTokens": 80,
+          "totalTokens": 11985
+        },
+        "retries": 0
+      }
+    ],
+    "fourSavedAnswersIndependentReadback": {
+      "savedAnswersReadBack": 4,
+      "allExact": true,
+      "sourceSHA256": "18b6af680d242f2d406df2fb2618262f0ecdafc762b6c2dcfa50d4c04cf4cc60",
+      "noNewInference": true
+    }
+  },
+  "restoredSettings": {
+    "context_length": 1048576,
+    "mem_fraction_static": 0.922,
+    "max_running_requests": 8,
+    "chunked_prefill_size": 1024,
+    "max_prefill_tokens": 1024,
+    "max_total_num_tokens": 1091840,
+    "cuda_graph_max_bs_decode": 8
+  },
+  "scope": {
+    "corpusBaseRawTokens": 81036,
+    "repetitions": 13,
+    "reencodedCorpusRawTokens": 989988,
+    "near1MCorpusExecutedInJOrK": false,
+    "ordinaryProbes": "Bounded native DSH sessions in the dedicated qualification runtime",
+    "canonicalLongPolicyParityVerified": false,
+    "near1MCorpusExecutedInJOrKOrL": false
+  }
+}

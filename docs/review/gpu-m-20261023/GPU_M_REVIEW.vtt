@@ -1,0 +1,20 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:14.000
+M rejected; baseline restored. The scoped 128K and 384K GPU gates passed. Near-1M stopped when every GPU added one allocation retry. Compaction and canonical long-context policy parity were not tested.
+
+00:00:14.000 --> 00:00:28.000
+Measured timings have different scopes. 128K used 124,071 input and 603 output tokens: 58.226 seconds client whole turn, 56.284 native, 8.145 generation stream. 384K used 384,071 and 583: 313.833 client, 313.654 native, 7.686 stream. Warming and fairness yields affect whole-turn time.
+
+00:00:28.000 --> 00:00:42.000
+The pressure guard was insufficient. It reclaimed unused cache, but near-1M still failed four allocations requesting 1,748 MiB with 1,683.75 MiB free. The 64.25 MiB shortfall is measured; the exact tensor or callsite remains unproven. Zero terminal OOM counters did not mean zero failed allocations.
+
+00:00:42.000 --> 00:00:56.000
+Capacity is distinct from answer accuracy. Core-fact checks were scoped and overlapped system context. Strict source adherence did not pass; the 384K answer added an unsupported shared-base-environment claim. The earlier L No Internet default was supplied by context, correcting a prior overbroad criticism.
+
+00:00:56.000 --> 00:01:10.000
+Recovery was verified separately. The original specification, source and image were restored. READY took 3.682 seconds; exact 1–40 output took 1.491 seconds with no retries. Human workspaces and original files were preserved. Original fixture files remained exact; added histories were retained.
+
+00:01:10.000 --> 00:01:24.000
+Cleanup and remaining limits. Owned key revoked and Secret absent; reservation released. Its holder exited but a zombie awaited reap. Initial cleanup attention and reconciliation evidence remain preserved. The next bounded diagnostic helper has CPU tests only; no GPU fix or live documentation publication is claimed.
+
