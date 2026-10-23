@@ -34,3 +34,14 @@ The migration refuses unsafe files, changed hashes, detected concurrent edits, a
 Saved notebooks, Jupyter preferences, private workspace files and DSH histories remain on their existing volumes. The policy change neither moves them nor changes user/environment routing. Saved content survives replacement; unsaved variables and kernel memory do not. Autostart keeps an idle server resident, so Stop remains an administrator's resource-control option.
 
 [Lifecycle guide](JUPYTER_APP_LIFECYCLE.html) · [Start controls](JUPYTER_START_CONTROLS.html) · [Walkthrough](JUPYTER_DSH2_DSH3_WALKTHROUGH.html)
+
+## What happens when the condition changes?
+
+| Before | What changes | Expected dashboard result |
+| --- | --- | --- |
+| Waiting for existing Jupyter | The existing server exits naturally and releases port 8888 | Managed Jupyter starts automatically; the label changes to **Running** |
+| Internet approval pending | An administrator chooses **User management → Allow Internet** for that user | The approval label clears; an enabled Jupyter service starts, or shows **Waiting for existing Jupyter** if another server holds its port |
+
+Allow Internet grants environment access; it does not override a service disabled with **Stop**. A running account's No Internet access is independent of this approval. The display follows the next permission reconciliation and supervisor/status refresh; it is not an instantaneous browser-only switch. Use **Refresh** to read the latest state.
+
+Do not stop an active server just to clear a waiting label. Save work and let its owner close the server when appropriate. Closing a browser tab alone may leave the server running. Automatic handover starts a new server: saved notebooks and preferences remain, while kernel variables from the exited server do not transfer.
