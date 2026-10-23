@@ -1,79 +1,79 @@
 WEBVTT
 
-00:00:00.000 --> 00:00:03.660
+00:00:00.000 --> 00:00:03.880
 Main D S H already offers local application ports and
 
-00:00:03.660 --> 00:00:07.780
+00:00:03.880 --> 00:00:07.280
 approved external H T T P S targets. The visitor
 
-00:00:07.780 --> 00:00:11.080
+00:00:07.280 --> 00:00:10.760
 access selector offers Require D S H sign in and
 
-00:00:11.080 --> 00:00:17.420
+00:00:10.760 --> 00:00:16.180
 Public access. Authenticated sharing and destination permissions are separate. RegChat
 
-00:00:17.420 --> 00:00:21.980
+00:00:16.180 --> 00:00:20.220
 is a configured example, rather than a special login mechanism.
 
-00:00:21.980 --> 00:00:25.040
+00:00:20.220 --> 00:00:23.440
 Use the Main settings page and the approved application links
 
-00:00:25.040 --> 00:00:28.940
+00:00:23.440 --> 00:00:26.640
 supplied by your operator. Opening a saved link does not
 
-00:00:28.940 --> 00:00:34.008
+00:00:26.640 --> 00:00:30.520
 create a mapping, start an application, or change its permissions.
 
-00:00:34.009 --> 00:00:38.239
+00:00:30.600 --> 00:00:34.870
 Main and Test serve different purposes. The gated and Public
 
-00:00:38.239 --> 00:00:42.359
+00:00:34.870 --> 00:00:38.480
 RegChat examples are available through Main. App Five and App
 
-00:00:42.359 --> 00:00:46.704
+00:00:38.480 --> 00:00:42.480
 Six are controlled Test examples. App Five requires a normal
 
-00:00:46.704 --> 00:00:50.679
+00:00:42.480 --> 00:00:45.393
 D S H session. Sign in through normal D S
 
-00:00:50.679 --> 00:00:54.789
+00:00:45.393 --> 00:00:49.160
 H, then return to the original application tab. That tab
 
-00:00:54.789 --> 00:00:59.869
+00:00:49.160 --> 00:00:53.400
 resumes its original application path. App Six uses Public routing,
 
-00:00:59.869 --> 00:01:03.869
+00:00:53.400 --> 00:00:57.060
 but the destination can still require its own login. Public
 
-00:01:03.869 --> 00:01:07.729
+00:00:57.060 --> 00:01:00.960
 access does not open a workspace, notebook, terminal, or chat
 
-00:01:07.729 --> 00:01:08.872
+00:01:00.960 --> 00:01:01.800
 history.
 
-00:01:08.909 --> 00:01:11.609
+00:01:01.800 --> 00:01:04.400
 A fresh D S H logout and sign in check
 
-00:01:11.609 --> 00:01:14.609
+00:01:04.400 --> 00:01:07.540
 returned App Five to the correct original path and restored
 
-00:01:14.609 --> 00:01:19.209
+00:01:07.540 --> 00:01:11.680
 normal No Internet sign in. Its separate destination session remained
 
-00:01:19.209 --> 00:01:23.929
+00:01:11.680 --> 00:01:15.860
 intact. App Six protected content rejected access before its own
 
-00:01:23.929 --> 00:01:27.889
+00:01:15.860 --> 00:01:19.480
 login, then opened without a D S H cookie. That
 
-00:01:27.889 --> 00:01:31.909
+00:01:19.480 --> 00:01:23.060
 Public session could not bypass App Five. The latest full
 
-00:01:31.909 --> 00:01:36.249
+00:01:23.060 --> 00:01:26.720
 English course is hosted in the Test documentation library. This
 
-00:01:36.249 --> 00:01:40.889
+00:01:26.720 --> 00:01:30.700
 identifies where the media is hosted. Main application controls are
 
-00:01:40.889 --> 00:01:45.507
+00:01:30.700 --> 00:01:34.320
 already live. The earlier course chapters remain available.
