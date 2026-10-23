@@ -40,3 +40,9 @@ variables are in-memory state and do not survive a full workspace restart.
 [Opening Jupyter](JUPYTER_ON_DEMAND.md)
 
 [Stop, Restart and automatic startup for Jupyter and managed apps](JUPYTER_APP_LIFECYCLE.html)
+
+## Existing on-demand server
+
+If the dashboard reports **port-in-use**, a server started before managed autostart may still be running. Leave it in place while notebooks are active. The supervisor waits for its natural exit and then launches the enabled managed service. Stop disables future startup but does not stop this unowned server during the handover.
+
+[Autostart defaults and Internet approval](JUPYTER_APP_LIFECYCLE.html) · [Operator backfill procedure](JUPYTER_AUTOSTART_BACKFILL.html)

@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-23",
+  "live": {
+    "passed": true,
+    "policyAdditions": 10,
+    "newManagedServersRunning": 5,
+    "existingServerPreservedAwaitingNaturalHandover": 1,
+    "awaitingInternetPermission": 4,
+    "internetPermissionsUnchanged": true,
+    "existing22JupyterDefinitionsUntouched": true,
+    "nonTargetControlFilesUnchanged": 38,
+    "productionWorkloadsNotReplaced": 32,
+    "savedExistingNotebookFilesUnchanged": 1
+  },
+  "disposableAcceptance": {
+    "passed": true,
+    "disposableUsers": 2,
+    "fullPodReplacements": 4,
+    "savedFilesHashIdenticalAcrossFiveSnapshots": 10,
+    "enabledAutostartBeforePageAccess": true,
+    "adminStopSurvivesReplacement": true,
+    "newSignupInternetApprovalRequired": true,
+    "existingKernelWebSocketAndVariablePreserved": true,
+    "modelRequests": 0
+  },
+  "originalPolicyBackupsAndAudit": {
+    "originalBackupsVerified": 10,
+    "auditPairsVerified": 10,
+    "passed": true
+  },
+  "idempotence": {
+    "eligible": 0,
+    "existingDefinitionsPreserved": 10,
+    "applied": 0
+  },
+  "runtimeImageSHA256": "1397e17507bba66f33d1901518db9a97b80bd1b9fee2e2268656731f8a840016",
+  "supervisorSHA256": "48ed191c780613710494d2cb7ae656c0e323cc72d6f15b7166110df892e33b17",
+  "migrationSHA256": "46c4744c82d0a26ad5eafb41352b903a6b20b52cc6655faa84d755fc4024f288",
+  "productionNotebooksNotInterruptedByThisPolicyBackfill": true,
+  "qualificationScope": "Autostart and durable saved content; not in-memory kernel recovery after replacement",
+  "existingServerHandover": "Existing unmanaged server retained; supervisor waits for natural exit; Stop disables future managed startup without killing that server",
+  "migrationSafetyUnitTestsPassedOnLinux": 8,
+  "cleanup": {
+    "passed": true,
+    "operatorObjectsRemoved": 5,
+    "disposableObjectsRemoved": 9,
+    "freshVolumesReclaimed": 2,
+    "originalBackupsAndAuditRetained": true
+  }
+}

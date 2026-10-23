@@ -156,6 +156,12 @@ Start safely reuses an already-enabled Jupyter service across Main DSH, DSH2 and
 See [document alignment](docs/DOCUMENT_ALIGNMENT_20261023.md) for current controls, tests and historical-media limits.
 
 
+
 ### Selected-user app sharing candidate
 
 The candidate adds a per-app authenticated username list, with HTTP/WebSocket and sign-in enforcement plus revocation. JupyterLab and terminals remain owner-only. Local integration tests pass; live rollout is pending the coordinated gateway window. See [selection and boundaries](docs/AUTHENTICATED_APP_SHARING.md#selected-authenticated-users).
+
+## Jupyter automatic startup
+
+Private workspaces seed managed Jupyter in both environments. Internet startup still requires admin-approved Internet access. Autostart recovers the saved desired state after replacement; Admin Stop stays disabled. Existing on-demand servers are left running until natural handover, preserving active notebooks. Saved files and settings remain in their private storage. See the [lifecycle guide](docs/JUPYTER_APP_LIFECYCLE.html) and [operator backfill procedure](docs/JUPYTER_AUTOSTART_BACKFILL.html).
+

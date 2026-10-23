@@ -22,7 +22,21 @@ Use **Admin overview → Managed startup services** to manage a service in one u
 5. Use **stop** to disable Jupyter. Opening the Jupyter page cannot override Admin Stop; its launch request is refused while the service is disabled.
 6. Use **restart** only when replacing the server and ending its kernels is intended. Reopen saved notebooks after the new server is ready.
 
-A newly assigned No Internet workspace has a default managed Jupyter service. Once access is allowed, its supervisor starts the enabled service. A workspace replacement starts a new server; it does not restore the previous kernel's variables.
+Newly assigned private workspaces have a default managed Jupyter service in both No Internet and Internet environments. No Internet is available after signup. Internet Jupyter starts only after an administrator grants Internet access; enabling its service does not grant that permission. A workspace replacement starts a new server; it does not restore the previous kernel's variables.
+
+## Why enable automatic startup?
+
+Jupyter already works on demand when the user opens it. Automatic startup removes the need to reopen the launcher after a workspace replacement and gives administrators a persistent desired state. It uses CPU and RAM while idle; it does not allocate another GPU model. Administrators can use Stop to opt out, and the disabled setting survives replacement.
+
+New-user provisioning seeds a default only when no service-policy file exists. It deliberately preserves existing settings, including Admin Stop. Older Internet workspaces with an existing empty service policy therefore need a one-time addition; a normal provisioner refresh must not reset their policies.
+
+## Add autostart without interrupting an existing server
+
+When a previously on-demand Jupyter server is already using port 8888, the supervisor waits and reports **port-in-use** or recovery backoff. It does not adopt the server, launch a duplicate or end its kernels. Automatic management takes over after that server exits naturally. An administrator must not use Restart to force the handover while someone is working.
+
+While waiting for that handover, Stop disables future automatic startup; it does not terminate the pre-existing, unmanaged server. Start is safe to repeat for the saved managed definition. Save a changed definition or use Restart only when ending the managed process is intended.
+
+The startup setting is separate from Internet approval and from private storage. No files, histories or credentials are copied between users or environments by enabling it.
 
 ## Register an application for automatic startup
 
@@ -46,3 +60,5 @@ Private storage retains saved notebooks, Jupyter preferences, application source
 Two fresh signup users were tested using the deployed gateway and supervisor source with separate disposable volumes. Stop and Restart were exercised through authenticated admin endpoints. Both enabled services started automatically after replacement, before any Jupyter launch-page request. Disabled services remained stopped across a further replacement. Saved notebook content, Jupyter theme, application source/data and native DSH history were reopened and compared across replacements. These checks used synthetic data and no model requests; active user notebooks were not restarted.
 
 [User manual](DSH_USER_MANUAL.html) · [Start controls](JUPYTER_START_CONTROLS.html) · [Captioned lifecycle walkthrough](JUPYTER_DSH2_DSH3_WALKTHROUGH.html)
+
+[Operator procedure for existing Internet workspaces](JUPYTER_AUTOSTART_BACKFILL.html)
