@@ -165,9 +165,9 @@ See [document alignment](docs/DOCUMENT_ALIGNMENT_20261023.md) for current contro
 
 
 
-### Selected-user app sharing candidate
+### Selected-user app sharing
 
-The candidate adds a per-app authenticated username list, with HTTP/WebSocket and sign-in enforcement plus revocation. JupyterLab and terminals remain owner-only. Local integration tests pass; live rollout is pending the coordinated gateway window. See [selection and boundaries](docs/AUTHENTICATED_APP_SHARING.md#selected-authenticated-users).
+The Main gateway supports per-app selected authenticated usernames, with HTTP/WebSocket and sign-in enforcement plus revocation. JupyterLab and terminals remain owner-only. Exact-image integration tests and live source/selector/preservation checks passed. Existing app audiences were not changed; legacy DSH2/DSH3 remain owner-only. See [selection and boundaries](docs/AUTHENTICATED_APP_SHARING.md#selected-authenticated-users).
 
 ## Jupyter automatic startup
 
