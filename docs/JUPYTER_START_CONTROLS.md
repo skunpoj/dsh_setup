@@ -38,3 +38,5 @@ variables are in-memory state and do not survive a full workspace restart.
 [User manual](DSH_USER_MANUAL.html) ·
 [Captioned Start walkthrough](JUPYTER_DSH2_DSH3_WALKTHROUGH.html) ·
 [Opening Jupyter](JUPYTER_ON_DEMAND.md)
+
+[Stop, Restart and automatic startup for Jupyter and managed apps](JUPYTER_APP_LIFECYCLE.html)
