@@ -3,8 +3,11 @@ FROM node:22-bookworm-slim
 ARG DSH_VERSION=0.2.0-rc.2
 ARG CLAUDE_CODE_VERSION=2.1.301
 ARG TRUEFORGE_VERSION=0.179.2
+# Operator/rendering helpers use system Python, outside any Jupyter virtualenv.
+ARG PYTHON3_YAML_DEB_VERSION=6.0-3+b2
 RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends bash ca-certificates curl git jq krb5-user openssl procps python3 python3-pip python3-venv socat \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends bash ca-certificates curl git jq krb5-user openssl procps python3 python3-pip python3-venv "python3-yaml=${PYTHON3_YAML_DEB_VERSION}" socat \
+ && python3 -c 'import yaml; assert yaml.safe_load("enabled: true") == {"enabled": True}' \
  && npm install -g --ignore-scripts "@deepseek-ai/dsh@${DSH_VERSION}" \
  && npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" "@truefoundry/trueforge@${TRUEFORGE_VERSION}" \
  && rm -rf /var/lib/apt/lists/* /root/.npm
