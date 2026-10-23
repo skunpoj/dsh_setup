@@ -1,5 +1,9 @@
 # Private AI Workspaces - Kubernetes and 1M Context
 
+## Application sign-in and return
+
+The [application login guide](docs/APP_SIGNIN_AND_RETURN.html) explains app-focused team login, the Test continuation flow, returning to the requested app, and Public access with separate destination authentication. RegChat, App5 and App6 are examples rather than hardcoded login paths.
+
 ## Managed provider login
 
 Keep the team gateway login and native DSH authentication. Managed LiteLLM profiles hide the separate official DeepSeek account sign-in. See [the login guide](docs/MANAGED_PROVIDER_LOGIN.html) for user steps, configuration and hot reload.

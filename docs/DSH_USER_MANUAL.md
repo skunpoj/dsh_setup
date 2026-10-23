@@ -40,6 +40,8 @@ To share an ordinary local web app, keep **Require DSH sign-in** and choose **An
 
 The administrator controls the per-user name limit, allowed domains, reserved names and available hostname/path routes. Opening Jupyter in Main DSH or the configured DSH2/DSH3 sites starts it when needed and reuses a running server and kernels. The owner-only sites keep their assigned Internet environment. Internet approval and administrator service restrictions still apply. A worker restart ends in-memory kernels; saved notebooks remain in the private workspace. Other application restart requires an administrator-approved service configuration; unregistered processes are not automatically relaunched. See [application URLs, routing and restart controls](APP_PROXY.md).
 
+For an app-focused DSH sign-in page, use your normal DSH identity. If the app instead shows **Continue with your normal DSH login**, sign in through its link and return to the original app tab; use **I have signed in — continue** if needed. Public mappings skip the DSH gate but may retain the app's own login. RegChat is an example mapping. See [application sign-in and return](APP_SIGNIN_AND_RETURN.html).
+
 ## 5 Prepare packages for No Internet work
 
 Where self-service packages are enabled, use **My Python environments**:
