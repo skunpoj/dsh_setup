@@ -5,7 +5,7 @@ An owner can explicitly share an ordinary local web application with selected en
 ## Owner workflow
 
 1. Sign into the environment that runs the application and start the application on its ordinary web port, for example 8501 or 8000.
-2. Open **My applications**, choose an available name and **Local application port**.
+2. Open **My applications**, choose an available name and **Local application port**, then enter the application's actual **Port** (for example 8501). The default notebook port 8888 keeps sharing disabled.
 3. Leave **Visitor access** set to **Require DSH sign-in**. Under **Authenticated visitors**, choose **Selected authenticated users** and enter the existing DSH usernames separated by commas. Choose **Any enabled DSH account — shared application** only when that wider audience is intended.
 4. Save the URL and give visitors the approved application hostname. DNS, TLS and the application-host route must already be configured. Cross-user sharing uses that hostname, not another user's `/proxy/PORT` route.
 5. To stop sharing, save **Owner only**, disable the mapping through administrator controls, or remove it.
