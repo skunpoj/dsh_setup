@@ -1,0 +1,28 @@
+name: Isolated registry source contracts
+on:
+  pull_request:
+    paths: ['scripts/secondary_registry/**', 'docs/SECONDARY_REGISTRY.md', '.github/workflows/secondary-registry.yml', 'ci/secondary-registry.yml']
+  push:
+    branches: [main]
+    paths: ['scripts/secondary_registry/**', 'docs/SECONDARY_REGISTRY.md', '.github/workflows/secondary-registry.yml', 'ci/secondary-registry.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Synthetic authentication, TLS, manifests and same-image promotion
+        env:
+          DSH_NATIVE_SOURCE_ROOT: ${{ github.workspace }}/scripts
+          DSH_IDENTITY_MODULE: ${{ github.workspace }}/scripts/identity_auth.js
+          DSH_TEST_OPENSSL: /usr/bin/openssl
+        run: |
+          set -euo pipefail
+          node --test scripts/secondary_registry/test_*.cjs
+          node scripts/secondary_registry/render.cjs scripts/secondary_registry/config.example.json /tmp/registry-review.json
+          test -s /tmp/registry-review.json

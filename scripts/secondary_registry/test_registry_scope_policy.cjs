@@ -1,0 +1,12 @@
+"use strict";
+const test=require("node:test"),assert=require("node:assert/strict");
+const {authorizeRegistryScopes:auth}=require("./registry_scope_policy");
+const base=()=>({principal:{id:"runtime",authenticated:true,enabled:true},service:"registry.test",expectedService:"registry.test",requestedScopes:["repository:dsh/app:pull,push"],grants:{runtime:{"dsh/app":["pull"]},ci:{"dsh/app":["pull","push"]}}});
+test("runtime cannot escalate pull to push",()=>assert.deepEqual(auth(base()).access,[{type:"repository",name:"dsh/app",actions:["pull"]}]));
+test("explicit CI may push only its allowed repository",()=>{const x=base();x.principal.id="ci";x.requestedScopes.push("repository:other/app:push");assert.deepEqual(auth(x).access,[{type:"repository",name:"dsh/app",actions:["pull","push"]}]);});
+test("disabled or unauthenticated principal is rejected",()=>{for(const k of ["enabled","authenticated"]){const x=base();x.principal[k]=false;assert.throws(()=>auth(x));}});
+test("wrong service cannot reuse authorization",()=>{const x=base();x.service="other.test";assert.throws(()=>auth(x));});
+test("scope traversal/wildcard/delete/catalog/malformed refused",()=>{for(const value of ["repository:../auth:pull","repository:dsh/*:pull","repository:dsh/app:delete","registry:catalog:*","repository:dsh/app:pull:push"]){const x=base();x.requestedScopes=[value];assert.throws(()=>auth(x),value);}});
+test("unknown accounts default deny",()=>{const x=base();x.principal.id="unknown";assert.deepEqual(auth(x).access,[]);});
+test("duplicate scopes cannot add ungranted rights",()=>{const x=base();x.requestedScopes.push("repository:dsh/app:push","repository:dsh/app:pull");assert.deepEqual(auth(x).access,[{type:"repository",name:"dsh/app",actions:["pull"]}]);});
+test("unbounded requests refused",()=>{const x=base();x.requestedScopes=Array(17).fill("repository:dsh/app:pull");assert.throws(()=>auth(x));});

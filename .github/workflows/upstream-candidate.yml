@@ -2,9 +2,9 @@ name: DSH upstream candidate
 on:
   push:
     branches: [main]
-    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', 'config/**', 'plugins/**', 'cordis_plugin/**', 'k8s/**', 'package*.json', '*requirements*.txt', '*lock*', .gitattributes]
+    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', 'config/**', 'plugins/**', 'cordis_plugin/**', 'k8s/**', 'package*.json', '*requirements*.txt', '*lock*', .gitattributes, '!scripts/secondary_registry/**']
   pull_request:
-    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', 'config/**', 'plugins/**', 'cordis_plugin/**', 'k8s/**', 'package*.json', '*requirements*.txt', '*lock*', .gitattributes]
+    paths: [.github/workflows/upstream-candidate.yml, Dockerfile, .dockerignore, 'scripts/**', 'tests/**', 'container/**', 'vendor/**', 'patches/**', 'config/**', 'plugins/**', 'cordis_plugin/**', 'k8s/**', 'package*.json', '*requirements*.txt', '*lock*', .gitattributes, '!scripts/secondary_registry/**']
   schedule:
     - cron: '17 2 * * *'
   workflow_dispatch:

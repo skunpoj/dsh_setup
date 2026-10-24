@@ -221,3 +221,7 @@ The approved DSH application is 0.2.1-rc.2 with pi-ai 1.3.0. Main DSH, DSH2 and 
 ## User-managed credentials
 
 [Credential broker design and video supplement](docs/USER_CREDENTIAL_MANAGEMENT.html): aliases instead of secrets in chat; owner/workspace/environment/action policy; lifecycle and audit controls. The broker and settings UI are planned, not deployed.
+
+## Optional persistent secondary registry
+
+The [registry installation, CI and recovery guide](docs/SECONDARY_REGISTRY.md) includes a machine-only token service, isolated Test deployment renderer, same-image promotion and reproducible synthetic tests. Primary registry defaults stay explicit; this package never deploys applications or enables automatic failover.

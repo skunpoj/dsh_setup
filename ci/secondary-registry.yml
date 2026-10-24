@@ -1,0 +1,40 @@
+# Opt-in remote institutional builder template; never included by default.
+parameters:
+  - name: primaryConnection
+    type: string
+  - name: secondaryConnection
+    type: string
+  - name: qualificationFile
+    type: string
+  - name: registrySourceRoot
+    type: string
+    default: scripts/secondary_registry
+steps:
+  - task: Docker@2
+    displayName: Authenticate approved primary registry
+    inputs:
+      command: login
+      containerRegistry: ${{ parameters.primaryConnection }}
+  - task: Docker@2
+    displayName: Authenticate approved secondary registry
+    inputs:
+      command: login
+      containerRegistry: ${{ parameters.secondaryConnection }}
+  - bash: |
+      set -euo pipefail
+      node "$REGISTRY_SOURCE_ROOT/promote.cjs" "$QUALIFICATION_FILE" "$AGENT_TEMPDIRECTORY/secondary-registry-$(Build.BuildId).json"
+    displayName: Promote and read back same qualified image by digest
+    env:
+      DSH_REMOTE_REGISTRY_OPERATOR: approved-remote-builder
+      REGISTRY_SOURCE_ROOT: ${{ parameters.registrySourceRoot }}
+      QUALIFICATION_FILE: ${{ parameters.qualificationFile }}
+  - task: Docker@2
+    condition: always()
+    inputs:
+      command: logout
+      containerRegistry: ${{ parameters.secondaryConnection }}
+  - task: Docker@2
+    condition: always()
+    inputs:
+      command: logout
+      containerRegistry: ${{ parameters.primaryConnection }}
