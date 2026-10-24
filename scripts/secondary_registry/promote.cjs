@@ -1,6 +1,5 @@
 'use strict';
 // Remote institutional builder only. No build, container start, deploy, prune or retry.
-const crypto=require('node:crypto');
 function plan(c){
  if(!c||Object.keys(c).sort().join()!==['configDigest','layers','sourceRef','targetRef'].sort().join())throw Error('Exact qualified-image inputs required');
  const digest=/^sha256:[a-f0-9]{64}$/;
@@ -14,8 +13,11 @@ async function promote(c,run){const commands=plan(c);await run(commands[0]);veri
 if(require.main===module){
  const fs=require('node:fs'),cp=require('node:child_process');
  if(process.env.DSH_REMOTE_REGISTRY_OPERATOR!=='approved-remote-builder'||process.argv.length!==4)throw Error('Remote operator admission and config/NEW receipt paths required');
- const c=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
- const run=args=>new Promise((resolve,reject)=>{const p=cp.spawn('docker',args,{shell:false,stdio:['ignore','pipe','pipe']});let out='',size=0;const timer=setTimeout(()=>p.kill('SIGTERM'),300000);for(const s of[p.stdout,p.stderr])s.on('data',b=>{size+=b.length;if(size>8*1024*1024)p.kill('SIGTERM');else out+=b.toString();});p.on('error',reject);p.on('close',code=>{clearTimeout(timer);code===0?resolve(out):reject(Error('Docker operation failed; preserve protected operator logs, do not retry automatically'));});});
- promote(c,run).then(r=>{fs.writeFileSync(process.argv[3],JSON.stringify(r,null,2),{flag:'wx',mode:384});console.log('Same qualified image push/pull verified; no deployment.');}).catch(()=>{console.error('Registry promotion refused or failed; no deployment performed.');process.exitCode=1;});
+ const c=JSON.parse(fs.readFileSync(process.argv[2],'utf8')); plan(c);
+ // Reserve the receipt before any network/daemon operation; existing evidence refuses replay.
+ const receipt=fs.openSync(process.argv[3],'wx',384);
+ fs.writeFileSync(receipt,JSON.stringify({status:'started',deployed:false}));
+ const run=args=>new Promise((resolve,reject)=>{const p=cp.spawn('docker',args,{shell:false,stdio:['ignore','pipe','pipe']});let out='',size=0,refused=false,killTimer;const stop=()=>{refused=true;p.kill('SIGTERM');killTimer=setTimeout(()=>p.kill('SIGKILL'),5000);};const timer=setTimeout(stop,300000);for(const s of[p.stdout,p.stderr])s.on('data',b=>{size+=b.length;if(size>8*1024*1024){if(!refused)stop();}else out+=b.toString();});p.on('error',e=>{clearTimeout(timer);clearTimeout(killTimer);reject(e);});p.on('close',code=>{clearTimeout(timer);clearTimeout(killTimer);code===0&&!refused?resolve(out):reject(Error('Docker operation failed; preserve protected operator logs, do not retry automatically'));});});
+ promote(c,run).then(r=>{fs.ftruncateSync(receipt,0);fs.writeSync(receipt,JSON.stringify(r,null,2),0,'utf8');fs.closeSync(receipt);console.log('Same qualified image push/pull verified; no deployment.');}).catch(()=>{fs.ftruncateSync(receipt,0);fs.writeSync(receipt,JSON.stringify({status:'failed',deployed:false,retryAutomatically:false}),0,'utf8');fs.closeSync(receipt);console.error('Registry promotion refused or failed; no deployment performed.');process.exitCode=1;});
 }
 module.exports={plan,verify,promote};
