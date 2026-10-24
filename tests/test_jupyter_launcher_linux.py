@@ -48,7 +48,7 @@ class LauncherTests(unittest.TestCase):
 
     def test_fixed_launcher_never_reads_user_arguments_as_commands(self):
         self.assertEqual(module.ARGV,['/opt/dsh/jupyter/bin/python','/usr/local/bin/jupyter','lab'])
-        self.assertNotIn('shell=True',Path('/gateway-source/jupyter_launcher.py').read_text())
-        self.assertNotIn('os.kill',Path('/gateway-source/jupyter_launcher.py').read_text())
+        self.assertNotIn('shell=True',Path(module.__file__).read_text())
+        self.assertNotIn('os.kill',Path(module.__file__).read_text())
 
 if __name__=='__main__':unittest.main()
