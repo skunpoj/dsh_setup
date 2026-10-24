@@ -222,6 +222,8 @@ The approved DSH application is 0.2.1-rc.2 with pi-ai 1.3.0. Main DSH, DSH2 and 
 
 [Credential management guide and Fola lesson](docs/USER_CREDENTIAL_MANAGEMENT.html): aliases instead of secrets in chat; owner/workspace/environment/action policy; lifecycle and audit controls. Implemented for configured API-token/PAT connectors; OAuth consent and Kerberos acquisition are not included.
 
+[Institutional theme runtime qualification](docs/CREDENTIAL_THEME_QUALIFICATION.md) records the Main and legacy rollout, preservation checks and bounded transport-health repair. [OpenShell prerequisites](docs/OPENSHELL_RUNTIME_PREREQUISITES.md) separates the completed CPU-only preflight from its 25 unrun product gates. [OAuth/Kerberos explanation](docs/CREDENTIAL_OPERATIONS.md#why-oauth-and-kerberos-are-separate) describes these optional integrations and the configuration they need.
+
 ## Optional persistent secondary registry
 
 The [registry installation, CI and recovery guide](docs/SECONDARY_REGISTRY.md) includes a machine-only token service, isolated Test deployment renderer, same-image promotion and reproducible synthetic tests. Primary registry defaults stay explicit; this package never deploys applications or enables automatic failover.

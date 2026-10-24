@@ -2,6 +2,7 @@
 import argparse,hashlib,json,subprocess,tempfile,os,urllib.request,urllib.error
 from pathlib import Path
 from integrate_credential_gateway import integrate
+from theme_gateway_source import overlay
 
 def main():
  p=argparse.ArgumentParser();p.add_argument('--expected-source',required=True);p.add_argument('--private-output',required=True);a=p.parse_args();out=Path(a.private_output)
@@ -32,6 +33,7 @@ def main():
  data['auth_proxy.js']=integrate(data['auth_proxy.js'])
  for n in ['credential_broker.js','credential_gateway.js','credential_identity.js','platform_ui.js','bot_platform.css']:data[n]=(Path(__file__).parent/n).read_text(encoding='utf-8')
  data['dsh-connection.cjs']=(Path(__file__).resolve().parents[1]/'container/dsh-connection.cjs').read_text(encoding='utf-8')
+ data=overlay(data)
  digest=hashlib.sha256(json.dumps(data,sort_keys=True).encode()).hexdigest();source='dsh-credential-gateway-'+digest[:12]
  apply({'apiVersion':'v1','kind':'ConfigMap','metadata':{'name':source},'immutable':True,'data':data})
  ips={n:json.loads(k('get','service',n,'-o','json'))['spec']['clusterIP']for n in ['dsh-credential-off','dsh-credential-on','dsh-credential-tools']}

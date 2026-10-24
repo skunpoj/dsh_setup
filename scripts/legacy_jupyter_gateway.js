@@ -53,7 +53,7 @@ function createGateway(config,{launch,clock=Date.now}={}){
   res.writeHead(r.statusCode,r.headers);r.pipe(res);
  });up.on('error',()=>{if(!res.headersSent){res.writeHead(502,{'Content-Type':'text/plain','Cache-Control':'no-store'});res.end('The existing DSH gateway is unavailable.');}else res.destroy();});req.on('aborted',()=>up.destroy());res.on('close',()=>up.destroy());req.pipe(up);}
  const server=http.createServer(async(req,res)=>{try{
-  if(req.url==='/_jupyter_gateway/health'){const r=await read(cfg,'/login');const healthy=r.status===200&&r.type.includes('text/html')&&r.body.includes('login_username');res.writeHead(healthy?200:503,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify({upstreamLoginReachable:healthy}));}
+  if(req.url==='/_jupyter_gateway/health'){const r=await read(cfg,'/login','',262144);const healthy=r.status===200&&r.type.includes('text/html')&&r.body.includes('login_username');res.writeHead(healthy?200:503,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify({upstreamLoginReachable:healthy}));}
   if(req.headers.host!==cfg.publicHost||!req.url.startsWith('/')||req.url.startsWith('//')){res.writeHead(421);return res.end('Unexpected gateway host or request path.');}
   const route=new URL(req.url,'https://'+cfg.publicHost).pathname;
   if(route==='/logout'){const key=cookieIdentity(req.headers.cookie,cfg.cookieName);if(key)tokens.delete(crypto.createHash('sha256').update(key).digest('hex'));return forward(req,res);}

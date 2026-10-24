@@ -26,3 +26,9 @@ Gateway rollback removes only this integration's source/configuration additions.
 - Disposable cluster acceptance: `tests/credential_canary_live.cjs`, `tests/credential_ui_live.py` and `tests/credential_restart_live.py` use synthetic accounts and must not mount production account or project storage.
 
 Provider authentication with a real user's token is a separate private acceptance step. Do not mark it verified from a synthetic TLS fixture. OAuth consent and automatic Kerberos acquisition require approved application/service references and are not implemented by these scripts.
+
+### Why OAuth and Kerberos are separate
+
+The deployed API-token/PAT form does not require an OAuth application. OAuth would add a provider-hosted sign-in/consent flow so users can connect an account without pasting a token. Its application registration identifies the permitted callback URL and scopes; provider registration and consent must be configured before implementing and qualifying that flow.
+
+Kerberos is the user's datalake authentication, normally obtained with `kinit`. It is independent of a DSH login and of an API PAT. Existing per-user Kerberos workflows and AD permissions remain unchanged. A shared system account is not required for this feature. An automated user-ticket flow needs the existing realm/KDC client configuration, private input and cache location, and the intended renewal/expiry rules. Inspect the existing deployment or user configuration first; do not invent a realm, borrow another user's ticket or put passwords/keytabs into chat. These optional integrations are not prerequisites for using the deployed API-token form.
