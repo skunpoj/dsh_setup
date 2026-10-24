@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const path = require('path');
 const { createCourseServer, routeFor } = require('./course_files');
 const serveCourse = createCourseServer();
+const USER_CREDENTIALS = process.env.DSH_USER_CREDENTIAL_GATEWAY_CONFIG ? require('./credential_gateway').createGateway(process.env.DSH_USER_CREDENTIAL_GATEWAY_CONFIG) : null;
 const { hashPassword, verifyPassword, migrateUsers, writeAtomicUsers } = require('./password_store');
 const { SessionStore, TTL_MS: SESSION_TTL_MS } = require('./session_store');
 const JUPYTER_DEMAND_MODULE = require('./jupyter_on_demand');
@@ -459,7 +460,7 @@ function projectAppAudit(d) {
   return result;
 }
 function recentAudit() {
-  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket','application.save','application.delete','application.limit','application.disable','application.enable','application.edit','application.lifecycle','account.create','account.enable','account.disable','account.revoke','account.allow-internet','account.deny-internet','capacity.policy','package.request']);
+  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket','application.save','application.delete','application.limit','application.disable','application.enable','application.edit','application.lifecycle','account.create','account.enable','account.disable','account.revoke','account.allow-internet','account.deny-internet','capacity.policy','package.request','credential.identity','credential.save','credential.disable','credential.delete','credential.approve','credential.execute','credential.result','credential.tool.list','credential.tool.profiles','credential.tool.execute','credential.tool.result']);
   const rows=[];
   for(const file of [`${AUDIT_DIR}/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh2/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh3/events.jsonl`]) {
     try {
@@ -1181,6 +1182,7 @@ function setUserInternetMode(username, mode) {
 function injectLogoutControl(html, isAdmin = false, sessionUser = '', internetMode = 'off') {
   if (typeof html !== 'string' || html.includes('id="dsh-enterprise-logout"')) return html;
   const control = `<a id="dsh-enterprise-logout" href="/logout" aria-label="Logout" title="Logout" style="position:fixed;right:18px;top:14px;z-index:2147483647;display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(148,163,184,.42);border-radius:8px;background:rgba(15,23,42,.94);color:#f8fafc;font:600 13px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.28);backdrop-filter:blur(8px)"><span aria-hidden="true">&#x21AA;</span><span>Logout</span></a>`;
+  const credentialLink = USER_CREDENTIALS ? '<a id="dsh-user-credentials" href="/credentials" style="position:fixed;right:18px;top:58px;z-index:2147483647;background:#003366;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 13px system-ui">Credentials</a>' : '';
   const adminLink = isAdmin ? '<a id="dsh-admin-dashboard" href="/admin" style="position:fixed;right:220px;top:14px;z-index:2147483647;background:#0f172a;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 13px system-ui">Admin overview</a>' : '';
   // Keep unsent text in the existing DOM. Never save drafts to browser storage,
   // replay a failed POST, or silently switch an open tab to a different account.
@@ -1192,8 +1194,8 @@ window.fetch=async function(input,init){const r=await originalFetch(input,init);
 setInterval(check,15000);window.addEventListener('focus',check);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();</script>`;
   html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, head => head+recovery) : recovery+html;
   const appsLink='<a id="dsh-my-applications" href="/applications" style="position:fixed;right:125px;top:14px;z-index:2147483647;background:#0f172a;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 13px system-ui">My apps</a>';
-  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}${appsLink}${adminLink}</body>`);
-  return html + control + appsLink + adminLink;
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}${appsLink}${adminLink}${credentialLink}</body>`);
+  return html + control + appsLink + adminLink + credentialLink;
 }
 
 // Initialize user store if missing
@@ -2004,6 +2006,16 @@ const server = http.createServer((req, res) => {
     return res.end('Dedicated runtime is not provisioned.');
   }
   bindAuthenticatedProxyIdentity(req, sessionUser, internetMode);
+  if (USER_CREDENTIALS && ['/credentials','/api/user-credentials'].includes(parsedUrl.pathname)) {
+    if (req.headers.host !== process.env.DSH_TRUSTED_HOST) { res.writeHead(403); return res.end('Use the main DSH site to manage credentials.'); }
+    const authorized=()=>accountEnabled(sessionUser)&&(internetMode==='off'||internetAllowed(sessionUser))&&
+      Date.now()<activeSession.created+SESSION_TTL_MS&&activeSession.accountStamp===sessionAccountStamp(sessionUser)&&[...SESSIONS.values()].includes(activeSession);
+    let credentialOwner;try{credentialOwner=require('./credential_identity').subjectFor(sessionUser,{load:loadUsers,save:saveUsers,audit:()=>auditEvent('credential.identity',sessionUser,internetMode)});}catch{res.writeHead(503);return res.end('Credential identity unavailable.');}
+    return USER_CREDENTIALS.handle(req,res,{owner:credentialOwner,environment:internetMode,session:activeSession,authorized,
+      reauthenticate:async password=>{const result=await authenticateIdentity(sessionUser,password,loadUsers()[sessionUser]?.authProvider==='ldap'?'ldap':'local',{create:false});return result?.user===sessionUser;},
+      audit:event=>auditEvent(event,sessionUser,internetMode)});
+  }
+
 
   // Only this authenticated user's selected Main runtime can receive a fixed start.
   const jupyterContext = USER_TARGETS && JUPYTER_DEMAND ? {
@@ -2340,6 +2352,24 @@ server.on('upgrade', (req, socket, head) => {
     });
   });
 });
+
+if (USER_CREDENTIALS) USER_CREDENTIALS.startTools(authorization=>{
+  const token=typeof authorization==='string'&&authorization.startsWith('Bearer ')?authorization.slice(7):'';
+  if(token.length<16||token.length>4096)return null;
+  const matches=[];
+  for(const [owner,targets] of Object.entries(allUserTargets())) {
+    if(!accountEnabled(owner))continue;
+    for(const [name,target]of Object.entries(targets)) {
+      const environment=name==='internet'?'on':'off';if(environment==='on'&&!internetAllowed(owner))continue;
+      let expected;try{expected=getDshToken(target.tokenFile);}catch{continue;}
+      if(require('./credential_broker').equal(token,expected))matches.push({owner,environment});
+    }
+  }
+  if(matches.length!==1)return null;
+  const identity=matches[0];identity.auditOwner=identity.owner;
+  identity.owner=require('./credential_identity').subjectFor(identity.owner,{load:loadUsers,save:saveUsers,audit:()=>auditEvent('credential.identity',identity.auditOwner,identity.environment)});
+  return identity;
+},auditEvent);
 
 server.listen(PROXY_PORT, process.env.DSH_LISTEN_HOST || '0.0.0.0', () => {
   console.log(`[AUTH-PROXY] Enterprise DSH Auth Gate running on port ${PROXY_PORT}; secure=${ENVIRONMENT_TARGETS.off.host}:${ENVIRONMENT_TARGETS.off.port}; internet=${ENVIRONMENT_TARGETS.on.host}:${ENVIRONMENT_TARGETS.on.port}`);

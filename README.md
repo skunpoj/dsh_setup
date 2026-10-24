@@ -220,7 +220,7 @@ The approved DSH application is 0.2.1-rc.2 with pi-ai 1.3.0. Main DSH, DSH2 and 
 
 ## User-managed credentials
 
-[Credential broker design and video supplement](docs/USER_CREDENTIAL_MANAGEMENT.html): aliases instead of secrets in chat; owner/workspace/environment/action policy; lifecycle and audit controls. The broker and settings UI are planned, not deployed.
+[Credential management guide and Fola lesson](docs/USER_CREDENTIAL_MANAGEMENT.html): aliases instead of secrets in chat; owner/workspace/environment/action policy; lifecycle and audit controls. Implemented for configured API-token/PAT connectors; OAuth consent and Kerberos acquisition are not included.
 
 ## Optional persistent secondary registry
 

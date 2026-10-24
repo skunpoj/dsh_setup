@@ -156,4 +156,4 @@ The 24 October checks verified normal owner login and exact managed-model replie
 
 ## User-managed credentials
 
-Credential management design: users enter secrets through a dedicated settings form, while the harness receives only aliases. A separate broker checks the owner, workspace, environment, destination and action before using the secret. Consequential actions require bound approval; audit logs exclude secret values. This broker and settings page are planned, not deployed. Read the [credential management design and video supplement](USER_CREDENTIAL_MANAGEMENT.html).
+User-managed credentials: users enter secrets through a dedicated settings form, while the harness receives only aliases. A separate broker checks the owner, workspace, environment, destination and action before using the secret. Consequential actions require bound approval; audit logs exclude secret values. Implemented for configured API-token/PAT connectors; OAuth consent and Kerberos acquisition are not included. Read the [credential management guide and Fola video](USER_CREDENTIAL_MANAGEMENT.html).
