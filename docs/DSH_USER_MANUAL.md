@@ -36,11 +36,11 @@ Open **My applications**, select an available name, and register your applicatio
 
 Use **Require DSH sign-in** for private applications. Public access is an explicit choice for an approved mapping; it must not be used for protected data. An external application's own authentication remains separate from the DSH gateway session.
 
-To share an ordinary local web app, keep **Require DSH sign-in** and choose **Any enabled DSH account � shared application**. JupyterLab and terminal ports remain owner-only. Sharing exposes only the selected application; its own permissions and write actions still apply. See [sharing and isolation](AUTHENTICATED_APP_SHARING.html).
+To share an ordinary local web app, keep **Require DSH sign-in** and choose **Any enabled DSH account — shared application**. JupyterLab and terminal ports remain owner-only. Sharing exposes only the selected application; its own permissions and write actions still apply. See [sharing and isolation](AUTHENTICATED_APP_SHARING.html).
 
 The administrator controls the per-user name limit, allowed domains, reserved names and available hostname/path routes. Opening Jupyter in Main DSH or the configured DSH2/DSH3 sites starts it when needed and reuses a running server and kernels. The owner-only sites keep their assigned Internet environment. Internet approval and administrator service restrictions still apply. A worker restart ends in-memory kernels; saved notebooks remain in the private workspace. Other application restart requires an administrator-approved service configuration; unregistered processes are not automatically relaunched. See [application URLs, routing and restart controls](APP_PROXY.md).
 
-For an app-focused DSH sign-in page, use your normal DSH identity. If the app instead shows **Continue with your normal DSH login**, sign in through its link and return to the original app tab; use **I have signed in — continue** if needed. Public mappings skip the DSH gate but may retain the app's own login. RegChat is an example mapping. See [application sign-in and return](APP_SIGNIN_AND_RETURN.html).
+For an app-focused DSH sign-in page, use your normal DSH identity. If the app instead shows **Continue with your normal DSH login**, sign in through its link and return to the original app tab; use **I have signed in â€” continue** if needed. Public mappings skip the DSH gate but may retain the app's own login. RegChat is an example mapping. See [application sign-in and return](APP_SIGNIN_AND_RETURN.html).
 
 ## 5 Prepare packages for No Internet work
 
@@ -75,9 +75,28 @@ Use the site's **User manual** link, documentation library and available course 
 Use **Logout** when finished. If a session expires, sign in again before retrying. Check your current draft and task state before resubmitting work. Contact the administrator for an identity conflict, unavailable runtime or repeated access failure; do not share your password in the support conversation.
 
 
-## GPU status — 23 October 2026
+## 1M context, concurrency and measured speed — 24 October 2026
 
-The 23 October GPU candidate was rejected at the allocator-warning gate after passing 128K/384K stages. Four short DSH conversations overlapped at 117.75 combined output tokens/sec (30.07–33.77 per conversation including whole-turn time); this does not establish 100+ per conversation or two simultaneous 1M requests. The saved baseline retains the 1M ceiling. See the dated results for definitions and recovery checks. [Detailed results](GPU_TRIAL_STATUS_20261023.html).
+The recorded main DSH tests demonstrate a 1,048,576-token total context budget. Instructions, tool definitions, history, input and reserved output share that budget. One request above 128K input is admitted at a time; ordinary short requests remain concurrent. The recorded backend cap of eight running requests does not mean eight maximum-size conversations fit.
+
+| Recorded check | Measurement | Interpretation |
+|---|---|---|
+| Near-1M text capacity — trial R | 1,002,051 input + 636 output tokens; completed actual DSH turn | Capacity passed for this recorded workload. |
+| Cold preparation — trial R | 29m 26.56s preparation; 29m 44.28s whole client turn | Preparation and total waiting time are separate from generation speed. |
+| Long-answer generation — trial R | 61.56 output tokens/sec during the stream | A streaming-window rate; not whole-turn throughput. |
+| Automatic compaction — trial W | 1,003,068 input → 885 summary output tokens; 1,664.07s native summary | The compaction operation completed. The following request used 196,968 input tokens. |
+| Ordinary requests during compaction — trial W | 26 fully overlapping replies; median 6.09s, p95 10.23s, maximum 12.26s; zero retries | Short requests continued during the long workflow. |
+| Summary generation — trial W | 71.80 output tokens/sec at the forwarding boundary; 1,748.95s whole client workflow | A different workload and timing boundary from trial R. |
+
+Passed: recorded near-1M text capacity, automatic compaction, concurrent short replies, explicit reference checks, real tool operations and the scoped fixture-preservation checks. Durable files and histories are distinct from unsaved process or notebook-kernel memory.
+
+Not established: 100+ output tokens/sec for a near-1M conversation, two simultaneous full-1M requests, or consistently accurate million-token analysis. The original ambiguous-reference check failed, and the original summary made an unsupported acceptance claim. Separate small-test fixes remain distinct from deployment and a full near-1M quality retest; they do not rewrite those failures.
+
+The small follow-up used eight synthetic model requests and 26 component checks. The tested acceptance/status and identifier-recall cases passed, and the false missing-content claim was corrected. Actor attribution still failed: the summary credited the assistant guide with identifiers that appeared only in the user input. Overall summary faithfulness remains unaccepted. The source candidate is not merged into main or activated in running DSH; no near-1M retest or runtime restart was performed.
+
+For everyday use, continue a related conversation when its context is useful, start a fresh session for an unrelated short question, and review cited sources and tool outputs. Use Stop to cancel long preparation or queued work. Longer context preserves more material; it does not guarantee a faster or more accurate answer.
+
+[Detailed dated results](GPU_TRIAL_STATUS_20261023.html).
 
 
 ## Latest verified interactive results

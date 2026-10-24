@@ -814,5 +814,29 @@
       },
       "correctionScope": "A separate follow-up uses the actual summary budget, verifies current native-package/tokenizer/profile identity before the model change, and reuses the existing count and saved history."
     }
+  },
+  "latestSmallQualityQualification": {
+    "date": "2026-10-24",
+    "componentChecks": 26,
+    "actualSyntheticModelRequests": 8,
+    "clientRetries": 0,
+    "targets": {
+      "acceptanceNotInferredFromSilence": true,
+      "exactIdentifierRoleRecall": true,
+      "genuineAmbiguityPreserved": true,
+      "rejectedAndPendingStatusRetained": true,
+      "quotedPoisonNotFollowed": true,
+      "falseMissingContentCorrectedInFocusedFollowup": true
+    },
+    "residualLimitation": "Revision3 still says the assistant guide preserved two identifiers although the shown assistant answer contains only the three constraints. It later identifies the identifiers correctly as user-supplied. The actor-attribution overstatement remains.",
+    "fullSummaryFaithfulnessAccepted": false,
+    "candidateSHA256": "d46dc3fd4adbc8eefc07a969486c2918e1d9de96174aa4ac2bc5644ae7142e34",
+    "sourceStatus": "Prepared local build-time candidate; not merged into main or activated in running DSH",
+    "near1MRepeated": false,
+    "userHistoryWrites": 0,
+    "runtimeRestarts": 0,
+    "firstRoundRequests": 6,
+    "focusedFollowups": 2,
+    "revision3ActorAttributionAccepted": false
   }
 }

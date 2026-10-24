@@ -3,6 +3,9 @@
 <!-- GPU_PERFORMANCE_STATUS_20261023:START -->
 ## GPU performance and 1M operation - 24 October 2026
 
+- **Small quality follow-up (24 October):** 26 component checks and eight synthetic model requests (zero client retries) passed the targeted recall/status checks and corrected the false missing-content claim. An attribution overstatement remains: user-provided identifiers were credited to the assistant guide. **Full summary faithfulness remains unaccepted.** The build-time patch is prepared locally, not merged into main or active in running DSH; no near-1M retest, runtime restart or user-history change.
+
+
 - **Saved-S compaction and recovery (baseline W):** automatic summary **27m44.07s**, followed by `COMPACT_OK` at **196,968 input tokens**; **29m08.95s** whole client turn. **26 short replies entirely during the summary**: **6.09s median / 10.23s p95 / 12.26s maximum**, zero retries. Explicit reference, three-fact recall and actual write/read tools passed. **398 histories / 796 files in the test runtime** stayed byte-identical across disposable pod replacement; original settings restored and temporary credentials/resources removed. The original ambiguous recall failed, and the summary invented an acceptance claim: **strict summary quality is not accepted**. No capacity test was repeated.
 
 

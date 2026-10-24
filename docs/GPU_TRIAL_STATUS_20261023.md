@@ -2,6 +2,14 @@
 
 ## GPU performance and 1M operation — 24 October 2026
 
+### Small recall and summary-quality follow-up — 24 October 2026
+
+Eight bounded model requests across the initial six checks and two focused follow-ups tested synthetic conversations, with zero client retries. The targeted checks passed: silence was not treated as acceptance, identifier roles remained distinct, rejected and pending states were retained, genuine ambiguity was preserved, and quoted instructions were not followed. The focused revision-2 follow-up corrected the claim that visible assistant content was missing.
+
+**Remaining limitation:** One attribution limitation remains: the final summary credits the assistant guide with identifiers that were present only in the user input. These targeted passes are not a full summary-faithfulness acceptance, and do not erase the original trial-W quality failures.
+
+The build-time candidate passed 26 component checks, including independent verification of unchanged model routing, token policy, cancellation, tool definitions and summary framing. It refuses unreviewed upstream source. The patch remains a local candidate for a future reviewed integration and build; it is not merged into main or activated in running DSH. No near-1M test was repeated. These small tests did not read or write user histories, modify user files, restart workspaces or change the shared model configuration.
+
 ### Saved S history: automatic compaction and recovery — trial W
 
 The remaining saved-S-history case completed automatic compaction on the shared baseline, using a tiny follow-up on a fork of the existing history. No new million-token capacity prompt or model reload was used. The original R and S histories remained unchanged.
