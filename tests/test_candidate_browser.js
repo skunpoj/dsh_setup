@@ -95,7 +95,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  for(let n=0;n<30&&!closed;n++)await sleep(100);
  const receipts=log.split(/\r?\n/).flatMap(line=>{try{const item=JSON.parse(line);return typeof item.modelRequests==='number'?[item]:[]}catch{return []}});
  assert(receipts.length,'Mock inference counter receipt missing');assert(receipts.every(item=>item.modelRequests===0),'App attempted inference during UI qualification');
- const result={iterations,allIterationsRequired:true,actualUpstreamBrowser:true,ownerScopeOnly:true,syntheticNonLoopbackTrustedHost:true,tlsAcceptance:false,managedModelSelectorDOM:rows,hostBackedModelsSettingsRendered:true,reloadReconnect:true,pageErrors:[],blockedExternalOrigins:[...new Set(externalRequests)],modelRequests:0,hostOwnerPreferencePersistedAcrossReload:true,settingsWritesTested:true,ordinaryPeerPolicyTested:false,inferenceAcceptance:false};
+ const result={iterations,allIterationsRequired:true,actualUpstreamBrowser:true,ownerScopeOnly:true,syntheticNonLoopbackTrustedHost:true,tlsAcceptance:false,managedModelSelectorDOM:rows,hostBackedModelsSettingsRendered:true,reloadReconnect:true,pageErrors:[],blockedExternalOrigins:[...new Set(iterations.flatMap(item=>item.blockedExternalOrigins))],modelRequests:0,hostOwnerPreferencePersistedAcrossReload:true,settingsWritesTested:true,ordinaryPeerPolicyTested:false,inferenceAcceptance:false};
  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
  }catch(error){
  if(page&&!page.isClosed()){
