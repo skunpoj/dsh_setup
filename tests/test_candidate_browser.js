@@ -6,7 +6,7 @@ const image=process.env.DSH_CANDIDATE_IMAGE||'dsh-upstream-candidate';
 fs.mkdirSync(output,{recursive:true});
 const args=['run','--rm','--name',name,'--network','host','--user','10001:10001','--cap-drop','ALL','--security-opt','no-new-privileges','--read-only','--tmpfs','/tmp:rw,nosuid,nodev,size=256m,mode=1777','--tmpfs','/workspace:rw,nosuid,nodev,size=16m,uid=10001,gid=10001','--tmpfs','/native-cache:rw,exec,nosuid,nodev,size=16m,uid=10001,gid=10001','--entrypoint','node',image,'/opt/dsh/scripts/serve_candidate_browser.js'];
 const server=spawn('docker',args,{stdio:['ignore','pipe','pipe']});
-let log='',closed=false,spawnError,browser,page;const browserDiagnostics=[];
+let log='',closed=false,spawnError,browser,page,phase='startup';const browserDiagnostics=[];
 server.stdout.on('data',b=>{log=(log+b.toString()).slice(-32000);});server.stderr.on('data',b=>{log=(log+b.toString()).slice(-32000);});server.on('error',e=>spawnError=e);server.on('exit',()=>closed=true);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{try{
@@ -17,28 +17,59 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  assert(ready,'Disposable upstream app did not become ready; sanitized startup-failure.json saved');
  const {chromium}=require(process.env.DSH_PLAYWRIGHT||'playwright');
  browser=await chromium.launch({headless:true,args:['--host-resolver-rules=MAP dsh-ci.test 127.0.0.1','--no-proxy-server',`--unsafely-treat-insecure-origin-as-secure=http://dsh-ci.test:${port}`]});
+ const iterations=[];let rows;
+ for(let iteration=0;iteration<3;iteration++){
  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'en-US'});
+ let holdSessionList=false,sessionListGate,releaseSessionList,heldSessionList,markSessionListHeld,delayedSessionLists=0;
  const externalRequests=[],pageErrors=[],inferenceRequests=[];
- await context.route('**/*',route=>{const url=new URL(route.request().url());if(!['127.0.0.1','dsh-ci.test'].includes(url.hostname)){externalRequests.push(url.origin);return route.abort();}if(/\/v1\/(chat|responses|completions)/.test(url.pathname)){inferenceRequests.push(url.pathname);return route.abort();}return route.continue();});
+ await context.route('**/*',async route=>{const url=new URL(route.request().url());if(!['127.0.0.1','dsh-ci.test'].includes(url.hostname)){externalRequests.push(url.origin);return route.abort();}if(/\/v1\/(chat|responses|completions)/.test(url.pathname)){inferenceRequests.push(url.pathname);return route.abort();}if(holdSessionList&&url.pathname==='/api/session/list'){delayedSessionLists++;markSessionListHeld();await sessionListGate;}return route.continue();});
  page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>pageErrors.push(e.message));page.on('console',message=>{if(message.type()==='error')browserDiagnostics.push({type:'console',message:message.text().replace(/token[=:]\s*[A-Za-z0-9_-]+/gi,'token=[REDACTED]').slice(0,1000)});});page.on('response',response=>{if(response.status()>=400)browserDiagnostics.push({type:'http',status:response.status(),path:new URL(response.url()).pathname});});
- await page.goto(`http://dsh-ci.test:${port}/?token=${encodeURIComponent(ready.token)}`,{waitUntil:'domcontentloaded'});
  const settings=()=>page.getByRole('button',{name:'Settings',exact:true});
- // Managed LiteLLM profiles hide official provider sign-in and expose Settings directly.
- const openSettings=async()=>{await settings().click();};
+ const modelsModule=()=>page.locator('style[data-plugin="@deepseek-ai/dsh-client-ui-settings-models"]').first();
+ // The pinned upstream shell closes Settings when first-run onboarding appears.
+ // Observe the initial Host session answer and Models module, then let React commit
+ // before interacting. A visible sidebar alone is not application readiness.
+ async function navigateReady(navigate,label,delaySession=false){
+  phase='iteration-'+iteration+':'+label;
+  const sessionResponse=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/session/list');
+  if(delaySession){
+   holdSessionList=true;
+   sessionListGate=new Promise(resolve=>releaseSessionList=resolve);
+   heldSessionList=new Promise(resolve=>markSessionListHeld=resolve);
+  }
+  let timer;
+  try{
+   const release=delaySession?(async()=>{
+    await Promise.race([heldSessionList,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Controlled session-list request was not observed')),25000);})]);
+    await settings().waitFor({state:'visible'});
+    await modelsModule().waitFor({state:'attached'});
+    holdSessionList=false;releaseSessionList();
+   })():Promise.resolve();
+   await Promise.all([navigate(),release]);
+   const response=await sessionResponse;assert.equal(response.status(),200);
+   const envelope=await response.json();assert.equal(envelope.result?.ok,true,'Initial Host session list failed');assert(Array.isArray(envelope.result.value?.items));
+   await modelsModule().waitFor({state:'attached'});
+   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  }finally{clearTimeout(timer);holdSessionList=false;releaseSessionList?.();}
+ }
+ await navigateReady(()=>page.goto(`http://dsh-ci.test:${port}/?token=${encodeURIComponent(ready.token)}`,{waitUntil:'domcontentloaded'}),'initial',iteration!==1);
+ // Managed LiteLLM profiles expose Settings directly. Opening is idempotent.
+ const openSettings=async()=>{await settings().click();await page.getByRole('dialog').waitFor({state:'visible'});assert.equal(await settings().getAttribute('aria-expanded'),'true');};
  await settings().waitFor({state:'visible'});
  const selector=()=>page.getByRole('button',{name:/^Select model/});
  await selector().waitFor({state:'visible'});await selector().click();
  const drill=page.getByRole('menuitem',{name:/^Model/});if(await drill.count())await drill.click();
  const group=page.getByRole('group',{name:'Model and reasoning effort',exact:true});
  const models=group.locator('[data-model-id]');await models.nth(4).waitFor({state:'visible'});
- const rows=await models.evaluateAll(nodes=>nodes.map(node=>({provider:node.getAttribute('data-provider-id'),model:node.getAttribute('data-model-id')})));
+ rows=await models.evaluateAll(nodes=>nodes.map(node=>({provider:node.getAttribute('data-provider-id'),model:node.getAttribute('data-model-id')})));
  assert(rows.length>=5,'Actual DOM model selector lacks managed catalog');assert(rows.every(row=>row.provider==='litellm-cluster'),'External provider rendered in model selector');assert(rows.some(row=>row.model==='deepseek-v4.1-flash'));
- await page.keyboard.press('Escape');await openSettings();
+ await page.keyboard.press('Escape');await group.waitFor({state:'hidden'});await openSettings();
  const dialog=page.getByRole('dialog');await dialog.waitFor({state:'visible'});
  const modelsNav=dialog.getByRole('button',{name:'Models',exact:true});
  await modelsNav.click();await dialog.getByRole('heading',{name:'Models',exact:true}).waitFor({state:'visible'});
  await dialog.getByText('Cluster LiteLLM Gateway',{exact:true}).first().waitFor({state:'visible'});
- await page.screenshot({path:path.join(output,'upstream-model-settings.png'),fullPage:true});
+ await page.screenshot({path:path.join(output,'upstream-model-settings-'+iteration+'.png'),fullPage:true});
+ phase='iteration-'+iteration+':general-before-reload';
  await dialog.getByRole('button',{name:'General',exact:true}).click();
  const coding=()=>page.getByRole('switch',{name:'Show coding view',exact:true}).or(page.getByRole('checkbox',{name:'Show coding view',exact:true}));
  await coding().waitFor({state:'visible'});const before=await coding().isChecked();
@@ -48,24 +79,29 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  for(let n=0;n<80&&!(await coding().isEnabled());n++)await sleep(100);
  assert(await coding().isEnabled(),'Host-backed preference acknowledgement did not settle');
  // Fresh navigation reconnects the real application with the server-minted cookie.
- await page.reload({waitUntil:'domcontentloaded'});await settings().waitFor({state:'visible'});
- await openSettings();await page.getByRole('dialog').getByRole('button',{name:'General',exact:true}).click();
+ await dialog.getByRole('button',{name:'Close',exact:true}).click();await dialog.waitFor({state:'hidden'});
+ await navigateReady(()=>page.reload({waitUntil:'domcontentloaded'}),'reload');await settings().waitFor({state:'visible'});
+ await openSettings();phase='iteration-'+iteration+':general-after-reload';await page.getByRole('dialog').getByRole('button',{name:'General',exact:true}).click();
  await coding().waitFor({state:'visible'});assert.equal(await coding().isChecked(),!before,'Host owner preference did not persist across reload');
  await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
  await selector().waitFor({state:'visible'});await selector().click();const reopened=page.getByRole('menuitem',{name:/^Model/});if(await reopened.count())await reopened.click();await page.getByRole('group',{name:'Model and reasoning effort',exact:true}).locator('[data-model-id="deepseek-v4.1-flash"]').waitFor({state:'visible'});
  assert.deepEqual(pageErrors,[]);assert.deepEqual(inferenceRequests,[]);
+ if(iteration===1)assert.equal(delayedSessionLists,0);else assert(delayedSessionLists>=1,'Controlled initialization case was not exercised');
+ iterations.push({iteration,initialSessionAnswerVerified:true,delayedSessionLists,settingsPreferencePersisted:true,pageErrors,blockedExternalOrigins:[...new Set(externalRequests)]});
+ await context.close();
+ }
  await browser.close();browser=null;
  spawnSync('docker',['stop','--time','5',name],{encoding:'utf8',timeout:10000});
  for(let n=0;n<30&&!closed;n++)await sleep(100);
  const receipts=log.split(/\r?\n/).flatMap(line=>{try{const item=JSON.parse(line);return typeof item.modelRequests==='number'?[item]:[]}catch{return []}});
  assert(receipts.length,'Mock inference counter receipt missing');assert(receipts.every(item=>item.modelRequests===0),'App attempted inference during UI qualification');
- const result={actualUpstreamBrowser:true,ownerScopeOnly:true,syntheticNonLoopbackTrustedHost:true,tlsAcceptance:false,managedModelSelectorDOM:rows,hostBackedModelsSettingsRendered:true,reloadReconnect:true,pageErrors:[],blockedExternalOrigins:[...new Set(externalRequests)],modelRequests:0,hostOwnerPreferencePersistedAcrossReload:true,settingsWritesTested:true,ordinaryPeerPolicyTested:false,inferenceAcceptance:false};
+ const result={iterations,allIterationsRequired:true,actualUpstreamBrowser:true,ownerScopeOnly:true,syntheticNonLoopbackTrustedHost:true,tlsAcceptance:false,managedModelSelectorDOM:rows,hostBackedModelsSettingsRendered:true,reloadReconnect:true,pageErrors:[],blockedExternalOrigins:[...new Set(externalRequests)],modelRequests:0,hostOwnerPreferencePersistedAcrossReload:true,settingsWritesTested:true,ordinaryPeerPolicyTested:false,inferenceAcceptance:false};
  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
  }catch(error){
  if(page&&!page.isClosed()){
   await page.screenshot({path:path.join(output,'upstream-browser-failure.png'),fullPage:true}).catch(()=>{});
   const snapshot=await page.locator('body').ariaSnapshot().catch(()=>'(DOM unavailable)');
-  fs.writeFileSync(path.join(output,'browser-failure.json'),JSON.stringify({error:error.message,diagnostics:browserDiagnostics.slice(-30),dom:snapshot.replaceAll('synthetic-browser-no-inference','[SYNTHETIC KEY REDACTED]').slice(-24000)},null,2)+'\n');
+  fs.writeFileSync(path.join(output,'browser-failure.json'),JSON.stringify({phase,error:error.message,diagnostics:browserDiagnostics.slice(-30),dom:snapshot.replaceAll('synthetic-browser-no-inference','[SYNTHETIC KEY REDACTED]').slice(-24000)},null,2)+'\n');
  }
  throw error;
  }finally{if(browser)await browser.close();spawnSync('docker',['rm','--force',name],{stdio:'ignore',timeout:10000});}})().catch(error=>{console.error(error.message);process.exitCode=1;});

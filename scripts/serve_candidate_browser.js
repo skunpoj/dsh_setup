@@ -7,7 +7,7 @@ const port=Number(process.env.DSH_BROWSER_PORT||31998), mockPort=port+1;
 // Rewrite only copied synthetic state; the image seed and managed files stay intact.
 function rewrite(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
  const file=path.join(dir,entry.name);if(entry.isDirectory())rewrite(file);
- else if(/\.ya?ml$/.test(entry.name))fs.writeFileSync(file,fs.readFileSync(file,'utf8').replaceAll('http://litellm.llm.svc.cluster.local:4000',`http://127.0.0.1:${mockPort}`));
+ else if(/\.ya?ml$/.test(entry.name))fs.writeFileSync(file,fs.readFileSync(file,'utf8').replace(/http:\/\/litellm\.(?:llm|dsh)\.svc\.cluster\.local:4000/g,`http://127.0.0.1:${mockPort}`));
 }}
 rewrite(home);
 let modelRequests=0,child;
