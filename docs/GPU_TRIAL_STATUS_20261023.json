@@ -838,5 +838,22 @@
     "firstRoundRequests": 6,
     "focusedFollowups": 2,
     "revision3ActorAttributionAccepted": false
+  },
+  "latestAttributionGuardQualification": {
+    "date": "2026-10-24",
+    "offlineChecksPerInstaller": 48,
+    "savedBadSummariesRejected": 3,
+    "newModelCalls": 0,
+    "near1MRepeated": false,
+    "guardScope": "Bounded English opaque-identifier actor-attribution claims",
+    "onUnsupportedOrUnknown": "Hold compaction before checkpoint adoption; no recovery retry",
+    "originalHistoryPreserved": true,
+    "rejectedCandidate": "In-memory error object; durable logging unverified",
+    "sourceStatus": "Committed build-time integration; not activated in running workers",
+    "deployed": false,
+    "fullImageBuildTested": false,
+    "installedESMImportTested": false,
+    "helperSHA256": "1f3792bd1b8b0806120e3e71013ce236858933b73644b9f5e70e9fee5414f1c5",
+    "patchedPackageSHA256": "e0a0f9024347e84633e550b5a5308041a23252bb2b5fc09db42724fd3a8338eb"
   }
 }

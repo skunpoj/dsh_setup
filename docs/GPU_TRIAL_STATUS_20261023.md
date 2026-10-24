@@ -2,13 +2,23 @@
 
 ## GPU performance and 1M operation — 24 October 2026
 
+### Identifier-attribution checkpoint protection — 24 October 2026
+
+The compaction guard checks supported claims that the assistant included opaque identifiers against the actual user and assistant message roles. A claim contradicted by user-only identifiers is rejected before DSH adopts the checkpoint. Relevant claims with unavailable or ambiguous evidence are held for review instead of being assumed correct.
+
+All 48 offline source/component checks passed against both repository-specific installer variants. They include rejection of the three saved bad summaries, valid user/assistant attribution, negative and quoted claims, unavailable evidence, and a real-controller check with one simulated summary call, zero recovery retries and zero checkpoint adoptions on rejection. No new model request or near-1M test was made; the earlier eight model outputs and their attribution failures remain recorded.
+
+On a guard rejection, the original history is not replaced. The rejected candidate is retained on the in-memory error object; durable rejected-summary logging has not been verified. This is a bounded check for the tested English identifier-attribution patterns, not a general guarantee of summary faithfulness. Holding compaction may pause the affected long conversation until the issue is reviewed.
+
+The guard and minimal build-time integration are committed in both setup repositories, preserving their existing LDAP, package, version and workspace settings. Running workers have not been reloaded or restarted, so this source update is not yet active there. A full image build, installed-package import and live activation were not performed in this update.
+
 ### Small recall and summary-quality follow-up — 24 October 2026
 
 Eight bounded model requests across the initial six checks and two focused follow-ups tested synthetic conversations, with zero client retries. The targeted checks passed: silence was not treated as acceptance, identifier roles remained distinct, rejected and pending states were retained, genuine ambiguity was preserved, and quoted instructions were not followed. The focused revision-2 follow-up corrected the claim that visible assistant content was missing.
 
 **Remaining limitation:** One attribution limitation remains: the final summary credits the assistant guide with identifiers that were present only in the user input. These targeted passes are not a full summary-faithfulness acceptance, and do not erase the original trial-W quality failures.
 
-The build-time candidate passed 26 component checks, including independent verification of unchanged model routing, token policy, cancellation, tool definitions and summary framing. It refuses unreviewed upstream source. The patch remains a local candidate for a future reviewed integration and build; it is not merged into main or activated in running DSH. No near-1M test was repeated. These small tests did not read or write user histories, modify user files, restart workspaces or change the shared model configuration.
+The build-time candidate passed 26 component checks, including independent verification of unchanged model routing, token policy, cancellation, tool definitions and summary framing. It refuses unreviewed upstream source. At that stage, the prompt-only patch remained a local candidate and had not been merged or activated. No near-1M test was repeated. These small tests did not read or write user histories, modify user files, restart workspaces or change the shared model configuration.
 
 ### Saved S history: automatic compaction and recovery — trial W
 

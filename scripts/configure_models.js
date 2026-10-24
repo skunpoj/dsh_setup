@@ -7,6 +7,19 @@ const dshPkgDir = [
 ].find(d => fs.existsSync(d)) || "/usr/local/lib/node_modules/@deepseek-ai/dsh";
 const baseModulesDir = `${dshPkgDir}/node_modules/@deepseek-ai`;
 
+// Preflight managed compaction and existing operator instructions before any writes.
+const managedCompactionQuality = require('./managed_compaction_quality.cjs');
+const compactionFile = `${baseModulesDir}/dsh-compaction-basic/lib/index.js`;
+const compactionBefore = fs.readFileSync(compactionFile, 'utf8');
+const compactionAfter = managedCompactionQuality.transformSource(compactionBefore);
+const managedAgentsPaths = [`${dshHome}/AGENTS.md`, '/workspace/AGENTS.md'];
+for (const agentsPath of managedAgentsPaths) {
+  if (fs.existsSync(agentsPath)) managedCompactionQuality.appendPolicy(fs.readFileSync(agentsPath, 'utf8'));
+}
+// Use configuration for catalog/UI/persona; preserve upstream access guards.
+if (compactionAfter !== compactionBefore) fs.writeFileSync(compactionFile, compactionAfter, 'utf8');
+
+
 // 1. Maintain official DeepSeek models in dsh-llm-deepseek
 const file = `${baseModulesDir}/dsh-llm-deepseek/lib/index.js`;
 if (fs.existsSync(file)) {
@@ -468,9 +481,9 @@ When you build, develop, or run web applications, APIs, dashboards, or preview s
 `;
 
   fs.mkdirSync(dshHome, { recursive: true });
-  fs.writeFileSync(`${dshHome}/AGENTS.md`, agentsMdContent, "utf8");
+  fs.writeFileSync(`${dshHome}/AGENTS.md`, managedCompactionQuality.appendPolicy(fs.existsSync(`${dshHome}/AGENTS.md`) ? fs.readFileSync(`${dshHome}/AGENTS.md`, "utf8") : agentsMdContent), "utf8");
   if (fs.existsSync("/workspace")) {
-    fs.writeFileSync("/workspace/AGENTS.md", agentsMdContent, "utf8");
+    fs.writeFileSync("/workspace/AGENTS.md", managedCompactionQuality.appendPolicy(fs.existsSync("/workspace/AGENTS.md") ? fs.readFileSync("/workspace/AGENTS.md", "utf8") : agentsMdContent), "utf8");
   }
   console.log("[CONFIG] Populated AGENTS.md instructions for DSH agent engine");
 } catch(e) {

@@ -92,7 +92,19 @@ Passed: recorded near-1M text capacity, automatic compaction, concurrent short r
 
 Not established: 100+ output tokens/sec for a near-1M conversation, two simultaneous full-1M requests, or consistently accurate million-token analysis. The original ambiguous-reference check failed, and the original summary made an unsupported acceptance claim. Separate small-test fixes remain distinct from deployment and a full near-1M quality retest; they do not rewrite those failures.
 
-The small follow-up used eight synthetic model requests and 26 component checks. The tested acceptance/status and identifier-recall cases passed, and the false missing-content claim was corrected. Actor attribution still failed: the summary credited the assistant guide with identifiers that appeared only in the user input. Overall summary faithfulness remains unaccepted. The source candidate is not merged into main or activated in running DSH; no near-1M retest or runtime restart was performed.
+The small follow-up used eight synthetic model requests and 26 component checks. The tested acceptance/status and identifier-recall cases passed, and the false missing-content claim was corrected. Actor attribution still failed: the summary credited the assistant guide with identifiers that appeared only in the user input. Overall summary faithfulness remains unaccepted. The prompt-only revisions did not pass actor-attribution verification; no near-1M retest or runtime restart was performed.
+
+### Identifier-attribution checkpoint protection — 24 October 2026
+
+The compaction guard checks supported claims that the assistant included opaque identifiers against the actual user and assistant message roles. A claim contradicted by user-only identifiers is rejected before DSH adopts the checkpoint. Relevant claims with unavailable or ambiguous evidence are held for review instead of being assumed correct.
+
+All 48 offline source/component checks passed against both repository-specific installer variants. They include rejection of the three saved bad summaries, valid user/assistant attribution, negative and quoted claims, unavailable evidence, and a real-controller check with one simulated summary call, zero recovery retries and zero checkpoint adoptions on rejection. No new model request or near-1M test was made; the earlier eight model outputs and their attribution failures remain recorded.
+
+On a guard rejection, the original history is not replaced. The rejected candidate is retained on the in-memory error object; durable rejected-summary logging has not been verified. This is a bounded check for the tested English identifier-attribution patterns, not a general guarantee of summary faithfulness. Holding compaction may pause the affected long conversation until the issue is reviewed.
+
+The guard and minimal build-time integration are committed in both setup repositories, preserving their existing LDAP, package, version and workspace settings. Running workers have not been reloaded or restarted, so this source update is not yet active there. A full image build, installed-package import and live activation were not performed in this update.
+
+
 
 For everyday use, continue a related conversation when its context is useful, start a fresh session for an unrelated short question, and review cited sources and tool outputs. Use Stop to cancel long preparation or queued work. Longer context preserves more material; it does not guarantee a faster or more accurate answer.
 
