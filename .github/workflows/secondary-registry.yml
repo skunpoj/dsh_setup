@@ -24,5 +24,6 @@ jobs:
         run: |
           set -euo pipefail
           node --test scripts/secondary_registry/test_*.cjs
+          bash scripts/secondary_registry/test_build_intent.sh
           node scripts/secondary_registry/render.cjs scripts/secondary_registry/config.example.json /tmp/registry-review.json
           test -s /tmp/registry-review.json

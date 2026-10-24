@@ -70,3 +70,7 @@ DSH_NATIVE_SOURCE_ROOT="$PWD/scripts" DSH_IDENTITY_MODULE="$PWD/scripts/identity
 
 Native-bridge tests use disposable synthetic account files only. No institutional account store or directory is read. If the optional native modules are unavailable, those tests skip; the machine-only runtime/TLS tests must still pass. Passing these tests is source verification, not live endpoint, restart, backup/restore, node-pull or Production acceptance.
 
+
+## Automatic build scope and explicit CI intent
+
+Registry source has a dedicated synthetic workflow. Institutional CI should exclude this package, its opt-in promotion template and registry-only runbooks from application-image triggers while retaining all application, ordinary test, dependency and pipeline changes. The build-intent.sh helper honors explicit standard [skip ci] / [ci skip] / Azure skip markers before Docker login, build, verification or push; ordinary commits return true. This also protects direct compare-and-swap ref updates where server-side skip detection may not occur. It never treats a failed image verification as success. Run test_build_intent.sh on remote Linux; an unreadable or oversized message fails the guard instead of allowing a build. No global disabling of application CI or collision/authentication checks is included.
