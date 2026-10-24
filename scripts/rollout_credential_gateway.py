@@ -30,7 +30,7 @@ def main():
  if data!=json.loads(Path(a.expected_source).read_text(encoding='utf-8')):raise RuntimeError('Live source changed after qualification; requalify that source before rollout')
  if any(e['name']=='DSH_USER_CREDENTIAL_GATEWAY_CONFIG' for e in container.get('env',[])):raise RuntimeError('Credential integration already configured; inspect rather than overwrite')
  data['auth_proxy.js']=integrate(data['auth_proxy.js'])
- for n in ['credential_broker.js','credential_gateway.js','credential_identity.js']:data[n]=(Path(__file__).parent/n).read_text(encoding='utf-8')
+ for n in ['credential_broker.js','credential_gateway.js','credential_identity.js','platform_ui.js','bot_platform.css']:data[n]=(Path(__file__).parent/n).read_text(encoding='utf-8')
  data['dsh-connection.cjs']=(Path(__file__).resolve().parents[1]/'container/dsh-connection.cjs').read_text(encoding='utf-8')
  digest=hashlib.sha256(json.dumps(data,sort_keys=True).encode()).hexdigest();source='dsh-credential-gateway-'+digest[:12]
  apply({'apiVersion':'v1','kind':'ConfigMap','metadata':{'name':source},'immutable':True,'data':data})

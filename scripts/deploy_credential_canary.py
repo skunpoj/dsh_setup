@@ -11,7 +11,7 @@ def main():
   return r.stdout.decode('utf-8')
  def apply(obj):k('apply','--server-side','--field-manager=dsh-credential-rollout','-f','-',obj=obj)
  data=json.loads(Path(a.snapshot).read_text(encoding='utf-8'));data['auth_proxy.js']=integrate(data['auth_proxy.js'])
- for name in ['credential_gateway.js','credential_broker.js','credential_identity.js']:data[name]=(Path(__file__).parent/name).read_text(encoding='utf-8')
+ for name in ['credential_gateway.js','credential_broker.js','credential_identity.js','platform_ui.js','bot_platform.css']:data[name]=(Path(__file__).parent/name).read_text(encoding='utf-8')
  data['dsh-connection.cjs']=(Path(__file__).resolve().parents[1]/'container/dsh-connection.cjs').read_text(encoding='utf-8')
  digest=hashlib.sha256(json.dumps(data,sort_keys=True).encode()).hexdigest();source='dsh-credential-canary-source-'+digest[:12]
  apply({'apiVersion':'v1','kind':'ConfigMap','metadata':{'name':source},'immutable':True,'data':data})
