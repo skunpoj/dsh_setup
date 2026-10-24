@@ -1,0 +1,6 @@
+config.local.json
+*.private.json
+*.pem
+*.key
+*.crt
+generated/

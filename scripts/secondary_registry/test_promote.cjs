@@ -1,0 +1,10 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{plan,verify,promote}=require('./promote.cjs');
+const c=()=>({sourceRef:'primary.example.invalid/team/app@sha256:'+'a'.repeat(64),targetRef:'secondary.example.invalid/team/app:candidate-123-unique',configDigest:'sha256:'+'b'.repeat(64),layers:['sha256:'+'c'.repeat(64)]});
+const inspect=x=>[{Id:x.configDigest,RootFS:{Layers:x.layers}}];
+test('plan never builds, starts, deploys, deletes or logs in',()=>{assert.deepEqual(plan(c()).map(x=>x[0]),['pull','image','tag','push']);});
+test('refuses mutable source, unsafe target and missing qualification',()=>{for(const[k,v]of[['sourceRef','primary/app:latest'],['targetRef','-evil'],['targetRef','secondary/team/app:latest'],['layers',[]],['configDigest','bad']]){assert.throws(()=>plan({...c(),[k]:v}));}});
+test('ordered content mismatch rejected',()=>{assert.throws(()=>verify([{Id:'sha256:'+'d'.repeat(64),RootFS:{Layers:c().layers}}],c()));assert.throws(()=>verify([{Id:c().configDigest,RootFS:{Layers:[]}}],c()));});
+test('push followed by immutable pull and independent content readback',async()=>{const calls=[],x=c();const r=await promote(x,async a=>{calls.push(a);return a[0]==='image'?JSON.stringify(inspect(x)):a[0]==='push'?'candidate digest: sha256:'+'e'.repeat(64):'';});assert.equal(calls.length,6);assert.ok(calls[4][1].endsWith('@sha256:'+'e'.repeat(64)));assert.equal(r.deployed,false);});
+test('bad source stops before tag/push',async()=>{const calls=[];await assert.rejects(promote(c(),async a=>{calls.push(a);return a[0]==='image'?'[]':'';}));assert.equal(calls.length,2);});
+test('failed push or mismatched readback has no automatic retry',async()=>{let pushes=0;await assert.rejects(promote(c(),async a=>{if(a[0]==='push'){pushes++;throw Error('outage');}return a[0]==='image'?JSON.stringify(inspect(c())):'';}));assert.equal(pushes,1);let reads=0;await assert.rejects(promote(c(),async a=>a[0]==='image'?JSON.stringify(++reads===1?inspect(c()):[]):a[0]==='push'?'digest: sha256:'+'e'.repeat(64):''));});
