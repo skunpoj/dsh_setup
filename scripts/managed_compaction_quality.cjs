@@ -78,7 +78,7 @@ function identifierClaims(text) {
     if(fence||/^\s*>/.test(raw))continue;
     for(const line of unquoteClaims(raw).split(/[.!?;]\s+/)) {
     if(/^\s*(?:[-*]\s*)?(?:User\s+(?:rejected|denied|disputed|corrected)\s+(?:the\s+)?assistant\s+(?:assertion|claim)|It\s+is\s+false\s+that)\b/i.test(line))continue;
-    const actor=/\bassistant\b.{0,240}\b(?:produced|delivered|wrote|written|provided|generated|prepared|created)\b/i.test(line)||(/\b(?:guide|answer|response|output|report)\b/i.test(line)&&/\b(?:was|were)\s+(?:produced|delivered|written|provided|generated|prepared|created)\b/i.test(line)&&/\b(?:assistant\s+(?:assertion|claim|output)|produced\s+by\s+(?:the\s+)?assistant)\b/i.test(line))||/\bassistant(?:'s\s+(?:guide|answer|output|response))?\s+(?:did\s+not\s+|didn't\s+|never\s+)?(?:included|preserved|contained|mentioned|incorporated)\b/i.test(line);
+    const actor=/\bassistant\b.{0,240}\b(?:produced|delivered|wrote|written|provided|generated|prepared|created)\b/i.test(line)||(/\b(?:guide|answer|response|output|report)\b/i.test(line)&&/\b(?:was|were)\s+(?:produced|delivered|written|provided|generated|prepared|created)\b/i.test(line)&&/\b(?:assistant\s+(?:assertion|claim|output)|produced\s+by\s+(?:the\s+)?assistant)\b/i.test(line))||/\bassistant(?:(?:'s)?\s+(?:guide|answer|output|response|report))?\s+(?:did\s+not\s+|didn't\s+|never\s+)?(?:included|preserved|contained|mentioned|incorporated)\b/i.test(line);
     if(!actor)continue;
     const included=/\b(?:includ(?:e[sd]?|ing)|incorporat(?:e[sd]?|ing)|preserv(?:e[sd]?|ing)|contain(?:s|ed|ing)?|mention(?:s|ed|ing)?|carr(?:y|ies|ied|ying)|ke(?:ep|eps|pt|eping))\b/ig;
     let positive=false;
