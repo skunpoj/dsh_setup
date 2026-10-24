@@ -22,9 +22,9 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  await context.route('**/*',route=>{const url=new URL(route.request().url());if(!['127.0.0.1','dsh-ci.test'].includes(url.hostname)){externalRequests.push(url.origin);return route.abort();}if(/\/v1\/(chat|responses|completions)/.test(url.pathname)){inferenceRequests.push(url.pathname);return route.abort();}return route.continue();});
  page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>pageErrors.push(e.message));page.on('console',message=>{if(message.type()==='error')browserDiagnostics.push({type:'console',message:message.text().replace(/token[=:]\s*[A-Za-z0-9_-]+/gi,'token=[REDACTED]').slice(0,1000)});});page.on('response',response=>{if(response.status()>=400)browserDiagnostics.push({type:'http',status:response.status(),path:new URL(response.url()).pathname});});
  await page.goto(`http://dsh-ci.test:${port}/?token=${encodeURIComponent(ready.token)}`,{waitUntil:'domcontentloaded'});
- const settings=()=>page.getByRole('button',{name:'Account menu',exact:true});
- // The upstream account plugin fills settings.launcher; Settings lives in its menu.
- const openSettings=async()=>{await settings().click();await page.getByRole('menuitem',{name:'Settings',exact:true}).click();};
+ const settings=()=>page.getByRole('button',{name:'Settings',exact:true});
+ // Managed LiteLLM profiles hide official provider sign-in and expose Settings directly.
+ const openSettings=async()=>{await settings().click();};
  await settings().waitFor({state:'visible'});
  const selector=()=>page.getByRole('button',{name:/^Select model/});
  await selector().waitFor({state:'visible'});await selector().click();
