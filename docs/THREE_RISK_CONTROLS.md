@@ -79,3 +79,9 @@ GPU setup is maintained in [gpu-stack](../gpu-stack/README.md). [Context configu
 ## Application audience controls
 
 Application audiences are separate from workspace permissions. The Main gateway checkbox editor offers all authenticated accounts, local accounts, AD / LDAP accounts, selected local users or owner-only. New ordinary apps default to all authenticated users; saved mappings retain their existing audience until explicitly saved. The gateway checks stored identity type, strips platform credentials and revokes active app connections when eligibility changes. JupyterLab and terminals stay owner-only. The editor is deployed on Main DSH; legacy DSH2/DSH3 entrypoints remain owner-only.
+
+<!-- credential-management-design -->
+
+## User-managed credentials
+
+Credential management design: users enter secrets through a dedicated settings form, while the harness receives only aliases. A separate broker checks the owner, workspace, environment, destination and action before using the secret. Consequential actions require bound approval; audit logs exclude secret values. This broker and settings page are planned, not deployed. Read the [credential management design and video supplement](USER_CREDENTIAL_MANAGEMENT.html).

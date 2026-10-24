@@ -151,3 +151,9 @@ Main DSH, DSH2 and DSH3 use the same approved DSH 0.2.1-rc.2 application build a
 3. Administrators enable automatic startup only for approved applications. **Start** keeps an already-running service; **Restart** replaces that service process; **Stop** prevents automatic restart. Saved files and histories persist, while unsaved process memory and notebook variables do not survive a real restart.
 
 The 24 October checks verified normal owner login and exact managed-model replies on all three sites. Isolated supervisor checks covered startup, automatic recovery, explicit restart, Stop and access revocation without restarting existing applications. The source qualification also exercised a separate Jupyter notebook/kernel, authorization and XSRF fixture. See [version and maintenance checks](https://github.com/skunpoj/dsh_setup/blob/main/docs/THREE_SITE_SYNC_20261024.md).
+
+<!-- credential-management-design -->
+
+## User-managed credentials
+
+Credential management design: users enter secrets through a dedicated settings form, while the harness receives only aliases. A separate broker checks the owner, workspace, environment, destination and action before using the secret. Consequential actions require bound approval; audit logs exclude secret values. This broker and settings page are planned, not deployed. Read the [credential management design and video supplement](USER_CREDENTIAL_MANAGEMENT.html).

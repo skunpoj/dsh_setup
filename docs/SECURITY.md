@@ -51,3 +51,9 @@ An authorized viewer can copy displayed content; endpoint controls are separate.
 Do not commit generated manifests, kubeconfigs, API tokens, keytabs, transcripts,
 staff details, real storage paths or deployment hostnames. Pattern scans must be
 supplemented by source review and Git-history review before public publication.
+
+<!-- credential-management-design -->
+
+## User-managed credentials
+
+Credential management design: users enter secrets through a dedicated settings form, while the harness receives only aliases. A separate broker checks the owner, workspace, environment, destination and action before using the secret. Consequential actions require bound approval; audit logs exclude secret values. This broker and settings page are planned, not deployed. Read the [credential management design and video supplement](USER_CREDENTIAL_MANAGEMENT.html).

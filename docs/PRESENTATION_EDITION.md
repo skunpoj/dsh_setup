@@ -14,3 +14,7 @@ The 44-chapter technical guide preserves its 19 October source edition. Consult 
 See [the narration standard](VIDEO_NARRATION_STANDARD.md) for source binding, voice reuse, caption verification and safe publication. Deployment-specific hostnames, private release URLs, credentials and source recordings are not included in this portable guide.
 
 [Browse the Main walkthrough overview](COURSE_GUIDE.md#main-walkthroughs). The deployed manual provides one current home for these pages; Test references use that same home.
+
+## User credential design supplement
+
+[User-managed credentials](USER_CREDENTIAL_MANAGEMENT.html) explains the proposed broker, per-user scopes and three risk controls. It includes a draft 96-second silent captioned storyboard. It is not a completed Fola-narrated lesson or deployed feature; the current course remains unchanged.
