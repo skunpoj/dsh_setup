@@ -7,14 +7,14 @@
     "modelWeightsLoaded": false,
     "inputIsSyntheticMetadata": true,
     "numericalCases": 5,
-    "maxBF16AbsoluteDifference": 0.0,
+    "maxBF16AbsoluteDifference": 0,
     "allocationRetries": 0,
     "ooms": 0,
     "fullNear1MQualificationEligible": false,
     "productionReplay": false,
     "outputTokensPerSecond": null,
-    "originalSelectedRoundedAllocationMiB": 1748.0,
-    "fixedSelectedRoundedAllocationMiB": 888.0,
+    "originalSelectedRoundedAllocationMiB": 1748,
+    "fixedSelectedRoundedAllocationMiB": 888,
     "selectedAllocationIsNotTotalGPUFootprint": true
   },
   "definition": "Stream-window output rate excludes preparation. Whole-turn output rate includes it. Aggregate multi-request throughput is not per-conversation speed.",
@@ -84,7 +84,7 @@
     "historicalCompactionSourceTokens": 948102,
     "reviewIssuedNewLiveRequests": false
   },
-  "reviewedAtICT": "2026-10-24T03:51:02.446683+07:00",
+  "reviewedAtICT": "2026-10-24T07:38:14.651+07:00",
   "newFullModelQualification": "R capacity and concurrent short replies remain the last completed capacity case. The separate compaction-only outcome is recorded in latestCompactionQualification; it does not replay capacity or retroactively accept R narrative quality.",
   "historicalTrials": {
     "earlierGraphBatchTrial": {
@@ -258,16 +258,16 @@
         "compaction": "not-run",
         "reason": "All four GPU allocator retry counters increased by one; strict gate rejected the candidate",
         "allocatorRetriesByRank": {
-          "2": 1,
+          "0": 1,
           "1": 1,
-          "3": 1,
-          "0": 1
+          "2": 1,
+          "3": 1
         },
         "oomsByRank": {
-          "2": 0,
+          "0": 0,
           "1": 0,
-          "3": 0,
-          "0": 0
+          "2": 0,
+          "3": 0
         }
       },
       "contentScope": "384K core-fact retrieval passed its scoped review; strict three-fact-only source adherence was not passed and not every sentence was directly sourced."
@@ -374,15 +374,15 @@
       }
     ],
     "capturedPartialWindowAllocatorDeltas": {
+      "0": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
       "1": {
         "num_alloc_retries": 0,
         "num_ooms": 0
       },
       "2": {
-        "num_alloc_retries": 0,
-        "num_ooms": 0
-      },
-      "0": {
         "num_alloc_retries": 0,
         "num_ooms": 0
       },
@@ -542,78 +542,124 @@
   },
   "latestCompletedCapacityTrial": "tile64-20261023r",
   "latestCompactionQualification": {
-    "run": "U",
-    "result": "failed-before-compaction-preflight",
-    "recoveryVerified": true,
-    "automaticCompactionStarted": false,
+    "run": "W",
+    "sourceTrial": "S",
+    "result": "automatic-compaction-completed-with-content-limitations",
+    "scope": "Dedicated DSH test runtime and private proxy against the unchanged shared model baseline.",
+    "automaticCompactionStarted": true,
+    "automaticCompactionCompleted": true,
+    "manualCompactCommandInvoked": false,
     "compactionAccepted": false,
+    "functionalCompactionCompleted": true,
+    "strictSummaryQualityPassed": false,
     "newCapacityTestPerformed": false,
-    "newNear1MThroughputMeasured": false,
-    "failure": "The local preflight still required a legacy tail-tokenizer field absent from the new summary-budget configuration. No compaction request was dispatched.",
-    "startupRows": [
-      {
-        "stage": "cold",
-        "kind": "numeric",
-        "nativeSeconds": 7.636630058288574,
-        "clientSeconds": 7.708847761154175,
-        "inputTokens": 11905,
-        "outputTokens": 80
-      },
-      {
-        "stage": "cold",
-        "kind": "prose",
-        "nativeSeconds": 10.07543683052063,
-        "clientSeconds": 10.260655403137207,
-        "inputTokens": 11921,
-        "outputTokens": 149
-      },
-      {
-        "stage": "steady",
-        "kind": "numeric",
-        "nativeSeconds": 1.528454065322876,
-        "clientSeconds": 1.7859625816345215,
-        "inputTokens": 11905,
-        "outputTokens": 80
-      },
-      {
-        "stage": "steady",
-        "kind": "prose",
-        "nativeSeconds": 3.688645839691162,
-        "clientSeconds": 3.839446544647217,
-        "inputTokens": 11921,
-        "outputTokens": 213
-      }
-    ],
-    "startupAllFourDiagnosticCounterDeltasZero": true,
-    "rawStartupPeriodicLogArchived": false,
-    "counterScope": "Saved diagnostic counter points; not a raw periodic compaction-window proof.",
-    "startupProseWords": {
-      "first": 129,
-      "following": 176
-    },
-    "strictPromptWordLimitPassed": false,
-    "contentScope": "Both prose explanations were manually read and distinguish persistent files from process memory. The following prose exceeded the requested 120-160 words; the declared diagnostic range was 85-210.",
-    "tokenizerOnlyPreflight": {
+    "summary": {
       "inputTokens": 1003068,
-      "reservedOutputTokens": 8192,
-      "proxyReserve": 256,
-      "totalReservedTokens": 1011516,
-      "inferenceRequestsSent": 0
+      "outputTokens": 885,
+      "nativePhaseSeconds": 1664.07,
+      "shadowedNativeEstimatedTokens": 926559,
+      "shadowedEvents": 5,
+      "originalThreeFactsRetainedExactly": true,
+      "bothVerificationIdentifiersRetained": true,
+      "unsupportedAcceptanceClaim": true,
+      "forwardingPreparationSeconds": 1646.435347,
+      "forwardingTimeToFirstDeltaSeconds": 1651.098361,
+      "forwardingStreamSeconds": 12.325767999999924,
+      "forwardingOutputTokensPerSecond": 71.80079975543961,
+      "rateDefinition": "885 output tokens divided by time from first upstream text delta to completed response body at the forwarding boundary; compaction-summary workload, not a new capacity benchmark."
     },
+    "initialContinuation": {
+      "output": "COMPACT_OK",
+      "inputTokens": 196968,
+      "outputTokens": 4,
+      "nativeSecondsAfterSummary": 83.545,
+      "wholeTriggerClientSeconds": 1748.9469249248505,
+      "retries": 0
+    },
+    "recall": {
+      "originalAmbiguousQueryExactMatchPassed": false,
+      "returnedOtherRetainedIdentifier": true,
+      "explicitPrefixQueryPassed": true,
+      "explicitPrefixQuerySeconds": 1.8535456657409668,
+      "strictThreeFactAnswerPassed": true,
+      "threeFactAnswerSeconds": 2.2985851764678955
+    },
+    "tools": {
+      "actualWriteAndReadCallsVerified": true,
+      "writeSeconds": 4.295485734939575,
+      "readSeconds": 3.851731538772583,
+      "unknownNonceAbsentFromReadPrompt": true,
+      "syntheticFileRemoved": true,
+      "retries": 0
+    },
+    "shortRequests": {
+      "concurrentLanes": 2,
+      "cadenceSeconds": 120,
+      "allSamples": {
+        "count": 28,
+        "medianSeconds": 6.063531875610352,
+        "p95NearestRankSeconds": 10.231088399887085,
+        "maximumSeconds": 12.256189107894897,
+        "retryTotal": 0,
+        "allWithin15Seconds": true,
+        "automatedFormatPass": true,
+        "proseWords": [
+          159,
+          150,
+          153,
+          148,
+          152,
+          143,
+          144,
+          154,
+          150,
+          158,
+          158,
+          149,
+          157,
+          158
+        ]
+      },
+      "fullyDuringNativeSummary": {
+        "count": 26,
+        "medianSeconds": 6.089439868927002,
+        "p95NearestRankSeconds": 10.231088399887085,
+        "maximumSeconds": 12.256189107894897,
+        "retries": 0
+      },
+      "manualProseQualityLimitation": true,
+      "method": "Client elapsed includes RPC and observation; nearest-rank p95. Timing and automated format checks are separate from factual-quality review."
+    },
+    "smallCancellationRecovery": {
+      "actualUserAbortVerified": true,
+      "originalAssertionFailedOnAdditionalReasonField": true,
+      "threeObservedIdleGaugeSamplesVerified": true,
+      "sameSessionResumeSeconds": 0.6104357242584229,
+      "exactCancelDurationVerified": false
+    },
+    "protectedOriginalRAndSHistoryUnchanged": true,
+    "recoveryVerified": true,
+    "baselineModelReloaded": false,
+    "allocationCandidateAcceptance": false,
+    "newNear1MCapacityThroughputMeasured": false,
     "recovery": {
-      "humanWorkers": 32,
-      "selectedHumanSessionAndAttachmentFiles": 256,
-      "allArbitraryHumanWorkspaceFilesHashed": false,
-      "originalFixtureSessionsPreserved": 386,
-      "originalFixtureFilesPreserved": 772,
-      "fixtureSessionsAfter": 390,
-      "fixtureFilesAfter": 780,
-      "originalModelSpecSourcesImageAndNativeREADYVerified": true,
-      "originalProfileAndPrivateWorkloadSpecsRestored": true,
-      "ownedTestKeyRevokedAndSecretAbsent": true,
-      "ownedLongReservationPostUnlockReleaseVerified": true
-    },
-    "correctionScope": "A separate follow-up uses the actual summary budget, verifies current native-package/tokenizer/profile identity before the model change, and reuses the existing count and saved history."
+      "originalProfileAndStoppedFullSpecsRestored": true,
+      "testWorkloadPodsAbsent": true,
+      "actualDisposablePodReplacement": true,
+      "histories": 398,
+      "historyFiles": 796,
+      "snapshotBytesIdentical": true,
+      "compactedSessionIncluded": true,
+      "nativeChatRehydrationAfterReplacementTested": false,
+      "scopedKeyRevoked": true,
+      "temporarySecretAbsent": true,
+      "sevenTemporaryObjectsAbsent": true,
+      "watchdogJobAndPodAbsent": true,
+      "modelUnchangedAtFinalReadback": true,
+      "modelReadyAtFinalReadback": true,
+      "modelRestartsAtFinalReadback": 0,
+      "observedUTC": "2026-10-24T00:35:41.780Z"
+    }
   },
   "reproducibleQualificationHelpers": {
     "path": "gpu-stack/qualification/allocator-telemetry/",
@@ -652,14 +698,14 @@
       "firstAttemptAllocationRetriesByRank": {
         "0": 0,
         "1": 0,
-        "3": 0,
-        "2": 0
+        "2": 0,
+        "3": 0
       },
       "firstAttemptOOMsByRank": {
         "0": 0,
         "1": 0,
-        "3": 0,
-        "2": 0
+        "2": 0,
+        "3": 0
       },
       "recovery": {
         "allFourActualStatesVerified": true,
@@ -693,6 +739,80 @@
       },
       "priorRStrictNarrativeQualityAccepted": false,
       "priorRFinalCounterGapRepaired": false
+    },
+    "U": {
+      "run": "U",
+      "result": "failed-before-compaction-preflight",
+      "recoveryVerified": true,
+      "automaticCompactionStarted": false,
+      "compactionAccepted": false,
+      "newCapacityTestPerformed": false,
+      "newNear1MThroughputMeasured": false,
+      "failure": "The local preflight still required a legacy tail-tokenizer field absent from the new summary-budget configuration. No compaction request was dispatched.",
+      "startupRows": [
+        {
+          "stage": "cold",
+          "kind": "numeric",
+          "nativeSeconds": 7.636630058288574,
+          "clientSeconds": 7.708847761154175,
+          "inputTokens": 11905,
+          "outputTokens": 80
+        },
+        {
+          "stage": "cold",
+          "kind": "prose",
+          "nativeSeconds": 10.07543683052063,
+          "clientSeconds": 10.260655403137207,
+          "inputTokens": 11921,
+          "outputTokens": 149
+        },
+        {
+          "stage": "steady",
+          "kind": "numeric",
+          "nativeSeconds": 1.528454065322876,
+          "clientSeconds": 1.7859625816345215,
+          "inputTokens": 11905,
+          "outputTokens": 80
+        },
+        {
+          "stage": "steady",
+          "kind": "prose",
+          "nativeSeconds": 3.688645839691162,
+          "clientSeconds": 3.839446544647217,
+          "inputTokens": 11921,
+          "outputTokens": 213
+        }
+      ],
+      "startupAllFourDiagnosticCounterDeltasZero": true,
+      "rawStartupPeriodicLogArchived": false,
+      "counterScope": "Saved diagnostic counter points; not a raw periodic compaction-window proof.",
+      "startupProseWords": {
+        "first": 129,
+        "following": 176
+      },
+      "strictPromptWordLimitPassed": false,
+      "contentScope": "Both prose explanations were manually read and distinguish persistent files from process memory. The following prose exceeded the requested 120-160 words; the declared diagnostic range was 85-210.",
+      "tokenizerOnlyPreflight": {
+        "inputTokens": 1003068,
+        "reservedOutputTokens": 8192,
+        "proxyReserve": 256,
+        "totalReservedTokens": 1011516,
+        "inferenceRequestsSent": 0
+      },
+      "recovery": {
+        "humanWorkers": 32,
+        "selectedHumanSessionAndAttachmentFiles": 256,
+        "allArbitraryHumanWorkspaceFilesHashed": false,
+        "originalFixtureSessionsPreserved": 386,
+        "originalFixtureFilesPreserved": 772,
+        "fixtureSessionsAfter": 390,
+        "fixtureFilesAfter": 780,
+        "originalModelSpecSourcesImageAndNativeREADYVerified": true,
+        "originalProfileAndPrivateWorkloadSpecsRestored": true,
+        "ownedTestKeyRevokedAndSecretAbsent": true,
+        "ownedLongReservationPostUnlockReleaseVerified": true
+      },
+      "correctionScope": "A separate follow-up uses the actual summary budget, verifies current native-package/tokenizer/profile identity before the model change, and reuses the existing count and saved history."
     }
   }
 }

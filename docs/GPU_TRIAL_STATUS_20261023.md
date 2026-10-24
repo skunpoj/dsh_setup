@@ -1,6 +1,29 @@
 # GPU performance and near-1M results
 
-## GPU performance and 1M operation — 23 October 2026
+## GPU performance and 1M operation — 24 October 2026
+
+### Saved S history: automatic compaction and recovery — trial W
+
+The remaining saved-S-history case completed automatic compaction on the shared baseline, using a tiny follow-up on a fork of the existing history. No new million-token capacity prompt or model reload was used. The original R and S histories remained unchanged.
+
+| W check | Verified result |
+| --- | --- |
+| Summary request | 1,003,068 input / 885 output tokens |
+| Preparation at the forwarding boundary | 27m26.44s |
+| Automatic summary phase | 27m44.07s, from native compaction/start to compaction/end |
+| Summary output stream | 71.80 output tokens/sec over 12.326s, from first upstream text delta to completed body |
+| Following reply | COMPACT_OK; 196,968 input tokens; 83.55s after summary completion |
+| Whole initial client turn | 29m08.95s, including compaction and the following reply |
+| Short requests | 28 total, including two startup checks; 26 completed entirely during the summary |
+| 26 overlapping short replies | 6.09s median / 10.23s nearest-rank p95 / 12.26s maximum; zero retries; all below 15s |
+| Explicit reference and three-fact recall | Passed on the same compacted session in 1.85s / 2.30s |
+| Actual tool continuation | File write 4.30s; changed, previously undisclosed nonce read 3.85s; zero retries; synthetic file removed |
+| Cancellation recovery | An active user-aborted turn and backend drain were verified; the same session replied RESUMED in 0.61s |
+| Replacement persistence and restoration | 398 histories / 796 history files in the test runtime stayed byte-identical across an actual disposable pod replacement; original profile and stopped test specs restored; test key revoked and temporary resources removed |
+
+The first broad reference query returned the other identifier retained in the summary, so its exact-match check failed. An explicit prefix query then recalled the intended identifier. All three original facts were retained verbatim and the subsequent three-bullet answer was accurate. However, the summary incorrectly stated that the earlier guide had been accepted without revision requests; no human acceptance was recorded. Strict summary-quality acceptance therefore remains failed. Some short prose replies also used imprecise wording about saving variables, separate from their passing timing and format checks.
+
+The two short-request lanes ran repeatedly alongside the summary. Client latency includes RPC and observation time; p95 uses nearest rank. The 71.80 tokens/sec figure belongs to this 885-token compaction summary and is not a matched comparison with the earlier capacity workload. File-byte persistence was verified across replacement; a new native chat turn after that replacement was not tested. The baseline was unchanged at the 24 October, 07:35 ICT closeout readback.
 
 ### Preflight correction and recovery — trial U
 
@@ -42,7 +65,7 @@ The recovered baseline retains **1,048,576 context tokens, DSpark, memory fracti
 [Allocator-telemetry helpers](https://github.com/skunpoj/dsh_setup/tree/main/gpu-stack/qualification/allocator-telemetry) include 32 passing CPU checks; they do not install a runtime or run inference.
 
 
-**The latest actual DSH near-1M request completed:** **1,002,051 input / 636 output tokens**, **29m26.56s preparation**, **29m32.09s to first text**, **29m44.28s client elapsed**, and **61.56 streaming output tokens/sec**. The streaming rate excludes initial preparation. Preparation is measured at the forwarding boundary; time to first text also includes tokenization and forwarding overhead. **100+ tokens/sec per near-1M conversation has not been reached.**
+**Recorded near-1M capacity benchmark — trial R:** **1,002,051 input / 636 output tokens**, **29m26.56s preparation**, **29m32.09s to first text**, **29m44.28s client elapsed**, and **61.56 streaming output tokens/sec**. The streaming rate excludes initial preparation. Preparation is measured at the forwarding boundary; time to first text also includes tokenization and forwarding overhead. **100+ tokens/sec per near-1M conversation has not been reached.**
 
 The startup hook exercises the original kernel implementation before the KV cache is allocated and before readiness. All four GPUs completed the bounded initialization in **9.61–10.09s each**. The model weights and kernel mathematics were not changed. First numeric/prose startup requests completed in **8.73s / 10.32s client elapsed**; the following pair completed in **1.30s / 2.83s**. All four passed their content checks without retries and remained below the unchanged **15s client limit**. The first pair was slightly slower than the matched earlier baseline; this is not a general speedup claim.
 
