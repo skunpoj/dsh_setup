@@ -31,10 +31,10 @@ Key/certificate creation and rotation are protected operator actions, not implic
 
 ## Render and install on an approved remote operator
 
-Copy config.example.json to an ignored config.local.json and replace every example infrastructure value with reviewed values. The example is a synthetic render fixture, not a usable deployment profile.
+Copy config.example.json to the ignored scripts/secondary_registry/config.local.json and replace every example infrastructure value with reviewed values. The example is a synthetic render fixture, not a usable deployment profile.
 
 ~~~sh
-node scripts/secondary_registry/render.cjs config.local.json NEW-registry-review.json
+node scripts/secondary_registry/render.cjs scripts/secondary_registry/config.local.json NEW-registry-review.json
 ~~~
 
 Review every object and verify referenced Secrets/namespace exist without exporting their values. The renderer writes with exclusive creation and does not contact Kubernetes. Compare names against the live inventory, reject collisions with existing resources, obtain a finite resource window, and create only the reviewed new objects through the approved cluster operator. Do not apply this fresh-install output over an existing operational registry. Existing installations require a separately reviewed migration: compare source/config hashes, protect the original PVC, preserve old image/config names and rollback receipts, and change nothing until that plan is authorized. No wholesale live migration is required merely to adopt these source files.
