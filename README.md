@@ -22,7 +22,7 @@ Start with [the design and operating principles](docs/THREE_RISK_CONTROLS.md) or
 
 Start with the [user manual](docs/DSH_USER_MANUAL.md) or its [standalone HTML version](docs/DSH_USER_MANUAL.html) for sign-in, private environments, tools, application URLs and administrator controls. The [current-guide policy](docs/CURRENT_GUIDE.md) describes the single deployment guide and preserved archives.
 
-Optional verified LDAPS sign-in supports private No Internet accounts with Internet access approved separately by an administrator. An AD username that conflicts with an existing local account is rejected with a clear instruction to contact an administrator to delete that local account; no account or history is automatically merged or deleted. Existing local recovery sign-in remains available. The 23 October main-gateway rollout verified AD/UPN application sign-in, conflict refusal and history preservation; see the [acceptance record](docs/LDAP_APP_LOGIN_ACCEPTANCE_20261023.md). See [configuration, collision handling and tests](docs/LDAP_AUTHENTICATION.md).
+Optional verified LDAPS sign-in supports private No Internet accounts with Internet access approved separately by an administrator. An AD username that conflicts with an existing local account is rejected with a clear instruction to contact an administrator to resolve the identity conflict; no account or history is automatically merged or deleted. Existing local recovery sign-in remains available. The 23 October main-gateway rollout verified AD/UPN application sign-in, conflict refusal and history preservation; see the [acceptance record](docs/LDAP_APP_LOGIN_ACCEPTANCE_20261023.md). See [configuration, collision handling and tests](docs/LDAP_AUTHENTICATION.md).
 
 ## Authenticated application sharing
 
@@ -34,7 +34,7 @@ Owners can explicitly share an ordinary local web app with enabled DSH users whi
 
 The 23-slide talk covers agent incidents, controls, governance, illustrative banking and insurance workflows, and DSH. Its final QR links to this repository. Research infographics are credited to **Thanatchon Chongmankhong** ([HarnessWatch](https://thanatchon36.github.io/harnesswatch/paper/) and [airmkit](https://thanatchon36.github.io/airmkit/paper/)). The examples are hypothetical and are not a claim of live business automation or certified compliance.
 
-This public tree is a **portable fresh-install reference**, not the latest deployment source or operational history of an institution. Private implementation and evidence must remain in an access-controlled repository. See [publication boundaries](docs/PUBLICATION.md).
+This public tree contains sanitized installation code and generic configuration for the approved core version. Site-specific configuration, identities, credentials and operational history remain in an access-controlled repository. See [publication boundaries](docs/PUBLICATION.md).
 
 A configurable deployment of DeepSeek Harness, internal LiteLLM and a four-GPU
 SGLang backend. The repository includes the GPU manifests, model-download job,
@@ -213,3 +213,7 @@ Private workspaces seed managed Jupyter in both environments. Internet startup s
 Jupyter dashboard status distinguishes **Waiting for existing Jupyter**, **Internet approval pending**, **Account disabled** and **Recovery retry pending**. These labels do not change startup or access permissions. See the [status explanation](docs/JUPYTER_APP_LIFECYCLE.html) and [captioned walkthrough](docs/JUPYTER_DSH2_DSH3_WALKTHROUGH.html).
 
 Jupyter status transitions are verified using disposable users: Internet approval clears the pending label, and exiting an existing server permits automatic handover to **Running**. Existing saved notebook/settings markers remained unchanged. See the [lifecycle guide](docs/JUPYTER_APP_LIFECYCLE.html) and [walkthrough](docs/JUPYTER_DSH2_DSH3_WALKTHROUGH.html).
+
+## Three-site code and maintenance
+
+The approved DSH application is 0.2.1-rc.2 with pi-ai 1.3.0. Main DSH, DSH2 and DSH3 share the core build and inspected transport/supervisor code while retaining distinct authentication and environment policies. Use the managed LiteLLM model and choose the correct local or AD sign-in provider. [Compatibility, verification and upgrade procedure](docs/THREE_SITE_SYNC_20261024.md).

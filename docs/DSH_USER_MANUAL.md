@@ -140,3 +140,14 @@ See [document alignment](DOCUMENT_ALIGNMENT_20261023.md) for current controls, t
 ## Application links, slides and English video
 
 Use the [application links and Main/Test guide](APP_LINKS_AND_STATUS.html) to distinguish Main workspaces and application controls from the App5/App6 Test fixtures. It links the current slides and English video, explains normal DSH sign-in and return to the original app tab, and distinguishes Public routing from a destination application's own login.
+
+
+## Site compatibility and everyday use
+
+Main DSH, DSH2 and DSH3 use the same approved DSH 0.2.1-rc.2 application build and managed inference transport. Main DSH provides team accounts and private user/environment routing. DSH2 and DSH3 retain their owner-only authentication and Internet-only site settings. These settings do not require separate forks of the DSH application.
+
+1. At sign-in, choose **AD / LDAP** for a corporate account or **Local DSH account** for a provisioned local account. A local account must use the local option.
+2. In a conversation, select **DeepSeek-V4.1-Flash** from the managed **LiteLLM** provider. DSH saves an owner's model choice for subsequent requests. The official DeepSeek provider sign-in is separate from the team's workspace login.
+3. Administrators enable automatic startup only for approved applications. **Start** keeps an already-running service; **Restart** replaces that service process; **Stop** prevents automatic restart. Saved files and histories persist, while unsaved process memory and notebook variables do not survive a real restart.
+
+The 24 October checks verified normal owner login and exact managed-model replies on all three sites. Isolated supervisor checks covered startup, automatic recovery, explicit restart, Stop and access revocation without restarting existing applications. The source qualification also exercised a separate Jupyter notebook/kernel, authorization and XSRF fixture. See [version and maintenance checks](https://github.com/skunpoj/dsh_setup/blob/main/docs/THREE_SITE_SYNC_20261024.md).

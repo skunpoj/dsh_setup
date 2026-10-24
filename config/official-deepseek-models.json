@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+  "changelog": "https://api-docs.deepseek.com/updates/",
+  "models": [
+    {
+      "apiModel": "deepseek-flash",
+      "officialRevision": "DeepSeek-V4.1-Flash-1017"
+    },
+    {
+      "apiModel": "deepseek-v4-pro",
+      "officialRevision": "DeepSeek-V4-Pro-0813"
+    }
+  ]
+}

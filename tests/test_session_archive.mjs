@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';import os from 'node:os';
+import {exportHistory,importHistory,openStore,readSession,digestSession,files,sha}from'../scripts/session_archive.mjs';
+const modules=process.env.DSH_ARCHIVE_TEST_MODULES||'/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai';
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'dsh-archive-test-'));const source=path.join(root,'source');fs.mkdirSync(source);
+const attachments=path.join(root,'attachments');fs.mkdirSync(attachments);fs.mkdirSync(path.join(attachments,'empty'));fs.writeFileSync(path.join(attachments,'synthetic.bin'),Buffer.from([0,1,255,4]));
+const id='00000000-0000-4000-8000-000000000081',header={version:4,id,createdAt:1,isSeeded:false,delegationDepth:0,cwd:'/workspace/ทดสอบ'};
+const common={jobId:'synthetic-job',owner:id,kind:'bash',label:'synthetic',startedAt:2};
+const events=[{type:'user/message',seq:0,time:1,surfaceOp:'append',data:{id:'synthetic-message',role:'user',source:{kind:'user'},content:[{type:'text',text:'Synthetic archive roundtrip'}]}},{type:'working-directory/change',seq:1,time:2,data:{cwd:'/workspace/new-directory'}},{type:'job/registered',seq:2,time:3,data:common},{type:'job/settled',seq:3,time:4,data:{...common,finishedAt:4,status:'completed',cause:'producer',producerReported:true}},{type:'plugin:synthetic/retained',seq:4,time:5,ignorable:true,data:{value:'keep unknown ignorable'}}];
+let api=await openStore(modules,source,'zstd');let h=await api.store.create(header,{inheritedEventCount:0});await h.append(events);await h.flush();await h.close();const sourceState=await readSession(api.store,id);assert.deepEqual(sourceState.header,header);await api.close();
+const archive=path.join(root,'archive');const before=await files(source);const exported=await exportHistory({modules,source,archive,attachments,compression:'zstd'});assert.equal(exported.sessions,1);assert.deepEqual(await files(source),before);
+const target=path.join(root,'restore');await importHistory({modules,archive,target,compression:'zstd'});api=await openStore(modules,path.join(target,'sessions'),'zstd');assert.deepEqual(digestSession(await readSession(api.store,id)),digestSession(sourceState));await api.close();assert.deepEqual(await files(path.join(target,'attachments')),await files(attachments));
+await assert.rejects(importHistory({modules,archive,target}),/EEXIST/);assert.deepEqual(await files(source),before);
+const interrupted=path.join(root,'interrupted');await assert.rejects(importHistory({modules,archive,target:interrupted,failAfter:1}),/Injected/);assert(!fs.existsSync(path.join(interrupted,'manifest.json')));assert(!fs.existsSync(path.join(interrupted,'sessions')));
+async function altered(name,change){const dir=path.join(root,name);fs.cpSync(archive,dir,{recursive:true});const m=JSON.parse(fs.readFileSync(path.join(dir,'manifest.json')));await change(dir,m);fs.writeFileSync(path.join(dir,'manifest.json'),JSON.stringify(m));const dest=path.join(root,name+'-restore');await assert.rejects(importHistory({modules,archive:dir,target:dest}));assert(!fs.existsSync(path.join(dest,'manifest.json')));assert(!fs.existsSync(path.join(dest,'sessions')));}
+await altered('corrupt',(d,m)=>fs.appendFileSync(path.join(d,m.sessions[0].file),'corrupt'));
+await altered('duplicate',(d,m)=>m.sessions.push(m.sessions[0]));
+await altered('corrupt-original',(d,m)=>{const r=m.sourceFiles.find(x=>!x.directory);fs.appendFileSync(path.join(d,'original-generations',r.path),'corrupt');});
+await altered('unknown-required',(d,m)=>{const r=m.sessions[0],file=path.join(d,r.file),s=JSON.parse(fs.readFileSync(file));s.events[1].type='synthetic/required-unknown';delete s.events[1].ignorable;const b=Buffer.from(JSON.stringify(s)+'\n');fs.writeFileSync(file,b);Object.assign(r,{sha256:sha(b),bytes:b.length},digestSession(s));});
+await altered('inherited-cut',(d,m)=>{const r=m.sessions[0],file=path.join(d,r.file),s=JSON.parse(fs.readFileSync(file));s.inheritedEventCount=1;const b=Buffer.from(JSON.stringify(s)+'\n');fs.writeFileSync(file,b);Object.assign(r,{sha256:sha(b),bytes:b.length},digestSession(s));});
+await assert.rejects(exportHistory({modules,source,archive:path.join(source,'bad-nested')}),/overlap/);
+await assert.rejects(importHistory({modules,archive,target:path.join(archive,'bad-nested')}),/overlap/);
+const alias=path.join(root,'alias');fs.symlinkSync(root,alias,process.platform==='win32'?'junction':'dir');
+await assert.rejects(exportHistory({modules,source,archive:path.join(alias,'source','aliased-archive')}),/Symlink\/junction/);
+await assert.rejects(importHistory({modules,archive,target:path.join(alias,'archive','aliased-target')}),/Symlink\/junction/);
+console.log(JSON.stringify({status:'passed',newRequiredCwdAndJobEventsPreserved:true,unknownIgnorablePreserved:true,sourceUnchanged:true,attachmentBytesAndEmptyFoldersPreserved:true,duplicateAndCorruptRefused:true,unknownRequiredRefused:true,unqualifiedInheritedCutRefused:true,interruptionUnpublished:true,existingDestinationNeverOverwritten:true,privateFixtureRoot:root}));
