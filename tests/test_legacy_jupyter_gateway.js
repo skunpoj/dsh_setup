@@ -4,13 +4,13 @@ const {createGateway,validate,cookieIdentity}=require('../scripts/legacy_jupyter
 test('fixed configuration and cookie identities refuse ambiguous input',()=>{assert.equal(cookieIdentity('dsh_auth=a; dsh_auth=b','dsh_auth'),null);assert.equal(cookieIdentity('dsh_auth=a','dsh_auth'),'dsh_auth=a');assert.throws(()=>validate({owner:'owner2',publicHost:'https://bad',upstreamHost:'localhost',upstreamPort:3080,cookieName:'dsh_auth',controlFile:'/control.json'}));});
 test('actual reverse layer preserves the original authorization boundary and startup behavior',async t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'legacy-jupyter-')),control=path.join(dir,'config.json');fs.writeFileSync(control,JSON.stringify({allowed:true,services:{}}));
- let ready=false,owner='owner2',approved=true,valid=true,starts=0,expireDuringStart=false,delayIdentity=false,hangIdentity=false,loginPadding=0;
+ let ready=false,owner='owner2',approved=true,valid=true,starts=0,expireDuringStart=false,delayIdentity=false,hangIdentity=false,loginPadding=0,sessionPadding=0;
  const upstream=http.createServer(async(req,res)=>{
   if(req.url==='/api/auth/session'){
    if(hangIdentity)return;
    if(delayIdentity)await new Promise(r=>setTimeout(r,20));
    res.writeHead(200,{'Content-Type':valid&&req.headers.cookie?.includes('dsh_auth=valid')?'application/json':'text/html'});
-   return res.end(valid&&req.headers.cookie?.includes('dsh_auth=valid')?JSON.stringify({user:owner,internet:approved?'on':'off',environment:approved?'internet':'secure'}):'<html>login_username</html>');
+   return res.end(valid&&req.headers.cookie?.includes('dsh_auth=valid')?JSON.stringify({user:owner,internet:approved?'on':'off',environment:approved?'internet':'secure',...(sessionPadding?{padding:' '.repeat(sessionPadding)}:{})}):'<html>login_username</html>');
   }
   if(req.url==='/login'){res.writeHead(200,{'Content-Type':'text/html'});return res.end('<form id="login_username"></form>If Jupyter is stopped, start it from Web Terminal with jupyter lab.'+' '.repeat(loginPadding));}
   if(req.url==='/proxy/8888/lab'){res.writeHead(ready?200:502,{'Content-Type':'text/html'});return res.end(ready?'<script id="jupyter-config-data">{}</script>':'stopped');}
@@ -26,6 +26,7 @@ test('actual reverse layer preserves the original authorization boundary and sta
  async function token(cookie){const p=await request('/jupyter/start',{cookie});assert.equal(p.status,200);return JSON.parse(p.body.match(/const data=(\{"token".*?\}),status=/s)[1]).token;}
  try{
   await t.test('health accepts a themed login above 16 KiB but retains a 256 KiB bound',async()=>{try{loginPadding=20000;assert.equal((await request('/_jupyter_gateway/health')).status,200);loginPadding=300000;assert.equal((await request('/_jupyter_gateway/health')).status,503);}finally{loginPadding=0;}});
+  await t.test('larger HTML health allowance does not expand the identity-response limit',async()=>{try{sessionPadding=20000;assert.equal((await request('/api/jupyter/start',{method:'POST'})).status,401);assert.equal(starts,0);}finally{sessionPadding=0;}});
   await t.test('only the login hint is updated without changing the form',async()=>{const r=await request('/login');assert(r.body.includes('<form id="login_username"></form>'));assert(r.body.includes('opening Jupyter starts it automatically'));assert(!r.body.includes('start it from Web Terminal'));});
   await t.test('HTTP 200 login HTML is never treated as authenticated',async()=>{const r=await request('/api/jupyter/start',{method:'POST',cookie:'dsh_auth=bad'});assert.equal(r.status,401);assert.equal(starts,0);});
   await t.test('client identity headers and duplicate auth cookies cannot authorize startup',async()=>{assert.equal((await request('/api/jupyter/start',{method:'POST',cookie:'dsh_auth=bad',headers:{'X-DSH-User':'owner2','X-DSH-Internet':'on'}})).status,401);assert.equal((await request('/api/jupyter/start',{method:'POST',cookie:'dsh_auth=valid; dsh_auth=other'})).status,401);assert.equal(starts,0);});
