@@ -1,5 +1,7 @@
 # Path C: DeepInfer on 4× H100 NVL — findings, plan and decision tree
 
+> **Outdated (30 Oct 2026, UTC): kept for history.** DeepInfer + DSpark has served production on this node since 29 Oct over the NCCL expert-exchange fallback. Current configuration and measured numbers: [Current production](README.md#current-production-30-oct-2026-utc) and [DeepInfer#221](https://github.com/deepseek-ai/DeepInfer/discussions/221#discussioncomment-19270514).
+
 Status: 28 October 2026. **Path C is the chosen primary path.** Paths A and B continue only where they reuse the same maintenance windows (section 6).
 
 Everything here comes from reading the code and pull requests on 28 Oct 2026: DeepInfer [#92](https://github.com/deepseek-ai/DeepInfer/pull/92) at `e205d42`, [#200](https://github.com/deepseek-ai/DeepInfer/pull/200) at `c1aa748`, [#180](https://github.com/deepseek-ai/DeepInfer/pull/180), [#235](https://github.com/deepseek-ai/DeepInfer/pull/235), DeepEP at `93eb6eb` (the commit #92 vendors), the [kabishou11/deepinfer-hopper](https://github.com/kabishou11/deepinfer-hopper) fork, and the NCCL device API documentation. Nothing below has been run on our hardware yet.

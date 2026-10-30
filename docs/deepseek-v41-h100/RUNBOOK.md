@@ -1,5 +1,7 @@
 # Runbook: 200+ tok/s and DeepInfer on 4× H100 NVL
 
+> **Outdated (30 Oct 2026, UTC): kept for history.** DeepInfer + DSpark has served production on this node since 29 Oct over the NCCL expert-exchange fallback. Current configuration and measured numbers: [Current production](README.md#current-production-30-oct-2026-utc) and [DeepInfer#221](https://github.com/deepseek-ai/DeepInfer/discussions/221#discussioncomment-19270514).
+
 Companion to [README.md](README.md). Steps run in the order given. Every step names its owner role, whether it needs a GPU window, its commands, and the condition that ends it.
 
 ## 0. Roles, rules and variables

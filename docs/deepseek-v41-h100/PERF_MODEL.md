@@ -1,5 +1,7 @@
 # Expected tok/s, derived: a step-time model for V4.1-Flash on 4× H100 NVL
 
+> **Outdated (30 Oct 2026, UTC): kept for history.** DeepInfer + DSpark has served production on this node since 29 Oct over the NCCL expert-exchange fallback. Current configuration and measured numbers: [Current production](README.md#current-production-30-oct-2026-utc) and [DeepInfer#221](https://github.com/deepseek-ai/DeepInfer/discussions/221#discussioncomment-19270514).
+
 Status: 28 October 2026. Reproduce every number with `python3 scripts/v41_h100/perf_model.py`. Only the inputs in section 1 are reported measurements; everything else is a conditional scenario. The calculations do not establish hardware ceilings, success probabilities, H100 performance, or runtime admission.
 
 ## 1. Inputs

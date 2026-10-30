@@ -1,6 +1,8 @@
 # Private AI Workspaces - Kubernetes and 1M Context
 
-Based on [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness); not a GitHub fork. Upstream releases are tracked by the auto-port workflow (#33).
+Based on [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness); not a GitHub fork. Upstream releases are tracked by the auto-port workflow (`.github/workflows/upstream-auto-port.yml`).
+
+**GPU serving today (30 Oct 2026):** DeepInfer + DSpark on 4× H100 NVL, 1M context; see [docs/deepseek-v41-h100](docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc). The 24 October section below describes the earlier SGLang setup.
 
 
 [English Fola video guide](docs/COURSE_GUIDE.md) · [Video and presentation index](docs/PRESENTATION_EDITION.md)
@@ -103,7 +105,7 @@ mount or Kubernetes API token. No corporate identity provider or datalake is
 implicitly configured. [Security boundaries](docs/SECURITY.md).
 
 <!-- GPU_PERFORMANCE_STATUS_20261023:START -->
-## GPU performance and 1M operation - 24 October 2026
+## GPU performance and 1M operation - 24 October 2026 (SGLang era, since replaced)
 
 - **Identifier-attribution guard is active:** all 34 running DSH/DSH2/DSH3 workers passed four in-process checks each (**136/136**). It rejects the tested unsupported identifier claims before summary adoption, without recovery retry. **51 source/component checks per installer**, six native compaction cases and official hot-reload/rollback checks passed. No runtime/kernel restart or near-1M retest; existing plugin records, process identities and history metadata stayed unchanged. Existing summary instructions/framing are unchanged. A separate synthetic native compaction passed in 4.673s; the later explicit-speaker recall passed in 0.519s (557 input / 43 output tokens) with a verbatim supporting quote. Five real-model requests are recorded in total; earlier leading, truncated and ambiguous probes remain preserved. This is narrow speaker-recall acceptance, not general summary-faithfulness acceptance. No persisted user-session writes. Earlier summaries and already-started requests are unaffected; new workers on an older image need the same activation or a guard-enabled image.
 
