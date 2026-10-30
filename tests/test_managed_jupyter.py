@@ -62,12 +62,17 @@ class JupyterTests(unittest.TestCase):
                     ws=create_connection('ws://127.0.0.1:8888/api/kernels/'+kernel+'/channels',header=['X-DSH-User: alice','Cookie: '+cookie],origin='https://dsh.test',timeout=15)
                     identity=uuid.uuid4().hex
                     ws.send(json.dumps({'header':{'msg_id':identity,'username':'alice','session':uuid.uuid4().hex,'msg_type':'execute_request','version':'5.3'},'parent_header':{},'metadata':{},'channel':'shell','content':{'code':'print(6 * 7)','silent':False,'store_history':False,'user_expressions':{},'allow_stdin':False,'stop_on_error':True}}))
-                    output=''
-                    for _ in range(50):
+                    # The reply (shell) and the printed output (IOPub) travel on different
+                    # channels with no ordering guarantee; IOPub 'idle' follows all output.
+                    output='';replied=idle=False
+                    for _ in range(200):
                         message=json.loads(ws.recv())
                         if message.get('parent_header',{}).get('msg_id')!=identity:continue
                         if message['msg_type']=='stream':output+=message['content']['text']
-                        if message['msg_type']=='execute_reply':break
+                        if message['msg_type']=='execute_reply':replied=True
+                        if message['msg_type']=='status' and message['content'].get('execution_state')=='idle':idle=True
+                        if replied and idle:break
+                    self.assertTrue(replied and idle,'Kernel did not finish the request')
                     ws.close();self.assertIn('42',output)
                     self.assertEqual(request('DELETE','/api/kernels/'+kernel)[0],204)
                     self.assertTrue((root/'synthetic.ipynb').is_file())
