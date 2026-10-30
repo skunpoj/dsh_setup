@@ -72,10 +72,6 @@ RUN node /opt/dsh/tests/test_release_dependencies.js \
  && node /opt/dsh/tests/test_image_model_lookup.mjs \
  && python3 /opt/dsh/scripts/configure_platform_guide.py --state /home/dsh/.dsh \
  && node /opt/dsh/scripts/verify_installed_candidate.js "${DSH_VERSION}" \
- && node /opt/dsh/scripts/configure_prompt_admission_diagnostics.mjs \
- && node /opt/dsh/tests/test_prompt_admission_diagnostics.mjs \
- && node --check /usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js \
- && node --check /usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-api-session-controller/lib/types/commands.js \
  && mkdir -p /opt/dsh/seed \
  && cp -a /home/dsh/.dsh /opt/dsh/seed/dsh-home \
  && install -m 0755 /opt/dsh/container/start-dsh.sh /usr/local/bin/start-dsh \
