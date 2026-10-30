@@ -4,17 +4,21 @@
 const fs = require('fs');
 const path = require('path');
 // Accounts hold storage only; compute is admitted first come, first served at
-// sign-in. The account limit is therefore effectively unlimited.
-const MAX_ACCOUNTS = 100000;
+// sign-in, so there is no account limit. New sign-ups are refused only when local
+// storage would fall below the controller's reserve (see signup_admission.js).
 const ACTIVE_SLOTS_MAX = 200;
-const DEFAULT_POLICY = Object.freeze({version:1, enabled:true, warmSpareSlots:2, maxAccounts:MAX_ACCOUNTS});
-function validatePolicy(value, registered=0) {
+const DEFAULT_POLICY = Object.freeze({version:1, enabled:true, warmSpareSlots:2});
+// `legacy` accepts a stored policy written before the account limit was removed;
+// its maxAccounts is ignored and dropped on the next save.
+function validatePolicy(value, {legacy=false}={}) {
+  if (legacy && value && typeof value==='object' && !Array.isArray(value) && Object.hasOwn(value,'maxAccounts')) {
+    const {maxAccounts, ...rest} = value; value = rest;
+  }
   if (!value || typeof value!=='object' || Array.isArray(value) ||
-      Object.keys(value).sort().join(',')!=='enabled,maxAccounts,version,warmSpareSlots' ||
+      Object.keys(value).sort().join(',')!=='enabled,version,warmSpareSlots' ||
       value.version!==1 || typeof value.enabled!=='boolean' ||
-      !Number.isInteger(value.maxAccounts) || value.maxAccounts<Math.max(1,registered) || value.maxAccounts>MAX_ACCOUNTS ||
-      !Number.isInteger(value.warmSpareSlots) || value.warmSpareSlots<0 || value.warmSpareSlots>8 ||
-      value.warmSpareSlots>value.maxAccounts) throw Error('Invalid capacity policy; preserve existing accounts and use 0–8 spares.');
+      !Number.isInteger(value.warmSpareSlots) || value.warmSpareSlots<0 || value.warmSpareSlots>8)
+    throw Error('Invalid capacity policy; use 0–8 warm spares.');
   return {...value};
 }
 function readJSON(file, limit=262144) {
@@ -44,10 +48,7 @@ class Manager {
     if(!path.isAbsolute(root)||!initialPool||!/^[a-z0-9-]{1,63}$/.test(namespace))throw Error('Invalid capacity installation');
     this.root=root;this.initialPool=initialPool;this.namespace=namespace;
   }
-  // Existing (including disabled) accounts can outnumber an unchanged limit.
-  // Reads must still succeed so admission can report zero; only policy writes
-  // enforce the registered-account floor, without deleting or recycling users.
-  policy(users) {return validatePolicy(readJSON(path.join(this.root,'policy','policy.json')));}
+  policy(users) {return validatePolicy(readJSON(path.join(this.root,'policy','policy.json')),{legacy:true});}
   pool() {
     const value=readJSON(path.join(this.root,'inventory','pool.json'));
     if(!value||!value.slots||Array.isArray(value.slots)||Object.keys(value.slots).length>2*ACTIVE_SLOTS_MAX)throw Error('Invalid provisioned inventory');
@@ -74,10 +75,9 @@ class Manager {
     } catch { return {allowed:false,reason:'capacity-unavailable'}; }
   }
   save(value,users) {
-    const p=validatePolicy(value,Object.keys(users).length),old=this.policy(users);
-    // Raising the account limit reserves nothing: a stopped account holds only
-    // its storage, and every sign-in start is checked against live resources.
-    void old;
+    // Spares are stopped pairs (storage only); every sign-in start is checked
+    // against live resources, so saving a policy reserves no compute.
+    const p=validatePolicy(value);
     atomicJSON(path.join(this.root,'policy','policy.json'),p);this.project(users);return p;
   }
   summary(users) {
@@ -103,4 +103,4 @@ class Manager {
     return {policy,controller,controllerFresh:controller!==null};
   }
 }
-module.exports={DEFAULT_POLICY,MAX_ACCOUNTS,ACTIVE_SLOTS_MAX,validatePolicy,readJSON,atomicJSON,projection,Manager};
+module.exports={DEFAULT_POLICY,ACTIVE_SLOTS_MAX,validatePolicy,readJSON,atomicJSON,projection,Manager};

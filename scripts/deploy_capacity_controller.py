@@ -43,7 +43,6 @@ def main():
     parser.add_argument('--gateway',default='dsh-environment-gateway');parser.add_argument('--template-user',required=True)
     parser.add_argument('--output',type=Path,required=True);parser.add_argument('--canary',action='store_true')
     parser.add_argument('--expected-source-sha256',help='Required live gateway source digest for an accepted Production handover')
-    parser.add_argument('--max-accounts',type=int,help='Initial account ceiling; dashboard changes persist after installation')
     parser.add_argument('--additional-account-deployment',action='append',default=[],metavar='NAME=LABEL',help='Additional fixed-owner deployment sharing this cluster; repeat for each instance')
     parser.add_argument('--warm-spares',type=int,default=2)
     parser.add_argument('--manual-dir',help='Previously published immutable manual directory for this handover')
@@ -92,11 +91,10 @@ def main():
         if accepted.get('status')!='passed'or accepted.get('sourceBundleSHA256')!=digest or not accepted.get('automaticReplenishmentVerified')or not accepted.get('restartPersistenceVerified'):
             raise ValueError('Matching acceptance is required')
     initial_pool={'slots':{}}if args.canary else current['pool']
-    count=1 if args.canary else current['count']
-    maximum=args.max_accounts if args.max_accounts is not None else(4 if args.canary else 16)
-    if type(maximum)is not int or not max(1,count)<=maximum<=32 or not 0<=args.warm_spares<=min(8,maximum):raise ValueError('Invalid initial capacity; preserve all existing accounts')
+    # No account limit: new sign-ups are gated by local storage headroom (reserveStorageGiB).
+    if not 0<=args.warm_spares<=8:raise ValueError('Invalid initial capacity; use 0-8 warm spares')
     if args.apply and not args.canary and current['source']!=args.expected_source_sha256:raise ValueError('Live gateway source changed; inspect before handover')
-    policy={'version':1,'enabled':True,'warmSpareSlots':args.warm_spares,'maxAccounts':maximum}
+    policy={'version':1,'enabled':True,'warmSpareSlots':args.warm_spares}
     policy_claim=prefix+'-policy';inventory_claim=prefix+'-inventory'
     control_claim=prefix+'-services'if args.canary else next(v['persistentVolumeClaim']['claimName']for v in original['spec']['template']['spec']['volumes']if v['name']=='app-service-control')
     central_claim='dsh-da-workspace-secure'
@@ -110,7 +108,7 @@ def main():
         'additionalAccountDeployments':additional,
         'issuerKeyFile':'/issuer/key','litellmBase':'http://litellm.'+args.namespace+'.svc.cluster.local:4000',
         'inventoryPVC':inventory_claim,'serviceControlPVC':control_claim,'storageClass':'topolvm','trustedHost':trusted,
-        'reserveCPU':2,'reserveMemoryGiB':32,'reserveStorageGiB':32,'reservePods':10}
+        'reserveCPU':2,'reserveMemoryGiB':32,'reserveStorageGiB':200,'reservePods':10}
     site={'apiVersion':'v1','kind':'ConfigMap','immutable':True,'metadata':{'name':prefix+'-site-'+digest[:12]},
         'data':{'site.json':json.dumps(config),'templates.json':json.dumps({'templates':templates,'claims':claims}),
                 'initial-pool.json':json.dumps(initial_pool),'initial-policy.json':json.dumps(policy)}}
@@ -247,7 +245,7 @@ if(process.env.CANARY==='true'&&!f.existsSync('/auth/users.json')){const passwor
     (args.output/'gateway-before.private.json').write_text(json.dumps(original),encoding='utf8')
     (args.output/'seed.private.json').write_text(json.dumps(seed),encoding='utf8')
     (args.output/'plan.json').write_text(json.dumps({'canary':args.canary,'sourceBundleSHA256':digest,'gatewaySourceSHA256':auth_digest,
-        'gateway':gateway['metadata']['name'],'controller':sa,'warmSpareSlots':policy['warmSpareSlots'],'maxAccounts':policy['maxAccounts'],'existingDataModified':False,'sharedIngressGuard':boundary}),encoding='utf8')
+        'gateway':gateway['metadata']['name'],'controller':sa,'warmSpareSlots':policy['warmSpareSlots'],'existingDataModified':False,'sharedIngressGuard':boundary}),encoding='utf8')
     if not args.apply:print(json.dumps({'prepared':True,'applied':False,'canary':args.canary}));return
     # Do not activate the controller until the isolated gateway produces fresh
     # account projections. Its initial stale-state decision creates nothing.

@@ -7,7 +7,6 @@ are kept for audit but never count against the active inventory.
 from datetime import datetime, timezone
 import math
 
-ACCOUNT_LIMIT_MAX = 100000      # effectively unlimited; admission happens at sign-in
 ACTIVE_SLOTS_MAX = 200          # bounded by the inventory file size
 INVENTORY_ENTRIES_MAX = 400
 
@@ -18,11 +17,13 @@ def active_slots(slots):
 
 def plan(policy, assignments, inventory, resources, now=None):
     now = now or datetime.now(timezone.utc)
-    required = {'version', 'enabled', 'maxAccounts', 'warmSpareSlots'}
-    if set(policy) != required or policy['version'] != 1 or type(policy['enabled']) is not bool:
+    # There is no account limit. A policy stored before it was removed may still
+    # carry maxAccounts; it is ignored. Storage headroom gates new pairs instead.
+    keys = set(policy) - {'maxAccounts'}
+    if keys != {'version', 'enabled', 'warmSpareSlots'} or policy['version'] != 1 or type(policy['enabled']) is not bool:
         raise ValueError('Invalid policy')
-    maximum, spare = policy['maxAccounts'], policy['warmSpareSlots']
-    if type(maximum) is not int or not 1 <= maximum <= ACCOUNT_LIMIT_MAX or type(spare) is not int or not 0 <= spare <= min(8, maximum):
+    spare = policy['warmSpareSlots']
+    if type(spare) is not int or not 0 <= spare <= 8:
         raise ValueError('Invalid capacity bounds')
     age = (now - datetime.fromisoformat(assignments['observedAt'].replace('Z', '+00:00'))).total_seconds()
     if age < -5 or age > 60:
@@ -37,10 +38,9 @@ def plan(policy, assignments, inventory, resources, now=None):
     active = active_slots(slots)
     ready = sum(s.get('state') == 'ready' for name, s in active.items() if name not in used)
     pending = sum(s.get('state') in ['preparing', 'qualifying'] for s in active.values())
-    desired = max(0, min(spare, maximum - count))
+    desired = spare
     base = {'readySpares': ready, 'pendingSlots': pending, 'desiredSpares': desired,
-            'registeredAccounts': count, 'maxAccounts': maximum,
-            'existingSlotsToDelete': []}
+            'registeredAccounts': count, 'existingSlotsToDelete': []}
     if not policy['enabled']:
         return {**base, 'action': 'wait', 'reason': 'automatic-provisioning-disabled'}
     if pending:

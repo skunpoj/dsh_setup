@@ -17,7 +17,7 @@ let child;
  const target={host:name+'.llm.svc.cluster.local',port:3081,tokenFile:'/runtime-tokens/unused'};
  json('users.json',{alice:'synthetic-alice-password'});json('routes.json',{alice:{secure:target,internet:{...target,host:'dsh-u-'+'a'.repeat(16)+'-internet.llm.svc.cluster.local'}}});
  json('initial-pool.json',{slots:{}});json('capacity/inventory/pool.json',{slots:{}});
- json('capacity/policy/policy.json',{version:1,enabled:true,warmSpareSlots:2,maxAccounts:32});
+ json('capacity/policy/policy.json',{version:1,enabled:true,warmSpareSlots:2});
  const sessions=(state,position)=>json('capacity/inventory/sessions.json',{version:1,observedAt:new Date().toISOString(),available:true,
   runtimes:{[name]:{state,...(position?{position}:{})}},summary:{running:state==='running'?1:0,starting:state==='starting'?1:0,waiting:state==='waiting'?1:0,stopped:0,startsAvailable:0,idleTimeoutSeconds:3600}});
  child=spawn(process.execPath,[path.join(__dirname,'../scripts/auth_proxy.js')],{env:{...process.env,PORT:String(port),WORKSPACE_ROOT:root,

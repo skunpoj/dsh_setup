@@ -10,7 +10,7 @@ from datetime import datetime, timezone, timedelta
 class PlannerTests(unittest.TestCase):
     def setUp(self):
         self.now=datetime.now(timezone.utc)
-        self.policy={'version':1,'enabled':True,'maxAccounts':16,'warmSpareSlots':2}
+        self.policy={'version':1,'enabled':True,'warmSpareSlots':2}
         self.assignments={'observedAt':self.now.isoformat(),'registeredAccounts':9,'assignedSlots':['owned']}
         self.inventory={'slots':{'owned':{'state':'ready'},'spare':{'state':'ready'}}}
         self.resources={k:1 for k in ['cpuAfterPair','memoryGiBAfterPair','podsAfterPair','storageGiBAfterPair']}
@@ -25,9 +25,15 @@ class PlannerTests(unittest.TestCase):
         for seconds in [-61,10]:
             self.assignments['observedAt']=(self.now+timedelta(seconds=seconds)).isoformat()
             self.assertEqual(self.call()['reason'],'assignment-state-stale')
-    def test_capacity_cap_and_disabled(self):
-        self.policy['maxAccounts']=9;self.assertEqual(self.call()['desiredSpares'],0)
+    def test_no_account_limit_and_disabled(self):
+        # Accounts beyond any former limit still get the configured spares;
+        # only storage headroom (storageGiBAfterPair) stops new pairs.
+        self.assignments['registeredAccounts']=5000;self.assertEqual(self.call()['desiredSpares'],2)
+        self.assertNotIn('maxAccounts',self.call())
         self.policy['enabled']=False;self.assertEqual(self.call()['action'],'wait')
+    def test_storage_headroom_stops_new_pairs(self):
+        self.resources['storageGiBAfterPair']=-0.5
+        r=self.call();self.assertEqual(r['action'],'wait');self.assertEqual(r['reason'],'insufficient-or-unknown-storageGiBAfterPair')
     def test_unknown_or_exhausted_resource_denies(self):
         for k in self.resources:
             original=self.resources[k];self.resources[k]=-1;self.assertEqual(self.call()['action'],'wait');self.resources[k]=original
@@ -51,7 +57,7 @@ class PlannerTests(unittest.TestCase):
         del self.inventory['slots']['owned']
         with self.assertRaises(ValueError):self.call()
     def test_strict_policy_bounds(self):
-        for p in [{'maxAccounts':True},{'maxAccounts':100001},{'warmSpareSlots':9},{'enabled':1}]:
+        for p in [{'warmSpareSlots':9},{'warmSpareSlots':-1},{'warmSpareSlots':True},{'enabled':1},{'command':'x'}]:
             old=self.policy.copy();self.policy.update(p)
             with self.assertRaises(ValueError):self.call()
             self.policy=old
@@ -59,7 +65,8 @@ class PlannerTests(unittest.TestCase):
     def test_retired_slots_do_not_count_against_inventory(self):
         self.inventory['slots'].update({'old'+str(i):{'state':'retired'}for i in range(250)})
         self.assertEqual(self.call()['action'],'provision')
-    def test_large_account_limit_is_valid(self):
-        self.policy['maxAccounts']=100000;self.assertEqual(self.call()['desiredSpares'],2)
+    def test_legacy_stored_limit_is_ignored(self):
+        self.policy['maxAccounts']=9;self.assignments['registeredAccounts']=40
+        self.assertEqual(self.call()['desiredSpares'],2)
 
 if __name__=='__main__':unittest.main()

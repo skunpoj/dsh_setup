@@ -19,7 +19,7 @@ const json=(p,v)=>fs.writeFileSync(path.join(root,p),JSON.stringify(v));
  json('users.json',{admin:'synthetic-admin',alice:'synthetic-alice'});
  const target={host:'127.0.0.1',port:3081,tokenFile:'/runtime-tokens/unused'};
  json('routes.json',{admin:{secure:target,internet:target},alice:{secure:target,internet:target}});
- json('initial-pool.json',{slots:{}});json('capacity/policy/policy.json',{version:1,enabled:true,warmSpareSlots:2,maxAccounts:16});
+ json('initial-pool.json',{slots:{}});json('capacity/policy/policy.json',{version:1,enabled:true,warmSpareSlots:2});
  const healthy=registered=>({observedAt:new Date().toISOString(),available:true,capacity:{version:1,mainRegistered:registered,additionalDeploymentsComplete:true,additionalAccounts:2,
   additionalDeployments:[{label:'DSH2',accounts:1},{label:'DSH3',accounts:1}],observedUsage:{timestamp:new Date().toISOString(),cpu:1,memoryGiB:10,reservedCPU:2,reservedMemoryGiB:20},
   resources:['cpu','memoryGiB','pods','storageGiB'].map(resource=>({resource,available:10,reserve:2,pairBudget:1}))}});
@@ -30,10 +30,10 @@ const json=(p,v)=>fs.writeFileSync(path.join(root,p),JSON.stringify(v));
  assert.equal((await request('GET','/api/admin/capacity','',alice,{'X-DSH-Role':'admin'})).status,403);
  let d=JSON.parse((await request('GET','/api/admin/capacity','',admin)).text);assert.equal(d.automaticProvisioning.policy.warmSpareSlots,2);
  const save=(body,extra={})=>request('POST','/api/admin/capacity',new URLSearchParams(body).toString(),admin,{'X-DSH-Admin-CSRF':d.csrfToken,...extra});
- const value={enabled:'true',warmSpareSlots:'2',maxAccounts:'3'};
+ const value={enabled:'true',warmSpareSlots:'2'};
  assert.equal((await request('POST','/api/admin/capacity',new URLSearchParams(value).toString(),admin)).status,403);
  assert.equal((await save(value,{Origin:'https://evil.example'})).status,403);
- for(const bad of [{maxAccounts:'1'},{maxAccounts:'100001'},{warmSpareSlots:'9'},{warmSpareSlots:'2.5'},{enabled:'shell'}])assert.equal((await save({...value,...bad})).status,400);
+ for(const bad of [{warmSpareSlots:'-1'},{warmSpareSlots:'9'},{warmSpareSlots:'2.5'},{enabled:'shell'}])assert.equal((await save({...value,...bad})).status,400);
  assert.equal((await save(value)).status,200);
  // A controller publication becomes available without replacing the gateway.
  for(let i=0;i<2;i++){
@@ -69,8 +69,8 @@ const json=(p,v)=>fs.writeFileSync(path.join(root,p),JSON.stringify(v));
  assert.equal((await register('capacity_charlie')).status,200,'No account cap: the last ready slot is assigned');
  assert.equal((await request('POST','/login',new URLSearchParams({username:'capacity_bob',password:'synthetic-new-password',internet:'on'}).toString())).status,403);
  const before=JSON.parse(fs.readFileSync(path.join(root,'users.json')));assert(before.capacity_bob.runtimeSlot);assert.equal(before.capacity_bob.internetAllowed,false);
- // A retained extra account must not break reads after an operator restores
- // the original limit. No account, password, route or policy is changed by GET.
+ // A policy stored before the account limit was removed (here a limit below the
+ // registered count) must not break reads or saves. GET changes nothing.
  json('capacity/policy/policy.json',{version:1,enabled:true,warmSpareSlots:2,maxAccounts:2});
  const limitedPolicy=fs.readFileSync(path.join(root,'capacity/policy/policy.json'));
  const retainedStore=fs.readFileSync(path.join(root,'users.json'));
@@ -80,22 +80,25 @@ const json=(p,v)=>fs.writeFileSync(path.join(root,p),JSON.stringify(v));
  assert.equal((await register('still_full')).status,503,'New account waits for the next prepared slot');
  assert.deepEqual(fs.readFileSync(path.join(root,'users.json')),retainedStore);
  assert.deepEqual(fs.readFileSync(path.join(root,'capacity/policy/policy.json')),limitedPolicy);
- assert.equal((await save({...value,maxAccounts:'2'})).status,400,'Admin cannot lower the cap below retained accounts');
+ assert.equal((await save(value)).status,200,'A legacy stored limit never blocks an admin save');
+ assert.equal('maxAccounts' in JSON.parse(fs.readFileSync(path.join(root,'capacity/policy/policy.json'))),false,'Saving drops the legacy limit');
+ assert.equal((await register('still_full')).status,503,'With no ready slot a new account still waits; no limit is involved');
  await stop();await start();assert.equal(JSON.parse((await request('GET','/api/signup-capacity')).text).remainingSlots,0);
  admin=await login('admin','synthetic-admin');d=JSON.parse((await request('GET','/api/admin/capacity','',admin)).text);
  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root,'users.json'))),before);
- assert.equal((await save({...value,enabled:'false',maxAccounts:'5'})).status,200,'Raising the account limit reserves nothing');
+ assert.equal((await save({...value,enabled:'false'})).status,200,'Saving the policy reserves nothing');
  json('capacity/inventory/status.json',{observedAt:new Date().toISOString(),available:true,capacity:{version:1,mainRegistered:4,additionalDeploymentsComplete:true,additionalAccounts:2,mainPlanningCeiling:5,readyPairs:1,additionalPairsPossible:1,resources:['cpu','memoryGiB','pods','storageGiB'].map(resource=>({resource,available:10,reserve:2,pairBudget:1,afterReserve:8,additionalPairs:8})),additionalDeployments:[{label:'DSH2',accounts:1,readyWorkers:1,desiredWorkers:1},{label:'DSH3',accounts:1,readyWorkers:1,desiredWorkers:1}]}});
  const measured=JSON.parse((await request('GET','/api/admin/capacity','',admin)).text).automaticProvisioning.controller.capacity;
  assert.equal(measured.totalRegistered,6);assert.equal(measured.mainPlanningCeiling,5);
  assert((await request('GET','/admin','',admin)).text.includes('capacityResources'));
- assert.equal((await save({...value,enabled:'false',maxAccounts:'6'})).status,200,'Accounts are admitted by storage, not a compute ceiling');
- assert.equal((await save({...value,enabled:'false',maxAccounts:'4'})).status,200);
+ assert.equal((await save({...value,enabled:'false',warmSpareSlots:'1'})).status,200,'Accounts are admitted by storage, not a count or compute ceiling');
+ assert.equal((await save({...value,enabled:'false'})).status,200);
+ assert(!(await request('GET','/admin','',admin)).text.includes('capacityMax'),'The admin form has no account-limit field');
  json('capacity/inventory/status.json',healthy(4));
  await new Promise(r=>setTimeout(r,5200));const projection=JSON.parse(fs.readFileSync(path.join(root,'capacity/policy/assignments.json')));
  assert.equal(projection.registeredAccounts,4);assert.deepEqual(projection.assignedSlots,[before.capacity_bob.runtimeSlot,before.capacity_charlie.runtimeSlot].sort());assert(!JSON.stringify(projection).includes('password'));
  await stop();await start();admin=await login('admin','synthetic-admin');d=JSON.parse((await request('GET','/api/admin/capacity','',admin)).text);
- assert.equal(d.automaticProvisioning.policy.enabled,false);assert.equal(d.automaticProvisioning.policy.maxAccounts,4);assert.equal(d.remainingSlots,0);
+ assert.equal(d.automaticProvisioning.policy.enabled,false);assert.equal('maxAccounts' in d.automaticProvisioning.policy,false);assert.equal(d.remainingSlots,0);
  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root,'users.json'))),before);assert.equal(fs.readFileSync(path.join(root,'history-preservation-marker'),'utf8'),'existing private data');
  const events=fs.readFileSync(path.join(root,'audit/events.jsonl'),'utf8').trim().split('\n').map(JSON.parse);assert(events.some(e=>e.event==='capacity.policy'&&e.capacity?.outcome==='applied'));
  console.log(JSON.stringify({status:'passed',adminAuthorization:true,csrfAndOriginDenials:true,capacityBounds:true,dynamicPublicationWithoutRestart:true,noAccountCapAndDefaultInternetDenial:true,policyAndAssignmentsPersisted:true,existingDataUnchanged:true,privateProjection:true}));

@@ -21,6 +21,8 @@ from capacity_controller import atomic_json, read_json, read_config
 from prepare_signup_pool import generate
 from deploy_app_supervision import sidecar, key
 
+SIGNUP_STORAGE_RESERVE_GIB = 200   # free local storage kept after any new account's claims
+
 
 def initialize_services(controls):
     """Publish defaults only for a new identity; never reset an admin Stop.
@@ -151,7 +153,10 @@ class Worker:
         resources={'cpu':{'available':max(0,quantity(alloc['cpu'])-max(cpu,observed_cpu)),'reserve':self.config.get('reserveCPU',2),'pairBudget':pair_cpu},
                    'memoryGiB':{'available':max(0,(quantity(alloc['memory'])-max(memory,observed_memory))/1024**3),'reserve':self.config.get('reserveMemoryGiB',32),'pairBudget':pair_memory},
                    'pods':{'available':max(0,int(alloc['pods'])-len(pods)),'reserve':self.config.get('reservePods',10),'pairBudget':len(future)},
-                   'storageGiB':{'available':min(storage),'reserve':self.config.get('reserveStorageGiB',32),'pairBudget':pair_storage}}
+                   # New accounts are refused (and no spare is created) once a new pair's
+                   # claims would leave less than this much free local storage. Site
+                   # config may raise the reserve but never lower it below the floor.
+                   'storageGiB':{'available':min(storage),'reserve':max(SIGNUP_STORAGE_RESERVE_GIB,self.config.get('reserveStorageGiB',0)),'pairBudget':pair_storage}}
         additional=[];complete='additionalAccountDeployments'in self.config
         for item in self.config.get('additionalAccountDeployments',[]):
             name,label=item['name'],item['label']
