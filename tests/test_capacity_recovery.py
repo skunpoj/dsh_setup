@@ -16,7 +16,7 @@ class RecoveryTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name)
         (self.root/'policy').mkdir();(self.root/'inventory').mkdir()
-        self.write('policy/policy.json',{'version':1,'enabled':True,'warmSpareSlots':2})
+        self.write('policy/policy.json',{'version':1,'enabled':True,'warmSpareSlots':1})
         self.write('policy/assignments.json',{'observedAt':datetime.now(timezone.utc).isoformat(),'registeredAccounts':3,'assignedSlots':[]})
         self.routes={'secure':{'host':'private-secure'},'internet':{'host':'private-internet'}}
         self.write('inventory/inventory.json',{'slots':{'qualified':{'state':'ready','qualification':{'status':'passed'},'routes':self.routes}}})
