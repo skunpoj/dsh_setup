@@ -9,6 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 from gateway_sources import gateway_sources, gateway_sources_sha256, gateway_configmap_items
+from prepare_signup_pool import protected_template_users
 import re
 import subprocess
 import uuid
@@ -52,7 +53,7 @@ def main():
     if args.manual_dir and not re.fullmatch(r'/auth/manuals/[a-f0-9]{16}',args.manual_dir):raise ValueError('Invalid immutable manual directory')
     for value in [args.namespace,args.gateway,args.template_user]:
         if not re.fullmatch(r'[a-z0-9_.-]{3,63}',value):raise ValueError('Invalid site identifier')
-    if args.template_user in ['admin','thanatcc']:raise ValueError('Use an ordinary private user template')
+    if args.template_user in protected_template_users():raise ValueError('Use an ordinary private user template')
     args.output.mkdir(parents=True,exist_ok=False)
     def kube(*parts,source=None,timeout=45):
         result=subprocess.run([args.kubectl,'-n',args.namespace,'--request-timeout=30s',*parts],input=source,

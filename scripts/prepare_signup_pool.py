@@ -8,9 +8,20 @@ import argparse
 import copy
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
+
+
+def protected_template_users():
+    """Accounts whose runtimes must never be cloned as a signup template.
+
+    Site-specific names live in deployment config (DSH_PROTECTED_TEMPLATE_USERS,
+    comma-separated), not in source. 'admin' is always protected.
+    """
+    names = {n.strip().lower() for n in os.environ.get('DSH_PROTECTED_TEMPLATE_USERS', '').split(',') if n.strip()}
+    return names | {'admin'}
 
 
 def generate(templates, claims, pool_id, count):
@@ -136,7 +147,7 @@ def main():
             raise RuntimeError(p.stderr[-500:])
         return p.stdout
     routing = json.loads(json.loads(kube('get', 'cm', 'dsh-user-routing', '-o', 'json'))['data']['users.json'])
-    if args.template_user in {'admin', 'thanatcc'}:
+    if args.template_user in protected_template_users():
         raise ValueError('Use an ordinary isolated runtime template, never the legacy owner')
     templates = {e: json.loads(kube('get', 'deploy', t['host'].split('.')[0], '-o', 'json')) for e, t in routing[args.template_user].items()}
     if args.image:
