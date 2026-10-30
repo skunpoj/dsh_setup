@@ -1,9 +1,16 @@
 // Operator/init-container migration. Never reads credentials or session events.
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const ids=['agent-default-model','session-title-llm','llm-deepseek','llm-deepseek-account'];
+// DSH "insert" patch entries carry an empty id and may legitimately repeat;
+// they are kept unchanged. Every named id must still be unique.
+function assertUniqueIds(entries){
+ if(entries.some(x=>!x||typeof x.id!=='string'))throw Error('Profile IDs must be strings');
+ const named=entries.map(x=>x.id).filter(x=>x!=='');
+ if(new Set(named).size!==named.length)throw Error('Profile IDs must be unique');
+}
 function migrate(original,seed){
  if(!Array.isArray(original)||!Array.isArray(seed))throw Error('Expected profile arrays');
- for(const entries of [original,seed]){const keys=entries.map(x=>x.id);if(keys.some(x=>typeof x!=='string')||new Set(keys).size!==keys.length)throw Error('Profile IDs must be unique');}
+ for(const entries of [original,seed])assertUniqueIds(entries);
  const result=structuredClone(original);
  for(const id of ids){const desired=seed.find(x=>x.id===id);if(!desired)throw Error('Qualified seed entry missing: '+id);
   const old=result.find(x=>x.id===id);
@@ -29,4 +36,4 @@ function main(){
  fs.renameSync(tmp,file);const actual=yaml.parse(fs.readFileSync(file,'utf8'));if(JSON.stringify(actual)!==JSON.stringify(next))throw Error('Profile readback mismatch');
  console.log(JSON.stringify({changed:true,originalSHA256:sha,managedDefault:'deepseek-v4.1-flash',historyAndCredentialsTouched:false}));
 }
-if(require.main===module)main();module.exports={migrate};
+if(require.main===module)main();module.exports={migrate,assertUniqueIds};

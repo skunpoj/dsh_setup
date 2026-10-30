@@ -125,6 +125,8 @@ function handlePublicAlias(req,res,socket,head) {
  const stamp=JSON.stringify(a.entry);const timer=setInterval(()=>{try{const current=publicApp(alias);if(!current||JSON.stringify(current.entry)!==stamp)connection.destroy();}catch{connection.destroy();}},2000);timer.unref();connection.once('close',()=>clearInterval(timer));
  if(a.external){const options=externalProxyOptions(req,a.external);const promise=socket?EXTERNAL_PROXY.proxyWebSocket(req,socket,head,options):EXTERNAL_PROXY.proxyHTTP(req,res,options);promise.catch(()=>{if(socket)socket.destroy();else if(!res.headersSent){res.writeHead(502);res.end('Application unavailable');}else res.destroy();});return true;}
  const runtime=getEnvironmentTarget(a.mode,a.entry.owner);if(!runtime){if(socket)rejectUpgrade(socket,503,'ENVIRONMENT_UNAVAILABLE');else{res.writeHead(503);res.end('Application runtime unavailable');}return true;}
+ // A visited application keeps its owner's workspace active; a stopped one waits.
+ if(SESSION_DEMAND){SESSION_DEMAND.touch(runtime);if(RUNTIME_WAITING.includes(SESSION_DEMAND.state(runtime).state)){if(socket)rejectUpgrade(socket,503,'RUNTIME_STARTING');else{res.writeHead(503,{'Retry-After':'10','Cache-Control':'no-store'});res.end('This application\'s workspace is starting. Please retry shortly.');}return true;}}
  publicAppHeaders(req);
  if(socket){req.headers.connection='Upgrade';req.headers.upgrade='websocket';req.rawHeaders.push('Connection','Upgrade','Upgrade','websocket');}
  if(socket)forwardWebSocketToLocalApp(a.port,req.url,req,socket,head,runtime.host);else forwardToLocalApp(a.port,req.url,req,res,runtime.host);
@@ -764,6 +766,59 @@ const CAPACITY_ROOT=process.env.DSH_CAPACITY_ROOT||'';
 const CAPACITY=CAPACITY_ROOT?new (require('./capacity_policy').Manager)(CAPACITY_ROOT,SIGNUP_POOL,process.env.DSH_NAMESPACE||'llm'):null;
 function activeSignupPool(){return CAPACITY?CAPACITY.pool():SIGNUP_POOL;}
 setInterval(()=>{if(CAPACITY)try{CAPACITY.project(loadUsers());}catch{}},5000).unref();
+// First come, first reserved: publish which private runtimes signed-in users are using.
+// The controller starts them when resources allow and stops them when idle.
+const SESSION_DEMAND=CAPACITY_ROOT&&USER_TARGETS?require('./session_demand').createSessionDemand({root:CAPACITY_ROOT}):null;
+const SESSION_IDLE_MS=Math.max(300000,Math.min(86400000,(Number(process.env.DSH_SESSION_IDLE_MINUTES)||60)*60000));
+const RUNTIME_WAITING=['stopped','stopping','starting','waiting'];
+let sessionDemandSeeded=false;
+setInterval(()=>{if(!SESSION_DEMAND)return;try{
+  // First rollout: treat everyone already signed in as active for one idle period.
+  if(!sessionDemandSeeded){sessionDemandSeeded=true;if(!SESSION_DEMAND.seeded())for(const s of SESSIONS.values())SESSION_DEMAND.touch(getEnvironmentTarget(normalizeInternetMode(s.internet),s.user));}
+  SESSION_DEMAND.flush(SESSION_IDLE_MS);}catch{}},5000).unref();
+function capacityStatusSnapshot(){
+  if(!CAPACITY_ROOT)return null;
+  try{const s=require('./capacity_policy').readJSON(path.join(CAPACITY_ROOT,'inventory','status.json'),65536);const age=Date.now()-Date.parse(s.observedAt);return s.available===true&&Number.isFinite(age)&&age>=-5000&&age<90000?s:null;}catch{return null;}
+}
+function sharedResourceStatus(){return require('./session_demand').publicStatus(SESSION_DEMAND?.snapshot(),capacityStatusSnapshot());}
+// Cold start or queue: a self-refreshing page for browsers, 503 + Retry-After for API clients.
+function sendRuntimeWait(req,res,runtime){
+  const status=sharedResourceStatus();
+  const message=runtime.state==='waiting'?`All shared resources are in use. You are number ${Number(runtime.position)||1} in the queue; your workspace starts as soon as resources free up.`
+    :runtime.state==='starting'?'Your workspace is starting. This usually takes under a minute.'
+    :'Your workspace was stopped after a period without activity. It is starting again now; your files are kept.';
+  // JupyterHub-style spawn progress: queued, scheduling, preparing, image, containers, DSH, ready.
+  const progress=runtime.progress||{stage:runtime.state==='waiting'?'queued':'scheduling',percent:runtime.state==='waiting'?5:10,detail:''};
+  if(req.method!=='GET'||!String(req.headers.accept||'').includes('text/html')){
+    res.writeHead(503,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Retry-After':'3'});
+    return res.end(JSON.stringify({error:'RUNTIME_'+runtime.state.toUpperCase(),state:runtime.state,...(runtime.position?{position:runtime.position}:{}),progress,message}));
+  }
+  // Every value below is a constant or a controller-supplied number; escape anyway.
+  const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const n=v=>Number.isSafeInteger(v)?v:'–',pct=v=>Number.isFinite(v)?Math.round(v)+'%':'–';
+  const w=status.workspaces||{};
+  const steps=[['queued','Waiting for shared resources'],['scheduling','Placing your workspace on the node'],['preparing','Mounting your files and settings'],
+    ['pulling-image','Loading the workspace image'],['starting-containers','Starting workspace processes'],['starting-dsh','Starting DSH'],['ready','Ready: opening your workspace']];
+  const failed=progress.stage==='failed',current=steps.findIndex(([id])=>id===progress.stage);
+  const percent=Math.max(0,Math.min(100,Number(progress.percent)||0));
+  const list=steps.map(([id,label],i)=>{const done=!failed&&current>i,now=current===i;
+    return `<li class="${done?'done':now?'now':''}"><span>${done?'✓':now?'●':'○'}</span>${escapeHtml(label)}${now&&progress.detail?` <em>${escapeHtml(progress.detail)}</em>`:''}</li>`;}).join('');
+  // A meta-free Refresh header keeps the page script-free; when the workspace is
+  // ready the next refresh is proxied straight into it (automatic redirect).
+  res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Refresh':'3','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY',
+    'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'"});
+  return res.end(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Starting your workspace</title>
+<style>body{font-family:system-ui,sans-serif;margin:0;background:#f4f6f9;color:#1f2933}main{max-width:560px;margin:10vh auto;padding:28px;background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08)}h1{font-size:1.3rem;margin:0 0 12px}p{line-height:1.5}
+.bar{height:14px;border-radius:7px;background:#e4e7eb;overflow:hidden;margin:16px 0 6px}.bar>div{height:100%;background:${failed?'#c53030':'#2f6fed'};transition:width .4s}.pct{font-weight:600;font-size:.9rem;color:#334e68}
+ol{list-style:none;padding:0;margin:16px 0}li{padding:4px 0;color:#9aa5b1}li span{display:inline-block;width:1.4em}li.done{color:#2f855a}li.now{color:#1f2933;font-weight:600}li em{font-weight:400;color:#52606d;font-style:normal}
+dl{display:grid;grid-template-columns:auto auto;gap:6px 16px;margin:18px 0}dt{color:#52606d}dd{margin:0;font-weight:600}small{color:#52606d}</style></head>
+<body><main><h1>${runtime.state==='waiting'?'Waiting for shared resources':failed?'Your workspace could not start':'Starting your workspace'}</h1><p>${escapeHtml(failed?'Starting failed ('+(progress.detail||'unknown')+'). Please contact the administrator; your files are safe.':message)}</p>
+<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><div style="width:${percent}%"></div></div><div class="pct">${percent}%</div>
+<ol>${list}</ol>
+<dl><dt>Workspaces running</dt><dd>${n(w.running)}</dd><dt>Starting / waiting</dt><dd>${n(w.starting)} / ${n(w.waiting)}</dd>
+<dt>CPU reserved / used</dt><dd>${pct(status.cpu?.reservedPercent)} / ${pct(status.cpu?.usedPercent)}</dd><dt>Memory reserved / used</dt><dd>${pct(status.memory?.reservedPercent)} / ${pct(status.memory?.usedPercent)}</dd></dl>
+<p><small>${escapeHtml(status.policy)} This page refreshes every 3 seconds and opens your workspace when it is ready. <a href="/logout">Sign out</a></small></p></main></body></html>`);
+}
 function privateTargetsFor(user, users=loadUsers()) {
   if(USER_TARGETS && Object.hasOwn(USER_TARGETS,user))return USER_TARGETS[user];
   const slot=Object.hasOwn(users,user)&&users[user].runtimeSlot;
@@ -781,7 +836,8 @@ function freeSignupSlots(users=loadUsers()) {
   if(CAPACITY&&!CAPACITY.admission(users).allowed)return [];
   const used=new Set(Object.values(users).map(u=>u.runtimeSlot).filter(Boolean));
   const pool=activeSignupPool();const slots=pool?Object.keys(pool.slots).filter(slot=>!used.has(slot)):[];
-  return CAPACITY?slots.slice(0,Math.max(0,CAPACITY.policy(users).maxAccounts-Object.keys(users).length)):slots;
+  // Accounts are not capped: they hold storage only and sign-in admits compute.
+  return slots;
 }
 function signupCapacitySummary(users=loadUsers()) {
   const pool=activeSignupPool();const provisioned=pool?Object.keys(pool.slots).length:0;
@@ -793,8 +849,7 @@ function signupCapacitySummary(users=loadUsers()) {
     disabledAccounts:Object.values(users).filter(user=>user.disabled===true).length};
 }
 function newAccountRecord(users,user,password) {
-  if(CAPACITY&&Object.keys(users).length>=CAPACITY.policy(users).maxAccounts)return {status:503,error:'The account capacity limit has been reached. Please contact the administrator.'};
-  if(CAPACITY&&!CAPACITY.admission(users).allowed)return {status:503,error:'New signups are temporarily paused while infrastructure capacity is busy or unavailable. Existing users can still sign in. Please retry after capacity recovers.'};
+  if(CAPACITY&&!CAPACITY.admission(users).allowed)return {status:503,error:'New signups are temporarily paused while storage is short or capacity is unavailable. Existing users can still sign in. Please retry after capacity recovers.'};
   if(ADMIN_USERS.has(user)||['__proto__','constructor','prototype'].includes(user)||Object.hasOwn(users,user))return {status:409,error:'Account is reserved or already exists.'};
   if(password.length<12||Buffer.byteLength(password)>1024||password!==password.trim())return {status:400,error:'Use a password of at least 12 characters without surrounding spaces.'};
   if(USER_TARGETS && Object.hasOwn(USER_TARGETS,user) && USER_TARGETS[user].secure && USER_TARGETS[user].internet)
@@ -1444,6 +1499,14 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '', authPro
       <p class="app-subtitle">Enterprise Agentic Coding &amp; Knowledge Gateway</p>
     </div>
 
+    <section id="resourceStatus" class="resource-status" role="status" aria-live="polite" style="margin:0 0 16px;padding:12px 14px;border:1px solid #d9e2ec;border-radius:10px;background:#f8fafc;font-size:.88rem;line-height:1.45">
+      <div style="font-weight:600;margin-bottom:8px">Shared resources now <span id="resourceUpdated" style="font-weight:400;color:#52606d;font-size:.8rem"></span></div>
+      <style>.rs-row{display:grid;grid-template-columns:7.5em 1fr;gap:6px 10px;align-items:center;margin:5px 0}.rs-bar{position:relative;height:12px;border-radius:6px;background:#e4e7eb;overflow:hidden}.rs-bar .rs-res{position:absolute;inset:0 auto 0 0;background:#9fb3c8}.rs-bar .rs-use{position:absolute;inset:0 auto 0 0;background:#2f6fed}.rs-val{grid-column:2;font-size:.78rem;color:#52606d;margin-top:-3px}.rs-legend{font-size:.75rem;color:#52606d;margin-top:4px}.rs-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin:0 4px 0 8px}</style>
+      <div id="resourceBars" aria-label="Shared resource utilisation"></div>
+      <div id="resourceNumbers">Checking…</div>
+      <div style="color:#52606d;margin-top:6px">Resources are shared and not reserved in advance. Your workspace starts when you sign in and resources allow (first come, first served), and stops after a period without activity. Your files are always kept.</div>
+    </section>
+
     <div class="auth-tabs">
       <div id="tab-login" class="auth-tab ${tab === 'login' ? 'active' : ''}" onclick="switchTab('login')">เข้าสู่ระบบ</div>
       ${ALLOW_REGISTRATION ? `<div id="tab-register" class="auth-tab ${tab === 'register' ? 'active' : ''}" onclick="switchTab('register')">Create account</div>` : ''}
@@ -1490,7 +1553,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '', authPro
     ${ALLOW_REGISTRATION ? `<!-- 2. Form: สร้างบัญชีผู้ใช้ใหม่ -->
     <div id="pane-register" class="tab-pane" style="display: ${tab === 'register' ? 'block' : 'none'};">
       <form method="POST" action="/register">
-        <p class="env-note">Create your private No Internet workspace. Internet access requires administrator approval. <span id="signupSlots" role="status" aria-live="polite">Checking new-user capacity…</span></p>
+        <p class="env-note">Create your private No Internet workspace. Internet access requires administrator approval. There is no limit on accounts: your workspace starts when you sign in and shared resources allow. <span id="signupSlots" role="status" aria-live="polite">Checking registration…</span></p>
         <div class="form-group">
           <label class="form-label" for="reg_username">ชื่อผู้ใช้งานใหม่ (New Username)</label>
           <input type="text" id="reg_username" name="username" class="form-control" placeholder="ตัวอักษรภาษาอังกฤษหรือตัวเลข (เช่น johndoe)" pattern="[a-zA-Z0-9_\-\.]{3,30}" title="ยาว 3-30 ตัวอักษร ใช้ได้เฉพาะ a-z, 0-9, _, -" required>
@@ -1539,8 +1602,37 @@ async function update(){if(pending||document.hidden)return;pending=true;const co
 try{const response=await fetch('/api/signup-capacity',{cache:'no-store',credentials:'omit',signal:controller.signal});if(!response.ok)throw Error('unavailable');const data=await response.json();
 if(!data.registrationEnabled){label.textContent='New account registration is unavailable.';return;}
 if(!Number.isSafeInteger(data.remainingSlots)||data.remainingSlots<0)throw Error('invalid count');
-label.textContent=data.remainingSlots+' new-user slots available'+(data.signupAdmission&&!data.signupAdmission.allowed?' — signup temporarily paused; retries reopen automatically after capacity recovers.':'');
-}catch{label.textContent='New-user capacity unavailable. Please refresh or contact the administrator.';}finally{clearTimeout(timeout);pending=false;}}
+label.textContent=data.signupAdmission&&!data.signupAdmission.allowed?'Registration is temporarily paused; it reopens automatically when storage recovers.'
+  :data.remainingSlots>0?'Registration is open.'
+  :data.signupAdmission?'A new private workspace is being prepared; registration reopens shortly.':'No new-user workspace is prepared. Please contact the administrator.';
+}catch{label.textContent='Registration status unavailable. Please refresh or contact the administrator.';}finally{clearTimeout(timeout);pending=false;}}
+update();setInterval(update,15000);window.addEventListener('focus',update);document.addEventListener('visibilitychange',update);})();
+(()=>{const box=document.getElementById('resourceNumbers');if(!box)return;let pending=false;
+const n=v=>Number.isSafeInteger(v)?String(v):'–',pct=v=>Number.isFinite(v)?Math.round(v)+'%':'–';
+async function update(){if(pending||document.hidden)return;pending=true;const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),8000);
+try{const r=await fetch('/api/status',{cache:'no-store',credentials:'omit',signal:controller.signal});if(!r.ok)throw Error('unavailable');const d=await r.json();
+if(!d.available){box.textContent='Live workspace status is unavailable right now; you can still sign in.';return;}
+const w=d.workspaces||{},free=Number.isSafeInteger(d.startsAvailableNow)?d.startsAvailableNow:null;
+// Bars: light = reserved (held for running workspaces), dark = actually used. Built with DOM APIs only.
+const bars=document.getElementById('resourceBars');
+if(bars){bars.replaceChildren();
+ const row=(label,reserved,used,caption)=>{const r=document.createElement('div');r.className='rs-row';
+  const l=document.createElement('div');l.textContent=label;const b=document.createElement('div');b.className='rs-bar';b.setAttribute('role','meter');
+  const clamp=v=>Math.max(0,Math.min(100,Number.isFinite(v)?v:0));
+  if(Number.isFinite(reserved)){const x=document.createElement('div');x.className='rs-res';x.style.width=clamp(reserved)+'%';b.append(x);}
+  if(Number.isFinite(used)){const x=document.createElement('div');x.className='rs-use';x.style.width=clamp(used)+'%';b.append(x);}
+  b.setAttribute('aria-valuenow',String(Math.round(clamp(Number.isFinite(used)?used:reserved))));
+  const c=document.createElement('div');c.className='rs-val';c.textContent=caption;r.append(l,b,c);bars.append(r);};
+ const num=v=>Number.isFinite(v)?String(v):'–';
+ if(d.cpu)row('CPU',d.cpu.reservedPercent,d.cpu.usedPercent,num(d.cpu.usedCores)+' used · '+num(d.cpu.reservedCores)+' reserved of '+num(d.cpu.totalCores)+' cores');
+ if(d.memory)row('Memory',d.memory.reservedPercent,d.memory.usedPercent,num(d.memory.usedGiB)+' used · '+num(d.memory.reservedGiB)+' reserved of '+num(d.memory.totalGiB)+' GiB');
+ if(d.gpu)row('GPU',d.gpu.allocatedPercent,undefined,num(d.gpu.allocated)+' of '+num(d.gpu.total)+' GPUs allocated (shared model server)');
+ if(Number.isSafeInteger(w.capacity)&&w.capacity>0)row('Workspaces',100*((w.running||0)+(w.starting||0))/w.capacity,100*(w.running||0)/w.capacity,n(w.running)+' running · '+n(w.starting)+' starting · '+n(w.waiting)+' waiting · room for '+n(w.capacity)+' now');
+ const legend=document.createElement('div');legend.className='rs-legend';const swatch=c=>{const i=document.createElement('i');i.style.background=c;return i;};
+ legend.append(swatch('#2f6fed'),'used',swatch('#9fb3c8'),'reserved');bars.append(legend);
+ const up=document.getElementById('resourceUpdated');if(up)up.textContent='· updated '+new Date().toLocaleTimeString();}
+box.textContent=n(w.running)+' workspaces running · '+n(w.starting)+' starting · '+n(w.waiting)+' waiting · CPU '+pct(d.cpu?.reservedPercent)+' reserved ('+pct(d.cpu?.usedPercent)+' used) · Memory '+pct(d.memory?.reservedPercent)+' reserved ('+pct(d.memory?.usedPercent)+' used) · '+(free===null?'':free>0?free+' more workspaces can start now':'All resources in use: new sign-ins wait in a queue')+(Number.isSafeInteger(d.idleTimeoutMinutes)?' · idle workspaces stop after '+d.idleTimeoutMinutes+' min':'');
+}catch{box.textContent='Live workspace status is unavailable right now; you can still sign in.';}finally{clearTimeout(timeout);pending=false;}}
 update();setInterval(update,15000);window.addEventListener('focus',update);document.addEventListener('visibilitychange',update);})();
 </script>
 </body>
@@ -1568,6 +1660,13 @@ const server = http.createServer((req, res) => {
       res.writeHead(200,headers);return res.end(body);
     }
     catch {res.writeHead(404,headers);return res.end('Application sign-in unavailable.');}
+  }
+  // Public, aggregate-only view of shared resources for the sign-in page.
+  if(parsedUrl.pathname==='/api/status') {
+    const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
+    if(req.method!=='GET'){res.writeHead(405,{...headers,Allow:'GET'});return res.end(JSON.stringify({error:'Method not allowed'}));}
+    try{res.writeHead(200,headers);return res.end(JSON.stringify(sharedResourceStatus()));}
+    catch{res.writeHead(503,headers);return res.end(JSON.stringify({error:'Resource status unavailable'}));}
   }
   if(parsedUrl.pathname==='/api/signup-capacity') {
     const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
@@ -1808,6 +1907,8 @@ const server = http.createServer((req, res) => {
           try { SESSIONS.delete(sid); }
           catch { res.writeHead(503);return res.end('Sign-out storage unavailable. Please retry.'); }
           if(s){for(const socket of SESSION_SOCKETS.get(s)||[])socket.destroy();SESSION_SOCKETS.delete(s);}
+          // Signing out releases the workspace at once unless another session uses it.
+          if(s&&SESSION_DEMAND&&![...SESSIONS.values()].some(x=>x.user===s.user)){const t=privateTargetsFor(s.user);if(t)SESSION_DEMAND.release(Object.values(t));}
         }
       }
     }
@@ -2022,6 +2123,12 @@ const server = http.createServer((req, res) => {
     return USER_CREDENTIALS.handle(req,res,{owner:credentialOwner,environment:internetMode,session:activeSession,authorized,
       reauthenticate:async password=>{const result=await authenticateIdentity(sessionUser,password,loadUsers()[sessionUser]?.authProvider==='ldap'?'ldap':'local',{create:false});return result?.user===sessionUser;},
       audit:event=>auditEvent(event,sessionUser,internetMode)});
+  }
+  // Signing in reserves: a stopped workspace cold-starts when resources allow.
+  if(SESSION_DEMAND){
+    SESSION_DEMAND.touch(environmentTarget);
+    const runtime=SESSION_DEMAND.state(environmentTarget);
+    if(RUNTIME_WAITING.includes(runtime.state))return sendRuntimeWait(req,res,runtime);
   }
 
 
@@ -2292,6 +2399,11 @@ server.on('upgrade', (req, socket, head) => {
   const environmentTarget = getEnvironmentTarget(internetMode, activeSession.user);
   if (!environmentTarget) return rejectUpgrade(socket,403,'ENVIRONMENT_UNAVAILABLE');
   bindAuthenticatedProxyIdentity(req, activeSession.user, internetMode);
+  if(SESSION_DEMAND){
+    SESSION_DEMAND.touch(environmentTarget);
+    if(RUNTIME_WAITING.includes(SESSION_DEMAND.state(environmentTarget).state))return rejectUpgrade(socket,503,'RUNTIME_STARTING');
+    SESSION_DEMAND.watch(socket,environmentTarget);
+  }
 
   // Dynamic App Gateway for WebSockets (e.g. Streamlit, Vite HMR, Next.js); only reachable after login
   const incomingHost = req.headers['x-forwarded-host'] || req.headers.host || '';

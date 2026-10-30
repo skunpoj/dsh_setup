@@ -68,11 +68,15 @@ dsh web --host 127.0.0.1 --port 3080 --no-open --trusted-host "$DSH_TRUSTED_HOST
 dsh_pid=$!
 
 while IFS= read -r line; do
-  printf '%s\n' "$line"
   if [[ "$line" =~ token=([A-Za-z0-9_-]+) ]]; then
+    token="${BASH_REMATCH[1]}"
     umask 077
-    printf '%s' "${BASH_REMATCH[1]}" >"/runtime-tokens/${DSH_ENVIRONMENT}"
+    printf '%s' "$token" >"/runtime-tokens/${DSH_ENVIRONMENT}"
+    # The launch token authenticates the workspace; never write it to the log.
+    line="${line//$token/<redacted>}"
+    unset token
   fi
+  printf '%s\n' "$line"
 done <"$fifo" &
 
 cleanup() {

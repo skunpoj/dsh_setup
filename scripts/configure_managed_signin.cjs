@@ -3,8 +3,8 @@
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
 function configure(profile,managedProvider){
  if(!Array.isArray(profile))throw Error('Expected profile array');
- const ids=profile.map(row=>row.id);
- if(ids.some(id=>typeof id!=='string')||new Set(ids).size!==ids.length)throw Error('Profile IDs must be unique');
+ // Same rule as the startup migration: empty-id insert entries may repeat.
+ require('./upgrade_runtime_profile.cjs').assertUniqueIds(profile);
  const selected=profile.find(row=>row.id==='agent-default-model');
  if((selected?.config?.provider??managedProvider)!=='litellm-cluster')return structuredClone(profile);
  const provider=profile.find(row=>row.id==='llm-pi-ai')?.config?.providers?.['litellm-cluster'];

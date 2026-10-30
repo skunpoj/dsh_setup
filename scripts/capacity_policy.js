@@ -3,15 +3,18 @@
 // owns inventory and launch tokens. Neither file contains password records.
 const fs = require('fs');
 const path = require('path');
-const MAX_ACCOUNTS = 32;
-const DEFAULT_POLICY = Object.freeze({version:1, enabled:true, warmSpareSlots:2, maxAccounts:16});
+// Accounts hold storage only; compute is admitted first come, first served at
+// sign-in. The account limit is therefore effectively unlimited.
+const MAX_ACCOUNTS = 100000;
+const ACTIVE_SLOTS_MAX = 200;
+const DEFAULT_POLICY = Object.freeze({version:1, enabled:true, warmSpareSlots:2, maxAccounts:MAX_ACCOUNTS});
 function validatePolicy(value, registered=0) {
   if (!value || typeof value!=='object' || Array.isArray(value) ||
       Object.keys(value).sort().join(',')!=='enabled,maxAccounts,version,warmSpareSlots' ||
       value.version!==1 || typeof value.enabled!=='boolean' ||
       !Number.isInteger(value.maxAccounts) || value.maxAccounts<Math.max(1,registered) || value.maxAccounts>MAX_ACCOUNTS ||
       !Number.isInteger(value.warmSpareSlots) || value.warmSpareSlots<0 || value.warmSpareSlots>8 ||
-      value.warmSpareSlots>value.maxAccounts) throw Error('Invalid capacity policy; preserve existing accounts and use 0–8 spares, maximum 32 accounts.');
+      value.warmSpareSlots>value.maxAccounts) throw Error('Invalid capacity policy; preserve existing accounts and use 0–8 spares.');
   return {...value};
 }
 function readJSON(file, limit=262144) {
@@ -47,7 +50,7 @@ class Manager {
   policy(users) {return validatePolicy(readJSON(path.join(this.root,'policy','policy.json')));}
   pool() {
     const value=readJSON(path.join(this.root,'inventory','pool.json'));
-    if(!value||!value.slots||Array.isArray(value.slots)||Object.keys(value.slots).length>32)throw Error('Invalid provisioned inventory');
+    if(!value||!value.slots||Array.isArray(value.slots)||Object.keys(value.slots).length>2*ACTIVE_SLOTS_MAX)throw Error('Invalid provisioned inventory');
     for(const [slot,targets]of Object.entries(this.initialPool.slots)){
       if(!require('util').isDeepStrictEqual(value.slots[slot],targets))throw Error('Existing private route changed');
     }
@@ -72,11 +75,9 @@ class Manager {
   }
   save(value,users) {
     const p=validatePolicy(value,Object.keys(users).length),old=this.policy(users);
-    if(p.maxAccounts>old.maxAccounts){
-      const report=this.summary(users).controller?.capacity;
-      if(!report || report.mainRegistered!==Object.keys(users).length || !Number.isSafeInteger(report.mainPlanningCeiling) || p.maxAccounts>report.mainPlanningCeiling)
-        throw Error('An increase requires a fresh infrastructure calculation covering all configured DSH deployments. Keep the present limit or refresh capacity.');
-    }
+    // Raising the account limit reserves nothing: a stopped account holds only
+    // its storage, and every sign-in start is checked against live resources.
+    void old;
     atomicJSON(path.join(this.root,'policy','policy.json'),p);this.project(users);return p;
   }
   summary(users) {
@@ -86,7 +87,7 @@ class Manager {
         controller={observedAt:s.observedAt,available:s.available===true,action:s.action,reason:s.reason,stage:s.stage,readySpares:s.readySpares,desiredSpares:s.desiredSpares};
         const c=s.capacity;
         if(s.available===true && c?.version===1 && c.mainRegistered===Object.keys(users).length &&
-           c.additionalDeploymentsComplete===true && Number.isSafeInteger(c.mainPlanningCeiling)&&c.mainPlanningCeiling>=c.mainRegistered&&c.mainPlanningCeiling<=32&&
+           c.additionalDeploymentsComplete===true && Number.isSafeInteger(c.mainPlanningCeiling)&&c.mainPlanningCeiling>=c.mainRegistered&&c.mainPlanningCeiling<=ACTIVE_SLOTS_MAX&&
            Number.isSafeInteger(c.additionalAccounts)&&c.additionalAccounts>=0&&c.additionalAccounts<=8&&
            Array.isArray(c.resources)&&c.resources.length===4 && c.resources.every(r=>['cpu','memoryGiB','pods','storageGiB'].includes(r.resource)&&['available','reserve','pairBudget','afterReserve','additionalPairs'].every(k=>Number.isFinite(r[k])&&r[k]>=0))){
           controller.capacity={mainRegistered:c.mainRegistered,additionalAccounts:c.additionalAccounts,totalRegistered:c.mainRegistered+c.additionalAccounts,
@@ -102,4 +103,4 @@ class Manager {
     return {policy,controller,controllerFresh:controller!==null};
   }
 }
-module.exports={DEFAULT_POLICY,MAX_ACCOUNTS,validatePolicy,readJSON,atomicJSON,projection,Manager};
+module.exports={DEFAULT_POLICY,MAX_ACCOUNTS,ACTIVE_SLOTS_MAX,validatePolicy,readJSON,atomicJSON,projection,Manager};

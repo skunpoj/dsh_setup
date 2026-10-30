@@ -51,9 +51,15 @@ class PlannerTests(unittest.TestCase):
         del self.inventory['slots']['owned']
         with self.assertRaises(ValueError):self.call()
     def test_strict_policy_bounds(self):
-        for p in [{'maxAccounts':True},{'maxAccounts':33},{'warmSpareSlots':9},{'enabled':1}]:
+        for p in [{'maxAccounts':True},{'maxAccounts':100001},{'warmSpareSlots':9},{'enabled':1}]:
             old=self.policy.copy();self.policy.update(p)
             with self.assertRaises(ValueError):self.call()
             self.policy=old
+
+    def test_retired_slots_do_not_count_against_inventory(self):
+        self.inventory['slots'].update({'old'+str(i):{'state':'retired'}for i in range(250)})
+        self.assertEqual(self.call()['action'],'provision')
+    def test_large_account_limit_is_valid(self):
+        self.policy['maxAccounts']=100000;self.assertEqual(self.call()['desiredSpares'],2)
 
 if __name__=='__main__':unittest.main()

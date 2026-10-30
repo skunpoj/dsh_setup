@@ -6,10 +6,15 @@ const now=Date.now(),fresh=()=>({observedAt:new Date(now).toISOString(),availabl
  observedUsage:{timestamp:new Date(now).toISOString(),cpu:10,memoryGiB:100,reservedCPU:15,reservedMemoryGiB:200},
  resources:['cpu','memoryGiB','pods','storageGiB'].map(resource=>({resource,available:10,reserve:2,pairBudget:1}))}});
 assert(signupAdmission(fresh(),12,now).allowed);
-for(const resource of ['cpu','memoryGiB','pods','storageGiB']){
- const s=fresh();s.capacity.resources.find(x=>x.resource===resource).available=2.5;
- assert.deepEqual(signupAdmission(s,12,now),{allowed:false,reason:'resource-pressure',resources:[resource]});
- s.capacity.resources.find(x=>x.resource===resource).available=3;
+// A new account holds storage only; compute is admitted first come at sign-in.
+for(const resource of ['cpu','memoryGiB','pods']){
+ const s=fresh();s.capacity.resources.find(x=>x.resource===resource).available=0;
+ assert(signupAdmission(s,12,now).allowed,'Compute pressure does not block registration');
+}
+{
+ const s=fresh();s.capacity.resources.find(x=>x.resource==='storageGiB').available=2.5;
+ assert.deepEqual(signupAdmission(s,12,now),{allowed:false,reason:'resource-pressure',resources:['storageGiB']});
+ s.capacity.resources.find(x=>x.resource==='storageGiB').available=3;
  assert(signupAdmission(s,12,now).allowed,'Recovery requires no policy or account change');
 }
 for(const mutate of [s=>s.available=false,s=>s.observedAt=new Date(now-60000).toISOString(),
@@ -20,4 +25,4 @@ for(const mutate of [s=>s.available=false,s=>s.observedAt=new Date(now-60000).to
  s=>s.capacity.resources[0].resource='memoryGiB',s=>s.capacity.mainRegistered=11]){
  const s=fresh();mutate(s);assert(!signupAdmission(s,12,now).allowed);
 }
-console.log(JSON.stringify({passed:true,allFourResourcePressureGates:true,automaticRecovery:true,additionalInstancesRequired:true,staleMissingAndMalformedFailClosed:true}));
+console.log(JSON.stringify({passed:true,storageOnlyPressureGate:true,computeAdmittedAtSignIn:true,automaticRecovery:true,additionalInstancesRequired:true,staleMissingAndMalformedFailClosed:true}));

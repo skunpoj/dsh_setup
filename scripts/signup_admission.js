@@ -24,7 +24,9 @@ function signupAdmission(snapshot, registered, now = Date.now()) {
         !['available','reserve','pairBudget'].every(k => Number.isFinite(x[k]) && x[k] >= 0) || x.pairBudget <= 0) ||
       new Set(c.resources.map(x => x.resource)).size !== 4)
     return deny('capacity-incomplete');
-  const blocked = c.resources.filter(x => x.available + 1e-9 < x.reserve + x.pairBudget).map(x => x.resource);
+  // A new account holds storage only; compute is admitted at sign-in, first
+  // come, first served. Only a lack of storage stops new registrations.
+  const blocked = c.resources.filter(x => x.resource === 'storageGiB' && x.available + 1e-9 < x.reserve + x.pairBudget).map(x => x.resource);
   if (blocked.length) return {...deny('resource-pressure'), resources:blocked};
   return {allowed:true, reason:'capacity-healthy'};
 }
