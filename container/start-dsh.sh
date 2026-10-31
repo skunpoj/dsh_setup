@@ -24,8 +24,8 @@ else
 fi
 
 mkdir -p /state/sessions /state/storages /state/attachments /state/kerberos /workspace /runtime-tokens
-mkdir -p /state/claude /state/trueforge
-chmod 0700 /state/claude /state/trueforge
+mkdir -p /state/claude /state/trueforge /state/kilo
+chmod 0700 /state/claude /state/trueforge /state/kilo
 if [ ! -e "$HOME/.claude" ]; then
   ln -s /state/claude "$HOME/.claude"
 elif [ "$(readlink "$HOME/.claude" || true)" != /state/claude ]; then
@@ -39,6 +39,9 @@ ln -s /state "${DSH_HOME:-$HOME/.dsh}"
 if [ ! -f /state/profiles/web/cordis.patch.yml ]; then
   cp -R --no-preserve=ownership,timestamps,mode /opt/dsh/seed/dsh-home/. /state/
 fi
+# Upgrade only managed provider defaults; keep original profile bytes for
+# compatible forward recovery. Session/history and credentials are untouched.
+node /opt/dsh/scripts/upgrade_runtime_profile.cjs /state
 # Optional native-theme bundle is supplied by the qualified operator artifact.
 if [ "${DSH_NATIVE_THEME_PLUGIN:-0}" = 1 ]; then
   node /opt/dsh/scripts/install_native_theme_profile.cjs /state /opt/dsh/plugins/dsh-theme-custom-light
@@ -47,6 +50,7 @@ if [ -f /state/.credentials.yaml ]; then
   chmod 0600 /state/.credentials.yaml
 fi
 node /opt/dsh/scripts/configure_workspace_policy.js /state
+python3 /opt/dsh/scripts/configure_platform_guide.py --state /state --workspace /workspace
 if [ -n "${DSH_CONTEXT_TOKENS:-}" ]; then
   node /opt/dsh/scripts/configure_runtime_context.js /state "$DSH_CONTEXT_TOKENS"
 fi
