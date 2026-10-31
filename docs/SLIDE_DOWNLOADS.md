@@ -1,17 +1,7 @@
-# PowerPoint companion downloads
+# PowerPoint companion downloads (retired)
 
-Serve reviewed `.pptx` companions as ordinary HTTP attachments. The companion page links to `downloads/<filename>.pptx`, so the same relative link works beneath the site's `/manual/` path and in an exported local folder containing `downloads/`. Keep the filename, slide count and SHA-256 visible on the page.
+Retired on 30 Oct 2026. The manual no longer serves `.pptx` files: the bounded slide download service (`scripts/slide_downloads.py`), its manifest and its `/manual/downloads/*.pptx` ingress paths are removed. The HTML guide and the archived HTML companion pages are the delivery format.
 
-## Read-only delivery
+Decks that belong to this repository (for example in `docs/presentations/`) are still linked directly from the documentation; they were never served by this service.
 
-`scripts/slide_downloads.py` serves only the exact filenames and hosts in a mounted `manifest.json`. Each entry contains its byte count and SHA-256. The server checks both on every response, sends the PowerPoint MIME type and an attachment filename, and accepts only GET or HEAD. Unknown hosts, paths, query strings and traversal attempts fail; missing or altered files return an unavailable response. It has no directory listing, upload, execution or arbitrary file route.
-
-Mount only the reviewed files, manifest and server source. Run a digest-pinned approved Python-capable image as non-root, with a read-only root filesystem, dropped capabilities, no privilege escalation and no service-account token. Set small CPU/memory requests and limits. Deny outbound traffic and allow inbound traffic only from the site's ingress controller.
-
-Add Exact ingress paths for each `/manual/downloads/<filename>.pptx` on the approved existing hosts, preserving their TLS and audience. The reference manual pages are public documentation; the slide route contains only material approved for that same audience. A site with authenticated manuals must enforce the same authentication on attachments before enabling the route. Never use this service for private workspaces, histories or account files.
-
-Use immutable ConfigMaps or an approved read-only data image for these small artifacts. When creating ConfigMaps, avoid duplicating binary data into a client-side apply annotation; use reviewed create/server-side operations within the API request limit. Stage files and service first, verify actual HTTP attachment bytes, then atomically update the companion links. Keep the prior manual edition for rollback. An independent service and exact ingress paths avoid restarting active DSH workspaces or changing their gateway route whitelist.
-
-## Acceptance
-
-Run `python tests/test_slide_downloads.py` for attachment headers, HEAD, host/path/query/method denials and integrity failure. Also verify deployed image, mounted source, manifest, network policy and exact ingress paths. For every approved current or archived deck on each site, use a browser to save the actual attachment, compare its hash and size, and open the saved presentation to check slide count and representative slides. Record browser-download success separately from archive parsing or application rendering. Compare existing workspace pod identities and restart counts before and after publication.
+To bring downloads back, restore `scripts/slide_downloads.py` and `tests/test_slide_downloads.py` from Git history before this note, add a manifest of reviewed decks with their byte counts and SHA-256, and re-add the page links in the same manual edition.

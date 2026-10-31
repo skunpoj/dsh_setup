@@ -32,17 +32,9 @@ The reference repository supplies gateway integration code. Operators supply app
 
 ## Slide companions
 
-Publish reviewed slide companions with clear labels describing their scope. Maintain one current guide and retain original editions as dated archives with exact source hashes. Use companion HTML pages with primary links to the bounded ordinary HTTP attachments described in [SLIDE_DOWNLOADS.md](SLIDE_DOWNLOADS.md). An embedded standalone copy is an optional fallback only; qualify it separately in the intended browser. Validate saved bytes against the original deck; do not rename a PowerPoint file to HTML or weaken the route whitelist. Keep site-specific decks in the private deployment repository. Updating these manual downloads does not require recutting or replacing an in-flight video package.
+PowerPoint downloads from the manual were retired on 30 Oct 2026, together with the bounded slide download service and its `/manual/downloads/*.pptx` routes (see [SLIDE_DOWNLOADS.md](SLIDE_DOWNLOADS.md)). The HTML companion pages are now the delivery format. Keep original editions as dated HTML archives with their exact source hashes. Keep site-specific decks out of this repository.
 
-Promote the current guide description, slide count and reviewed PowerPoint bytes together as one atomic manual edition. Verify original slides against their retained renders, retain the prior edition and leave an in-progress video release untouched. Slide publication does not establish that a matching video has been deployed.
-
-### Download and opening checks
-
-Prefer ordinary HTTP attachments using the [bounded slide delivery service](SLIDE_DOWNLOADS.md). Embedded data-URI links require separate browser qualification and must not be assumed to work from payload validation alone.
-
-The user flow is to open a slide companion page, select **Download PowerPoint (.pptx)**, save the file, and open that saved file in PowerPoint or a compatible presentation application. Preserve the `.pptx` extension. Use the hash shown on the page to check file integrity when needed.
-
-Qualify every approved current or archived deck on each deployed site. For each case, record the source page, browser, actual saved filename, byte count and SHA-256; then open that saved file and check its slide count and representative slides. A decoded embedded payload, a valid ZIP archive, an HTTP success response or a download-event timeout alone does not establish whether the browser saved and the presentation application opened the file. Keep browser save/open checks separate from payload validation. Publishing ordinary manual files must not restart active workspaces.
+Promote the current guide's description and content together as one atomic manual edition, and retain the prior edition for rollback. Slide publication does not establish that a matching video has been deployed. Publishing ordinary manual files must not restart active workspaces.
 
 ## One current guide
 
