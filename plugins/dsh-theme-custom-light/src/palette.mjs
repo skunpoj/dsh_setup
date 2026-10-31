@@ -1,4 +1,4 @@
-// Palette aliases from the gateway login stylesheet scripts/platform.css.
+// Default light palette (32 DSH alias tokens); every value can be overridden in the settings row.
 export const CUSTOM_LIGHT_TOKENS = Object.freeze({
   "--dsw-alias-bg-base": "#f4f7fa",
   "--dsw-alias-bg-layer-1": "#fff",

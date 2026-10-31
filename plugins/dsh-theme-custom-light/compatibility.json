@@ -1,16 +1,11 @@
 {
   "dshServiceTests": {
-    "version": "0.2.1-rc.2",
+    "version": "0.2.1-rc.5 (also 0.2.1-rc.2)",
     "passed": 15,
-    "total": 15,
-    "renderer": "test double",
-    "settingsTransport": "test double"
+    "total": 15
   },
-  "namedProfileHostLifecycle": {
-    "version": "0.2.1-rc.3",
-    "passed": true,
-    "clientFaceExecuted": false
-  },
+  "bundledArtwork": "none; default logo served by the deployment at /manual/brand/logo.png",
   "browserQualification": "not_run",
-  "deployment": "not_performed"
+  "deployment": "not_performed",
+  "replaces": "0.1.0 (client 7002d9be)"
 }

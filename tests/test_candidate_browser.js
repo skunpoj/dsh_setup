@@ -19,7 +19,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  assert(!spawnError,spawnError?.message);
  if(!ready){const diagnostic={stage:'disposable-upstream-startup',closed,log:log.replace(/token[=:]\s*[A-Za-z0-9_-]+/gi,'token=[REDACTED]').replace(/synthetic-browser-no-inference/g,'[SYNTHETIC KEY REDACTED]').slice(-16000)};fs.writeFileSync(path.join(output,'startup-failure.json'),JSON.stringify(diagnostic,null,2)+'\n');console.error(JSON.stringify(diagnostic));}
  assert(ready,'Disposable upstream app did not become ready; sanitized startup-failure.json saved');
- assert.equal(ready.themeBundle?.clientSHA256,'7002d9bebced3037c7d38f4ef342e5e6ffccbfc874bed8086b06eccd1480e88b','Actual native profile did not install the qualified theme bundle');
+ assert.equal(ready.themeBundle?.clientSHA256,'59848c883759a3e8f16be55f7f2127187b0d0cb7213167d94b587b4b8c982fdd','Actual native profile did not install the qualified theme bundle');
  const {chromium}=require(process.env.DSH_PLAYWRIGHT||'playwright');
  browser=await chromium.launch({headless:true,args:['--host-resolver-rules=MAP dsh-ci.test 127.0.0.1','--no-proxy-server',`--unsafely-treat-insecure-origin-as-secure=http://dsh-ci.test:${port}`]});
  const iterations=[];let rows;

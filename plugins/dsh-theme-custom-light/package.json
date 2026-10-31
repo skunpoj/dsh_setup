@@ -1,14 +1,12 @@
 {
   "name": "dsh-theme-custom-light",
-  "version": "0.1.0",
-  "description": "Optional Custom Light appearance beside the native DSH Light, Dark and System themes.",
+  "version": "0.3.1",
   "private": true,
   "type": "module",
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
-    "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
   "files": [
@@ -23,7 +21,9 @@
       "inject": [
         "@deepseek-ai/dsh-client-ui-theme",
         "@deepseek-ai/dsh-client-ui-renderer",
-        "@deepseek-ai/dsh-client-ui-settings"
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-conversation"
       ],
       "platform": "web",
       "immediately": true
@@ -33,21 +33,14 @@
     }
   },
   "license": "MIT",
-  "keywords": [
-    "dsh-plugin",
-    "deepseek-harness",
-    "theme"
-  ],
   "scripts": {
     "build": "node build.mjs",
     "test": "node test/theme-service.mjs"
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-client-ui-theme": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-rc.2"
+    "@deepseek-ai/dsh-client-ui-theme": "0.2.1-rc.5"
   },
   "engines": {
-    "node": ">=22.13.0",
-    "dsh": ">=0.2.1-rc.2"
+    "node": ">=22.13.0"
   }
 }

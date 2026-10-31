@@ -11,3 +11,4 @@ node_modules
 .venv
 # The theme installer requires the plugin's README.md as a package member.
 !plugins/dsh-theme-custom-light/README.md
+!tests/fixtures/dsh-theme-custom-light-0.1.0/README.md
