@@ -148,6 +148,4 @@ is included. Review and retest the pinned dependency before updating it.
 
 The main gateway application-login correction was deployed and verified on
 23 October. Approved-domain UPN sign-in passed through both the main and
-application-focused routes. See the [live acceptance and scoped regression
-record](LDAP_APP_LOGIN_ACCEPTANCE_20261023.md), including collision handling and
-history preservation.
+application-focused routes.

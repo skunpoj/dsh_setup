@@ -26,7 +26,7 @@ Start with [the design and operating principles](docs/THREE_RISK_CONTROLS.md) or
 
 Start with the [user manual](docs/DSH_USER_MANUAL.md) or its [standalone HTML version](docs/DSH_USER_MANUAL.html) for sign-in, private environments, tools, application URLs and administrator controls. The [current-guide policy](docs/CURRENT_GUIDE.md) describes the single deployment guide and preserved archives.
 
-Optional verified LDAPS sign-in supports private No Internet accounts with Internet access approved separately by an administrator. An AD username that conflicts with an existing local account is rejected with a clear instruction to contact an administrator to resolve the identity conflict; no account or history is automatically merged or deleted. Existing local recovery sign-in remains available. The 23 October main-gateway rollout verified AD/UPN application sign-in, conflict refusal and history preservation; see the [acceptance record](docs/LDAP_APP_LOGIN_ACCEPTANCE_20261023.md). See [configuration, collision handling and tests](docs/LDAP_AUTHENTICATION.md).
+Optional verified LDAPS sign-in supports private No Internet accounts with Internet access approved separately by an administrator. An AD username that conflicts with an existing local account is rejected with a clear instruction to contact an administrator to resolve the identity conflict; no account or history is automatically merged or deleted. Existing local recovery sign-in remains available. See [configuration, collision handling and tests](docs/LDAP_AUTHENTICATION.md).
 
 ## Authenticated application sharing
 
@@ -114,36 +114,7 @@ operator-provisioned user/environment mapping. Runtime pods have no account-stor
 mount or Kubernetes API token. No corporate identity provider or datalake is
 implicitly configured. [Security boundaries](docs/SECURITY.md).
 
-<!-- GPU_PERFORMANCE_STATUS_20261023:START -->
-## GPU performance and 1M operation - 24 October 2026 (SGLang era, since replaced)
-
-- **Identifier-attribution guard is active:** all 34 running DSH/DSH2/DSH3 workers passed four in-process checks each (**136/136**). It rejects the tested unsupported identifier claims before summary adoption, without recovery retry. **51 source/component checks per installer**, six native compaction cases and official hot-reload/rollback checks passed. No runtime/kernel restart or near-1M retest; existing plugin records, process identities and history metadata stayed unchanged. Existing summary instructions/framing are unchanged. A separate synthetic native compaction passed in 4.673s; the later explicit-speaker recall passed in 0.519s (557 input / 43 output tokens) with a verbatim supporting quote. Five real-model requests are recorded in total; earlier leading, truncated and ambiguous probes remain preserved. This is narrow speaker-recall acceptance, not general summary-faithfulness acceptance. No persisted user-session writes. Earlier summaries and already-started requests are unaffected; new workers on an older image need the same activation or a guard-enabled image.
-
-
-- **Small quality follow-up (24 October):** 26 component checks and eight synthetic model requests (zero client retries) passed the targeted recall/status checks and corrected the false missing-content claim. An attribution overstatement remains: user-provided identifiers were credited to the assistant guide. **Full summary faithfulness remains unaccepted.** That prompt-only candidate was not merged or activated; no near-1M retest, runtime restart or user-history change.
-
-
-- **Saved-S compaction and recovery (baseline W):** automatic summary **27m44.07s**, followed by `COMPACT_OK` at **196,968 input tokens**; **29m08.95s** whole client turn. **26 short replies entirely during the summary**: **6.09s median / 10.23s p95 / 12.26s maximum**, zero retries. Explicit reference, three-fact recall and actual write/read tools passed. **398 histories / 796 files in the test runtime** stayed byte-identical across disposable pod replacement; original settings restored and temporary credentials/resources removed. The original ambiguous recall failed, and the summary invented an acceptance claim: **strict summary quality is not accepted**. No capacity test was repeated.
-
-
-- **U compaction-only attempt:** startup checks passed (7.71s / 10.26s / 1.79s / 3.84s), but a stale preflight field stopped dispatch. Baseline recovery and the checked histories/files were verified; no capacity test was repeated.
-
-- **Actual DSH retry R completed:** **1,002,051 input / 636 output tokens**, **29m26.56s preparation**, **29m32.09s to first text**, **29m44.28s whole client turn**, **61.56 streaming output tokens/sec**, zero request retries. All **110 short replies** passed their content checks; **104 completed entirely during the long turn**. Client median/p95/maximum: **6.03s / 10.06s / 14.06s**. The startup fix passed all four bounded startup requests. **100+ per near-1M conversation is not reached.** Strict source-only narrative failed; GPU counter coverage ends five seconds before completion. Forwarding preparation and native time to first text are measured separately. The saved original model specification and a real READY response were verified after recovery; 32-worker / 256 session-and-attachment-file snapshots matched. The experimental profile was not permanently adopted; R did not run compaction.
-
-- **100+ output tokens/sec is not yet qualified for the latest near-1M optimization.** The earlier 21 October cold actual-DSH prose run used 1,008,049 input / 540 output tokens: **28m32.25s preparation**, **66.00 wire-streaming tokens/sec**, zero retries.
-- **Final N did not qualify:** 1,002,056 input tokens were tokenized, but only partial prefill ran. Correct numeric/prose short replies took **13.70s / 15.83s native** (**14.11s / 16.06s client**), zero retries. Prose exceeded the unchanged **15s client ceiling**, so the owned long request was stopped. No completed near-1M answer, new long-answer tokens/sec or compaction result. Four-rank zero allocator/OOM deltas cover only the captured partial window. The original source/image/spec and native READY route were restored; recorded 32-worker / 256 session-and-attachment-file snapshots matched.
-- Earlier completed full-model candidate M: **74.03 tokens/sec at 128K** and **75.85 at 384K**; its near-1M stage was rejected after one allocation retry on each GPU. No substantial near-1M output or new compaction result was obtained.
-- **Trial M: 136/136 ordinary replies** passed recorded content checks with zero retries. The **86 replies during near-1M preparation** had **4.28s median / 6.48s p95 / 9.40s maximum** native turn time.
-- N9 passed five bounded BF16 numerical cases with zero allocation retries/OOMs, using synthetic metadata and no model weights. Full-model near-1M throughput for that fix is not yet qualified.
-- The restored 18:16 ICT snapshot is **SGLang on four H100s**, not DeepInfer: memory fraction **0.922**, **1,024 / 1,024-token prefill**, **1,048,576 context tokens**, a running-request cap of eight and one above-128K input admission lane; shorter work remains parallel. The older 158.04 tokens/sec numeric-short median and 117.75 combined four-client rate are different measures.
-- Earlier 21 October compaction from **948,102 source tokens** passed with **393.12s summary / 388.90s continuation**, **23 short replies** (6.04s median / 10.06s maximum), 0.024s cancellation and preserved recall/history after replacement. That is a dated profile, not acceptance of the latest candidate.
-
-[Full results and definitions](docs/GPU_TRIAL_STATUS_20261023.html). Generation speed excludes cold preparation; these workloads and timing methods are not a matched before/after benchmark.
-<!-- GPU_PERFORMANCE_STATUS_20261023:END -->
-
 ## Context and performance
-
-The corrected-route qualification reserved **1,002,081 input / 8,192 output tokens**, but failed its memory-warning gate before a substantial near-1M answer. **53 ordinary replies** passed with median **4.66 s** and maximum **11.78 s**, without retries. Compaction was not started and no new 100+ tokens/sec result is claimed. The compatible unfused profile was restored with the 1M ceiling retained; a fresh canonical native DSH recovery reply passed in **3.825 s**, zero retries. Earlier trials remain separate records. [Qualification results and recovery scope](docs/GPU_PREPARATION_REVIEW_20261022.html).
 
 The reference profile reserves up to 8,192 output tokens and 256 proxy tokens.
 With that full output reservation, maximum counted input is 1,040,128 tokens.
@@ -186,17 +157,7 @@ comparison and the open items (host P2P fix, prefix cache): [docs/deepseek-v41-h
 The SM90 engine tree (based on the community SM90 work in DeepInfer #92 and #200) will be published as a public
 fork of `deepseek-ai/DeepInfer`; link to follow once it is published.
 
-> **Historic (23 Oct 2026), kept for the record.** The read-only review of official DeepInfer revision `9bd9cf2`
-> found that it required SM100 attention/MoE paths, so the H100/SM90 GPUs failed that gate and SGLang stayed in
-> use; the [DeepInfer integration guide](docs/DEEPINFER_INTEGRATION.md) records that hardware/source gate and the
-> H100 porting requirements. The SM90 port above superseded it.
-
-## Earlier graph-batch GPU status — 23 October 2026
-
-The 23 October GPU candidate was rejected at the allocator-warning gate after passing 128K/384K stages. Four short DSH conversations overlapped at 117.75 combined output tokens/sec (30.07–33.77 per conversation including whole-turn time); this does not establish 100+ per conversation or two simultaneous 1M requests. The saved baseline retains the 1M ceiling. See the dated results for definitions and recovery checks. [Detailed results](docs/GPU_TRIAL_STATUS_20261023.html).
-
-
-### Jupyter Start
+## Jupyter Start
 
 Start safely reuses an already-enabled Jupyter service across Main DSH, DSH2 and DSH3.
 [Administrator controls](docs/JUPYTER_START_CONTROLS.html) and the
@@ -205,7 +166,6 @@ Start safely reuses an already-enabled Jupyter service across Main DSH, DSH2 and
 
 ## Current guide and lifecycle verification
 
-See [document alignment](docs/DOCUMENT_ALIGNMENT_20261023.md) for current controls, tests and historical-media limits.
 
 
 
@@ -227,7 +187,7 @@ Jupyter status transitions are verified using disposable users: Internet approva
 
 ## Three-site code and maintenance
 
-The approved DSH application is 0.2.1-rc.5 with pi-ai 1.3.0; sites still running 0.2.1-rc.2 move to it when redeployed. Main DSH, DSH2 and DSH3 share the core build and inspected transport/supervisor code while retaining distinct authentication and environment policies. Use the managed LiteLLM model and choose the correct local or AD sign-in provider. [Compatibility, verification and upgrade procedure](docs/THREE_SITE_SYNC_20261024.md). New releases are ported automatically when no reviewed file changed: [automatic pin ports](docs/UPSTREAM_AUTO_PORT.md).
+The approved DSH application is 0.2.1-rc.5 with pi-ai 1.3.0; sites still running 0.2.1-rc.2 move to it when redeployed. Main DSH, DSH2 and DSH3 share the core build and inspected transport/supervisor code while retaining distinct authentication and environment policies. Use the managed LiteLLM model and choose the correct local or AD sign-in provider. New releases are ported automatically when no reviewed file changed: [automatic pin ports](docs/UPSTREAM_AUTO_PORT.md).
 
 ## User-managed credentials
 
@@ -247,3 +207,11 @@ The [additive plugin bundle](plugins/compaction-provenance-guard/README.md) is i
 ## Managed coding-agent integration candidate
 
 The [Deep Agents and DSH CLI candidate](integrations/managed-agents/README.md) adds an opt-in image overlay and fixed-model launchers. It is source-tested, not built or deployed. Web Terminal runs the actual CLIs; DSH web chat does not automatically control their sessions. See the [public-source review scope](docs/PUBLIC_SOURCE_REVIEW.md) for publication checks and limitations.
+
+## History (dated note, 31 Oct 2026)
+
+Before 29 Oct 2026 the reference node served the model with SGLang + DSpark (1M context, 8 requests at once). The
+19–24 Oct qualification and acceptance records (GPU trial status, preparation review, Jupyter, LDAP sign-in,
+capacity planner, three-site sync and document alignment) were dated snapshots of that setup; they were removed on
+31 Oct 2026 so that each document exists once, in its current form. Their full text remains in this repository's
+Git history (before this note). Current figures: [docs/deepseek-v41-h100](docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).

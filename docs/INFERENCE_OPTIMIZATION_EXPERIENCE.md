@@ -6,7 +6,7 @@
 
 The latest actual DSH near-1M run **failed acceptance**: **1,002,081 input / 1 output token**, **24m35.29s preparation**, **24m40.77s whole turn**, zero retries. The final forwarding allowance was one token; this is not a successful substantial-output result. **Compaction was not started.** The experimental GPU profile is not promoted; rollback preserves the qualified 1M configuration.
 
-Completed 128K/384K stages reached **71.75 / 73.26 output tokens/sec**. During near-1M preparation, 41 numeric replies had **4.79s median / 10.24s p95**, 41 prose replies **5.48s median / 9.13s p95**, and five fresh numeric conversations **5.41s median**; all 87 completed within 15 seconds. **100+ tokens/sec was not established in this fresh substantial-output test.** See [complete results, failure explanation and remaining gates](GPU_PREPARATION_REVIEW_20261022.html).
+Completed 128K/384K stages reached **71.75 / 73.26 output tokens/sec**. During near-1M preparation, 41 numeric replies had **4.79s median / 10.24s p95**, 41 prose replies **5.48s median / 9.13s p95**, and five fresh numeric conversations **5.41s median**; all 87 completed within 15 seconds. **100+ tokens/sec was not established in this fresh substantial-output test.**
 
 
 This record explains how the existing four-GPU deployment reached DSpark-enabled 1M operation, what failed, why preparation remains expensive and which claims the tests support. It consolidates the dated performance trials, 1017 checkpoint qualification and setup guide. Recorded measurements below are from those tests; opening this document does not start a benchmark.

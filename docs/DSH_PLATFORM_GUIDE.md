@@ -466,7 +466,7 @@ All 19 logical DeepSeek aliases are configured through the managed forwarding pa
 
 A 109,524-input-token request returned its exact expected answer in 56.33 seconds. A full admission queue rejected a further request with HTTP 429 in 0.37 seconds; an ordinary DSH reply completed in 2.51 seconds while that lane was held. Cancellation released the waiting slot for reuse. These samples qualify those cases, not completed near-1M throughput or 100+ tokens/sec per conversation.
 
-Earlier trial failures are retained in the [GPU preparation review](GPU_PREPARATION_REVIEW_20261022.html). Allocation warnings, warming timeouts and delayed short replies are separate observations; an unconfirmed cache-loss explanation is not a measured cause. Use the dated trial result rather than treating an older successful profile as acceptance of the current one.
+Allocation warnings, warming timeouts and delayed short replies are separate observations; an unconfirmed cache-loss explanation is not a measured cause. Use the dated trial result rather than treating an older successful profile as acceptance of the current one.
 
 ### Recorded release and 1M checks — 20 October 2026
 
@@ -606,6 +606,3 @@ Check saved native answers and model health before attributing an operator trans
 Retain the last qualified profile/image/source and state-preservation baseline before a change. Keep sufficient temporary GPU workspace by preserving the qualified memory fraction and bounded prefill settings. Keep the one-long-request admission policy and check answer accuracy against the task’s sources. Roll back on a genuine regression without overwriting newer workspace/history data.
 
 The portable setup and its tests are maintained in `gpu-stack/`; detailed dated performance and acceptance records remain in the separate LLM guide.
-
-
-Technical appendix: [23 October GPU qualification results](GPU_TRIAL_STATUS_20261023.html), including completed concurrency measurements, token-rate definitions and restored operating profile.

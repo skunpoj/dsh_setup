@@ -50,7 +50,7 @@ that an H100 port is theoretically impossible.
 | Throughput advantage | No measurement | No matched engine comparison; historical near-1M success is a different profile |
 
 The SGLang numbers are dated recorded samples, not fresh benchmarks or an SLA.
-See the [full preparation and rollback review](GPU_PREPARATION_REVIEW_20261022.html).
+
 No DeepInfer speedup, completed comparison, or current full near-1M acceptance
 is claimed. A supported H100 implementation must first pass numerical/cache
 compatibility and memory checks. Only then should an isolated same-node

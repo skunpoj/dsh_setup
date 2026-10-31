@@ -114,14 +114,13 @@ The guard applies to compactions started after its activation; earlier summaries
 
 For everyday use, continue a related conversation when its context is useful, start a fresh session for an unrelated short question, and review cited sources and tool outputs. Use Stop to cancel long preparation or queued work. Longer context preserves more material; it does not guarantee a faster or more accurate answer.
 
-[Detailed dated results](GPU_TRIAL_STATUS_20261023.html).
 
 
 ## Latest verified interactive results
 
 The 23 October 2026 check passed normal login, terminal commands, Jupyter kernel
 execution and logout for Main DSH in both environments and the DSH2/DSH3 owner
-workspaces. See the [verified results and preservation limits](JUPYTER_INTERACTIVE_VERIFICATION_20261023.html).
+workspaces.
 The executing capacity controller now includes the qualified finite-number guard;
 see the verified results for the controller-only deployment scope.
 
@@ -137,7 +136,6 @@ and the [captioned walkthrough](JUPYTER_DSH2_DSH3_WALKTHROUGH.html).
 
 ## Current guide and lifecycle verification
 
-See [document alignment](DOCUMENT_ALIGNMENT_20261023.md) for current controls, tests and historical-media limits.
 
 ## Application links, slides and English video
 
@@ -152,7 +150,7 @@ Main DSH, DSH2 and DSH3 use the same approved DSH 0.2.1-rc.2 application build a
 2. In a conversation, select **DeepSeek-V4.1-Flash** from the managed **LiteLLM** provider. DSH saves an owner's model choice for subsequent requests. The official DeepSeek provider sign-in is separate from the team's workspace login.
 3. Administrators enable automatic startup only for approved applications. **Start** keeps an already-running service; **Restart** replaces that service process; **Stop** prevents automatic restart. Saved files and histories persist, while unsaved process memory and notebook variables do not survive a real restart.
 
-The 24 October checks verified normal owner login and exact managed-model replies on all three sites. Isolated supervisor checks covered startup, automatic recovery, explicit restart, Stop and access revocation without restarting existing applications. The source qualification also exercised a separate Jupyter notebook/kernel, authorization and XSRF fixture. See [version and maintenance checks](https://github.com/skunpoj/dsh_setup/blob/main/docs/THREE_SITE_SYNC_20261024.md).
+The 24 October checks verified normal owner login and exact managed-model replies on all three sites. Isolated supervisor checks covered startup, automatic recovery, explicit restart, Stop and access revocation without restarting existing applications. The source qualification also exercised a separate Jupyter notebook/kernel, authorization and XSRF fixture.
 
 <!-- credential-management-design -->
 
