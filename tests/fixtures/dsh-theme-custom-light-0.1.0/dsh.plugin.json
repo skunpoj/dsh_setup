@@ -1,8 +1,0 @@
-{
-  "id": "dsh-theme-custom-light",
-  "version": "0.1.0",
-  "main": "lib/index.js",
-  "description": "Optional Custom Light appearance beside the native DSH Light, Dark and System themes.",
-  "engines": { "dsh": ">=0.2.1-rc.2" },
-  "contributes": { "tools": [], "skills": [] }
-}

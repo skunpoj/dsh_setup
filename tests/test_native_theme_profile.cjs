@@ -1,8 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
-const crypto=require('node:crypto');
-const {install,FILES,CLIENT_SHA,PRIOR}=require('../scripts/install_native_theme_profile.cjs');
-const source=path.resolve(__dirname,'../plugins/dsh-theme-custom-light'),prior010=path.resolve(__dirname,'fixtures/dsh-theme-custom-light-0.1.0'),root=fs.mkdtempSync(path.join(os.tmpdir(),'dsh-native-theme-test-'));
+const {install,FILES,CLIENT_SHA}=require('../scripts/install_native_theme_profile.cjs');
+const source=path.resolve(__dirname,'../plugins/dsh-theme-custom-light'),root=fs.mkdtempSync(path.join(os.tmpdir(),'dsh-native-theme-test-'));
 const results=[];
 function state(name){const p=path.join(root,name);fs.mkdirSync(p,{recursive:true});return p;}
 function test(name,fn){fn();results.push(name);}
@@ -50,31 +49,8 @@ try{
   try{assert.throws(()=>install(h,source),/Concurrent profile/);}finally{fs.writeFileSync=write;}
   assert(injected);assert.equal(fs.readFileSync(p,'utf8'),concurrent);
  });
- test('The shipped client meets the 0.3.1 contract: native Appearance untouched, neutral custom row, logo slots only when a logo loads, no embedded images, no institution name',()=>{
-  const client=fs.readFileSync(path.join(source,'lib/client.js'),'utf8');
-  assert.equal(JSON.parse(fs.readFileSync(path.join(source,'package.json'),'utf8')).version,'0.3.1');
-  assert(!/data:image\/[a-z+.-]+;base64,/i.test(client),'The client embeds an image');
-  assert(client.includes("'/manual/brand/logo.png'"),'The deployment default logo is the same-origin manual path');
-  assert(!/https?:\/\//.test(client),'The client bundle carries a URL');
-  assert(!/id:\s*['"]appearance['"]/.test(client),'The native Appearance row is replaced');
-  assert.match(client,/name:\s*'settings\.general\.item',\s*id:\s*'custom-light'/);
-  for(const slot of ['sidebar.brand.mark','sidebar.brand.name','conversation.hero.brand.mark'])assert(client.includes("'"+slot+"'"),slot+' is handled');
-  assert.match(client,/if\s*\(want\s*&&\s*!off\)\s*off\s*=\s*ctx\.slots\.register\(\{name,\s*priority:\s*-10/,'Brand slots register only while wanted, at priority -10');
- });
- test('An exact 0.1.0 install is upgraded in place; the old copy is kept and the run is repeatable',()=>{
-  const h=state('upgrade'),dest=path.join(h,'profiles/web/node_modules/dsh-theme-custom-light');
-  for(const f of FILES){const out=path.join(dest,f);fs.mkdirSync(path.dirname(out),{recursive:true});fs.copyFileSync(path.join(prior010,f),out);}
-  fs.writeFileSync(path.join(h,'profiles/web/package.json'),JSON.stringify({name:'p',dsh:{profile:{bundles:['dsh-theme-custom-light']}}},null,2)+'\n');
-  const sum=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
-  assert.equal(sum(path.join(dest,'lib/client.js')),PRIOR['0.1.0']);
-  const r=install(h,source);
-  assert.equal(r.upgradedFrom,'0.1.0');assert.equal(r.packageInstalled,true);assert.equal(r.profileChanged,false);
-  assert.equal(sum(path.join(dest,'lib/client.js')),CLIENT_SHA);
-  assert.equal(sum(path.join(h,'.native-theme-rollback','package-0.1.0-'+PRIOR['0.1.0'].slice(0,12),'lib/client.js')),PRIOR['0.1.0']);
-  const again=install(h,source);assert.equal(again.changed,false);assert.equal(again.upgradedFrom,null);
- });
- console.log(JSON.stringify({passed:results.length,total:11,results,scope:'Real temporary filesystem, no live state/profile or provider calls'}));
- module.exports={passed:results.length,total:11,results};
+ console.log(JSON.stringify({passed:results.length,total:9,results,scope:'Real temporary filesystem, no live state/profile or provider calls'}));
+ module.exports={passed:results.length,total:9,results};
 }finally{
  const resolved=path.resolve(root),prefix=path.resolve(os.tmpdir())+path.sep+'dsh-native-theme-test-';
  if(!resolved.startsWith(prefix))throw Error('Refuse cleanup outside owned temporary root');

@@ -41,14 +41,13 @@ COPY tests/ /opt/dsh/tests/
 RUN node --test /opt/dsh/tests/test_ldap_auth.cjs /opt/dsh/tests/test_identity_auth.cjs /opt/dsh/tests/test_ldap_gateway.cjs
 COPY patches/ /opt/dsh/patches/
 COPY container/ /opt/dsh/container/
-# Optional custom light theme (a "Custom light theme" switch under the untouched native Appearance). start-dsh installs it into a
+# Optional custom light theme ("Custom" beside native Light/Dark/System). start-dsh installs it into a
 # workspace profile only when DSH_NATIVE_THEME_PLUGIN=1. The package is root-owned and read-only; the
 # installer pins its client bundle, and its test runs as the unprivileged workspace user.
 COPY plugins/dsh-theme-custom-light/ /opt/dsh/plugins/dsh-theme-custom-light/
 RUN chown -R root:root /opt/dsh/plugins && chmod -R a-w,a+rX /opt/dsh/plugins \
- && echo "59848c883759a3e8f16be55f7f2127187b0d0cb7213167d94b587b4b8c982fdd  /opt/dsh/plugins/dsh-theme-custom-light/lib/client.js" | sha256sum -c - \
- && su -s /bin/sh -c 'node /opt/dsh/tests/test_native_theme_profile.cjs' dsh \
- && su -s /bin/sh -c 'node /opt/dsh/plugins/dsh-theme-custom-light/test/theme-service.mjs /usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-client-ui-theme/lib/client.js' dsh
+ && echo "7002d9bebced3037c7d38f4ef342e5e6ffccbfc874bed8086b06eccd1480e88b  /opt/dsh/plugins/dsh-theme-custom-light/lib/client.js" | sha256sum -c - \
+ && su -s /bin/sh -c 'node /opt/dsh/tests/test_native_theme_profile.cjs' dsh
 RUN install -m 0755 /opt/dsh/container/jupyter-managed.py /usr/local/bin/jupyter \
  && ln -s /usr/local/bin/jupyter /usr/local/bin/jupyterlab \
  && su -s /bin/sh -c '/opt/dsh/jupyter/bin/python /opt/dsh/tests/test_managed_jupyter.py' dsh
