@@ -52,6 +52,35 @@ class SessionPlanTests(unittest.TestCase):
         r = session_plan(demand, many, 100, self.now, 3600)
         self.assertEqual(len(r['scaleUp']), 4)
 
+    def test_warm_spare_starts_after_users_and_is_never_idle_stopped(self):
+        # Users first: with one start left, the signed-in user gets it and the spare waits.
+        r = session_plan(self.demand({A: (30, 1)}), self.runtimes, 1, self.now, 3600, keep_warm=[B])
+        self.assertEqual(r['scaleUp'], [A])
+        self.assertEqual(r['runtimes'][B], {'state': 'stopped'})
+        # With budget left the spare starts, and it is marked warm.
+        r = session_plan(self.demand({A: (30, 1)}), self.runtimes, 4, self.now, 3600, keep_warm=[B])
+        self.assertEqual(r['scaleUp'], [A, B])
+        self.assertEqual(r['runtimes'][B], {'state': 'starting', 'warm': True})
+        self.assertEqual(r['summary']['warm'], 1)
+        # A running spare nobody uses stays up; other undemanded runtimes still stop.
+        running = {**self.runtimes, B: {'replicas': 1, 'ready': 1}}
+        r = session_plan(self.demand({}), running, 4, self.now, 3600, keep_warm=[B])
+        self.assertEqual(r['scaleDown'], [C])
+        self.assertEqual(r['runtimes'][B], {'state': 'running', 'warm': True})
+
+    def test_claimed_spare_follows_normal_demand(self):
+        # Once a user holds the slot it is ordinary demand: idle past the timeout, it stops.
+        running = {**self.runtimes, B: {'replicas': 1, 'ready': 1}}
+        r = session_plan(self.demand({B: (9000, 3700)}), running, 4, self.now, 3600, keep_warm=[])
+        self.assertIn(B, r['scaleDown'])
+        self.assertNotIn('warm', r['runtimes'][B])
+
+    def test_warm_spare_needs_fresh_demand_and_a_known_runtime(self):
+        r = session_plan(self.demand({}, age=120), self.runtimes, 4, self.now, 3600, keep_warm=[B])
+        self.assertEqual(r['scaleUp'], [], 'A stale gateway report starts nothing, spare included')
+        r = session_plan(self.demand({}), self.runtimes, 4, self.now, 3600, keep_warm=['dsh-u-' + 'f' * 16 + '-secure'])
+        self.assertEqual(r['scaleUp'], [])
+
     def test_rejects_foreign_names_and_unsafe_timeouts(self):
         with self.assertRaises(ValueError):
             session_plan({}, {'litellm': {'replicas': 1}}, 1, self.now, 3600)

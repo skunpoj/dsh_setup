@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import stat
 import time
@@ -112,7 +113,32 @@ def reconcile(root, worker):
     return {**decision, 'action': 'published', 'slot': slot, 'qualification': receipt}
 
 
-def sessions(root, worker, idle_timeout):
+def warm_spares(root, count):
+    """Secure runtimes of the next unassigned slots, in the gateway's own order.
+
+    The gateway gives a new account the first pool slot no user holds, so that
+    slot is the one kept running. Missing or unreadable files keep nothing warm.
+    """
+    if count <= 0:
+        return []
+    try:
+        pool = read_json(root / 'inventory' / 'pool.json')['slots']
+        assigned = set(read_json(root / 'policy' / 'assignments.json')['assignedSlots'])
+        names = []
+        for slot, routes in pool.items():
+            if slot in assigned:
+                continue
+            host = routes['secure']['host'].split('.')[0]
+            if re.fullmatch(r'dsh-u-[0-9a-f]{16}-secure', host):
+                names.append(host)
+            if len(names) == count:
+                break
+        return names
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return []
+
+
+def sessions(root, worker, idle_timeout, warm_count=0):
     """Start demanded private runtimes first come, first served; stop idle ones.
 
     Runs every round, separately from provisioning, so a paused provisioner
@@ -136,7 +162,8 @@ def sessions(root, worker, idle_timeout):
                     runtimes.pop('dsh-u-' + identity + '-' + env, None)
     except (OSError, ValueError, KeyError):
         return {'starting': 0, 'waiting': 0}
-    decision = session_plan(demand, runtimes, runtime_units(worker.resources()), datetime.now(timezone.utc), idle_timeout)
+    decision = session_plan(demand, runtimes, runtime_units(worker.resources()), datetime.now(timezone.utc), idle_timeout,
+                            keep_warm=warm_spares(root, warm_count))
     for name in decision['scaleDown']:
         worker.kube.scale(name, 0)
     for name in decision['scaleUp']:
@@ -173,13 +200,17 @@ def main():
     config = read_config(args.config)
     worker = Worker(config, root)
     idle_timeout = config.get('sessionIdleTimeoutSeconds', 3600)
+    # One unassigned pair stays Ready so a new sign-in never waits for a pod start.
+    warm_count = config.get('warmRunningSpares', 1)
+    if type(warm_count) is not int or not 0 <= warm_count <= 2:
+        raise SystemExit('warmRunningSpares must be 0, 1 or 2')
     with (root / 'inventory' / 'controller.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         delay=15
         while True:
             busy = False
             try:
-                summary = sessions(root, worker, idle_timeout)
+                summary = sessions(root, worker, idle_timeout, warm_count)
                 busy = summary['starting'] > 0 or summary['waiting'] > 0
             except Exception as error:
                 atomic_json(root / 'inventory' / 'sessions.json', {'version': 1, 'observedAt': utc(), 'available': False,
