@@ -107,7 +107,7 @@ python scripts/run_auto_capacity_acceptance.py `
 python scripts/deploy_capacity_controller.py `
   --namespace llm --template-user template-user `
   --expected-source-sha256 CURRENT_GATEWAY_SOURCE_SHA256 `
-  --warm-spares 2 --max-accounts 16 `
+  --warm-spares 2 `
   --acceptance "$PrivateOutput\acceptance\result.json" `
   --output "$PrivateOutput\production" --apply
 ```
