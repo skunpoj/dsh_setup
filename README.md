@@ -41,7 +41,7 @@ The 23-slide talk covers agent incidents, controls, governance, illustrative ban
 This public tree contains sanitized installation code and generic configuration for the approved core version. Site-specific configuration, identities, credentials and operational history remain in an access-controlled repository. See [publication boundaries](docs/PUBLICATION.md).
 
 A configurable deployment of DeepSeek Harness, internal LiteLLM and a four-GPU
-SGLang backend. The repository includes the GPU manifests, model-download job,
+inference backend (DeepInfer + DSpark in production since 29 Oct 2026; SGLang kept as the fallback). The repository includes the GPU manifests, model-download job,
 storage, context guard, scheduler overlays, private user environments and setup
 instructions. No separate infrastructure repository is required.
 
@@ -57,7 +57,8 @@ personal accounts, operational transcripts or credential values.
 - No Internet as the main login default; separate Internet dependency preparation.
 - Protected local password records, owner-bound routing and an admin access log.
 - Managed Claude Code and TrueForge configuration using model-only client keys.
-- SGLang tensor parallelism across four GPUs, 1,048,576 total-token capacity,
+- Four-GPU serving with DeepInfer + DSpark (DP-attention and expert parallelism over four ranks) or
+  SGLang tensor parallelism as the fallback, 1,048,576 total-token capacity,
   chunked prefill and fail-closed scheduler compatibility checks.
 - LiteLLM authentication, PostgreSQL-backed virtual keys and a loopback final-wire
   context guard. Text above 32K counted input plus reserved output uses bounded
@@ -100,7 +101,7 @@ flowchart TB
   N --> L[Authenticated LiteLLM]
   I --> L
   L --> F[Loopback final-wire context guard]
-  F --> M[SGLang on four GPUs]
+  F --> M[DeepInfer v4 + DSpark on 4× H100 NVL, SGLang kept as fallback]
   L --> DB[Private PostgreSQL]
   I --> C[Private incoming packages]
   C --> O[Operator review and hash promotion]
@@ -174,24 +175,21 @@ Private local applications and explicitly approved HTTPS destinations can use ow
 
 For existing installations that cannot restart immediately, the optional [managed-client compatibility layer](docs/LIVE_CLIENT_COMPATIBILITY.md) applies only to new launches. It preserves existing processes and history; permanent image adoption remains separate.
 
-## DeepInfer candidate
-
-The [DeepInfer integration guide](docs/DEEPINFER_INTEGRATION.md) includes a pinned,
-read-only hardware/source gate and the H100 porting requirements. The reviewed
-official candidate requires SM100 kernels; the existing four H100/SM90 GPUs fail
-that gate. DeepInfer is not installed or benchmarked; SGLang remains the serving
-engine. This gate does not change DSH accounts, files, histories or model routing.
-
 ## DeepInfer on four H100 GPUs
 
-The 23 October read-only review found that official DeepInfer revision `9bd9cf2`
-still requires SM100 attention/MoE paths; the installed four H100s are SM90.
-DeepInfer was not installed or benchmarked, and SGLang remains in use. There is
-no matched DeepInfer-versus-SGLang 1M compaction or throughput result.
-See the [compatibility and comparison status](docs/DEEPINFER_INTEGRATION.html)
-or [Markdown guide](docs/DEEPINFER_INTEGRATION.md) for the source checks,
-recorded SGLang results and same-node qualification gates.
+**Current (30 Oct 2026):** DeepInfer v4 + DSpark serves production on 4× H100 NVL (SM90) with a 1M-token
+context, 8 requests at once and least-loaded routing. SGLang + DSpark is kept switched off as the measured
+baseline and rollback. Cross-socket GPU peer-to-peer drops writes on the reference host, so experts are
+exchanged over an NCCL all-to-all fallback instead of DeepEP. Configuration, the matched DeepInfer-versus-SGLang
+comparison and the open items (host P2P fix, prefix cache): [docs/deepseek-v41-h100](docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).
 
+The SM90 engine tree (based on the community SM90 work in DeepInfer #92 and #200) will be published as a public
+fork of `deepseek-ai/DeepInfer`; link to follow once it is published.
+
+> **Historic (23 Oct 2026), kept for the record.** The read-only review of official DeepInfer revision `9bd9cf2`
+> found that it required SM100 attention/MoE paths, so the H100/SM90 GPUs failed that gate and SGLang stayed in
+> use; the [DeepInfer integration guide](docs/DEEPINFER_INTEGRATION.md) records that hardware/source gate and the
+> H100 porting requirements. The SM90 port above superseded it.
 
 ## Earlier graph-batch GPU status — 23 October 2026
 
