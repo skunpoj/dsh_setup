@@ -1,5 +1,7 @@
 # DSH preparation and concurrency review - 22 October 2026
 
+> **Historic measurement (SGLang, 22 Oct 2026).** Speed figures on this page keep that day's workload and timing boundary (streaming-window, forwarding-boundary or end-to-end rates), which differ from the current standard. Production moved to DeepInfer on 29 Oct 2026. Current figures, definitions and method: [LLM speed comparison (30 Oct 2026)](https://github.com/skunpoj/dsh_setup/blob/main/docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).
+
 ## Corrected-route qualification — 22 October 2026
 
 The later actual DSH trial reserved 1,002,081 input tokens and 8,192 output tokens, but stopped at the strict memory-warning gate before a substantial answer. The last model cached-prefix counter was 765,952 tokens. The last acknowledged warming step was 720,896 tokens at 773.296 seconds; neither value is a completed full preparation. Four 20 MiB allocator mapping requests found only 15.75–17.75 MiB free. No uncaught CUDA out-of-memory exception or unexpected model restart was recorded during the trial.

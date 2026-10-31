@@ -1,5 +1,7 @@
 # GPU performance and near-1M results
 
+> **Historic measurement (SGLang, 23 Oct 2026).** Speed figures on this page keep that day's workload and timing boundary (streaming-window, forwarding-boundary or end-to-end rates), which differ from the current standard. Production moved to DeepInfer on 29 Oct 2026. Current figures, definitions and method: [LLM speed comparison (30 Oct 2026)](https://github.com/skunpoj/dsh_setup/blob/main/docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).
+
 ## GPU performance and 1M operation — 24 October 2026
 
 ### Identifier-attribution checkpoint protection — 24 October 2026
