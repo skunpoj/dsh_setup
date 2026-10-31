@@ -367,13 +367,13 @@ Authorization and actual numeric collection were accepted with a loopback-only d
 
 This is an actual completed synthetic DSH conversation in a disposable No Internet runtime using the 1017 checkpoint. The task creates, reads and removes one synthetic file, then returns its exact marker. The screenshot shows the operating interface and recorded response; corresponding execution records confirm the tool result and cleanup. It is not a Production user session, a general authorization test or complete 1017 near-1M qualification.
 
-
+![Actual DSH interface showing a completed synthetic tool task](images/platform/working-synthetic-tool-session.png)
 
 The login screenshots show the live interfaces. Dashboard screenshots use demonstration accounts and values to explain the controls.
 
 ### Main login and environment selection
 
-
+![Main DSH login layout with floating User manual button; empty demonstration account store](images/platform/manual-login.png)
 
 No Internet / Internal is selected by default.
 
@@ -381,7 +381,7 @@ No Internet / Internal is selected by default.
 
 Open **Admin overview** from DSH, or sign in as an administrator and open `/admin`.
 
-
+![Central dashboard and account-management interface with demonstration accounts](images/platform/admin-user-management.png)
 
 Dashboard interface with demonstration accounts. The account table shows each user's role, enabled status, assigned environments and active browser sessions.
 

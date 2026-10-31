@@ -4,7 +4,7 @@ Administrators can use `/admin` to manage accounts and review numeric activity s
 
 **New-user slots** shows current remaining capacity, assigned/prepared slots and enabled/disabled accounts. Capacity and DSH activity refresh every 15 seconds while visible. A slot is one new account's private environment pair, not a project folder or application name. Unavailable activity clears old numeric readings; storage samples older than five minutes are marked. [Capacity, monitoring and shared-client walkthrough](PLATFORM_CAPACITY_AND_CLIENTS.md).
 
-
+![DSH usage panel with synthetic demonstration counters](images/platform/admin-usage-illustration.png)
 
 The illustration uses synthetic accounts and counters to explain the layout; it is not a live user's activity record.
 
@@ -20,7 +20,7 @@ Disabling an account retains its assignment, files and histories. Internet revoc
 
 ## Application names, ports and limits
 
-
+![Admin Applications panel using disposable demonstration accounts](images/platform/admin-applications.png)
 
 Watch the recorded admin workflow.
 

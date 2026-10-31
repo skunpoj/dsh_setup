@@ -46,7 +46,7 @@ flowchart TB
 
 Only the requesting user's package artifacts are transferred. Internet and No Internet project files, session histories and credentials remain separate. Package content is not automatically published to other users or the platform-wide Approved cache.
 
-
+![Shipped package-page interface with synthetic example values](images/platform/self-service-packages.png)
 
 ## Limits and troubleshooting
 
