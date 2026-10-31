@@ -58,31 +58,6 @@ llm-pi-ai:
           input:
             - text
             - image
-        - id: "deepseek-flash"
-          name: "DeepSeek-Flash (V4.1-Flash Alias)"
-          contextWindow: 1048576
-          maxTokens: 8192
-          input:
-            - text
-            - image
-        - id: "glm-5.3-flash"
-          name: "GLM-5.3-Flash (Cluster LiteLLM TP=4)"
-          contextWindow: 128000
-          maxTokens: 4096
-          input:
-            - text
-        - id: "glm-5.3-flash-awq"
-          name: "GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)"
-          contextWindow: 64000
-          maxTokens: 4096
-          input:
-            - text
-        - id: "qwen3.8-flash-next"
-          name: "Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)"
-          contextWindow: 128000
-          maxTokens: 4096
-          input:
-            - text
 `;
   fs.writeFileSync(`${dshHome}/settings.yaml`, validYaml, "utf8");
   console.log(`[CONFIG] Populated ${dshHome}/settings.yaml with DeepSeek-V4.1-Flash default`);
@@ -308,31 +283,6 @@ try {
             input:
               - text
               - image
-          - id: deepseek-flash
-            name: DeepSeek-Flash (V4.1-Flash Alias)
-            contextWindow: 1048576
-            maxTokens: 8192
-            input:
-              - text
-              - image
-          - id: glm-5.3-flash
-            name: GLM-5.3-Flash (Cluster LiteLLM TP=4)
-            contextWindow: 128000
-            maxTokens: 4096
-            input:
-              - text
-          - id: glm-5.3-flash-awq
-            name: GLM-5.3-Flash AWQ (Cluster LiteLLM TP=2)
-            contextWindow: 64000
-            maxTokens: 4096
-            input:
-              - text
-          - id: qwen3.8-flash-next
-            name: Qwen3.8-Flash-Next (Cluster LiteLLM Mode 2)
-            contextWindow: 128000
-            maxTokens: 4096
-            input:
-              - text
 
 - id: compaction-basic
   disabled: false
