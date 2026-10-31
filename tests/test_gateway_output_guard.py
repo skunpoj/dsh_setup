@@ -18,10 +18,13 @@ class OutputGuardTests(unittest.TestCase):
         api.HTTPException = Rejected
         logger = types.ModuleType('litellm.integrations.custom_logger')
         logger.CustomLogger = object
+        stream_errors = types.ModuleType('stream_admission_errors')
+        stream_errors.install = lambda: None
         scope = {}
         with patch.dict(sys.modules, {'fastapi': api, 'litellm': types.ModuleType('litellm'),
             'litellm.integrations': types.ModuleType('litellm.integrations'),
-            'litellm.integrations.custom_logger': logger, 'stream_admission_errors': types.SimpleNamespace(install=lambda: None)}):
+            'litellm.integrations.custom_logger': logger,
+            'stream_admission_errors': stream_errors}):
             exec((Path(__file__).parents[1]/'scripts/gateway_output_guard.py').read_text(), scope)
         self.guard = scope['OutputGuard']()
 

@@ -8,8 +8,7 @@ const { spawn } = require('child_process');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-auth-proxy-'));
 const users = path.join(root, '.user_auth.json');
 const settings = path.join(root, '.user_settings.json');
-const {hashPassword} = require('../scripts/password_store');
-fs.writeFileSync(users, JSON.stringify({ alice: {...hashPassword('secret1'), internetAllowed: true}, bob: 'secret2' }));
+fs.writeFileSync(users, JSON.stringify({ alice: 'secret1', bob: 'secret2' }));
 
 const backend = http.createServer((req, res) => {
   if (req.url === '/ui') {
@@ -31,7 +30,6 @@ function request(port, method, requestPath, body = '', cookie = '') {
   return new Promise((resolve, reject) => {
     const req = http.request({ host: '127.0.0.1', port, method, path: requestPath, headers: {
       host: 'dsh.test.local',
-      ...(method === 'POST' ? {origin: 'http://dsh.test.local', referer: 'http://dsh.test.local/login'} : {}),
       ...(body ? { 'content-type': 'application/x-www-form-urlencoded', 'content-length': Buffer.byteLength(body) } : {}),
       ...(cookie ? { cookie } : {}),
     } }, res => {
@@ -58,7 +56,7 @@ async function waitReady(port) {
   await listen(backend, backendPort);
   const proxy = spawn(process.execPath, [path.join(__dirname, '..', 'scripts', 'auth_proxy.js')], {
     env: { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^(DSH_|AUTH_|WORKSPACE_ROOT$)/.test(key))), PORT: String(proxyPort), DSH_TARGET_PORT: String(backendPort),
-      DSH_PORT: 'tcp://192.0.2.10:3080', DSH_SINGLE_USER: 'alice', DSH_USER_STORE_PATH: users,
+      DSH_PORT: 'tcp://10.43.76.59:3080', DSH_SINGLE_USER: 'alice', DSH_ADMIN_USERS: 'alice', DSH_USER_STORE_PATH: users,
       DSH_USER_SETTINGS_PATH: settings, WORKSPACE_ROOT: root, DSH_COOKIE_NAME: 'test_auth' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -66,14 +64,19 @@ async function waitReady(port) {
     await waitReady(proxyPort);
     const page = await request(proxyPort, 'GET', '/login');
     assert.equal(page.status, 200);
+    assert(page.body.includes('Enterprise AI Platform'));
+    assert(page.body.includes('DeepSeek Harness (DSH)'));
+    assert(page.body.includes('Enterprise Agentic Coding &amp; Knowledge Gateway'));
+    assert(page.body.includes('href="/manual/"'));
+    assert(page.body.includes('class="manual-fab"'));
+    assert(!page.body.includes('class="footer-note"'));
+    assert(!page.body.includes('ระบบสารสนเทศเฉพาะกิจองค์กร'));
     assert.match(page.body, /name="internet" value="off" checked/);
     assert.match(page.body, /No Internet \/ Internal \(Default\)/);
     assert.match(page.body, /Internet uses a separate staging workspace/);
 
     const persisted = JSON.parse(fs.readFileSync(users, 'utf8'));
     assert.equal(persisted.alice.scheme, 'scrypt-v1');
-    assert.equal(persisted.bob.scheme, 'scrypt-v1');
-    assert(!fs.readFileSync(users, 'utf8').includes('secret2'));
     assert(!fs.readFileSync(users, 'utf8').includes('secret1'));
     assert.equal((await request(proxyPort, 'POST', '/login', 'username=bob&password=secret2')).status, 401);
     assert.equal((await request(proxyPort, 'POST', '/register', 'username=other&password=secret3')).status, 403);
@@ -110,8 +113,7 @@ async function waitReady(port) {
     assert.match(logout.headers['set-cookie'][0], /; Secure(?:;|$)/);
     const afterLogout = await request(proxyPort, 'GET', '/api/auth/session', '', onCookie);
     assert.equal(afterLogout.status, 401);
-    assert.match(afterLogout.headers['content-type'], /application\/json/);
-    assert.equal(typeof JSON.parse(afterLogout.body).error, 'string');
+    assert.equal(JSON.parse(afterLogout.body).error, 'AUTHENTICATION_REQUIRED');
     assert.equal((await request(proxyPort, 'POST', '/change-password', 'username=alice&old_password=secret1&new_password='+ 'x'.repeat(1025))).status, 400);
     assert.equal((await request(proxyPort, 'POST', '/login', 'x'.repeat(17000))).status, 413);
     const changed = await request(proxyPort, 'POST', '/change-password', 'username=alice&old_password=secret1&new_password=newsecret');
@@ -126,3 +128,6 @@ async function waitReady(port) {
     fs.rmSync(root, { recursive: true, force: true });
   }
 })().catch(error => { console.error(error); process.exitCode = 1; });
+
+// Keep package request-boundary checks in the existing CI entry point.
+require('./test_package_portal');

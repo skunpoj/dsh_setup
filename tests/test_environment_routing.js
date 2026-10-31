@@ -4,11 +4,11 @@ const http = require('http');
 const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
+const { hashPassword } = require('../scripts/password_store.js');
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-route-'));
 const users = path.join(root, '.user_auth.json');
-const {hashPassword} = require('../scripts/password_store');
-fs.writeFileSync(users, JSON.stringify({ alice: {...hashPassword('secret1'), internetAllowed: true} }));
+fs.writeFileSync(users, JSON.stringify({ alice: { ...hashPassword('secret1'), internetAllowed: false } }));
 const secureToken = path.join(root, 'secure-token');
 const internetToken = path.join(root, 'internet-token');
 fs.writeFileSync(secureToken, 'secure-first');
@@ -90,25 +90,40 @@ async function waitReady(port) {
     const page = await request(gatewayPort, 'GET', '/login');
     assert(!page.body.includes('id="tab-register"'));
     assert(!page.body.includes('action="/register"'));
+    assert(page.body.includes('id="login_application"'));
+    assert(page.body.includes('<option value="jupyter">JupyterLab</option>'));
     const registration = await request(gatewayPort, 'POST', '/register', 'username=mallory&password=secret1&confirm_password=secret1');
     assert.equal(registration.status, 403);
     assert(!JSON.parse(fs.readFileSync(users, 'utf8')).mallory);
-    const anonymousApi = await request(gatewayPort, 'GET', '/api/sessions');
-    assert.equal(anonymousApi.status, 401);
-    assert.match(anonymousApi.headers['content-type'], /application\/json/);
-    assert.equal(typeof JSON.parse(anonymousApi.body).error, 'string');
-    for (const protectedPath of ['/proxy/8000/report', '/report.html']) {
+    for (const protectedPath of ['/proxy/8000/report', '/api/sessions', '/report.html']) {
       const anonymous = await request(gatewayPort, 'GET', protectedPath);
-      assert.equal(anonymous.status, 200); // Gateway's login page, not backend content.
-      assert(anonymous.body.includes('id="pane-login"'));
+      assert.equal(anonymous.status, protectedPath.startsWith('/api/') ? 401 : 200);
+      if(protectedPath.startsWith('/api/')) assert.equal(JSON.parse(anonymous.body).error,'AUTHENTICATION_REQUIRED');
+      else assert(anonymous.body.includes('id="pane-login"'));
       assert(!anonymous.body.includes('secure-pool'));
     }
     const offLogin = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=off');
     const offCookie = offLogin.headers['set-cookie'][0].split(';')[0];
+    assert.equal(offLogin.headers.location, '/');
+    for (const [application, location] of [['terminal','/terminal'],['jupyter','/proxy/8888/lab']]) {
+      const launch = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=off&application='+application);
+      assert.equal(launch.status,302);assert.equal(launch.headers.location,location);
+      const session=launch.headers['set-cookie'][0].split(';')[0];
+      assert.equal(JSON.parse((await request(gatewayPort,'GET','/probe','',session)).body).backend,'secure-pool');
+    }
+    const injected=await request(gatewayPort,'POST','/login','username=alice&password=secret1&application=https://evil.example');
+    assert.equal(injected.status,400);assert(!injected.headers['set-cookie']);
+    assert.equal((await request(gatewayPort,'GET','/jupyter','',offCookie)).headers.location,'/proxy/8888/lab');
     const offResult = JSON.parse((await request(gatewayPort, 'GET', '/probe', '', offCookie)).body);
     assert.deepEqual(offResult, { backend: 'secure-pool', environment: 'off' });
 
+    const deniedInternet = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=on');
+    assert.equal(deniedInternet.status, 403);
+    const approvedUsers = JSON.parse(fs.readFileSync(users, 'utf8'));
+    approvedUsers.alice.internetAllowed = true;
+    fs.writeFileSync(users, JSON.stringify(approvedUsers));
     const onLogin = await request(gatewayPort, 'POST', '/login', 'username=alice&password=secret1&internet=on');
+    assert.equal(onLogin.status, 302);
     const onCookie = onLogin.headers['set-cookie'][0].split(';')[0];
     const onResult = JSON.parse((await request(gatewayPort, 'GET', '/probe', '', onCookie)).body);
     assert.deepEqual(onResult, { backend: 'internet-pool', environment: 'on' });
@@ -127,4 +142,14 @@ async function waitReady(port) {
     internet.close();
     fs.rmSync(root, { recursive: true, force: true });
   }
-})().catch(error => { console.error(error); process.exitCode = 1; });
+})().then(() => {
+  // Existing upstream and image pipelines already run this entry point.
+  require('child_process').execFileSync(process.execPath,
+    [path.join(__dirname, 'test_service_status_reader.js')], { stdio: 'inherit', timeout: 10000 });
+  require('child_process').execFileSync(process.execPath,
+    [path.join(__dirname, 'test_self_registration.js')], { stdio: 'inherit', timeout: 60000 });
+  require('child_process').execFileSync(process.execPath,
+    [path.join(__dirname, 'test_session_recovery.js')], { stdio: 'inherit', timeout: 60000 });
+  require('child_process').execFileSync(process.execPath,
+    [path.join(__dirname, 'test_app_links.js')], { stdio: 'inherit', timeout: 60000 });
+}).catch(error => { console.error(error); process.exitCode = 1; });

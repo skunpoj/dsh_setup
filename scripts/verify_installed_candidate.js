@@ -17,11 +17,20 @@ for(const [relative,markers] of required){
  assert.equal(syntax.status,0,'Installed module syntax rejected: '+relative);
 }
 // Unmodified access/UI/prompt files must still match the reviewed official bytes.
+// A reviewed build-time transform may replace one, but only with its exact pinned
+// output and only while the contract still pins the upstream bytes it was reviewed on.
 const crypto=require('crypto');
 const contract=JSON.parse(fs.readFileSync(path.join(__dirname,'upstream_patch_contract.json'),'utf8'));
+const reviewedTransforms={
+ 'dsh-api-session-controller/lib/index.js':{by:'configure_prompt_admission_diagnostics.mjs',
+  from:'a9801acb577b03053c5d5a3191ff555c5f1d791d0acddec113bea4511e33b386',
+  to:'9ca6c66be566e22dd9e03c7c57c818ada479c26419be6634c0a385b826cf5872'},
+};
 for(const entry of contract.targets.filter(x=>x.patched===false)) {
  const actual=crypto.createHash('sha256').update(fs.readFileSync(path.join(base,entry.path))).digest('hex');
- assert.equal(actual,entry.sha256,'Protected installed upstream file changed: '+entry.path);
+ if(actual===entry.sha256)continue;
+ const t=reviewedTransforms[entry.path];
+ assert(t&&t.from===entry.sha256&&actual===t.to,'Protected installed upstream file changed: '+entry.path);
 }
 const home=process.env.DSH_HOME || path.join(process.env.HOME,'.dsh');
 const profile=fs.readFileSync(path.join(home,'profiles/web/cordis.patch.yml'),'utf8');

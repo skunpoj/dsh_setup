@@ -53,6 +53,9 @@ function upgrade(requestPath, cookie) {
     for (const route of ['/identity', `/proxy/${backendPort}/identity`]) {
       assert.deepEqual(await upgrade(route, login.cookie), {user: 'alice', mode: 'off', count: 1});
     }
+    for(const name of ['test_session_store','test_gateway_socket_reset','test_persistent_sessions','test_legacy_owner_policy']) {
+      require('child_process').execFileSync(process.execPath,[path.join(__dirname,name+'.js')],{stdio:'inherit'});
+    }
     console.log('Authenticated identity replaces forged/duplicate headers across default/custom HTTP and WebSocket carriers');
   } finally {
     gateway.kill(); await new Promise(resolve => gateway.once('exit', resolve));
