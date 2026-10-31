@@ -2,7 +2,7 @@
 
 The integration is not a deployed OpenShell service. Its 25 product acceptance gates remain unrun. A kernel capability or Kubernetes network test must not be substituted for those gates.
 
-On 24 October 2026, a bounded disposable CPU-only preflight observed Landlock ABI 6 and seccomp user-notification support under the container security profile. A single receiver was reachable by the permitted probe before and after the negative tests. Independent ingress-denied and egress-denied probes could not reach that receiver. The temporary namespace was removed and its absence was read back. No existing workspace was modified, no GPU resource was requested and the probes requested no model calls.
+A bounded disposable CPU-only preflight observed Landlock ABI 6 and seccomp user-notification support under the container security profile. A single receiver was reachable by the permitted probe before and after the negative tests. Independent ingress-denied and egress-denied probes could not reach that receiver. The temporary namespace was removed and its absence was read back. No existing workspace was modified, no GPU resource was requested and the probes requested no model calls.
 
 This establishes prerequisites only. It does not show that OpenShell applied Landlock, admitted the effective policy, authenticated a DSH owner, contained every tool/process path, preserved a sandbox across replacement, or correctly injected a synthetic provider credential.
 

@@ -19,4 +19,3 @@ any unexpected mutation of a protected input. Browser connection now guards
 `lib/client.browser.js`; no loopback or UI permission bypass is applied. Upstream
 Host persistence and live catalog discovery are retained. Managed default/title
 models, persona and disabled external providers are profile configuration.
-Historical version exports remain historical review evidence.

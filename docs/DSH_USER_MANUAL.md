@@ -75,54 +75,17 @@ Use the site's **User manual** link, documentation library and available course 
 Use **Logout** when finished. If a session expires, sign in again before retrying. Check your current draft and task state before resubmitting work. Contact the administrator for an identity conflict, unavailable runtime or repeated access failure; do not share your password in the support conversation.
 
 
-## 1M context, concurrency and measured speed — 24 October 2026 (historic, SGLang)
+## 1M context, concurrency and measured speed
 
-> **Current speed (30 Oct 2026, one standard).** DeepInfer 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: SGLang is about 9–17 % faster; many users: DeepInfer gives about 3× the total. Definitions, method and every result: [LLM speed comparison](https://github.com/skunpoj/dsh_setup/blob/main/docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc). The figures below are historic SGLang measurements with their own workloads and timing boundaries.
+> **Current speed (30 Oct 2026, one standard).** DeepInfer 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: SGLang is about 9–17 % faster; many users: DeepInfer gives about 3× the total. Definitions, method and every result: [LLM speed comparison](https://github.com/skunpoj/dsh_setup/blob/main/docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).
 
-The recorded main DSH tests demonstrate a 1,048,576-token total context budget. Instructions, tool definitions, history, input and reserved output share that budget. One request above 128K input is admitted at a time; ordinary short requests remain concurrent. The recorded backend cap of eight running requests does not mean eight maximum-size conversations fit.
+Production serves a 1,048,576-token context with up to eight requests running at once. Instructions, tool definitions, history, input and reserved output share that budget, and long prompts take minutes to prepare.
 
-| Recorded check | Measurement | Interpretation |
-|---|---|---|
-| Near-1M text capacity — trial R | 1,002,051 input + 636 output tokens; completed actual DSH turn | Capacity passed for this recorded workload. |
-| Cold preparation — trial R | 29m 26.56s preparation; 29m 44.28s whole client turn | Preparation and total waiting time are separate from generation speed. |
-| Long-answer generation — trial R | 61.56 output tokens/sec during the stream | A streaming-window rate; not whole-turn throughput. |
-| Automatic compaction — trial W | 1,003,068 input → 885 summary output tokens; 1,664.07s native summary | The compaction operation completed. The following request used 196,968 input tokens. |
-| Ordinary requests during compaction — trial W | 26 fully overlapping replies; median 6.09s, p95 10.23s, maximum 12.26s; zero retries | Short requests continued during the long workflow. |
-| Summary generation — trial W | 71.80 output tokens/sec at the forwarding boundary; 1,748.95s whole client workflow | A different workload and timing boundary from trial R. |
+### Identifier-attribution checkpoint protection
 
-Passed: recorded near-1M text capacity, automatic compaction, concurrent short replies, explicit reference checks, real tool operations and the scoped fixture-preservation checks. Durable files and histories are distinct from unsaved process or notebook-kernel memory.
-
-Not established: 100+ output tokens/sec for a near-1M conversation, two simultaneous full-1M requests, or consistently accurate million-token analysis. The original ambiguous-reference check failed, and the original summary made an unsupported acceptance claim. Separate small-test fixes remain distinct from deployment and a full near-1M quality retest; they do not rewrite those failures.
-
-The small follow-up used eight synthetic model requests and 26 component checks. The tested acceptance/status and identifier-recall cases passed, and the false missing-content claim was corrected. Actor attribution still failed: the summary credited the assistant guide with identifiers that appeared only in the user input. Overall summary faithfulness remains unaccepted. The prompt-only revisions did not pass actor-attribution verification; no near-1M retest or runtime restart was performed.
-
-### Identifier-attribution checkpoint protection — 24 October 2026
-
-The compaction guard is active on all 34 running workers across DSH, DSH2 and DSH3. It was loaded through DSH's supported profile hot reload, without restarting DSH, Jupyter or notebook kernels. Existing compaction instructions, checkpoint framing, model settings and storage mounts remain unchanged.
-
-Before a future summary is adopted, the guard checks claims that the assistant included opaque identifiers against the actual user and assistant messages. For example, identifiers supplied only by the user cannot be credited to an assistant-produced guide. Unsupported or uncertain attribution holds compaction before checkpoint adoption, releases no successful candidate text and does not retry through recovery. Ordinary chat bypasses this check.
-
-Verification passed 51 source/component checks for each repository-specific installer, six native compaction cases, and official file-watcher activation/removal checks. All 34 live workers passed four in-process synthetic checks each: ordinary-chat bypass, supported attribution, explicit unsupported attribution and unsupported “assistant guide” wording — 136 checks in total. These checks made no real model calls and did not repeat near-1M testing.
-
-A memory-only native compaction produced a checkpoint that correctly attributed the identifiers to the user, retained the generic assistant guide and did not invent acceptance evidence: 4.673 seconds, 1,178 input / 407 output tokens. The initial four real-model requests included a leading-answer smoke check, a truncated neutral reply and an ambiguous origin field; their original results remain preserved. One later question explicitly asked which conversation speaker supplied the identifiers, using the same saved checkpoint and unchanged native framing. It returned the correct user role and a ten-word evidence quote that exactly matched the checkpoint: HTTP 200, 0.519 seconds, 557 input / 43 output tokens, complete stop. The question supplied no expected role or answer. This closes the specific speaker-origin ambiguity for that check; it does not establish general summary faithfulness. Five real-model requests are recorded in total, with zero client retries. No compaction or near-1M test was repeated, and no user session was persisted or changed.
-
-Pod identities, container restart counts, existing plugin records and protected DSH/Jupyter process identities stayed unchanged. Existing history/attachment/workspace metadata fingerprints matched before and after each activation; these are metadata checks, not a new byte-by-byte audit of all user files. Only versioned guard files and one added profile entry were written.
-
-The guard applies to compactions started after its activation; earlier summaries and already-started requests are unchanged. Its persistent profile entry and code remain available on the existing workers' state volumes. Brand-new workers using an older image still require the same activation or an image containing the committed build-time guard. The live add-on checks the tested English identifier-attribution patterns; it does not certify every summary statement. On a hold, review the affected conversation rather than treating the rejected summary as an accepted result. The original history is not replaced; rejected-candidate details remain on the in-memory error object.
-
-
+The compaction guard runs on DSH, DSH2 and DSH3. Before a future summary is adopted, the guard checks claims that the assistant included opaque identifiers against the actual user and assistant messages. For example, identifiers supplied only by the user cannot be credited to an assistant-produced guide. Unsupported or uncertain attribution holds compaction before checkpoint adoption, releases no successful candidate text and does not retry through recovery. Ordinary chat bypasses this check.
 
 For everyday use, continue a related conversation when its context is useful, start a fresh session for an unrelated short question, and review cited sources and tool outputs. Use Stop to cancel long preparation or queued work. Longer context preserves more material; it does not guarantee a faster or more accurate answer.
-
-
-
-## Latest verified interactive results
-
-The 23 October 2026 check passed normal login, terminal commands, Jupyter kernel
-execution and logout for Main DSH in both environments and the DSH2/DSH3 owner
-workspaces.
-The executing capacity controller now includes the qualified finite-number guard;
-see the verified results for the controller-only deployment scope.
 
 
 ## Jupyter Start controls
@@ -134,9 +97,6 @@ confirmation prompts. See [administrator steps and behavior](JUPYTER_START_CONTR
 and the [captioned walkthrough](JUPYTER_DSH2_DSH3_WALKTHROUGH.html).
 
 
-## Current guide and lifecycle verification
-
-
 ## Application links, slides and English video
 
 Use the [application links and Main/Test guide](APP_LINKS_AND_STATUS.html) to distinguish Main workspaces and application controls from the App5/App6 Test fixtures. It links the current slides and English video, explains normal DSH sign-in and return to the original app tab, and distinguishes Public routing from a destination application's own login.
@@ -144,13 +104,11 @@ Use the [application links and Main/Test guide](APP_LINKS_AND_STATUS.html) to di
 
 ## Site compatibility and everyday use
 
-Main DSH, DSH2 and DSH3 use the same approved DSH 0.2.1-rc.2 application build and managed inference transport. Main DSH provides team accounts and private user/environment routing. DSH2 and DSH3 retain their owner-only authentication and Internet-only site settings. These settings do not require separate forks of the DSH application.
+Main DSH, DSH2 and DSH3 use the same approved DSH application build and managed inference transport. Main DSH provides team accounts and private user/environment routing. DSH2 and DSH3 retain their owner-only authentication and Internet-only site settings. These settings do not require separate forks of the DSH application.
 
 1. At sign-in, choose **AD / LDAP** for a corporate account or **Local DSH account** for a provisioned local account. A local account must use the local option.
 2. In a conversation, select **DeepSeek-V4.1-Flash** from the managed **LiteLLM** provider. DSH saves an owner's model choice for subsequent requests. The official DeepSeek provider sign-in is separate from the team's workspace login.
 3. Administrators enable automatic startup only for approved applications. **Start** keeps an already-running service; **Restart** replaces that service process; **Stop** prevents automatic restart. Saved files and histories persist, while unsaved process memory and notebook variables do not survive a real restart.
-
-The 24 October checks verified normal owner login and exact managed-model replies on all three sites. Isolated supervisor checks covered startup, automatic recovery, explicit restart, Stop and access revocation without restarting existing applications. The source qualification also exercised a separate Jupyter notebook/kernel, authorization and XSRF fixture.
 
 <!-- credential-management-design -->
 

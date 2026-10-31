@@ -244,12 +244,11 @@ Status labels explain observations; they do not change permissions or processes.
 
 Sources: [JUPYTER_APP_LIFECYCLE.md](../JUPYTER_APP_LIFECYCLE.md), [JUPYTER_START_CONTROLS.md](../JUPYTER_START_CONTROLS.md), [JUPYTER_AUTOSTART_BACKFILL.md](../JUPYTER_AUTOSTART_BACKFILL.md)
 
-## 25 Current guidance and historical evidence
+## 25 Current guidance
 
-This guide is the canonical workflow; dated records describe what was tested then.
+This guide is the canonical workflow.
 
 - The canonical PowerPoint and its HTML/Markdown share one authored source. The three sites serve the same approved deck bytes.
-- Original Pilot and Routing files retain their content and hashes in the archive. Their old pages point to this replacement.
 - A Test success applies to its source, inputs and workflow. It does not certify every application or future model response.
 
 Sources: [COURSE_DELIVERY.md](../COURSE_DELIVERY.md), [SLIDE_DOWNLOADS.md](../SLIDE_DOWNLOADS.md)
@@ -300,7 +299,7 @@ A context budget is not a promise of latency or concurrent full-size requests.
 
 - The documented budget is 1,048,576 tokens including instructions, tools, history, output and reserve. Confirm the selected deployment profile.
 - Distinguish preparation latency, streaming rate and end-to-end completion. A small prompt can carry a large existing conversation.
-- Use dated acceptance reports for throughput and trial results. Historical near-1M and short-request measurements are not a current SLA.
+- Current speed figures are in the [current production](../deepseek-v41-h100/README.md#current-production-30-oct-2026-utc) section; they are measurements, not an SLA.
 
 Sources: [DSH_USER_MANUAL.md](../DSH_USER_MANUAL.md), [THREE_RISK_CONTROLS.md](../THREE_RISK_CONTROLS.md)
 

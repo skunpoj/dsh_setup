@@ -20,8 +20,7 @@
     ".gitignore": "8b9b8c954fa313f4b150f9f460f45ab308f9cb9ecb5039e304442c0fc3355549",
     "checkpoints/deepseek-v4.1-flash-1017.json": "e869c605ed65b94f4db62d438fea78df59abb132e23eca0d8b26afc8d10964db",
     "ci-example.yml": "553d0999a9914ab3ceaa8e108e35851364e4bb379a82395ec740a65975e371b1",
-    "QUALIFICATION.md": "4df24f40fb408914b68c4cd1b87727ba494865e5ea9a428329509ce79c7e5d5d",
-    "README.md": "3abaf5076b1267fb4888f2558d35aa8a47564fd5c45e8b7432fb4aba63d9dec8",
+    "README.md": "f39f04da2c9bc5f7465b1364a8c27fbb6efb5b9368b52e2bbe9a440c3b6daadc",
     "render.py": "4b1786892ed59492e2d815f6eba2e4bfb5bc603d0473cb6d641fd3ec9a9d2a18",
     "runtime/context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
     "runtime/context_forwarder.py": "763739b1d9ac2b883362b566b227506a12767eddfea0871a268c2631d31dc3fd",
@@ -47,8 +46,6 @@
     "runtime/stream_admission_errors.py": "ccc80bf33188cf129daadb5400d30442083d5755c8a1e37afe9cd3a7dfa2e34a",
     "check_gpu_trial_log.py": "2fc347e38b8f14c384691e00d7fb2cd11adc73202728a316fca54b83f4488bc8",
     "tests/test_gpu_trial_log_gate.py": "cea57e4e8a823ec0d3eca3d4816e123dfd46aa45267bb175451eadd94d9264fd",
-    "experiments/warm-json-20261021/README.md": "78cc1b610729fa645b3610b1867165c9d17e4e50ab2f7837bb5c6e6f0e2e51e5",
-    "experiments/warm-json-20261021/candidate.patch": "743503b720e3416b7ef5d8db4a5fab6c32e2e9b21239d0da3d9cf4dd3ad3b4e3",
     "tests/test_owned_cache_cleanup.py": "5ace18b9b7b87086b1deed4faae2c45b637e45f73a4b4695fa0609c26a763717",
     "tests/test_owned_cache_deadline.py": "7216aeeec8c47bcde738a426e6fffbdd4441d8230f5ed65e0971af19e0df5535"
   },

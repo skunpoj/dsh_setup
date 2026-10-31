@@ -104,12 +104,6 @@ python scripts/rollout_admin_management.py --apply \
 
 6. Open the actual login page, check the Create account tab and default No Internet choice, and confirm the admin controls and remaining capacity. Compare existing account fingerprints and workload identities with the saved baseline. Retain the old gateway specification for configuration rollback; never restore an older account-store file over newer registrations. On a regression, disable new signup and preserve all assignments and private data while investigating.
 
-## Recorded acceptance
-
-The 19 October 2026 candidate test created two accounts, four native histories and four private workspace/attachment marker pairs. Two actual DSH replies passed. Cross-user and cross-environment history reads were denied; default Internet access was denied. The files, histories and account assignments survived the four test-runtime replacements and candidate-gateway replacement. Admin Internet revocation denied a new Internet login while No Internet remained available. The public catalog reserves four different, empty pairs; capacity decreases as accounts sign up.
-
-
-<a id="capacity-planning"></a>
 
 ## Calculate and adjust shared account capacity
 

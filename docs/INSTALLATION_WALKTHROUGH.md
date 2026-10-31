@@ -1,7 +1,5 @@
 ## How to install DSH
 
-For the consolidated DSpark decisions, failed trials, memory corrections, preparation overhead and accepted measurements, see the [inference optimization experience record](INFERENCE_OPTIMIZATION_EXPERIENCE.md).
-
 This walkthrough follows the repository's actual build, manifest-generation and inference-rendering interfaces. Run commands from the repository root in a POSIX operator shell. Windows operators can use WSL; Python-only generation also works in PowerShell. The recorded deployment and performance results appear separately under **What is deployed** and **Qualification results**.
 
 Choose the inference topology first. Components in the same cluster can occupy different nodes. For a GPU server on another machine, the portable renderer accepts `backendOrigin` and explicit private host CIDRs; it then omits local GPU/model-storage objects. If LiteLLM itself moves outside the cluster, retain the managed logical gateway through an approved relay or qualify all operator-owned client policies together. Complete the DNS, TLS, firewall and endpoint checks in the [flexible deployment guide](FLEXIBLE_DEPLOYMENT.md); a new FQDN alone does not update client policy or network authorization.
@@ -34,7 +32,7 @@ Use **DeepSeek-V4.1-Flash-1017**, pinned to revision `1bae0e1088993b9b82de08f59d
 
 Keep the stable DeepSeek client aliases pointing to the updated checkpoint. Do not change every catalog entry to 1M: aliases, actual checkpoint support and route budgets must agree for each model separately. Verify the loaded model path/revision and an actual answer after rollout. The application image, model weights and model-serving image are independent versions; updating the checkpoint does not upgrade the DSH package.
 
-Use a new test namespace for a new installation. For an existing installation, preserve its current namespace, claims, account store and owner mapping; do not run initial provisioning over live routing. Never apply the entire `k8s` directory: it includes historical deployments and site-specific examples.
+Use a new test namespace for a new installation. For an existing installation, preserve its current namespace, claims, account store and owner mapping; do not run initial provisioning over live routing. Never apply the entire `k8s` directory: it holds site-specific examples, not a deployable set.
 
 | Input | Operator supplies | Used by |
 |---|---|---|

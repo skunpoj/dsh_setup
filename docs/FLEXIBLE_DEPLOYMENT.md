@@ -1,6 +1,6 @@
 # DSH, LiteLLM and GPU deployment across machines
 
-DSH is the user workspace and tool-execution layer. LiteLLM is the authenticated model API and policy layer. SGLang is the GPU inference layer. They communicate over network APIs and do not have to run on the same machine. A local/on-premises model means the organization operates it; it does not mean every component calls `localhost`.
+DSH is the user workspace and tool-execution layer. LiteLLM is the authenticated model API and policy layer. The GPU inference layer is DeepInfer v4 + DSpark, with SGLang kept switched off as the rollback engine. They communicate over network APIs and do not have to run on the same machine. A local/on-premises model means the organization operates it; it does not mean every component calls `localhost`.
 
 ## Deployment choices
 
@@ -23,7 +23,7 @@ flowchart TB
   J -->|Explicit model API calls| A
   A --> L[LiteLLM authentication and model policy]
   L --> F[Private loopback context forwarder]
-  F -->|Private FQDN / exact tokenization and inference| M[GPU SGLang server]
+  F -->|Private FQDN / exact tokenization and inference| M[GPU inference server: DeepInfer, SGLang rollback]
 ```
 
 The GPU server may be on another node or machine. Private user files, credentials, notebooks and histories remain on their configured DSH storage; moving inference does not copy those volumes. The model receives the request content selected by the client, including supplied documents and tool results. Only approved inference destinations may receive that content.

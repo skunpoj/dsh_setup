@@ -17,6 +17,6 @@ See [the narration standard](VIDEO_NARRATION_STANDARD.md) for source binding, vo
 
 ## User credential management supplement
 
-[User-managed credentials](USER_CREDENTIAL_MANAGEMENT.html) explains the API-token/PAT implementation, private entry, per-user scopes, approvals, audit and recovery. Its current English Fola-narrated lesson runs 106 seconds with 27 aligned captions. The previous silent storyboard is historical; the existing 44-chapter course remains preserved.
+[User-managed credentials](USER_CREDENTIAL_MANAGEMENT.html) explains the API-token/PAT implementation, private entry, per-user scopes, approvals, audit and recovery. Its current English Fola-narrated lesson runs 106 seconds with 27 aligned captions.
 
 [Download narrated video](videos/credential-management-fola.mp4) · [English captions](videos/credential-management-fola.vtt) · [Transcript](videos/credential-management-fola-transcript.txt).

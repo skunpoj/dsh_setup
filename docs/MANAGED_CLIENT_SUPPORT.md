@@ -32,7 +32,7 @@ The full image fixes are active in future-account templates and unassigned warm 
 
 ## Existing workspaces: launch the updated clients
 
-On 22 October 2026, the compatibility layer was installed and verified in **26 existing user/environment workspaces without restarting them**. It enables the qualified Kilo editing policy and TrueForge workspace file tools for newly launched clients. Existing accounts, private storage, histories and running processes stay in place.
+The compatibility layer is installed in existing user/environment workspaces **without restarting them**. It enables the qualified Kilo editing policy and TrueForge workspace file tools for newly launched clients. Existing accounts, private storage, histories and running processes stay in place.
 
 Open a **new interactive Bash terminal** before launching `kilo`, `kilocode` or `trueforge`. In an already-open Bash terminal, load the same launchers explicitly:
 

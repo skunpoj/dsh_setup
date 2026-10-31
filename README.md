@@ -2,7 +2,7 @@
 
 Based on [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness); not a GitHub fork. Upstream releases are tracked by the auto-port workflow (`.github/workflows/upstream-auto-port.yml`).
 
-**GPU serving today (30 Oct 2026):** DeepInfer + DSpark on 4× H100 NVL, 1M context; see [docs/deepseek-v41-h100](docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc). The 24 October section below describes the earlier SGLang setup.
+**GPU serving today (30 Oct 2026):** DeepInfer + DSpark on 4× H100 NVL, 1M context; see [docs/deepseek-v41-h100](docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).
 
 
 [English Fola video guide](docs/COURSE_GUIDE.md) · [Video and presentation index](docs/PRESENTATION_EDITION.md)
@@ -136,7 +136,7 @@ node tests/test_workspace_policy.js
 Pinned package/image compatibility checks fail closed on upstream changes. A
 source or schema test is not proof of successful GPU inference. Keep local
 configuration, generated manifests, keys, tickets, backups and results out of Git.
-See [release validation](docs/VALIDATION.md) and [third-party notices](docs/THIRD_PARTY.md).
+See [third-party notices](docs/THIRD_PARTY.md).
 
 For custom automatic provisioning, see [signup capacity, pressure gating and automatic recovery](docs/SIGNUP_CAPACITY.md). The portable evaluator is supplied for integration; it does not install a collector or enable registration.
 
@@ -164,11 +164,6 @@ Start safely reuses an already-enabled Jupyter service across Main DSH, DSH2 and
 [captioned walkthrough](docs/JUPYTER_DSH2_DSH3_WALKTHROUGH.html) explain Start, Stop and Restart.
 
 
-## Current guide and lifecycle verification
-
-
-
-
 ### Application audiences and checkbox editing
 
 The deployed Main-gateway update replaces typed usernames with a local-user checkbox picker and adds **Edit sharing / URL** for saved applications. New ordinary authenticated apps default to **All authenticated users (local and AD / LDAP)**; owners can choose all local users, all AD / LDAP users, selected local users or owner-only. Existing audiences stay unchanged until saved. JupyterLab and terminal remain owner-only.
@@ -178,7 +173,6 @@ Actual gateway tests cover local/directory identity enforcement, private routing
 ## Jupyter automatic startup
 
 Private workspaces seed managed Jupyter in both environments. Internet startup still requires admin-approved Internet access. Autostart recovers the saved desired state after replacement; Admin Stop stays disabled. Existing on-demand servers are left running until natural handover, preserving active notebooks. Saved files and settings remain in their private storage. See the [lifecycle guide](docs/JUPYTER_APP_LIFECYCLE.html) and [operator backfill procedure](docs/JUPYTER_AUTOSTART_BACKFILL.html).
-
 
 
 Jupyter dashboard status distinguishes **Waiting for existing Jupyter**, **Internet approval pending**, **Account disabled** and **Recovery retry pending**. These labels do not change startup or access permissions. See the [status explanation](docs/JUPYTER_APP_LIFECYCLE.html) and [captioned walkthrough](docs/JUPYTER_DSH2_DSH3_WALKTHROUGH.html).
@@ -193,7 +187,7 @@ The approved DSH application is 0.2.1-rc.5 with pi-ai 1.3.0; sites still running
 
 [Credential management guide and Fola lesson](docs/USER_CREDENTIAL_MANAGEMENT.html): aliases instead of secrets in chat; owner/workspace/environment/action policy; lifecycle and audit controls. Implemented for configured API-token/PAT connectors; OAuth consent and Kerberos acquisition are not included.
 
-[Institutional theme runtime qualification](docs/CREDENTIAL_THEME_QUALIFICATION.md) records the Main and legacy rollout, preservation checks and bounded transport-health repair. [OpenShell prerequisites](docs/OPENSHELL_RUNTIME_PREREQUISITES.md) separates the completed CPU-only preflight from its 25 unrun product gates. [OAuth/Kerberos explanation](docs/CREDENTIAL_OPERATIONS.md#why-oauth-and-kerberos-are-separate) describes these optional integrations and the configuration they need.
+[OpenShell prerequisites](docs/OPENSHELL_RUNTIME_PREREQUISITES.md) separates the completed CPU-only preflight from its 25 unrun product gates. [OAuth/Kerberos explanation](docs/CREDENTIAL_OPERATIONS.md#why-oauth-and-kerberos-are-separate) describes these optional integrations and the configuration they need.
 
 ## Optional persistent secondary registry
 
@@ -207,11 +201,3 @@ The [additive plugin bundle](plugins/compaction-provenance-guard/README.md) is i
 ## Managed coding-agent integration candidate
 
 The [Deep Agents and DSH CLI candidate](integrations/managed-agents/README.md) adds an opt-in image overlay and fixed-model launchers. It is source-tested, not built or deployed. Web Terminal runs the actual CLIs; DSH web chat does not automatically control their sessions. See the [public-source review scope](docs/PUBLIC_SOURCE_REVIEW.md) for publication checks and limitations.
-
-## History (dated note, 31 Oct 2026)
-
-Before 29 Oct 2026 the reference node served the model with SGLang + DSpark (1M context, 8 requests at once). The
-19–24 Oct qualification and acceptance records (GPU trial status, preparation review, Jupyter, LDAP sign-in,
-capacity planner, three-site sync and document alignment) were dated snapshots of that setup; they were removed on
-31 Oct 2026 so that each document exists once, in its current form. Their full text remains in this repository's
-Git history (before this note). Current figures: [docs/deepseek-v41-h100](docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).

@@ -43,6 +43,4 @@
 <p>App5 is the gated Test example. A fresh signed-out browser must encounter the DSH continuation page, sign in through normal DSH, return to App5, and complete any application-specific login before seeing protected content.</p>
 <p>App6 is the Public Test example. A signed-out DSH browser reaches its application login directly. Public describes the absence of the DSH gate; it does not mean the destination has no authentication.</p>
 <p>These examples qualify the recorded Test paths. They do not change the access policy of another app or deploy the Test adapter to every site. RegChat remains a separate example mapping. See the <a href="DSH_USER_MANUAL.html">user manual</a> for account, environment and application controls.</p>
-<h3>Verified Test behavior — 23 October 2026</h3>
-<p>Fresh DSH logout and sign-in resumed App5 at its original application path when the visitor returned to the original tab. Its existing destination session was retained. Normal DSH sign-in was restored afterward.</p>
-<p>App6's protected content refused a visitor without an application session. Its own login then opened that content without a DSH cookie. That Public application session did not bypass the gated App5 mapping. Neither destination received DSH authentication cookies or an Authorization header.</p></main></html>
+</main></html>

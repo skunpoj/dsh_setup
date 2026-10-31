@@ -1,6 +1,6 @@
 # DSH — Controlling Three Security Risks
 
-Current DSH guide and PowerPoint · Historical decks
+Current DSH guide and PowerPoint
 
 DSH provides private AI workspaces for code, documents and analysis. Its design controls three risks: sending protected information outside its permitted boundary, damaging data or reaching resources beyond the task, and exposing results to unauthorized people.
 
@@ -252,7 +252,7 @@ Use the main DSH sign-in page for your assigned workspace. The operator's deploy
 
 ### Supporting services and standby models
 
-The environment gateway handles login, fixed private routing, authenticated app/terminal access and the admin view. The internal DNS service provides the approved name-resolution path. LiteLLM and its final-payload guard handle model authentication, exact budgets and admission; PostgreSQL supports LiteLLM's persistent service state. The shared SGLang workload runs the active generative model. A documentation server serves operational guides; the workload-switcher service supports operator-controlled model changes.
+The environment gateway handles login, fixed private routing, authenticated app/terminal access and the admin view. The internal DNS service provides the approved name-resolution path. LiteLLM and its final-payload guard handle model authentication, exact budgets and admission; PostgreSQL supports LiteLLM's persistent service state. The shared DeepInfer workload runs the active generative model; SGLang is kept switched off as the rollback engine. A documentation server serves operational guides; the workload-switcher service supports operator-controlled model changes.
 
 Alternative GLM/Qwen and earlier model-runtime Deployments are explicitly identified as scaled to zero in the inventory. They do not provide simultaneous GPU capacity, an automatic fallback model or an operational service merely because their configuration exists.
 
@@ -439,93 +439,25 @@ Before a rollout, retain the exact image, source ConfigMaps, profile and workloa
 
 ## Appendix B — LLM/GPU setup and measured results
 
-Use the LLM setup and test-results guide for the current profile, request budgets, measured throughput and acceptance status. The records below retain their dates and test scope. Context capacity, answer quality, short-request responsiveness and GPU stability are separate checks; a large configured limit or one successful short reply does not establish a full long-context pass.
-
-The platform uses one shared four-GPU generative model. Private user runtimes share inference while keeping their own files and state. Use the portable `gpu-stack` source and supply private site values outside Git.
+The platform uses one shared four-GPU generative model. Private user runtimes share inference while keeping their own files and state. Production runs DeepInfer v4 + DSpark on 4× H100 NVL with a 1,048,576-token context and up to eight requests at once; SGLang + DSpark is kept switched off as the rollback engine. The portable `gpu-stack` source renders the SGLang rollback profile; supply private site values outside Git.
 
 ```mermaid
 flowchart LR
  U[Private DSH runtime] --> L[Authenticated LiteLLM gateway]
  C[Managed Claude Code or TrueForge] --> L
- L --> F[Loopback final-payload guard]
- F --> S[Shared SGLang model on four GPUs]
+ L --> S[DeepInfer v4 + DSpark on four GPUs; SGLang kept as rollback]
  L --> D[Private PostgreSQL]
  W[Pre-staged read-only weights] --> S
  L --> O[Optional CPU embedding service]
 ```
 
-### Configuration and qualification are separate
+### Served model and configuration
 
-The qualified checkpoint is DeepSeek-V4.1-Flash-1017 revision `1bae0e1088993b9b82de08f59de5be5a34e42170`, served on the existing four-GPU node. It uses the pinned SGLang image and source-fenced score-tile/FP4 overlays, verified against original GPU calculations before startup. The final score tile is 128 MiB; changing an upstream target fails the source fence rather than silently applying an unreviewed patch.
+The served checkpoint is DeepSeek-V4.1-Flash-1017 revision `1bae0e1088993b9b82de08f59de5be5a34e42170`. Cross-socket GPU P2P drops writes on this host, so experts are exchanged over an NCCL all-to-all fallback instead of DeepEP. Configuration and every measurement: [current production](deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).
 
-### Optimization status — 22 October 2026
+### Measured results
 
-The current optimization trial retains a 1,048,576-token total ceiling and an 8,192-token output ceiling. Its profile uses static memory fraction 0.922, eight running requests, GPU prefill chunks of 1,024 and DSpark block size five. These are configuration values. The latest scheduled full near-1M trial stopped at its memory acceptance gate after four recoverable 20 MiB allocation requests encountered only 9.75 MiB free. There was no model restart or uncaught out-of-memory exception. Its 69 short replies passed, with a maximum of 12.72 seconds. The corrected V4 source trial also failed its strict memory gate at 16:03 ICT: four 20 MiB mapping requests encountered 15.75–17.75 MiB free with a last model cached-prefix counter of 765,952 tokens. Its 53 recorded short replies passed, with a maximum of 11.78 seconds. The saved log showed no uncaught out-of-memory exception or unexpected model restart. No substantial near-1M answer or compaction result was obtained, so this trial is not accepted as a near-1M or 100+ tokens/sec improvement. The compatible unfused rollback profile is restored with the 1M ceiling retained. A fresh native DSH request through canonical LiteLLM returned the exact recovery answer with 11,912 input / 12 output tokens in 3.825 seconds and zero retries. Owned test workers, admission reservations and credentials were cleaned up; this short recovery is separate from full-context acceptance.
-
-All 19 logical DeepSeek aliases are configured through the managed forwarding path. Text requests above 32K total tokens use bounded preparation and admission so a medium cold request cannot bypass the long-work scheduler. Existing lower budgets on other logical aliases are retained.
-
-A 109,524-input-token request returned its exact expected answer in 56.33 seconds. A full admission queue rejected a further request with HTTP 429 in 0.37 seconds; an ordinary DSH reply completed in 2.51 seconds while that lane was held. Cancellation released the waiting slot for reuse. These samples qualify those cases, not completed near-1M throughput or 100+ tokens/sec per conversation.
-
-Allocation warnings, warming timeouts and delayed short replies are separate observations; an unconfirmed cache-loss explanation is not a measured cause. Use the dated trial result rather than treating an older successful profile as acceptance of the current one.
-
-### Recorded release and 1M checks — 20 October 2026
-
-The existing 32 runtime workers checked during the upstream rollout ran DSH **0.2.1-rc.2**, using qualified image `1397e17507bba66f33d1901518db9a97b80bd1b9fee2e2268656731f8a840016`. The GPU model and 1,048,576-token budget remain shared and unchanged.
-
-| Actual DSH case | Recorded result |
-|---|---|
-| New upstream SDK cold reference test | 1,011,984 input / 431 output tokens; exact answer, 28m19.48s, zero retries |
-| Concurrent ordinary replies | 50/50 exact and retry-free; 4.61–10.14s, median 6.63s |
-| Answer stream after preparation | 95.53 output tokens/sec; this excludes cold preparation |
-| Final-image near-1M tool turn | 1,012,559 then 1,012,745 input tokens across two calls; Bash write/read and exact final answer, 26m37.12s, zero retries |
-
-One expensive request is admitted at a time; shorter requests remain concurrent. These synthetic known-answer and tool cases do not represent every workload or a latency guarantee. See full current profile and test scope and upgrade/recovery procedure.
-
-### Recorded 1017 acceptance
-
-**19 October 2026: the corrected 128 MiB score-tile profile passed the recorded DeepSeek-V4.1-Flash-1017 workloads on the existing four H100 NVL GPUs.** The checkpoint is pinned to revision `1bae0e1088993b9b82de08f59de5be5a34e42170`. Earlier checkpoint results and the first 1017 trial remain separate historical records.
-
-| Setting | Qualified profile |
-|---|---|
-| Total context | 1,048,576 tokens, including output and reserve |
-| Speculation | DSpark block 5 |
-| Static memory | 0.923 |
-| Active request / decode graph cap | 8 / 8 |
-| Prefill chunk / maximum | 1,024 / 1,024 |
-| Maximum prefill requests / prefix tails / decode interval | 2 / 16 / 4 |
-| Attention-score tile / warm step | 128 MiB / 2,048 tokens |
-| Long admission | One active request above 128K and one bounded FIFO waiter; ordinary requests bypass this queue |
-
-### Measured results and their scope
-
-> **Current speed (30 Oct 2026, one standard).** DeepInfer 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: SGLang is about 9–17 % faster; many users: DeepInfer gives about 3× the total. Definitions, method and every result: LLM speed comparison. The figures below are historic SGLang measurements with their own workloads and timing boundaries.
-
-| Actual DSH check | Recorded result |
-|---|---|
-| 256K | 257,688 input / 7 output; 147.06s; 12 short replies, median 3.58s |
-| Cold near-1M | 1,007,752 input / 431 output; exact saved answer in **27m33.97s**; 149.15 stream tokens/sec |
-| Short requests alongside cold work | **60/60** correct, saved and retry-free; paired median **5.11s**, including two eight-client bursts |
-| Immediate cached continuation | 1,008,209 input / 1,199 output; **15.13s**, **159.22 stream tokens/sec**; exact, saved and retry-free |
-| Real tool continuation | 1,009,686 input; **12.94s**; actual create/read/delete command, successful tool result and file absent before/after |
-| Fresh ordinary concurrency | **31/31** replies across 1, 2, 4, 8 and 16 clients; cap eight means excess clients may queue |
-| Structured 599-token replies | Three correct saved answers at **163.34–166.48 stream tokens/sec** |
-| Managed clients | Ordinary Claude Code 2.1.301 reply 1.171s and TrueForge 0.179.2 reply 0.732s, saved; these are not fresh CLI 1M tests |
-| History preservation | **167 histories / 188 original files / 20 main runtimes**: original IDs and bytes unchanged |
-| Runtime failures | Zero retries, allocation mapping warnings, fatal signatures or model restarts in the final qualification |
-
-The first 1017 trial returned the correct near-1M answer with 52 short replies, but eight recoverable allocation warnings failed its strict gate. Reducing the score tile from 256 to 128 MiB passed GPU mathematical equivalence before the final full rerun. A correct answer alone did not qualify the first profile.
-
-Minimum free GPU memory observed at one-second NVML sampling was **38 MiB per GPU**; memory remains tight. This is not a continuous peak bound. An optional prose follow-up after burst traffic re-entered cold preparation and was cancelled. It provides no prose-quality acceptance and does not guarantee cache reuse after load. Keep it distinct from the passed immediate cached continuation. Streaming speed excludes cold preparation and is not an SLA or a claim that every task exceeds 100 tokens/sec.
-
-| Fresh clients | Completion window | Combined cohort output tokens/sec |
-|---|---|---:|
-| 1 | 1.29s | 92.02 |
-| 2 | 1.82s | 130.51 |
-| 4 | 2.61–3.12s | 152.49 |
-| 8 | 3.18–5.96s | 159.81 |
-| 16 | 2.89–10.97s | 173.57 |
-
-These are bounded workload-specific samples, not simultaneous full-1M capability for sixteen clients. Two full-1M requests are not admitted simultaneously. Saved original failed and cancelled cases remain part of the trial history. The checkpoint-specific model update report describes the rollout and qualification; the security companion stays focused on controlling the three risks.
+> **Current speed (30 Oct 2026, one standard).** DeepInfer 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: SGLang is about 9–17 % faster; many users: DeepInfer gives about 3× the total. Definitions, method and every result: LLM speed comparison.
 
 ### 1 Prepare prerequisites and a test environment
 

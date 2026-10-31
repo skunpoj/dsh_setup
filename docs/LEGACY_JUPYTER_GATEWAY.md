@@ -52,6 +52,5 @@ files, user settings and saved histories were compared. No live server was
 stopped to manufacture a cold-start test. Only the verification's synthetic
 kernels were removed; IPython may record empty test-session metadata.
 
-See `context-evidence/legacy-jupyter-on-demand-accepted-20261023.json` for the
-bounded acceptance record. The private site profile records deployed resources
+The private site profile records deployed resources
 and recovery routing; it is operator evidence, not an automatic apply manifest.

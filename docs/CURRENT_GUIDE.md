@@ -6,9 +6,9 @@ Use deployment-relative entry paths such as `/manual/DSH_CURRENT_GUIDE.html`. Co
 
 State the guide's platform scope explicitly. Mirroring the same guide on another site does not synchronize that site's identities, permissions, storage or configuration. Independent sites retain their configured access and storage boundaries.
 
-## Historical editions
+## Editions
 
-Retain original editions as companion HTML in a versioned archive with filenames, source revisions, sizes and SHA-256 hashes. Mark old companion pages as superseded and link to the canonical guide. Keep historical snapshots out of the primary current-guide navigation.
+Publish one current edition of the guide. Earlier editions are not kept as companion pages; Git history keeps them.
 
 An optional topic extract must be generated from the canonical source and labelled as an extract. Do not maintain it as another competing current guide. A combined filename alone does not reconcile outdated claims, mixed-language terminology, duplicated sections or stale measurements.
 
