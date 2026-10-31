@@ -61,7 +61,7 @@ Cold start: a stopped workspace takes roughly 30–60 s to start. That is the ac
 2. **Retention:** delete a retired account's runtimes, Services and PVCs after a 30-day grace period. This needs a separately reviewed
    delete permission, deliberately not given to the scaling controller.
 3. **Housekeeping:** `ttlSecondsAfterFinished` on the remaining Job creators; a pruning job for old hash-named ConfigMaps.
-4. **Admin dashboard wording:** the capacity form still shows the "maximum accounts" field. It is now informational.
+4. **Admin dashboard wording:** done 30 Oct (1ce73a5). The form has no account-limit field and states that there is no account limit.
 
 ## Deploying source changes
 
