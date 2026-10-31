@@ -34,7 +34,7 @@ Owners can explicitly share an ordinary local web app with enabled DSH users whi
 
 ## Public presentation and speaker guide
 
-[Editable PowerPoint](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pptx) ยท [Slide PDF](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pdf) ยท [Detailed storytelling PDF](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream_Story.pdf)
+[Editable PowerPoint](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pptx) · [Slide PDF](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pdf) · [Detailed storytelling PDF](docs/presentations/guarding-the-value-stream/Guarding_the_Value_Stream_Story.pdf)
 
 The 23-slide talk covers agent incidents, controls, governance, illustrative banking and insurance workflows, and DSH. Its final QR links to this repository. Research infographics are credited to **Thanatchon Chongmankhong** ([HarnessWatch](https://thanatchon36.github.io/harnesswatch/paper/) and [airmkit](https://thanatchon36.github.io/airmkit/paper/)). The examples are hypothetical and are not a claim of live business automation or certified compliance.
 
@@ -64,6 +64,15 @@ personal accounts, operational transcripts or credential values.
   managed admission; shorter requests can remain concurrent. Input includes the
   complete conversation and tool context, not only the latest prompt. That is not two simultaneous full-1M requests or an SLA.
 - Persistent storage and read-only approved packages. Persistence is not backup.
+
+## Roadmap
+
+Planned, not yet delivered. Each item is tested in a disposable profile or a test window before it reaches users.
+
+- **Theme centre.** A small skin format (`dsh-themes`) and a picker (`@dsh-suite/themes`) so an operator can offer several reviewed themes beside the native Light/Dark/System appearance, instead of shipping one fixed theme package. It follows the optional `dsh-theme-custom-light` plugin and an operator's custom theme release (0.2.0: a separate colour row under the untouched native Appearance setting, plus brand slots). Installation stays pinned and hash-checked; an existing older copy is upgraded only from an exact, qualified version, with a rollback copy kept.
+- **Prefix cache for DeepInfer.** DeepInfer has no cross-request prefix cache yet: a follow-up turn on a long conversation re-reads the whole prompt (first token about 38 s at 127K, 145 s at 498K and 301 s at 995K tokens). The host prefix-cache (hicache) module is not in the upstream tree; the plan is row K ("host prefix cache", in the configuration matrix of [DeepInfer#221](https://github.com/deepseek-ai/DeepInfer/discussions/221)).
+- **Host GPU peer-to-peer fix.** On the reference node, writes between GPUs on different CPU sockets are silently dropped with the IOMMU in translated mode, so DeepInfer exchanges experts through host memory. Requested host change: `iommu=pt` (then ACS off or the vendor's GPU BIOS profile if needed). Estimate after the fix: about 80–150 tok/s for one user, about 1.3–2.5× today in total; to be re-measured with DeepEP.
+- **One canonical source for portable code.** This repository is to become the canonical home of the portable product code; a site deployment carries only that code plus its private overlay (site names, identities, branding, operations). Until then, the publication boundaries in [docs/PUBLICATION.md](docs/PUBLICATION.md) describe what stays private; the path-by-path mapping will be added there.
 
 ## Start here
 
