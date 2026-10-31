@@ -8,7 +8,7 @@ The trusted collector samples all node workloads, including notebook kernels, ag
 
 A report must be less than 60 seconds old, have node usage less than 90 seconds old, cover all configured additional instances and match the current registered-account count. Missing, malformed, stale or incomplete snapshots deny admission. See the evaluator and tests for the exact version-1 snapshot schema. Never accept collector data from an untrusted browser request.
 
-Re-evaluate on every signup. A fresh healthy sample reopens remaining spares automatically, subject to the unchanged saved account limit. A 15-second collector interval is suitable for this sampled guard; it does not guarantee safety against instantaneous spikes or concurrent GPU inference demand. Preserve existing users and running workloads during pressure. Keep self-registration disabled on fixed-owner instances while including their resource consumption in the collector.
+Re-evaluate on every signup. A fresh healthy sample reopens remaining spares automatically, subject to the 200 GiB local-storage reserve; there is no account limit (removed 30 Oct 2026). A 15-second collector interval is suitable for this sampled guard; it does not guarantee safety against instantaneous spikes or concurrent GPU inference demand. Preserve existing users and running workloads during pressure. Keep self-registration disabled on fixed-owner instances while including their resource consumption in the collector.
 
 ## Integration boundary
 
