@@ -13,7 +13,7 @@ const changePassword=(user,oldPassword,newPassword)=>request('POST','/change-pas
 const CREATE_RULE='Use a password of at least 12 characters without surrounding spaces.';
 let gateway,backend;
 async function start(){gateway=spawn(process.execPath,[path.join(__dirname,'../scripts/auth_proxy.js')],{env:{...process.env,PORT:String(port),WORKSPACE_ROOT:root,DSH_USER_STORE_PATH:path.join(root,'users.json'),DSH_USER_SETTINGS_PATH:path.join(root,'settings.json'),DSH_USER_TARGETS_FILE:path.join(root,'targets.json'),DSH_ADMIN_SUMMARY_FILE:path.join(root,'summary.json'),DSH_AUDIT_DIR:path.join(root,'audit'),DSH_COOKIE_SECURE:'false',DSH_TRUSTED_HOST:'127.0.0.1:'+port},stdio:'ignore'});for(let i=0;i<80;i++){try{await request('GET','/login');return;}catch{await new Promise(r=>setTimeout(r,50));}}throw Error('Gateway did not start');}
-async function stop(){const child=gateway;gateway=null;await new Promise(r=>{child.once('exit',r);child.kill();});}
+async function stop(){const child=gateway;gateway=null;if(child.exitCode!==null||child.signalCode!==null)return;await new Promise(r=>{child.once('exit',r);child.kill();});}
 (async()=>{try{
  const RESET='reset-synthetic-password',NEXT='chosen-synthetic-password';
  const aliceExtra={internetAllowed:true,createdAt:'2026-10-20T07:14:49.317Z',credentialSubject:'u-'+'a'.repeat(32)};

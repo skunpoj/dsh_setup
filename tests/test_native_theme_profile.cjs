@@ -5,6 +5,8 @@ const source=path.resolve(__dirname,'../plugins/dsh-theme-custom-light'),root=fs
 const results=[];
 function state(name){const p=path.join(root,name);fs.mkdirSync(p,{recursive:true});return p;}
 function test(name,fn){fn();results.push(name);}
+// The image ships the package read-only and copyFileSync keeps that mode, so fixtures that are tampered with
+// below are made writable first. Installed copies stay read-only, as in a real workspace profile.
 try{
  test('Fresh registration leaves session/credential sentinels unread and unchanged',()=>{
   const h=state('fresh'),forbidden=[path.join(h,'.credentials.yaml'),path.join(h,'sessions','sentinel')];fs.mkdirSync(path.join(h,'sessions'));for(const p of forbidden)fs.writeFileSync(p,'SYNTHETIC_UNREAD_SENTINEL');
@@ -24,11 +26,11 @@ try{
   const r=install(h,source);assert.equal(r.changed,false);assert.equal(r.profileChanged,false);assert.equal(r.packageInstalled,false);assert(fs.readFileSync(p).equals(raw));assert.equal(fs.statSync(p).mtimeMs,mtime);
  });
  test('Unqualified client is rejected before state writes',()=>{
-  const h=state('bad-client'),s=state('bad-package');for(const f of FILES){const out=path.join(s,f);fs.mkdirSync(path.dirname(out),{recursive:true});fs.copyFileSync(path.join(source,f),out);}fs.writeFileSync(path.join(s,'lib/client.js'),'unqualified fixture');
+  const h=state('bad-client'),s=state('bad-package');for(const f of FILES){const out=path.join(s,f);fs.mkdirSync(path.dirname(out),{recursive:true});fs.copyFileSync(path.join(source,f),out);}fs.chmodSync(path.join(s,'lib/client.js'),0o600);fs.writeFileSync(path.join(s,'lib/client.js'),'unqualified fixture');
   assert.throws(()=>install(h,s),/Unqualified client/);assert.deepEqual(fs.readdirSync(h),[]);
  });
  test('A different existing managed package requires explicit upgrade review',()=>{
-  const h=state('existing-package');install(h,source);const p=path.join(h,'profiles/web/package.json'),raw=fs.readFileSync(p);fs.writeFileSync(path.join(h,'profiles/web/node_modules/dsh-theme-custom-light/lib/client.js'),'different fixture');
+  const h=state('existing-package');install(h,source);const p=path.join(h,'profiles/web/package.json'),raw=fs.readFileSync(p);fs.chmodSync(path.join(h,'profiles/web/node_modules/dsh-theme-custom-light/lib/client.js'),0o600);fs.writeFileSync(path.join(h,'profiles/web/node_modules/dsh-theme-custom-light/lib/client.js'),'different fixture');
   assert.throws(()=>install(h,source),/differs/);assert(fs.readFileSync(p).equals(raw));
  });
  test('A profile directory symlink is refused without modifying its target',()=>{

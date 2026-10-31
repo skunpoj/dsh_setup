@@ -1485,7 +1485,7 @@ function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '', authPro
     }
     .manual-fab:hover { background: #1e4c7c; }
     .manual-fab:focus-visible { outline: 3px solid #93C5FD; outline-offset: 4px; }
-    @media (max-width: 600px) { body { padding-bottom: 100px; } .manual-fab { right: 16px; bottom: 16px; } }
+    @media (max-width: 600px) { body { flex-direction: column; } .manual-fab { position: static; margin: 20px auto 8px; width: fit-content; box-shadow: none; } } /* on phones a floating button covered form fields; keep it in the page flow below the card */
   </style>
   <script>
     function switchTab(name) {
