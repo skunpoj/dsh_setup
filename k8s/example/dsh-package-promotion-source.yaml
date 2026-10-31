@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+immutable: true
+metadata:
+  name: dsh-promotion-source-30d5c7429c25
+  namespace: llm
+data:
+  promote_packages.py: "\"\"\"Promote reviewed artifacts without following symlinks\
+    \ or reopening sources.\n\nLinux operator job only. The incoming mount is untrusted\
+    \ and read-only here;\nthe approved mount is writable only in this job. Never\
+    \ overwrite an approved\nartifact: identical content is idempotent, conflicting\
+    \ content is refused.\n\"\"\"\nimport hashlib\nimport os\nimport re\nimport stat\n\
+    import tempfile\nfrom pathlib import Path\n\nDIR_FLAGS = os.O_RDONLY | getattr(os,\
+    \ 'O_DIRECTORY', 0) | getattr(os, 'O_NOFOLLOW', 0)\n\n\ndef relative_parts(value):\n\
+    \    parts = value.split('/')\n    if not value or value.startswith('/') or any(p\
+    \ in ('', '.', '..') for p in parts):\n        raise ValueError('Unsafe artifact\
+    \ path')\n    if not re.fullmatch(r'[A-Za-z0-9_./+@=-]+', value):\n        raise\
+    \ ValueError('Unsupported artifact path')\n    return parts\n\n\ndef directory_at(root,\
+    \ parts, create=False):\n    fd = os.dup(root)\n    try:\n        for part in\
+    \ parts:\n            if create:\n                try:\n                    os.mkdir(part,\
+    \ 0o755, dir_fd=fd)\n                except FileExistsError:\n               \
+    \     pass\n            next_fd = os.open(part, DIR_FLAGS, dir_fd=fd)\n      \
+    \      os.close(fd)\n            fd = next_fd\n        return fd\n    except BaseException:\n\
+    \        os.close(fd)\n        raise\n\n\ndef promote(manifest, incoming, approved):\n\
+    \    if not hasattr(os, 'O_NOFOLLOW') or os.open not in os.supports_dir_fd:\n\
+    \        raise RuntimeError('Linux no-follow and directory-FD operations required')\n\
+    \    rows=[]\n    for line in Path(manifest).read_text(encoding='utf-8').splitlines():\n\
+    \        if not line.strip() or line.lstrip().startswith('#'):\n            continue\n\
+    \        fields=line.split()\n        if len(fields)!=2 or not re.fullmatch('[a-fA-F0-9]{64}',fields[0]):\n\
+    \            raise ValueError('Invalid approval row')\n        parts=relative_parts(fields[1]);rows.append((fields[0].lower(),parts))\n\
+    \    if not rows or len({tuple(p) for _,p in rows})!=len(rows):\n        raise\
+    \ ValueError('Approval must contain unique artifacts')\n    source_root=os.open(incoming,DIR_FLAGS)\n\
+    \    target_root=os.open(approved,DIR_FLAGS)\n    staged=[]\n    try:\n      \
+    \  # Verify and stage every row before making any artifact visible.\n        for\
+    \ digest,parts in rows:\n            parent=directory_at(source_root,parts[:-1])\n\
+    \            try:\n                fd=os.open(parts[-1],os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=parent)\n\
+    \            finally:\n                os.close(parent)\n            h=hashlib.sha256()\n\
+    \            # Anonymous temporary staging is outside the untrusted Incoming mount.\n\
+    \            temporary=tempfile.TemporaryFile()\n            try:\n          \
+    \      with os.fdopen(fd,'rb') as f:\n                    if not stat.S_ISREG(os.fstat(f.fileno()).st_mode):\n\
+    \                        raise ValueError('Artifact must be a regular file')\n\
+    \                    size=0\n                    while block:=f.read(1024*1024):\n\
+    \                        size+=len(block)\n                        if size>256*1024*1024:\n\
+    \                            raise ValueError('Artifact exceeds operator size\
+    \ limit')\n                        h.update(block);temporary.write(block)\n  \
+    \              if h.hexdigest()!=digest:\n                    raise ValueError('Artifact\
+    \ hash mismatch')\n                temporary.seek(0);staged.append((digest,parts,temporary))\n\
+    \            except BaseException:\n                temporary.close();raise\n\
+    \        for digest,parts,temporary in staged:\n            parent=directory_at(target_root,parts[:-1],create=True)\n\
+    \            name='.promotion-'+os.urandom(12).hex()\n            try:\n     \
+    \           fd=os.open(name,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o444,dir_fd=parent)\n\
+    \                with os.fdopen(fd,'wb') as f:\n                    while block:=temporary.read(1024*1024):f.write(block)\n\
+    \                    f.flush();os.fsync(f.fileno())\n                try:\n  \
+    \                  os.link(name,parts[-1],src_dir_fd=parent,dst_dir_fd=parent,follow_symlinks=False)\n\
+    \                except FileExistsError:\n                    existing=os.open(parts[-1],os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=parent)\n\
+    \                    with os.fdopen(existing,'rb') as f:\n                   \
+    \     if not stat.S_ISREG(os.fstat(f.fileno()).st_mode) or hashlib.file_digest(f,'sha256').hexdigest()!=digest:\n\
+    \                            raise ValueError('Approved artifact conflicts with\
+    \ manifest')\n            finally:\n                try:os.unlink(name,dir_fd=parent)\n\
+    \                except FileNotFoundError:pass\n                os.close(parent)\n\
+    \        return len(staged)\n    finally:\n        for _,_,f in staged:f.close()\n\
+    \        os.close(source_root);os.close(target_root)\n\n\nif __name__=='__main__':\n\
+    \    count=promote(os.environ.get('APPROVAL_MANIFEST','/approval/manifest.sha256'),\n\
+    \                  os.environ.get('INCOMING_ROOT','/packages/incoming'),\n   \
+    \               os.environ.get('APPROVED_ROOT','/packages/approved'))\n    print(f'promoted\
+    \ {count} verified dependency artifacts')\n"
