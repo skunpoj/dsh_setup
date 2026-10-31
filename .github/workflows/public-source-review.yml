@@ -1,0 +1,23 @@
+name: Public source review
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  source-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Test publication guard
+        run: python3 -m unittest discover -s tests -p test_public_scan.py -v
+      - name: Scan checked-out tree
+        run: python3 scripts/scan_public.py .
+      - name: Check managed-agent JavaScript policy
+        run: node --input-type=module -e "const t = await import('./integrations/managed-agents/tests/test_managed_agent_policy.mjs'); if(t.default.passed !== t.default.total) process.exit(1); console.log(t.default)"
+      - name: Check managed-agent Python source policy
+        run: python3 -m unittest discover -s integrations/managed-agents/tests -p test_managed_deepagents.py -v

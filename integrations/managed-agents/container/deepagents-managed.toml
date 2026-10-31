@@ -1,0 +1,26 @@
+# Operator-owned Linux policy. Never put credentials in TOML.
+[startup]
+mode = "manual"
+yolo_switcher = false
+read_project_dotenv = false
+[models]
+allowed = ["dsh:deepseek-v4.1-flash"]
+default = "dsh:deepseek-v4.1-flash"
+auto_classifier = "dsh:deepseek-v4.1-flash"
+summarization_default = "dsh:deepseek-v4.1-flash"
+[models.providers.dsh]
+class_path = "dsh_agent_model:DSHManagedChat"
+models = ["deepseek-v4.1-flash"]
+[models.providers.dsh.params]
+bypass_auth = true
+[models.providers.dsh.profile]
+tool_calling = true
+[interpreter]
+enable_interpreter = false
+[update]
+auto_update = false
+check = false
+[tracing]
+langsmith_redact = true
+[threads]
+auto_rename = false

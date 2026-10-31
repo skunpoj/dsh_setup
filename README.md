@@ -243,3 +243,7 @@ The [registry installation, CI and recovery guide](docs/SECONDARY_REGISTRY.md) i
 ## Standalone compaction guard plugin
 
 The [additive plugin bundle](plugins/compaction-provenance-guard/README.md) is independent of the deployment overlays. DSH 0.2.1-rc.1, rc.2 and rc.3 passed disposable-profile CLI install, native startup, uninstall and rollback on Windows/Node 24.18.1, with synthetic streams and native compaction. It owns one entry ID, has no runtime dependencies or install hooks, and does not replace official packages. Exact results and limitations are in the [compatibility matrix](plugins/compaction-provenance-guard/compatibility.json). This packaging release does not deploy the plugin or change live workspaces, histories or GPU settings. DSH Store review remains separate.
+
+## Managed coding-agent integration candidate
+
+The [Deep Agents and DSH CLI candidate](integrations/managed-agents/README.md) adds an opt-in image overlay and fixed-model launchers. It is source-tested, not built or deployed. Web Terminal runs the actual CLIs; DSH web chat does not automatically control their sessions. See the [public-source review scope](docs/PUBLIC_SOURCE_REVIEW.md) for publication checks and limitations.
