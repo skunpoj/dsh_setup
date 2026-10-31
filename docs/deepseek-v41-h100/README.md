@@ -12,12 +12,28 @@ All numbers are output tokens per second with 512-token answers. "At once" is ho
 
 | Setup | Longest prompt | At once | 1 user | All users together | Status |
 |---|---|---|---|---|---|
-| SGLang + DSpark (before) | 1M | 8 | 64 | 128 at 16 users (others wait 23 s) | measured |
+| SGLang + DSpark (before) | 1M | 8 | 68 | 126–145 at 16 users (first token 13.5–15.9 s) | measured, 30 Oct matched |
 | DeepInfer, 128K (29 Oct) | 128K | 16 | 58 | 277 at 16 users | measured |
 | **DeepInfer, 1M (now)** | **1M** | **8** | **61** | **313–347 at 8 users** | **measured** |
-| DeepInfer after the host P2P fix | 1M | 8 | ~80–150 | ~2–3× today | estimate |
+| DeepInfer after the host P2P fix | 1M | 8 | ~80–150 | ~1.3–2.5× today | estimate |
 
 Fixing the host makes every step faster, but it does not raise the 8-at-once limit at 1M, which comes from KV memory.
+
+**Matched comparison, 30 Oct** (same checkpoint, straight to each engine, temperature 0; per-user decode tok/s and total tok/s, medians of 3 runs):
+
+| Workload | Clients | DeepInfer per user | DeepInfer total | SGLang per user | SGLang total |
+|---|---|---|---|---|---|
+| Essay, 512 tokens forced (W1) | 1 | 57.8 | 56 | 67.6 | 67 |
+| Essay (W1) | 16 | 51.2 | 384 | 16.5 | 126 |
+| Free text, up to 512 (W4) | 1 | 62.1 | 60 | 68.0 | 67 |
+| Free text (W4) | 16 | 55.6 | 421 | 18.9 | 145 |
+| "List the integers 1..40" (W3) | 1 | 162.5 | 117 | 166.9 | 142 |
+| "List the integers 1..40" (W3) | 8 | 147.3 | 862 | 52.3 | 284 |
+
+- **One user:** SGLang is about 9–17 % faster.
+- **Many users:** DeepInfer is about 3× faster in total; SGLang's per-user speed falls to 16–19 tok/s at 8 or more clients.
+- **The "1..40" prompt is not a general speed:** the 19 Oct "SGLang 149–166 tok/s" figure was measured on it; counting is so predictable that DSpark accepts most draft tokens. On ordinary text both engines run at 58–68 tok/s for one user.
+- **Long context:** DeepInfer has no prefix cache yet. The first token takes 38.6 s at 127K, 145 s at 498K and 301 s at 995K tokens, and a follow-up turn is no faster.
 
 > **Everything below is the plan and the measurements as of 28 Oct 2026, kept for history.** It describes SGLang as the serving engine and Path C as a plan; both are superseded by the section above.
 
