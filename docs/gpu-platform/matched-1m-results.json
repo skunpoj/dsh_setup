@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "model_alias": "deepseek-v4.1-flash",
+  "model_snapshot": "deepseek-ai/DeepSeek-V4.1-Flash-1017@1bae0e1088993b9b82de08f59de5be5a34e42170",
+  "method": {
+    "prompt_sha256": "f0284b35a968233ad533c71781741e01b51597f68a8e502bc934e8b415dc6463",
+    "prompt_tokens": 1000000,
+    "offered_concurrency": 1,
+    "temperature": 0,
+    "max_output_tokens": 32,
+    "required_response": "MATCHED_1M_PASS"
+  },
+  "results": [
+    {
+      "engine": "SGLang+DSpark",
+      "http_status": 200,
+      "usage": {"completion_tokens": 9, "prompt_tokens": 1000000, "prompt_tokens_details": null, "reasoning_tokens": 0, "total_tokens": 1000009},
+      "elapsed_seconds": 1407.3500305390282,
+      "ttft_seconds": 1407.0201709209941,
+      "decode_seconds": 0.3304890929721296,
+      "decode_tokens_s": 24.206547720092676,
+      "whole_turn_output_tokens_s": 0.006395102697709422,
+      "exact_expected_response": true
+    },
+    {
+      "engine": "DeepInfer+DSpark/NCCL",
+      "http_status": 200,
+      "usage": {"completion_tokens": 9, "prompt_tokens": 1000000, "total_tokens": 1000009},
+      "elapsed_seconds": 318.99541539908387,
+      "ttft_seconds": 318.8877490789164,
+      "decode_seconds": 0.10756354499608278,
+      "decode_tokens_s": 74.37464059306842,
+      "whole_turn_output_tokens_s": 0.02821357162371885,
+      "exact_expected_response": true
+    }
+  ],
+  "limits": [
+    "one run per engine",
+    "direct engine-local route",
+    "end-of-context instruction only",
+    "not middle-context retrieval",
+    "not cache controlled",
+    "not multi-user",
+    "decode rate is unstable for a nine-token completion"
+  ]
+}
