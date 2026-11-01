@@ -59,7 +59,7 @@ def render(settings):
     guard={k:v for k,v in sources.items() if k not in patches}
     config={
       'model_list':[{'model_name':alias,'litellm_params':{
-        'model':'openai/deepseek-v4.1-flash','api_base':'http://127.0.0.1:4001/v1',
+        'model':'custom_openai/deepseek-v4.1-flash','api_base':'http://127.0.0.1:4001/v1',
         'api_key':'os.environ/INTERNAL_ROUTE_KEY','timeout':3600,'stream_timeout':3600},
         'model_info':{'max_tokens':1048576,'max_input_tokens':1048320,'max_output_tokens':8192}}
         for alias in ALIASES],
