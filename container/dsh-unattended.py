@@ -68,13 +68,15 @@ def run_client(command, env, cwd="/workspace"):
 
 
 def main():
+    raw = sys.argv[1:]
+    separator = raw.index("--") if "--" in raw else len(raw)
+    control, client_args = raw[:separator], raw[separator + 1:] if separator < len(raw) else []
     parser = argparse.ArgumentParser(description="Run a managed client without unattended replay")
     parser.add_argument("client", choices=sorted(CLIENTS))
     parser.add_argument("--task-id")
     parser.add_argument("--max-model-starts", type=int, default=12)
     parser.add_argument("--cwd", default="/workspace")
-    parser.add_argument("args", nargs=argparse.REMAINDER)
-    options = parser.parse_args()
+    options = parser.parse_args(control)
     if options.max_model_starts < 1 or options.max_model_starts > 64:
         raise ValueError("max model starts must be 1-64")
     task = safe_task(options.task_id)
@@ -88,7 +90,6 @@ def main():
         cwd=Path(options.cwd).resolve()
         workspace=Path("/workspace").resolve()
         if cwd != workspace and workspace not in cwd.parents: raise ValueError("cwd must be inside /workspace")
-        client_args=options.args[1:] if options.args[:1] == ["--"] else options.args
         return run_client([*CLIENTS[options.client], *client_args], env, str(cwd))
 
 
