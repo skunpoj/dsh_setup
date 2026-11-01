@@ -8,17 +8,17 @@ This reference separates the current product from the approved target design. It
 - DSH chat, DSH CLI/SDK entry points and Claude Code are distinct clients. An ordinary DSH chat prompt is not forwarded to another client.
 - Azure source contains a guarded OpenShell complete-worker gateway hook. It is disabled by default and is not a current user-selectable backend.
 
-## Runtime choice
+## Target runtime choice - not deployed
 
-- **DSH Python SDK** runs programmatic DSH workflows, tools and event streams.
-- **Claude Code** runs the managed coding-agent process in the selected project.
+- **DSH Python SDK** will run programmatic DSH workflows, tools and event streams.
+- **Claude Code** will run the managed coding-agent process in the selected project.
 
-The browser does not run either client itself. The authenticated task broker starts the selected runtime in the user's private execution boundary, streams status and output, handles approval and cancellation, and records the final result. Both runtimes use the same task admission guard and internal LiteLLM route.
+The browser will not run either client itself. The planned authenticated task broker will start the selected runtime in the user's private execution boundary, stream status and output, handle approval and cancellation, and record the final result. Both target runtimes will use the same task admission guard and internal LiteLLM route.
 
-## Execution-backend choice
+## Target execution-backend choice - not deployed
 
-- **Private DSH workspace** is the default and remains available without OpenShell.
-- **OpenShell isolated workspace** is optional. It is unavailable until the current qualification record proves all 25 Test gates, rollback, namespace, node, resource budget and expiry.
+- **Private DSH workspace** will be the default and will remain available without OpenShell.
+- **OpenShell isolated workspace** will be optional. It is unavailable until the current qualification record proves all 25 Test gates, rollback, namespace, node, resource budget and expiry.
 
 OpenShell changes where approved tools execute; it does not bypass the model guard, select another model, expose credentials or grant cluster administration.
 
