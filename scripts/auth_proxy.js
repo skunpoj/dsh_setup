@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const path = require('path');
 const { createCourseServer, routeFor } = require('./course_files');
 const serveCourse = createCourseServer();
+const AGENT_TASKS = require('./agent_task_gateway');
 const USER_CREDENTIALS = process.env.DSH_USER_CREDENTIAL_GATEWAY_CONFIG ? require('./credential_gateway').createGateway(process.env.DSH_USER_CREDENTIAL_GATEWAY_CONFIG) : null;
 const { hashPassword, verifyPassword, migrateUsers, writeAtomicUsers } = require('./password_store');
 const { SessionStore, TTL_MS: SESSION_TTL_MS } = require('./session_store');
@@ -109,7 +110,7 @@ function publicApp(alias) {
  const mode=e.publicEnvironment;if(mode==='on'&&!internetAllowed(e.owner))return null;
  const inventory=appHostnameState(alias);if(process.env.DSH_APP_INVENTORY_FILE&&(!inventory.ready||!inventory.available))return null;
  const external=externalAppTarget(alias,e.owner,mode),port=customAppPort(alias,e.owner,mode);
- if(!external&&(!port||[7681,8888].includes(port)))return null;
+ if(!external&&(!port||[7681,7682,8888].includes(port)))return null;
  return {entry:e,mode,external,port};
 }
 function publicAppHeaders(req) {
@@ -391,7 +392,7 @@ function serviceChange(owner,mode,f,scope='main'){
   if(kind==='jupyter'){if(name!=='jupyter')throw Error('Notebook service name is jupyter');argv=['jupyter','lab'];port=8888;}
   else if(kind==='command'){
    if(scope==='main'){const link=appLinks()[name];port=link?.ports?.[mode];if(link?.owner!==owner||!validAppPort(port))throw Error('Save an owned app URL in that environment first');}
-   else {const raw=f.get('port');if(!/^[0-9]{4,5}$/.test(raw||''))throw Error('Choose an application port');port=Number(raw);if(!validAppPort(port)||[7681,8888].includes(port))throw Error('Choose a non-management application port');}
+   else {const raw=f.get('port');if(!/^[0-9]{4,5}$/.test(raw||''))throw Error('Choose an application port');port=Number(raw);if(!validAppPort(port)||[7681,7682,8888].includes(port))throw Error('Choose a non-management application port');}
    argv=JSON.parse(f.get('argv')||'null');
    if(!Array.isArray(argv)||argv.length<2||argv.length>32||argv.some(v=>typeof v!=='string'||v.length>512||/[\x00\r\n]/.test(v))||JSON.stringify(argv).length>2048||!['python3','node','npm'].includes(argv[0]))throw Error('Use a python3/node workspace script, npm run script, or python3 -m http.server argv array');
    if(argv[0]==='npm'&&(argv[1]!=='run'||!/^[a-zA-Z0-9:_-]{1,64}$/.test(argv[2]||'')))throw Error('Only npm run SCRIPT is supported');
@@ -421,7 +422,7 @@ function customAppPort(alias,user,mode) {
 function renderApplications() {return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>My applications</title><style>body{font:16px system-ui;max-width:900px;margin:40px auto;padding:20px;line-height:1.6;background:#0b1220;color:#eef}a{color:#8cf}input,button{font:inherit;padding:9px;margin:5px}li{margin:14px 0}fieldset label{display:inline-block;margin:5px 12px 5px 0}fieldset input{padding:0;margin:5px}button{cursor:pointer}</style><h1>My applications</h1><p><a href="/">DSH</a> · <a href="/terminal">Web Terminal</a> · <a href="/proxy/8888/lab">JupyterLab</a> · <a href="/manual/APP_URLS_AND_INGRESS.html">URL guide</a> · <a href="/packages">My Python environments</a></p><p>Choose a name for a local application port or an external HTTPS application. Choose whether visitors must sign into DSH or can open this application publicly. Application login remains separate. Public access exposes only the selected mapping, not DSH management. This does not start an application or enable Internet access.</p><p id="domainHint"></p><p id="quota"></p><form id="appForm"><label>Name <input id="appName" pattern="[a-z0-9-]{3,63}" maxlength="63" required></label><label>Target <select id="targetType"><option value="port">Local application port</option><option value="external">External HTTPS application</option></select></label><label>Visitor access <select id="accessMode"><option value="authenticated">Require DSH sign-in (default)</option><option value="public">Public access — no DSH sign-in</option></select></label><label>Authenticated visitors <select id="visitorPolicy"><option value="signed-in-users">All authenticated users (local and AD / LDAP)</option><option value="local-users">All local DSH users</option><option value="ldap-users">All AD / LDAP users</option><option value="selected-local-users">Selected local DSH users</option><option value="owner-only">Owner only — private application</option><option value="selected-users" hidden>Existing selected accounts (legacy)</option></select></label><p id="visitorPolicyHelp" role="status"></p><fieldset id="selectedUsersWrap" hidden><legend>Select local DSH users</legend><div id="localUserChoices"></div><p id="legacySelection"></p></fieldset><label>External URL <input id="targetUrl" type="url" placeholder="https://app.example.org/"></label><label>Port <input id="appPort" type="number" min="1024" max="65535" value="8888" required></label><button type="button" id="check" disabled>Check name</button><button id="saveApp" disabled>Save URL</button><button type="button" id="newApp">New application / cancel edit</button></form><p id="status" role="status"></p><ul id="links"></ul><script>const el=id=>document.getElementById(id);let token='',directory=[],entries=[],editing=false,wasRestricted=true;const status=el('status');
 function selected(){return [...el('localUserChoices').querySelectorAll('input:checked')].map(x=>x.value)}
 function drawChoices(values=[]){el('localUserChoices').replaceChildren();for(const user of directory){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.value=user;box.checked=values.includes(user);label.append(box,document.createTextNode(user));el('localUserChoices').append(label)}el('legacySelection').textContent=values.filter(u=>!directory.includes(u)).length?'Existing non-local or unavailable recipients are preserved for this legacy audience. Choose a new audience explicitly to replace it.':'';}
-function syncVisitorPolicy(){const v=el('visitorPolicy'),management=el('targetType').value==='port'&&[3080,3081,4000,4001,7681,8888].includes(Number(el('appPort').value)),restricted=management||el('accessMode').value==='public';if(restricted)v.value='owner-only';else if(wasRestricted&&!editing)v.value='signed-in-users';v.disabled=restricted;wasRestricted=restricted;el('selectedUsersWrap').hidden=!['selected-local-users','selected-users'].includes(v.value);for(const box of el('localUserChoices').querySelectorAll('input[type=checkbox]'))box.disabled=v.value==='selected-users';el('visitorPolicyHelp').textContent=management?'JupyterLab, terminals and management ports are owner-only.':restricted?'Authenticated audience does not apply to public links.':'Only this application is shared; your workspace, terminal and other applications remain private.';}
+function syncVisitorPolicy(){const v=el('visitorPolicy'),management=el('targetType').value==='port'&&[3080,3081,4000,4001,7681,7682,8888].includes(Number(el('appPort').value)),restricted=management||el('accessMode').value==='public';if(restricted)v.value='owner-only';else if(wasRestricted&&!editing)v.value='signed-in-users';v.disabled=restricted;wasRestricted=restricted;el('selectedUsersWrap').hidden=!['selected-local-users','selected-users'].includes(v.value);for(const box of el('localUserChoices').querySelectorAll('input[type=checkbox]'))box.disabled=v.value==='selected-users';el('visitorPolicyHelp').textContent=management?'JupyterLab, task broker, terminals and management ports are owner-only.':restricted?'Authenticated audience does not apply to public links.':'Only this application is shared; your workspace, terminal and other applications remain private.';}
 for(const id of ['visitorPolicy','targetType','accessMode'])el(id).onchange=syncVisitorPolicy;el('appPort').oninput=syncVisitorPolicy;
 function edit(e){editing=true;el('appName').value=e.name;el('appName').readOnly=true;el('targetType').value=e.type;el('appPort').value=e.port||8888;el('targetUrl').value=e.targetUrl||'';el('accessMode').value=e.accessMode;el('visitorPolicy').value=e.visitorPolicy==='selected-users'&&(e.allowedUsers||[]).every(u=>directory.includes(u))?'selected-local-users':e.visitorPolicy;drawChoices(e.allowedUsers||[]);syncVisitorPolicy();status.textContent='Editing '+e.name+'. Changes apply only after Save URL.';}
 el('newApp').onclick=()=>{editing=false;el('appName').readOnly=false;el('appName').value='';el('targetType').value='port';el('appPort').value=8501;el('targetUrl').value='';el('accessMode').value='authenticated';el('visitorPolicy').value='signed-in-users';drawChoices();syncVisitorPolicy();status.textContent='New ordinary applications default to all authenticated users.';};
@@ -1257,8 +1258,9 @@ window.fetch=async function(input,init){const r=await originalFetch(input,init);
 setInterval(check,15000);window.addEventListener('focus',check);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();</script>`;
   html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, head => head+recovery) : recovery+html;
   const appsLink='<a id="dsh-my-applications" href="/applications" style="position:fixed;right:125px;top:14px;z-index:2147483647;background:#0f172a;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 13px system-ui">My apps</a>';
-  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}${appsLink}${adminLink}${credentialLink}</body>`);
-  return html + control + appsLink + adminLink + credentialLink;
+  const tasksLink=`<a id="dsh-agent-tasks" href="/agent-tasks" style="position:fixed;right:${isAdmin?360:220}px;top:14px;z-index:2147483647;background:#075985;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 13px system-ui">Agent tasks</a>`;
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${control}${appsLink}${tasksLink}${adminLink}${credentialLink}</body>`);
+  return html + control + appsLink + tasksLink + adminLink + credentialLink;
 }
 
 // Initialize user store if missing
@@ -2177,6 +2179,15 @@ const server = http.createServer((req, res) => {
     JUPYTER_DEMAND.start(req,res,jupyterContext).catch(()=>{if(!res.destroyed&&!res.headersSent){res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:'JUPYTER_START_UNAVAILABLE'}));}});return;
   }
 
+  const agentAuthorized=()=>accountEnabled(sessionUser)&&(internetMode==='off'||internetAllowed(sessionUser))&&
+    Date.now()<activeSession.created+SESSION_TTL_MS&&activeSession.accountStamp===sessionAccountStamp(sessionUser)&&
+    [...SESSIONS.values()].includes(activeSession)&&getEnvironmentTarget(internetMode,sessionUser)?.host===environmentTarget.host;
+  if(parsedUrl.pathname==='/agent-tasks'||parsedUrl.pathname.startsWith('/api/agent-tasks')){
+    let runtimeToken;try{runtimeToken=getDshToken(environmentTarget.tokenFile);}catch{}
+    if(!runtimeToken){res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify({error:'RUNTIME_AUTHENTICATION_UNAVAILABLE'}));}
+    AGENT_TASKS.handle(req,res,{pathname:parsedUrl.pathname,query:parsedUrl.search||'',target:environmentTarget,token:runtimeToken,user:sessionUser,session:activeSession,trustedHost:process.env.DSH_TRUSTED_HOST,authorized:agentAuthorized}).catch(()=>{if(!res.headersSent){res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:'TASK_GATEWAY_UNAVAILABLE'}));}});return;
+  }
+
   if (parsedUrl.pathname === '/applications') {
     res.writeHead(200, {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'});
     return res.end(renderApplications());
@@ -2207,7 +2218,7 @@ const server = http.createServer((req, res) => {
           let allowedUsers=[];if(shared&&['selected-users','selected-local-users'].includes(visitorPolicy)){try{allowedUsers=JSON.parse(f.get('allowedUsers')||'[]');if(!Array.isArray(allowedUsers)||!allowedUsers.length||allowedUsers.length>128||allowedUsers.some(u=>typeof u!=='string'||!/^[a-z0-9_.-]{1,64}$/.test(u)||u===sessionUser||!accountEnabled(u)||(visitorPolicy==='selected-local-users'&&loadUsers()[u]?.authProvider==='ldap'))||new Set(allowedUsers).size!==allowedUsers.length)throw Error();allowedUsers.sort();}catch{return reply(400,{error:'Choose 1–128 distinct enabled accounts other than yourself.'});}}
           if(shared&&type==='port'&&(privateLocalPort(port)||!validAppPort(port)))return reply(400,{error:'JupyterLab, terminals and management ports remain owner-only.'});
           if(shared&&(Object.keys(all[name]?.ports||{}).some(mode=>mode!==internetMode)||(type==='port'&&Object.keys(all[name]?.targets||{}).length)||(type==='external'&&Object.keys(all[name]?.ports||{}).length)))return reply(400,{error:'Use a separate alias with one target environment for a shared application.'});
-          if(accessMode==='public'&&type==='port'&&[7681,8888].includes(port))return reply(400,{error:'Terminal and notebook management ports cannot be published without DSH authentication.'});
+          if(accessMode==='public'&&type==='port'&&[7681,7682,8888].includes(port))return reply(400,{error:'Terminal, task-broker and notebook management ports cannot be published without DSH authentication.'});
           const host=appHostnameState(name);if(host.error)return reply(503,{error:host.error});if(!host.available)return reply(409,{error:'This name belongs to an existing site. Choose another name.'});
           if(shared&&(!APP_SIGNIN||!APP_DOMAIN||!host.ready))return reply(409,{error:'Authenticated sharing requires an approved application hostname and application sign-in.'});
           if(!['port','external'].includes(type))return reply(400,{error:'Choose a local port or external HTTPS URL.'});

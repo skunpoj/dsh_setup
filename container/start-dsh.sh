@@ -25,7 +25,9 @@ fi
 
 mkdir -p /state/sessions /state/storages /state/attachments /state/kerberos /workspace /runtime-tokens
 mkdir -p /state/claude /state/trueforge /state/kilo
+mkdir -p /state/web-tasks /state/unattended
 chmod 0700 /state/claude /state/trueforge /state/kilo
+chmod 0700 /state/web-tasks /state/unattended
 if [ ! -e "$HOME/.claude" ]; then
   ln -s /state/claude "$HOME/.claude"
 elif [ "$(readlink "$HOME/.claude" || true)" != /state/claude ]; then
@@ -63,6 +65,8 @@ if [ "${DSH_CONTEXT_TOKENS:-}" = 1048576 ]; then
 fi
 
 ttyd -p 7681 -i 0.0.0.0 -W bash -l >/tmp/ttyd.log 2>&1 &
+python3 /opt/dsh/container/dsh-task-broker.py >/tmp/dsh-task-broker.log 2>&1 &
+broker_pid=$!
 socat TCP-LISTEN:3081,bind=0.0.0.0,reuseaddr,fork TCP:127.0.0.1:3080 >/tmp/dsh-bridge.log 2>&1 &
 
 fifo=/tmp/dsh-fifo
@@ -84,7 +88,9 @@ while IFS= read -r line; do
 done <"$fifo" &
 
 cleanup() {
+  kill "$broker_pid" 2>/dev/null || true
   kill "$dsh_pid" 2>/dev/null || true
+  wait "$broker_pid" 2>/dev/null || true
   wait "$dsh_pid" 2>/dev/null || true
 }
 trap cleanup TERM INT

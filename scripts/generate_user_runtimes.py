@@ -120,7 +120,8 @@ def generate(users, image, fixture_source_pvc=None, fixture_approval_ref=None):
                 'metadata': {'name': name, 'namespace': 'llm'},
                 'spec': {'clusterIP': 'None', 'selector': {'app': name}, 'ports': [
                     {'name': 'web', 'port': 3081, 'targetPort': 'web'},
-                    {'name': 'terminal', 'port': 7681, 'targetPort': 'terminal'}]}}])
+                    {'name': 'terminal', 'port': 7681, 'targetPort': 'terminal'},
+                    {'name': 'agent-tasks', 'port': 7682, 'targetPort': 7682}]}}])
             routes[user][environment] = {'host': f'{name}.llm.svc.cluster.local', 'port': 3081,
                 'tokenFile': f'/runtime-tokens/{identity}/{environment}/{environment}'}
     documents.extend([{'apiVersion': 'v1', 'kind': 'ConfigMap',

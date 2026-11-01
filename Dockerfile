@@ -42,8 +42,11 @@ RUN node --test /opt/dsh/tests/test_ldap_auth.cjs /opt/dsh/tests/test_identity_a
 COPY patches/ /opt/dsh/patches/
 COPY container/ /opt/dsh/container/
 RUN install -m 0755 /opt/dsh/container/dsh-unattended.py /usr/local/bin/dsh-unattended \
+ && install -m 0755 /opt/dsh/container/dsh-task-broker.py /usr/local/bin/dsh-task-broker \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_model_guard.py \
- && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_launcher.py
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_launcher.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_task_broker.py \
+ && node /opt/dsh/tests/test_agent_task_gateway.cjs
 # Optional custom light theme ("Custom" beside native Light/Dark/System). start-dsh installs it into a
 # workspace profile only when DSH_NATIVE_THEME_PLUGIN=1. The package is root-owned and read-only; the
 # installer pins its client bundle, and its test runs as the unprivileged workspace user.
@@ -90,5 +93,5 @@ RUN node /opt/dsh/tests/test_release_dependencies.js \
  && chmod 0755 /opt/dsh/container/promote-packages.sh \
  && chown -R 10001:10001 /home/dsh /opt/dsh/seed/dsh-home
 
-EXPOSE 3081 7681
+EXPOSE 3081 7681 7682
 ENTRYPOINT ["/usr/local/bin/start-dsh"]

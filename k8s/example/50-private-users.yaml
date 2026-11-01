@@ -149,6 +149,9 @@ spec:
   - name: terminal
     port: 7681
     targetPort: 7681
+  - name: agent-tasks
+    port: 7682
+    targetPort: 7682
   - name: application
     port: 3000
     targetPort: 3000
@@ -294,6 +297,9 @@ spec:
   - name: terminal
     port: 7681
     targetPort: 7681
+  - name: agent-tasks
+    port: 7682
+    targetPort: 7682
   - name: application
     port: 3000
     targetPort: 3000
@@ -449,6 +455,9 @@ spec:
   - name: terminal
     port: 7681
     targetPort: 7681
+  - name: agent-tasks
+    port: 7682
+    targetPort: 7682
   - name: application
     port: 3000
     targetPort: 3000
@@ -594,6 +603,9 @@ spec:
   - name: terminal
     port: 7681
     targetPort: 7681
+  - name: agent-tasks
+    port: 7682
+    targetPort: 7682
   - name: application
     port: 3000
     targetPort: 3000

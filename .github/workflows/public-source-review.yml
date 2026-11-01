@@ -21,3 +21,9 @@ jobs:
         run: node --input-type=module -e "const t = await import('./integrations/managed-agents/tests/test_managed_agent_policy.mjs'); if(t.default.passed !== t.default.total) process.exit(1); console.log(t.default)"
       - name: Check managed-agent Python source policy
         run: python3 -m unittest discover -s integrations/managed-agents/tests -p test_managed_deepagents.py -v
+      - name: Check authenticated agent task gateway
+        run: node tests/test_agent_task_gateway.cjs
+      - name: Check private runtime task broker and launcher
+        run: |
+          python3 -m unittest discover -s tests -p test_task_broker.py -v
+          python3 -m unittest discover -s tests -p test_unattended_launcher.py -v

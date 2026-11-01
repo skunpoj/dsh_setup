@@ -7,18 +7,24 @@ import signal
 import subprocess
 import sys
 import uuid
+import re
 
 sys.path.insert(0, "/opt/dsh/scripts")
 from unattended_model_guard import AdmissionLedger, APPROVED_UPSTREAM, running_guard
 
 CLIENTS = {
     "claude": ["/usr/local/bin/claude"],
+    "sdk": ["/usr/local/bin/dsh-run"],
+    "deepagents": ["/usr/local/bin/deepagents"],
     "kilo": ["/usr/local/bin/kilo"],
 }
 
 
 def safe_task(value):
-    return value or str(uuid.uuid4())
+    value = value or uuid.uuid4().hex
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", value):
+        raise ValueError("invalid task id")
+    return value
 
 
 def build_environment(parent, client, base):
@@ -32,8 +38,8 @@ def build_environment(parent, client, base):
     return env
 
 
-def run_client(command, env):
-    child = subprocess.Popen(command, env=env, cwd="/workspace",
+def run_client(command, env, cwd="/workspace"):
+    child = subprocess.Popen(command, env=env, cwd=cwd,
                              start_new_session=(os.name != "nt"))
 
     def forward(signum, _frame):
@@ -66,8 +72,11 @@ def main():
     parser.add_argument("client", choices=sorted(CLIENTS))
     parser.add_argument("--task-id")
     parser.add_argument("--max-model-starts", type=int, default=12)
+    parser.add_argument("--cwd", default="/workspace")
     parser.add_argument("args", nargs=argparse.REMAINDER)
     options = parser.parse_args()
+    if options.max_model_starts < 1 or options.max_model_starts > 64:
+        raise ValueError("max model starts must be 1-64")
     task = safe_task(options.task_id)
     state = Path("/state/unattended") / task
     state.mkdir(mode=0o700, parents=True, exist_ok=False)
@@ -76,7 +85,11 @@ def main():
         base = f"http://127.0.0.1:{port}"
         env = build_environment(os.environ, options.client, base)
         env["DSH_UNATTENDED_TASK"] = task
-        return run_client([*CLIENTS[options.client], *options.args], env)
+        cwd=Path(options.cwd).resolve()
+        workspace=Path("/workspace").resolve()
+        if cwd != workspace and workspace not in cwd.parents: raise ValueError("cwd must be inside /workspace")
+        client_args=options.args[1:] if options.args[:1] == ["--"] else options.args
+        return run_client([*CLIENTS[options.client], *client_args], env, str(cwd))
 
 
 if __name__ == "__main__":

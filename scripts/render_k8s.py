@@ -156,7 +156,7 @@ def build(c):
           init_mounts.append({'name':'packages','mountPath':'/incoming'});initialize+=' /incoming'
         d=deploy(name,[runtime],volumes,[{'name':'prepare-private-storage','image':c['dsh_image'],
           'command':['sh','-ec',initialize],'volumeMounts':init_mounts}]);d['spec']['template']['metadata']['labels'].update({'component':'runtime','environment':mode})
-        sv=service(name,3081);sv['spec']['ports']=[{'name':label,'port':n,'targetPort':n} for label,n in [('dsh',3081),('terminal',7681),('application',3000)]]
+        sv=service(name,3081);sv['spec']['ports']=[{'name':label,'port':n,'targetPort':n} for label,n in [('dsh',3081),('terminal',7681),('agent-tasks',7682),('application',3000)]]
     obj('ConfigMap','user-routing',data={'users.json':json.dumps(routes)})
     gateway={'name':'gateway','image':c['dsh_image'],'command':['node','/opt/dsh/scripts/auth_proxy.js'],'securityContext':SC,
       'env':[{'name':k,'value':v} for k,v in {'DSH_USER_TARGETS_FILE':'/routing/users.json','DSH_USER_STORE_PATH':'/auth/users.json',
@@ -179,14 +179,14 @@ def build(c):
     for mode in ['secure','internet']:
       egress=[cluster_dns if mode=='internet' else dns,{'to':[peer('litellm')],'ports':[port(4000)]}]
       if mode=='internet':egress.append({'to':[{'ipBlock':{'cidr':'0.0.0.0/0','except':['10.0.0.0/8','172.16.0.0/12','192.168.0.0/16','169.254.0.0/16']}}]})
-      policy('runtime-'+mode,{'matchLabels':{'component':'runtime','environment':mode}},[{'from':[peer('gateway')],'ports':[port(3081),port(7681),port(3000)]}],egress)
+      policy('runtime-'+mode,{'matchLabels':{'component':'runtime','environment':mode}},[{'from':[peer('gateway')],'ports':[port(3081),port(7681),port(7682),port(3000)]}],egress)
     ingress=[]
     if c.get('ingress_enabled'):
       ingress=[{'from':[{'namespaceSelector':{'matchLabels':{'kubernetes.io/metadata.name':c['ingress_namespace']}},'podSelector':{'matchLabels':c['ingress_pod_selector']}}],'ports':[port(3080)]}]
       d=obj('Ingress','gateway',{'ingressClassName':c['ingress_class'],'tls':[{'hosts':[c['public_hostname']],'secretName':c['tls_secret']}],
         'rules':[{'host':c['public_hostname'],'http':{'paths':[{'path':'/','pathType':'Prefix','backend':{'service':{'name':'gateway','port':{'number':3080}}}}]}}]})
       d['apiVersion']='networking.k8s.io/v1';d['metadata']['annotations']={'nginx.ingress.kubernetes.io/proxy-read-timeout':'3600','nginx.ingress.kubernetes.io/proxy-send-timeout':'3600','nginx.ingress.kubernetes.io/proxy-buffering':'off','nginx.ingress.kubernetes.io/proxy-body-size':'32m'}
-    policy('gateway',{'matchLabels':{'app':'gateway'}},ingress,[dns,{'to':[{'podSelector':{'matchLabels':{'component':'runtime'}}}],'ports':[port(3081),port(7681),port(3000)]}])
+    policy('gateway',{'matchLabels':{'app':'gateway'}},ingress,[dns,{'to':[{'podSelector':{'matchLabels':{'component':'runtime'}}}],'ports':[port(3081),port(7681),port(7682),port(3000)]}])
     policy('filtered-dns',{'matchLabels':{'app':'filtered-dns'}},[{'from':[{'podSelector':{}}],'ports':[{'protocol':'UDP','port':5353},port(5353)]}],[cluster_dns])
     return docs
 

@@ -127,6 +127,8 @@ spec:
     - protocol: TCP
       port: 7681
     - protocol: TCP
+      port: 7682
+    - protocol: TCP
       port: 3000
   egress:
   - to:
@@ -176,6 +178,8 @@ spec:
       port: 3081
     - protocol: TCP
       port: 7681
+    - protocol: TCP
+      port: 7682
     - protocol: TCP
       port: 3000
   egress:
@@ -257,6 +261,8 @@ spec:
       port: 3081
     - protocol: TCP
       port: 7681
+    - protocol: TCP
+      port: 7682
     - protocol: TCP
       port: 3000
 ---

@@ -26,7 +26,7 @@ Persistent files and settings can survive a worker replacement. Running processe
 
 **Current operation:** open an enabled managed client from the authenticated DSH workspace. Web Terminal and the installed client entry points are the current controls. The ordinary DSH chat prompt is not automatically forwarded to DSH Python SDK or Claude Code. OpenShell is disabled.
 
-**Planned control:** the web task form will make **Agent runtime** and **Execution backend** independent choices. The proposed runtimes are **DSH Python SDK** and **Claude Code**; the proposed backends are **Private DSH workspace** and qualified optional **OpenShell isolated workspace**. This task form is not deployed yet. See [agent runtime and execution backend](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) for the verified boundary and acceptance gates.
+**Source candidate, not deployed:** the `/agent-tasks` form makes **Agent runtime** and **Execution backend** independent choices. The candidate runtimes are **DSH Python SDK**, **Claude Code** and **Deep Agents**; **Private DSH workspace** is the enabled backend. **OpenShell isolated workspace** is visible but disabled with its qualification reason. The candidate requires explicit approval, confines projects below `/workspace`, streams persisted output, supports cancellation and records interrupted recovery state. See [agent runtime and execution backend](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) for the acceptance boundary.
 
 Open **Web Terminal** or **JupyterLab** from your authenticated site. They execute with your assigned workspace identity and environment permissions. Terminal access does not grant administrator or cluster-management rights. See [on-demand notebooks and the captioned guide](JUPYTER_ON_DEMAND.md).
 

@@ -12,6 +12,9 @@ spec.loader.exec_module(launcher)
 
 
 class LauncherCase(unittest.TestCase):
+    def test_task_id_is_path_safe(self):
+        self.assertEqual(launcher.safe_task("task_01"),"task_01")
+        with self.assertRaises(ValueError): launcher.safe_task("../escape")
     def test_claude_uses_guard_and_disables_nonessential_traffic(self):
         env=launcher.build_environment({"KEEP":"yes"},"claude","http://127.0.0.1:1234")
         self.assertEqual(env["ANTHROPIC_BASE_URL"],"http://127.0.0.1:1234")

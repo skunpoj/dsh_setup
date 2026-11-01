@@ -2,7 +2,7 @@
 
 Status: opt-in source candidate. No image build, installation, deployment or native Deep Agents session is claimed by this directory.
 
-The existing DSH runtime supports DSH, Claude Code, Kilo and TrueForge through their current entry points. This candidate adds Deep Agents Code (dcode) and friendly aliases for the existing DSH CLI. A separate target design proposes DSH Python SDK and Claude Code as explicit runtimes behind one authenticated web task broker. That broker is not deployed, and an ordinary DSH chat prompt is not forwarded to another CLI.
+The existing DSH runtime supports DSH, Claude Code, Kilo and TrueForge through their current entry points. This candidate adds Deep Agents Code (dcode), friendly aliases for the existing DSH CLI and an authenticated `/agent-tasks` source path for DSH Python SDK, Claude Code and Deep Agents. The broker source implements private-workspace confinement, explicit approval, persisted event polling, cancellation and interrupted recovery. It is not deployed, and an ordinary DSH chat prompt is not forwarded to another CLI.
 
 ## Interfaces and isolation
 

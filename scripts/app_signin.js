@@ -1,6 +1,6 @@
 'use strict';
 const crypto = require('node:crypto');
-const privateLocalPort = port => !Number.isInteger(port) || port < 1024 || port > 65535 || [3080,3081,4000,4001,7681,8888].includes(port);
+const privateLocalPort = port => !Number.isInteger(port) || port < 1024 || port > 65535 || [3080,3081,4000,4001,7681,7682,8888].includes(port);
 const isSharedPolicy = value => ['signed-in-users','selected-users','local-users','ldap-users','selected-local-users'].includes(value);
 function appVisitorAllowed(item, user, account) {
   if(user===item?.owner)return true;

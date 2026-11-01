@@ -35,7 +35,7 @@ class PublicDeploymentTests(unittest.TestCase):
   self.assertEqual(len(claims),len(set(claims)))
   services={x['metadata']['name']:x['spec'] for x in docs if x['kind']=='Service'}
   for name in deps:
-   if name.startswith('user-'):self.assertEqual({v['port'] for v in services[name]['ports']},{3081,7681,3000})
+   if name.startswith('user-'):self.assertEqual({v['port'] for v in services[name]['ports']},{3081,7681,7682,3000})
  def test_no_internet_and_backend_isolation(self):
   policies={x['metadata']['name']:x['spec'] for x in renderer.build(config()) if x['kind']=='NetworkPolicy'}
   self.assertEqual(policies['model']['egress'],[])
