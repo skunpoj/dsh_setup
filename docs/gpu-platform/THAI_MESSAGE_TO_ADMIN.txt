@@ -9,7 +9,7 @@
 ขั้นตอนตรวจสอบ คำสั่งตัวอย่าง และเงื่อนไขย้อนกลับอยู่ในรายงาน:
 https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf
 
-Current measured baseline สำหรับ Test 1 / one request คือ DeepInfer + DSpark แบบ NCCL ที่ 57.8 decode tok/s/request ส่วน conditional host + DeepEP scenario อยู่ที่ 76.3-146.7 decode tok/s/request เฉพาะกรณีที่ peer-copy ถูกต้อง, DeepEP ผ่าน qualification และ expert path เป็นไปตาม assumptions ในรายงาน ตัวเลขนี้ไม่ใช่ expected gain จาก `iommu=pt` เพียงอย่างเดียว ตาราง executive summary ใช้ชื่อ Test 1/Test 2/Test 3 และแสดง sensitivity estimate ครบทุกคอลัมน์ โดยค่าประมาณดังกล่าวไม่ใช่ measured result หรือ forecast
+Current measured baseline สำหรับ Test 1 / one request คือ DeepInfer + DSpark แบบ NCCL ที่ 57.8 decode tok/s/request ส่วน conditional host + DeepEP scenario อยู่ที่ 76.3-146.7 decode tok/s/request เฉพาะกรณีที่ peer-copy ถูกต้อง, DeepEP ผ่าน qualification และ expert path เป็นไปตาม assumptions ในรายงาน ตัวเลขนี้ไม่ใช่ expected gain จาก `iommu=pt` เพียงอย่างเดียว ตาราง executive summary แยก short matched matrix, SGLang + DSpark near-1M route test และ conditional sensitivity อย่างชัดเจน พร้อมระบุ actual prompt/output token size และ concurrency โดยค่าประมาณไม่ใช่ measured result หรือ forecast
 
 ภายใน session ทีมจะร่วมกันตรวจ `/proc/cmdline`, IOMMU group types, `nvidia-smi topo -m`, GPU peer-copy แบบตรวจ destination bytes, DeepEP dispatch/combine, model correctness และ measured performance ก่อนตัดสินใจ restore service, ทดสอบ configuration ถัดไป หรือ rollback ครับ
 

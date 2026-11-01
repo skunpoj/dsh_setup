@@ -5,7 +5,8 @@
 
 The report starts with an executive summary and contents; section1 explains the
 method. It presents sequential public labels Test 1/Test 2/Test 3 (retained raw
-IDs W1/W3/W4; W2 was not executed), separates measured results from a fully
+IDs W1/W3/W4; W2 was not executed), a four-row executive table covering the
+matched short matrix, a separate SGLang near-1M route test, and the fully
 populated conditional sensitivity row, and describes
 the actual LiteLLM-to-DeepInfer route. DeepInfer is **not** the vLLM serving engine;
 the retained Service name and humming's project ownership do not change that.
@@ -15,6 +16,9 @@ the retained Service name and humming's project ownership do not change that.
 The graph uses our finite HTTP-cohort measurements, not PR246's B200 data.
 Four allocated GPUs, three repeats, offeredC1/2/4/8/16, active cap8. Test 2 is a
 predictable counting workload; it is not a generic conversational benchmark.
+The matched matrix used 18-26 input and 119-512 output tokens. The separately
+retained SGLang route test used 1,008,049 input / 540 output tokens at C1; its
+preparation-dominated whole-turn result is not directly comparable.
 
 - [SVG graph](throughput-latency.svg)
 - [Measured CSV](../../gpu-stack/benchmarks/measured-results.csv)
