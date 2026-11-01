@@ -1,5 +1,9 @@
 # Three serving profiles, one setup repository
 
+Canonical resource names and the coordinated migration are defined in the
+[shared naming contract](../NAMING.md). Inspection output includes target names
+and explicitly marks runtime migration pending; it does not rename live resources.
+
 | Profile | Role | Status |
 |---|---|---|
 | [SGLang + DSpark](sglang-dspark-rollback.json) | Four-GPU TP4 rollback | Retained short-benchmark reference; not a second simultaneous server |

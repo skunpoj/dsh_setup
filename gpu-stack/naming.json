@@ -1,0 +1,23 @@
+{
+  "schema": "gpu-serving-naming-v1",
+  "status": "canonical-target-runtime-migration-pending",
+  "stable_model_service": "deepseek-v4-1-flash",
+  "served_model_id": "deepseek-v4.1-flash",
+  "gateway_service": "litellm",
+  "engines": {
+    "DeepInfer": {"deployment": "deepinfer-v4-1-flash", "entrypoint": "serve/openai_server.py"},
+    "SGLang": {"deployment": "sglang-deepseek-v4-1-flash", "entrypoint": "sglang.launch_server"}
+  },
+  "observed_legacy_references": {
+    "stable_model_service": "vllm-deepseek-v4-flash",
+    "sglang_rollback_deployment": "vllm-deepseek-v4-1-flash",
+    "shared_app_selector": "vllm-deepseek-v4-1-flash"
+  },
+  "migration_rules": [
+    "Add canonical Service pointing only to selected active engine before retargeting clients.",
+    "Keep legacy Service as temporary compatibility alias until callers and watchers are verified.",
+    "Do not mutate immutable Deployment selectors; replacement requires coordinated recovery window.",
+    "Do not change actual third-party package names, image references, upstream URLs or historical evidence.",
+    "Canonical names do not prove rollout, engine correctness or source provenance."
+  ]
+}

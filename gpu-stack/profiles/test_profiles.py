@@ -2,6 +2,8 @@ import unittest,json
 from pathlib import Path
 from inspect_profile import plan
 class Profiles(unittest.TestCase):
+ def test_model_endpoint_is_engine_neutral_and_workloads_are_distinct(self):
+  a=plan('deepinfer-dspark-nccl-current','/models/approved')['canonical_target_names'];b=plan('sglang-dspark-rollback','/models/approved')['canonical_target_names'];self.assertEqual(a['service'],b['service']);self.assertEqual(a['service'],'deepseek-v4-1-flash');self.assertEqual(a['deployment'],'deepinfer-v4-1-flash');self.assertEqual(b['deployment'],'sglang-deepseek-v4-1-flash');self.assertIn('pending',a['migration_status'])
  def test_current_entrypoint_and_transport(self):
   p=plan('deepinfer-dspark-nccl-current','/models/approved');self.assertIn('serve/openai_server.py',p['argv']);self.assertEqual(p['environment']['DEEPINFER_EP_COMM_BACKEND'],'nccl');self.assertFalse(p['execution_authorized']);self.assertNotIn('${MODEL_PATH}',str(p))
  def test_sglang_is_distinct(self):
