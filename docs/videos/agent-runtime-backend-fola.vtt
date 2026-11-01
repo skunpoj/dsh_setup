@@ -4,16 +4,16 @@ WEBVTT
 Today, Web DSH, Web Terminal, and installed managed clients operate in the user's private workspace.
 
 00:09.000 --> 00:19.000
-DSH chat does not forward work to another client. A reviewed source candidate adds an Agent tasks page.
+DSH chat does not forward work to another client. A reviewed candidate adds an Agent tasks page.
 
 00:19.000 --> 00:29.000
-It separates agent runtime from execution backend and offers DSH Python SDK, Claude Code, and Deep Agents.
+Web DSH controls the task. Python SDK, Claude Code, or Deep Agents runs behind that control surface.
 
 00:29.000 --> 00:40.000
-Every task requires approval, stays in a private project, streams persisted output, and supports cancellation and interrupted recovery.
+The SDK uses a private checkpoint. Tasks stream output, support cancellation, and record interrupted recovery.
 
 00:40.000 --> 00:50.000
-OpenShell is optional, disabled, and unavailable until its isolation, rollback, resource, and expiry gates pass.
+SDK tool interrupts pause for approval. OpenShell stays disabled until all twenty-five qualification gates pass.
 
 00:50.000 --> 01:00.000
 The candidate is not deployed. Build, bounded live acceptance, digest verification, and spoken-content review remain.
