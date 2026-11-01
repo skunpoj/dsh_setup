@@ -4,7 +4,7 @@
 ([direct download](https://raw.githubusercontent.com/skunpoj/dsh_setup/main/docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf)).
 
 The report starts with an executive summary and contents; section1 explains the
-method. It presents W1/W3/W4 once, explains why W2 was not rerun, separates
+method. It presents W1/W3/W4 once, separates
 measured results from a conditional expected-outcome calculation, and describes
 the actual LiteLLM-to-DeepInfer route. DeepInfer is **not** the vLLM serving engine;
 the retained Service name and humming's project ownership do not change that.
