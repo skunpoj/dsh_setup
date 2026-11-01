@@ -79,7 +79,7 @@ Use **Logout** when finished. If a session expires, sign in again before retryin
 
 ## 1M context, concurrency and measured speed
 
-> **Current speed (30 Oct 2026, one standard).** DeepInfer 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: SGLang is about 9–17 % faster; many users: DeepInfer gives about 3× the total. Definitions, method and every result: [LLM speed comparison](https://github.com/skunpoj/dsh_setup/blob/main/docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).
+Measured performance, expected outcomes, test method, configuration and administrator procedure are maintained in the [GPU serving comparison and administrator change plan](https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf). The manual does not duplicate a dated benchmark snapshot.
 
 Production serves a 1,048,576-token context with up to eight requests running at once. Instructions, tool definitions, history, input and reserved output share that budget, and long prompts take minutes to prepare.
 
@@ -117,3 +117,4 @@ Main DSH, DSH2 and DSH3 use the same approved DSH application build and managed 
 ## User-managed credentials
 
 User-managed credentials: users enter secrets through a dedicated settings form, while the harness receives only aliases. A separate broker checks the owner, workspace, environment, destination and action before using the secret. Consequential actions require bound approval; audit logs exclude secret values. Implemented for configured API-token/PAT connectors; OAuth consent and Kerberos acquisition are not included. Read the [credential management guide and Fola video](USER_CREDENTIAL_MANAGEMENT.html).
+
