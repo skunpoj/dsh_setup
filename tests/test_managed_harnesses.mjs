@@ -9,6 +9,7 @@ assert.equal(policy.model, 'deepseek-v4.1-flash');
 assert.equal(policy.env.API_TIMEOUT_MS, '3600000');
 assert.equal(policy.env.ANTHROPIC_CUSTOM_MODEL_OPTION, 'deepseek-v4.1-flash');
 assert.equal(policy.env.CLAUDE_CODE_MAX_RETRIES, '0');
+assert.equal(policy.env.ANTHROPIC_BASE_URL, undefined);
 assert.equal(policy.env.CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK, '1');
 assert.equal(policy.availableModelsMatch, 'exact');
 assert.equal(policy.env.NODE_TLS_REJECT_UNAUTHORIZED, undefined);

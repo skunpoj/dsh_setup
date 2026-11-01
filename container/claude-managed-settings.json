@@ -13,7 +13,6 @@
   "alwaysThinkingEnabled": false,
   "autoUpdatesChannel": "stable",
   "env": {
-    "ANTHROPIC_BASE_URL": "http://litellm:4000",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4.1-flash",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4.1-flash",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-v4.1-flash",

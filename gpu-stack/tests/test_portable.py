@@ -49,6 +49,8 @@ class PortableTests(unittest.TestCase):
         cfg=next(d['data']['config.yaml'] for d in self.docs if d['kind']=='ConfigMap' and 'config.yaml' in d['data'])
         parsed=yaml.safe_load(cfg)
         self.assertEqual([m['model_name'] for m in parsed['model_list']],module.ALIASES)
+        self.assertEqual(parsed['router_settings']['num_retries'],0)
+        self.assertIn('dsh_session_log',parsed['litellm_settings']['additional_drop_params'])
         for policy in parsed['router_settings']['model_group_retry_policy'].values():self.assertEqual(policy['RateLimitErrorRetries'],0)
 
     def test_indexer_gate_uses_the_same_four_gpus_before_model_start(self):

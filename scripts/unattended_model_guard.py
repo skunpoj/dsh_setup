@@ -31,6 +31,22 @@ MAX_BODY = 8 * 1024 * 1024
 APPROVED_UPSTREAM = "http://litellm.llm.svc.cluster.local:4000"
 
 
+def sanitize_internal_request(path: str, body: bytes) -> bytes:
+    """Remove provider-only extensions that the internal route cannot accept."""
+    if path not in ALLOWED_PATHS:
+        raise ValueError("model path is not allowed")
+    try:
+        value = json.loads(body)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("request body must be JSON") from exc
+    if not isinstance(value, dict):
+        raise ValueError("request body must be a JSON object")
+    cleaned = {key: item for key, item in value.items()
+               if not (isinstance(key, str) and key.startswith("dsh_"))}
+    cleaned.pop("chat_template_kwargs", None)
+    return json.dumps(cleaned, ensure_ascii=False, separators=(",", ":")).encode()
+
+
 def canonical_fingerprint(path: str, body: bytes) -> str:
     if path not in ALLOWED_PATHS:
         raise ValueError("model path is not allowed")
@@ -153,6 +169,7 @@ class GuardedHandler(BaseHTTPRequestHandler):
         if not token:
             return self._reject("credential-unavailable", 503)
         try:
+            body = sanitize_internal_request(self.path, body)
             accepted, reason, sequence, mark = self.server.ledger.reserve(self.path, body)
         except ValueError:
             return self._reject("invalid-request", 400)

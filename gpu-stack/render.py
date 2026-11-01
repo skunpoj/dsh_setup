@@ -64,10 +64,11 @@ def render(settings):
         'model_info':{'max_tokens':1048576,'max_input_tokens':1048320,'max_output_tokens':8192}}
         for alias in ALIASES],
       'litellm_settings':{'drop_params':True,'modify_params':True,
+        'additional_drop_params':['dsh_session_log'],
         'callbacks':['gateway_output_guard.proxy_handler_instance'],
         'use_chat_completions_url_for_anthropic_messages':True},
       'general_settings':{'master_key':'os.environ/LITELLM_MASTER_KEY','set_verbose':False},
-      'router_settings':{'model_group_retry_policy':{a:{'RateLimitErrorRetries':0} for a in ALIASES}}}
+      'router_settings':{'num_retries':0,'model_group_retry_policy':{a:{'RateLimitErrorRetries':0} for a in ALIASES}}}
     guard['config.yaml']=yaml.safe_dump(config,sort_keys=False)
     # Source-addressed immutable objects allow an exact rollback without editing old content.
     digest=lambda data:hashlib.sha256(json.dumps(data,sort_keys=True).encode()).hexdigest()[:12]

@@ -8,7 +8,8 @@ import threading
 import time
 import unittest
 
-from scripts.unattended_model_guard import AdmissionLedger, GuardedServer, canonical_fingerprint
+from scripts.unattended_model_guard import (AdmissionLedger, GuardedServer,
+    canonical_fingerprint, sanitize_internal_request)
 
 
 class Upstream(BaseHTTPRequestHandler):
@@ -77,6 +78,27 @@ class GuardCase(unittest.TestCase):
             self.assertEqual(Upstream.received_headers["authorization"],"Bearer synthetic-only")
             self.assertNotIn("x-api-key",Upstream.received_headers)
         finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
+
+    def test_provider_extensions_are_removed_from_internal_request(self):
+        server, thread = self.guard()
+        body = json.dumps({"model":"deepseek-v4.1-flash", "messages":[],
+                           "dsh_session_log":{"events":[1]},
+                           "dsh_plugin_packages":["one"],
+                           "chat_template_kwargs":{"enable_thinking":False},
+                           "metadata":{"keep":True}}).encode()
+        try:
+            self.assertEqual(self.send(server.server_port, body)[0], 200)
+            forwarded = json.loads(Upstream.bodies[0])
+            self.assertEqual(forwarded, {"model":"deepseek-v4.1-flash", "messages":[],
+                                         "metadata":{"keep":True}})
+        finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
+
+    def test_sanitization_rejects_non_object_and_preserves_standard_fields(self):
+        with self.assertRaises(ValueError):
+            sanitize_internal_request("/v1/messages", b"[]")
+        original = b'{"messages":[{"content":"dsh_text","role":"user"}],"stream":true}'
+        self.assertEqual(json.loads(sanitize_internal_request("/v1/messages", original)),
+                         json.loads(original))
 
     def test_duplicate_and_crash_reservation_never_replay(self):
         ledger = AdmissionLedger(self.ledger_path, "task-a", 3)
