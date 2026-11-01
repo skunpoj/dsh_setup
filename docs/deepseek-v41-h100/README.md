@@ -30,7 +30,7 @@ Fixing the host makes every step faster, but it does not raise the 8-at-once lim
 | "List the integers 1..40" (W3) | 1 | 162.5 | 117 | 166.9 | 142 |
 | "List the integers 1..40" (W3) | 8 | 147.3 | 862 | 52.3 | 284 |
 
-- **One user:** SGLang is about 9–17 % faster.
+- **One user:** on 30 Oct SGLang was about 9–17 % faster; in the same-day comparison on 31 Oct–1 Nov it is about 7–9 % faster (61.8 vs 58.0 and 69.0 vs 63.1 tok/s per user).
 - **Many users:** DeepInfer is about 3× faster in total; SGLang's per-user speed falls to 16–19 tok/s at 8 or more clients.
 - **The "1..40" prompt is not a general speed:** counting is so predictable that DSpark accepts most draft tokens. On ordinary text both engines run at 58–68 tok/s for one user.
 - **Long context:** DeepInfer has no prefix cache yet. The first token takes 38.6 s at 127K, 145 s at 498K and 301 s at 995K tokens, and a follow-up turn is no faster.
