@@ -24,3 +24,7 @@ See [the narration standard](VIDEO_NARRATION_STANDARD.md) for source binding, vo
 The reference Main manual has nine walkthrough pages with eleven narrated clips: course navigation, private Python packages, JupyterLab, Jupyter on the additional owner-only sites, application restart settings, application sharing, administrator application controls, signup capacity, and platform capacity and managed clients.
 
 Open these pages through your deployed manual. Test-library references point to the same current Main walkthroughs rather than maintaining separate copies. Site-specific pages and recordings are supplied by the operator.
+
+## Agent runtime and execution backend supplement
+
+The next current-edition supplement distinguishes today's managed-client entry points from the planned Web DSH selectors for **DSH Python SDK** or **Claude Code** and for the execution backend. Its reviewed source is [Agent runtime and execution backend](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html). A 60-second Fola script and aligned captions are prepared under `docs/videos/`; no MP4 or live-publication claim is made until narration, spoken-content verification and source/runtime acceptance are complete.

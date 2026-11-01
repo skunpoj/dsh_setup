@@ -20,3 +20,7 @@ See [the narration standard](VIDEO_NARRATION_STANDARD.md) for source binding, vo
 [User-managed credentials](USER_CREDENTIAL_MANAGEMENT.html) explains the API-token/PAT implementation, private entry, per-user scopes, approvals, audit and recovery. Its current English Fola-narrated lesson runs 106 seconds with 27 aligned captions.
 
 [Download narrated video](videos/credential-management-fola.mp4) · [English captions](videos/credential-management-fola.vtt) · [Transcript](videos/credential-management-fola-transcript.txt).
+
+## Agent runtime and execution backend supplement
+
+[Current guide](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) distinguishes today's managed-client entry points from the target, not-yet-deployed selectors: DSH Python SDK or Claude Code, and private workspace or optional OpenShell. The reviewed narration source is 60 seconds with six caption cues: [captions](videos/agent-runtime-backend-fola.vtt) · [transcript](videos/agent-runtime-backend-fola-transcript.txt). The MP4 is not yet generated or published; do not substitute an older voice or present the web broker, guarded Claude flow or remaining OpenShell gates as passed.

@@ -2,7 +2,7 @@
 
 Status: opt-in source candidate. No image build, installation, deployment or native Deep Agents session is claimed by this directory.
 
-The existing DSH runtime supports DSH, Claude Code, Kilo and TrueForge. This candidate adds Deep Agents Code (dcode) and friendly aliases for the existing DSH CLI. It does not turn the DSH chat UI into a universal frontend for other CLI agents.
+The existing DSH runtime supports DSH, Claude Code, Kilo and TrueForge through their current entry points. This candidate adds Deep Agents Code (dcode) and friendly aliases for the existing DSH CLI. A separate target design proposes DSH Python SDK and Claude Code as explicit runtimes behind one authenticated web task broker. That broker is not deployed, and an ordinary DSH chat prompt is not forwarded to another CLI.
 
 ## Interfaces and isolation
 
@@ -10,7 +10,7 @@ The existing DSH runtime supports DSH, Claude Code, Kilo and TrueForge. This can
 - DSH web chat uses DSH's own harness. A prompt is not automatically forwarded to another CLI.
 - DSH's CLI has interactive and headless modes. The inspected SDK uses JSON-RPC over stdio; complete SDK sessions still require qualification.
 - CLI agents in the same workspace container can share files, tools and resources. Their conversations, context, approvals and resumable sessions remain separate.
-- OpenShell can complement the terminal as a controlled execution backend. Neither inherently requires the other. This candidate does not install or qualify OpenShell.
+- OpenShell can complement the terminal as a controlled execution backend. Neither inherently requires the other. Azure source contains a disabled guarded gateway hook, but this public candidate does not claim a selectable web control or qualified OpenShell runtime. It remains fail-closed until the separately recorded 25-gate Test and rollback qualification passes. See [agent runtime and execution backend](../../docs/AGENT_RUNTIME_AND_EXECUTION_BACKENDS.md).
 
 ## Build and install
 

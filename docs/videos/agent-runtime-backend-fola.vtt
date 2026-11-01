@@ -1,0 +1,19 @@
+WEBVTT
+
+00:00.000 --> 00:09.000
+Today, Web DSH, Web Terminal, and installed managed clients operate in the user's private workspace.
+
+00:09.000 --> 00:19.000
+DSH chat, the DSH Python SDK entry point, and Claude Code are separate clients. Chat does not forward work to another client.
+
+00:19.000 --> 00:29.000
+The approved target design adds two independent web choices: agent runtime and execution backend.
+
+00:29.000 --> 00:40.000
+DSH Python SDK supports programmatic workflows; Claude Code supports repository work. Private DSH workspace remains the default backend.
+
+00:40.000 --> 00:50.000
+OpenShell is optional, disabled, and unavailable until its isolation, rollback, resource, and expiry gates pass.
+
+00:50.000 --> 01:00.000
+The planned web task form and guarded Claude flow are not deployed yet; acceptance work remains.
