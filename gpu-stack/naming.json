@@ -1,23 +1,28 @@
 {
-  "schema": "gpu-serving-naming-v1",
-  "status": "canonical-target-runtime-migration-pending",
-  "stable_model_service": "deepseek-v4-1-flash",
+  "schema": "gpu-serving-naming-v2",
+  "status": "canonical-services-live-verified",
+  "dsh_gateway_service": "dsh-gateway",
+  "stable_model_service": "deepinfer-dspark",
+  "rollback_model_service": "sglang-dspark",
   "served_model_id": "deepseek-v4.1-flash",
-  "gateway_service": "litellm",
+  "gateway_service": "litellm-gateway",
   "engines": {
-    "DeepInfer": {"deployment": "deepinfer-v4-1-flash", "entrypoint": "serve/openai_server.py"},
-    "SGLang": {"deployment": "sglang-deepseek-v4-1-flash", "entrypoint": "sglang.launch_server"}
+    "DeepInfer": {"deployment": "deepinfer-v4-1-flash", "service": "deepinfer-dspark", "entrypoint": "serve/openai_server.py"},
+    "SGLang": {"deployment": "vllm-deepseek-v4-1-flash", "service": "sglang-dspark", "entrypoint": "sglang.launch_server", "replicas": 0}
   },
   "observed_legacy_references": {
+    "dsh_gateway_service": "dsh-environment-gateway",
+    "gateway_service": "litellm",
     "stable_model_service": "vllm-deepseek-v4-flash",
     "sglang_rollback_deployment": "vllm-deepseek-v4-1-flash",
     "shared_app_selector": "vllm-deepseek-v4-1-flash"
   },
   "migration_rules": [
-    "Add canonical Service pointing only to selected active engine before retargeting clients.",
-    "Keep legacy Service as temporary compatibility alias until callers and watchers are verified.",
+    "Canonical Services are the only names for new source, routing and documentation.",
+    "Keep legacy Services as compatibility aliases until source pipelines and every external watcher are verified migrated.",
     "Do not mutate immutable Deployment selectors; replacement requires coordinated recovery window.",
     "Do not change actual third-party package names, image references, upstream URLs or historical evidence.",
     "Canonical names do not prove rollout, engine correctness or source provenance."
   ]
 }
+
