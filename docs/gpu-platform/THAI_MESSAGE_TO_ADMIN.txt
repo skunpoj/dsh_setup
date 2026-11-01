@@ -1,12 +1,16 @@
 เรียน ทีมผู้ดูแลระบบ GPU
 
-รบกวนขอนัด coordinated maintenance session เพื่อดำเนินการร่วมกันตาม runbook โดยเพิ่ม `iommu=pt` เป็น kernel boot parameter เฉพาะ selected boot entry, reboot และติดตาม validation results ร่วมกันใน session เดียวครับ ทีมเตรียม validation steps และ rollback procedure ไว้แล้ว หาก boot, GPU peer-copy integrity, DeepEP dispatch/combine หรือ model correctness ไม่ผ่านเกณฑ์ จะ restore known-working boot entry ภายใน session เดียวกัน โดย change นี้ยังไม่รวม ACS หรือ BIOS settings อื่น
+รบกวนขอนัด technical maintenance session เพื่อดำเนินการร่วมกันตาม runbook โดยเพิ่ม `iommu=pt` เป็น kernel boot parameter เฉพาะ selected boot entry, reboot และตรวจสอบผลร่วมกันภายใน session เดียวครับ
+
+ทีมได้เตรียม validation steps และ rollback procedure ไว้แล้ว หาก boot, GPU peer-copy integrity, DeepEP dispatch/combine หรือ model correctness ไม่ผ่านเกณฑ์ จะ restore known-working boot entry ภายใน session เดียวกัน
+
+จะเริ่มทดสอบ `iommu=pt` ก่อน เพื่อให้สามารถวัดผลของ change นี้ได้อย่างชัดเจน หาก peer-copy integrity หรือ performance ยังไม่เป็นไปตามเป้าหมาย ทีมสามารถพิจารณาทดสอบ combination ร่วมกับ ACS หรือ BIOS settings ที่เกี่ยวข้องเป็นลำดับถัดไป โดยบันทึกผลแยกของแต่ละ configuration และสามารถ rollback กลับไปยัง known-working configuration ได้ทุกขั้นตอน
 
 ขั้นตอนตรวจสอบ คำสั่งตัวอย่าง และเงื่อนไขย้อนกลับอยู่ในรายงาน:
 https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf
 
 Current measured baseline สำหรับ W1 / one request คือ DeepInfer + DSpark แบบ NCCL ที่ 57.8 decode tok/s/request ส่วน conditional host + DeepEP scenario อยู่ที่ 76.3-146.7 decode tok/s/request เฉพาะกรณีที่ peer-copy ถูกต้อง, DeepEP ผ่าน qualification และ expert path เป็นไปตาม assumptions ในรายงาน ตัวเลขนี้ไม่ใช่ expected gain จาก `iommu=pt` เพียงอย่างเดียว
 
-ภายใน session ทีมจะร่วมกันตรวจ `/proc/cmdline`, IOMMU group types, `nvidia-smi topo -m`, GPU peer-copy แบบตรวจ destination bytes, DeepEP dispatch/combine, model correctness และ measured performance ก่อนตัดสินใจ restore service หรือ rollback ครับ
+ภายใน session ทีมจะร่วมกันตรวจ `/proc/cmdline`, IOMMU group types, `nvidia-smi topo -m`, GPU peer-copy แบบตรวจ destination bytes, DeepEP dispatch/combine, model correctness และ measured performance ก่อนตัดสินใจ restore service, ทดสอบ configuration ถัดไป หรือ rollback ครับ
 
 ขอบคุณครับ
