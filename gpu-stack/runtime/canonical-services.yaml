@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dsh-gateway
+  namespace: llm
+spec:
+  selector:
+    app: dsh-environment-gateway
+  ports:
+  - name: http
+    port: 3080
+    targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litellm-gateway
+  namespace: llm
+spec:
+  selector:
+    app: litellm
+  ports:
+  - name: http
+    port: 4000
+    targetPort: 4000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deepinfer-dspark
+  namespace: llm
+spec:
+  selector:
+    app: vllm-deepseek-v4-1-flash
+    engine: deepinfer
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sglang-dspark
+  namespace: llm
+spec:
+  selector:
+    app: vllm-deepseek-v4-1-flash
+    engine: sglang
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+
