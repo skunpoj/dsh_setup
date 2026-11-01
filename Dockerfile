@@ -41,6 +41,9 @@ COPY tests/ /opt/dsh/tests/
 RUN node --test /opt/dsh/tests/test_ldap_auth.cjs /opt/dsh/tests/test_identity_auth.cjs /opt/dsh/tests/test_ldap_gateway.cjs
 COPY patches/ /opt/dsh/patches/
 COPY container/ /opt/dsh/container/
+RUN install -m 0755 /opt/dsh/container/dsh-unattended.py /usr/local/bin/dsh-unattended \
+ && python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_model_guard.py \
+ && python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_launcher.py
 # Optional custom light theme ("Custom" beside native Light/Dark/System). start-dsh installs it into a
 # workspace profile only when DSH_NATIVE_THEME_PLUGIN=1. The package is root-owned and read-only; the
 # installer pins its client bundle, and its test runs as the unprivileged workspace user.

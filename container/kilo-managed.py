@@ -29,8 +29,14 @@ def validate(arguments):
 def environment(parent):
     env = {k: v for k, v in parent.items() if not k.startswith(('KILO_', 'OPENCODE_', 'OTEL_'))
            and k.upper() not in {'HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'NODE_OPTIONS', 'NODE_TLS_REJECT_UNAUTHORIZED'}}
+    policy = json.loads(POLICY.read_text(encoding='utf-8'))
+    guarded = parent.get('DSH_GUARDED_MODEL_BASE_URL', '')
+    if guarded:
+        if not guarded.startswith('http://127.0.0.1:') or not guarded.endswith('/v1'):
+            raise ValueError('Unattended model guard must be a loopback /v1 endpoint')
+        policy['provider']['dsh-internal']['options']['baseURL'] = guarded
     env.update({
-        'KILO_CONFIG': str(POLICY), 'KILO_CONFIG_CONTENT': POLICY.read_text(encoding='utf-8'),
+        'KILO_CONFIG': str(POLICY), 'KILO_CONFIG_CONTENT': json.dumps(policy, separators=(',', ':')),
         'KILO_DISABLE_PROJECT_CONFIG': 'true', 'KILO_DISABLE_AUTOUPDATE': 'true',
         'KILO_DISABLE_MODELS_FETCH': 'true', 'KILO_DISABLE_DEFAULT_PLUGINS': 'true',
         'KILO_DISABLE_LSP_DOWNLOAD': 'true', 'KILO_DISABLE_EXTERNAL_SKILLS': 'true',

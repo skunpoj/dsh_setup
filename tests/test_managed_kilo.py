@@ -50,6 +50,17 @@ class ManagedKiloTests(unittest.TestCase):
         self.assertEqual(env['KILO_DISABLE_PROJECT_CONFIG'], 'true')
         self.assertEqual(env['XDG_DATA_HOME'], '/state/kilo/data')
 
+    def test_guarded_unattended_route_is_loopback_only(self):
+        with patch.object(module, 'POLICY', ROOT/'container/kilo-managed.json'):
+            env = module.environment({'DSH_GUARDED_MODEL_BASE_URL': 'http://127.0.0.1:43123/v1'})
+            policy = json.loads(env['KILO_CONFIG_CONTENT'])
+            self.assertEqual(policy['provider']['dsh-internal']['options']['baseURL'],
+                             'http://127.0.0.1:43123/v1')
+            for invalid in ['http://litellm:4000/v1', 'http://127.0.0.1:43123',
+                            'https://127.0.0.1:43123/v1']:
+                with self.assertRaises(ValueError):
+                    module.environment({'DSH_GUARDED_MODEL_BASE_URL': invalid})
+
     def test_policy_budgets_and_private_credential_reference(self):
         policy = json.loads((ROOT/'container/kilo-managed.json').read_text())
         self.assertEqual(policy['enabled_providers'], ['dsh-internal'])
