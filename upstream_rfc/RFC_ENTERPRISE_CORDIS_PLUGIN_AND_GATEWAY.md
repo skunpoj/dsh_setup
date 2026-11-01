@@ -26,7 +26,7 @@ This RFC outlines field-tested architectural patterns and proposes a modular **C
 - **Solution**: Container launcher environments specify `--expose-internals` in their Node process arguments.
 
 ### C. Custom In-Cluster Model Routing & Token Bounding
-- **Observation**: Deployments routing through private OpenAI-compatible endpoints running local weights (e.g., `glm-5.3-flash`, `qwen3.8-27b`, `deepseek-v4-flash`) need consistent model discovery and proper `maxTokens` bounding to align with backend KV-cache constraints.
+- **Observation**: Deployments routing through private OpenAI-compatible endpoints running locally hosted open-weight models need consistent model discovery and proper `maxTokens` bounding to align with backend KV-cache constraints.
 - **Solution**: Provide a plugin configuration hook that registers custom models into DSH's settings catalog and enforces `maxTokens` bounding dynamically.
 
 ### D. Multi-User Workspace Isolation & Persistence Mode
