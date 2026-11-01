@@ -26,5 +26,5 @@ COPY container/deepagents-managed.toml /etc/dcode/managed_config.toml
 COPY config/managed-agents.json /opt/dsh/config/managed-agents.json
 COPY scripts/managed_agent_policy.mjs scripts/render_managed_agent_profile.mjs scripts/enforce_single_model_profiles.mjs scripts/install_single_model_startup.py /opt/dsh/scripts/
 RUN node /opt/dsh/scripts/render_managed_agent_profile.mjs && node /opt/dsh/scripts/enforce_single_model_profiles.mjs /opt/dsh/seed/dsh-home && python3 /opt/dsh/scripts/install_single_model_startup.py && chmod 0755 /usr/local/bin/deepagents /usr/local/bin/dsh-cli && ln -s /usr/local/bin/dsh-cli /usr/local/bin/dsh-run && ln -s /usr/local/bin/dsh-cli /usr/local/bin/dsh-sdk && ln -s /usr/local/bin/deepagents /usr/local/bin/dcode && chown -R root:root /etc/dcode /opt/dsh/deepagents /opt/dsh/config/managed-agents.json && chmod -R a-w,a+rX /etc/dcode /opt/dsh/deepagents && chmod 0644 /opt/dsh/config/managed-agents.json
-RUN /opt/dsh/deepagents/bin/python -I -c 'from deepagents import create_deep_agent; from dsh_agent_model import DSHManagedChat; from dsh_deepagents_sdk import create_dsh_agent'
+RUN /opt/dsh/deepagents/bin/python -I -c 'import deepseek_harness; from deepagents import create_deep_agent; from dsh_agent_model import DSHManagedChat; from dsh_deepagents_sdk import create_dsh_agent'
 USER 10001:10001

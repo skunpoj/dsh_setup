@@ -1,3 +1,5 @@
 deepagents-code==0.2.2
 deepagents==0.7.32
+deepseek-harness-runtime-bin==0.2.1rc2
+deepseek-harness-sdk==0.2.1rc2
 langchain-openai==1.7.3
