@@ -1,5 +1,5 @@
 {
-  "model": "deepseek-v4.1-flash[1m]",
+  "model": "deepseek-v4.1-flash",
   "availableModels": [
     "deepseek-v4.1-flash"
   ],
