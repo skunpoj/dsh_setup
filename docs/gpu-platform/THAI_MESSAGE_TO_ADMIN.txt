@@ -1,6 +1,6 @@
 เรียน ทีมผู้ดูแลระบบ GPU
 
-รบกวนขอนัดประชุมเพื่ออธิบายรายละเอียดและผลกระทบของการทดลองเปลี่ยน host configuration โดยเพิ่ม `iommu=pt` ใน kernel boot entry ที่เลือก รวมทั้งร่วมกันกำหนดผู้รับผิดชอบ maintenance window กำหนดการดำเนินการ ขั้นตอนตรวจสอบ และ rollback plan ครับ ยังไม่ขอเปลี่ยน ACS หรือ BIOS อื่นพร้อมกัน
+รบกวนขอนัด technical review เพื่ออธิบายรายละเอียดและ impact ของ proposed host-level kernel configuration change โดยเพิ่ม `iommu=pt` เป็น kernel boot parameter ใน selected boot entry รวมทั้งร่วมกันกำหนด execution owner, maintenance window, execution schedule, validation plan และ rollback plan ครับ โดยยังไม่รวมการเปลี่ยน ACS หรือ BIOS settings อื่นใน change นี้
 
 ขั้นตอนตรวจสอบ คำสั่งตัวอย่าง และเงื่อนไขย้อนกลับอยู่ในรายงาน:
 https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf
