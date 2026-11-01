@@ -8,6 +8,8 @@ ARG KILO_VERSION=7.8.12
 ARG JUPYTERLAB_VERSION=4.6.4
 ARG JUPYTER_SERVER_VERSION=2.21.1
 ARG IPYKERNEL_VERSION=7.4.0
+ARG KUBECTL_VERSION=v1.32.9
+ARG KUBECTL_LINUX_AMD64_SHA256=509ae171bac7ad3b98cc49f5594d6bc84900cf6860f155968d1059fde3be5286
 # Operator/rendering helpers use system Python, outside the Jupyter virtualenv.
 ARG PYTHON3_YAML_DEB_VERSION=6.0-3+b2
 RUN apt-get update \
@@ -17,6 +19,10 @@ RUN apt-get update \
  && npm install --prefix /usr/local/lib/node_modules/@deepseek-ai/dsh --no-save --omit=dev --ignore-scripts --package-lock=false "@earendil-works/pi-ai@${PI_AI_VERSION}" \
  && npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" "@truefoundry/trueforge@${TRUEFORGE_VERSION}" \
  && npm install -g "@kilocode/cli@${KILO_VERSION}" \
+ && curl --fail --location --silent --show-error "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" --output /usr/local/bin/kubectl \
+ && echo "${KUBECTL_LINUX_AMD64_SHA256}  /usr/local/bin/kubectl" | sha256sum -c - \
+ && chmod 0755 /usr/local/bin/kubectl \
+ && kubectl version --client=true --output=json | jq -e --arg version "${KUBECTL_VERSION#v}" '.clientVersion.gitVersion == ("v" + $version)' >/dev/null \
  && rm -rf /var/lib/apt/lists/* /root/.npm
 
 # Install at image build time; offline runtimes never bootstrap from PyPI.

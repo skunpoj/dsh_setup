@@ -26,6 +26,8 @@ Web DSH is the authenticated control surface: it chooses the runtime, project, w
 
 OpenShell changes where approved tools execute; it does not bypass the model guard, select another model, expose credentials or grant cluster administration.
 
+The immutable runtime image includes a pinned, checksum-verified `kubectl` client for Web Terminal and qualified execution backends. The client alone grants no cluster access: workspace Pods keep `automountServiceAccountToken: false`, and the image contains no default kubeconfig. An operator must provide a separately approved, least-privilege kubeconfig for a specific task. OpenShell receives the same client only through its qualified image and remains disabled until its 25 gates and rollback pass.
+
 ## Candidate web behavior - not deployed
 
 The candidate `/agent-tasks` form shows two independent controls: `Agent runtime` and `Execution backend`. It also shows the selected project, task/write approval, streamed output, paused SDK approval and cancellation state. OpenShell is disabled with its exact qualification reason. The server validates every value; browser fields are not authorization. Image identity and model-ledger reconciliation remain operator evidence rather than browser assertions.
