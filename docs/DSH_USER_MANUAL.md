@@ -28,7 +28,7 @@ Open **Web Terminal** or **JupyterLab** from your authenticated site. They execu
 
 Use the installed managed entry points for Claude Code, Kilo Code or TrueForge where your operator has enabled them. Client configuration and supported features can differ; see [client compatibility](LIVE_CLIENT_COMPATIBILITY.md) and [managed-client validation](MANAGED_CLIENT_VALIDATION.md). DSH and these clients use the configured shared model route rather than a separate GPU copy per user.
 
-The canonical serving path is `dsh-gateway` → `litellm-gateway` → `deepinfer-dspark`. The retained rollback route is `sglang-dspark`. DeepInfer + DSpark with NCCL is the current serving configuration; the proposed host peer-access change and DeepEP transport remain separate, unqualified work. See the [GPU serving comparison and administrator change plan](gpu-platform/GPU_PLATFORM_REVIEW.pdf).
+The canonical serving path is `dsh-gateway` → `litellm-gateway` → `deepinfer-dspark`. The retained rollback route is `sglang-dspark`. DeepInfer + DSpark with NCCL is the current serving configuration; the proposed host peer-access change and DeepEP transport remain separate, unqualified work. See the [GPU serving comparison and administrator change plan](https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf).
 
 Keep credentials out of prompts, shared files and reports. DSH sign-in does not create a Kerberos ticket or grant datalake permissions. Use the approved private authentication process for any separate data service.
 
