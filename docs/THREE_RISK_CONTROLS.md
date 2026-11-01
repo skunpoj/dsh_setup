@@ -26,6 +26,14 @@ Connected services enforce their own execution identity and existing permissions
 
 Persist durable files and history on appropriately scoped storage. Validate permissions and restart persistence. Central storage is persistence; independent backups and deletion recovery remain storage operations.
 
+### Web Terminal and OpenShell
+
+The DSH Web Terminal and OpenShell serve different purposes. The Web Terminal is the interactive shell in a user's assigned DSH runtime and remains the normal environment for development, investigation and recovery. OpenShell is intended for a bounded agent task that needs a narrower, short-lived execution boundary. It complements the Web Terminal; it does not replace it.
+
+For OpenShell, bind the authenticated DSH user to one recorded task, one expiring worker generation and one exact worker identity. Mount only approved task inputs and a task output area. Keep reusable credentials outside the worker and expose only policy-checked, task-scoped broker operations. Cancellation must revoke the broker operation, fence transport, stop the exact workload and its descendants, and verify absence before completion.
+
+The source integration is not the same as an operational control. OpenShell becomes available to users only after its protected runtime adapter is connected to the task journal, broker, transport and supervisor; all 25 Test gates pass together; owned rollback preserves existing DSH data; and a separate rollout is approved. Until then, the deployed Web Terminal continues to use the existing per-user and per-environment DSH controls.
+
 ## 3 Keep results contained
 
 Authenticate file, history, attachment, terminal and notebook routes, then authorize them against the server-side identity and assigned runtime. Reject peer selection, forged owner headers and direct bypass paths. Self-service signup must assign an exclusive prepared workspace and refuse safely when capacity is exhausted; Internet permission is a separate administrator grant.
