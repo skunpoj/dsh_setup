@@ -1,10 +1,10 @@
 เรียน ทีมผู้ดูแลระบบ GPU
 
-รบกวนช่วยเปลี่ยน host configuration โดยทดลองเพิ่ม `iommu=pt` ใน kernel boot entry ที่เลือก ภายใน maintenance window ที่ตกลงร่วมกัน และเก็บ boot entry เดิมไว้สำหรับ rollback ครับ ยังไม่ขอเปลี่ยน ACS หรือ BIOS อื่นพร้อมกัน
+รบกวนขอนัดประชุมเพื่ออธิบายรายละเอียดและผลกระทบของการทดลองเปลี่ยน host configuration โดยเพิ่ม `iommu=pt` ใน kernel boot entry ที่เลือก รวมทั้งร่วมกันกำหนดผู้รับผิดชอบ maintenance window กำหนดการดำเนินการ ขั้นตอนตรวจสอบ และ rollback plan ครับ ยังไม่ขอเปลี่ยน ACS หรือ BIOS อื่นพร้อมกัน
 
 ขั้นตอนตรวจสอบ คำสั่งตัวอย่าง และเงื่อนไขย้อนกลับอยู่ในรายงาน:
 https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf
 
-หลัง reboot รบกวนส่งผล `/proc/cmdline`, IOMMU group types, `nvidia-smi topo -m` และสถานะ GPU กลับมา เพื่อให้ทีมดำเนินการตรวจ peer-copy, DeepEP และ model correctness ก่อนคืนบริการครับ
+หากที่ประชุมเห็นชอบและกำหนดช่วงเวลาดำเนินการแล้ว หลัง reboot รบกวนส่งผล `/proc/cmdline`, IOMMU group types, `nvidia-smi topo -m` และสถานะ GPU กลับมา เพื่อให้ทีมตรวจ peer-copy, DeepEP และ model correctness ก่อนคืนบริการครับ
 
 ขอบคุณครับ
