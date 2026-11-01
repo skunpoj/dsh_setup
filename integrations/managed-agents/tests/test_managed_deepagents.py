@@ -1,4 +1,4 @@
-import importlib.util,pathlib,sys,types,unittest,asyncio
+import importlib.util,pathlib,sys,types,unittest,asyncio,os
 from unittest.mock import patch
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 class FakeChat:
@@ -37,6 +37,10 @@ class PolicyTests(unittest.TestCase):
   for x in [{'max_tokens':8193},{'max_tokens':True},{'timeout':3601},{'max_retries':3},{'temperature':-1}]:
    with self.subTest(x=x),self.assertRaises(ValueError):m.checked_options(x,P)
  def test_harmless_options(self):self.assertEqual(m.checked_options({'max_tokens':12,'temperature':0},P),{'max_tokens':12,'temperature':0})
+ def test_guarded_loopback_route(self):
+  with patch.dict(os.environ,{'DSH_GUARDED_MODEL_BASE_URL':'http://127.0.0.1:12345/v1','DSH_UNATTENDED_TASK':'task-1'},clear=True):self.assertEqual(m.guarded_route(),'http://127.0.0.1:12345/v1')
+  for value in ['https://127.0.0.1:12345/v1','http://example.com:12345/v1','http://127.0.0.1:12345/other']:
+   with self.subTest(value=value),patch.dict(os.environ,{'DSH_GUARDED_MODEL_BASE_URL':value,'DSH_UNATTENDED_TASK':'task-1'},clear=True),self.assertRaises(ValueError):m.guarded_route()
  def test_cli_rejects_configuration(self):
   for a in [['auth'],['--model','other'],['--model-params','{}'],['--install','x'],['--yolo'],['--base-url','https://example.com']]:
    with self.subTest(a=a),self.assertRaises(ValueError):l.arguments(a)

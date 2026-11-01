@@ -1,8 +1,10 @@
 import importlib.util
+import sys
 from pathlib import Path
 import sys
 from unittest import mock
 import unittest
+from unittest import mock
 
 MODULE = Path(__file__).parents[1] / "container" / "dsh-unattended.py"
 sys.path.insert(0, str(Path(__file__).parents[1] / "scripts"))
@@ -13,8 +15,10 @@ spec.loader.exec_module(launcher)
 
 class LauncherCase(unittest.TestCase):
     def test_task_id_is_path_safe(self):
-        self.assertEqual(launcher.safe_task("task_01"),"task_01")
-        with self.assertRaises(ValueError): launcher.safe_task("../escape")
+        self.assertEqual(launcher.safe_task("task_01"), "task_01")
+        with self.assertRaises(ValueError):
+            launcher.safe_task("../escape")
+
     def test_control_options_are_not_forwarded_to_client(self):
         original_argv = sys.argv
         original_guard = launcher.running_guard
@@ -29,12 +33,13 @@ class LauncherCase(unittest.TestCase):
             launcher.run_client = lambda command, env, cwd: captured.update(command=command, cwd=cwd) or 0
             with mock.patch.object(launcher.Path, "mkdir"):
                 self.assertEqual(launcher.main(), 0)
-            self.assertEqual(captured["command"], ["/usr/local/bin/dsh-run", "hello"])
+            self.assertEqual(captured["command"], ["/usr/local/bin/dsh-sdk-task", "hello"])
             self.assertEqual(captured["cwd"], str(Path("/workspace/project").resolve()))
         finally:
             sys.argv = original_argv
             launcher.running_guard = original_guard
             launcher.run_client = original_run
+
     def test_claude_uses_guard_and_disables_nonessential_traffic(self):
         env=launcher.build_environment({"KEEP":"yes"},"claude","http://127.0.0.1:1234")
         self.assertEqual(env["ANTHROPIC_BASE_URL"],"http://127.0.0.1:1234")

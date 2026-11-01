@@ -43,9 +43,11 @@ def confined_project(value):
     return candidate
 
 
-def command_for(runtime, prompt, writes, project):
+def command_for(runtime, prompt, writes, project, task_id, resume=False):
     if runtime == "sdk":
-        return ["/usr/local/bin/dsh-unattended", "sdk", "--cwd", str(project), "--", prompt]
+        control = ["/usr/local/bin/dsh-unattended", "sdk", "--task-id", task_id, "--cwd", str(project)]
+        if resume: control.append("--resume")
+        return [*control, "--", "--resume"] if resume else [*control, "--", "--prompt", prompt]
     if runtime == "deepagents":
         return ["/usr/local/bin/dsh-unattended", "deepagents", "--cwd", str(project), "--", "-n", prompt]
     mode = "acceptEdits" if writes else "plan"
@@ -91,10 +93,10 @@ class Task:
                 stream.write(json.dumps(record, ensure_ascii=False) + "\n")
             os.chmod(self.events, 0o600)
 
-    def run(self):
+    def run(self, resume=False):
         self.state = "running"; self.emit("state", {"state": self.state}); self.save()
         project = confined_project(self.request["project"])
-        command = command_for(self.request["runtime"], self.request["prompt"], self.request["writes"], project)
+        command = command_for(self.request["runtime"], self.request.get("prompt", ""), self.request["writes"], project, self.id, resume)
         env = dict(os.environ)
         env["DSH_UNATTENDED_TASK"] = self.id
         try:
@@ -104,7 +106,9 @@ class Task:
             for line in self.process.stdout:
                 self.emit("output", {"text": line[:16384]})
             code = self.process.wait()
-            self.state = "cancelled" if self.state in {"cancelling","cancelled"} else ("completed" if code == 0 else "failed")
+            if self.state in {"cancelling", "cancelled"}: self.state = "cancelled"
+            elif code == 75 and self.request["runtime"] == "sdk": self.state = "awaiting_approval"
+            else: self.state = "completed" if code == 0 else "failed"
             self.emit("state", {"state": self.state, "exitCode": code})
         except Exception as error:
             self.state = "failed"; self.emit("state", {"state": self.state, "error": type(error).__name__})
@@ -112,7 +116,7 @@ class Task:
             self.process = None; self.save()
 
     def cancel(self):
-        if self.state not in {"queued", "running"}: return False
+        if self.state not in {"queued", "running", "awaiting_approval"}: return False
         self.state = "cancelling"; self.emit("state", {"state": self.state}); self.save()
         process = self.process
         if process and process.poll() is None:
@@ -124,6 +128,11 @@ class Task:
                 except ProcessLookupError: pass
         self.state = "cancelled"; self.emit("state", {"state": self.state}); self.save(); return True
 
+    def approve(self):
+        if self.state != "awaiting_approval" or self.request["runtime"] != "sdk": return False
+        self.state = "queued"; self.emit("state", {"state": self.state, "resuming": True}); self.save()
+        threading.Thread(target=self.run, kwargs={"resume": True}, daemon=True).start(); return True
+
 
 class Registry:
     def __init__(self):
@@ -133,13 +142,13 @@ class Registry:
                 value = json.loads(file.read_text(encoding="utf-8"))
                 if value.get("state") in {"queued", "running", "cancelling"}:
                     value["state"] = "interrupted"; atomic_json(file, value)
-                if TASK_ID.fullmatch(value.get("id","")) and value.get("state") in {"completed","failed","cancelled","interrupted"}:
+                if TASK_ID.fullmatch(value.get("id","")) and value.get("state") in {"completed","failed","cancelled","interrupted","awaiting_approval"}:
                     self.tasks[value["id"]]=Task.recover(value,file.parent)
             except Exception: pass
 
     def create(self, request):
         with self.lock:
-            if any(t.state in {"queued", "running", "cancelling"} for t in self.tasks.values()):
+            if any(t.state in {"queued", "running", "cancelling", "awaiting_approval"} for t in self.tasks.values()):
                 raise RuntimeError("TASK_ALREADY_ACTIVE")
             task = Task(uuid.uuid4().hex, request); self.tasks[task.id] = task
             threading.Thread(target=task.run, daemon=True).start(); return task
@@ -190,7 +199,17 @@ class Handler(BaseHTTPRequestHandler):
         return self.reply(404, {"error":"NOT_FOUND"})
     def do_POST(self):
         if not self.authorized(): return self.reply(401, {"error":"UNAUTHORIZED"})
-        if urlparse(self.path).path != "/v1/tasks": return self.reply(404,{"error":"NOT_FOUND"})
+        path=urlparse(self.path).path
+        approval=re.fullmatch(r"/v1/tasks/([a-f0-9]{32})/approve",path)
+        if approval:
+            try:
+                value=self.body()
+                if value != {"approved": True}: raise ValueError("APPROVAL_REQUIRED")
+            except (ValueError,json.JSONDecodeError) as error:return self.reply(400,{"error":str(error)})
+            task=REGISTRY.get(approval.group(1))
+            if not task:return self.reply(404,{"error":"TASK_NOT_FOUND"})
+            return self.reply(202 if task.approve() else 409,{"taskId":task.id,"state":task.state})
+        if path != "/v1/tasks": return self.reply(404,{"error":"NOT_FOUND"})
         try:
             value=self.body()
             if not isinstance(value,dict) or set(value)!={"runtime","backend","project","prompt","writes","approved"}: raise ValueError("INVALID_REQUEST")

@@ -19,6 +19,13 @@ def load_policy():
  s=POLICY.stat()
  if POLICY.is_symlink() or s.st_uid!=0 or s.st_mode & 0o022 or not stat.S_ISREG(s.st_mode) or s.st_size>4096: raise ValueError('Read-only operator policy required')
  return validate_policy(json.loads(POLICY.read_text()))
+def guarded_route():
+ value=os.environ.get('DSH_GUARDED_MODEL_BASE_URL','')
+ task=os.environ.get('DSH_UNATTENDED_TASK','')
+ if not value:return None
+ u=urlsplit(value)
+ if u.scheme!='http' or u.hostname not in ('127.0.0.1','localhost') or not u.port or u.path!='/v1' or u.query or u.fragment or not task:raise ValueError('Managed guard route invalid')
+ return value
 def checked_options(options,policy):
  options=dict(options)
  if options.pop('model',MODEL)!=MODEL: raise ValueError('DSH model is locked')
@@ -36,9 +43,9 @@ def checked_options(options,policy):
 class DSHManagedChat(ChatOpenAI):
  def __init__(self,**kwargs):
   policy=load_policy();options=checked_options(kwargs,policy)
-  key=TOKEN.read_text().strip()
+  route=guarded_route();key='guarded-local-token' if route else TOKEN.read_text().strip()
   if not key or len(key)>8192: raise ValueError('DSH runtime credential unavailable')
-  fixed={'model':MODEL,'base_url':policy['base_url'],'api_key':key,'use_responses_api':False,'max_retries':1,'temperature':0,'max_tokens':8192,'timeout':3600,'extra_body':{'chat_template_kwargs':{'enable_thinking':False}}}
+  fixed={'model':MODEL,'base_url':route or policy['base_url'],'api_key':key,'use_responses_api':False,'max_retries':1,'temperature':0,'max_tokens':8192,'timeout':3600,'extra_body':{'chat_template_kwargs':{'enable_thinking':False}}}
   fixed.update(options)
   fixed['http_client']=Client(trust_env=False)
   fixed['http_async_client']=AsyncClient(trust_env=False)

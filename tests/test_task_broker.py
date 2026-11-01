@@ -38,9 +38,12 @@ class BrokerTests(unittest.TestCase):
         with self.assertRaises(ValueError): self.module.confined_project('../outside')
     def test_commands_are_fixed_and_bounded(self):
         project=self.workspace/'project'
-        sdk=self.module.command_for('sdk','hello',False,project)
-        self.assertEqual(sdk[:4],['/usr/local/bin/dsh-unattended','sdk','--cwd',str(project)])
-        claude=self.module.command_for('claude','hello',True,project)
+        sdk=self.module.command_for('sdk','hello',False,project,'a'*32)
+        self.assertEqual(sdk[:6],['/usr/local/bin/dsh-unattended','sdk','--task-id','a'*32,'--cwd',str(project)])
+        self.assertEqual(sdk[-3:],['--','--prompt','hello'])
+        resumed=self.module.command_for('sdk','',False,project,'a'*32,True)
+        self.assertIn('--resume',resumed);self.assertEqual(resumed[-2:],['--','--resume'])
+        claude=self.module.command_for('claude','hello',True,project,'a'*32)
         self.assertIn('acceptEdits',claude);self.assertIn('--output-format',claude)
     @mock.patch('subprocess.Popen')
     def test_create_stream_and_recovery_record(self,popen):
@@ -58,6 +61,25 @@ class BrokerTests(unittest.TestCase):
     def test_invalid_shape_and_openshell_refused(self):
         body={'runtime':'sdk','backend':'openshell','project':'project','prompt':'x','writes':False,'approved':True}
         self.assertEqual(self.call('/v1/tasks','POST',body)[0],400)
+    @mock.patch('subprocess.Popen')
+    def test_sdk_interrupt_requires_explicit_resume_approval(self,popen):
+        first=mock.Mock();first.stdout=iter(['approval required\n']);first.wait.return_value=75
+        second=mock.Mock();second.stdout=iter(['resumed\n']);second.wait.return_value=0
+        popen.side_effect=[first,second]
+        body={'runtime':'sdk','backend':'private','project':'project','prompt':'write file','writes':True,'approved':True}
+        status,value=self.call('/v1/tasks','POST',body);self.assertEqual(status,202)
+        task=self.module.REGISTRY.get(value['taskId'])
+        for _ in range(100):
+            if task.state=='awaiting_approval':break
+            threading.Event().wait(.01)
+        self.assertEqual(task.state,'awaiting_approval')
+        self.assertEqual(self.call('/v1/tasks/'+task.id+'/approve','POST',{'approved':False})[0],400)
+        self.assertEqual(self.call('/v1/tasks/'+task.id+'/approve','POST',{'approved':True})[0],202)
+        for _ in range(100):
+            if task.state=='completed':break
+            threading.Event().wait(.01)
+        self.assertEqual(task.state,'completed')
+        self.assertIn('--resume',popen.call_args.args[0])
     def test_one_active_task_is_enforced(self):
         request_value={'runtime':'sdk','backend':'private','project':'project','prompt':'x','writes':False,'approved':True}
         task=self.module.Task('b'*32,request_value);task.state='running';self.module.REGISTRY.tasks[task.id]=task

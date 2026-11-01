@@ -14,7 +14,7 @@ from unattended_model_guard import AdmissionLedger, APPROVED_UPSTREAM, running_g
 
 CLIENTS = {
     "claude": ["/usr/local/bin/claude"],
-    "sdk": ["/usr/local/bin/dsh-run"],
+    "sdk": ["/usr/local/bin/dsh-sdk-task"],
     "deepagents": ["/usr/local/bin/deepagents"],
     "kilo": ["/usr/local/bin/kilo"],
 }
@@ -76,20 +76,26 @@ def main():
     parser.add_argument("--task-id")
     parser.add_argument("--max-model-starts", type=int, default=12)
     parser.add_argument("--cwd", default="/workspace")
+    parser.add_argument("--resume", action="store_true")
     options = parser.parse_args(control)
     if options.max_model_starts < 1 or options.max_model_starts > 64:
         raise ValueError("max model starts must be 1-64")
     task = safe_task(options.task_id)
     state = Path("/state/unattended") / task
-    state.mkdir(mode=0o700, parents=True, exist_ok=False)
+    if options.resume:
+        if not state.is_dir():
+            raise ValueError("task state is unavailable for resume")
+    else:
+        state.mkdir(mode=0o700, parents=True, exist_ok=False)
     ledger = AdmissionLedger(state / "model-starts.jsonl", task, options.max_model_starts)
     with running_guard(APPROVED_UPSTREAM, Path("/harness-credentials/api-key"), ledger) as port:
         base = f"http://127.0.0.1:{port}"
         env = build_environment(os.environ, options.client, base)
         env["DSH_UNATTENDED_TASK"] = task
-        cwd=Path(options.cwd).resolve()
-        workspace=Path("/workspace").resolve()
-        if cwd != workspace and workspace not in cwd.parents: raise ValueError("cwd must be inside /workspace")
+        cwd = Path(options.cwd).resolve()
+        workspace = Path("/workspace").resolve()
+        if cwd != workspace and workspace not in cwd.parents:
+            raise ValueError("cwd must be inside /workspace")
         return run_client([*CLIENTS[options.client], *client_args], env, str(cwd))
 
 

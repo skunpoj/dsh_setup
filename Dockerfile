@@ -43,6 +43,7 @@ COPY patches/ /opt/dsh/patches/
 COPY container/ /opt/dsh/container/
 RUN install -m 0755 /opt/dsh/container/dsh-unattended.py /usr/local/bin/dsh-unattended \
  && install -m 0755 /opt/dsh/container/dsh-task-broker.py /usr/local/bin/dsh-task-broker \
+ && install -m 0755 /opt/dsh/container/dsh-sdk-task.py /usr/local/bin/dsh-sdk-task \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_model_guard.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_launcher.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_task_broker.py \
