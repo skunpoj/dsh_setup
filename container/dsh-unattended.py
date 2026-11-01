@@ -3,6 +3,7 @@
 import argparse
 import os
 from pathlib import Path
+import signal
 import subprocess
 import sys
 import uuid
@@ -31,6 +32,35 @@ def build_environment(parent, client, base):
     return env
 
 
+def run_client(command, env):
+    child = subprocess.Popen(command, env=env, cwd="/workspace",
+                             start_new_session=(os.name != "nt"))
+
+    def forward(signum, _frame):
+        if child.poll() is not None:
+            return
+        if os.name == "nt":
+            child.send_signal(signum)
+        else:
+            os.killpg(child.pid, signum)
+
+    previous = {}
+    for signum in (signal.SIGINT, signal.SIGTERM):
+        previous[signum] = signal.signal(signum, forward)
+    try:
+        return child.wait()
+    finally:
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
+        if child.poll() is None:
+            child.terminate()
+            try:
+                child.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                child.wait()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run a managed client without unattended replay")
     parser.add_argument("client", choices=sorted(CLIENTS))
@@ -46,7 +76,7 @@ def main():
         base = f"http://127.0.0.1:{port}"
         env = build_environment(os.environ, options.client, base)
         env["DSH_UNATTENDED_TASK"] = task
-        return subprocess.call([*CLIENTS[options.client], *options.args], env=env, cwd="/workspace")
+        return run_client([*CLIENTS[options.client], *options.args], env)
 
 
 if __name__ == "__main__":
