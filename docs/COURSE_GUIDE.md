@@ -11,6 +11,12 @@ The reference library includes 71 DSH code lessons, 25 GPU code lessons, a 15-ch
 
 The 44-chapter technical guide preserves its 19 October source edition. Consult the deployment's current GPU results for later measurements. Original source slides and previous recordings remain preserved; a new narration edition does not upgrade their runtime evidence.
 
+## Current and historical editions
+
+The default **Current** library must contain only lessons reviewed against the current source commit and the deployment edition named by the operator. A source match is not runtime acceptance; deployment provenance and affected behavior need separate verification.
+
+Keep older lessons under **Historical** with their source edition and retained hashes. In particular, `DSH_Three_Risk_Controls_20261028.pptx` and videos derived from its 28 October content are historical: they describe earlier OpenShell, SGLang and DeepInfer qualification status and must not be presented as the current governed-harness design. Do not delete or overwrite those files when publishing a current replacement.
+
 See [the narration standard](VIDEO_NARRATION_STANDARD.md) for source binding, voice reuse, caption verification and safe publication. Deployment-specific hostnames, private release URLs, credentials and source recordings are not included in this portable guide.
 
 ## Main walkthroughs

@@ -72,7 +72,7 @@ Access logs provide operational visibility. Do not assume they contain every ter
 
 ## 8 Help, learning and sign out
 
-Use the site's **User manual** link, documentation library and available course player. The [course guide](COURSE_DELIVERY.md) explains video, captions and slide companions. On a companion page, select **Download PowerPoint (.pptx)**, save the file and open the saved presentation. See [slide downloads](SLIDE_DOWNLOADS.md).
+Use the site's **User manual** link, documentation library and available course player. The [course guide](COURSE_DELIVERY.md) explains current videos, captions, HTML companions and dated historical editions. Manual PowerPoint downloads are retired; a directly linked repository deck is a separate artifact and must carry its own current or historical status. See [slide delivery](SLIDE_DOWNLOADS.md).
 
 Use **Logout** when finished. If a session expires, sign in again before retrying. Check your current draft and task state before resubmitting work. Contact the administrator for an identity conflict, unavailable runtime or repeated access failure; do not share your password in the support conversation.
 

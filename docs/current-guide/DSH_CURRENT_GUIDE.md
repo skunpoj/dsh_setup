@@ -248,7 +248,8 @@ Sources: [JUPYTER_APP_LIFECYCLE.md](../JUPYTER_APP_LIFECYCLE.md), [JUPYTER_START
 
 This guide is the canonical workflow.
 
-- The canonical PowerPoint and its HTML/Markdown share one authored source. The three sites serve the same approved deck bytes.
+- The current HTML and Markdown are maintained from one authored source. Manual PowerPoint downloads are retired.
+- Original Pilot, Routing and dated slide/video editions retain their content and hashes in the archive. Historical material is not current runtime acceptance.
 - A Test success applies to its source, inputs and workflow. It does not certify every application or future model response.
 
 Sources: [COURSE_DELIVERY.md](../COURSE_DELIVERY.md), [SLIDE_DOWNLOADS.md](../SLIDE_DOWNLOADS.md)
@@ -299,7 +300,7 @@ A context budget is not a promise of latency or concurrent full-size requests.
 
 - The documented budget is 1,048,576 tokens including instructions, tools, history, output and reserve. Confirm the selected deployment profile.
 - Distinguish preparation latency, streaming rate and end-to-end completion. A small prompt can carry a large existing conversation.
-- Current speed figures are in the [current production](../deepseek-v41-h100/README.md#current-production-30-oct-2026-utc) section; they are measurements, not an SLA.
+- Use the maintained [GPU serving comparison](../gpu-platform/GPU_PLATFORM_REVIEW.pdf) for dated results, expected outcomes and configuration. Measurements are not an SLA or proof of the current running workload.
 
 Sources: [DSH_USER_MANUAL.md](../DSH_USER_MANUAL.md), [THREE_RISK_CONTROLS.md](../THREE_RISK_CONTROLS.md)
 

@@ -317,8 +317,8 @@
       "title": "Current guidance and historical evidence",
       "lead": "This guide is the canonical workflow; dated records describe what was tested then.",
       "points": [
-        "The canonical PowerPoint and its HTML/Markdown share one authored source. The three sites serve the same approved deck bytes.",
-        "Original Pilot and Routing files retain their content and hashes in the archive. Their old pages point to this replacement.",
+        "The current HTML and Markdown are maintained from one authored source. Manual PowerPoint downloads are retired.",
+        "Original Pilot, Routing and dated slide/video editions retain their content and hashes in the archive. Historical material is not current runtime acceptance.",
         "A Test success applies to its source, inputs and workflow. It does not certify every application or future model response."
       ],
       "sources": [
@@ -385,7 +385,7 @@
       "points": [
         "The documented budget is 1,048,576 tokens including instructions, tools, history, output and reserve. Confirm the selected deployment profile.",
         "Distinguish preparation latency, streaming rate and end-to-end completion. A small prompt can carry a large existing conversation.",
-        "Use dated acceptance reports for throughput and trial results. Historical near-1M and short-request measurements are not a current SLA."
+        "Use the maintained GPU serving comparison for dated results, expected outcomes and configuration. Measurements are not an SLA or proof of the current running workload."
       ],
       "sources": [
         "DSH_USER_MANUAL.md",

@@ -38,4 +38,4 @@ Promote the current guide's description and content together as one atomic manua
 
 ## One current guide
 
-Use the [canonical guide and archive policy](CURRENT_GUIDE.md) for the shared PowerPoint, HTML and Markdown source, old download compatibility and publication checks. Keep one primary current guide per deployment; site-specific settings remain private.
+Use the [canonical guide and archive policy](CURRENT_GUIDE.md) for the shared HTML and Markdown source, historical-edition handling and publication checks. Keep one primary current guide per deployment; site-specific settings remain private.
