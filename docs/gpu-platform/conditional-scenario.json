@@ -1,0 +1,25 @@
+{
+  "workload": "W1",
+  "offered_concurrency": 1,
+  "gpus": 4,
+  "decode_tokens_s": [
+    76.3020610118861,
+    146.7347327151656
+  ],
+  "TPOT_ms": [
+    6.815019058515286,
+    13.105805881760167
+  ],
+  "total_tokens_s": [
+    73.2265058627529,
+    135.5425485945756
+  ],
+  "total_tokens_s_gpu": [
+    18.306626465688225,
+    33.8856371486439
+  ],
+  "TTFT_ms_held_constant": 294.9368953704834,
+  "input_tokens": 18,
+  "output_tokens": 512,
+  "status": "Conditional arithmetic, not observed future performance. TTFT unchanged is an explicit assumption. No multi-user forecast."
+}

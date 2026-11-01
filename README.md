@@ -1,5 +1,11 @@
 # Private AI Workspaces - Kubernetes and 1M Context
 
+## Current GPU setup, measurements and administrator plan
+
+[Current PDF report](docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf) · [Graph and data](docs/gpu-platform/README.md) · [Three serving profiles](gpu-stack/profiles/README.md) · [Host-change and recovery runbook](gpu-stack/runbooks/gpu-peer-access.md)
+
+DeepInfer + DSpark is a separate inference engine, not vLLM; the retained `vllm-*` Service name and humming library ownership do not identify the serving engine. The three references explicitly separate current DeepInfer/NCCL, retained SGLang rollback and the **unqualified proposed** DeepEP trial after host integrity checks. The public fork exists, but a known tokenizer difference and compiled-artifact provenance remain open. Public references do not claim the private Azure operational pipeline has completed its cutover.
+
 Based on [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness); not a GitHub fork. Upstream releases are tracked by the auto-port workflow (`.github/workflows/upstream-auto-port.yml`).
 
 **GPU serving today (30 Oct 2026):** DeepInfer + DSpark on 4× H100 NVL, 1M context; see [docs/deepseek-v41-h100](docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).
@@ -72,7 +78,7 @@ Planned, not yet delivered. Each item is tested in a disposable profile or a tes
 
 - **Theme centre.** A small skin format (`dsh-themes`) and a picker (`@dsh-suite/themes`) so an operator can offer several reviewed themes beside the native Light/Dark/System appearance, instead of shipping one fixed theme package. It follows the optional `dsh-theme-custom-light` plugin and an operator's custom theme release (0.2.0: a separate colour row under the untouched native Appearance setting, plus brand slots). Installation stays pinned and hash-checked; an existing older copy is upgraded only from an exact, qualified version, with a rollback copy kept.
 - **Prefix cache for DeepInfer.** DeepInfer has no cross-request prefix cache yet: a follow-up turn on a long conversation re-reads the whole prompt (first token about 38 s at 127K, 145 s at 498K and 301 s at 995K tokens). The host prefix-cache (hicache) module is not in the upstream tree; the plan is row K ("host prefix cache", in the configuration matrix of [DeepInfer#221](https://github.com/deepseek-ai/DeepInfer/discussions/221)).
-- **Host GPU peer-to-peer fix.** On the reference node, writes between GPUs on different CPU sockets are silently dropped with the IOMMU in translated mode, so DeepInfer exchanges experts through host memory. Requested host change: `iommu=pt` (then ACS off or the vendor's GPU BIOS profile if needed). Estimate after the fix: about 80–150 tok/s for one user, about 1.3–2.5× today in total; to be re-measured with DeepEP.
+- **Host GPU peer-to-peer trial.** Saved cross-socket copy checks found destination-data mismatches. IOMMU translation/ACS are candidate factors, not an isolated cause. Start with administrator readback, then an approved, reversible host trial and byte-integrity gates before DeepEP. The conditional W1 one-request estimate and its assumptions are in the current report; no post-change speed or recovery result is claimed.
 - **One canonical source for portable code.** This repository is to become the canonical home of the portable product code; a site deployment carries only that code plus its private overlay (site names, identities, branding, operations). Until then, the publication boundaries in [docs/PUBLICATION.md](docs/PUBLICATION.md) describe what stays private; the path-by-path mapping will be added there.
 
 ## Start here

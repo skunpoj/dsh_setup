@@ -1,0 +1,87 @@
+{
+  "schema": "gpu-serving-reference-v1",
+  "physical_gpus": 4,
+  "model_revision": "1bae0e1088993b9b82de08f59de5be5a34e42170",
+  "base_image": "lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+  "context_tokens": 1048576,
+  "active_cap_total": 8,
+  "port": 8000,
+  "publication_scope": "Portable non-secret reference extracted from reviewed configuration. Not a claim of complete live source/build provenance or a turnkey cluster export.",
+  "id": "deepinfer-dspark-deepep-proposed",
+  "status": "PROPOSED-NOT-EXECUTED",
+  "engine": "DeepInfer",
+  "command": [
+    "python3",
+    "-u",
+    "serve/openai_server.py"
+  ],
+  "args": [
+    "--model",
+    "${MODEL_PATH}",
+    "--served-model-name",
+    "deepseek-v4.1-flash",
+    "--dp",
+    "4",
+    "--port",
+    "8000",
+    "--hicache-size-gb",
+    "0",
+    "--gpu-memory-utilization",
+    "0.95",
+    "--max-num-batched-tokens",
+    "1024",
+    "--thinking-mode",
+    "chat",
+    "--yoco-keep-tokens",
+    "0",
+    "--prefill-any-interval",
+    "2",
+    "--max-model-len",
+    "1048576",
+    "--max-num-seqs",
+    "2",
+    "--rank-heartbeat-timeout",
+    "120",
+    "--routing",
+    "least-loaded"
+  ],
+  "environment": {
+    "DEEPINFER_ACCELERATOR": "nvidia",
+    "DEEPINFER_CUDA_ARCH": "sm90",
+    "DEEPINFER_HF_MODEL_DIR": "${MODEL_PATH}",
+    "DEEPINFER_SM90_MOE_BACKEND": "humming",
+    "DEEPINFER_SM90_COMPACT_ENGRAM": "0",
+    "DEEPINFER_EP_COMM_BACKEND": "deepep",
+    "DEEPINFER_ENGRAM_UVA_FETCH": "1",
+    "DEEPINFER_CP_COMM_BACKEND": "nccl",
+    "NCCL_NVLS_ENABLE": "0",
+    "NCCL_P2P_LEVEL": "NVL",
+    "EP_DISABLE_GIN": "1",
+    "DEEPINFER_USE_NEXTN_DECODE": "5",
+    "DEEPINFER_ENABLE_MTP_VARLEN": "1",
+    "NCCL_DEBUG": "WARN",
+    "NCCL_SOCKET_IFNAME": "lo"
+  },
+  "source": {
+    "repository": "https://github.com/skunpoj/DeepInfer",
+    "reference_commit": "b4df8657412de7ea8bab8b442c2b8c68f5c1068a",
+    "running_tree_equals_reference": false,
+    "known_source_difference": "serve/prompt_tokenizer.py",
+    "note": "264 selected published source files match; one differs. Compiled artifacts, vendor submodules and unmounted build sources are not qualified by this check."
+  },
+  "qualification": "Requires administrator host-change approval AND exact independent GPU correctness receipts. Do not treat this profile as deployed or qualified.",
+  "required_gates": [
+    "peer_copy_all_required_directions",
+    "deepep_dispatch_combine",
+    "model_correctness",
+    "restore_service",
+    "source_and_binary_identity"
+  ],
+  "controlled_delta": {
+    "DEEPINFER_EP_COMM_BACKEND": {
+      "before": "nccl",
+      "proposed": "deepep"
+    }
+  },
+  "unchanged_controls": "CP remains nccl; GIN remains disabled; Engram remains host-UVA; NCCL peer limit remains NVL. Changing other controls requires a separate justified trial."
+}

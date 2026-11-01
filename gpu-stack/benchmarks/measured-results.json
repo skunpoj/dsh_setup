@@ -1,0 +1,824 @@
+{
+  "rows": [
+    {
+      "engine": "DeepInfer",
+      "workload": "W1",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 1,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 0.25/rank average, not observed occupancy",
+      "input_tokens_range": [
+        18,
+        18
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 57.80459167567129,
+      "TPOT_ms_stream": 17.29966376392342,
+      "total_output_tokens_s": 56.046384784915304,
+      "output_tokens_s_gpu": 14.011596196228826,
+      "TTFT_ms": 294.9368953704834,
+      "repeat_count": 3,
+      "completed_records": 3,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W1",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 2,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 0.5/rank average, not observed occupancy",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 57.1678573178441,
+      "TPOT_ms_stream": 17.504689744773906,
+      "total_output_tokens_s": 108.016076033032,
+      "output_tokens_s_gpu": 27.004019008258,
+      "TTFT_ms": 297.4344491958618,
+      "repeat_count": 3,
+      "completed_records": 6,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W1",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 4,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 1.0/rank average, not observed occupancy",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 55.29069544862429,
+      "TPOT_ms_stream": 18.10037063292561,
+      "total_output_tokens_s": 199.20920976003617,
+      "output_tokens_s_gpu": 49.80230244000904,
+      "TTFT_ms": 299.7020483016968,
+      "repeat_count": 3,
+      "completed_records": 12,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W1",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 8,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 2.0/rank average, not observed occupancy",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 52.27283288946823,
+      "TPOT_ms_stream": 19.132754807369583,
+      "total_output_tokens_s": 380.9335831697206,
+      "output_tokens_s_gpu": 95.23339579243014,
+      "TTFT_ms": 271.5635299682617,
+      "repeat_count": 3,
+      "completed_records": 24,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W1",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 16,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 4.0/rank average, not observed occupancy",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 50.421418484579,
+      "TPOT_ms_stream": 19.833899290827624,
+      "total_output_tokens_s": 381.21737423173045,
+      "output_tokens_s_gpu": 95.30434355793261,
+      "TTFT_ms": 4990.965366363525,
+      "repeat_count": 3,
+      "completed_records": 48,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W3",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 1,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 0.25/rank average, not observed occupancy",
+      "input_tokens_range": [
+        18,
+        18
+      ],
+      "output_tokens_range": [
+        119,
+        119
+      ],
+      "per_request_decode_tokens_s": 162.38680793862395,
+      "TPOT_ms_stream": 6.158135705075021,
+      "total_output_tokens_s": 116.51023942012179,
+      "output_tokens_s_gpu": 29.127559855030448,
+      "TTFT_ms": 294.7094440460205,
+      "repeat_count": 3,
+      "completed_records": 3,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W3",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 2,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 0.5/rank average, not observed occupancy",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        119,
+        119
+      ],
+      "per_request_decode_tokens_s": 159.93486834312023,
+      "TPOT_ms_stream": 6.252545421406374,
+      "total_output_tokens_s": 229.70165699072444,
+      "output_tokens_s_gpu": 57.42541424768111,
+      "TTFT_ms": 297.97399044036865,
+      "repeat_count": 3,
+      "completed_records": 6,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W3",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 4,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 1.0/rank average, not observed occupancy",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        119,
+        119
+      ],
+      "per_request_decode_tokens_s": 157.189204091029,
+      "TPOT_ms_stream": 6.361760325351004,
+      "total_output_tokens_s": 392.27507548857335,
+      "output_tokens_s_gpu": 98.06876887214334,
+      "TTFT_ms": 349.68245029449463,
+      "repeat_count": 3,
+      "completed_records": 12,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W3",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 8,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 2.0/rank average, not observed occupancy",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        119,
+        119
+      ],
+      "per_request_decode_tokens_s": 145.30616309190066,
+      "TPOT_ms_stream": 6.882020982645326,
+      "total_output_tokens_s": 754.196534945015,
+      "output_tokens_s_gpu": 188.54913373625374,
+      "TTFT_ms": 449.2206573486328,
+      "repeat_count": 3,
+      "completed_records": 24,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W3",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 16,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 4.0/rank average, not observed occupancy",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        119,
+        119
+      ],
+      "per_request_decode_tokens_s": 147.74250259507897,
+      "TPOT_ms_stream": 6.768560005446611,
+      "total_output_tokens_s": 891.2570730956583,
+      "output_tokens_s_gpu": 222.81426827391456,
+      "TTFT_ms": 818.7503814697266,
+      "repeat_count": 3,
+      "completed_records": 48,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W4",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 1,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 0.25/rank average, not observed occupancy",
+      "input_tokens_range": [
+        21,
+        21
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 63.10061048296746,
+      "TPOT_ms_stream": 15.847707214654076,
+      "total_output_tokens_s": 60.86567055376646,
+      "output_tokens_s_gpu": 15.216417638441616,
+      "TTFT_ms": 264.7521495819092,
+      "repeat_count": 3,
+      "completed_records": 3,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W4",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 2,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 0.5/rank average, not observed occupancy",
+      "input_tokens_range": [
+        21,
+        26
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 61.86274793011964,
+      "TPOT_ms_stream": 16.165905502677663,
+      "total_output_tokens_s": 119.18870629706065,
+      "output_tokens_s_gpu": 29.797176574265162,
+      "TTFT_ms": 262.61961460113525,
+      "repeat_count": 3,
+      "completed_records": 6,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W4",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 4,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 1.0/rank average, not observed occupancy",
+      "input_tokens_range": [
+        21,
+        26
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 58.975232172071216,
+      "TPOT_ms_stream": 16.956549101379753,
+      "total_output_tokens_s": 226.79202487560468,
+      "output_tokens_s_gpu": 56.69800621890117,
+      "TTFT_ms": 263.7878656387329,
+      "repeat_count": 3,
+      "completed_records": 12,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W4",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 8,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 2.0/rank average, not observed occupancy",
+      "input_tokens_range": [
+        21,
+        26
+      ],
+      "output_tokens_range": [
+        473,
+        512
+      ],
+      "per_request_decode_tokens_s": 58.77084732129224,
+      "TPOT_ms_stream": 17.015537637087228,
+      "total_output_tokens_s": 433.4591574487763,
+      "output_tokens_s_gpu": 108.36478936219407,
+      "TTFT_ms": 266.060471534729,
+      "repeat_count": 3,
+      "completed_records": 24,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "DeepInfer",
+      "workload": "W4",
+      "gpus": 4,
+      "parallelism": "DP4/EP4",
+      "offered_concurrency": 16,
+      "active_cap_total": 8,
+      "requests_per_gpu": "active cap 2/rank; offered 4.0/rank average, not observed occupancy",
+      "input_tokens_range": [
+        21,
+        26
+      ],
+      "output_tokens_range": [
+        459,
+        512
+      ],
+      "per_request_decode_tokens_s": 56.842715498760455,
+      "TPOT_ms_stream": 17.59359024742112,
+      "total_output_tokens_s": 433.82269375942235,
+      "output_tokens_s_gpu": 108.45567343985559,
+      "TTFT_ms": 4501.398205757141,
+      "repeat_count": 3,
+      "completed_records": 48,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "1c025175337a531e391b5a9a906f329395be04706a88bd9b9c5ec990d297b973"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W1",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 1,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        18,
+        18
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 60.44922131578807,
+      "TPOT_ms_stream": 16.542810283295097,
+      "total_output_tokens_s": 59.6089646569859,
+      "output_tokens_s_gpu": 14.902241164246474,
+      "TTFT_ms": 130.7229995727539,
+      "repeat_count": 3,
+      "completed_records": 3,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W1",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 2,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 46.89187044588124,
+      "TPOT_ms_stream": 21.32598341327824,
+      "total_output_tokens_s": 89.8565718354262,
+      "output_tokens_s_gpu": 22.46414295885655,
+      "TTFT_ms": 137.00437545776367,
+      "repeat_count": 3,
+      "completed_records": 6,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W1",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 4,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 29.188836160148757,
+      "TPOT_ms_stream": 34.27254337154022,
+      "total_output_tokens_s": 111.54896082196653,
+      "output_tokens_s_gpu": 27.887240205491633,
+      "TTFT_ms": 290.9379005432129,
+      "repeat_count": 3,
+      "completed_records": 12,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W1",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 8,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 16.5723786475464,
+      "TPOT_ms_stream": 60.34709749389768,
+      "total_output_tokens_s": 126.5621655290289,
+      "output_tokens_s_gpu": 31.640541382257226,
+      "TTFT_ms": 621.4511394500732,
+      "repeat_count": 3,
+      "completed_records": 24,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W1",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 16,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 16.46197213624724,
+      "TPOT_ms_stream": 60.74876677966631,
+      "total_output_tokens_s": 126.72116242340181,
+      "output_tokens_s_gpu": 31.680290605850452,
+      "TTFT_ms": 16303.282737731934,
+      "repeat_count": 3,
+      "completed_records": 48,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W3",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 1,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        18,
+        18
+      ],
+      "output_tokens_range": [
+        119,
+        119
+      ],
+      "per_request_decode_tokens_s": 167.00613963545513,
+      "TPOT_ms_stream": 5.987803814774853,
+      "total_output_tokens_s": 142.68452712086224,
+      "output_tokens_s_gpu": 35.67113178021556,
+      "TTFT_ms": 126.87110900878906,
+      "repeat_count": 3,
+      "completed_records": 3,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W3",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 2,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        119,
+        119
+      ],
+      "per_request_decode_tokens_s": 123.98168404837955,
+      "TPOT_ms_stream": 8.065707602743377,
+      "total_output_tokens_s": 216.71952025961767,
+      "output_tokens_s_gpu": 54.17988006490442,
+      "TTFT_ms": 146.15559577941895,
+      "repeat_count": 3,
+      "completed_records": 6,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W3",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 4,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        119,
+        119
+      ],
+      "per_request_decode_tokens_s": 82.59546936087862,
+      "TPOT_ms_stream": 12.113542880042125,
+      "total_output_tokens_s": 260.14061666900335,
+      "output_tokens_s_gpu": 65.03515416725084,
+      "TTFT_ms": 291.26620292663574,
+      "repeat_count": 3,
+      "completed_records": 12,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W3",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 8,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        119,
+        119
+      ],
+      "per_request_decode_tokens_s": 52.423043058275006,
+      "TPOT_ms_stream": 19.08191482899553,
+      "total_output_tokens_s": 284.76888004109026,
+      "output_tokens_s_gpu": 71.19222001027256,
+      "TTFT_ms": 629.0825605392456,
+      "repeat_count": 3,
+      "completed_records": 24,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W3",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 16,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        18,
+        23
+      ],
+      "output_tokens_range": [
+        119,
+        119
+      ],
+      "per_request_decode_tokens_s": 45.80977934759642,
+      "TPOT_ms_stream": 21.841678578974836,
+      "total_output_tokens_s": 294.15673876531116,
+      "output_tokens_s_gpu": 73.53918469132779,
+      "TTFT_ms": 2001.8713474273682,
+      "repeat_count": 3,
+      "completed_records": 48,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W4",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 1,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        21,
+        21
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 71.07654537288163,
+      "TPOT_ms_stream": 14.069338833982464,
+      "total_output_tokens_s": 69.92845126887647,
+      "output_tokens_s_gpu": 17.482112817219118,
+      "TTFT_ms": 134.0811252593994,
+      "repeat_count": 3,
+      "completed_records": 3,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W4",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 2,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        21,
+        26
+      ],
+      "output_tokens_range": [
+        447,
+        512
+      ],
+      "per_request_decode_tokens_s": 51.32984236162692,
+      "TPOT_ms_stream": 19.498631912201585,
+      "total_output_tokens_s": 97.5613204881421,
+      "output_tokens_s_gpu": 24.390330122035525,
+      "TTFT_ms": 136.11328601837158,
+      "repeat_count": 3,
+      "completed_records": 6,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W4",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 4,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        21,
+        26
+      ],
+      "output_tokens_range": [
+        512,
+        512
+      ],
+      "per_request_decode_tokens_s": 32.396672206142824,
+      "TPOT_ms_stream": 30.868989847410916,
+      "total_output_tokens_s": 124.08869366864906,
+      "output_tokens_s_gpu": 31.022173417162264,
+      "TTFT_ms": 287.29021549224854,
+      "repeat_count": 3,
+      "completed_records": 12,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W4",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 8,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        21,
+        26
+      ],
+      "output_tokens_range": [
+        210,
+        512
+      ],
+      "per_request_decode_tokens_s": 18.98552759793253,
+      "TPOT_ms_stream": 52.67180108744104,
+      "total_output_tokens_s": 143.45016732028003,
+      "output_tokens_s_gpu": 35.86254183007001,
+      "TTFT_ms": 624.4715452194214,
+      "repeat_count": 3,
+      "completed_records": 24,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    },
+    {
+      "engine": "SGLang",
+      "workload": "W4",
+      "gpus": 4,
+      "parallelism": "TP4",
+      "offered_concurrency": 16,
+      "active_cap_total": 8,
+      "requests_per_gpu": "not measured (TP4 shares requests)",
+      "input_tokens_range": [
+        21,
+        26
+      ],
+      "output_tokens_range": [
+        473,
+        512
+      ],
+      "per_request_decode_tokens_s": 18.750053873434922,
+      "TPOT_ms_stream": 53.33320525294414,
+      "total_output_tokens_s": 141.63107995226818,
+      "output_tokens_s_gpu": 35.407769988067045,
+      "TTFT_ms": 14711.946368217468,
+      "repeat_count": 3,
+      "completed_records": 48,
+      "reported_errors": 0,
+      "scope": "finite HTTP cohort; three repeat medians; not upstream steady-state sweep",
+      "rawSHA256": "e672b09e2a2f5d16555a5d2361e42569c7bef6723f160a977670ee4d131ffcdf"
+    }
+  ],
+  "conversion": "Output tok/s/GPU = cohort total tok/s / 4 physical GPUs; no assumption of equal per-rank utilisation. TPOT is median across three per-cohort medians of 1000/D per request; SSE-derived, not hardware step latency.",
+  "notMeasured": [
+    "steady-state decode steps/s",
+    "measured DSpark acceptance or tau",
+    "non-cached prefill throughput",
+    "cold fixed-length synthetic upstream workload",
+    "upstream closed-loop warmup plus four measured waves"
+  ],
+  "providerCalls": 0,
+  "newBenchmarkCalls": 0
+}
