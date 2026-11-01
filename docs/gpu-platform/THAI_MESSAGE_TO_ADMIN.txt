@@ -1,10 +1,12 @@
 เรียน ทีมผู้ดูแลระบบ GPU
 
-รบกวนขอนัด technical review เพื่ออธิบายรายละเอียดและ impact ของ proposed host-level kernel configuration change โดยเพิ่ม `iommu=pt` เป็น kernel boot parameter ใน selected boot entry รวมทั้งร่วมกันกำหนด execution owner, maintenance window, execution schedule, validation plan และ rollback plan ครับ โดยยังไม่รวมการเปลี่ยน ACS หรือ BIOS settings อื่นใน change นี้
+รบกวนขอนัด coordinated maintenance session เพื่อดำเนินการร่วมกันตาม runbook โดยเพิ่ม `iommu=pt` เป็น kernel boot parameter เฉพาะ selected boot entry, reboot และติดตาม validation results ร่วมกันใน session เดียวครับ ทีมเตรียม validation steps และ rollback procedure ไว้แล้ว หาก boot, GPU peer-copy integrity, DeepEP dispatch/combine หรือ model correctness ไม่ผ่านเกณฑ์ จะ restore known-working boot entry ภายใน session เดียวกัน โดย change นี้ยังไม่รวม ACS หรือ BIOS settings อื่น
 
 ขั้นตอนตรวจสอบ คำสั่งตัวอย่าง และเงื่อนไขย้อนกลับอยู่ในรายงาน:
 https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf
 
-หากที่ประชุมเห็นชอบและกำหนดช่วงเวลาดำเนินการแล้ว หลัง reboot รบกวนส่งผล `/proc/cmdline`, IOMMU group types, `nvidia-smi topo -m` และสถานะ GPU กลับมา เพื่อให้ทีมตรวจ peer-copy, DeepEP และ model correctness ก่อนคืนบริการครับ
+Current measured baseline สำหรับ W1 / one request คือ DeepInfer + DSpark แบบ NCCL ที่ 57.8 decode tok/s/request ส่วน conditional host + DeepEP scenario อยู่ที่ 76.3-146.7 decode tok/s/request เฉพาะกรณีที่ peer-copy ถูกต้อง, DeepEP ผ่าน qualification และ expert path เป็นไปตาม assumptions ในรายงาน ตัวเลขนี้ไม่ใช่ expected gain จาก `iommu=pt` เพียงอย่างเดียว
+
+ภายใน session ทีมจะร่วมกันตรวจ `/proc/cmdline`, IOMMU group types, `nvidia-smi topo -m`, GPU peer-copy แบบตรวจ destination bytes, DeepEP dispatch/combine, model correctness และ measured performance ก่อนตัดสินใจ restore service หรือ rollback ครับ
 
 ขอบคุณครับ
