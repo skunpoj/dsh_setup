@@ -14,7 +14,7 @@ The Harness, its tools and generated code run within boundaries enforced by infr
 
 Follow the three controls below. [Appendix A](#appendix-a) contains features, everyday examples and administration. [Appendix B](#appendix-b) contains LLM/GPU setup and measured results. The [user manual](DSH_USER_MANUAL.html) gives task-by-task instructions, and the English video course explains the implementation.
 
-The [agent-runtime guide](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) separates current managed-client operation from the reviewed Web DSH source candidate. The candidate keeps runtime—checkpointed DSH Python SDK, Claude Code or Deep Agents—independent from execution backend—private workspace or optional qualified OpenShell. Web DSH is the control surface, while the Python SDK runs the programmatic agent and resumes explicitly approved tool interrupts. It is not deployed; OpenShell remains disabled pending its separate live qualification.
+The [agent-runtime guide](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) separates the deployed Web DSH control plane from runtime behavior still awaiting live acceptance. Runtime—checkpointed DSH Python SDK, Claude Code or Deep Agents—is independent from execution backend. The private workspace is deployed; optional OpenShell remains disabled pending its separate 25-gate Test and rollback qualification. Web DSH is the control surface, while the Python SDK is the programmatic runtime and resumes explicitly approved tool interrupts.
 
 ## 1 Prevent external leakage
 

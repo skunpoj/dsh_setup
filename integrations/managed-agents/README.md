@@ -1,8 +1,8 @@
 # Managed coding-agent integration candidate
 
-Status: opt-in source candidate. No image build, installation, deployment or native Deep Agents session is claimed by this directory.
+Status: deployed broker and runtime image; native guarded model execution still requires live acceptance.
 
-The existing DSH runtime supports DSH, Claude Code, Kilo and TrueForge through their current entry points. This candidate adds Deep Agents Code (dcode), friendly aliases for the existing DSH CLI and an authenticated `/agent-tasks` source path for DSH Python SDK, Claude Code and Deep Agents. The broker source implements private-workspace confinement, explicit approval, persisted event polling, cancellation and interrupted recovery. It is not deployed, and an ordinary DSH chat prompt is not forwarded to another CLI.
+The DSH runtime supports DSH, Claude Code, Kilo and TrueForge through their current entry points. The deployed image also includes Deep Agents Code (dcode), friendly aliases for the DSH CLI and an authenticated `/agent-tasks` path for DSH Python SDK, Claude Code and Deep Agents. The broker implements private-workspace confinement, explicit approval, persisted event polling, cancellation and interrupted recovery. Broker health and capability mapping are verified live; a normal DSH chat prompt is not forwarded to another CLI, and guarded model execution for every broker runtime remains a separate acceptance gate.
 
 ## Interfaces and isolation
 
