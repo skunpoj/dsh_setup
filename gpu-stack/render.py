@@ -87,6 +87,7 @@ def render(settings):
        'ports':[{'containerPort':4000}],
        'env':[secret(settings['credentialSecret'],'LITELLM_MASTER_KEY'),
               secret(settings['credentialSecret'],'INTERNAL_ROUTE_KEY'),secret(settings['databaseSecret'],'DATABASE_URL'),
+              {'name':'LITELLM_USE_CHAT_COMPLETIONS_URL_FOR_ANTHROPIC_MESSAGES','value':'true'},
               {'name':'PYTHONPATH','value':'/etc/litellm'}],
        'volumeMounts':mounts,'securityContext':security,
        'readinessProbe':{'httpGet':{'path':'/health/readiness','port':4000},'periodSeconds':10},

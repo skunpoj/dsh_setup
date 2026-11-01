@@ -34,6 +34,7 @@ class PortableTests(unittest.TestCase):
         env=d['spec']['template']['spec']['containers'][0]['env']
         for key in ['LITELLM_MASTER_KEY','INTERNAL_ROUTE_KEY','DATABASE_URL']:
             self.assertIn('secretKeyRef', next(v for v in env if v['name']==key)['valueFrom'])
+        self.assertEqual(next(v['value'] for v in env if v['name']=='LITELLM_USE_CHAT_COMPLETIONS_URL_FOR_ANTHROPIC_MESSAGES'),'true')
 
     def test_model_source_is_pinned_and_long_budget_consistent(self):
         d=next(d for d in self.docs if d['kind']=='Deployment' and d['metadata']['name']=='local-model')
