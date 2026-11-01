@@ -5,7 +5,7 @@
 รายงานฉบับเดียวล่าสุด พร้อมผลวัด กราฟ วิธีทดสอบ ค่าปัจจุบัน และขั้นตอนตรวจสอบ/ย้อนกลับ:
 https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf
 
-ปัจจุบันใช้ DeepInfer + DSpark ผ่าน LiteLLM โดย DeepInfer เป็น inference engine แยกจาก vLLM ส่วนชื่อ Service เดิมที่มีคำว่า vllm ไม่ได้หมายความว่ารันด้วย vLLM และยังเก็บ SGLang + DSpark ไว้เป็นทางเลือกย้อนกลับ
+ชื่อมาตรฐานของเส้นทางใช้งานคือ dsh-gateway → litellm-gateway → deepinfer-dspark และใช้ sglang-dspark สำหรับเส้นทางย้อนกลับ
 
 ค่าที่อ่านได้จากระบบคือ BIOS 3.16 และ IOMMU groups แบบ DMA-FQ ส่วน ACS และตัวเลือก BIOS รายตัวยังต้องให้ผู้ดูแลตรวจยืนยัน จึงขอเริ่มจากการตรวจแบบอ่านอย่างเดียว ก่อนพิจารณาทดลอง iommu=pt ในช่วงเวลาปิดปรับปรุงที่ตกลงร่วมกัน พร้อมทบทวนผลต่อการแยกอุปกรณ์และเตรียม boot entry สำหรับย้อนกลับ ไม่เสนอให้เปลี่ยน ACS/BIOS ทุกตัวพร้อมกัน
 
