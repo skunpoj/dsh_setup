@@ -17,6 +17,33 @@ The remaining deployment inputs and work are:
 
 Existing DSH execution isolation remains a separate deployed control. This prerequisite result does not replace it or declare OpenShell production-ready. OAuth application registration and Kerberos ticket acquisition are also separate integrations; no provider registration or AD permissions were changed by the preflight.
 
+## When OpenShell can become available
+
+OpenShell can be enabled only after one exact candidate release passes all 25 live Test gates and its rollback check. The current acceptance count is **0/25**. Source tests, the CPU preflight, a successful image pull, Pod readiness or a successful model response do not increment this count.
+
+There is no calendar completion date until the following admission inputs exist together:
+
+- an immutable gateway, supervisor, sandbox-runtime and worker image set with exact source, package and image-digest provenance;
+- a worker image that actually contains the reviewed OpenShell worker protocol implementation;
+- a dedicated Test namespace with approved node placement, resource quota, storage, network policy, identity/audience configuration, expiry and cleanup ownership;
+- a single Test operator, frozen gate matrix, saved predecessor rollback objects and independent readback access;
+- separately authorized bounded model-backed tests for only the gates that genuinely require inference. No provider call is implied by the other gates.
+
+The 25 gates are accepted as one release, but they cover distinct control families:
+
+| Gate family | Required live evidence |
+|---|---|
+| Platform and policy admission | Kernel capability, hard-required refusal, CNI positive/negative controls and proof that no policy path was skipped |
+| Identity and storage isolation | Authenticated owner binding, forged/cross-owner denial, read-only inputs, writable outputs and denial of unrelated paths |
+| Process and escape containment | Traversal, symlink, file-descriptor, process-environment, socket, child-process, installer and tool-boundary probes |
+| Network and credential containment | IPv4/IPv6, DNS, proxy, redirect and non-HTTP bypass denial; metadata/control-plane denial; exact approved broker/package paths; synthetic credential leak controls |
+| Fail-closed lifecycle | Gateway/supervisor failure, no unrestricted fallback, exact descendant cancellation, logout/revocation, restart non-replay and worker-absence readback |
+| User-facing behavior | Terminal streaming/resize/reconnect/interrupt/Unicode, notebook and file transfer, HTTP/WebSocket behavior, application audience controls and durable files/history |
+| Model and audit integration | Mock inference stream, context and usage correlation, HTML remote-resource controls, correlated audit and secret redaction |
+| Capacity and recovery | Paired resource measurements, owned rollback, drain, durable-data preservation and proof that unrelated watchers remain unchanged |
+
+Availability is a release decision after the evidence packet shows **25/25 PASS**, the exact Test objects have been cleaned up, the known-working private-workspace backend remains healthy, and rollback can be executed by its recorded owner. Any failed, skipped, ambiguous or stale gate keeps OpenShell disabled. A first clean run is expected to require a dedicated multi-hour Test window; that is an execution estimate, not an acceptance promise.
+
 ## Worker-image live readback
 
 A separate, disposable CPU-only image check pulled and ran the retained private
