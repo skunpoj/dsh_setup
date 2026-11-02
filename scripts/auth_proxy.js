@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 54515)
+Total output lines: 2551
+
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
@@ -26,15 +29,27 @@ function serveManual(req, res, pathname) {
   if (pathname === '/manual' || pathname === '/manual/') { res.writeHead(302,{...headers,Location:'/manual/index.html'});return res.end(); }
   try {
     const name=decodeURIComponent(pathname.slice('/manual/'.length));
-    if (!/^[a-zA-Z0-9_./-]+\.(html|md|json|png|svg)$/.test(name) || name.split('/').some(x=>!x || x==='.' || x==='..')) throw Error('Unknown manual');
+    if (!/^[a-zA-Z0-9_./-]+\.(html|md|json|png|svg|mp4|vtt)$/.test(name) || name.split('/').some(x=>!x || x==='.' || x==='..')) throw Error('Unknown manual');
     const manifest=JSON.parse(fs.readFileSync(path.join(MANUAL_DIR,'manifest.json'),'utf8'));
     if (!Object.hasOwn(manifest.files,name)) { res.writeHead(404,headers);return res.end('Manual page not found.'); }
     const entry=manifest.files[name], root=fs.realpathSync(MANUAL_DIR), file=fs.realpathSync(path.join(root,name));
     if (!file.startsWith(root+path.sep) || entry.bytes>8*1024*1024) throw Error('Invalid manual file');
     const body=fs.readFileSync(file);
     if(body.length!==entry.bytes || crypto.createHash('sha256').update(body).digest('hex')!==entry.sha256)throw Error('Manual integrity mismatch');
-    const types={html:'text/html; charset=utf-8',md:'text/plain; charset=utf-8',json:'application/json; charset=utf-8',png:'image/png',svg:'image/svg+xml'};
-    res.writeHead(200,{...headers,'Content-Type':types[name.split('.').pop()],'Content-Length':body.length});return res.end(req.method==='HEAD'?undefined:body);
+    const extension=name.split('.').pop();
+    const types={html:'text/html; charset=utf-8',md:'text/plain; charset=utf-8',json:'application/json; charset=utf-8',png:'image/png',svg:'image/svg+xml',mp4:'video/mp4',vtt:'text/vtt; charset=utf-8'};
+    const range=extension==='mp4' && req.headers.range;
+    if(range){
+      const match=/^bytes=(\d+)-(\d*)$/.exec(range);
+      if(!match)throw Error('Invalid media range');
+      let start=match[1]?Number(match[1]):0,end=match[2]?Number(match[2]):body.length-1;
+      if(!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start<0||end<start||start>=body.length)throw Error('Invalid media range');
+      end=Math.min(end,body.length-1);
+      const part=body.subarray(start,end+1);
+      res.writeHead(206,{...headers,'Content-Type':types[extension],'Accept-Ranges':'bytes','Content-Range':`bytes ${start}-${end}/${body.length}`,'Content-Length':part.length});return res.end(req.method==='HEAD'?undefined:part);
+    }
+    const mediaHeaders=extension==='mp4'?{'Accept-Ranges':'bytes'}:{};
+    res.writeHead(200,{...headers,...mediaHeaders,'Content-Type':types[extension],'Content-Length':body.length});return res.end(req.method==='HEAD'?undefined:body);
   } catch { res.writeHead(404,headers);return res.end('Manual page unavailable.'); }
 }
 // Kubernetes may inject DSH_PORT=tcp://<service-ip>:3080 for the Service named
@@ -807,341 +822,7 @@ function sendRuntimeWait(req,res,runtime){
   const failed=progress.stage==='failed',current=steps.findIndex(([id])=>id===progress.stage);
   const percent=Math.max(0,Math.min(100,Number(progress.percent)||0));
   const list=steps.map(([id,label],i)=>{const done=!failed&&current>i,now=current===i;
-    return `<li class="${done?'done':now?'now':''}"><span>${done?'✓':now?'●':'○'}</span>${escapeHtml(label)}${now&&progress.detail?` <em>${escapeHtml(progress.detail)}</em>`:''}</li>`;}).join('');
-  // A meta-free Refresh header keeps the page script-free; when the workspace is
-  // ready the next refresh is proxied straight into it (automatic redirect).
-  res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Refresh':'3','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY',
-    'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'"});
-  return res.end(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Starting your workspace</title>
-<style>body{font-family:system-ui,sans-serif;margin:0;background:#f4f6f9;color:#1f2933}main{max-width:560px;margin:10vh auto;padding:28px;background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08)}h1{font-size:1.3rem;margin:0 0 12px}p{line-height:1.5}
-.bar{height:14px;border-radius:7px;background:#e4e7eb;overflow:hidden;margin:16px 0 6px}.bar>div{height:100%;background:${failed?'#c53030':'#2f6fed'};transition:width .4s}.pct{font-weight:600;font-size:.9rem;color:#334e68}
-ol{list-style:none;padding:0;margin:16px 0}li{padding:4px 0;color:#9aa5b1}li span{display:inline-block;width:1.4em}li.done{color:#2f855a}li.now{color:#1f2933;font-weight:600}li em{font-weight:400;color:#52606d;font-style:normal}
-dl{display:grid;grid-template-columns:auto auto;gap:6px 16px;margin:18px 0}dt{color:#52606d}dd{margin:0;font-weight:600}small{color:#52606d}</style></head>
-<body><main><h1>${runtime.state==='waiting'?'Waiting for shared resources':failed?'Your workspace could not start':'Starting your workspace'}</h1><p>${escapeHtml(failed?'Starting failed ('+(progress.detail||'unknown')+'). Please contact the administrator; your files are safe.':message)}</p>
-<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><div style="width:${percent}%"></div></div><div class="pct">${percent}%</div>
-<ol>${list}</ol>
-<dl><dt>Workspaces running</dt><dd>${n(w.running)}</dd><dt>Starting / waiting</dt><dd>${n(w.starting)} / ${n(w.waiting)}</dd>
-<dt>CPU reserved / used</dt><dd>${pct(status.cpu?.reservedPercent)} / ${pct(status.cpu?.usedPercent)}</dd><dt>Memory reserved / used</dt><dd>${pct(status.memory?.reservedPercent)} / ${pct(status.memory?.usedPercent)}</dd></dl>
-<p><small>${escapeHtml(status.policy)} This page refreshes every 3 seconds and opens your workspace when it is ready. <a href="/logout">Sign out</a></small></p></main></body></html>`);
-}
-function privateTargetsFor(user, users=loadUsers()) {
-  if(USER_TARGETS && Object.hasOwn(USER_TARGETS,user))return USER_TARGETS[user];
-  const slot=Object.hasOwn(users,user)&&users[user].runtimeSlot;
-  const pool=activeSignupPool();
-  if(!slot || !pool || !Object.hasOwn(pool.slots,slot) ||
-    Object.values(users).filter(u=>u.runtimeSlot===slot).length!==1)return null;
-  return pool.slots[slot];
-}
-function allUserTargets() {
-  const users=loadUsers(),result={...USER_TARGETS};
-  for(const user of Object.keys(users)){const targets=privateTargetsFor(user,users);if(targets)result[user]=targets;}
-  return result;
-}
-function freeSignupSlots(users=loadUsers()) {
-  if(CAPACITY&&!CAPACITY.admission(users).allowed)return [];
-  const used=new Set(Object.values(users).map(u=>u.runtimeSlot).filter(Boolean));
-  const pool=activeSignupPool();const slots=pool?Object.keys(pool.slots).filter(slot=>!used.has(slot)):[];
-  // Accounts are not capped: they hold storage only and sign-in admits compute.
-  return slots;
-}
-function signupCapacitySummary(users=loadUsers()) {
-  const pool=activeSignupPool();const provisioned=pool?Object.keys(pool.slots).length:0;
-  const remaining=freeSignupSlots(users).length;
-  return {observedAt:new Date().toISOString(),registrationEnabled:ALLOW_REGISTRATION,
-    provisionedSlots:provisioned,assignedSlots:Object.values(users).filter(u=>u.runtimeSlot).length,remainingSlots:remaining,
-    ...(CAPACITY?{automaticProvisioning:CAPACITY.summary(users),signupAdmission:CAPACITY.admission(users)}:{}),
-    enabledAccounts:Object.values(users).filter(user=>user.disabled!==true).length,
-    disabledAccounts:Object.values(users).filter(user=>user.disabled===true).length};
-}
-// One rule for every administrator- or self-chosen local password.
-function passwordRuleError(password) {
-  return typeof password!=='string'||password.length<12||Buffer.byteLength(password)>1024||password!==password.trim()?'Use a password of at least 12 characters without surrounding spaces.':null;
-}
-function newAccountRecord(users,user,password) {
-  if(CAPACITY&&!CAPACITY.admission(users).allowed)return {status:503,error:'New signups are temporarily paused while storage is short or capacity is unavailable. Existing users can still sign in. Please retry after capacity recovers.'};
-  if(ADMIN_USERS.has(user)||['__proto__','constructor','prototype'].includes(user)||Object.hasOwn(users,user))return {status:409,error:'Account is reserved or already exists.'};
-  const weak=passwordRuleError(password);if(weak)return {status:400,error:weak};
-  if(USER_TARGETS && Object.hasOwn(USER_TARGETS,user) && USER_TARGETS[user].secure && USER_TARGETS[user].internet)
-    return {record:{...hashPassword(password),internetAllowed:false}};
-  if(!SIGNUP_POOL)return {status:409,error:'Provision both private environments before creating this account.'};
-  const slot=freeSignupSlots(users)[0];
-  if(!slot)return {status:503,error:CAPACITY?'A private workspace is being prepared. Please retry shortly.':'No new-user slot is available. Please contact the administrator.'};
-  return {record:{...hashPassword(password),internetAllowed:false,runtimeSlot:slot,createdAt:new Date().toISOString()}};
-}
-const authenticateIdentity = require('./identity_auth').createAuthenticator({directory:LDAP_DIRECTORY, loadUsers, saveUsers, verifyPassword, newAccountRecord, isAdmin:user=>ADMIN_USERS.has(user), audit:(event,user)=>auditEvent(event,user,'off')});
-const registrationAttempts=new Map();
-function admitRegistration(address) {
-  const now=Date.now(),window=15*60*1000;
-  for(const [key,value]of registrationAttempts)if(now-value.start>=window)registrationAttempts.delete(key);
-  if(!registrationAttempts.has(address)){
-    if(registrationAttempts.size>=256)return false;
-    registrationAttempts.set(address,{start:now,count:0});
-  }
-  return ++registrationAttempts.get(address).count<=30;
-}
-function getEnvironmentTarget(mode, user) {
-  if (USER_TARGETS) {
-    const environment = normalizeInternetMode(mode) === 'on' ? 'internet' : 'secure';
-    const targets = privateTargetsFor(user);
-    const target = targets && targets[environment];
-    return target ? { ...target, name: environment } : null;
-  }
-  return ENVIRONMENT_TARGETS[normalizeInternetMode(mode)];
-}
-
-// The session cookie is shared with the app subdomains (dsh-<port>.<parent>) through its Domain
-// attribute. The domain comes from configuration, never from the request's Host header, and
-// defaults to the parent of DSH_TRUSTED_HOST (dsh.example.com -> .example.com); a host with
-// fewer than three labels gets a host-only cookie.
-function getCookieDomain() {
-  if (process.env.DSH_COOKIE_DOMAIN) {
-    const d = process.env.DSH_COOKIE_DOMAIN;
-    return d.startsWith('.') ? `; Domain=${d}` : `; Domain=.${d}`;
-  }
-  const trusted = (process.env.DSH_TRUSTED_HOST || '').split(':')[0].toLowerCase();
-  if (!trusted || /^(\d{1,3}\.){3}\d{1,3}$/.test(trusted)) return '';
-  const parts = trusted.split('.');
-  if (parts.length >= 3) {
-    return '; Domain=.' + parts.slice(1).join('.');
-  }
-  return '';
-}
-
-// Proxy session cookies (this tenant's, the legacy dsh_auth name, and DSH's dsh-auth-*) are
-// removed before a request reaches a user app, so an app cannot read and replay them.
-function stripAuthCookies(cookieHeader) {
-  if (!cookieHeader) return '';
-  return cookieHeader.split(';').map(c => c.trim()).filter(c => c &&
-    !c.startsWith(`${COOKIE_NAME}=`) && !c.startsWith('dsh_auth=') && !c.startsWith('dsh-auth-')).join('; ');
-}
-
-function sessionAccountStamp(user) {
-  const account=loadUsers()[user];
-  if(!account||account.disabled===true)return null;
-  const stamp=account.authProvider==='ldap' ? ['ldap',account.ldapSubject,account.scheme,account.salt,account.hash] : [account.scheme,account.salt,account.hash];
-  return crypto.createHash('sha256').update(JSON.stringify(stamp)).digest('hex');
-}
-const SESSIONS = new SessionStore(process.env.DSH_SESSION_STORE_PATH || path.join(path.dirname(USER_STORE_PATH),'.browser-sessions','sessions.json'), {
-  verify:session=>session.accountStamp===sessionAccountStamp(session.user) && (session.internet!=='on'||internetAllowed(session.user))
-});
-const cachedDshAuthCookies = new Map();
-const USER_SOCKETS = new Map();
-const SESSION_SOCKETS = new WeakMap();
-function accountEnabled(user) { const users=loadUsers(); return Object.hasOwn(users,user) && users[user].disabled !== true; }
-function revokeUserSessions(user) {
-  SESSIONS.removeUser(user);
-  for (const socket of USER_SOCKETS.get(user) || []) socket.destroy();
-  USER_SOCKETS.delete(user);
-  for(const [name,entry]of Object.entries(appLinks()))if(entry.owner===user)closeAppConnections(name);
-}
-function internetAllowed(user) {
- const record=loadUsers()[user];
- return ADMIN_USERS.has(user) || record?.internetAllowed === true ||
-   (LEGACY_INTERNET_ONLY && user===LEGACY_OWNER && accountEnabled(user) && record?.internetAllowed!==false);
-}
-function adminAccounts() {
-  const users=loadUsers();
-  return Object.keys(users).sort().map(user=>({user, enabled:users[user].disabled!==true,
-    role:ADMIN_USERS.has(user)?'Administrator':'User', authProvider:users[user].authProvider==='ldap'?'AD / LDAP':'Local', internetAllowed:internetAllowed(user), passwordChangeRequired:users[user].mustChangePassword===true,
-    environments:USER_TARGETS ? ['secure','internet'].filter(mode=>privateTargetsFor(user,users)?.[mode]) : ['instance'],
-    sessions:[...SESSIONS.values()].filter(s=>s.user===user).length}));
-}
-
-// --- DYNAMIC APP GATEWAY HELPERS (OPTION 1 & OPTION 2) ---
-function resolvePortAlias(alias, user, mode) {
-  if (!alias) return null;
-  const key = alias.toLowerCase();
-  if (user) {const port=customAppPort(key,user,mode);if(port)return port;}
-  try {
-    const portsPath = '/workspace/.ports.json';
-    if (fs.existsSync(portsPath)) {
-      const mapping = JSON.parse(fs.readFileSync(portsPath, 'utf8'));
-      if (mapping && mapping[key]) {
-        return parseInt(mapping[key], 10);
-      }
-    }
-  } catch (e) {
-    console.error('[AUTH-PROXY] Error reading .ports.json:', e.message);
-  }
-  const defaults = {
-    'terminal': 7681,
-    'jupyter': 8888,
-    'ttyd': 7681,
-    'streamlit': 8501,
-    'dashboard': 8501,
-    'api': 8000,
-    'fastapi': 8000,
-    'web': 3000
-  };
-  return defaults[key] || null;
-}
-
-function parseAppTarget(inHost, reqUrl, user, mode) {
-  const parsed = url.parse(reqUrl, true);
-  let port = null;
-  let targetPath = reqUrl;
-  const customHost=appHostName(inHost);
-  if(customHost)port=customAppPort(customHost,user,mode);
-
-  // 1. Subdomain Check: e.g. dsh-8000.example.com, dsh2-8501, dsh-user2-8000...
-  // dsh-user<N> is tried before dsh<N> so dsh-user2-8000 resolves to port 8000, not alias "user2-8000".
-  const subMatch = inHost.match(/^(?:dsh-user[0-9]*|dsh[0-9]*)-([a-zA-Z0-9_-]+)\./i);
-  if (subMatch && !customHost) {
-    const raw = subMatch[1];
-    if (/^\d+$/.test(raw)) {
-      port = parseInt(raw, 10);
-    } else {
-      port = resolvePortAlias(raw, user, mode);
-    }
-    targetPath = reqUrl; // Root path preserved for SPA / assets
-  }
-
-  // 2. Path Check: e.g. /proxy/8000/ or /proxy/myapp/api
-  if (!port && !customHost) {
-    const pathMatch = parsed.pathname.match(/^\/proxy\/([a-zA-Z0-9_-]+)(\/.*)?$/);
-    if (pathMatch) {
-      const raw = pathMatch[1];
-      if (/^\d+$/.test(raw)) {
-        port = parseInt(raw, 10);
-      } else {
-        port = resolvePortAlias(raw, user, mode);
-      }
-      targetPath = (pathMatch[2] || '/') + (parsed.search || '');
-    }
-  }
-
-  // Only user app ports are forwarded; the gateway and DSH ports are never app targets.
-  if (!Number.isInteger(port) || port < 1 || port > 65535 || port === PROXY_PORT || port === DSH_TARGET_PORT) {
-    port = null;
-  }
-  return { port, targetPath };
-}
-
-function forwardToLocalApp(targetPort, targetPath, req, res, targetHost = '127.0.0.1') {
-  const proxyHeaders = { ...req.headers };
-  proxyHeaders['host'] = `127.0.0.1:${targetPort}`;
-  proxyHeaders['x-forwarded-host'] = req.headers.host;
-  const appCookies = stripAuthCookies(req.headers.cookie);
-  if (appCookies) {
-    proxyHeaders['cookie'] = appCookies;
-  } else {
-    delete proxyHeaders['cookie'];
-  }
-  proxyHeaders['x-forwarded-proto'] = req.headers['x-forwarded-proto'] || 'https';
-
-  const proxyReq = http.request({
-    host: targetHost,
-    port: targetPort,
-    path: targetPath,
-    method: req.method,
-    headers: proxyHeaders
-  }, (proxyRes) => {
-    const resHeaders = { ...proxyRes.headers };
-    if (resHeaders['content-type'] && resHeaders['content-type'].includes('text/html')) {
-      resHeaders['cache-control'] = 'no-cache, no-store, must-revalidate';
-      resHeaders['pragma'] = 'no-cache';
-      resHeaders['expires'] = '0';
-    }
-    res.writeHead(proxyRes.statusCode, resHeaders);
-    proxyRes.pipe(res);
-  });
-
-  res.once('close',()=>proxyReq.destroy());
-  proxyReq.on('error', (err) => {
-    if(res.destroyed)return;
-    console.warn(`[AUTH-PROXY] App forward error on port ${targetPort}:`, err.message);
-    res.writeHead(502, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>DSH App Gateway: Port ${targetPort}</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0B0F19; color: #F8FAFC; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-    .card { background: #1E293B; border: 1px solid #334155; border-radius: 12px; padding: 32px; max-width: 540px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; }
-    h2 { color: #38BDF8; margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 20px; }
-    code { background: #0F172A; padding: 3px 8px; border-radius: 6px; color: #F43F5E; font-size: 14px; font-family: monospace; }
-    p { color: #94A3B8; line-height: 1.6; font-size: 14px; }
-    .tip { background: rgba(56, 189, 248, 0.1); border-left: 4px solid #38BDF8; padding: 14px 16px; margin: 20px 0; border-radius: 0 8px 8px 0; font-size: 13px; color: #E2E8F0; }
-    .code-block { background: #0F172A; padding: 10px 14px; border-radius: 6px; margin-top: 8px; font-family: monospace; color: #A5F3FC; font-size: 12px; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>⚡ DSH Application Gateway</h2>
-    <p>Target service on port <code>${targetPort}</code> is currently not listening inside your selected private environment.</p>
-    ${targetPort === 8888 ? '<p>Open <a href="/terminal" style="color:#38BDF8">Web Terminal</a>, run <code>jupyter lab</code>, then return to <a href="/proxy/8888/lab" style="color:#38BDF8">JupyterLab</a>. Keep the terminal process running.</p>' : ''}
-    <div class="tip">
-      <strong>How to start your web application:</strong><br>
-      Start your server inside the DSH container terminal or via agent, e.g.:
-      <div class="code-block">python -m http.server ${targetPort}</div>
-      <div class="code-block">streamlit run app.py --server.port ${targetPort}</div>
-      <div class="code-block">uvicorn main:app --host 0.0.0.0 --port ${targetPort}</div>
-    </div>
-    <p style="font-size: 12px; color: #64748B;">Internal status: ${err.message}</p>
-  </div>
-</body>
-</html>`);
-  });
-
-  req.pipe(proxyReq);
-}
-
-function bindAuthenticatedProxyIdentity(req, user, internetMode) {
-  // Every carrier, including custom applications and raw WebSocket upgrades,
-  // receives identity from the authenticated session, never the client.
-  req.headers['x-dsh-user'] = user;
-  req.headers['x-dsh-internet-access'] = internetMode;
-  const raw = [];
-  for (let i = 0; i < req.rawHeaders.length; i += 2) {
-    const name = req.rawHeaders[i].toLowerCase();
-    if (name !== 'x-dsh-user' && name !== 'x-dsh-internet-access') {
-      raw.push(req.rawHeaders[i], req.rawHeaders[i + 1]);
-    }
-  }
-  raw.push('X-DSH-User', user, 'X-DSH-Internet-Access', internetMode);
-  req.rawHeaders = raw;
-}
-
-function forwardWebSocketToLocalApp(targetPort, targetPath, req, socket, head, targetHost = '127.0.0.1') {
-  const rawHeaders = req.rawHeaders;
-  let upgradeReqText = `${req.method} ${targetPath} HTTP/${req.httpVersion}\r\n`;
-  for (let i = 0; i < rawHeaders.length; i += 2) {
-    const headerKey = rawHeaders[i];
-    let headerVal = rawHeaders[i + 1];
-    if (headerKey.toLowerCase() === 'host') {
-      headerVal = `127.0.0.1:${targetPort}`;
-    }
-    if (headerKey.toLowerCase() === 'cookie') {
-      headerVal = stripAuthCookies(headerVal);
-      if (!headerVal) continue;
-    }
-    upgradeReqText += `${headerKey}: ${headerVal}\r\n`;
-  }
-  upgradeReqText += `\r\n`;
-
-  const net = require('net');
-  const targetSocket = net.connect(targetPort, targetHost, () => {
-    targetSocket.write(upgradeReqText);
-    if (head && head.length > 0) {
-      targetSocket.write(head);
-    }
-    socket.pipe(targetSocket);
-    targetSocket.pipe(socket);
-  });
-
-  socket.once('close',()=>targetSocket.destroy());
-  targetSocket.on('error', (err) => {
-    console.warn(`[AUTH-PROXY] WebSocket forward error on port ${targetPort}:`, err.message);
-    socket.destroy();
-  });
-}
-
-function getOrMintDshCookie(clientHost, target, callback) {
-  const cacheKey = `${target.name}|${target.host}|${target.port}|${clientHost}`;
-  const token = getDshToken(target.tokenFile);
-  if (!token) {
-    cachedDshAuthCookies.delete(cacheKey);
+    ret…4515 tokens truncated…   cachedDshAuthCookies.delete(cacheKey);
     return callback(new Error("No DSH launch token available"));
   }
   const fingerprint = crypto.createHash('sha256').update(token).digest('hex');
@@ -2536,3 +2217,4 @@ if (USER_CREDENTIALS) USER_CREDENTIALS.startTools(authorization=>{
 server.listen(PROXY_PORT, process.env.DSH_LISTEN_HOST || '0.0.0.0', () => {
   console.log(`[AUTH-PROXY] Enterprise DSH Auth Gate running on port ${PROXY_PORT}; secure=${ENVIRONMENT_TARGETS.off.host}:${ENVIRONMENT_TARGETS.off.port}; internet=${ENVIRONMENT_TARGETS.on.host}:${ENVIRONMENT_TARGETS.on.port}`);
 });
+

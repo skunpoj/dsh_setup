@@ -45,6 +45,7 @@ jobs:
         run: |
           node tests/test_agent_task_gateway.cjs
           node tests/test_native_sdk_approval_ui.cjs
+          node tests/test_manual_route.js
       - name: Check private runtime task broker and launcher
         run: |
           python3 -m unittest discover -s tests -p test_task_broker.py -v
@@ -58,3 +59,4 @@ jobs:
           python3 -m unittest discover -s tests -p test_official_sdk_deployment_observer.py -v
           python3 -m unittest discover -s tests -p test_official_sdk_test_api.py -v
           python3 -m unittest discover -s tests -p test_unattended_launcher.py -v
+
