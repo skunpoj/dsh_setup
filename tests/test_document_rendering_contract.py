@@ -16,6 +16,18 @@ class DocumentRenderingContractTests(unittest.TestCase):
         self.assertIn("pre{white-space:pre-wrap", html)
         self.assertIn("overflow-wrap:anywhere", html)
 
+    def test_agent_runtime_page_keeps_three_risks_as_primary_decision_columns(self):
+        html = (ROOT / "docs" / "AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("Enterprise three-risk comparison", html)
+        self.assertIn("Prevent external leakage", html)
+        self.assertIn("Prevent damage or excessive access", html)
+        self.assertIn("Keep results contained", html)
+        self.assertIn("Counterpart deployed alone without DSH AD/LDAP", html)
+        self.assertIn("OWASP supporting crosswalk", html)
+        self.assertIn("supporting threat taxonomy, not as a replacement", html)
+
     def test_jupyter_walkthrough_contains_real_caption_content(self):
         html = (ROOT / "docs" / "JUPYTER_DSH2_DSH3_WALKTHROUGH.html").read_text(
             encoding="utf-8"
