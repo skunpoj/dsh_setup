@@ -1,6 +1,11 @@
-# DSH — Controlling Three Security Risks
+# DSH platform reference — controlling three security risks
 
-Current expanded platform and operator guide
+**Status: comprehensive reference, not the canonical current guide.** Use the
+[DSH current guide](current-guide/DSH_CURRENT_GUIDE.html) for the current
+workflow edition. This longer reference preserves detailed design and operator
+context used by that edition; it must not be published or linked as a second
+competing current guide. Runtime claims below retain their stated evidence
+scope and do not replace fresh deployment verification.
 
 DSH provides private AI workspaces for code, documents and analysis. Its design controls three risks: sending protected information outside its permitted boundary, damaging data or reaching resources beyond the task, and exposing results to unauthorized people.
 
