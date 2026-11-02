@@ -41,11 +41,14 @@ multi-user, statistical or post-change results. The proposed after-host-change p
 qualified**. A complete comparison of all 293 mounted Python paths against the
 referenced public DeepInfer commit found 289 byte-identical files, two
 line-ending-only differences, two content differences and no missing mounted
-path. The running entry point is byte-identical. The live tokenizer predecessor
-still logs a prompt preview while the public count-only privacy successor is
-source-ready but not deployed; the other content difference is a retained
-Phase-B offline example, not the running server path. This supersedes the earlier
-selected 264-match/one-difference result. Compiled/image provenance, controlled
-restart, peer-copy, DeepEP, model correctness and authenticated application-path
-acceptance remain open. No host or runtime change is claimed. Internal endpoints,
+path. The running entry point is byte-identical. The public count-only tokenizer
+privacy successor has now been rolled out through the private operational source.
+After recovery, its mounted SHA-256 matched the approved successor; a complete
+293 expected / 293 read comparison reported zero mismatches, and one authenticated,
+non-sensitive DSH to LiteLLM to DeepInfer request returned the exact expected text
+without retry. The retained Phase-B offline example is not the running server path.
+This supersedes both the earlier selected 264-match/one-difference result and the
+pre-rollout wording. Compiled/image provenance, host peer-copy, DeepEP and
+post-host-change performance qualification remain open. No host reboot,
+`iommu=pt`, ACS/BIOS change, DeepEP activation or benchmark is claimed. Internal endpoints,
 identities, secrets and private operational evidence are not published here.
