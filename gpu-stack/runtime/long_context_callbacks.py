@@ -21,7 +21,8 @@ OUTPUT = 8192
 RESERVE = 256
 LONG_THRESHOLD = 32768
 MODELS = {'deepseek-v4.1-flash', 'deepseek-flash'}
-TOKENIZER = os.environ['DSH_TOKENIZER_URL']
+TOKENIZER = os.environ.get('DSH_TOKENIZER_URL',
+    'http://deepinfer-dspark.llm.svc.cluster.local:8000/v1/tokenize')
 def configured_warm_step():
     value = os.environ.get('DSH_LONG_WARM_STEP_TOKENS', '8192')
     if not value.isdecimal() or not 512 <= int(value) <= 8192 or int(value) % 512:
@@ -71,7 +72,9 @@ def count_request(data, final_envelope=False):
                           'status': error.code, 'validation': details}), flush=True)
         raise
     count = result.get('count')
-    if type(count) is not int or count < 0 or result.get('max_model_len') != CONTEXT:
+    # Budget against the backend's own context, never above the advertised cap.
+    backend_len = result.get('max_model_len')
+    if type(count) is not int or count < 0 or type(backend_len) is not int or not 0 < backend_len <= CONTEXT:
         raise ValueError('Unexpected backend tokenizer result')
     ids = result.get('tokens')
     if not isinstance(ids, list) or len(ids) != count or any(type(x) is not int for x in ids):
@@ -277,7 +280,7 @@ class LongContextGuard(CustomLogger):
             count = tokenized['count']
         except Exception:
             raise HTTPException(503, 'Backend token budgeting unavailable; request not dispatched.')
-        available = CONTEXT - RESERVE - count
+        available = min(CONTEXT, tokenized.get('max_model_len', CONTEXT)) - RESERVE - count
         if available < 1:
             raise HTTPException(400, 'Input exceeds 1M total budget; compact or reduce the input.')
         limits = [data[k] for k in ('max_tokens', 'max_completion_tokens') if k in data]

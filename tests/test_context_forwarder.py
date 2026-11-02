@@ -236,6 +236,15 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(caught.exception.status_code, 503)
         self.assertEqual(self.sent, [])
 
+    async def test_backend_context_limit_is_enforced_before_dispatch(self):
+        self.scope['count_request'] = lambda data, final: {
+            'count': 130900, 'tokens': [1, 2], 'max_model_len': 131072}
+        with self.assertRaises(Rejected) as caught:
+            await self.scope['completion'](self.request(max_tokens=512))
+        self.assertEqual(caught.exception.status_code, 400)
+        self.assertIn('131072-token context budget', caught.exception.detail)
+        self.assertEqual(self.sent, [])
+
     async def test_cancelled_client_stops_warmup_and_releases(self):
         cancelled = []
         async def warm(ids, cache_session_id=None):

@@ -247,9 +247,12 @@ async def completion(request: Request):
     finally:
         interactive.leave()
     timing.record['tokenizeMs'] = round((_timing_clock()-tokenize_start)*1000, 3)
-    available = CONTEXT-RESERVE-tokenized['count']
+    # count_request validates max_model_len on the real tokenizer path. The
+    # default preserves compatibility with older qualified test fixtures.
+    budget = min(CONTEXT, tokenized.get('max_model_len', CONTEXT))
+    available = budget-RESERVE-tokenized['count']
     if available < 1:
-        raise HTTPException(400, 'Input exceeds 1M total-token budget; compact or reduce it.')
+        raise HTTPException(400, f'Input exceeds the {budget}-token context budget; compact or reduce it.')
     limits = [data[k] for k in ['max_tokens', 'max_completion_tokens'] if k in data]
     if any(type(n) is not int or n < 1 for n in limits):
         raise HTTPException(400, 'Invalid output budget.')
