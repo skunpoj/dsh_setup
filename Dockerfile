@@ -31,7 +31,7 @@ RUN chmod 0755 /usr/local/bin/ttyd \
 RUN groupadd --gid 10001 dsh \
  && useradd --uid 10001 --gid 10001 --create-home --home-dir /home/dsh dsh
 
-ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh KRB5CCNAME=FILE:/state/kerberos/ccache DSH_CONTEXT_TOKENS=1048576
+ENV HOME=/home/dsh DSH_HOME=/home/dsh/.dsh KRB5CCNAME=FILE:/state/kerberos/ccache DSH_CONTEXT_TOKENS=1048576 PYTHONPATH=/opt/dsh
 
 COPY vendor/ldapts/ /opt/dsh/vendor/ldapts/
 RUN echo "addd5d000792577dff58be59a3314e8efe570689989df6c3f085c8d28efd3f1c  /opt/dsh/vendor/ldapts/ldapts.cjs" | sha256sum -c -
@@ -43,11 +43,20 @@ COPY patches/ /opt/dsh/patches/
 COPY container/ /opt/dsh/container/
 RUN install -m 0755 /opt/dsh/container/dsh-unattended.py /usr/local/bin/dsh-unattended \
  && install -m 0755 /opt/dsh/container/dsh-task-broker.py /usr/local/bin/dsh-task-broker \
+ && install -m 0755 /opt/dsh/container/dsh-openshell-worker.py /usr/local/bin/dsh-openshell-worker \
  && install -m 0755 /opt/dsh/container/dsh-sdk-task.py /usr/local/bin/dsh-sdk-task \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_model_guard.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_launcher.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_task_broker.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_task_binding.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_broker_service.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_worker_execution.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_native_rpc.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_broker_transport.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_bootstrap.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_worker_entry.py \
  && node /opt/dsh/tests/test_agent_task_gateway.cjs
+RUN node /opt/dsh/tests/test_openshell_complete_worker.cjs
 # Optional custom light theme ("Custom" beside native Light/Dark/System). start-dsh installs it into a
 # workspace profile only when DSH_NATIVE_THEME_PLUGIN=1. The package is root-owned and read-only; the
 # installer pins its client bundle, and its test runs as the unprivileged workspace user.

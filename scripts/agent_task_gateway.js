@@ -10,6 +10,7 @@ function safeEqual(a,b){return typeof a==='string'&&typeof b==='string'&&/^[a-f0
 async function handle(req,res,ctx){
  const pathname=ctx.pathname;
  if(pathname==='/agent-tasks'){
+  if(!ctx.authorized()){res.writeHead(401,{...HEADERS,'Content-Type':'application/json'});res.end(JSON.stringify({error:'AUTHENTICATION_REQUIRED'}));return true;}
   if(req.method!=='GET'){res.writeHead(405,{...HEADERS,Allow:'GET'});res.end();return true;}
   ctx.session.agentCsrf ||= crypto.randomBytes(32).toString('hex');
   const body=page(ctx.session.agentCsrf);res.writeHead(200,{...HEADERS,'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'"});res.end(body);return true;
@@ -21,6 +22,7 @@ async function handle(req,res,ctx){
  const suffix=pathname.slice('/api/agent-tasks'.length);
  if(suffix==='/capabilities'&&req.method==='GET')ctx.upstreamPath='/v1/capabilities';
  else if(suffix===''&&req.method==='POST')ctx.upstreamPath='/v1/tasks';
+ else if(/^\/[a-f0-9]{32}\/approve$/.test(suffix)&&req.method==='POST')ctx.upstreamPath='/v1/tasks'+suffix;
  else if(/^\/[a-f0-9]{32}\/events$/.test(suffix)&&req.method==='GET')ctx.upstreamPath='/v1/tasks'+suffix+(ctx.query||'');
  else if(/^\/[a-f0-9]{32}$/.test(suffix)&&req.method==='DELETE')ctx.upstreamPath='/v1/tasks'+suffix;
  else{res.writeHead(404,{...HEADERS,'Content-Type':'application/json'});res.end(JSON.stringify({error:'NOT_FOUND'}));return true;}

@@ -7,6 +7,7 @@ import tempfile
 import threading
 import time
 import unittest
+import uuid
 
 from scripts.unattended_model_guard import (AdmissionLedger, GuardedServer,
     canonical_fingerprint, sanitize_internal_request)
@@ -19,6 +20,7 @@ class Upstream(BaseHTTPRequestHandler):
     delay = 0
     payload = b'part-one\npart-two\n'
     received_headers = None
+    response_call_id = None
     def log_message(self, *_): pass
     def do_POST(self):
         type(self).calls += 1
@@ -28,7 +30,12 @@ class Upstream(BaseHTTPRequestHandler):
         if type(self).barrier: type(self).barrier.wait(timeout=3)
         if type(self).delay: time.sleep(type(self).delay)
         payload = type(self).payload
-        self.send_response(200); self.send_header("content-length", str(len(payload))); self.end_headers()
+        self.send_response(200); self.send_header("content-length", str(len(payload)))
+        if type(self).response_call_id is not None:
+            self.send_header("x-litellm-call-id", self.headers["x-litellm-call-id"]
+                             if type(self).response_call_id == "echo-request"
+                             else type(self).response_call_id)
+        self.end_headers()
         self.wfile.write(payload[:7]); self.wfile.flush(); self.wfile.write(payload[7:])
 
 
@@ -40,6 +47,7 @@ class GuardCase(unittest.TestCase):
         self.ledger_path = root / "ledger.jsonl"
         Upstream.calls = 0; Upstream.bodies = []; Upstream.barrier = None; Upstream.delay = 0; Upstream.received_headers = None
         Upstream.payload = b'part-one\npart-two\n'
+        Upstream.response_call_id = None
         self.upstream = ThreadingHTTPServer(("127.0.0.1", 0), Upstream)
         self.upstream_thread = threading.Thread(target=self.upstream.serve_forever, daemon=True); self.upstream_thread.start()
 
@@ -85,6 +93,42 @@ class GuardCase(unittest.TestCase):
             self.assertEqual(Upstream.received_headers["authorization"],"Bearer synthetic-only")
             self.assertNotIn("x-api-key",Upstream.received_headers)
         finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
+
+    def test_server_call_identity_is_bound_to_guard_completion_not_client(self):
+        Upstream.response_call_id = "echo-request"
+        server, thread = self.guard()
+        try:
+            self.assertEqual(self.send(server.server_port,b'{}',
+                {"x-litellm-call-id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"})[0],200)
+            rows=[json.loads(x) for x in self.ledger_path.read_text().splitlines()]
+            expected=str(uuid.UUID(rows[0]["operation_correlation_id"]))
+            self.assertEqual(Upstream.received_headers["x-litellm-call-id"],expected)
+            self.assertNotEqual(expected,"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
+            self.assertEqual(rows[0]["litellm_call_id"],expected)
+            self.assertEqual(rows[-1]["upstream_identity"],
+                {"litellm_call_id":expected})
+            self.assertTrue(rows[-1]["upstream_identity_confirmed"])
+            self.assertEqual(Upstream.calls,1)
+        finally: server.shutdown();server.server_close();thread.join(timeout=2)
+
+    def test_missing_identity_is_not_invented(self):
+        server,thread=self.guard()
+        try:
+            self.assertEqual(self.send(server.server_port,b'{}')[0],200)
+            rows=[json.loads(x) for x in self.ledger_path.read_text().splitlines()]
+            self.assertEqual(rows[-1]["upstream_identity"],{})
+            self.assertFalse(rows[-1]["upstream_identity_confirmed"])
+        finally:server.shutdown();server.server_close();thread.join(timeout=2)
+
+    def test_malformed_server_identity_is_not_persisted(self):
+        Upstream.response_call_id="Bearer synthetic-only-not-an-identity"
+        server,thread=self.guard()
+        try:
+            self.assertEqual(self.send(server.server_port,b'{}')[0],200)
+            text=self.ledger_path.read_text()
+            self.assertNotIn(Upstream.response_call_id,text)
+            self.assertEqual(json.loads(text.splitlines()[-1])["upstream_identity"],{})
+        finally:server.shutdown();server.server_close();thread.join(timeout=2)
 
     def test_provider_extensions_are_removed_from_internal_request(self):
         server, thread = self.guard()
@@ -171,8 +215,12 @@ class GuardCase(unittest.TestCase):
     def test_client_cannot_forge_correlation(self):
         server, thread = self.guard()
         try:
-            body=json.dumps({"messages":[],"metadata":{"dsh_correlation_id":"b"*32}}).encode()
-            self.assertEqual(self.send(server.server_port,body)[0],400)
+            for fields in ({"metadata":{"dsh_correlation_id":"b"*32}},
+                           {"metadata":{"litellm_call_id":"b"*32}},
+                           {"litellm_call_id":"b"*32}):
+                with self.subTest(fields=fields):
+                    body=json.dumps({"messages":[],**fields}).encode()
+                    self.assertEqual(self.send(server.server_port,body)[0],400)
             self.assertEqual(Upstream.calls,0)
         finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
 

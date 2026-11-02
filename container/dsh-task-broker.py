@@ -12,6 +12,7 @@ import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
+from scripts.agent_runtime_commands import command_for
 
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("DSH_TASK_BROKER_PORT", "7682"))
@@ -43,24 +44,6 @@ def confined_project(value):
     return candidate
 
 
-def command_for(runtime, prompt, writes, project, task_id, resume=False):
-    if runtime == "sdk":
-        control = ["/usr/local/bin/dsh-unattended", "sdk", "--task-id", task_id,
-                   "--max-model-starts", "1", "--cwd", str(project)]
-        if resume: control.append("--resume")
-        return [*control, "--", "--resume"] if resume else [*control, "--", "--prompt", prompt]
-    if runtime == "deepagents":
-        return ["/usr/local/bin/dsh-unattended", "deepagents", "--task-id", task_id,
-                "--max-model-starts", "1", "--cwd", str(project), "--", "-n", prompt]
-    if runtime == "kilo":
-        return ["/usr/local/bin/dsh-unattended", "kilo", "--task-id", task_id,
-                "--max-model-starts", "1", "--cwd", str(project), "--", "--pure", "run", prompt]
-    mode = "acceptEdits" if writes else "plan"
-    return ["/usr/local/bin/dsh-unattended", "claude", "--task-id", task_id,
-            "--max-model-starts", "1", "--cwd", str(project), "--", "-p", prompt,
-            "--output-format", "stream-json", "--verbose", "--permission-mode", mode]
-
-
 class Task:
     def __init__(self, task_id, request):
         self.id = task_id
@@ -69,7 +52,13 @@ class Task:
         self.directory = ROOT / task_id
         self.events = self.directory / "events.jsonl"
         self.process = None
+        self.openshell = None
+        self.execution_service = None
+        self.execution_stage = None
+        self.native_stages = []
+        self.finished = threading.Event()
         self.lock = threading.Lock()
+        self.persistence_lock = threading.RLock()
         self.sequence = 0
         self.state = "queued"
         self.created = time.time()
@@ -80,17 +69,29 @@ class Task:
     def recover(cls, value, directory):
         task=cls.__new__(cls);task.id=value["id"];task.request={"runtime":value["runtime"],"project":value["project"],"writes":value.get("writes",False),"handoffRuntime":value.get("handoffRuntime")}
         task.correlation_id=value.get("correlationId", value["id"])
+        task.openshell=value.get("openshell")
+        task.execution_service=None
+        task.execution_stage=value.get("executionStage")
+        task.native_stages=value.get("nativeStages",[])
+        task.request["backend"]=value.get("backend","private")
+        task.finished=threading.Event();task.finished.set()
+        task.persistence_lock=threading.RLock()
         task.directory=directory;task.events=directory/"events.jsonl";task.process=None;task.lock=threading.Lock()
         task.sequence=int(value.get("sequence",0));task.state=value["state"];task.created=float(value.get("created",time.time()));return task
 
     def save(self):
-        atomic_json(self.directory / "task.json", {
-            "id": self.id, "runtime": self.request["runtime"], "project": self.request["project"],
-            "correlationId": self.correlation_id,
-            "writes": self.request["writes"], "handoffRuntime": self.request.get("handoffRuntime"),
-            "state": self.state, "created": self.created,
-            "updated": time.time(), "sequence": self.sequence,
-        })
+        with self.persistence_lock:
+            atomic_json(self.directory / "task.json", {
+                "id": self.id, "runtime": self.request["runtime"], "project": self.request["project"],
+                "correlationId": self.correlation_id,
+                "openshell": self.openshell,
+                "executionStage": self.execution_stage,
+                "nativeStages": self.native_stages,
+                "backend": self.request.get("backend","private"),
+                "writes": self.request["writes"], "handoffRuntime": self.request.get("handoffRuntime"),
+                "state": self.state, "created": self.created,
+                "updated": time.time(), "sequence": self.sequence,
+            })
 
     def emit(self, kind, data):
         with self.lock:
@@ -104,6 +105,7 @@ class Task:
             os.chmod(self.events, 0o600)
 
     def run(self, resume=False):
+        self.finished.clear()
         self.state = "running"; self.emit("state", {"state": self.state}); self.save()
         project = confined_project(self.request["project"])
         env = dict(os.environ)
@@ -143,15 +145,28 @@ class Task:
                 self.process=subprocess.Popen(command,cwd=project,env=env,stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,text=True,errors="replace",start_new_session=True,bufsize=1)
                 for line in self.process.stdout:self.emit("output",{"text":line[:16384],"runtime":handoff_runtime})
-                code=self.process.wait();self.state="completed" if code==0 else "failed"
+                code=self.process.wait()
+                if self.state in {"cancelling", "cancelled"}:
+                    self.state="cancelled"
+                elif code == 75 and handoff_runtime == "sdk":
+                    # Until stage-specific checkpoint resume is implemented, fail
+                    # closed rather than resume the first agent's checkpoint.
+                    self.state="interrupted"
+                else:
+                    self.state="completed" if code==0 else "failed"
                 self.emit("state",{"state":self.state,"exitCode":code,"runtime":handoff_runtime})
         except Exception as error:
             self.state = "failed"; self.emit("state", {"state": self.state, "error": type(error).__name__})
         finally:
-            self.process = None; self.save()
+            self.process = None
+            try: self.save()
+            finally: self.finished.set()
 
     def cancel(self):
-        if self.state not in {"queued", "running", "handoff", "awaiting_approval"}: return False
+        if self.state not in {"queued", "running", "handoff", "finalizing", "awaiting_approval"}: return False
+        if self.request.get("backend")=="openshell":
+            if self.execution_service is None:return False
+            return self.execution_service.cancel_task(self.execution_service.subject,self)
         self.state = "cancelling"; self.emit("state", {"state": self.state}); self.save()
         process = self.process
         if process and process.poll() is None:
@@ -165,6 +180,7 @@ class Task:
 
     def approve(self):
         if self.state != "awaiting_approval" or self.request["runtime"] != "sdk": return False
+        self.finished.clear()
         self.state = "queued"; self.emit("state", {"state": self.state, "resuming": True}); self.save()
         threading.Thread(target=self.run, kwargs={"resume": True}, daemon=True).start(); return True
 
@@ -175,18 +191,27 @@ class Registry:
         for file in ROOT.glob("*/task.json"):
             try:
                 value = json.loads(file.read_text(encoding="utf-8"))
-                if value.get("state") in {"queued", "running", "cancelling"}:
+                if value.get("state") in {"queued", "running", "handoff", "finalizing", "cancelling"}:
                     value["state"] = "interrupted"; atomic_json(file, value)
                 if TASK_ID.fullmatch(value.get("id","")) and value.get("state") in {"completed","failed","cancelled","interrupted","awaiting_approval"}:
                     self.tasks[value["id"]]=Task.recover(value,file.parent)
             except Exception: pass
 
-    def create(self, request):
+    def create(self, request, execution_service=None):
         with self.lock:
-            if any(t.state in {"queued", "running", "cancelling", "awaiting_approval"} for t in self.tasks.values()):
+            if any(t.state in {"queued", "running", "handoff", "finalizing", "cancelling", "awaiting_approval"}
+                   or (t.request.get("backend")=="openshell" and t.openshell and t.openshell.get("phase")!="stopped")
+                   for t in self.tasks.values()):
                 raise RuntimeError("TASK_ALREADY_ACTIVE")
             task = Task(uuid.uuid4().hex, request); self.tasks[task.id] = task
-            threading.Thread(target=task.run, daemon=True).start(); return task
+            if request.get("backend")=="openshell":
+                if execution_service is None:
+                    self.tasks.pop(task.id);raise RuntimeError("OPENSHELL_NOT_QUALIFIED")
+                task.execution_service=execution_service
+                threading.Thread(target=execution_service.run_task,args=(execution_service.subject,task),daemon=True).start()
+            else:
+                threading.Thread(target=task.run, daemon=True).start()
+            return task
 
     def get(self, task_id):
         if not TASK_ID.fullmatch(task_id): return None
@@ -218,7 +243,10 @@ class Handler(BaseHTTPRequestHandler):
         if not self.authorized(): return self.reply(401, {"error":"UNAUTHORIZED"})
         path = urlparse(self.path).path
         if path == "/health": return self.reply(200, {"status":"ok"})
-        if path == "/v1/capabilities": return self.reply(200, {"runtimes":sorted(RUNTIMES),"backends":[{"id":"private","enabled":True},{"id":"openshell","enabled":False,"reason":"OpenShell requires 25-gate Test and rollback qualification"}]})
+        if path == "/v1/capabilities":
+            service=getattr(self.server,"openshell_service",None)
+            enabled=service is not None and service.qualified is True
+            return self.reply(200, {"runtimes":sorted(RUNTIMES),"backends":[{"id":"private","enabled":True},{"id":"openshell","enabled":enabled,"reason":"Qualified native transport" if enabled else "OpenShell requires 25-gate Test and rollback qualification"}]})
         match = re.fullmatch(r"/v1/tasks/([a-f0-9]{32})/events", path)
         if match:
             task = REGISTRY.get(match.group(1))
@@ -235,6 +263,19 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self.authorized(): return self.reply(401, {"error":"UNAUTHORIZED"})
         path=urlparse(self.path).path
+        openshell=re.fullmatch(r"/v1/tasks/([a-f0-9]{32})/openshell/(bind|resolve|dispatch|revoke|stop)",path)
+        if openshell:
+            service=getattr(self.server,"openshell_service",None)
+            if service is None:
+                return self.reply(503,{"error":"OPENSHELL_NOT_QUALIFIED"})
+            try:
+                value=service.operate(self.headers.get("X-DSH-Subject",""),
+                                      openshell.group(1),openshell.group(2),self.body())
+                return self.reply(200,value)
+            except (ValueError,json.JSONDecodeError) as error:
+                return self.reply(400,{"error":str(error)})
+            except Exception:
+                return self.reply(503,{"error":"OPENSHELL_OPERATION_UNCERTAIN"})
         approval=re.fullmatch(r"/v1/tasks/([a-f0-9]{32})/approve",path)
         if approval:
             try:
@@ -249,14 +290,19 @@ class Handler(BaseHTTPRequestHandler):
             value=self.body()
             required={"runtime","backend","project","prompt","writes","approved"};optional={"handoffRuntime","handoffPrompt"}
             if not isinstance(value,dict) or not required.issubset(value) or not set(value).issubset(required|optional): raise ValueError("INVALID_REQUEST")
-            if value["runtime"] not in RUNTIMES or value["backend"]!="private": raise ValueError("UNAVAILABLE_SELECTION")
+            service=None
+            if value["runtime"] not in RUNTIMES or value["backend"] not in {"private","openshell"}: raise ValueError("UNAVAILABLE_SELECTION")
+            if value["backend"]=="openshell":
+                service=getattr(self.server,"openshell_service",None)
+                if service is None or not service.qualified:raise ValueError("UNAVAILABLE_SELECTION")
+                if self.headers.get("X-DSH-Subject","")!=service.subject:raise ValueError("FOREIGN_SUBJECT")
             if value.get("handoffRuntime") is not None:
                 if value["handoffRuntime"] not in RUNTIMES or value["handoffRuntime"]==value["runtime"]: raise ValueError("INVALID_HANDOFF_RUNTIME")
                 if not isinstance(value.get("handoffPrompt",""),str) or len(value.get("handoffPrompt",""))>65536: raise ValueError("INVALID_HANDOFF_PROMPT")
             if value["approved"] is not True or not isinstance(value["writes"],bool): raise ValueError("APPROVAL_REQUIRED")
             if not isinstance(value["prompt"],str) or not 1<=len(value["prompt"])<=65536: raise ValueError("INVALID_PROMPT")
             confined_project(value["project"])
-            task=REGISTRY.create(value); return self.reply(202,{"taskId":task.id,"state":task.state,"correlationId":task.correlation_id})
+            task=REGISTRY.create(value,execution_service=service); return self.reply(202,{"taskId":task.id,"state":task.state,"correlationId":task.correlation_id})
         except (ValueError, json.JSONDecodeError) as error: return self.reply(400,{"error":str(error)})
         except RuntimeError as error: return self.reply(409,{"error":str(error)})
     def do_DELETE(self):
@@ -270,4 +316,7 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     os.umask(0o077)
-    ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
+    from scripts.openshell_bootstrap import configure
+    server=ThreadingHTTPServer((HOST, PORT), Handler)
+    configure(server,REGISTRY,os.environ.get('DSH_OPENSHELL_ADMISSION_FILE'))
+    server.serve_forever()

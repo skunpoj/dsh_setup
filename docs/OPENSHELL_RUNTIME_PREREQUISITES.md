@@ -16,3 +16,18 @@ The remaining deployment inputs and work are:
 6. Run all 25 product gates against the actual installed images, policy and identities. Include independent positive controls, persistence, cancellation, cleanup and rollback. Save unrun or failed results explicitly.
 
 Existing DSH execution isolation remains a separate deployed control. This prerequisite result does not replace it or declare OpenShell production-ready. OAuth application registration and Kerberos ticket acquisition are also separate integrations; no provider registration or AD permissions were changed by the preflight.
+
+## Worker-image live readback
+
+A separate, disposable CPU-only image check pulled and ran the retained private
+worker image on the assigned Test node. The actual output confirmed UID 10001 and absence of
+`/usr/local/bin/dsh-openshell-worker`. Thus this historical image is pullable but
+cannot execute the new native worker protocol. A successor immutable image is
+required; this check does not establish source provenance or any of the 25
+native runtime gates.
+
+The probe used no service-account token, PVC, GPU or model endpoint. It ran with
+deny-all network policy, restricted nonroot security context and a finite
+deadline. The exact Pod, policy, quota and newly created namespace were deleted
+with UID preconditions; namespace absence was read back. Receipts are retained
+in `outputs/dsh-integration-review-20261101/completion-20261102/` outside the repo.

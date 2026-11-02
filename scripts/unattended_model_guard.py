@@ -17,6 +17,7 @@ import json
 import os
 from pathlib import Path
 import threading
+import uuid
 from urllib.parse import urlsplit
 try:
     from .dsh_correlation import operation_correlation_id, validate_correlation_id
@@ -35,6 +36,19 @@ HOP_HEADERS = frozenset({"api-key", "authorization", "connection", "content-leng
 MAX_BODY = 8 * 1024 * 1024
 APPROVED_UPSTREAM = "http://litellm.llm.svc.cluster.local:4000"
 CORRELATION_HEADER = "x-dsh-correlation-id"
+SERVER_IDENTITY_REQUEST_HEADERS = frozenset({"x-litellm-call-id"})
+
+
+def server_identity(response):
+    """Retain only a typed, server-issued ID; never copy arbitrary headers."""
+    value = response.getheader("x-litellm-call-id")
+    if not isinstance(value, str) or len(value) not in {32, 36}:
+        return {}
+    try:
+        uuid.UUID(value)
+    except ValueError:
+        return {}
+    return {"litellm_call_id": value}
 
 
 def sanitize_internal_request(path: str, body: bytes, operation_id: str | None = None) -> bytes:
@@ -47,11 +61,14 @@ def sanitize_internal_request(path: str, body: bytes, operation_id: str | None =
         raise ValueError("request body must be JSON") from exc
     if not isinstance(value, dict):
         raise ValueError("request body must be a JSON object")
+    if "litellm_call_id" in value:
+        raise ValueError("client-supplied LiteLLM call identity is forbidden")
     cleaned = {key: item for key, item in value.items()
                if not (isinstance(key, str) and key.startswith("dsh_"))}
     cleaned.pop("chat_template_kwargs", None)
     supplied_metadata = cleaned.get("metadata")
-    if isinstance(supplied_metadata, dict) and "dsh_correlation_id" in supplied_metadata:
+    if isinstance(supplied_metadata, dict) and any(
+            key in supplied_metadata for key in ("dsh_correlation_id", "litellm_call_id")):
         raise ValueError("client-supplied DSH correlation is forbidden")
     if operation_id is not None:
         operation_id = validate_correlation_id(operation_id)
@@ -131,11 +148,13 @@ class AdmissionLedger:
                 self._append(stream, {"event": "upstream-start-reserved", "task_id": self.task_id,
                                       "task_correlation_id": self.task_correlation_id,
                                       "operation_correlation_id": operation_id,
+                                      "litellm_call_id": str(uuid.UUID(operation_id)),
                                       "sequence": sequence, "path": path, "fingerprint": mark,
                                       "utc": datetime.now(timezone.utc).isoformat()})
                 return True, "reserved", sequence, mark, operation_id
 
-    def complete(self, sequence: int, mark: str, operation_id: str, status: int, outcome: str):
+    def complete(self, sequence: int, mark: str, operation_id: str, status: int, outcome: str,
+                 upstream_identity=None):
         with self._locked():
             with self.path.open("a+", encoding="utf-8") as stream:
                 self._append(stream, {"event": "upstream-finished", "task_id": self.task_id,
@@ -143,6 +162,8 @@ class AdmissionLedger:
                                       "operation_correlation_id": validate_correlation_id(operation_id),
                                       "sequence": sequence, "fingerprint": mark,
                                       "status": int(status), "outcome": outcome,
+                                      "upstream_identity": upstream_identity or {},
+                                      "upstream_identity_confirmed": (upstream_identity or {}).get("litellm_call_id") == str(uuid.UUID(operation_id)),
                                       "utc": datetime.now(timezone.utc).isoformat()})
 
 
@@ -202,18 +223,26 @@ class GuardedHandler(BaseHTTPRequestHandler):
         if not accepted:
             return self._reject(reason)
 
-        headers = {k: v for k, v in self.headers.items() if k.lower() not in HOP_HEADERS}
+        headers = {k: v for k, v in self.headers.items()
+                   if k.lower() not in HOP_HEADERS | SERVER_IDENTITY_REQUEST_HEADERS}
         headers["authorization"] = "Bearer " + token
         headers[CORRELATION_HEADER] = operation_id
+        # The installed LiteLLM proxy explicitly accepts this request ID and
+        # returns it in its response header. Derive it from our durable guard
+        # operation, after discarding any caller-supplied value. Anthropic
+        # request metadata alone is not persisted reliably by that proxy.
+        headers["x-litellm-call-id"] = str(uuid.UUID(operation_id))
         body = sanitize_internal_request(self.path, body, operation_id)
         headers["content-length"] = str(len(body))
         connection = http.client.HTTPConnection(self.server.upstream.hostname, self.server.upstream.port, timeout=3600)
         status = 502
         outcome = "transport-failed"
         response_started = False
+        upstream_identity = {}
         try:
             connection.request("POST", self.path, body=body, headers=headers)
             response = connection.getresponse(); status = response.status
+            upstream_identity = server_identity(response)
             self.send_response(status)
             for key, value in response.getheaders():
                 if key.lower() not in HOP_HEADERS:
@@ -232,7 +261,8 @@ class GuardedHandler(BaseHTTPRequestHandler):
                 except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError): pass
         finally:
             connection.close()
-            self.server.ledger.complete(sequence, mark, operation_id, status, outcome)
+            self.server.ledger.complete(sequence, mark, operation_id, status, outcome,
+                                        upstream_identity=upstream_identity)
 
 
 @contextlib.contextmanager
