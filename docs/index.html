@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DSH Documentation Library</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.65 system-ui,sans-serif}main{max-width:1120px;margin:28px auto;background:#fff;padding:38px;border-radius:14px}h1,h2{color:#075985}h2{margin-top:34px;border-top:1px solid #d5e1eb;padding-top:20px}.lead{font-size:18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{border:1px solid #bfd0df;border-radius:10px;padding:18px;background:#f8fafc}.card h3{margin-top:0;color:#164e63}.card a{display:block;margin:7px 0;color:#0369a1;overflow-wrap:anywhere}.current{border-left:5px solid #059669}.reference{border-left:5px solid #0284c7}.status{border-left:5px solid #ea580c}.meta{background:#eff6ff;padding:14px 18px;border-radius:8px}@media(max-width:720px){main{margin:0;padding:22px 16px}.grid{grid-template-columns:minmax(0,1fr)}}
+</style></head><body><main>
+<h1>DSH documentation library</h1>
+<p class="lead">One DSH-owned library for the current platform guide, governed-harness controls, user workflows and implementation references. GitHub stores reviewed source; this library is the user-facing edition served by the DSH manual host.</p>
+<p class="meta"><strong>Start here:</strong> <a href="DSH_PLATFORM_GUIDE.html">Unified platform guide and architecture</a> · <a href="THREE_RISK_CONTROLS.html">Three risk controls</a> · <a href="DSH_USER_MANUAL.html">User manual</a></p>
+
+<h2>Current architecture and controls</h2><div class="grid">
+<section class="card current"><h3>Unified platform guide</h3><a href="DSH_PLATFORM_GUIDE.html">Architecture, feature coverage and document map</a><p>The canonical entry point for the governed harness and its execution runtimes.</p></section>
+<section class="card current"><h3>Three security risks</h3><a href="THREE_RISK_CONTROLS.html">Prevent leakage, excessive access and result exposure</a><p>The concise controlling security principles.</p></section>
+<section class="card current"><h3>Agent runtimes</h3><a href="AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html">Runtime and execution-backend status</a><a href="GOVERNED_HARNESS_RUNTIME_COMPARISON.html">Detailed governed-versus-standalone comparison</a></section>
+<section class="card current"><h3>Everyday use</h3><a href="DSH_USER_MANUAL.html">DSH user manual</a><p>Task-oriented instructions for the current platform.</p></section>
+</div>
+
+<h2>Identity, credentials and managed access</h2><div class="grid">
+<section class="card reference"><h3>Managed model access</h3><a href="MANAGED_PROVIDER_LOGIN.html">Team login and managed model route</a></section>
+<section class="card reference"><h3>User credentials</h3><a href="USER_CREDENTIAL_MANAGEMENT.html">Credential aliases, approval and custody</a></section>
+</div>
+
+<h2>Applications and sharing</h2><div class="grid">
+<section class="card reference"><h3>Application routes</h3><a href="APP_LINKS_AND_STATUS.html">Application links and environment status</a><a href="APP_SIGNIN_AND_RETURN.html">Application sign-in and return</a></section>
+<section class="card reference"><h3>Controlled sharing</h3><a href="AUTHENTICATED_APP_SHARING.html">Authenticated application sharing</a><a href="AUTHENTICATED_APP_SHARING_WALKTHROUGH.html">Sharing walkthrough</a></section>
+</div>
+
+<h2>Jupyter and managed workspace lifecycle</h2><div class="grid">
+<section class="card reference"><h3>Lifecycle</h3><a href="JUPYTER_APP_LIFECYCLE.html">Jupyter and managed application lifecycle</a><a href="JUPYTER_START_CONTROLS.html">Start controls</a></section>
+<section class="card reference"><h3>Additional environments</h3><a href="JUPYTER_AUTOSTART_BACKFILL.html">Autostart and backfill behavior</a><a href="JUPYTER_DSH2_DSH3_WALKTHROUGH.html">Assigned-environment walkthrough</a></section>
+</div>
+
+<h2>Publication boundary</h2>
+<section class="card status"><p>This library contains the current portable HTML edition. Site-specific accounts, private endpoints, storage bindings, credentials and operational receipts remain outside this package. A source page, successful build or HTTP response does not by itself establish that a private deployment is current; the published manifest and served bytes must be checked against the intended revision.</p></section>
+</main></body></html>

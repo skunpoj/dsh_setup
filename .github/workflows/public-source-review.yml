@@ -19,6 +19,22 @@ jobs:
         run: python3 -m unittest discover -s tests -p test_governed_harness_comparison.py -v
       - name: Verify documentation rendering contracts
         run: python3 -m unittest discover -s tests -p test_document_rendering_contract.py -v
+      - name: Build exact-commit consolidated manual package
+        run: |
+          python3 scripts/build_manual_bundle.py --git-ref "$GITHUB_SHA" --output "$RUNNER_TEMP/dsh-manual"
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP']) / 'dsh-manual'
+          manifest = json.loads((root / 'manifest.json').read_text())
+          assert manifest['sourceCommit'] == os.environ['GITHUB_SHA']
+          assert {'index.html', 'DSH_PLATFORM_GUIDE.html'} <= manifest['files'].keys()
+          for name, entry in manifest['files'].items():
+              data = (root / name).read_bytes()
+              assert len(data) == entry['bytes']
+              assert hashlib.sha256(data).hexdigest() == entry['sha256']
+          print({'files': len(manifest['files']), 'bytes': manifest['bytes']})
+          PY
       - name: Scan checked-out tree
         run: python3 scripts/scan_public.py .
       - name: Check managed-agent JavaScript policy

@@ -23,7 +23,7 @@ function serveManual(req, res, pathname) {
   const headers = {'Cache-Control':'no-cache', 'X-Content-Type-Options':'nosniff',
     'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"};
   if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405,{...headers,Allow:'GET, HEAD'});return res.end(); }
-  if (pathname === '/manual' || pathname === '/manual/') { res.writeHead(302,{...headers,Location:'/manual/DSH_USER_MANUAL.html'});return res.end(); }
+  if (pathname === '/manual' || pathname === '/manual/') { res.writeHead(302,{...headers,Location:'/manual/index.html'});return res.end(); }
   try {
     const name=decodeURIComponent(pathname.slice('/manual/'.length));
     if (!/^[a-zA-Z0-9_./-]+\.(html|md|json|png|svg)$/.test(name) || name.split('/').some(x=>!x || x==='.' || x==='..')) throw Error('Unknown manual');

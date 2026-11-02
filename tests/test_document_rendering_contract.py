@@ -28,6 +28,26 @@ class DocumentRenderingContractTests(unittest.TestCase):
         self.assertIn("OWASP supporting crosswalk", html)
         self.assertIn("supporting threat taxonomy, not as a replacement", html)
 
+    def test_platform_guide_covers_every_governed_runtime_and_backend(self):
+        html = (ROOT / "docs" / "DSH_PLATFORM_GUIDE.html").read_text(encoding="utf-8")
+        for value in (
+            "DSH Python SDK", "Claude Code", "Deep Agents", "Kilo", "TrueForge",
+            "Private workspace", "OpenShell", "litellm-gateway", "context-forwarder",
+            "deepinfer-dspark", "sglang-dspark", "Prevent external leakage",
+            "Prevent excessive access", "Keep results contained",
+        ):
+            self.assertIn(value, html)
+        self.assertEqual(html.count('class="mermaid-wrapper"'), 3)
+        self.assertIn("Save SVG", html)
+        self.assertIn("Save PNG", html)
+        self.assertIn("Copy code", html)
+
+    def test_documentation_library_lists_every_current_html_page(self):
+        index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+        for page in (ROOT / "docs").glob("*.html"):
+            if page.name != "index.html":
+                self.assertIn(f'href="{page.name}"', index, page.name)
+
     def test_jupyter_walkthrough_contains_real_caption_content(self):
         html = (ROOT / "docs" / "JUPYTER_DSH2_DSH3_WALKTHROUGH.html").read_text(
             encoding="utf-8"
