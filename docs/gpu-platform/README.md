@@ -7,8 +7,10 @@ The report starts with contents before the executive summary. The executive summ
 the concise short-prompt comparison plus two one-million-token experiment tables. Section 1
 combines the methods and detailed measured matrix, presents W1/W3/W4 once, separates
 measured results from a conditional expected-outcome calculation, and describes
-the actual LiteLLM-to-DeepInfer route. DeepInfer is **not** the vLLM serving engine;
-the retained Service name and humming's project ownership do not change that.
+the actual LiteLLM-to-DeepInfer route. The current container uses an SGLang
+dependency-base image, while PID 1 executes mounted DeepInfer source with the
+NCCL expert-communication backend. Base image, running engine and mounted source
+are separate identities and must be verified separately.
 
 ![Measured output per GPU versus stream-derived TPOT](throughput-latency.png)
 
@@ -36,7 +38,14 @@ engine. The first checks an exact instruction at the end with a short response;
 the second checks a unique value near the middle and requests up to 1,024 output
 tokens (981 from SGLang; 1,024 from DeepInfer). They are one-run, single-user synthetic checks, not cache-controlled,
 multi-user, statistical or post-change results. The proposed after-host-change profile is **not deployed or
-qualified**. Exact engine/binary provenance still has a known tokenizer
-difference. No host change or complete authenticated application-path acceptance
-is claimed. Internal endpoints, identities, secrets and private operational
-evidence are not published in this directory.
+qualified**. A complete comparison of all 293 mounted Python paths against the
+referenced public DeepInfer commit found 289 byte-identical files, two
+line-ending-only differences, two content differences and no missing mounted
+path. The running entry point is byte-identical. The live tokenizer predecessor
+still logs a prompt preview while the public count-only privacy successor is
+source-ready but not deployed; the other content difference is a retained
+Phase-B offline example, not the running server path. This supersedes the earlier
+selected 264-match/one-difference result. Compiled/image provenance, controlled
+restart, peer-copy, DeepEP, model correctness and authenticated application-path
+acceptance remain open. No host or runtime change is claimed. Internal endpoints,
+identities, secrets and private operational evidence are not published here.

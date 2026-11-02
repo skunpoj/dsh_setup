@@ -12,8 +12,11 @@ is performed by this repository. The host and serving stack are shared resources
 - Current DeepInfer + DSpark: `gpu-stack/profiles/deepinfer-dspark-nccl-current.json`.
 - After-change DeepInfer + DSpark trial: `gpu-stack/profiles/deepinfer-dspark-deepep-proposed.json`.
 - Engine source: `https://github.com/skunpoj/DeepInfer`, reference commit
-  `b4df8657412de7ea8bab8b442c2b8c68f5c1068a`. Selected source matches do not
-  resolve the known tokenizer difference or compiled artifact provenance.
+  `b4df8657412de7ea8bab8b442c2b8c68f5c1068a`. The complete mounted Python
+  comparison found 289 byte matches, two line-ending-only differences and two
+  content differences across 293 paths. The running entrypoint matches; the
+  live tokenizer retains an older prompt-preview log and the public source has
+  the privacy-safe count-only message. Compiled artifact provenance remains open.
 - Actual private overlays/builds still originate from the internal Azure
   operational repository. Public profiles do not claim CI/CD cutover is complete.
 
@@ -40,6 +43,18 @@ compiled-library hashes, model hashes, service routing and state-preservation
 checks privately. Confirm independent console access and a working recovery boot
 entry. Set an operator and restoration deadline. Cordon does not stop existing
 pods; coordinate drain/eviction, local storage and disruption budgets explicitly.
+
+Treat container image, executing engine and mounted source as separate evidence.
+An SGLang base-image name does not prove the SGLang server is running when PID 1
+executes mounted DeepInfer source. Conversely, PID/source identity alone does not
+prove reproducible image/library provenance or full-model qualification.
+
+Before any host trial, close or explicitly defer unrelated source drift. The
+prompt-tokenizer privacy successor may change exactly that one mounted file from
+its recorded predecessor hash to the public-source hash. Preserve the retained
+Phase-B offline example and every other mounted hash. Apply it only through a
+pinned private release recipe with rollback, drain and restart/recovery evidence;
+do not patch the live PVC ad hoc as the durable fix.
 
 ## 2. Controlled OS trial
 
@@ -89,6 +104,11 @@ run both four-GPU engines concurrently. Verify the actual service endpoint,
 mounted source, answer correctness, authenticated request path and unchanged
 workspace/history/storage state. A 1500-second operational watchdog setting is
 not a demonstrated host-reboot RTO or a recovery guarantee.
+
+For the tokenizer privacy successor, also verify the successor hash, prove all
+other mounted Python hashes unchanged, confirm zero prompt previews in mismatch
+logs, and retain both failed and restored receipts. A health endpoint alone is
+not model-correctness or authenticated-path acceptance.
 
 ## Vendor references and limits
 

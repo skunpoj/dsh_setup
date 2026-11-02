@@ -22,6 +22,9 @@ class PublicScanTests(unittest.TestCase):
         self.assertTrue(self.found('C:' + chr(92) + 'Users' + chr(92) + 'person' + chr(92) + 'file'))
     def test_url_credentials_are_found(self):
         self.assertTrue(self.found('https://' + 'alice:secret' + '@host.example'))
+    def test_url_credentials_are_found_in_pdf_bytes(self):
+        sample = ('/URI (https://' + 'alice:secret' + '@host.example)').encode()
+        self.assertTrue(module.scan_bytes('sample.pdf', sample))
     def test_exact_invalid_public_fixture(self):
         sample = 'https://' + 'user:password' + '@gpu.example.internal'
         self.assertEqual(self.found(sample, 'gpu-stack/tests/test_portable.py'), [])

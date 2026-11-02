@@ -10,3 +10,6 @@ scripts/app_signin.js text eol=lf
 
 # Keep the sanitized GPU bundle byte-stable across Windows and Linux CI.
 gpu-stack/** text eol=lf
+
+# Reports are binary artifacts; do not apply text conversion or whitespace diff checks.
+*.pdf -text -diff

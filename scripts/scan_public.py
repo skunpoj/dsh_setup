@@ -23,6 +23,15 @@ def scan_bytes(name, data):
     findings = []
     text = data.decode('utf-8', errors='replace')
     for kind, pattern in PATTERNS.items():
+        # PDF streams include ASCII85-compressed binary. Treating arbitrary
+        # stream bytes as prose can manufacture a credential-shaped URL. The
+        # generated report stores clickable links as literal /URI objects, so
+        # inspect those objects instead of compressed page/image streams.
+        if kind == 'credential-in-url' and name.lower().endswith('.pdf'):
+            for uri in re.finditer(rb'/URI\s*\(([^)]*)\)', data):
+                if re.search(pattern.encode('ascii'), uri.group(1)):
+                    findings.append((name, kind, data.count(b'\n', 0, uri.start()) + 1))
+            continue
         for match in re.finditer(pattern, text, re.IGNORECASE if kind == 'organization-host' else 0):
             if kind == 'private-key' and name == 'vendor/ttyd' and hashlib.sha256(data).hexdigest() == PUBLIC_TTYD_SHA256:
                 continue
