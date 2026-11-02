@@ -1,5 +1,6 @@
 
 # Preserve the verified third-party runtime bytes on Windows checkouts.
+/.gitattributes text eol=lf
 vendor/ldapts/ldapts.cjs -text
 scripts/auth_proxy.js text eol=lf
 scripts/app_signin.js text eol=lf
@@ -10,6 +11,7 @@ scripts/app_signin.js text eol=lf
 
 # Keep the sanitized GPU bundle byte-stable across Windows and Linux CI.
 gpu-stack/** text eol=lf
+README.md text eol=lf
 
 # Reports are binary artifacts; do not apply text conversion or whitespace diff checks.
 *.pdf -text -diff

@@ -18,18 +18,19 @@ engine. Both engine alternatives expose compatible HTTP APIs to LiteLLM.
 The SGLang [Kubernetes reference](../templates/model.yaml) retains scheduler/indexer
 patches and validation gates. [The portable renderer](../render.py) covers that
 SGLang-compatible bundle; it is not a DeepInfer renderer. The DeepInfer engine
-code is the separate upstream fork [skunpoj/DeepInfer](https://github.com/skunpoj/DeepInfer/tree/b4df8657412de7ea8bab8b442c2b8c68f5c1068a).
-A complete mounted-Python comparison against the referenced public commit found
-289 byte-identical files, two line-ending-only differences, two content
-differences and no missing mounted path across 293 paths. The running entrypoint
-was byte-identical in that comparison. A later private release deployed the
-count-only tokenizer successor and verified all 293 mounted files against the
-approved private release source with zero mismatches; one authenticated,
-non-sensitive DSH-to-LiteLLM-to-DeepInfer smoke request then returned the expected
-text without retry. That later receipt proves private-release parity, not equality
-with this public reference commit. It is **not** complete compiled/image
-provenance or a guarantee that a clean public checkout reproduces the running
-service. DeepEP remains proposed and unqualified.
+code is the separate upstream fork [skunpoj/DeepInfer](https://github.com/skunpoj/DeepInfer/tree/c1b8cc6da34ac17c1f2522baa1ddf98a5a1d49ca).
+A fresh comparison of all 293 mounted Python paths against that exact public
+successor found 17 byte-identical files, 274 line-ending-only differences, two
+content differences and no missing path. The two content differences are newer
+public fixes—strict boolean parsing and an explicit kernel-filename regex—not yet
+present in the known-working runtime. The previously staged offline controls are
+now committed in the public successor. A prior private release verified its own
+293-file mounted-source manifest and passed one authenticated, non-sensitive
+DSH-to-LiteLLM-to-DeepInfer smoke request without retry; that receipt proves the
+earlier private release, not equality with this newer public successor. Compiled
+artifacts, vendor submodules, the base image and a reproducible public-to-runtime
+build remain separate qualification boundaries. DeepEP remains proposed and
+unqualified.
 
 Inspect a plan without running it:
 

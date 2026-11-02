@@ -64,7 +64,7 @@
   },
   "source": {
     "repository": "https://github.com/skunpoj/DeepInfer",
-    "reference_commit": "b4df8657412de7ea8bab8b442c2b8c68f5c1068a",
+    "reference_commit": "c1b8cc6da34ac17c1f2522baa1ddf98a5a1d49ca",
     "running_tree_equals_reference": false,
     "private_release_commit": "946a17593a2c541e26c80b251867b37292fea21b",
     "private_release_mounted_files": {
@@ -72,7 +72,7 @@
       "read": 293,
       "mismatches": 0
     },
-    "note": "The earlier public-reference comparison found 289 byte-identical paths, two line-ending-only differences and two content differences across 293 mounted Python paths. The later private release verified 293/293 mounted files against its own approved private source and passed one authenticated non-sensitive route smoke request without retry. That does not prove equality with this public reference commit or qualify compiled artifacts, vendor submodules, the base image or unmounted build sources."
+    "note": "The current public successor comparison found 17 byte-identical paths, 274 line-ending-only differences, two content differences and no missing path across 293 mounted Python paths. The two content differences are newer public fixes not yet in the known-working runtime. A prior private release verified its own 293-file mounted-source manifest and passed one authenticated non-sensitive route smoke request without retry. That does not prove equality with this newer public successor or qualify compiled artifacts, vendor submodules, the base image or unmounted build sources."
   },
   "qualification": "Current short benchmark and restoration checks only. Post-reboot recovery and DeepEP are unqualified."
 }

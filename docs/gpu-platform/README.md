@@ -31,24 +31,24 @@ predictable counting workload; it is not a generic conversational benchmark.
 - [Three serving profiles and code inspector](../../gpu-stack/profiles/README.md)
 - [Administrator procedure and recovery runbook](../../gpu-stack/runbooks/gpu-peer-access.md)
 - [GPU source ownership and release map](../GPU_SOURCE_OWNERSHIP.md)
-- [Related engine source fork](https://github.com/skunpoj/DeepInfer/tree/b4df8657412de7ea8bab8b442c2b8c68f5c1068a)
+- [Related engine source fork](https://github.com/skunpoj/DeepInfer/tree/c1b8cc6da34ac17c1f2522baa1ddf98a5a1d49ca)
 
 The report includes two fresh, serial, direct-engine one-million-token checks per
 engine. The first checks an exact instruction at the end with a short response;
 the second checks a unique value near the middle and requests up to 1,024 output
 tokens (981 from SGLang; 1,024 from DeepInfer). They are one-run, single-user synthetic checks, not cache-controlled,
 multi-user, statistical or post-change results. The proposed after-host-change profile is **not deployed or
-qualified**. A complete comparison of all 293 mounted Python paths against the
-referenced public DeepInfer commit found 289 byte-identical files, two
-line-ending-only differences, two content differences and no missing mounted
-path. The running entry point is byte-identical. The public count-only tokenizer
-privacy successor has now been rolled out through the private operational source.
-After recovery, its mounted SHA-256 matched the approved successor; a complete
-293 expected / 293 read comparison reported zero mismatches, and one authenticated,
-non-sensitive DSH to LiteLLM to DeepInfer request returned the exact expected text
-without retry. The retained Phase-B offline example is not the running server path.
-This supersedes both the earlier selected 264-match/one-difference result and the
-pre-rollout wording. Compiled/image provenance, host peer-copy, DeepEP and
+qualified**. A fresh comparison of all 293 mounted Python paths against the
+current public DeepInfer successor found 17 byte-identical files, 274
+line-ending-only differences, two content differences and no missing path. The
+two content differences are newer public fixes not yet in the known-working
+runtime. The previously staged offline controls are now committed publicly. The
+count-only tokenizer privacy successor remains mounted through the private
+operational source. A prior private release verified its own 293-file manifest
+and one authenticated, non-sensitive DSH to LiteLLM to DeepInfer request returned
+the exact expected text without retry. The retained offline example is not the
+running server path. This supersedes the earlier selected 264-match and
+289-byte-match wording. Compiled/image provenance, host peer-copy, DeepEP and
 post-host-change performance qualification remain open. No host reboot,
 `iommu=pt`, ACS/BIOS change, DeepEP activation or benchmark is claimed. Internal endpoints,
 identities, secrets and private operational evidence are not published here.

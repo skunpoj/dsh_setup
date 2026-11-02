@@ -13,9 +13,14 @@ explicitly separate current DeepInfer/NCCL, retained SGLang alternate and the
 **unqualified proposed** DeepEP trial after host integrity checks. A complete
 293-path mounted-Python comparison is published. The controlled tokenizer
 privacy-successor rollout is complete in the private operational source and the
-mounted successor hash was read back after recovery; all 293 mounted Python paths
-were compared with zero mismatches and one authenticated, non-sensitive request
-passed through DSH, LiteLLM and DeepInfer without retry. Compiled/image provenance,
+mounted successor hash was read back after recovery. That release's private
+source receipt recorded 293 expected paths, 293 read paths and zero mismatches;
+one authenticated, non-sensitive request then passed through DSH, LiteLLM and
+DeepInfer without retry. A later comparison with public DeepInfer commit
+`c1b8cc6da34ac17c1f2522baa1ddf98a5a1d49ca` found 17 exact-byte matches,
+274 line-ending-only differences and two newer public fixes that are not yet in
+the mounted runtime. The private release receipt therefore proves its own release
+source, not equality with this later public successor. Compiled/image provenance,
 host peer-access qualification and DeepEP remain open. Public references do not
 publish private endpoints, identities, credentials or operational history.
 

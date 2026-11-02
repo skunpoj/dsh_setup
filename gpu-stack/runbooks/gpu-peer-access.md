@@ -12,14 +12,15 @@ is performed by this repository. The host and serving stack are shared resources
 - Current DeepInfer + DSpark: `gpu-stack/profiles/deepinfer-dspark-nccl-current.json`.
 - After-change DeepInfer + DSpark trial: `gpu-stack/profiles/deepinfer-dspark-deepep-proposed.json`.
 - Engine source: `https://github.com/skunpoj/DeepInfer`, reference commit
-  `b4df8657412de7ea8bab8b442c2b8c68f5c1068a`. The complete mounted Python
-  comparison found 289 byte matches, two line-ending-only differences and two
-  content differences across 293 paths. The running entrypoint matched. A later
-  private release deployed the privacy-safe count-only tokenizer, verified 293
-  expected / 293 read / zero mismatches against its approved private source and
-  passed one authenticated non-sensitive route smoke request without retry.
-  That does not prove equality with the public reference commit. Compiled
-  artifact, base-image and vendor provenance remain open.
+  `c1b8cc6da34ac17c1f2522baa1ddf98a5a1d49ca`. The complete mounted Python
+  comparison found 17 byte matches, 274 line-ending-only differences and two
+  content differences across 293 paths, with no missing path. The two content
+  differences are newer public fixes not yet present in the known-working
+  runtime. A prior private release deployed the privacy-safe count-only
+  tokenizer, verified its own 293-file mounted-source manifest and passed one
+  authenticated non-sensitive route smoke request without retry. That does not
+  prove equality with this newer public successor. Compiled artifact, base-image
+  and vendor provenance remain open.
 - Actual private overlays/builds still originate from the internal Azure
   operational repository. Public profiles do not claim CI/CD cutover is complete.
 
@@ -53,11 +54,11 @@ executes mounted DeepInfer source. Conversely, PID/source identity alone does no
 prove reproducible image/library provenance or full-model qualification.
 
 Before any host trial, close or explicitly defer unrelated source drift. The
-prompt-tokenizer privacy successor may change exactly that one mounted file from
-its recorded predecessor hash to the public-source hash. Preserve the retained
-Phase-B offline example and every other mounted hash. Apply it only through a
-pinned private release recipe with rollback, drain and restart/recovery evidence;
-do not patch the live PVC ad hoc as the durable fix.
+prompt-tokenizer privacy successor is already mounted in the known-working
+runtime. Preserve that overlay while packaging the two newer public fixes and
+the now-committed offline controls through a pinned private release recipe with
+rollback, drain and restart/recovery evidence; do not patch the live PVC ad hoc
+as the durable fix.
 
 ## 2. Controlled OS trial
 
