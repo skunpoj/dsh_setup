@@ -50,6 +50,8 @@ Start with the [user manual](docs/DSH_USER_MANUAL.md) or its [standalone HTML ve
 
 The [agent runtime and execution backend](docs/AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) reference separates the deployed web-task control plane from capabilities still awaiting live acceptance. Authenticated users can select DSH Python SDK, Claude Code or Deep Agents for their private workspace; broker health, authentication and capability mapping are verified. Guarded model execution for each client remains pending, and OpenShell remains disabled until its separate 25-gate Test and rollback qualification passes.
 
+The [Governed Harness and managed runtime comparison](docs/GOVERNED_HARNESS_RUNTIME_COMPARISON.md) provides a feature-by-feature enterprise matrix for those three runtimes, the three risk controls, and individually deployed counterparts outside DSH without AD/LDAP integration.
+
 Optional verified LDAPS sign-in supports private No Internet accounts with Internet access approved separately by an administrator. An AD username that conflicts with an existing local account is rejected with a clear instruction to contact an administrator to resolve the identity conflict; no account or history is automatically merged or deleted. Existing local recovery sign-in remains available. See [configuration, collision handling and tests](docs/LDAP_AUTHENTICATION.md).
 
 ## Authenticated application sharing
