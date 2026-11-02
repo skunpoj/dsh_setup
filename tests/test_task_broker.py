@@ -33,23 +33,27 @@ class BrokerTests(unittest.TestCase):
         self.assertEqual(self.call('/v1/capabilities',authorized=False)[0],401)
         status,value=self.call('/v1/capabilities');self.assertEqual(status,200)
         self.assertEqual(next(x for x in value['backends'] if x['id']=='openshell')['enabled'],False)
-        self.assertEqual(value['runtimes'],['claude','deepagents','sdk'])
+        self.assertEqual(value['runtimes'],['claude','deepagents','kilo','sdk'])
     def test_project_escape_refused(self):
         with self.assertRaises(ValueError): self.module.confined_project('../outside')
     def test_commands_are_fixed_and_bounded(self):
         project=self.workspace/'project'
         sdk=self.module.command_for('sdk','hello',False,project,'a'*32)
-        self.assertEqual(sdk[:6],['/usr/local/bin/dsh-unattended','sdk','--task-id','a'*32,'--cwd',str(project)])
+        self.assertEqual(sdk[:4],['/usr/local/bin/dsh-unattended','sdk','--task-id','a'*32])
+        self.assertIn('--max-model-starts',sdk);self.assertIn('--cwd',sdk)
         self.assertEqual(sdk[-3:],['--','--prompt','hello'])
         resumed=self.module.command_for('sdk','',False,project,'a'*32,True)
         self.assertIn('--resume',resumed);self.assertEqual(resumed[-2:],['--','--resume'])
         claude=self.module.command_for('claude','hello',True,project,'a'*32)
-        self.assertIn('acceptEdits',claude);self.assertIn('--output-format',claude)
+        self.assertIn('acceptEdits',claude);self.assertIn('--output-format',claude);self.assertIn('--max-model-starts',claude)
+        kilo=self.module.command_for('kilo','hello',False,project,'a'*32)
+        self.assertEqual(kilo[-3:],['--pure','run','hello']);self.assertIn('--max-model-starts',kilo)
     @mock.patch('subprocess.Popen')
     def test_create_stream_and_recovery_record(self,popen):
         child=popen.return_value;child.stdout=iter(['first\n','second\n']);child.wait.return_value=0
         body={'runtime':'sdk','backend':'private','project':'project','prompt':'read README','writes':False,'approved':True}
         status,value=self.call('/v1/tasks','POST',body);self.assertEqual(status,202)
+        self.assertRegex(value['correlationId'],r'^[a-f0-9]{32}$')
         task=self.module.REGISTRY.get(value['taskId'])
         for _ in range(100):
             if task.state=='completed':break
@@ -61,6 +65,28 @@ class BrokerTests(unittest.TestCase):
     def test_invalid_shape_and_openshell_refused(self):
         body={'runtime':'sdk','backend':'openshell','project':'project','prompt':'x','writes':False,'approved':True}
         self.assertEqual(self.call('/v1/tasks','POST',body)[0],400)
+    @mock.patch('subprocess.Popen')
+    def test_agent_to_agent_handoff_is_broker_owned_and_bounded(self,popen):
+        first=mock.Mock();first.stdout=iter(['draft answer\n']);first.wait.return_value=0
+        second=mock.Mock();second.stdout=iter(['checked answer\n']);second.wait.return_value=0
+        popen.side_effect=[first,second]
+        body={'runtime':'sdk','backend':'private','project':'project','prompt':'draft','writes':False,'approved':True,
+              'handoffRuntime':'kilo','handoffPrompt':'Check the draft.'}
+        status,value=self.call('/v1/tasks','POST',body);self.assertEqual(status,202)
+        task=self.module.REGISTRY.get(value['taskId'])
+        for _ in range(100):
+            if task.state=='completed':break
+            threading.Event().wait(.01)
+        self.assertEqual(task.state,'completed');self.assertEqual(popen.call_count,2)
+        second_command=popen.call_args_list[1].args[0]
+        self.assertIn('kilo',second_command);self.assertIn('--max-model-starts',second_command)
+        self.assertIn('Previous agent result:',second_command[-1]);self.assertIn('draft answer',second_command[-1])
+        saved=json.loads((task.directory/'task.json').read_text())
+        self.assertEqual(saved['handoffRuntime'],'kilo');self.assertNotIn('prompt',saved)
+        first_env=popen.call_args_list[0].kwargs['env'];second_env=popen.call_args_list[1].kwargs['env']
+        self.assertRegex(first_env['DSH_CORRELATION_ID'],r'^[a-f0-9]{32}$')
+        self.assertRegex(second_env['DSH_CORRELATION_ID'],r'^[a-f0-9]{32}$')
+        self.assertNotEqual(first_env['DSH_CORRELATION_ID'],second_env['DSH_CORRELATION_ID'])
     @mock.patch('subprocess.Popen')
     def test_sdk_interrupt_requires_explicit_resume_approval(self,popen):
         first=mock.Mock();first.stdout=iter(['approval required\n']);first.wait.return_value=75

@@ -12,7 +12,7 @@ async function main(){
  const original=http.request;http.request=function(options,...args){if(options.port===7682)options={...options,port:upstreamPort};return original.call(this,options,...args)};
  const port=await listen(server);
  try{
-  let r=await call(port,'/agent-tasks');assert.equal(r.status,200);assert.match(r.body,/DSH Python SDK/);assert.match(r.body,/OpenShell unavailable/);
+  let r=await call(port,'/agent-tasks');assert.equal(r.status,200);assert.match(r.body,/DSH Python SDK/);assert.match(r.body,/>Kilo</);assert.match(r.body,/Optional handoff/);assert.match(r.body,/OpenShell unavailable/);
   r=await call(port,'/api/agent-tasks/capabilities');assert.equal(r.status,403);
   r=await call(port,'/api/agent-tasks/capabilities',{headers:{'x-dsh-agent-csrf':csrf}});assert.equal(r.status,200);assert.equal(observed.at(-1).authorization,'Bearer '+token);
   const body=JSON.stringify({runtime:'sdk',backend:'private',project:'.',prompt:'read README',writes:false,approved:true});

@@ -1,4 +1,5 @@
 import importlib.util
+import os
 import sys
 from pathlib import Path
 import sys
@@ -29,6 +30,7 @@ class LauncherCase(unittest.TestCase):
             def __exit__(self, *_): return False
         try:
             sys.argv = ["dsh-unattended", "sdk", "--cwd", "/workspace/project", "--", "hello"]
+            os.environ["DSH_CORRELATION_ID"] = "a" * 32
             launcher.running_guard = lambda *_: Guard()
             launcher.run_client = lambda command, env, cwd: captured.update(command=command, cwd=cwd) or 0
             with mock.patch.object(launcher.Path, "mkdir"):
@@ -36,6 +38,7 @@ class LauncherCase(unittest.TestCase):
             self.assertEqual(captured["command"], ["/usr/local/bin/dsh-sdk-task", "hello"])
             self.assertEqual(captured["cwd"], str(Path("/workspace/project").resolve()))
         finally:
+            os.environ.pop("DSH_CORRELATION_ID", None)
             sys.argv = original_argv
             launcher.running_guard = original_guard
             launcher.run_client = original_run

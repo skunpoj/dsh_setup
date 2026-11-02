@@ -11,6 +11,7 @@ import re
 
 sys.path.insert(0, "/opt/dsh/scripts")
 from unattended_model_guard import AdmissionLedger, APPROVED_UPSTREAM, running_guard
+from dsh_correlation import validate_correlation_id
 
 CLIENTS = {
     "claude": ["/usr/local/bin/claude"],
@@ -81,17 +82,20 @@ def main():
     if options.max_model_starts < 1 or options.max_model_starts > 64:
         raise ValueError("max model starts must be 1-64")
     task = safe_task(options.task_id)
+    task_correlation_id = validate_correlation_id(os.environ.get("DSH_CORRELATION_ID", ""))
     state = Path("/state/unattended") / task
     if options.resume:
         if not state.is_dir():
             raise ValueError("task state is unavailable for resume")
     else:
         state.mkdir(mode=0o700, parents=True, exist_ok=False)
-    ledger = AdmissionLedger(state / "model-starts.jsonl", task, options.max_model_starts)
+    ledger = AdmissionLedger(state / "model-starts.jsonl", task, options.max_model_starts,
+                             task_correlation_id=task_correlation_id)
     with running_guard(APPROVED_UPSTREAM, Path("/harness-credentials/api-key"), ledger) as port:
         base = f"http://127.0.0.1:{port}"
         env = build_environment(os.environ, options.client, base)
         env["DSH_UNATTENDED_TASK"] = task
+        env["DSH_CORRELATION_ID"] = task_correlation_id
         cwd = Path(options.cwd).resolve()
         workspace = Path("/workspace").resolve()
         if cwd != workspace and workspace not in cwd.parents:

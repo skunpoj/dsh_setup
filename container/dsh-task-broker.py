@@ -20,7 +20,7 @@ WORKSPACE = Path(os.environ.get("DSH_TASK_WORKSPACE_ROOT", "/workspace")).resolv
 TOKEN = Path(os.environ.get("DSH_TASK_TOKEN_FILE", str(Path("/runtime-tokens") / os.environ.get("DSH_ENVIRONMENT", "secure"))))
 MAX_BODY = 131072
 MAX_EVENT_BYTES = 8 * 1024 * 1024
-RUNTIMES = {"sdk", "claude", "deepagents"}
+RUNTIMES = {"sdk", "claude", "deepagents", "kilo"}
 TASK_ID = re.compile(r"^[a-f0-9]{32}$")
 
 
@@ -45,19 +45,26 @@ def confined_project(value):
 
 def command_for(runtime, prompt, writes, project, task_id, resume=False):
     if runtime == "sdk":
-        control = ["/usr/local/bin/dsh-unattended", "sdk", "--task-id", task_id, "--cwd", str(project)]
+        control = ["/usr/local/bin/dsh-unattended", "sdk", "--task-id", task_id,
+                   "--max-model-starts", "1", "--cwd", str(project)]
         if resume: control.append("--resume")
         return [*control, "--", "--resume"] if resume else [*control, "--", "--prompt", prompt]
     if runtime == "deepagents":
-        return ["/usr/local/bin/dsh-unattended", "deepagents", "--cwd", str(project), "--", "-n", prompt]
+        return ["/usr/local/bin/dsh-unattended", "deepagents", "--task-id", task_id,
+                "--max-model-starts", "1", "--cwd", str(project), "--", "-n", prompt]
+    if runtime == "kilo":
+        return ["/usr/local/bin/dsh-unattended", "kilo", "--task-id", task_id,
+                "--max-model-starts", "1", "--cwd", str(project), "--", "--pure", "run", prompt]
     mode = "acceptEdits" if writes else "plan"
-    return ["/usr/local/bin/dsh-unattended", "claude", "--cwd", str(project), "--", "-p", prompt,
+    return ["/usr/local/bin/dsh-unattended", "claude", "--task-id", task_id,
+            "--max-model-starts", "1", "--cwd", str(project), "--", "-p", prompt,
             "--output-format", "stream-json", "--verbose", "--permission-mode", mode]
 
 
 class Task:
     def __init__(self, task_id, request):
         self.id = task_id
+        self.correlation_id = uuid.uuid4().hex
         self.request = request
         self.directory = ROOT / task_id
         self.events = self.directory / "events.jsonl"
@@ -71,14 +78,17 @@ class Task:
 
     @classmethod
     def recover(cls, value, directory):
-        task=cls.__new__(cls);task.id=value["id"];task.request={"runtime":value["runtime"],"project":value["project"],"writes":value.get("writes",False)}
+        task=cls.__new__(cls);task.id=value["id"];task.request={"runtime":value["runtime"],"project":value["project"],"writes":value.get("writes",False),"handoffRuntime":value.get("handoffRuntime")}
+        task.correlation_id=value.get("correlationId", value["id"])
         task.directory=directory;task.events=directory/"events.jsonl";task.process=None;task.lock=threading.Lock()
         task.sequence=int(value.get("sequence",0));task.state=value["state"];task.created=float(value.get("created",time.time()));return task
 
     def save(self):
         atomic_json(self.directory / "task.json", {
             "id": self.id, "runtime": self.request["runtime"], "project": self.request["project"],
-            "writes": self.request["writes"], "state": self.state, "created": self.created,
+            "correlationId": self.correlation_id,
+            "writes": self.request["writes"], "handoffRuntime": self.request.get("handoffRuntime"),
+            "state": self.state, "created": self.created,
             "updated": time.time(), "sequence": self.sequence,
         })
 
@@ -96,27 +106,52 @@ class Task:
     def run(self, resume=False):
         self.state = "running"; self.emit("state", {"state": self.state}); self.save()
         project = confined_project(self.request["project"])
-        command = command_for(self.request["runtime"], self.request.get("prompt", ""), self.request["writes"], project, self.id, resume)
         env = dict(os.environ)
         env["DSH_UNATTENDED_TASK"] = self.id
+        env["DSH_CORRELATION_ID"] = self.correlation_id
         try:
-            self.process = subprocess.Popen(command, cwd=project, env=env,
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace",
-                start_new_session=True, bufsize=1)
+            runtime = self.request["runtime"]
+            command = command_for(runtime, self.request.get("prompt", ""), self.request["writes"], project, self.id, resume)
+            self.process = subprocess.Popen(command, cwd=project, env=env, stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT, text=True, errors="replace", start_new_session=True, bufsize=1)
+            captured=[];captured_bytes=0
             for line in self.process.stdout:
-                self.emit("output", {"text": line[:16384]})
-            code = self.process.wait()
+                self.emit("output", {"text": line[:16384], "runtime": runtime})
+                if captured_bytes < 262144:
+                    piece=line.encode("utf-8",errors="replace")[:262144-captured_bytes].decode("utf-8",errors="replace")
+                    captured.append(piece);captured_bytes += len(piece.encode("utf-8"))
+            code=self.process.wait()
+            handoff_runtime=self.request.get("handoffRuntime")
             if self.state in {"cancelling", "cancelled"}: self.state = "cancelled"
-            elif code == 75 and self.request["runtime"] == "sdk": self.state = "awaiting_approval"
-            else: self.state = "completed" if code == 0 else "failed"
-            self.emit("state", {"state": self.state, "exitCode": code})
+            elif code == 75 and runtime == "sdk": self.state = "awaiting_approval"
+            elif code != 0: self.state = "failed"
+            elif handoff_runtime and not resume: self.state = "handoff"
+            else: self.state = "completed"
+            self.emit("state", {"state": self.state, "exitCode": code, "runtime": runtime})
+            if self.state == "handoff":
+                instruction=self.request.get("handoffPrompt") or "Review the previous agent result and produce the final checked answer."
+                handoff_prompt=instruction+"\n\nPrevious agent result:\n"+"".join(captured)
+                handoff_correlation_id=uuid.uuid4().hex
+                self.emit("handoff", {"from":runtime,"to":handoff_runtime,
+                                      "correlationId":handoff_correlation_id})
+                if self.state != "handoff":
+                    return
+                self.state="running";self.save()
+                handoff_id=self.id+"-handoff";env=dict(env);env["DSH_UNATTENDED_TASK"]=handoff_id
+                env["DSH_CORRELATION_ID"] = handoff_correlation_id
+                command=command_for(handoff_runtime,handoff_prompt,self.request["writes"],project,handoff_id)
+                self.process=subprocess.Popen(command,cwd=project,env=env,stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,text=True,errors="replace",start_new_session=True,bufsize=1)
+                for line in self.process.stdout:self.emit("output",{"text":line[:16384],"runtime":handoff_runtime})
+                code=self.process.wait();self.state="completed" if code==0 else "failed"
+                self.emit("state",{"state":self.state,"exitCode":code,"runtime":handoff_runtime})
         except Exception as error:
             self.state = "failed"; self.emit("state", {"state": self.state, "error": type(error).__name__})
         finally:
             self.process = None; self.save()
 
     def cancel(self):
-        if self.state not in {"queued", "running", "awaiting_approval"}: return False
+        if self.state not in {"queued", "running", "handoff", "awaiting_approval"}: return False
         self.state = "cancelling"; self.emit("state", {"state": self.state}); self.save()
         process = self.process
         if process and process.poll() is None:
@@ -212,12 +247,16 @@ class Handler(BaseHTTPRequestHandler):
         if path != "/v1/tasks": return self.reply(404,{"error":"NOT_FOUND"})
         try:
             value=self.body()
-            if not isinstance(value,dict) or set(value)!={"runtime","backend","project","prompt","writes","approved"}: raise ValueError("INVALID_REQUEST")
+            required={"runtime","backend","project","prompt","writes","approved"};optional={"handoffRuntime","handoffPrompt"}
+            if not isinstance(value,dict) or not required.issubset(value) or not set(value).issubset(required|optional): raise ValueError("INVALID_REQUEST")
             if value["runtime"] not in RUNTIMES or value["backend"]!="private": raise ValueError("UNAVAILABLE_SELECTION")
+            if value.get("handoffRuntime") is not None:
+                if value["handoffRuntime"] not in RUNTIMES or value["handoffRuntime"]==value["runtime"]: raise ValueError("INVALID_HANDOFF_RUNTIME")
+                if not isinstance(value.get("handoffPrompt",""),str) or len(value.get("handoffPrompt",""))>65536: raise ValueError("INVALID_HANDOFF_PROMPT")
             if value["approved"] is not True or not isinstance(value["writes"],bool): raise ValueError("APPROVAL_REQUIRED")
             if not isinstance(value["prompt"],str) or not 1<=len(value["prompt"])<=65536: raise ValueError("INVALID_PROMPT")
             confined_project(value["project"])
-            task=REGISTRY.create(value); return self.reply(202,{"taskId":task.id,"state":task.state})
+            task=REGISTRY.create(value); return self.reply(202,{"taskId":task.id,"state":task.state,"correlationId":task.correlation_id})
         except (ValueError, json.JSONDecodeError) as error: return self.reply(400,{"error":str(error)})
         except RuntimeError as error: return self.reply(409,{"error":str(error)})
     def do_DELETE(self):

@@ -19,7 +19,7 @@ The Harness, its tools and generated code run within boundaries enforced by infr
 
 Follow the three controls below. [Appendix A](#appendix-a) contains features, everyday examples and administration. [Appendix B](#appendix-b) contains LLM/GPU setup and measured results. The [user manual](DSH_USER_MANUAL.html) gives task-by-task instructions, and the English video course explains the implementation.
 
-The [agent-runtime guide](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) separates the deployed Web DSH control plane from runtime behavior still awaiting live acceptance. Runtime—checkpointed DSH Python SDK, Claude Code or Deep Agents—is independent from execution backend. The private workspace is deployed; optional OpenShell remains disabled pending its separate 25-gate Test and rollback qualification. Web DSH is the control surface, while the Python SDK is the programmatic runtime and resumes explicitly approved tool interrupts.
+The [agent-runtime guide](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) separates Web DSH's deployed control plane from successor behavior awaiting live acceptance. Runtime—checkpointed DSH Python SDK, Claude Code, Deep Agents or successor Kilo—is independent from execution backend. Reviewed successor source adds one bounded cross-runtime handoff with per-stage correlation. The private workspace is deployed; optional OpenShell remains disabled pending its 25-gate Test and rollback qualification. TrueForge remains a private application, not another platform boundary.
 
 ## 1 Prevent external leakage
 

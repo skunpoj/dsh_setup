@@ -18,6 +18,10 @@ import os
 from pathlib import Path
 import threading
 from urllib.parse import urlsplit
+try:
+    from .dsh_correlation import operation_correlation_id, validate_correlation_id
+except ImportError:  # Installed scripts directory is also a supported top-level import path.
+    from dsh_correlation import operation_correlation_id, validate_correlation_id
 
 if os.name == "nt":
     import msvcrt
@@ -26,12 +30,14 @@ else:
 
 ALLOWED_PATHS = frozenset({"/v1/chat/completions", "/v1/messages", "/v1/responses"})
 HOP_HEADERS = frozenset({"api-key", "authorization", "connection", "content-length", "host",
-                         "transfer-encoding", "x-api-key", "x-litellm-api-key"})
+                         "transfer-encoding", "x-api-key", "x-litellm-api-key",
+                         "x-dsh-correlation-id"})
 MAX_BODY = 8 * 1024 * 1024
 APPROVED_UPSTREAM = "http://litellm.llm.svc.cluster.local:4000"
+CORRELATION_HEADER = "x-dsh-correlation-id"
 
 
-def sanitize_internal_request(path: str, body: bytes) -> bytes:
+def sanitize_internal_request(path: str, body: bytes, operation_id: str | None = None) -> bytes:
     """Remove provider-only extensions that the internal route cannot accept."""
     if path not in ALLOWED_PATHS:
         raise ValueError("model path is not allowed")
@@ -44,6 +50,19 @@ def sanitize_internal_request(path: str, body: bytes) -> bytes:
     cleaned = {key: item for key, item in value.items()
                if not (isinstance(key, str) and key.startswith("dsh_"))}
     cleaned.pop("chat_template_kwargs", None)
+    supplied_metadata = cleaned.get("metadata")
+    if isinstance(supplied_metadata, dict) and "dsh_correlation_id" in supplied_metadata:
+        raise ValueError("client-supplied DSH correlation is forbidden")
+    if operation_id is not None:
+        operation_id = validate_correlation_id(operation_id)
+        metadata = cleaned.get("metadata")
+        if metadata is None:
+            metadata = {}
+        if not isinstance(metadata, dict):
+            raise ValueError("request metadata must be a JSON object")
+        metadata = dict(metadata)
+        metadata["dsh_correlation_id"] = operation_id
+        cleaned["metadata"] = metadata
     return json.dumps(cleaned, ensure_ascii=False, separators=(",", ":")).encode()
 
 
@@ -59,7 +78,7 @@ def canonical_fingerprint(path: str, body: bytes) -> str:
 
 
 class AdmissionLedger:
-    def __init__(self, path: Path, task_id: str, maximum: int):
+    def __init__(self, path: Path, task_id: str, maximum: int, *, task_correlation_id: str):
         if not task_id or len(task_id) > 200 or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_." for c in task_id):
             raise ValueError("safe bounded task id required")
         if not 1 <= maximum <= 32:
@@ -67,6 +86,7 @@ class AdmissionLedger:
         self.path = path
         self.lock_path = path.with_name(path.name + ".lock")
         self.task_id = task_id
+        self.task_correlation_id = validate_correlation_id(task_correlation_id)
         self.maximum = maximum
         self.thread_lock = threading.Lock()
         path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -102,19 +122,25 @@ class AdmissionLedger:
                 rows = [json.loads(line) for line in stream if line.strip()]
                 starts = [r for r in rows if r.get("task_id") == self.task_id and r.get("event") == "upstream-start-reserved"]
                 if any(r.get("fingerprint") == mark for r in starts):
-                    return False, "duplicate-or-uncertain", len(starts), mark
+                    prior = next(r for r in starts if r.get("fingerprint") == mark)
+                    return False, "duplicate-or-uncertain", prior["sequence"], mark, prior["operation_correlation_id"]
                 if len(starts) >= self.maximum:
-                    return False, "task-cap", len(starts), mark
+                    return False, "task-cap", len(starts), mark, ""
                 sequence = len(starts) + 1
+                operation_id = operation_correlation_id(self.task_correlation_id, sequence, mark)
                 self._append(stream, {"event": "upstream-start-reserved", "task_id": self.task_id,
+                                      "task_correlation_id": self.task_correlation_id,
+                                      "operation_correlation_id": operation_id,
                                       "sequence": sequence, "path": path, "fingerprint": mark,
                                       "utc": datetime.now(timezone.utc).isoformat()})
-                return True, "reserved", sequence, mark
+                return True, "reserved", sequence, mark, operation_id
 
-    def complete(self, sequence: int, mark: str, status: int, outcome: str):
+    def complete(self, sequence: int, mark: str, operation_id: str, status: int, outcome: str):
         with self._locked():
             with self.path.open("a+", encoding="utf-8") as stream:
                 self._append(stream, {"event": "upstream-finished", "task_id": self.task_id,
+                                      "task_correlation_id": self.task_correlation_id,
+                                      "operation_correlation_id": validate_correlation_id(operation_id),
                                       "sequence": sequence, "fingerprint": mark,
                                       "status": int(status), "outcome": outcome,
                                       "utc": datetime.now(timezone.utc).isoformat()})
@@ -170,7 +196,7 @@ class GuardedHandler(BaseHTTPRequestHandler):
             return self._reject("credential-unavailable", 503)
         try:
             body = sanitize_internal_request(self.path, body)
-            accepted, reason, sequence, mark = self.server.ledger.reserve(self.path, body)
+            accepted, reason, sequence, mark, operation_id = self.server.ledger.reserve(self.path, body)
         except ValueError:
             return self._reject("invalid-request", 400)
         if not accepted:
@@ -178,6 +204,8 @@ class GuardedHandler(BaseHTTPRequestHandler):
 
         headers = {k: v for k, v in self.headers.items() if k.lower() not in HOP_HEADERS}
         headers["authorization"] = "Bearer " + token
+        headers[CORRELATION_HEADER] = operation_id
+        body = sanitize_internal_request(self.path, body, operation_id)
         headers["content-length"] = str(len(body))
         connection = http.client.HTTPConnection(self.server.upstream.hostname, self.server.upstream.port, timeout=3600)
         status = 502
@@ -204,7 +232,7 @@ class GuardedHandler(BaseHTTPRequestHandler):
                 except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError): pass
         finally:
             connection.close()
-            self.server.ledger.complete(sequence, mark, status, outcome)
+            self.server.ledger.complete(sequence, mark, operation_id, status, outcome)
 
 
 @contextlib.contextmanager

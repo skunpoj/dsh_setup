@@ -33,6 +33,7 @@ class Upstream(BaseHTTPRequestHandler):
 
 
 class GuardCase(unittest.TestCase):
+    CORRELATION = "a" * 32
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); root = Path(self.tmp.name)
         self.token = root / "token"; self.token.write_text("synthetic-only")
@@ -47,7 +48,8 @@ class GuardCase(unittest.TestCase):
 
     def guard(self, task="task-a", cap=3):
         server = GuardedServer(("127.0.0.1", 0), f"http://127.0.0.1:{self.upstream.server_port}", self.token,
-                               AdmissionLedger(self.ledger_path, task, cap), allow_test_upstream=True)
+                               AdmissionLedger(self.ledger_path, task, cap,
+                                               task_correlation_id=self.CORRELATION), allow_test_upstream=True)
         thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
         return server, thread
 
@@ -69,6 +71,11 @@ class GuardCase(unittest.TestCase):
             rows = [json.loads(x) for x in self.ledger_path.read_text().splitlines()]
             self.assertEqual([x["event"] for x in rows], ["upstream-start-reserved", "upstream-finished"])
             self.assertEqual(rows[1]["outcome"], "response-complete")
+            self.assertEqual(rows[0]["task_correlation_id"], self.CORRELATION)
+            self.assertEqual(rows[0]["operation_correlation_id"], rows[1]["operation_correlation_id"])
+            self.assertEqual(Upstream.received_headers["x-dsh-correlation-id"], rows[0]["operation_correlation_id"])
+            forwarded = json.loads(Upstream.bodies[0])
+            self.assertEqual(forwarded["metadata"]["dsh_correlation_id"], rows[0]["operation_correlation_id"])
         finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
 
     def test_client_credentials_are_replaced_not_forwarded(self):
@@ -89,8 +96,10 @@ class GuardCase(unittest.TestCase):
         try:
             self.assertEqual(self.send(server.server_port, body)[0], 200)
             forwarded = json.loads(Upstream.bodies[0])
-            self.assertEqual(forwarded, {"model":"deepseek-v4.1-flash", "messages":[],
-                                         "metadata":{"keep":True}})
+            self.assertEqual(forwarded["model"],"deepseek-v4.1-flash")
+            self.assertEqual(forwarded["messages"],[])
+            self.assertTrue(forwarded["metadata"]["keep"])
+            self.assertRegex(forwarded["metadata"]["dsh_correlation_id"],r"^[a-f0-9]{32}$")
         finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
 
     def test_sanitization_rejects_non_object_and_preserves_standard_fields(self):
@@ -101,7 +110,7 @@ class GuardCase(unittest.TestCase):
                          json.loads(original))
 
     def test_duplicate_and_crash_reservation_never_replay(self):
-        ledger = AdmissionLedger(self.ledger_path, "task-a", 3)
+        ledger = AdmissionLedger(self.ledger_path, "task-a", 3, task_correlation_id=self.CORRELATION)
         self.assertTrue(ledger.reserve("/v1/messages", b'{"a":1,"b":2}')[0])
         self.assertEqual(ledger.reserve("/v1/messages", b'{"b":2,"a":1}')[1], "duplicate-or-uncertain")
 
@@ -121,7 +130,7 @@ class GuardCase(unittest.TestCase):
             self.assertEqual(rows[0]["event"],"upstream-start-reserved")
             self.assertEqual(rows[-1]["event"],"upstream-finished")
             self.assertIn(rows[-1]["outcome"],{"caller-cancelled-or-disconnected","response-complete"})
-            self.assertEqual(AdmissionLedger(self.ledger_path,"task-a",3).reserve("/v1/messages",body)[1],"duplicate-or-uncertain")
+            self.assertEqual(AdmissionLedger(self.ledger_path,"task-a",3,task_correlation_id=self.CORRELATION).reserve("/v1/messages",body)[1],"duplicate-or-uncertain")
             self.assertEqual(Upstream.calls,1)
         finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
 
@@ -141,7 +150,8 @@ class GuardCase(unittest.TestCase):
         finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
 
     def test_cap_and_task_isolation(self):
-        one=AdmissionLedger(self.ledger_path,"one",1); two=AdmissionLedger(self.ledger_path,"two",1)
+        one=AdmissionLedger(self.ledger_path,"one",1,task_correlation_id="1"*32)
+        two=AdmissionLedger(self.ledger_path,"two",1,task_correlation_id="2"*32)
         self.assertTrue(one.reserve("/v1/responses",b'{"input":1}')[0])
         self.assertEqual(one.reserve("/v1/responses",b'{"input":2}')[1],"task-cap")
         self.assertTrue(two.reserve("/v1/responses",b'{"input":1}')[0])
@@ -155,8 +165,16 @@ class GuardCase(unittest.TestCase):
 
     def test_validation(self):
         with self.assertRaises(ValueError): canonical_fingerprint("/bad",b'{}')
-        with self.assertRaises(ValueError): AdmissionLedger(self.ledger_path,"../bad",1)
-        with self.assertRaises(ValueError): GuardedServer(("127.0.0.1",0),"http://example.com",self.token,AdmissionLedger(self.ledger_path,"ok",1))
+        with self.assertRaises(ValueError): AdmissionLedger(self.ledger_path,"../bad",1,task_correlation_id=self.CORRELATION)
+        with self.assertRaises(ValueError): GuardedServer(("127.0.0.1",0),"http://example.com",self.token,AdmissionLedger(self.ledger_path,"ok",1,task_correlation_id=self.CORRELATION))
+
+    def test_client_cannot_forge_correlation(self):
+        server, thread = self.guard()
+        try:
+            body=json.dumps({"messages":[],"metadata":{"dsh_correlation_id":"b"*32}}).encode()
+            self.assertEqual(self.send(server.server_port,body)[0],400)
+            self.assertEqual(Upstream.calls,0)
+        finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
 
 
 if __name__ == "__main__": unittest.main()

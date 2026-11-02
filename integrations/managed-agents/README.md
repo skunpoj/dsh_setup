@@ -2,7 +2,9 @@
 
 Status: deployed broker and runtime image; native guarded model execution still requires live acceptance.
 
-The DSH runtime supports DSH, Claude Code, Kilo and TrueForge through their current entry points. The deployed image also includes Deep Agents Code (dcode), friendly aliases for the DSH CLI and an authenticated `/agent-tasks` path for DSH Python SDK, Claude Code and Deep Agents. The broker implements private-workspace confinement, explicit approval, persisted event polling, cancellation and interrupted recovery. Broker health and capability mapping are verified live; a normal DSH chat prompt is not forwarded to another CLI, and guarded model execution for every broker runtime remains a separate acceptance gate.
+The DSH runtime supports DSH, Claude Code, Kilo and TrueForge through their current entry points. The deployed image also includes Deep Agents Code (dcode), friendly aliases for the DSH CLI and an authenticated `/agent-tasks` path for DSH Python SDK, Claude Code and Deep Agents. Reviewed successor source adds Kilo and one bounded cross-runtime handoff. The broker implements private-workspace confinement, explicit approval, persisted event polling, cancellation and interrupted recovery. Broker health and current capability mapping are verified live; the successor source and handoff are not yet deployed or live accepted.
+
+TrueForge remains a separate owner-only web application, not a second DSH and not a CLI runtime. Complete integration requires an HTTP adapter that uses the existing authenticated broker as sole writer and shares its approval, cancellation, correlation and guard ledger. OpenShell is an optional execution backend beneath the broker, not a runtime or interface.
 
 ## Interfaces and isolation
 
