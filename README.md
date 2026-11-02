@@ -11,9 +11,13 @@ active `deepinfer-dspark`, and stopped alternate `sglang-dspark`. Legacy
 identities only and do not identify the serving engine. The three references
 explicitly separate current DeepInfer/NCCL, retained SGLang alternate and the
 **unqualified proposed** DeepEP trial after host integrity checks. A complete
-293-path mounted-Python comparison is published; compiled/image provenance and
-the controlled tokenizer privacy-successor rollout remain open. Public references
-do not claim the private Azure operational pipeline has completed its cutover.
+293-path mounted-Python comparison is published. The controlled tokenizer
+privacy-successor rollout is complete in the private operational source and the
+mounted successor hash was read back after recovery; all 293 mounted Python paths
+were compared with zero mismatches and one authenticated, non-sensitive request
+passed through DSH, LiteLLM and DeepInfer without retry. Compiled/image provenance,
+host peer-access qualification and DeepEP remain open. Public references do not
+publish private endpoints, identities, credentials or operational history.
 
 Based on [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness); not a GitHub fork. Upstream releases are tracked by the auto-port workflow (`.github/workflows/upstream-auto-port.yml`).
 
