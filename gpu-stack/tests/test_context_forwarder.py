@@ -80,7 +80,7 @@ def load():
     tools.CONTEXT, tools.OUTPUT, tools.RESERVE = 1048576, 8192, 256
     tools.TOKENIZER = 'http://internal:8000/v1/tokenize'
     tools.LongContextGuard = FakeGuard
-    tools.count_request = lambda d, final: {'count': 200000, 'tokens': [1, 2]}
+    tools.count_request = lambda d, final: {'count': 200000, 'tokens': [1, 2], 'max_model_len': 1048576}
     http = types.ModuleType('httpx')
     http.Timeout = lambda *a, **kw: None
     http.TimeoutException = TimeoutError
@@ -154,7 +154,7 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         def count(data, final):
             self.assertTrue(final)
             counted.append(copy.deepcopy(data))
-            return {'count': 200000, 'tokens': exact_ids}
+            return {'count': 200000, 'tokens': exact_ids, 'max_model_len': 1048576}
         async def warm(ids, cache_session_id=None):
             warmed.append(list(ids))
             return {'steps': 1}
@@ -304,7 +304,7 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.sent, [])
 
     async def test_ordinary_stream_holds_foreground_lane_until_closed(self):
-        self.scope['count_request'] = lambda *args: {'count': 9000, 'tokens': [1]}
+        self.scope['count_request'] = lambda *args: {'count': 9000, 'tokens': [1], 'max_model_len': 1048576}
         response = await self.scope['completion'](self.request())
         lane = self.scope['interactive']
         self.assertEqual(lane.active, 1)
@@ -331,7 +331,7 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(lane.idle.is_set())
 
     async def test_dispatch_failure_releases_ordinary_lane(self):
-        self.scope['count_request'] = lambda *args: {'count': 9000, 'tokens': [1]}
+        self.scope['count_request'] = lambda *args: {'count': 9000, 'tokens': [1], 'max_model_len': 1048576}
         class Failed:
             def __init__(self, **kwargs): pass
             def build_request(self, *args, **kwargs): return {}

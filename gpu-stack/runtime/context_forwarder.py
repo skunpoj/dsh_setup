@@ -249,9 +249,8 @@ async def completion(request: Request):
     finally:
         interactive.leave()
     timing.record['tokenizeMs'] = round((_timing_clock()-tokenize_start)*1000, 3)
-    # count_request validates max_model_len on the real tokenizer path. The
-    # default preserves compatibility with older qualified test fixtures.
-    budget = min(CONTEXT, tokenized.get('max_model_len', CONTEXT))
+    # Refuse dispatch unless the tokenizer reports its actual context limit.
+    budget = min(CONTEXT, tokenized['max_model_len'])
     available = budget-RESERVE-tokenized['count']
     if available < 1:
         raise HTTPException(400, f'Input exceeds the {budget}-token context budget; compact or reduce it.')
