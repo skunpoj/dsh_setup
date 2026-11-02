@@ -1,6 +1,12 @@
-# Portable GPU + LiteLLM + 1M setup
+# Portable GPU + LiteLLM + 1M reference
 
-## Current renderer and compatible rollback profile
+This directory contains sanitized, testable source and deployment references.
+It is not the private site's complete operational repository and it is not a
+byte-for-byte export of the running cluster. The current source ownership and
+release boundaries are recorded in
+[GPU source ownership and release map](../docs/GPU_SOURCE_OWNERSHIP.md).
+
+## Portable renderer and compatible SGLang profile
 
 | Control | Current setting |
 |---|---|
@@ -12,7 +18,12 @@
 | Queue | One active expensive text request and one waiter; waiter deadline 1,500 seconds |
 | Owned cache reference | Engine session-aware radix cache enabled; 3,300-second forwarder lifecycle and 3,900-second backend reference TTL |
 
-This is a compatibility and ordinary-recovery profile, not acceptance of the failed corrected near-1M case. A short typed prompt in a large conversation is still expensive work. The separate 128K multimodal boundary is unchanged.
+The renderer in this directory produces the portable SGLang + DSpark reference.
+It does not render the current DeepInfer workload. The current DeepInfer launch
+contract is recorded separately under `profiles/`; engine source is maintained
+in the public `skunpoj/DeepInfer` fork. A short typed prompt in a large
+conversation is still expensive work. The separate 128K multimodal boundary is
+unchanged.
 
 ## Model server on another machine
 
@@ -33,15 +44,17 @@ This is the public counterpart for the GPU inference portion of the deployment r
 
 ```mermaid
 flowchart LR
-  D[Private DSH runtime] --> L[Authenticated LiteLLM :4000]
-  C[Managed Claude Code / TrueForge] --> L
-  L --> F[Loopback final-payload guard :4001]
-  F --> S[Shared SGLang :8000 / four GPUs]
+  D[Private DSH runtime] --> L[Authenticated LiteLLM gateway]
+  C[Managed coding clients] --> L
+  L --> F[Loopback final-payload guard]
+  F --> DI[DeepInfer + DSpark current reference]
+  F -. operator-controlled rollback .-> SG[SGLang + DSpark rollback reference]
   L --> P[Private PostgreSQL]
-  W[Pre-staged read-only weights] --> S
+  W[Pre-staged read-only weights] --> DI
+  W --> SG
 ```
 
-- One shared model copy; user workspace/history isolation belongs to the DSH deployment, not to GPU allocation.
+- Only one four-GPU engine may be active at a time. User workspace/history isolation belongs to the DSH deployment, not to GPU allocation.
 - 1,048,576 total tokens, at most 8,192 output tokens and a 256-token reserve. The final forwarded messages/tools are counted with the backend tokenizer. Input plus requested output plus reserve must fit.
 - One text request with input plus reserved output above 32,768 is admitted at a time. One additional long request may wait in a bounded FIFO position for up to 1,500 seconds; excess waiting requests receive 429. Early streaming comments keep cancellation available during waiting/preparation. The two configured aliases have no hidden rate-limit retries. Ordinary work remains concurrent; the current model running cap is eight; it is not eight full-1M conversations.
 - Small prefill chunks (512; maximum prefill 1,024), separate prefill/decode batches, a two-request prefill cap, a pinned scheduler reservation and a single chunk-owner guard bound transient attention work. Four decode rounds run between prefill batches; ordinary decoding remains parallel up to the shared running cap. Eight additional sliding-window prefix tails allocate capacity for prefix reuse within the same static memory budget. They are not an eight-user limit or a guarantee that every long prefix survives diverse concurrent traffic; an eight-diverse-request test exposed cache loss. Before each long warm step, foreground streams may drain for up to eight seconds. This is cooperative scheduling, not preemption or a latency guarantee.

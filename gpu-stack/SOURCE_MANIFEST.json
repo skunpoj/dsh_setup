@@ -20,7 +20,7 @@
     ".gitignore": "8b9b8c954fa313f4b150f9f460f45ab308f9cb9ecb5039e304442c0fc3355549",
     "checkpoints/deepseek-v4.1-flash-1017.json": "e869c605ed65b94f4db62d438fea78df59abb132e23eca0d8b26afc8d10964db",
     "ci-example.yml": "553d0999a9914ab3ceaa8e108e35851364e4bb379a82395ec740a65975e371b1",
-    "README.md": "f39f04da2c9bc5f7465b1364a8c27fbb6efb5b9368b52e2bbe9a440c3b6daadc",
+    "README.md": "6a1b8023872aafa5e3d57c75586a9eb9c814743ccff6af4f25a9bc555101ba16",
     "render.py": "0d9d1bd016efd1d9d3c7539cb300e5f080ed74d3c40b5539a21c087115e43311",
     "runtime/context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
     "runtime/context_forwarder.py": "763739b1d9ac2b883362b566b227506a12767eddfea0871a268c2631d31dc3fd",

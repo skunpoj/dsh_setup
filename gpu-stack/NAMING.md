@@ -1,8 +1,10 @@
 # GPU serving names
 
-The shared naming contract is [naming.json](naming.json). These are the live
-canonical Service names. Legacy resource names remain only as compatibility
-aliases or immutable workload identities.
+The shared naming contract is [naming.json](naming.json). These are the
+canonical functional Service names. The sanitized manifest uses the generic
+`inference` namespace; a private site overlay selects its real namespace.
+Legacy resource names remain only as compatibility aliases or immutable
+workload identities in an existing installation.
 
 | Component | Canonical name | Meaning |
 |---|---|---|

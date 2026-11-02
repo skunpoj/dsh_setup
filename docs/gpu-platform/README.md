@@ -28,6 +28,7 @@ predictable counting workload; it is not a generic conversational benchmark.
 - [Original HTTP probe](../../gpu-stack/benchmarks/http_probe.py)
 - [Three serving profiles and code inspector](../../gpu-stack/profiles/README.md)
 - [Administrator procedure and recovery runbook](../../gpu-stack/runbooks/gpu-peer-access.md)
+- [GPU source ownership and release map](../GPU_SOURCE_OWNERSHIP.md)
 - [Related engine source fork](https://github.com/skunpoj/DeepInfer/tree/b4df8657412de7ea8bab8b442c2b8c68f5c1068a)
 
 The report includes two fresh, serial, direct-engine one-million-token checks per

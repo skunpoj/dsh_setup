@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: dsh-gateway
-  namespace: llm
+  namespace: inference
 spec:
   selector:
     app: dsh-environment-gateway
@@ -15,7 +15,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: litellm-gateway
-  namespace: llm
+  namespace: inference
 spec:
   selector:
     app: litellm
@@ -28,7 +28,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: deepinfer-dspark
-  namespace: llm
+  namespace: inference
 spec:
   selector:
     app: vllm-deepseek-v4-1-flash
@@ -42,7 +42,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: sglang-dspark
-  namespace: llm
+  namespace: inference
 spec:
   selector:
     app: vllm-deepseek-v4-1-flash

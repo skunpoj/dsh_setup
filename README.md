@@ -8,7 +8,10 @@ DeepInfer + DSpark is a separate inference engine, not vLLM; the retained `vllm-
 
 Based on [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness); not a GitHub fork. Upstream releases are tracked by the auto-port workflow (`.github/workflows/upstream-auto-port.yml`).
 
-**GPU serving today (30 Oct 2026):** DeepInfer + DSpark on 4× H100 NVL, 1M context; see [docs/deepseek-v41-h100](docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).
+**GPU serving reference:** DeepInfer + DSpark/NCCL is the current measured
+reference; SGLang + DSpark is retained as the operator-controlled rollback.
+The current report, source boundaries and unresolved live-provenance gaps are
+linked from the [GPU source ownership and release map](docs/GPU_SOURCE_OWNERSHIP.md).
 
 
 [English Fola video guide](docs/COURSE_GUIDE.md) · [Video and presentation index](docs/PRESENTATION_EDITION.md)
@@ -49,9 +52,12 @@ The 23-slide talk covers agent incidents, controls, governance, illustrative ban
 This public tree contains sanitized installation code and generic configuration for the approved core version. Site-specific configuration, identities, credentials and operational history remain in an access-controlled repository. See [publication boundaries](docs/PUBLICATION.md).
 
 A configurable deployment of DeepSeek Harness, internal LiteLLM and a four-GPU
-inference backend (DeepInfer + DSpark in production since 29 Oct 2026; SGLang kept as the fallback). The repository includes the GPU manifests, model-download job,
-storage, context guard, scheduler overlays, private user environments and setup
-instructions. No separate infrastructure repository is required.
+inference backend. The repository includes a portable fresh-install renderer,
+the SGLang + DSpark Kubernetes reference, sanitized DeepInfer launch profiles,
+context guards, scheduler overlays and setup instructions. Site overlays,
+credentials, storage bindings, live workload identities and release operations
+remain private. The public tree alone is not the complete operational release
+source for an existing installation.
 
 This is a **fresh-install reference**, not an export of an existing organization
 or a promise that any four-GPU machine will sustain 1M context. Model weights,
@@ -156,14 +162,18 @@ For existing installations that cannot restart immediately, the optional [manage
 
 ## DeepInfer on four H100 GPUs
 
-**Current (30 Oct 2026):** DeepInfer v4 + DSpark serves production on 4× H100 NVL (SM90) with a 1M-token
-context, 8 requests at once and least-loaded routing. SGLang + DSpark is kept switched off as the measured
-baseline and rollback. Cross-socket GPU peer-to-peer drops writes on the reference host, so experts are
-exchanged over an NCCL all-to-all fallback instead of DeepEP. Configuration, the matched DeepInfer-versus-SGLang
-comparison and the open items (host P2P fix, prefix cache): [docs/deepseek-v41-h100](docs/deepseek-v41-h100/README.md#current-production-30-oct-2026-utc).
+The retained measured configuration uses DeepInfer + DSpark with NCCL expert
+exchange, four H100 NVL GPUs, 1M context and least-loaded routing. SGLang +
+DSpark is retained stopped as the measured comparison and rollback. DeepEP and
+the proposed host change remain unqualified. See the
+[current GPU report](docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf), the
+[three profiles](gpu-stack/profiles/README.md), and the
+[source ownership map](docs/GPU_SOURCE_OWNERSHIP.md).
 
-The SM90 engine tree (based on the community SM90 work in DeepInfer #92 and #200) will be published as a public
-fork of `deepseek-ai/DeepInfer`; link to follow once it is published.
+The SM90 engine source is published separately in the
+[`skunpoj/DeepInfer`](https://github.com/skunpoj/DeepInfer) fork. The report and
+profile record the verified source comparison and its remaining provenance gap;
+the fork is not represented as a reproducible image build for the running site.
 
 ## Jupyter Start
 
