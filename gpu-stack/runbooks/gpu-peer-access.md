@@ -14,9 +14,12 @@ is performed by this repository. The host and serving stack are shared resources
 - Engine source: `https://github.com/skunpoj/DeepInfer`, reference commit
   `b4df8657412de7ea8bab8b442c2b8c68f5c1068a`. The complete mounted Python
   comparison found 289 byte matches, two line-ending-only differences and two
-  content differences across 293 paths. The running entrypoint matches; the
-  live tokenizer retains an older prompt-preview log and the public source has
-  the privacy-safe count-only message. Compiled artifact provenance remains open.
+  content differences across 293 paths. The running entrypoint matched. A later
+  private release deployed the privacy-safe count-only tokenizer, verified 293
+  expected / 293 read / zero mismatches against its approved private source and
+  passed one authenticated non-sensitive route smoke request without retry.
+  That does not prove equality with the public reference commit. Compiled
+  artifact, base-image and vendor provenance remain open.
 - Actual private overlays/builds still originate from the internal Azure
   operational repository. Public profiles do not claim CI/CD cutover is complete.
 

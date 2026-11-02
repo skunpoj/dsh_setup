@@ -66,8 +66,13 @@
     "repository": "https://github.com/skunpoj/DeepInfer",
     "reference_commit": "b4df8657412de7ea8bab8b442c2b8c68f5c1068a",
     "running_tree_equals_reference": false,
-    "known_source_difference": "serve/prompt_tokenizer.py",
-    "note": "264 selected published source files match; one differs. Compiled artifacts, vendor submodules and unmounted build sources are not qualified by this check."
+    "private_release_commit": "946a17593a2c541e26c80b251867b37292fea21b",
+    "private_release_mounted_files": {
+      "expected": 293,
+      "read": 293,
+      "mismatches": 0
+    },
+    "note": "The earlier public-reference comparison found 289 byte-identical paths, two line-ending-only differences and two content differences across 293 mounted Python paths. The later private release verified 293/293 mounted files against its own approved private source and passed one authenticated non-sensitive route smoke request without retry. That does not prove equality with this public reference commit or qualify compiled artifacts, vendor submodules, the base image or unmounted build sources."
   },
   "qualification": "Current short benchmark and restoration checks only. Post-reboot recovery and DeepEP are unqualified."
 }

@@ -22,11 +22,14 @@ code is the separate upstream fork [skunpoj/DeepInfer](https://github.com/skunpo
 A complete mounted-Python comparison against the referenced public commit found
 289 byte-identical files, two line-ending-only differences, two content
 differences and no missing mounted path across 293 paths. The running entrypoint
-is byte-identical. The live `serve/prompt_tokenizer.py` predecessor still logs a
-prompt preview while the public successor logs only counts; the other content
-difference is a retained Phase-B offline example, not the running server path.
-This is **not** complete compiled/image provenance or a guarantee that a clean
-checkout of that commit reproduces the running service.
+was byte-identical in that comparison. A later private release deployed the
+count-only tokenizer successor and verified all 293 mounted files against the
+approved private release source with zero mismatches; one authenticated,
+non-sensitive DSH-to-LiteLLM-to-DeepInfer smoke request then returned the expected
+text without retry. That later receipt proves private-release parity, not equality
+with this public reference commit. It is **not** complete compiled/image
+provenance or a guarantee that a clean public checkout reproduces the running
+service. DeepEP remains proposed and unqualified.
 
 Inspect a plan without running it:
 
