@@ -45,6 +45,15 @@ class PolicyTests(unittest.TestCase):
   for a in [['auth'],['--model','other'],['--model-params','{}'],['--install','x'],['--yolo'],['--base-url','https://example.com']]:
    with self.subTest(a=a),self.assertRaises(ValueError):l.arguments(a)
  def test_cli_task(self):self.assertEqual(l.arguments(['-n','read README']),['-n','read README'])
+ def test_launcher_retains_only_complete_validated_guard_binding(self):
+  parent={'DSH_GUARDED_MODEL_BASE_URL':'http://127.0.0.1:12345/v1','DSH_UNATTENDED_TASK':'a'*32,'DSH_CORRELATION_ID':'b'*32,'OPENAI_API_KEY':'SYNTHETIC'}
+  e=l.environment(parent)
+  for key in ['DSH_GUARDED_MODEL_BASE_URL','DSH_UNATTENDED_TASK','DSH_CORRELATION_ID']:self.assertEqual(e[key],parent[key])
+  self.assertNotIn('OPENAI_API_KEY',e)
+  credential_url='http:'+chr(47)*2+'user'+':'+'pass'+'@127.0.0.1:12345/v1'
+  for change in [{'DSH_CORRELATION_ID':None},{'DSH_GUARDED_MODEL_BASE_URL':'http://example.com:12345/v1'},
+    {'DSH_GUARDED_MODEL_BASE_URL':credential_url},{'DSH_UNATTENDED_TASK':'../escape'}]:
+   with self.subTest(change=change),self.assertRaises(ValueError):l.environment({**parent,**change})
  def test_cli_bound(self):
   with self.assertRaises(ValueError):l.arguments(['-n','x'*65537])
  def test_sanitized_environment(self):

@@ -67,10 +67,10 @@ class NativeBrokerTransport:
             stage=task.execution_stage
             if not stage:raise ValueError('EXECUTION_STAGE_REQUIRED')
             task.execution_stage={**stage,'executionId':operation};task.save()
-            envelope={**context,'operationId':operation,'expiresAt':state['expiresAt'],
+            if not state.get('podUID'):raise ValueError('NATIVE_POD_IDENTITY_REQUIRED')
+            envelope={**context,'podUID':state['podUID'],'operationId':operation,'expiresAt':state['expiresAt'],
                 'runtime':stage['runtime'],'correlationId':stage['correlationId'],
                 'prompt':task.execution_prompt,'writes':task.request['writes']}
-            if not state.get('podUID'):raise ValueError('NATIVE_POD_IDENTITY_REQUIRED')
             assigned={**context,'expiresAt':state['expiresAt'],'podUID':state['podUID']}
             validate(envelope,assigned,self.rpc.clock())
             # The supervisor must bind the envelope to the actual native worker

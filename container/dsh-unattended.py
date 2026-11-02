@@ -76,6 +76,7 @@ def main():
     parser.add_argument("client", choices=sorted(CLIENTS))
     parser.add_argument("--task-id")
     parser.add_argument("--max-model-starts", type=int, default=12)
+    parser.add_argument("--guard-port", type=int, default=0)
     parser.add_argument("--cwd", default="/workspace")
     parser.add_argument("--resume", action="store_true")
     options = parser.parse_args(control)
@@ -91,7 +92,8 @@ def main():
         state.mkdir(mode=0o700, parents=True, exist_ok=False)
     ledger = AdmissionLedger(state / "model-starts.jsonl", task, options.max_model_starts,
                              task_correlation_id=task_correlation_id)
-    with running_guard(APPROVED_UPSTREAM, Path("/harness-credentials/api-key"), ledger) as port:
+    guard_options={"listen_port":options.guard_port} if options.guard_port else {}
+    with running_guard(APPROVED_UPSTREAM, Path("/harness-credentials/api-key"), ledger,**guard_options) as port:
         base = f"http://127.0.0.1:{port}"
         env = build_environment(os.environ, options.client, base)
         env["DSH_UNATTENDED_TASK"] = task

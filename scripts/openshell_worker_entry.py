@@ -1,6 +1,7 @@
 """Native worker stdin entry point. No credential discovery or backend fallback."""
 import json
 import os
+import re
 from pathlib import Path
 import stat
 import sys
@@ -10,21 +11,35 @@ from scripts.agent_runtime_commands import command_for
 from scripts.openshell_worker_execution import run
 
 ASSIGNMENT=Path('/run/dsh-openshell/assignment.json')
+POD_IDENTITY=Path('/run/dsh-openshell/pod-uid')
 STATE=Path('/state/openshell-executions')
 MAX_INPUT=131072
 
 
-def read_assignment(path=ASSIGNMENT):
+def read_protected(path, limit):
     flags=os.O_RDONLY|getattr(os,'O_NOFOLLOW',0)
     fd=os.open(path,flags)
     try:
         info=os.fstat(fd)
         if not stat.S_ISREG(info.st_mode) or info.st_uid!=0 or info.st_mode & 0o022:
             raise ValueError('UNPROTECTED_WORKER_ASSIGNMENT')
-        with os.fdopen(fd,'rb',closefd=False) as stream:raw=stream.read(8193)
-        if len(raw)>8192:raise ValueError('WORKER_ASSIGNMENT_TOO_LARGE')
-        return json.loads(raw)
+        with os.fdopen(fd,'rb',closefd=False) as stream:raw=stream.read(limit+1)
+        if len(raw)>limit:raise ValueError('WORKER_ASSIGNMENT_TOO_LARGE')
+        return raw
     finally:os.close(fd)
+
+
+def read_assignment(path=ASSIGNMENT, *, pod_identity=POD_IDENTITY):
+    # The admitted operator must mount the actual Kubernetes metadata.uid as a
+    # root-owned, non-writable regular file. Environment variables and browser
+    # payloads are not a source of physical identity. Missing mount fails closed.
+    actual=read_protected(pod_identity,129).decode('ascii').strip()
+    if not re.fullmatch(r'[A-Za-z0-9_.-]{1,128}',actual):
+        raise ValueError('INVALID_PHYSICAL_POD_IDENTITY')
+    assigned=json.loads(read_protected(path,8192))
+    if not isinstance(assigned,dict) or assigned.get('podUID')!=actual:
+        raise ValueError('ASSIGNMENT_PHYSICAL_POD_MISMATCH')
+    return assigned
 
 
 def main(stdin=None, *, assignment=ASSIGNMENT, state=STATE, runner=run):

@@ -65,6 +65,22 @@ Source validation: 29 JavaScript checks and 17 Linux Python test groups passed. 
 
 Before deployment: build and inspect the actual image; verify real package/config loading; test profile migration/idempotence in disposable fixtures; bind an authenticated single-model gateway; qualify outbound restrictions; then test one isolated user, CLI/SDK sessions, tool approvals and recovery. Match the running digest and affected behavior before promotion. Preserve user history, volumes, credentials and active-session recovery.
 
+### Bundled search tool for unattended execution
+
+The managed image build installs `rg` from the already pinned
+`deepseek-harness-runtime-bin` wheel. `scripts/install_bundled_ripgrep.py`
+requires matching SDK/runtime versions, verifies the sidecar against its wheel
+RECORD SHA-256 and size, copies it into `/usr/local/bin/rg`, verifies the copied
+bytes and executes `--version`. It emits `/opt/dsh/bundled-ripgrep.json` during
+the image build. It performs no download or runtime package installation.
+
+This prevents the managed Deep Agents launcher from needing its missing-ripgrep
+bootstrap on the tested PATH. It is not a general network restriction. The
+helper was executed successfully against the installed pinned wheel in a
+credential-free disposable Test Pod: ripgrep 15.0.0, matching RECORD digest,
+zero model starts. That verifies the helper and installed wheel; the successor
+image still needs its immutable build, digest readback and launcher test.
+
 ## References
 
 - [Deep Agents SDK](https://docs.langchain.com/oss/python/deepagents/overview)

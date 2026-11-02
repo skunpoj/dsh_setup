@@ -10,7 +10,7 @@ import unittest
 import uuid
 
 from scripts.unattended_model_guard import (AdmissionLedger, GuardedServer,
-    canonical_fingerprint, sanitize_internal_request)
+    canonical_fingerprint, sanitize_internal_request, running_guard)
 
 
 class Upstream(BaseHTTPRequestHandler):
@@ -41,6 +41,54 @@ class Upstream(BaseHTTPRequestHandler):
 
 class GuardCase(unittest.TestCase):
     CORRELATION = "a" * 32
+    def test_occupied_fixed_port_fails_before_any_upstream_request(self):
+        with socket.socket() as occupied:
+            occupied.bind(('127.0.0.1',0));occupied.listen()
+            with self.assertRaises(OSError):
+                with running_guard(f'http://127.0.0.1:{self.upstream.server_port}',self.token,
+                    AdmissionLedger(self.ledger_path,'fixed-port',1,task_correlation_id=self.CORRELATION),
+                    allow_test_upstream=True,listen_port=occupied.getsockname()[1]):self.fail('must not enter')
+        self.assertEqual(Upstream.calls,0)
+
+    def test_invalid_fixed_ports_refuse(self):
+        for port in [-1,1,65536,True,'1234']:
+            with self.subTest(port=port),self.assertRaises(ValueError):
+                with running_guard('http://invalid',self.token,None,listen_port=port):self.fail('must not enter')
+
+    def test_claude_beta_query_is_admitted_and_joined_to_canonical_ledger_path(self):
+        server,thread=self.guard()
+        try:
+            connection=http.client.HTTPConnection('127.0.0.1',server.server_port,timeout=3)
+            connection.request('POST','/v1/messages?beta=true',json.dumps({'model':'managed','messages':[]}))
+            response=connection.getresponse();self.assertEqual(response.status,200);response.read();connection.close()
+            rows=[json.loads(line) for line in self.ledger_path.read_text().splitlines()]
+            self.assertEqual(rows[0]['path'],'/v1/messages');self.assertEqual(Upstream.calls,1)
+        finally:server.shutdown();server.server_close();thread.join(timeout=2)
+
+    def test_other_queries_refuse_before_any_upstream_reservation(self):
+        server,thread=self.guard()
+        try:
+            for path in ['/v1/messages?beta=false','/v1/messages?beta=true&other=1',
+                         '/v1/messages?beta=true&beta=true','/v1/chat/completions?beta=true']:
+                connection=http.client.HTTPConnection('127.0.0.1',server.server_port,timeout=3)
+                connection.request('POST',path,json.dumps({'messages':[]}));response=connection.getresponse()
+                self.assertEqual(response.status,400);response.read();connection.close()
+            self.assertEqual(Upstream.calls,0);self.assertFalse(self.ledger_path.exists())
+        finally:server.shutdown();server.server_close();thread.join(timeout=2)
+
+    def test_unsupported_provider_safeguard_is_refused_without_stripping_or_reserving(self):
+        server,thread=self.guard()
+        try:
+            body={'messages':[],'safeguards':[{'type':'synthetic-classifier','classifier_context':'SYNTHETIC'}]}
+            # Credential absence must not hide the unsupported capability result:
+            # this negotiation does not need or read the upstream credential.
+            self.token.unlink()
+            connection=http.client.HTTPConnection('127.0.0.1',server.server_port,timeout=3)
+            connection.request('POST','/v1/messages?beta=true',json.dumps(body));response=connection.getresponse()
+            self.assertEqual(response.status,400);value=json.loads(response.read());connection.close()
+            self.assertEqual(value['error']['reason'],'unsupported-provider-safeguards')
+            self.assertEqual(Upstream.calls,0);self.assertFalse(self.ledger_path.exists())
+        finally:server.shutdown();server.server_close();thread.join(timeout=2)
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); root = Path(self.tmp.name)
         self.token = root / "token"; self.token.write_text("synthetic-only")

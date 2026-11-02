@@ -39,5 +39,21 @@ class WorkerEntryTests(unittest.TestCase):
             self.assertEqual(command[:2],['/usr/local/bin/dsh-unattended',runtime])
             self.assertEqual(command[command.index('--max-model-starts')+1],'1')
 
+    def test_actual_pod_file_must_match_assignment(self):
+        assigned={'podUID':'pod-actual','workerUID':'native-id'}
+        with patch.object(worker,'read_protected',side_effect=[b'pod-actual\n',json.dumps(assigned).encode()]):
+            self.assertEqual(worker.read_assignment(),assigned)
+        with patch.object(worker,'read_protected',side_effect=[b'pod-replacement',json.dumps(assigned).encode()]):
+            with self.assertRaisesRegex(ValueError,'ASSIGNMENT_PHYSICAL_POD_MISMATCH'):worker.read_assignment()
+
+    def test_missing_or_invalid_physical_file_cannot_launch(self):
+        runner=Mock()
+        for value in (b'',b'bad uid',b'x'*129):
+            with patch.object(worker,'read_protected',return_value=value),contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(worker.main(io.BytesIO(b'{}'),runner=runner),70)
+        with patch.object(worker,'read_protected',side_effect=FileNotFoundError),contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(worker.main(io.BytesIO(b'{}'),runner=runner),70)
+        runner.assert_not_called()
+
 
 if __name__=='__main__':unittest.main()

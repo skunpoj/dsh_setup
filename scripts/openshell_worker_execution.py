@@ -1,7 +1,7 @@
 """Bound execution inside a native worker; no provider selection or retry.
 
 Only the protected native transport may send the envelope. Identity is compared
-with worker-assigned environment before creating an at-most-once reservation.
+with the protected assignment before creating an at-most-once reservation.
 """
 import hashlib
 import json
@@ -13,7 +13,7 @@ import subprocess
 import time
 
 
-IDENTITY = ("subject", "generation", "taskId", "project", "bindingId", "workerUID")
+IDENTITY = ("subject", "generation", "taskId", "project", "bindingId", "workerUID", "podUID")
 
 
 def validate(envelope, assigned, now):
@@ -22,6 +22,8 @@ def validate(envelope, assigned, now):
         raise ValueError("INVALID_EXECUTION_ENVELOPE")
     if any(envelope[k]!=assigned.get(k) for k in IDENTITY):
         raise ValueError("FOREIGN_OR_STALE_EXECUTION")
+    if not isinstance(envelope['podUID'],str) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,128}',envelope['podUID']):
+        raise ValueError('INVALID_PHYSICAL_POD_IDENTITY')
     if not all(isinstance(envelope[k],str) and re.fullmatch(r"[a-f0-9]{32}",envelope[k])
                for k in ("operationId","correlationId")):
         raise ValueError("INVALID_OPERATION_ID")

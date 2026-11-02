@@ -64,7 +64,7 @@ class BrokerTests(unittest.TestCase):
                                                   {'type':'exit','exitCode':0,'workerUID':c['workerUID'],'operationId':o}])
         self.server.openshell_service=BrokerOpenShellService(self.module.REGISTRY,'alice','g1',native,qualified=True)
         try:
-            body={'runtime':'sdk','backend':'openshell','project':'project','prompt':'synthetic','writes':False,'approved':True}
+            body={'runtime':'deepagents','backend':'openshell','project':'project','prompt':'synthetic','writes':False,'approved':True}
             self.assertEqual(self.call('/v1/tasks','POST',body,subject='bob')[0],400)
             status,value=self.call('/v1/tasks','POST',body,subject='alice');self.assertEqual(status,202)
             task=self.module.REGISTRY.get(value['taskId']);self.assertTrue(task.finished.wait(3))
@@ -106,7 +106,7 @@ class BrokerTests(unittest.TestCase):
             {'type':'exit','exitCode':0,'workerUID':c['workerUID'],'operationId':o}])
         self.server.openshell_service=BrokerOpenShellService(self.module.REGISTRY,'alice','g1',native,qualified=True)
         try:
-            body={'runtime':'sdk','backend':'openshell','project':'project','prompt':'PRIVATE_PROMPT_MARKER',
+            body={'runtime':'deepagents','backend':'openshell','project':'project','prompt':'PRIVATE_PROMPT_MARKER',
                   'writes':False,'approved':True,'handoffRuntime':'claude','handoffPrompt':'PRIVATE_HANDOFF_MARKER'}
             status,value=self.call('/v1/tasks','POST',body,subject='alice');self.assertEqual(status,202)
             task=self.module.REGISTRY.get(value['taskId']);self.assertTrue(task.finished.wait(5))
@@ -114,7 +114,7 @@ class BrokerTests(unittest.TestCase):
             raw=(task.directory/'task.json').read_text();saved=json.loads(raw)
             self.assertNotIn('PRIVATE_PROMPT_MARKER',raw);self.assertNotIn('PRIVATE_HANDOFF_MARKER',raw)
             stages=saved['nativeStages'];self.assertEqual(len(stages),2)
-            self.assertEqual([s['runtime'] for s in stages],['sdk','claude'])
+            self.assertEqual([s['runtime'] for s in stages],['deepagents','claude'])
             self.assertTrue(all(s['binding']['phase']=='stopped' for s in stages))
             self.assertNotEqual(stages[0]['binding']['workerUID'],stages[1]['binding']['workerUID'])
             self.assertNotEqual(stages[0]['correlationId'],stages[1]['correlationId'])
@@ -180,7 +180,7 @@ class BrokerTests(unittest.TestCase):
     @mock.patch('subprocess.Popen')
     def test_create_stream_and_recovery_record(self,popen):
         child=popen.return_value;child.stdout=iter(['first\n','second\n']);child.wait.return_value=0
-        body={'runtime':'sdk','backend':'private','project':'project','prompt':'read README','writes':False,'approved':True}
+        body={'runtime':'deepagents','backend':'private','project':'project','prompt':'read README','writes':False,'approved':True}
         status,value=self.call('/v1/tasks','POST',body);self.assertEqual(status,202)
         self.assertRegex(value['correlationId'],r'^[a-f0-9]{32}$')
         task=self.module.REGISTRY.get(value['taskId'])
@@ -200,7 +200,7 @@ class BrokerTests(unittest.TestCase):
         first=mock.Mock();first.stdout=iter(['draft answer\n']);first.wait.return_value=0
         second=mock.Mock();second.stdout=iter(['checked answer\n']);second.wait.return_value=0
         popen.side_effect=[first,second]
-        body={'runtime':'sdk','backend':'private','project':'project','prompt':'draft','writes':False,'approved':True,
+        body={'runtime':'deepagents','backend':'private','project':'project','prompt':'draft','writes':False,'approved':True,
               'handoffRuntime':'kilo','handoffPrompt':'Check the draft.'}
         status,value=self.call('/v1/tasks','POST',body);self.assertEqual(status,202)
         task=self.module.REGISTRY.get(value['taskId'])
@@ -219,13 +219,14 @@ class BrokerTests(unittest.TestCase):
         self.assertRegex(second_env['DSH_CORRELATION_ID'],r'^[a-f0-9]{32}$')
         self.assertNotEqual(first_env['DSH_CORRELATION_ID'],second_env['DSH_CORRELATION_ID'])
     @mock.patch('subprocess.Popen')
-    def test_sdk_interrupt_requires_explicit_resume_approval(self,popen):
+    def test_legacy_sdk_checkpoint_approval_preserved_for_old_records(self,popen):
         first=mock.Mock();first.stdout=iter(['approval required\n']);first.wait.return_value=75
         second=mock.Mock();second.stdout=iter(['resumed\n']);second.wait.return_value=0
         popen.side_effect=[first,second]
         body={'runtime':'sdk','backend':'private','project':'project','prompt':'write file','writes':True,'approved':True}
-        status,value=self.call('/v1/tasks','POST',body);self.assertEqual(status,202)
-        task=self.module.REGISTRY.get(value['taskId'])
+        task=self.module.Task('9'*32,body)
+        self.module.REGISTRY.tasks[task.id]=task
+        threading.Thread(target=task.run,daemon=True).start()
         self.assertTrue(task.finished.wait(5),task.events.read_text())
         self.assertEqual(task.state,'awaiting_approval')
         self.assertEqual(self.call('/v1/tasks/'+task.id+'/approve','POST',{'approved':False})[0],400)
@@ -233,6 +234,19 @@ class BrokerTests(unittest.TestCase):
         self.assertTrue(task.finished.wait(5),task.events.read_text())
         self.assertEqual(task.state,'completed')
         self.assertIn('--resume',popen.call_args.args[0])
+
+    @mock.patch('subprocess.Popen')
+    def test_new_sdk_http_request_cannot_fallback_to_legacy_helper(self,popen):
+        body={'runtime':'sdk','backend':'private','project':'project','prompt':'synthetic','writes':False,'approved':True}
+        self.assertEqual(self.call('/v1/tasks','POST',body)[0],503)
+        popen.assert_not_called()
+        status,value=self.call('/v1/capabilities')
+        self.assertEqual(status,200)
+        self.assertFalse(value['runtimeDetails']['sdk']['enabled'])
+        body['backend']='openshell'
+        self.assertEqual(self.call('/v1/tasks','POST',body),
+                         (400,{'error':'OFFICIAL_SDK_NATIVE_WORKER_NOT_QUALIFIED'}))
+        popen.assert_not_called()
     def test_one_active_task_is_enforced(self):
         request_value={'runtime':'sdk','backend':'private','project':'project','prompt':'x','writes':False,'approved':True}
         task=self.module.Task('b'*32,request_value);task.state='running';self.module.REGISTRY.tasks[task.id]=task

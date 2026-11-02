@@ -10,7 +10,7 @@ from scripts.openshell_worker_execution import run,validate
 class WorkerTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name)/"state"
-        self.assigned=dict(subject="alice",generation="g1",taskId="a"*32,project=".",bindingId="b1",workerUID="w1",expiresAt=120)
+        self.assigned=dict(subject="alice",generation="g1",taskId="a"*32,project=".",bindingId="b1",workerUID="w1",podUID="pod1",expiresAt=120)
         self.value={**self.assigned,"operationId":"b"*32,"correlationId":"c"*32,"runtime":"sdk","prompt":"synthetic","writes":False}
         self.child=Mock(pid=98765);self.child.wait.return_value=0
         self.popen=Mock(return_value=self.child);self.builder=Mock(return_value=["fixed-client"])
@@ -40,9 +40,14 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(self.run_worker()["exitCode"],0)
         self.assertEqual(len(self.signals),2)
     def test_foreign_identity_rejected_before_reservation(self):
-        for key in ("subject","generation","taskId","project","bindingId","workerUID"):
+        for key in ("subject","generation","taskId","project","bindingId","workerUID","podUID"):
             with self.assertRaises(ValueError):validate({**self.value,key:"wrong"},self.assigned,100)
         self.assertFalse(self.root.exists())
+
+    def test_missing_physical_identity_is_not_accepted_as_legacy_envelope(self):
+        value={k:v for k,v in self.value.items() if k!='podUID'}
+        with self.assertRaisesRegex(ValueError,'INVALID_EXECUTION_ENVELOPE'):validate(value,self.assigned,100)
+        self.popen.assert_not_called()
     def test_expired_or_extended_lifetime_rejected(self):
         with self.assertRaises(ValueError):validate(self.value,self.assigned,121)
         with self.assertRaises(ValueError):validate({**self.value,"expiresAt":130},self.assigned,100)

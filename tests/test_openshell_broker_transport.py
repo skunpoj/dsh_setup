@@ -38,6 +38,7 @@ class TransportTests(unittest.TestCase):
         envelope=self.rpc.execute.call_args.args[2]
         self.assertEqual(envelope['runtime'],'claude');self.assertEqual(envelope['prompt'],'checked prompt')
         self.assertEqual(envelope['correlationId'],'e'*32)
+        self.assertEqual(envelope['podUID'],'pod1')
         self.assertEqual(self.task.openshell['podUID'],'pod1')
         events=list(self.transport.events(self.context,self.operation))
         self.assertEqual(events[0],{'type':'output','text':'checked result'})

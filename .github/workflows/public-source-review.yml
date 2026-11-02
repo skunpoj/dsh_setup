@@ -42,8 +42,19 @@ jobs:
       - name: Check managed-agent Python source policy
         run: python3 -m unittest discover -s integrations/managed-agents/tests -p test_managed_deepagents.py -v
       - name: Check authenticated agent task gateway
-        run: node tests/test_agent_task_gateway.cjs
+        run: |
+          node tests/test_agent_task_gateway.cjs
+          node tests/test_native_sdk_approval_ui.cjs
       - name: Check private runtime task broker and launcher
         run: |
           python3 -m unittest discover -s tests -p test_task_broker.py -v
+          python3 -m unittest discover -s tests -p test_official_sdk_approval.py -v
+          python3 -m unittest discover -s tests -p test_official_sdk_session.py -v
+          python3 -m unittest discover -s tests -p test_official_sdk_release_admission.py -v
+          python3 -m unittest discover -s tests -p test_official_sdk_runtime_entry.py -v
+          python3 -m unittest discover -s tests -p test_official_sdk_task.py -v
+          python3 -m unittest discover -s tests -p test_official_sdk_isolation.py -v
+          python3 -m unittest discover -s tests -p test_official_sdk_bootstrap.py -v
+          python3 -m unittest discover -s tests -p test_official_sdk_deployment_observer.py -v
+          python3 -m unittest discover -s tests -p test_official_sdk_test_api.py -v
           python3 -m unittest discover -s tests -p test_unattended_launcher.py -v

@@ -45,9 +45,19 @@ RUN install -m 0755 /opt/dsh/container/dsh-unattended.py /usr/local/bin/dsh-unat
  && install -m 0755 /opt/dsh/container/dsh-task-broker.py /usr/local/bin/dsh-task-broker \
  && install -m 0755 /opt/dsh/container/dsh-openshell-worker.py /usr/local/bin/dsh-openshell-worker \
  && install -m 0755 /opt/dsh/container/dsh-sdk-task.py /usr/local/bin/dsh-sdk-task \
+ && install -m 0755 /opt/dsh/container/dsh-official-sdk-runtime.py /usr/local/bin/dsh-official-sdk-runtime \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_model_guard.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_unattended_launcher.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_task_broker.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_approval.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_session.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_release_admission.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_runtime_entry.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_task.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_isolation.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_bootstrap.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_deployment_observer.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_test_api.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_task_binding.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_broker_service.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_worker_execution.py \
@@ -55,7 +65,9 @@ RUN install -m 0755 /opt/dsh/container/dsh-unattended.py /usr/local/bin/dsh-unat
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_broker_transport.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_bootstrap.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_worker_entry.py \
- && node /opt/dsh/tests/test_agent_task_gateway.cjs
+ && PYTHONPATH=/opt/dsh python3 -m unittest tests.test_openshell_kubernetes_identity tests.test_openshell_kubernetes_observer tests.test_openshell_kubernetes_api tests.test_openshell_kubernetes_retirement \
+ && node /opt/dsh/tests/test_agent_task_gateway.cjs \
+ && node /opt/dsh/tests/test_native_sdk_approval_ui.cjs
 RUN node /opt/dsh/tests/test_openshell_complete_worker.cjs
 # Optional custom light theme ("Custom" beside native Light/Dark/System). start-dsh installs it into a
 # workspace profile only when DSH_NATIVE_THEME_PLUGIN=1. The package is root-owned and read-only; the

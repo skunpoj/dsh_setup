@@ -39,6 +39,14 @@ CORRELATION_HEADER = "x-dsh-correlation-id"
 SERVER_IDENTITY_REQUEST_HEADERS = frozenset({"x-litellm-call-id"})
 
 
+def canonical_model_path(value):
+    if value in ALLOWED_PATHS:return value
+    # Claude Code's Anthropic beta client emits this exact query flag. Accept
+    # only that known form; arbitrary routing/auth queries remain forbidden.
+    if value=='/v1/messages?beta=true':return '/v1/messages'
+    raise ValueError('model path is not allowed')
+
+
 def server_identity(response):
     """Retain only a typed, server-issued ID; never copy arbitrary headers."""
     value = response.getheader("x-litellm-call-id")
@@ -202,6 +210,8 @@ class GuardedHandler(BaseHTTPRequestHandler):
             pass
 
     def do_POST(self):
+        try:path=canonical_model_path(self.path)
+        except ValueError:return self._reject('invalid-model-path',400)
         try:
             length = int(self.headers.get("content-length", "-1"))
         except ValueError:
@@ -210,14 +220,24 @@ class GuardedHandler(BaseHTTPRequestHandler):
             return self._reject("invalid-body-size", 413)
         body = self.rfile.read(length)
         try:
+            body = sanitize_internal_request(path, body)
+        except ValueError:
+            return self._reject('invalid-request',400)
+        if 'safeguards' in json.loads(body):
+            # This internal custom-OpenAI route has no Anthropic classifier
+            # capability. Refuse locally rather than stripping a requested
+            # safeguard or spending an upstream turn on a known TypeError.
+            # The client may negotiate its supported custom-endpoint shape;
+            # that local exchange never reserves or retries an upstream call.
+            return self._reject('unsupported-provider-safeguards',400)
+        try:
             token = self.server.token_file.read_text(encoding="utf-8").strip()
         except OSError:
             token = ""
         if not token:
             return self._reject("credential-unavailable", 503)
         try:
-            body = sanitize_internal_request(self.path, body)
-            accepted, reason, sequence, mark, operation_id = self.server.ledger.reserve(self.path, body)
+            accepted, reason, sequence, mark, operation_id = self.server.ledger.reserve(path, body)
         except ValueError:
             return self._reject("invalid-request", 400)
         if not accepted:
@@ -232,7 +252,7 @@ class GuardedHandler(BaseHTTPRequestHandler):
         # operation, after discarding any caller-supplied value. Anthropic
         # request metadata alone is not persisted reliably by that proxy.
         headers["x-litellm-call-id"] = str(uuid.UUID(operation_id))
-        body = sanitize_internal_request(self.path, body, operation_id)
+        body = sanitize_internal_request(path, body, operation_id)
         headers["content-length"] = str(len(body))
         connection = http.client.HTTPConnection(self.server.upstream.hostname, self.server.upstream.port, timeout=3600)
         status = 502
@@ -266,8 +286,12 @@ class GuardedHandler(BaseHTTPRequestHandler):
 
 
 @contextlib.contextmanager
-def running_guard(upstream: str, token_file: Path, ledger: AdmissionLedger, *, allow_test_upstream=False):
-    server = GuardedServer(("127.0.0.1", 0), upstream, token_file, ledger, allow_test_upstream=allow_test_upstream)
+def running_guard(upstream: str, token_file: Path, ledger: AdmissionLedger, *, allow_test_upstream=False, listen_port=0):
+    if type(listen_port) is not int or not (listen_port==0 or 1024<=listen_port<=65535):
+        raise ValueError('invalid loopback guard port')
+    # Binding must succeed before the client starts. Never connect a client to
+    # an occupied port or silently select another endpoint after bind failure.
+    server = GuardedServer(("127.0.0.1", listen_port), upstream, token_file, ledger, allow_test_upstream=allow_test_upstream)
     thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
     try:
         yield server.server_port

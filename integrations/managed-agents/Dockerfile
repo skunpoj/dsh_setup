@@ -19,6 +19,8 @@ COPY --from=managed_python /usr/local/lib/python3.14/ /usr/local/lib/python3.14/
 COPY --from=managed_python /opt/dsh/deepagents/ /opt/dsh/deepagents/
 COPY --from=managed_python /build/WHEEL_SHA256.json /opt/dsh/deepagents-WHEEL_SHA256.json
 RUN ldconfig && /opt/dsh/deepagents/bin/python -c 'import sys; assert sys.version_info[:2] == (3,14)'
+COPY scripts/install_bundled_ripgrep.py /opt/dsh/scripts/install_bundled_ripgrep.py
+RUN /opt/dsh/deepagents/bin/python -I /opt/dsh/scripts/install_bundled_ripgrep.py > /opt/dsh/bundled-ripgrep.json
 COPY container/dsh_agent_model.py container/dsh_deepagents_sdk.py /opt/dsh/deepagents/lib/python3.14/site-packages/
 COPY container/deepagents-managed.py /usr/local/bin/deepagents
 COPY container/dsh-cli-managed.py /usr/local/bin/dsh-cli
