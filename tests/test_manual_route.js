@@ -15,7 +15,7 @@ const child=spawn(process.execPath,[path.join(__dirname,'../scripts/auth_proxy.j
 (async()=>{try{
  let ready=false;for(let i=0;i<60;i++){try{await request('/manual');ready=true;break;}catch{await new Promise(r=>setTimeout(r,50));}}assert(ready);
  const redirect=await request('/manual/');assert.equal(redirect.status,302);assert.equal(redirect.headers.location,'/manual/index.html');
- const page=await request('/manual/guide.html');assert.equal(page.status,200);assert.equal(page.text,body);assert.equal(page.headers['x-content-type-options'],'nosniff');
+ const page=await request('/manual/guide.html');assert.equal(page.status,200);assert.equal(page.text,body);assert.equal(page.headers['x-content-type-options'],'nosniff');assert.match(page.headers['content-security-policy'],/media-src 'self' data: blob:/);
  const video=await request('/manual/media/guide.mp4');assert.equal(video.status,200);assert.deepEqual(video.bytes,media);assert.equal(video.headers['content-type'],'video/mp4');assert.equal(video.headers['accept-ranges'],'bytes');
  const range=await request('/manual/media/guide.mp4','GET',{Range:'bytes=16-31'});assert.equal(range.status,206);assert.deepEqual(range.bytes,media.subarray(16,32));assert.equal(range.headers['content-range'],'bytes 16-31/512');
  const vtt=await request('/manual/media/guide.vtt');assert.equal(vtt.status,200);assert.equal(vtt.text,captions);assert.equal(vtt.headers['content-type'],'text/vtt; charset=utf-8');

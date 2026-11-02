@@ -21,7 +21,7 @@ const PROXY_PORT = Number(process.env.PORT || 3080);
 const MANUAL_DIR = process.env.DSH_MANUAL_DIR || '/opt/dsh/manual';
 function serveManual(req, res, pathname) {
   const headers = {'Cache-Control':'no-cache', 'X-Content-Type-Options':'nosniff',
-    'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"};
+    'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"};
   if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405,{...headers,Allow:'GET, HEAD'});return res.end(); }
   if (pathname === '/manual' || pathname === '/manual/') { res.writeHead(302,{...headers,Location:'/manual/index.html'});return res.end(); }
   try {
