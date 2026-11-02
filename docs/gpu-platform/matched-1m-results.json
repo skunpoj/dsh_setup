@@ -14,7 +14,13 @@
     {
       "engine": "SGLang+DSpark",
       "http_status": 200,
-      "usage": {"completion_tokens": 9, "prompt_tokens": 1000000, "prompt_tokens_details": null, "reasoning_tokens": 0, "total_tokens": 1000009},
+      "usage": {
+        "completion_tokens": 9,
+        "prompt_tokens": 1000000,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0,
+        "total_tokens": 1000009
+      },
       "elapsed_seconds": 1407.3500305390282,
       "ttft_seconds": 1407.0201709209941,
       "decode_seconds": 0.3304890929721296,
@@ -25,7 +31,11 @@
     {
       "engine": "DeepInfer+DSpark/NCCL",
       "http_status": 200,
-      "usage": {"completion_tokens": 9, "prompt_tokens": 1000000, "total_tokens": 1000009},
+      "usage": {
+        "completion_tokens": 9,
+        "prompt_tokens": 1000000,
+        "total_tokens": 1000009
+      },
       "elapsed_seconds": 318.99541539908387,
       "ttft_seconds": 318.8877490789164,
       "decode_seconds": 0.10756354499608278,
