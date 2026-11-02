@@ -19,9 +19,13 @@ The SGLang [Kubernetes reference](../templates/model.yaml) retains scheduler/ind
 patches and validation gates. [The portable renderer](../render.py) covers that
 SGLang-compatible bundle; it is not a DeepInfer renderer. The DeepInfer engine
 code is the separate upstream fork [skunpoj/DeepInfer](https://github.com/skunpoj/DeepInfer/tree/b4df8657412de7ea8bab8b442c2b8c68f5c1068a).
-An actual running-source check found 264 matching published files and one
-differing file (`serve/prompt_tokenizer.py`); build sources were partly absent.
-This is **not** complete source/binary provenance or a guarantee that a clean
+A complete mounted-Python comparison against the referenced public commit found
+289 byte-identical files, two line-ending-only differences, two content
+differences and no missing mounted path across 293 paths. The running entrypoint
+is byte-identical. The live `serve/prompt_tokenizer.py` predecessor still logs a
+prompt preview while the public successor logs only counts; the other content
+difference is a retained Phase-B offline example, not the running server path.
+This is **not** complete compiled/image provenance or a guarantee that a clean
 checkout of that commit reproduces the running service.
 
 Inspect a plan without running it:

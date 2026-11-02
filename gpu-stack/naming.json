@@ -1,24 +1,28 @@
 {
   "schema": "gpu-serving-naming-v2",
-  "status": "canonical-services-live-verified",
-  "dsh_gateway_service": "dsh-gateway",
-  "stable_model_service": "deepinfer-dspark",
-  "rollback_model_service": "sglang-dspark",
+  "status": "canonical-services-live-verified-workload-renames-pending",
+  "dsh_gateway": {"service": "dsh-gateway", "deployment": "dsh-gateway"},
+  "litellm_gateway": {"service": "litellm-gateway", "deployment": "litellm-gateway"},
+  "context_forwarder": {"container": "context-forwarder", "scope": "loopback sidecar in litellm-gateway"},
   "served_model_id": "deepseek-v4.1-flash",
-  "gateway_service": "litellm-gateway",
   "engines": {
-    "DeepInfer": {"deployment": "deepinfer-v4-1-flash", "service": "deepinfer-dspark", "entrypoint": "serve/openai_server.py"},
-    "SGLang": {"deployment": "vllm-deepseek-v4-1-flash", "service": "sglang-dspark", "entrypoint": "sglang.launch_server", "replicas": 0}
+    "DeepInfer": {"deployment": "deepinfer-dspark", "service": "deepinfer-dspark", "entrypoint": "serve/openai_server.py", "role": "active"},
+    "SGLang": {"deployment": "sglang-dspark", "service": "sglang-dspark", "entrypoint": "sglang.launch_server", "role": "alternate", "replicas": 0}
   },
   "observed_legacy_references": {
+    "dsh_gateway_deployment": "dsh-environment-gateway",
     "dsh_gateway_service": "dsh-environment-gateway",
+    "litellm_gateway_deployment": "litellm",
     "gateway_service": "litellm",
     "stable_model_service": "vllm-deepseek-v4-flash",
+    "deepinfer_deployment": "deepinfer-v4-1-flash",
     "sglang_rollback_deployment": "vllm-deepseek-v4-1-flash",
     "shared_app_selector": "vllm-deepseek-v4-1-flash"
   },
   "migration_rules": [
-    "Canonical Services are the only names for new source, routing and documentation.",
+    "Canonical functional names are the only names for new source, routing and documentation.",
+    "A Service and its owning Deployment may share the same canonical name because Kubernetes kinds are distinct.",
+    "context-forwarder is a loopback sidecar component, not a separately exposed Service.",
     "Keep legacy Services as compatibility aliases until source pipelines and every external watcher are verified migrated.",
     "Do not mutate immutable Deployment selectors; replacement requires coordinated recovery window.",
     "Do not change actual third-party package names, image references, upstream URLs or historical evidence.",

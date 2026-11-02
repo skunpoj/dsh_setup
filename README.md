@@ -4,7 +4,16 @@
 
 [Current PDF report](docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf) · [Graph and data](docs/gpu-platform/README.md) · [Three serving profiles](gpu-stack/profiles/README.md) · [Host-change and recovery runbook](gpu-stack/runbooks/gpu-peer-access.md)
 
-DeepInfer + DSpark is a separate inference engine, not vLLM; the retained `vllm-*` Service name and humming library ownership do not identify the serving engine. The three references explicitly separate current DeepInfer/NCCL, retained SGLang rollback and the **unqualified proposed** DeepEP trial after host integrity checks. The public fork exists, but a known tokenizer difference and compiled-artifact provenance remain open. Public references do not claim the private Azure operational pipeline has completed its cutover.
+DeepInfer + DSpark is a separate inference engine, not vLLM. Canonical functional
+names are `dsh-gateway`, `litellm-gateway`, the loopback `context-forwarder`,
+active `deepinfer-dspark`, and stopped alternate `sglang-dspark`. Legacy
+`vllm-*`, `dsh-environment-gateway` and `litellm` resource names are compatibility
+identities only and do not identify the serving engine. The three references
+explicitly separate current DeepInfer/NCCL, retained SGLang alternate and the
+**unqualified proposed** DeepEP trial after host integrity checks. A complete
+293-path mounted-Python comparison is published; compiled/image provenance and
+the controlled tokenizer privacy-successor rollout remain open. Public references
+do not claim the private Azure operational pipeline has completed its cutover.
 
 Based on [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness); not a GitHub fork. Upstream releases are tracked by the auto-port workflow (`.github/workflows/upstream-auto-port.yml`).
 

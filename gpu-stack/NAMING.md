@@ -9,11 +9,14 @@ workload identities in an existing installation.
 | Component | Canonical name | Meaning |
 |---|---|---|
 | DSH gateway Service | `dsh-gateway` | Browser and workspace gateway |
+| DSH gateway Deployment | `dsh-gateway` | Runs the browser/workspace gateway process |
 | LiteLLM gateway Service | `litellm-gateway` | Model routing and policy |
+| LiteLLM gateway Deployment | `litellm-gateway` | Runs LiteLLM and its loopback forwarding sidecar |
+| Context forwarding sidecar | `context-forwarder` | Final-payload admission and forwarding inside `litellm-gateway`; not a separate Service |
 | Current model Service | `deepinfer-dspark` | Selects only the active DeepInfer + DSpark workload |
 | Rollback model Service | `sglang-dspark` | Selects only the stopped SGLang + DSpark rollback workload |
-| Current engine Deployment | `deepinfer-v4-1-flash` | DeepInfer + DSpark |
-| Rollback engine Deployment | `vllm-deepseek-v4-1-flash` | Compatibility workload identity; SGLang + DSpark; normally stopped |
+| Current engine Deployment | `deepinfer-dspark` | Runs DeepInfer + DSpark |
+| Alternate engine Deployment | `sglang-dspark` | Runs SGLang + DSpark; normally stopped |
 | API served-model ID | `deepseek-v4.1-flash` | Model identity; not a Kubernetes resource name |
 
 DNS/Kubernetes names use lower-case kebab case. New routing uses functional
@@ -41,9 +44,9 @@ engine and transport, such as `deepinfer-dspark-nccl-current`.
    authorized behavior, then update the current report and architecture video.
    Keep original evidence unchanged and distinguish before/after observations.
 
-The legacy Services `dsh-environment-gateway`, `litellm` and
-`vllm-deepseek-v4-flash`, the SGLang Deployment
-`vllm-deepseek-v4-1-flash`, and the shared selector value are compatibility
+The legacy Services/Deployments `dsh-environment-gateway`, `litellm`,
+`vllm-deepseek-v4-flash`, `deepinfer-v4-1-flash` and
+`vllm-deepseek-v4-1-flash`, plus their shared selector value, are compatibility
 inputs only.
 Their names do not mean the active engine is vLLM. The active DeepInfer process
 starts `serve/openai_server.py`.
@@ -72,4 +75,10 @@ LiteLLM targets `deepinfer-dspark`; provisioned workspace templates use
 rollback Deployment remains at zero replicas. Legacy Services stay available
 temporarily for rollback and for external consumers that have not yet supplied
 their migration evidence; they are not names for new configuration.
+
+Canonical workload names are also `dsh-gateway`, `litellm-gateway`,
+`deepinfer-dspark` and `sglang-dspark`. The current installation may still use
+the legacy Deployment names above because a Deployment selector cannot be
+renamed in place. That compatibility state must be reported as such and does
+not change the intended final names.
 
