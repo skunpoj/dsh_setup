@@ -13,7 +13,7 @@ def validate_policy(doc):
  if u.scheme not in ('http','https') or u.username or u.password or u.port!=4000 or u.path!='/v1' or u.query or u.fragment: raise ValueError('DSH gateway policy invalid')
  host=u.hostname or ''
  parts=host.split('.')
- if len(parts)!=5 or parts[0]!='litellm' or parts[2:]!=['svc','cluster','local'] or not parts[1] or any(c not in 'abcdefghijklmnopqrstuvwxyz0123456789-' for c in parts[1]): raise ValueError('DSH gateway host invalid')
+ if len(parts)!=5 or parts[0]!='litellm-gateway' or parts[2:]!=['svc','cluster','local'] or not parts[1] or any(c not in 'abcdefghijklmnopqrstuvwxyz0123456789-' for c in parts[1]): raise ValueError('DSH gateway host invalid')
  return {'model':MODEL,'base_url':doc['base_url']}
 def load_policy():
  s=POLICY.stat()

@@ -15,14 +15,14 @@ except ImportError:
 spec=importlib.util.spec_from_file_location('managed_source',ROOT/'container/dsh_agent_model.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 ds=importlib.util.spec_from_file_location('cli_source',ROOT/'container/dsh-cli-managed.py');dc=importlib.util.module_from_spec(ds);ds.loader.exec_module(dc)
 sp=importlib.util.spec_from_file_location('launcher_source',ROOT/'container/deepagents-managed.py');l=importlib.util.module_from_spec(sp);sp.loader.exec_module(l)
-P={'model':m.MODEL,'base_url':'http://litellm.dsh.svc.cluster.local:4000/v1'}
+P={'model':m.MODEL,'base_url':'http://litellm-gateway.dsh.svc.cluster.local:4000/v1'}
 class PolicyTests(unittest.TestCase):
  def test_policy(self):self.assertEqual(m.validate_policy(P),P)
  def test_models(self):
   for x in ['other','deepseek-flash','',None]:
    with self.subTest(x=x),self.assertRaises(ValueError):m.validate_policy(dict(P,model=x))
  def test_endpoints(self):
-  for x in ['https://api.openai.com/v1','http://litellm.dsh.svc.cluster.local.evil:4000/v1','http://litellm.dsh.svc.cluster.local:4000/v1?x=1',''.join(['http://', 'u', ':', 'p', '@', 'litellm.dsh.svc.cluster.local:4000/v1']),'file:///tmp/key']:
+  for x in ['https://api.openai.com/v1','http://litellm-gateway.dsh.svc.cluster.local.evil:4000/v1','http://litellm-gateway.dsh.svc.cluster.local:4000/v1?x=1',''.join(['http://', 'u', ':', 'p', '@', 'litellm-gateway.dsh.svc.cluster.local:4000/v1']),'file:///tmp/key']:
    with self.subTest(x=x),self.assertRaises(ValueError):m.validate_policy(dict(P,base_url=x))
  def test_model_override(self):
   with self.assertRaises(ValueError):m.checked_options({'model':'other'},P)

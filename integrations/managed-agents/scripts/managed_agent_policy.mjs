@@ -13,7 +13,7 @@ export function authorizeRequest(method, path, body) {
 }
 export function lockSettings(input, gateway) {
  const u = new URL(gateway);
- if (!['http:','https:'].includes(u.protocol) || !/^litellm\.[a-z0-9-]+\.svc\.cluster\.local$/.test(u.hostname) || u.port !== '4000' || u.pathname !== '/v1' || u.username || u.password || u.search || u.hash) deny('DSH_OPERATOR_GATEWAY_INVALID');
+ if (!['http:','https:'].includes(u.protocol) || !/^litellm-gateway\.[a-z0-9-]+\.svc\.cluster\.local$/.test(u.hostname) || u.port !== '4000' || u.pathname !== '/v1' || u.username || u.password || u.search || u.hash) deny('DSH_OPERATOR_GATEWAY_INVALID');
  const x = structuredClone(input);
  const prior = x['llm-pi-ai']?.providers?.[PROVIDER]?.models?.find(m=>m.id===MODEL);
  x['agent-default-model']={provider:PROVIDER,model:MODEL};

@@ -21,7 +21,7 @@
         "litellm-cluster": {
           "displayName": "Managed internal DeepSeek",
           "api": "openai-completions",
-          "baseURL": "http://litellm.dsh.svc.cluster.local:4000/v1",
+          "baseURL": "http://litellm-gateway.dsh.svc.cluster.local:4000/v1",
           "apiKeyEnv": "DEEPSEEK_API_KEY",
           "models": [
             {

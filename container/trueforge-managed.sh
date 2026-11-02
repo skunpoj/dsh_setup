@@ -6,7 +6,7 @@ export HOST=0.0.0.0 PORT=3000 STANDALONE=true
 export XDG_DATA_HOME=/state/trueforge
 export MODEL_CATALOG_PATH=/opt/dsh/container/trueforge-model-catalog.yaml
 export OTEL_SDK_DISABLED=true
-export OUTBOUND_URL_ALLOWED_HOSTS='["litellm"]'
+export OUTBOUND_URL_ALLOWED_HOSTS='["litellm-gateway"]'
 export OUTBOUND_HTTP_HEADERS_TIMEOUT_MS=3600000 OUTBOUND_HTTP_BODY_TIMEOUT_MS=3600000
 # Model transport has separate deadlines; generic outbound settings do not cover it.
 export MODEL_HTTP_HEADERS_TIMEOUT_MS=3600000 MODEL_HTTP_BODY_TIMEOUT_MS=3600000
