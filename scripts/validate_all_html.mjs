@@ -24,11 +24,12 @@ try{
    await page.waitForTimeout(250);
    const facts=await page.evaluate(()=>({title:document.title,language:document.documentElement.lang,h1:document.querySelectorAll('h1').length,
     textLength:document.body.innerText.length,scrollWidth:document.documentElement.scrollWidth,viewport:innerWidth,
+    captionedVideos:[...document.querySelectorAll('video')].filter(video=>video.getAttribute('src')&&video.querySelector('track[kind="captions"][src]')).length,
     diagramErrors:window.__reportErrors||[],brokenImages:[...document.images].filter(x=>!x.complete||x.naturalWidth===0).length,
     diagrams:document.querySelectorAll('.mermaid-container svg').length,
     localLinks:[...document.querySelectorAll('a[href]')].map(a=>a.getAttribute('href')).filter(h=>!h.match(/^(https?:|mailto:|#|data:)/))}));
    const missing=facts.localLinks.filter(h=>!fs.existsSync(path.resolve(root,path.dirname(name),decodeURIComponent(h.split('#')[0].split('?')[0]))));
-   const failed=[];if(!facts.title||facts.h1!==1||facts.textLength<200)failed.push('Missing readable document content');
+   const failed=[];if(!facts.title||facts.h1!==1||(facts.textLength<200&&!facts.captionedVideos))failed.push('Missing readable document content');
    if(facts.scrollWidth>width+2)failed.push('Page-level horizontal overflow');
    if(facts.diagramErrors.length||facts.brokenImages||missing.length)failed.push('Diagram, image or local link failure');
    checks.push({width,...facts,missingLocalLinks:missing,failures:failed});
