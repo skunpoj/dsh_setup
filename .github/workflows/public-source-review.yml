@@ -58,4 +58,5 @@ jobs:
           python3 -m unittest discover -s tests -p test_official_sdk_bootstrap.py -v
           python3 -m unittest discover -s tests -p test_official_sdk_deployment_observer.py -v
           python3 -m unittest discover -s tests -p test_official_sdk_test_api.py -v
+          python3 -m unittest discover -s tests -p test_official_sdk_executing_identity.py -v
           python3 -m unittest discover -s tests -p test_unattended_launcher.py -v

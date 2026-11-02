@@ -58,6 +58,7 @@ RUN install -m 0755 /opt/dsh/container/dsh-unattended.py /usr/local/bin/dsh-unat
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_bootstrap.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_deployment_observer.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_test_api.py \
+ && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_official_sdk_executing_identity.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_task_binding.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_broker_service.py \
  && PYTHONPATH=/opt/dsh python3 -m unittest discover -s /opt/dsh/tests -p test_openshell_worker_execution.py \

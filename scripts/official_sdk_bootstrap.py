@@ -22,6 +22,7 @@ SOURCES = {
     "deploymentObserver": "/opt/dsh/scripts/official_sdk_deployment_observer.py",
     "qualificationAPI": "/opt/dsh/scripts/official_sdk_test_api.py",
     "releaseVerifier": "/opt/dsh/scripts/official_sdk_release_admission.py",
+    "executingIdentity": "/opt/dsh/scripts/official_sdk_executing_identity.py",
 }
 
 

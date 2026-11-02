@@ -53,6 +53,16 @@ not a signature or Production acceptance. Actual wheels and builder/image
 provenance still have to be produced through the approved publisher. The safety
 ceilings do not establish compatibility with an artifact that does not exist yet.
 
+`official_sdk_executing_identity.py` is the candidate Linux own-Pod reader.
+It reads only fixed nonsecret Downward API UID/name/namespace files and kernel
+mount metadata, compares exact read-only kubelet Pod-bound mount roots, and
+checks the actual Pod's Downward API field/subPath definitions plus privilege
+and namespace restrictions through the protected named API. It does not accept
+environment identity or access any token/key. Kernel layouts outside the
+declared profile refuse; real RKE2 mount provenance is not yet qualified.
+API-only labels and a claimed Pod UID cannot replace the local kernel binding.
+The default broker still does not wire this component or enable execution.
+
 The official SDK session candidate no longer imports or constructs the SDK in
 the broker process. Its default is an authenticated, sequential private-pipe
 proxy to a protected supervisor's isolated child. The child starts with `-I -S`,
