@@ -15,6 +15,8 @@ jobs:
           persist-credentials: false
       - name: Test publication guard
         run: python3 -m unittest discover -s tests -p test_public_scan.py -v
+      - name: Verify governed-harness comparison artifact
+        run: python3 -m unittest discover -s tests -p test_governed_harness_comparison.py -v
       - name: Scan checked-out tree
         run: python3 scripts/scan_public.py .
       - name: Check managed-agent JavaScript policy

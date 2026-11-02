@@ -1,0 +1,984 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Governed Harness and managed agent-runtime comparison</title><style>*{box-sizing:border-box}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.65 system-ui,sans-serif}main{max-width:1500px;margin:24px auto;background:#fff;padding:36px;border-radius:12px}h1,h2,h3{color:#075985;line-height:1.3}a{color:#0369a1}code{overflow-wrap:anywhere}pre{white-space:pre-wrap;background:#f3f6f9;padding:14px;overflow:auto}.table-wrap{width:100%;overflow:auto;margin:18px 0 28px}table{border-collapse:collapse;min-width:1100px;width:100%;table-layout:auto}td,th{border:1px solid #c8d5e1;padding:10px;vertical-align:top;text-align:left;overflow-wrap:normal;word-break:normal;hyphens:none}th{background:#e9f3f9;position:sticky;top:0}li{margin:.45em 0}.notice{background:#fff7ed;border-left:5px solid #f59e0b;padding:12px 16px}@media(max-width:700px){main{margin:0;padding:18px}table{min-width:1000px}}</style></head><body><main><nav><a href="THREE_RISK_CONTROLS.html">Three risk controls</a> · <a href="AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html">Agent runtime status</a> · <a href="../README.md">Repository overview</a></nav><h1>Governed Harness and managed agent-runtime comparison</h1>
+<h2>Purpose and decision boundary</h2>
+<p>This document compares the <strong>DSH Governed Harness</strong> with three execution runtimes that it can broker: <strong>DSH Python SDK</strong>, <strong>Claude Code</strong>, and <strong>Deep Agents</strong>. It also compares each runtime with a separately deployed counterpart outside the Governed Harness.</p>
+<p>The enterprise scenario is deliberately strict:</p>
+<ul>
+<li>highly classified internal data;</li>
+<li>RKE2 Kubernetes in an isolated network segment without Internet access;</li>
+<li>one immutable internal model route through <code>litellm-gateway</code>;</li>
+<li>no user-selectable provider, endpoint, model, proxy, external fallback, or direct model credential;</li>
+<li>independently deployed counterparts use the same isolated RKE2 environment and the same immutable LiteLLM-only route, but are <strong>not integrated with DSH AD/LDAP or its user/session broker</strong>.</li>
+</ul>
+<p>The comparison is about three controls:</p>
+<ol>
+<li><strong>Prevent external leakage</strong> — stop protected input, context, tools, files, credentials, and results from leaving approved boundaries.</li>
+<li><strong>Prevent damage or excessive access</strong> — limit what generated code and tools can read, change, execute, consume, or delegate.</li>
+<li><strong>Keep results contained</strong> — bind tasks, persisted state, results, sharing, recovery, and audit evidence to the correct authorized user and environment.</li>
+</ol>
+<p>The Governed Harness is the enterprise <strong>control plane and policy wrapper</strong>. The other three are <strong>execution runtimes</strong>. They are not equivalent layers. A runtime may have useful native permissions, checkpoints, or tool controls, but it does not automatically inherit DSH identity, storage, network, audit, or lifecycle guarantees when deployed on its own.</p>
+<h2>Reference architecture</h2>
+<pre><code class="language-text">AD/LDAP or provisioned local identity
+        |
+        v
+dsh-gateway: authentication, session, owner/environment assignment
+        |
+        v
+/agent-tasks broker: runtime + project + backend + write-mode approval
+        |
+        +--&gt; DSH Python SDK
+        +--&gt; Claude Code
+        +--&gt; Deep Agents
+        |
+        v
+private per-user RKE2 workspace
+        |
+        v
+guarded local model request identity and one-start ledger
+        |
+        v
+litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
+</code></pre>
+<p><code>OpenShell</code> is a proposed stronger task-isolation backend. It remains disabled until its live acceptance and rollback gates pass. It is not counted as a current control.</p>
+<h2>Executive comparison</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>DSH Governed Harness</th>
+<th>DSH Python SDK inside it</th>
+<th>Claude Code inside it</th>
+<th>Deep Agents inside it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Primary role</td>
+<td>Enterprise control plane</td>
+<td>Programmatic/checkpointed agent runtime</td>
+<td>Coding-oriented CLI agent</td>
+<td>Composable Python agent harness with tools, files and subagents</td>
+</tr>
+<tr>
+<td>Identity authority</td>
+<td>DSH AD/LDAP or provisioned local account, server-side session and environment assignment</td>
+<td>Receives the task identity and project boundary from the broker</td>
+<td>Receives broker-launched task context; native CLI identity is not accepted as DSH identity</td>
+<td>Receives broker-launched task context; Python agent identity is not accepted as DSH identity</td>
+</tr>
+<tr>
+<td>Model route</td>
+<td>Immutable internal <code>litellm-gateway</code>; no external provider choice</td>
+<td>Guarded local route only</td>
+<td>Managed launcher and policy force local route; no native external sign-in permitted</td>
+<td>Preconstructed managed model forces local route; proxy environment ignored</td>
+</tr>
+<tr>
+<td>Workspace</td>
+<td>Per-user/per-environment private mounted workspace and history</td>
+<td>Broker-selected project below <code>/workspace</code></td>
+<td>Started in the approved project below <code>/workspace</code></td>
+<td><code>FilesystemBackend</code> rooted below approved <code>/workspace</code> project</td>
+</tr>
+<tr>
+<td>Tool/write control</td>
+<td>Broker binds runtime, backend, project and write mode to explicit approval</td>
+<td>Approval/resume semantics can interrupt sensitive steps</td>
+<td>Native permissions are an additional layer; harness still enforces project/write scope</td>
+<td><code>interrupt_on</code> can pause write, edit and execute; harness still owns user/task authorization</td>
+</tr>
+<tr>
+<td>Network boundary</td>
+<td>RKE2 NetworkPolicy, internal DNS restrictions, No-Internet segment, no model fallback</td>
+<td>Inherits Pod/network boundary</td>
+<td>Inherits Pod/network boundary; managed launcher must suppress proxy/provider overrides</td>
+<td>Inherits Pod/network boundary; managed HTTP clients do not trust ambient proxy variables</td>
+</tr>
+<tr>
+<td>Result ownership</td>
+<td>Owner/environment-bound task, history, files, app routes and broker output</td>
+<td>Checkpoint/result must be bound to broker task and owner</td>
+<td>Session/output must be captured by broker rather than treated as a free-standing CLI session</td>
+<td>Checkpoint/files/results must be bound to broker task rather than only a LangGraph thread</td>
+</tr>
+<tr>
+<td>Cancellation/recovery</td>
+<td>Broker state, exact task identity, no replay after uncertain execution</td>
+<td>Checkpointed interrupt/resume is the strongest native fit</td>
+<td>Process cancellation is useful, but exact model-start identity and recovery need the wrapper</td>
+<td>LangGraph checkpoint/HITL is useful, but worker and model-start identity still need the wrapper</td>
+</tr>
+<tr>
+<td>Current acceptance</td>
+<td>Deployed control surface; some successor controls remain under qualification</td>
+<td>One bounded Test marker accepted with exact guard/server/spend-log join; native approval/resume remains incomplete</td>
+<td>One bounded Test marker accepted with exact result plus guard/server/spend-log join; full delegated lifecycle remains incomplete</td>
+<td>One bounded Test marker accepted, after Claude reconciliation, with exact result plus guard/server/spend-log join; full delegated lifecycle remains incomplete</td>
+</tr>
+</tbody></table></div>
+<h2>Primary enterprise risk-control analysis</h2>
+<p>This is the controlling comparison. It starts from the requested operating model—highly classified internal data, an isolated RKE2 segment without Internet, one immutable local LiteLLM route, centrally provisioned runtimes, and no user-selectable model/provider/endpoint—and evaluates each control against the three required outcomes. OWASP is used later as a supporting threat taxonomy; it does not replace these enterprise decision columns.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Enterprise requirement / control domain</th>
+<th>Prevent external leakage</th>
+<th>Prevent damage or excessive access</th>
+<th>Keep results contained</th>
+<th>Governed Harness enforcement</th>
+<th>SDK / Claude Code / Deep Agents inside the harness</th>
+<th>Same runtime deployed alone without DSH AD/LDAP</th>
+<th>Current evidence and constraint</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Human identity and session ownership</td>
+<td>Prevents a tool or result route from accepting a prompt-supplied identity or an unrelated provider login</td>
+<td>Stops a user or agent from borrowing another user&#39;s authority</td>
+<td>Binds task, history, files, result stream and recovery to the authenticated owner and environment</td>
+<td><code>dsh-gateway</code> authenticates the account, resolves the assigned environment and supplies server-side owner context</td>
+<td>All three consume the broker identity; none becomes an identity authority</td>
+<td>Must add its own enterprise IdP, session service, owner mapping, revocation and collision handling</td>
+<td>Gateway identity exists; full delegated identity acceptance remains incomplete</td>
+</tr>
+<tr>
+<td>Immutable model/provider route</td>
+<td>Blocks direct external providers, fallback endpoints and user-selected proxies</td>
+<td>Prevents bypassing central model budgets and approved model behavior</td>
+<td>Keeps model responses on the controlled internal route and under one audit correlation</td>
+<td>Only <code>litellm-gateway</code> is admitted; network and launcher policy reject provider/endpoint overrides</td>
+<td>SDK uses the guarded client; Claude uses managed launcher settings; Deep Agents receives a preconstructed managed model</td>
+<td>Must independently lock endpoint/model/key source, suppress updates/telemetry and prove final-wire egress denial</td>
+<td>One bounded marker per runtime is reconciled; arbitrary tools and every override route are not fully accepted</td>
+</tr>
+<tr>
+<td>No-Internet network segment</td>
+<td>Denies uncontrolled outbound transport even if generated code attempts a socket call</td>
+<td>Limits remote command-and-control and dependency download during execution</td>
+<td>Prevents result publication to an unapproved destination</td>
+<td>RKE2 NetworkPolicy, restricted DNS and separate Internet preparation environment form the outer boundary</td>
+<td>Inherit the Pod network boundary; native tool allowlists are only defense in depth</td>
+<td>Needs equivalent namespace, NetworkPolicy, DNS, proxy and package-promotion controls for every standalone service</td>
+<td>“No Internet” still permits explicitly approved internal services; it is not an air gap</td>
+</tr>
+<tr>
+<td>Per-user, per-environment workspace</td>
+<td>Prevents one environment or user from supplying another user&#39;s classified files to a task</td>
+<td>Restricts file reads/writes to the assigned project and storage mounts</td>
+<td>Keeps outputs, checkpoints and history within the correct owner/environment</td>
+<td>Private mounts, owner-bound routes and explicit project selection below <code>/workspace</code></td>
+<td>SDK project, Claude working directory and Deep Agents filesystem backend are rooted in the broker-selected project</td>
+<td>Must build independent tenant storage, path confinement, symlink defense, backup/retention and owner routing</td>
+<td>Mount and route controls exist; every alternate tool/path still requires affected-behavior tests</td>
+</tr>
+<tr>
+<td>Task intent, project and write-mode binding</td>
+<td>Stops retrieved content from silently broadening what may be transmitted</td>
+<td>Prevents goal hijack from turning a read task into code execution or writes</td>
+<td>Keeps the result tied to the approved purpose rather than a substituted task</td>
+<td>Broker persists runtime, backend, project, write mode, generation and operation identity</td>
+<td>Native plans/checkpoints/subagents remain subordinate to that envelope</td>
+<td>Must implement a durable intent envelope, material-change detection and re-approval</td>
+<td>Scope binding exists; semantic intent-diffing and goal-hijack red-team acceptance remain pending</td>
+</tr>
+<tr>
+<td>Tool admission and exact action approval</td>
+<td>Blocks tools that could export files, credentials or result data</td>
+<td>Limits tool set, arguments, target, duration and side effect; preview is not execution</td>
+<td>Records which exact approved action produced the retained result</td>
+<td>Server-side policy plus one-use approval and task ledger; browser fields are not authority</td>
+<td>SDK interrupt, Claude permissions and Deep Agents <code>interrupt_on</code> add runtime-specific checks</td>
+<td>Each standalone service needs its own policy-enforcement point, approval UI/API and replay protection</td>
+<td>Source and bounded marker evidence exists; broad tool/action acceptance is incomplete</td>
+</tr>
+<tr>
+<td>OS/container execution boundary</td>
+<td>Restricts shell/process network and filesystem reach even after prompt injection</td>
+<td>Non-root execution, dropped capabilities, no host socket/path and quotas limit blast radius</td>
+<td>Prevents an execution worker from reading another user&#39;s result store</td>
+<td>RKE2 Pod security, mounts, quotas and service-account suppression are authoritative</td>
+<td>Runtime sandboxes and permission rules add narrower controls but cannot replace the Pod boundary</td>
+<td>Must reproduce hardened Pod specifications and prove the absence of ambient cluster/host authority</td>
+<td>OpenShell is not credited: its current live ledger is 0/25</td>
+</tr>
+<tr>
+<td>Credential custody and connector use</td>
+<td>Secrets are not put in prompts, model context, child process output or external endpoints</td>
+<td>Exact connector operation, scope and expiry limit what a compromised task can do</td>
+<td>Connector results and audit metadata remain owner/environment-bound</td>
+<td>Alias-based broker, encrypted storage and policy checks; secret values are not returned to the harness</td>
+<td>Runtimes request an alias-bound operation rather than receiving the stored credential</td>
+<td>Needs a separate vault/broker, per-owner policy, approval, redaction, revocation and audit</td>
+<td>Only configured connector types are covered; OAuth/Kerberos remain separate qualification areas</td>
+</tr>
+<tr>
+<td>Package, plugin and agent supply chain</td>
+<td>Prevents malicious dependencies/plugins from adding covert egress</td>
+<td>Prevents unsigned tools, prompts or images from expanding capabilities</td>
+<td>Preserves which code/policy generated a result</td>
+<td>Pinned source, packages, images, managed settings and reviewed promotion/rollback</td>
+<td>SDK tools, Claude hooks/plugins/MCP and Deep Agents middleware/subagents must be operator-owned and immutable</td>
+<td>Must maintain SBOM/AIBOM, curated registry, signed artifacts, drift checks and staged rollback independently</td>
+<td>Public CI and selected hashes exist; complete private image provenance remains a release gate</td>
+</tr>
+<tr>
+<td>Context, memory and checkpoint admission</td>
+<td>Prevents cross-user/context reuse and secret persistence in an unintended store</td>
+<td>Stops poisoned memory from changing later goals or approvals</td>
+<td>Namespaces, versions and binds persisted state to the right owner/task/environment</td>
+<td>Private history plus broker task identity; sensitive memory needs authenticated write admission and rollback</td>
+<td>SDK checkpoints, Claude session memory and Deep Agents stores are untrusted until admitted</td>
+<td>Must build tenant namespaces, provenance, expiry, anomaly checks, quarantine and rollback</td>
+<td>Storage separation exists; poisoning/trust-score acceptance is incomplete</td>
+</tr>
+<tr>
+<td>Inter-agent/subagent handoff</td>
+<td>Prevents one stage from sending classified context to an unapproved recipient/runtime</td>
+<td>Preserves capability limits and blocks replacement/stale identities</td>
+<td>Binds every stage result to the parent owner, task, generation and audience</td>
+<td>Typed stage contract, durable correlation and anti-replay state are required</td>
+<td>SDK handoff, Claude subagents and Deep Agents subagents must inherit the same outer identity and budgets</td>
+<td>Needs mutually authenticated transport, typed/versioned contracts, nonce/timestamp and delegated-scope monitoring</td>
+<td>Authenticated cross-runtime delegation is not live-accepted</td>
+</tr>
+<tr>
+<td>Model-start, recursion and resource budgets</td>
+<td>Prevents repeated calls from multiplying exposure</td>
+<td>Limits cost, GPU/CPU/RAM/storage use, recursion and cascading actions</td>
+<td>Ensures the retained result corresponds to the admitted call rather than a hidden retry</td>
+<td>One-start ledger, task/stage timeout, quotas and no automatic retry after ambiguity</td>
+<td>Runtime turn/recursion limits add defense in depth; outer ledger remains authoritative</td>
+<td>Must implement durable budgets and join them to infrastructure and provider receipts</td>
+<td>Five authorized marker starts are consumed; no additional real starts are implied</td>
+</tr>
+<tr>
+<td>Cancellation and descendant fencing</td>
+<td>Stops an abandoned task from later transmitting data</td>
+<td>Stops the exact process tree, subagents and admitted worker rather than only changing UI state</td>
+<td>Prevents a cancelled task from publishing a late result or being silently replayed</td>
+<td>Exact task/worker identity, revoke, process/worker stop, absence proof and terminal ledger state</td>
+<td>SDK execution, Claude process tree and Deep Agents graph descendants require runtime-specific stop adapters</td>
+<td>Each service needs exact-worker cancellation, absence verification and uncertain-outcome reconciliation</td>
+<td>OpenShell worker source is prepared, but no successor image or live cancellation gate has passed</td>
+</tr>
+<tr>
+<td>Recovery, restart and no-replay</td>
+<td>Prevents automatic resend of classified prompts after uncertain transport</td>
+<td>Avoids duplicate writes/model calls and rejects stale checkpoints/replacement identities</td>
+<td>Restores only the correct owner&#39;s state and labels uncertain outcomes honestly</td>
+<td>Durable task state, known-working rollback and guard/server/spend reconciliation</td>
+<td>Native resume is allowed only through broker-bound identity and approval</td>
+<td>Must implement its own durable operation ledger and reconcile every ambiguous execution</td>
+<td>Bounded marker non-duplication is proven; full lifecycle/recovery acceptance is incomplete</td>
+</tr>
+<tr>
+<td>Result streaming, storage and sharing</td>
+<td>Filters result delivery through authenticated same-origin routes</td>
+<td>Prevents generated output from automatically creating a public service or side effect</td>
+<td>Private result storage plus explicit application audience keeps disclosure intentional</td>
+<td>Owner-bound event stream/history; app sharing is a separate approved control plane</td>
+<td>Runtimes have no independent authority to publish or change the audience</td>
+<td>Must provide authenticated result API, tenant storage, redaction, retention and sharing authorization</td>
+<td>Terminal/model output may contain classified data; metadata audit must avoid storing secret bodies</td>
+</tr>
+<tr>
+<td>Audit and source-to-runtime provenance</td>
+<td>Detects attempted leakage and reconstructs who/what sent a request</td>
+<td>Supports rollback, incident response and accountability for changes/actions</td>
+<td>Proves which owner, code, model route and result belong together</td>
+<td>Correlates owner, environment, task, runtime, project, operation, image/source and model-call identity</td>
+<td>Each runtime must emit bounded events into that correlation rather than maintain an unowned private log</td>
+<td>Requires a separate enterprise audit design and immutable source/artifact/runtime mapping per service</td>
+<td>Passing CI/readiness is not runtime acceptance; private build and current image mapping remain incomplete</td>
+</tr>
+</tbody></table></div>
+<h3>Risk-centered conclusion</h3>
+<ul>
+<li><strong>External leakage:</strong> the decisive controls are the isolated network, immutable local model route, private mounts, credential broker and authenticated result routes. Runtime-native tool controls reduce attack surface but cannot prove containment by themselves.</li>
+<li><strong>Damage or excessive access:</strong> the decisive controls are server-bound task intent, project/write mode, exact-action approval, hardened Pods, budgets, one-start/no-replay state and exact descendant cancellation. A fluent plan or native permission prompt is not authorization.</li>
+<li><strong>Result containment:</strong> the decisive controls are owner/environment identity, tenant storage, authenticated streaming, explicit sharing audiences, checkpoint ownership, recovery fencing and end-to-end provenance. A common model endpoint does not establish result ownership.</li>
+<li><strong>Standalone counterparts:</strong> placing the same runtime in the same RKE2 cluster and forcing the same LiteLLM endpoint only reproduces part of leakage control. Without DSH AD/LDAP integration and its broker, every standalone service must independently rebuild identity, task authorization, tenant storage, approval, audit, recovery and sharing controls.</li>
+</ul>
+<h2>OWASP Agentic Top 10 crosswalk</h2>
+<p>The OWASP Top 10 for Agentic Applications 2026 adds a useful threat taxonomy to the three enterprise outcomes above. It does not certify this deployment and it does not turn a documented control into a verified runtime control. The table below maps each OWASP risk to the relevant Governed Harness and runtime responsibilities, then states the present evidence boundary.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>OWASP risk</th>
+<th>Relationship to the three enterprise risks</th>
+<th>Governed Harness responsibility</th>
+<th>Runtime-specific responsibility</th>
+<th>Standalone counterpart requirement</th>
+<th>Current evidence boundary</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ASI01 Agent Goal Hijack</td>
+<td>Leakage and damage when untrusted content changes the active objective or tool plan</td>
+<td>Keep server-derived task scope, approved project/write mode and one durable operation identity; stop or re-approve material goal changes</td>
+<td>SDK/Claude/Deep Agents must treat retrieved text, files, tool output and peer messages as data rather than higher-priority authority</td>
+<td>Implement an equivalent signed or durable intent envelope, goal-change policy and audit trail</td>
+<td>Task scope and bounded marker correlation exist; semantic intent-diffing and adversarial goal-hijack acceptance are not yet established</td>
+</tr>
+<tr>
+<td>ASI02 Tool Misuse and Exploitation</td>
+<td>Damage, excessive access, leakage and cost from legitimate tools used with unsafe arguments or sequences</td>
+<td>Authenticate each task/action, constrain tool set, project, write mode, egress, duration and model-start budget; fail closed on ambiguity</td>
+<td>SDK approval, Claude permissions and Deep Agents <code>interrupt_on</code> add runtime-specific checks but do not replace outer authorization</td>
+<td>Build a policy-enforcement point, per-tool scopes, dry-run/approval, rate/cost ceilings and immutable tool audit</td>
+<td>Source and bounded marker checks exist; arbitrary tool/action acceptance is incomplete</td>
+</tr>
+<tr>
+<td>ASI03 Identity and Privilege Abuse</td>
+<td>All three risks through confused-deputy behavior, transitive delegation or stale privilege</td>
+<td>Bind owner, environment, purpose, project, generation, operation, audience and expiry server-side; reject prompt/body identity</td>
+<td>Every child, resume and tool action must inherit the exact bound task identity without gaining ambient credentials</td>
+<td>Provide human authentication plus per-agent/task identity, time-bounded credentials, action authorization, revocation and delegated-scope monitoring</td>
+<td>Gateway identity exists; full delegated privilege and approval lifecycle acceptance remains incomplete</td>
+</tr>
+<tr>
+<td>ASI04 Agentic Supply Chain Vulnerabilities</td>
+<td>Leakage and damage from compromised models, tools, prompts, packages, plugins or agent descriptors</td>
+<td>Admit pinned source, packages, images, manifests and policies; preserve source-to-image-to-runtime receipts and rollback</td>
+<td>Pin SDK/CLI/library versions, disable self-update/user-loaded extensions and verify installed bytes</td>
+<td>Maintain SBOM/AIBOM, signed artifacts, curated registry, staged rollout, drift checks and kill switch</td>
+<td>Public CI and selected hashes exist; complete immutable successor-image and private release provenance remain open</td>
+</tr>
+<tr>
+<td>ASI05 Unexpected Code Execution</td>
+<td>Direct damage/leakage when generated or retrieved content reaches shell, interpreter or unsafe evaluator</td>
+<td>Non-root restricted workload, bounded filesystem/network, explicit execute approval and no automatic cluster credential</td>
+<td>Claude Bash, SDK tools and Deep Agents execution backends require separate allowlists/sandboxing and output validation</td>
+<td>Separate generation from execution; provide sandbox, static/runtime checks, dedicated workspace and elevated-run approval</td>
+<td>Container/source controls exist; OpenShell execution isolation is 0/25 and arbitrary-code acceptance is incomplete</td>
+</tr>
+<tr>
+<td>ASI06 Memory and Context Poisoning</td>
+<td>Leakage, result corruption and later damage through persistent or cross-tenant poisoned state</td>
+<td>Owner/environment segmentation, trusted source labels, retention policy, versioned state and rollback/quarantine</td>
+<td>Checkpoints, CLI memory and graph stores must not re-ingest outputs as trusted memory or cross owner/task boundaries</td>
+<td>Add authenticated memory writes, provenance/trust score, anomaly checks, tenant namespaces, expiry and rollback</td>
+<td>Per-user workspace/history exists; memory-write validation, trust weighting and poisoning red-team evidence are not fully established</td>
+</tr>
+<tr>
+<td>ASI07 Insecure Inter-Agent Communication</td>
+<td>Leakage, privilege abuse and result substitution across handoffs</td>
+<td>Bind every stage/message to task, owner, generation, runtime, audience, correlation and anti-replay state; validate typed contracts</td>
+<td>Claude subagents, SDK handoffs and Deep Agents subagents must preserve those bindings and capability limits</td>
+<td>Add mutually authenticated transport, signed/versioned messages, nonce/timestamp replay defense and trusted discovery</td>
+<td>Bounded single-runtime markers exist; authenticated cross-runtime delegation and replay-resistant handoff are not live-accepted</td>
+</tr>
+<tr>
+<td>ASI08 Cascading Failures</td>
+<td>Damage and availability loss when one bad result/action propagates across agents or systems</td>
+<td>One-start ledger, quotas, stage caps, circuit breaker, external policy checks, exact cancellation and no automatic retry after ambiguity</td>
+<td>Each runtime must stop descendants and downstream propagation on failed/uncertain gates</td>
+<td>Add independent policy engine, rate limits, blast-radius caps, lineage, replay testing and downstream human checkpoints</td>
+<td>No-duplicate bounded markers are proven; multi-stage cascade containment and recovery remain incomplete</td>
+</tr>
+<tr>
+<td>ASI09 Human-Agent Trust Exploitation</td>
+<td>Damage or result exposure when persuasive output causes unsafe approval</td>
+<td>Show source-derived task scope, requested side effects and exact approval target; separate preview from effect and retain immutable audit</td>
+<td>Native rationales are untrusted; runtime UI must not convert confidence or fluent text into authority</td>
+<td>Provide plain-language risk summary, provenance, preview/diff, high-impact confirmation, suspicious-interaction reporting and operator training</td>
+<td>Exact approval UX and risk-display acceptance are incomplete; current controls must not claim model explanation is proof</td>
+</tr>
+<tr>
+<td>ASI10 Rogue Agents</td>
+<td>All three risks through behavioral drift, concealment, collusion or unauthorized persistence</td>
+<td>Enforce declared capabilities, anomaly limits, cancellation, credential revocation, quarantine, clean restoration and re-attestation</td>
+<td>Runtime/subagent behavior must stay inside the bound tool/model/project manifest; no self-expansion</td>
+<td>Add behavioral baseline, signed capability manifest, watchdog/kill switch, forensic quarantine and approved reintegration</td>
+<td>Broker limits exist; behavioral attestation, rogue-agent detection and full kill/reintegration qualification are not established</td>
+</tr>
+</tbody></table></div>
+<p>The crosswalk shows why fixed local LiteLLM and an isolated RKE2 network are necessary but insufficient. They mainly reduce external model/network exposure. OWASP ASI01, ASI03, ASI06, ASI07, ASI09 and ASI10 additionally require intent, identity, memory, message, human-trust and behavioral controls that must be implemented and tested above the model route.</p>
+<h2>Detailed integrated feature matrix</h2>
+<p>Legend: <strong>Enforced</strong> means a directly implemented control at the stated layer. <strong>Inherited</strong> means the runtime benefits from the Governed Harness/RKE2 boundary but does not provide it itself. <strong>Native</strong> means the upstream runtime has a relevant mechanism that still requires enterprise configuration. <strong>Pending</strong> means source or partial tests exist but live acceptance is incomplete.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Detailed feature / enterprise requirement</th>
+<th>Risk controlled</th>
+<th>Governed Harness control</th>
+<th>DSH Python SDK inside harness</th>
+<th>Claude Code inside harness</th>
+<th>Deep Agents inside harness</th>
+<th>Current limitation or acceptance boundary</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AD/LDAP sign-in</td>
+<td>Leakage, excessive access, result exposure</td>
+<td>Enforced at <code>dsh-gateway</code>; account conflicts fail closed; local recovery identity remains separate</td>
+<td>Inherited; SDK never becomes the identity authority</td>
+<td>Inherited; Claude account/login is not used as enterprise identity</td>
+<td>Inherited; Python/LangGraph identity is not used as enterprise identity</td>
+<td>Runtime launchers must never accept a claimed username from prompt/body as authority</td>
+</tr>
+<tr>
+<td>Server-side user-to-environment assignment</td>
+<td>All three</td>
+<td>Gateway resolves owner, No-Internet/Internet environment and assigned runtime</td>
+<td>Receives resolved assignment</td>
+<td>Receives resolved assignment</td>
+<td>Receives resolved assignment</td>
+<td>Must remain server-derived; forged owner/environment fields are rejected</td>
+</tr>
+<tr>
+<td>No-Internet default</td>
+<td>Leakage</td>
+<td>Main protected workspace is placed in restricted segment; Internet preparation is separate</td>
+<td>Inherited network boundary</td>
+<td>Inherited network boundary</td>
+<td>Inherited network boundary</td>
+<td>“No Internet” still permits approved internal services; it is restricted egress, not an air gap</td>
+</tr>
+<tr>
+<td>Immutable local model endpoint</td>
+<td>Leakage, excessive use</td>
+<td>Only canonical LiteLLM route is offered; browser cannot select a host</td>
+<td>Guard endpoint and model fixed by broker/policy</td>
+<td>Managed launcher fixes <code>ANTHROPIC_BASE_URL</code>/equivalent route and rejects model/endpoint overrides</td>
+<td>Preconstructed <code>DSHManagedChat</code> fixes model, base URL and key source</td>
+<td>Configuration must also deny environment, CLI, plugin, MCP and code-level bypasses</td>
+</tr>
+<tr>
+<td>No external provider fallback</td>
+<td>Leakage</td>
+<td>LiteLLM route and network policy disallow external model fallback</td>
+<td>No alternative endpoint accepted</td>
+<td>Native Claude provider sign-in/update/telemetry paths must be disabled or unreachable</td>
+<td>Provider/model overrides and ambient proxy variables are rejected</td>
+<td>A fixed UI model selector alone is insufficient; final-wire network evidence is required</td>
+</tr>
+<tr>
+<td>Model credential isolation</td>
+<td>Leakage, result exposure</td>
+<td>Worker receives only a restricted client route/credential, not provider admin credentials</td>
+<td>Guarded request uses task-scoped identity</td>
+<td>API-key helper/managed token must not expose value to task, output or shell</td>
+<td>Managed model constructs client without user-supplied key/endpoint</td>
+<td>Credential presence is not proof of safe use; logs and subprocess environment must be reviewed</td>
+</tr>
+<tr>
+<td>Final-wire request guard</td>
+<td>Leakage, duplicate cost, audit</td>
+<td>Correlates durable task operation with one admitted model start</td>
+<td>Accepted once in Test with exact operation/call-ID/spend-log join</td>
+<td>Accepted once in bounded Test with an exact marker and matching guard, server and spend-log call ID</td>
+<td>Accepted once in bounded Test, only after Claude reconciled, with the same exact identity join</td>
+<td>These prove one guarded marker per runtime, not approval/resume, cancellation/recovery, arbitrary tools or Production qualification</td>
+</tr>
+<tr>
+<td>Prompt/context budget</td>
+<td>Excessive use, availability</td>
+<td><code>context-forwarder</code> validates backend-reported <code>max_model_len</code>; long requests receive bounded admission</td>
+<td>Uses managed context limit</td>
+<td>Native context may grow; wrapper applies shared limit and route</td>
+<td>Deep Agents summarization/offload is useful, but wrapper enforces final counted budget</td>
+<td>Summarization reduces context size, not data sensitivity or tool authority</td>
+</tr>
+<tr>
+<td>Per-user workspace</td>
+<td>Damage, result exposure</td>
+<td>Separate persistent workspace/history per user and environment</td>
+<td>Project must resolve below <code>/workspace</code></td>
+<td>Working directory is set below approved <code>/workspace</code> project</td>
+<td><code>FilesystemBackend(root_dir=approved_project, virtual_mode=True)</code></td>
+<td>Persistent storage is not independent backup; process memory is not persistent</td>
+</tr>
+<tr>
+<td>Cross-user file denial</td>
+<td>Result exposure</td>
+<td>Different mounts and owner-bound routes; runtime has no peer-selection control</td>
+<td>Inherited</td>
+<td>Inherited</td>
+<td>Inherited</td>
+<td>Must test forged paths, symlinks, shared volumes and alternate tool routes</td>
+</tr>
+<tr>
+<td>Cross-environment separation</td>
+<td>Leakage, result exposure</td>
+<td>No-Internet and Internet workspaces, history, attachments and credential state are separate</td>
+<td>Inherited</td>
+<td>Inherited</td>
+<td>Inherited</td>
+<td>Moving approved packages is a distinct reviewed artifact flow, not shared writable storage</td>
+</tr>
+<tr>
+<td>Filesystem read boundary</td>
+<td>Leakage</td>
+<td>Mount and route boundary; task project is explicit</td>
+<td>SDK tools limited by broker/project wrapper</td>
+<td>Native working-directory prompts/sandbox add defense in depth</td>
+<td>Backend path root and virtual filesystem constrain tools</td>
+<td>Native permission prompts are not OS isolation; shell commands can exceed file-tool boundaries unless sandboxed</td>
+</tr>
+<tr>
+<td>File write/edit approval</td>
+<td>Damage</td>
+<td>User approves write mode for the task; broker persists that decision</td>
+<td>Checkpoint/approval can pause sensitive action</td>
+<td>Native Edit/Write/Bash permission rules add a second prompt/policy layer</td>
+<td><code>interrupt_on</code> pauses <code>write_file</code>, <code>edit_file</code> and <code>execute</code></td>
+<td>Approval must be bound to exact task, arguments, generation and result—not a blanket session grant</td>
+</tr>
+<tr>
+<td>Command execution</td>
+<td>Damage</td>
+<td>Non-root Pod, dropped privileges/capabilities, no host path/socket, resource limits</td>
+<td>Only approved tools/commands in assigned worker</td>
+<td>Claude Bash permissions and sandbox can further limit execution</td>
+<td><code>execute</code> exists only with a suitable backend and can be interrupted</td>
+<td>Neither prompts nor tool allowlists replace kernel/container isolation</td>
+</tr>
+<tr>
+<td>Kubernetes API access</td>
+<td>Damage</td>
+<td>User runtime has no automatic service-account token/default kubeconfig</td>
+<td>Inherited</td>
+<td>Inherited</td>
+<td>Inherited</td>
+<td>Presence of the <code>kubectl</code> binary grants nothing by itself; mounted credentials would change the risk</td>
+</tr>
+<tr>
+<td>Network tools and fetch</td>
+<td>Leakage</td>
+<td>NetworkPolicy and internal DNS are the authoritative boundary</td>
+<td>Inherited</td>
+<td>Native WebFetch/MCP rules can reduce tool surface but are secondary</td>
+<td>Tool list/backends can omit browser/fetch tools</td>
+<td>Denying a named tool does not block arbitrary socket use from an allowed shell/process</td>
+</tr>
+<tr>
+<td>Plugin/MCP/tool extension</td>
+<td>All three</td>
+<td>Only reviewed installed components should be available in immutable image</td>
+<td>SDK tool registry must be operator-owned</td>
+<td>Claude plugins, hooks, MCP and settings are powerful and must be managed/immutable</td>
+<td>Deep Agents tools, middleware and profiles are Python code and must be operator-owned</td>
+<td>User-loadable extensions are incompatible with “unchangeable” policy unless separately signed and admitted</td>
+</tr>
+<tr>
+<td>Goal and intent binding</td>
+<td>Leakage, damage</td>
+<td>Persist declared task, project, write mode and generation; require a new decision for material scope change</td>
+<td>Bind checkpoint/resume to the same approved intent</td>
+<td>Compare planned tools/actions with the broker-approved task, not only the current prompt</td>
+<td>Bind graph/subagent objectives and state to the same parent intent</td>
+<td>ASI01-aligned semantic intent-diffing and goal-hijack red-team acceptance remain pending</td>
+</tr>
+<tr>
+<td>Action-level authorization and ephemeral authority</td>
+<td>Damage, leakage</td>
+<td>Each sensitive operation is authorized against owner, task, exact arguments, purpose and expiry</td>
+<td>Native approval response must be broker-bound and one-use</td>
+<td>Native permission decision is defense in depth; wrapper decision remains authoritative</td>
+<td>HITL decision must be exact-task and one-use</td>
+<td>Long-lived ambient credentials or session-wide approvals would violate ASI02/ASI03 least-agency guidance</td>
+</tr>
+<tr>
+<td>Component and prompt provenance</td>
+<td>Supply chain, all three</td>
+<td>Pin source, prompt/policy, package and image identities; retain promotion and rollback receipts</td>
+<td>Pin SDK and registered tools</td>
+<td>Pin CLI, plugins, hooks, MCP definitions and managed settings</td>
+<td>Pin agent library, middleware, tools, backends and subagent definitions</td>
+<td>Complete SBOM/AIBOM and clean source-to-binary reproducibility remain open</td>
+</tr>
+<tr>
+<td>Memory write admission and provenance</td>
+<td>Leakage, result exposure, damage</td>
+<td>Separate owner/environment history; classify trusted sources; version, expire, quarantine and roll back sensitive memory</td>
+<td>Validate checkpoint writes and prevent foreign resume</td>
+<td>Treat CLI project memory and generated summaries as untrusted until admitted</td>
+<td>Validate checkpointer/store writes and prevent automatic trusted re-ingestion</td>
+<td>ASI06 trust scoring, anomaly detection and poisoning acceptance are not fully implemented</td>
+</tr>
+<tr>
+<td>Inter-agent message integrity and anti-replay</td>
+<td>Leakage, damage, result exposure</td>
+<td>Typed stage contract with owner/task/generation/runtime/audience/correlation; refuse stale/replacement identity</td>
+<td>Handoff must preserve exact operation and approval state</td>
+<td>Subagent/session messages must be captured by the broker contract</td>
+<td>Child graph messages/results must be schema-bound to the parent task</td>
+<td>Cryptographic signing/mTLS is not claimed; live authenticated delegation remains pending</td>
+</tr>
+<tr>
+<td>Cascade circuit breaker</td>
+<td>Damage, availability</td>
+<td>Stage/model-start limits, resource quotas, timeout, cancellation and no automatic retry after ambiguity</td>
+<td>Stop continuation after failed/uncertain approval or tool result</td>
+<td>Stop process tree and reconcile admitted request before replacement</td>
+<td>Stop child graphs/workers and downstream propagation</td>
+<td>Multi-agent cascade and restart non-replay acceptance remain pending</td>
+</tr>
+<tr>
+<td>Preview separated from effect</td>
+<td>Damage, human trust</td>
+<td>Present exact planned side effect/diff before approval; preview cannot perform state/network changes</td>
+<td>Approval payload must show exact operation</td>
+<td>Plan/permission output is informational until exact effect is authorized</td>
+<td>HITL preview/edit/reject must be distinct from execution</td>
+<td>Current UI must not treat model rationale as an approval or safety attestation</td>
+</tr>
+<tr>
+<td>Rogue-agent containment and reintegration</td>
+<td>All three</td>
+<td>Revoke task authority, stop exact worker/descendants, quarantine outputs/state, verify absence, then require fresh admission</td>
+<td>Fence checkpoint and refuse stale resume</td>
+<td>Kill exact CLI process tree and discard untrusted session continuation</td>
+<td>Cancel graph/subagents and quarantine checkpoint/store state</td>
+<td>Behavioral attestation, watchdog detection and clean reintegration are not yet qualified</td>
+</tr>
+<tr>
+<td>Subagents/delegation</td>
+<td>Damage, leakage, duplicate calls</td>
+<td>Broker controls optional bounded handoff and one-start ledger</td>
+<td>Delegation must retain task/owner/correlation</td>
+<td>Claude subagents require managed permission/tool policy</td>
+<td>Native subagents are a core capability with isolated context windows</td>
+<td>Context isolation does not imply identity, network or cost isolation; each child needs inherited bounds</td>
+</tr>
+<tr>
+<td>Human-in-the-loop</td>
+<td>Damage</td>
+<td>Task approval plus exact resume endpoint and durable broker state</td>
+<td>Native checkpoint/interrupt is well suited</td>
+<td>Native permission prompts are useful for CLI actions</td>
+<td>Native LangGraph interrupts can approve/edit/reject/respond</td>
+<td>Current native approval/resume integration is not fully accepted across all runtimes</td>
+</tr>
+<tr>
+<td>Cancellation</td>
+<td>Damage, cost</td>
+<td>Broker cancellation targets the exact admitted worker/task</td>
+<td>Must stop exact checkpointed execution</td>
+<td>Must terminate exact CLI process tree and reconcile any admitted request</td>
+<td>Must cancel exact graph/worker and descendants</td>
+<td>“Cancel requested” is not enough; verify worker absence and no later result/model start</td>
+</tr>
+<tr>
+<td>Uncertain execution / replay</td>
+<td>Damage, duplicate cost</td>
+<td>Uncertain operation is observed and reconciled; replacement identity is refused</td>
+<td>Durable operation ID supports reconciliation</td>
+<td>CLI exit alone cannot prove whether provider accepted request</td>
+<td>Graph exception alone cannot prove whether provider accepted request</td>
+<td>No automatic retry after ambiguous execution; join guard and server/spend evidence first</td>
+</tr>
+<tr>
+<td>Checkpoint/resume</td>
+<td>Availability, damage</td>
+<td>Broker stores task state and controls resume authorization</td>
+<td>Native strength; accepted marker does not yet prove full approval/resume</td>
+<td>Native session resume exists, but must be bound to DSH owner/task</td>
+<td>LangGraph checkpointer supports durable state and HITL</td>
+<td>Resume identifiers must not allow another user/environment to acquire state</td>
+</tr>
+<tr>
+<td>Output streaming</td>
+<td>Result exposure</td>
+<td>Same-origin authenticated task events and owner-bound task ID</td>
+<td>Output captured through broker</td>
+<td>CLI stream must be relayed, filtered and persisted by broker</td>
+<td>Graph events/results must be relayed through broker</td>
+<td>Terminal output may contain secrets or classified data; audit and user display need separate redaction rules</td>
+</tr>
+<tr>
+<td>Result storage</td>
+<td>Result exposure</td>
+<td>Private history/workspace; explicit app sharing is separate</td>
+<td>Saves only to approved project/history</td>
+<td>CLI session artifacts must remain in approved project/history</td>
+<td>Backend/checkpointer must use approved private storage</td>
+<td>A runtime’s default local cache may not meet retention, ownership or backup rules</td>
+</tr>
+<tr>
+<td>Application sharing</td>
+<td>Result exposure</td>
+<td>Explicit owner-selected audience; terminals/Jupyter remain owner-only</td>
+<td>No independent sharing authority</td>
+<td>No independent sharing authority</td>
+<td>No independent sharing authority</td>
+<td>Runtime output must not create a public route automatically</td>
+</tr>
+<tr>
+<td>Audit correlation</td>
+<td>All three</td>
+<td>Task ID, owner, environment, runtime, project, backend, write mode, state and guarded model-call ID</td>
+<td>One exact Test marker has complete join</td>
+<td>Exact end-to-end join pending</td>
+<td>Exact end-to-end join pending</td>
+<td>Access logs are not full command/model/file audit; collect bounded metadata without secret bodies</td>
+</tr>
+<tr>
+<td>Secret handling</td>
+<td>Leakage</td>
+<td>Alias-based credential broker; owner/workspace/environment/action checks; audit excludes secret values</td>
+<td>Tool receives approved operation, not secret value where supported</td>
+<td>Native credential storage is not used as enterprise custody</td>
+<td>Model constructor and tool code must not accept arbitrary user secrets</td>
+<td>OAuth/Kerberos and every connector remain separately qualified; DSH login is not a datalake ticket</td>
+</tr>
+<tr>
+<td>Resource quotas</td>
+<td>Damage/availability</td>
+<td>RKE2 CPU/memory/storage/GPU admission, task duration and model concurrency controls</td>
+<td>Inherited</td>
+<td>Inherited</td>
+<td>Inherited; subagents require explicit aggregate budget</td>
+<td>Runtime-level <code>max_turns</code> or recursion limits are useful but not infrastructure quotas</td>
+</tr>
+<tr>
+<td>Image/version pinning</td>
+<td>Supply chain, leakage</td>
+<td>Immutable reviewed image digest and source/hash readback</td>
+<td>SDK version and adapter pinned</td>
+<td>CLI version, launcher and settings pinned; auto-update disabled</td>
+<td>Deep Agents/LangChain versions and dependency graph pinned</td>
+<td>Source tests do not prove the built/running image; read back the actual digest and installed bytes</td>
+</tr>
+<tr>
+<td>Recovery/rollback</td>
+<td>Availability, result exposure</td>
+<td>Known-working ConfigMaps/images/routes retained; guarded rollout and owner-state checks</td>
+<td>Restore broker/checkpoint without replay</td>
+<td>Restore launcher/image without restoring unsafe user settings</td>
+<td>Restore model adapter/backend/checkpointer consistently</td>
+<td>Rollback must include task ledger and storage state, not only Deployment readiness</td>
+</tr>
+<tr>
+<td>OpenShell stronger isolation</td>
+<td>Leakage, damage</td>
+<td>Designed as optional per-task backend with namespace/node/budget/expiry controls</td>
+<td>Not currently available</td>
+<td>Not currently available</td>
+<td>Not currently available</td>
+<td><code>0/25</code> live gates at the controlling checkpoint; no current security credit</td>
+</tr>
+</tbody></table></div>
+<h2>Runtime-by-runtime usage examples inside the Governed Harness</h2>
+<h3>DSH Python SDK</h3>
+<p><strong>Best fit:</strong> structured workflows requiring durable state, explicit interrupts, deterministic tool registration, and application-controlled resume.</p>
+<p><strong>Example:</strong> An analyst asks for a classified portfolio-quality review. The broker binds the request to the analyst’s No-Internet workspace and a read-only approved dataset tool. The SDK produces an intermediate exception list, pauses before writing the final workbook, and resumes only after the owner approves the exact action. The result stays in the owner’s project and the model call joins the same durable operation ID.</p>
+<p><strong>Strength:</strong> best architectural fit for checkpointed enterprise workflows.</p>
+<p><strong>Current constraint:</strong> one bounded marker call has been reconciled end to end; full native approval/resume, cancellation, recovery and business-workflow acceptance are still pending.</p>
+<h3>Claude Code</h3>
+<p><strong>Best fit:</strong> repository analysis, code changes, tests, debugging, and command-line workflows where native file/Bash permission controls provide useful defense in depth.</p>
+<p><strong>Example:</strong> A developer requests a change to an internal service. DSH selects the approved repository project, starts Claude Code non-interactively with no provider/model override, permits reads and tests, and requires both DSH write approval and Claude’s managed permission policy before edits. Network policy prevents public package/model access; the only model path is internal LiteLLM.</p>
+<p><strong>Strength:</strong> mature coding workflow and granular native tool permissions.</p>
+<p><strong>Current constraint:</strong> the earlier guarded attempt exposed unsupported safeguards metadata and failed with zero tokens. The corrected adapter now has one bounded Test marker with exact guard/server/spend-log identity reconciliation. That does not qualify managed tool/write approval, delegated work, cancellation/recovery, immutable-image provenance or Production behavior. Native permission prompts do not replace DSH owner, network, mount, or audit controls.</p>
+<h3>Deep Agents</h3>
+<p><strong>Best fit:</strong> multi-step research or analysis requiring planning, filesystem context, specialized subagents, middleware, and programmatic human approval.</p>
+<p><strong>Example:</strong> A risk team asks for a multi-section internal assessment. The main agent reads only the approved project, delegates independent sections to bounded subagents, and pauses on write/execute operations. All agents use the preconstructed local model and the same task ledger. Final artifacts are written only to the owner’s output directory.</p>
+<p><strong>Strength:</strong> most composable runtime for custom tools, subagents, backends and checkpoint logic.</p>
+<p><strong>Current constraint:</strong> composability is also its primary risk. Tools, middleware, profiles, backends and provider construction must be immutable operator code. One bounded guarded marker has now been accepted in Test after Claude reconciled, but this does not qualify arbitrary tools, subagents, approval/resume, cancellation/recovery or Production behavior.</p>
+<h2>Individually deployed counterparts outside the Governed Harness</h2>
+<p>The following comparison assumes each counterpart is still pinned in RKE2, has no Internet route, and can reach only the same immutable local LiteLLM model. The difference is the absence of DSH AD/LDAP, owner/session routing, <code>/agent-tasks</code>, per-user DSH history, DSH app-sharing controls, and the central DSH task ledger.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Detailed requirement</th>
+<th>Standalone DSH Python SDK service</th>
+<th>Standalone Claude Code Pod/service</th>
+<th>Standalone Deep Agents service</th>
+<th>Enterprise implication outside Governed Harness</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>User authentication</td>
+<td>Must add a separate application/API identity layer</td>
+<td>CLI identity is normally OS/process or Claude account; with external sign-in disabled, a separate front door is required</td>
+<td>Must add API/web identity middleware</td>
+<td>No AD/LDAP means Kubernetes/OS identity alone cannot identify the human requester</td>
+</tr>
+<tr>
+<td>Human-to-task ownership</td>
+<td>Application must create and persist its own owner/task mapping</td>
+<td>Process/session owner must be mapped by a launcher service</td>
+<td>Thread/checkpoint owner must be mapped by the application</td>
+<td>Without this, task IDs, CLI sessions and graph threads can become bearer identifiers</td>
+</tr>
+<tr>
+<td>Model lock</td>
+<td>Can hard-code one LiteLLM client</td>
+<td>Managed settings/environment/wrapper can pin endpoint and model; disable flags/settings that override them</td>
+<td>Pass a preconstructed model and reject provider/model kwargs</td>
+<td>Feasible for all three, but must be enforced in code/image/network, not documented as a convention</td>
+</tr>
+<tr>
+<td>Network isolation</td>
+<td>RKE2 NetworkPolicy and restricted DNS</td>
+<td>Same</td>
+<td>Same</td>
+<td>Equal network containment is possible if policies are identical and independently verified</td>
+</tr>
+<tr>
+<td>Workspace isolation</td>
+<td>Must allocate a unique PVC/path and validate every request</td>
+<td>One Pod/PVC per user or a trusted launcher must enforce working directory</td>
+<td>Backend root/checkpointer/store must be unique per user</td>
+<td>A shared service/PVC needs a new authorization layer equivalent to part of DSH</td>
+</tr>
+<tr>
+<td>Write/tool approval</td>
+<td>Build API/UI and durable interrupt/resume state</td>
+<td>Native Claude permissions can prompt a terminal user; service mode needs a permission bridge</td>
+<td>Native HITL supports interrupts but needs authenticated decision API</td>
+<td>Runtime-native approval does not identify who approved unless the outer service does</td>
+</tr>
+<tr>
+<td>Shell containment</td>
+<td>Container security and tool wrapper required</td>
+<td>Native sandbox is valuable defense in depth</td>
+<td>Sandbox/LocalShell backend must be selected and configured</td>
+<td>Same RKE2 hardening can be reproduced, but each service becomes separately governed</td>
+</tr>
+<tr>
+<td>Subagent control</td>
+<td>Custom</td>
+<td>Claude subagents/settings require policy</td>
+<td>Native capability; enforce child count/tools/budget</td>
+<td>Parent identity and resource limits must propagate to every child</td>
+</tr>
+<tr>
+<td>Cancellation</td>
+<td>Must map cancellation to exact run/worker</td>
+<td>Must terminate exact process tree and reconcile model request</td>
+<td>Must cancel exact graph/workers and reconcile model request</td>
+<td>A generic Pod delete is insufficient if the request may already have reached LiteLLM</td>
+</tr>
+<tr>
+<td>Replay prevention</td>
+<td>Implement durable operation and one-start ledger</td>
+<td>Implement wrapper ledger around CLI</td>
+<td>Implement wrapper ledger around graph invocation</td>
+<td>This recreates a central feature of the Governed Harness three times</td>
+</tr>
+<tr>
+<td>Result storage</td>
+<td>Build private result service/PVC policy</td>
+<td>Control CLI caches/transcripts/output directories</td>
+<td>Control checkpointer/store/filesystem backend</td>
+<td>No DSH history or sharing policy exists automatically</td>
+</tr>
+<tr>
+<td>Result sharing</td>
+<td>Build separate authorization and publication workflow</td>
+<td>Same</td>
+<td>Same</td>
+<td>Do not expose a shared dashboard or object store without per-result ACLs</td>
+</tr>
+<tr>
+<td>Audit correlation</td>
+<td>Instrument API, tools, LiteLLM call ID and storage events</td>
+<td>Add process/tool/model correlation around CLI</td>
+<td>Add graph/tool/model correlation</td>
+<td>LiteLLM logs alone identify model traffic, not the responsible human, files, or tool impact</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>Provide a separate broker or workload identity</td>
+<td>Disable native personal credential use; inject only restricted service route</td>
+<td>Do not pass arbitrary credentials through model/tool state</td>
+<td>Kubernetes Secret mounts alone do not give per-user/action authorization</td>
+</tr>
+<tr>
+<td>Lifecycle/versioning</td>
+<td>Pin SDK/service image</td>
+<td>Pin Claude Code and disable auto-update</td>
+<td>Pin Deep Agents/LangChain and dependencies</td>
+<td>Three independent release/rollback tracks increase review and drift cost</td>
+</tr>
+<tr>
+<td>Operational complexity</td>
+<td>Medium</td>
+<td>Medium–high because CLI is adapted into a service</td>
+<td>High because the application owns tools, middleware, checkpoint and API</td>
+<td>Rebuilding equivalent controls independently usually costs more than using the central wrapper</td>
+</tr>
+<tr>
+<td>Best standalone use</td>
+<td>A single-purpose internal workflow with its own strong application identity</td>
+<td>A dedicated development appliance with one accountable operator per Pod</td>
+<td>A specialized internal agent service with a fully governed API</td>
+<td>Appropriate only when the service has a clear owner and explicitly replaces every missing DSH control</td>
+</tr>
+</tbody></table></div>
+<h2>Risk-by-risk conclusion</h2>
+<h3>Risk 1 — external leakage</h3>
+<p>The immutable local LiteLLM route and RKE2 No-Internet segment are the strongest common controls. They can be made equivalent for integrated and standalone deployments. The Governed Harness adds consistent identity-to-environment routing, separate Internet preparation, approved package flow, credential aliases, final-wire model correlation, and one place to verify that all runtimes actually use the same route.</p>
+<p><strong>Residual risk:</strong> shell tools, plugins, MCP servers, internal services, mounted files, DNS, logs, and copied outputs can leak data even when model egress is locked. Test the actual running workload and final network path.</p>
+<h3>Risk 2 — damage or excessive access</h3>
+<p>RKE2 security context, mounts, NetworkPolicy, service-account suppression and resource limits are the authoritative boundary. Claude Code permissions and sandboxing, SDK interrupts, and Deep Agents HITL/backends add useful runtime-specific controls. The Governed Harness makes these controls subordinate to a single approved user, project, backend, write mode and task ledger.</p>
+<p><strong>Residual risk:</strong> an approved shell or powerful tool can act with every permission of its Pod. Prompts and permission dialogs are not a substitute for least-privilege OS, storage and remote-service entitlements.</p>
+<h3>Risk 3 — result exposure</h3>
+<p>This is where standalone deployments differ most. A locked model and isolated network do not establish who owns a task, checkpoint, CLI session, output file, result stream, or recovery action. The Governed Harness supplies owner-bound sessions, private histories/workspaces, explicit application audiences, task-state routing, and one audit correlation point.</p>
+<p><strong>Residual risk:</strong> authorized users can still view and copy results. Preventing further copying requires a separate information-handling and endpoint-control policy.</p>
+<h2>Recommended enterprise operating model</h2>
+<ol>
+<li>Keep the Governed Harness as the only human-facing control plane.</li>
+<li>Treat DSH Python SDK, Claude Code and Deep Agents as interchangeable <strong>runtime choices</strong>, never as identity authorities.</li>
+<li>Lock the model at four layers: UI/catalog, runtime launcher/model object, final-wire guard, and RKE2 network policy.</li>
+<li>Give each task one server-derived owner, environment, project, backend, write decision, operation ID and model-start budget.</li>
+<li>Permit no user-loaded provider, endpoint, proxy, plugin, hook, MCP server, middleware or tool package in the classified profile.</li>
+<li>Preserve separate runtime-specific policies: SDK checkpoint rules, Claude managed permissions/sandbox, and Deep Agents backend/HITL/subagent limits.</li>
+<li>Require exact cancellation and recovery evidence; never resubmit an ambiguous model operation under a replacement identity.</li>
+<li>Keep standalone counterparts only for narrowly owned services that independently implement every missing identity, storage, approval, audit and lifecycle control.</li>
+<li>Do not credit OpenShell until its live product gates and rollback pass.</li>
+<li>Re-evaluate the matrix whenever the running image, runtime version, broker source, LiteLLM adapter, tool set, storage mapping or network policy changes.</li>
+</ol>
+<h2>Current verified status and limits</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Verified current status</th>
+<th>Not yet established</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Governed Harness control surface</td>
+<td>Deployed authenticated gateway and <code>/agent-tasks</code> capability surface; private workspace is enabled backend; local LiteLLM route is canonical</td>
+<td>Complete live acceptance of successor handoff and every runtime path</td>
+</tr>
+<tr>
+<td>DSH Python SDK</td>
+<td>One bounded Test marker with exact task operation, guard reservation/finish, server call ID and spend-log join</td>
+<td>Native approval/resume, cancellation, recovery and full classified workflow</td>
+</tr>
+<tr>
+<td>Claude Code</td>
+<td>Installed/selectable; one bounded guarded Test marker completed with an exact result and matching guard/server/spend-log identity</td>
+<td>Full authenticated delegation, managed tool/write approval, cancellation, uncertain-execution recovery, immutable-image provenance and rollback</td>
+</tr>
+<tr>
+<td>Deep Agents</td>
+<td>Installed/selectable; one bounded guarded Test marker completed after Claude reconciliation with an exact result and matching guard/server/spend-log identity</td>
+<td>Full authenticated delegation, HITL decision binding, subagent/tool limits, cancellation, uncertain-execution recovery, immutable-image provenance and rollback</td>
+</tr>
+<tr>
+<td>OpenShell</td>
+<td>CPU/source prerequisites and successor source tests</td>
+<td>All 25 live gates, immutable image, exact worker identity, cancellation/recovery and rollback; current acceptance remains 0/25</td>
+</tr>
+</tbody></table></div>
+<p>This status table must be refreshed from actual runtime evidence after the remaining qualification work. A passing source test, CI workflow, Pod readiness flag, HTTP 200, or runtime being selectable is not equivalent to end-to-end acceptance.</p>
+<h2>Sources</h2>
+<ul>
+<li><a href="THREE_RISK_CONTROLS.html">DSH three risk controls</a></li>
+<li><a href="AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html">DSH agent runtime and execution backends</a></li>
+<li><a href="OPENSHELL_RUNTIME_PREREQUISITES.md">DSH OpenShell prerequisites</a></li>
+<li><a href="SECURITY.md">DSH security boundaries</a></li>
+<li><a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/">OWASP Top 10 for Agentic Applications 2026</a></li>
+<li><a href="https://code.claude.com/docs/en/security">Claude Code security</a></li>
+<li><a href="https://code.claude.com/docs/en/permissions">Claude Code permissions</a></li>
+<li><a href="https://code.claude.com/docs/en/settings">Claude Code settings and precedence</a></li>
+<li><a href="https://docs.anthropic.com/en/docs/claude-code/llm-gateway">Claude Code LiteLLM gateway configuration</a></li>
+<li><a href="https://docs.langchain.com/oss/python/deepagents/overview">Deep Agents overview</a></li>
+<li><a href="https://docs.langchain.com/oss/python/deepagents/backends">Deep Agents backends</a></li>
+<li><a href="https://docs.langchain.com/oss/python/deepagents/human-in-the-loop">Deep Agents human-in-the-loop</a></li>
+<li><a href="https://docs.langchain.com/oss/python/deepagents/profiles">Deep Agents profiles</a></li>
+</ul>
+</main></body></html>
