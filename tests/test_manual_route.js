@@ -24,4 +24,3 @@ const child=spawn(process.execPath,[path.join(__dirname,'../scripts/auth_proxy.j
  for(const route of ['/manual/%2e%2e/private.json','/manual/%2f../private.json','/manual/private.json','/manual/tampered.html','/manual/manifest.json']){const r=await request(route);assert.equal(r.status,404,route);assert(!r.text.includes('PRIVATE_ACCOUNT_CONTENT'));}
  console.log('Public manual allowlist, integrity, traversal and method checks passed');
 }finally{child.kill();await new Promise(r=>child.once('exit',r));fs.rmSync(root,{recursive:true,force:true});}})().catch(e=>{console.error(e);process.exitCode=1;});
-
