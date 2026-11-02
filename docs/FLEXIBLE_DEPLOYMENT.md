@@ -42,7 +42,7 @@ The GPU server may be on another node or machine. Private user files, credential
 
 ## Preserve managed-client endpoint policy
 
-The current worker image, profiles and managed clients use the stable logical gateway `http://litellm.llm.svc.cluster.local:4000`. Several defaults deliberately contain that address, including the scoped long-context transport hook. This release does not claim that changing a single environment variable retargets every client.
+The current worker image, profiles and managed clients use the stable functional gateway `http://litellm-gateway:4000`. Several defaults deliberately contain that address, including the scoped long-context transport hook. This release does not claim that changing a single environment variable retargets every client.
 
 When LiteLLM moves outside the cluster, the recommended compatibility route is to keep that logical address and place an internal reverse proxy behind it. The proxy forwards to the operator-approved LiteLLM FQDN, verifies its TLS certificate/SNI and preserves API paths, Authorization, streaming and long-request timeouts. DSH, Claude, Kilo, TrueForge and the 1M transport hook retain the same trusted logical origin.
 

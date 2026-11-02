@@ -54,7 +54,7 @@ def request(label,prompt,maximum,expected,barrier=None):
   payload={'model':'deepseek-v4.1-flash','messages':[{'role':'user','content':prompt}],
    'temperature':0,'max_tokens':maximum,'stream':True,'stream_options':{'include_usage':True},
    'chat_template_kwargs':{'enable_thinking':False}}
-  req=urllib.request.Request('http://litellm:4000/v1/chat/completions',
+  req=urllib.request.Request('http://litellm-gateway:4000/v1/chat/completions',
    data=json.dumps(payload).encode(),headers={'Content-Type':'application/json','Authorization':'Bearer '+os.environ['DEEPSEEK_API_KEY']})
   with urllib.request.urlopen(req,timeout=45) as response:
    for line in response:

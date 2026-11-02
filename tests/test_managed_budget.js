@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const {patchManagedBudget} = require('../scripts/managed_inference_transport.cjs');
 const sdk = process.argv[2] || '/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@earendil-works/pi-ai/dist/api/simple-options.js';
 const source = fs.readFileSync(sdk, 'utf8');
-const patched = patchManagedBudget(source, 'http://litellm.llm.svc.cluster.local:4000');
+const patched = patchManagedBudget(source, 'http://litellm-gateway:4000');
 // Evaluate the complete reviewed module body, including intervening sampling exports.
 // Only imports/exports are removed; estimator and thinking-level dependency are deterministic stubs.
 function evaluate(text) {
@@ -14,7 +14,7 @@ function evaluate(text) {
   return sandbox.sdk;
 }
 const api = evaluate(patched), original = evaluate(source);
-const model = {provider:'litellm-cluster',api:'openai-completions',id:'deepseek-v4.1-flash',baseUrl:'http://litellm.llm.svc.cluster.local:4000/v1',contextWindow:1048576,maxTokens:8192};
+const model = {provider:'litellm-cluster',api:'openai-completions',id:'deepseek-v4.1-flash',baseUrl:'http://litellm-gateway:4000/v1',contextWindow:1048576,maxTokens:8192};
 for (const cap of [1,40,8192,16000]) assert.equal(api.clampMaxTokensToContext(model,{},cap),Math.min(cap,8192));
 assert.equal(api.clampMaxTokensToContext({...model,maxTokens:4096},{},8192),4096);
 assert.equal(api.clampMaxTokensToContext({...model,id:'deepseek-flash'},{},8192),8192);
@@ -31,6 +31,6 @@ assert.deepEqual(JSON.parse(JSON.stringify(built.samplingParams)),{temperature:0
 for(const key of ['signal','onPayload','onResponse','onProviderStreamEvent','timeoutMs','maxRetries']) assert.equal(built[key],options[key]);
 assert.equal(api.buildBaseOptions(model,{},undefined).maxTokens,8192);
 assert.deepEqual(JSON.parse(JSON.stringify(api.adjustMaxTokensForThinking(1,8192,'high'))),JSON.parse(JSON.stringify(original.adjustMaxTokensForThinking(1,8192,'high'))));
-assert.throws(()=>patchManagedBudget(source+'\n','http://litellm.llm.svc.cluster.local:4000'),/source changed/);
-assert.throws(()=>patchManagedBudget(source.replace('onPayload:', 'onPayloadChanged:'),'http://litellm.llm.svc.cluster.local:4000'),/source changed/);
+assert.throws(()=>patchManagedBudget(source+'\n','http://litellm-gateway:4000'),/source changed/);
+assert.throws(()=>patchManagedBudget(source.replace('onPayload:', 'onPayloadChanged:'),'http://litellm-gateway:4000'),/source changed/);
 console.log(JSON.stringify({passed:true,managedExactBudget:true,explicitSmallLimitsPreserved:true,otherRoutesUnchanged:true,sourceDriftRefused:true,samplingAndCallbacksPreserved:true}));
