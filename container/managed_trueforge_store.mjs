@@ -10,7 +10,7 @@ export function managedStore() {
   function record(input) {
     return {tenant_id: input.tenant_id, name, created_at: '2026-10-16T00:00:00Z',
       updated_at: '2026-10-16T00:00:00Z', manifest: {type: 'custom', name,
-        base_url: 'http://litellm-gateway:4000/v1', auth: {api_key},
+        base_url: 'http://litellm-gateway.llm.svc.cluster.local:4000/v1', auth: {api_key},
         models: [{name: model, model_id: model, properties}]}};
   }
   const denied = async () => { throw new Error('Model configuration is operator managed'); };

@@ -35,7 +35,7 @@ spec:
         - name: DSH_CONTEXT_TOKENS
           value: '1048576'
         - name: DSH_LLM_TRANSPORT_ORIGIN
-          value: http://litellm-gateway:4000
+          value: http://litellm-gateway.llm.svc.cluster.local:4000
         - name: DEEPSEEK_API_KEY
           valueFrom:
             secretKeyRef:
@@ -193,7 +193,7 @@ spec:
         - name: DSH_CONTEXT_TOKENS
           value: '1048576'
         - name: DSH_LLM_TRANSPORT_ORIGIN
-          value: http://litellm-gateway:4000
+          value: http://litellm-gateway.llm.svc.cluster.local:4000
         - name: DEEPSEEK_API_KEY
           valueFrom:
             secretKeyRef:
@@ -341,7 +341,7 @@ spec:
         - name: DSH_CONTEXT_TOKENS
           value: '1048576'
         - name: DSH_LLM_TRANSPORT_ORIGIN
-          value: http://litellm-gateway:4000
+          value: http://litellm-gateway.llm.svc.cluster.local:4000
         - name: DEEPSEEK_API_KEY
           valueFrom:
             secretKeyRef:
@@ -499,7 +499,7 @@ spec:
         - name: DSH_CONTEXT_TOKENS
           value: '1048576'
         - name: DSH_LLM_TRANSPORT_ORIGIN
-          value: http://litellm-gateway:4000
+          value: http://litellm-gateway.llm.svc.cluster.local:4000
         - name: DEEPSEEK_API_KEY
           valueFrom:
             secretKeyRef:

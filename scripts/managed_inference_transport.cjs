@@ -37,7 +37,7 @@ function patchManagedBudget(source, origin) {
 ${anchor}`);
 }
 function registerManagedBudget(origin, sdkPath = '/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@earendil-works/pi-ai/dist/api/simple-options.js') {
-  if (origin !== 'http://litellm-gateway:4000') return;
+  if (origin !== 'http://litellm-gateway.llm.svc.cluster.local:4000') return;
   const {pathToFileURL} = require('node:url');
   const target = pathToFileURL(sdkPath).href;
   const {registerHooks} = require('node:module');
@@ -51,7 +51,7 @@ function registerManagedBudget(origin, sdkPath = '/usr/local/lib/node_modules/@d
 
 if (process.env.DSH_MANAGED_TRANSPORT === '1') {
   const undici = require(require.resolve('undici', {paths: ['/usr/local/lib/node_modules/@deepseek-ai/dsh']}));
-  const origin = process.env.DSH_LLM_TRANSPORT_ORIGIN || 'http://litellm-gateway:4000';
+  const origin = process.env.DSH_LLM_TRANSPORT_ORIGIN || 'http://litellm-gateway.llm.svc.cluster.local:4000';
   registerManagedBudget(origin);
   undici.setGlobalDispatcher(createManagedDispatcher(undici.getGlobalDispatcher(), origin));
 }

@@ -34,7 +34,7 @@ HOP_HEADERS = frozenset({"api-key", "authorization", "connection", "content-leng
                          "transfer-encoding", "x-api-key", "x-litellm-api-key",
                          "x-dsh-correlation-id"})
 MAX_BODY = 8 * 1024 * 1024
-APPROVED_UPSTREAM = "http://litellm-gateway:4000"
+APPROVED_UPSTREAM = "http://litellm-gateway.llm.svc.cluster.local:4000"
 CORRELATION_HEADER = "x-dsh-correlation-id"
 SERVER_IDENTITY_REQUEST_HEADERS = frozenset({"x-litellm-call-id"})
 
