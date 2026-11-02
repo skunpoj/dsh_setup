@@ -119,7 +119,7 @@ Legend: **Enforced** means a directly implemented control at the stated layer. *
 
 **Strength:** mature coding workflow and granular native tool permissions.
 
-**Current constraint:** the installed CLI’s protocol includes safeguards metadata that the current custom OpenAI adapter does not support. The bounded guarded attempt failed with zero tokens; the runtime is not yet accepted end to end. Native permission prompts do not replace DSH owner, network, mount, or audit controls.
+**Current constraint:** the earlier guarded attempt exposed unsupported safeguards metadata and failed with zero tokens. The corrected adapter now has one bounded Test marker with exact guard/server/spend-log identity reconciliation. That does not qualify managed tool/write approval, delegated work, cancellation/recovery, immutable-image provenance or Production behavior. Native permission prompts do not replace DSH owner, network, mount, or audit controls.
 
 ### Deep Agents
 

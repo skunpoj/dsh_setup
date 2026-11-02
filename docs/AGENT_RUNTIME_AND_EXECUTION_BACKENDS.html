@@ -17,5 +17,5 @@
    └─ backend: private workspace or qualified OpenShell
 
 Model route: per-stage guard → internal LiteLLM → deepinfer-dspark</pre>
-<h2>Deployed behavior and remaining acceptance boundary</h2><p>The current gateway and broker are deployed. The reviewed successor adds Kilo, bounded cross-runtime handoff and correlation metadata, and its source tests pass. No successor image, Test deployment or live handoff has yet been verified. Guard-to-LiteLLM reconciliation, TrueForge adapter behavior and OpenShell acceptance remain unverified.</p>
+<h2>Deployed behavior and remaining acceptance boundary</h2><p>The current gateway and broker are deployed. The reviewed successor adds Kilo, bounded cross-runtime handoff and correlation metadata, and its source tests pass. No successor image, Test deployment or live handoff has yet been verified. One-marker guard-to-LiteLLM reconciliation is accepted separately for SDK, Claude Code and Deep Agents. Full approval/resume, arbitrary tools, authenticated delegation, cancellation/recovery, immutable-image provenance, TrueForge adapter behavior and OpenShell acceptance remain unverified.</p>
 </main></body></html>
