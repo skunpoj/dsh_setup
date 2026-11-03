@@ -62,22 +62,22 @@ endobj
 endobj
 13 0 obj
 <<
-/Border [ 0 0 0 ] /Contents () /Dest [ 50 0 R /Fit ] /Rect [ 524.9893 599 535 614 ] /Subtype /Link /Type /Annot
+/Border [ 0 0 0 ] /Contents () /Dest [ 51 0 R /Fit ] /Rect [ 524.9893 599 535 614 ] /Subtype /Link /Type /Annot
 >>
 endobj
 14 0 obj
 <<
-/Border [ 0 0 0 ] /Contents () /Dest [ 50 0 R /Fit ] /Rect [ 60 597.2 269.6191 608 ] /Subtype /Link /Type /Annot
+/Border [ 0 0 0 ] /Contents () /Dest [ 51 0 R /Fit ] /Rect [ 60 597.2 269.6191 608 ] /Subtype /Link /Type /Annot
 >>
 endobj
 15 0 obj
 <<
-/Border [ 0 0 0 ] /Contents () /Dest [ 53 0 R /Fit ] /Rect [ 524.9893 578 535 593 ] /Subtype /Link /Type /Annot
+/Border [ 0 0 0 ] /Contents () /Dest [ 52 0 R /Fit ] /Rect [ 524.9893 578 535 593 ] /Subtype /Link /Type /Annot
 >>
 endobj
 16 0 obj
 <<
-/Border [ 0 0 0 ] /Contents () /Dest [ 53 0 R /Fit ] /Rect [ 60 576.2 280.1396 587 ] /Subtype /Link /Type /Annot
+/Border [ 0 0 0 ] /Contents () /Dest [ 52 0 R /Fit ] /Rect [ 60 576.2 280.1396 587 ] /Subtype /Link /Type /Annot
 >>
 endobj
 17 0 obj
@@ -351,24 +351,14 @@ endobj
 endobj
 50 0 obj
 <<
-/Contents 102 0 R /MediaBox [ 0 0 595.28 841.89 ] /Parent 88 0 R /Resources <<
-/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
->> /Rotate 0 /Trans <<
-
->> 
-  /Type /Page
+/A <<
+/S /URI /Type /Action /URI (https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/conditional-scenario.json)
+>> /Border [ 0 0 0 ] /Rect [ 60 68.45 369.2436 78.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
 51 0 obj
 <<
-/A <<
-/S /URI /Type /Action /URI (https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/conditional-scenario.json)
->> /Border [ 0 0 0 ] /Rect [ 60 768.45 369.2436 778.45 ] /Subtype /Link /Type /Annot
->>
-endobj
-52 0 obj
-<<
-/Annots [ 51 0 R ] /Contents 103 0 R /MediaBox [ 0 0 595.28 841.89 ] /Parent 88 0 R /Resources <<
+/Annots [ 50 0 R ] /Contents 102 0 R /MediaBox [ 0 0 595.28 841.89 ] /Parent 88 0 R /Resources <<
 /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
 >> /Rotate 0 
   /Trans <<
@@ -376,9 +366,9 @@ endobj
 >> /Type /Page
 >>
 endobj
-53 0 obj
+52 0 obj
 <<
-/Contents 104 0 R /MediaBox [ 0 0 595.28 841.89 ] /Parent 88 0 R /Resources <<
+/Contents 103 0 R /MediaBox [ 0 0 595.28 841.89 ] /Parent 88 0 R /Resources <<
 /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
 >> /Rotate 0 /Trans <<
 
@@ -386,94 +376,101 @@ endobj
   /Type /Page
 >>
 endobj
-54 0 obj
+53 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/deepseek-ai/DeepInfer/pull/47)
 >> /Border [ 0 0 0 ] /Rect [ 60 736.45 223.5002 746.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
-55 0 obj
+54 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/deepseek-ai/DeepInfer/pull/92)
 >> /Border [ 0 0 0 ] /Rect [ 60 699.45 223.5002 709.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
-56 0 obj
+55 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/deepseek-ai/DeepInfer/pull/147)
 >> /Border [ 0 0 0 ] /Rect [ 60 662.45 227.727 672.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
-57 0 obj
+56 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/deepseek-ai/DeepInfer/pull/200)
 >> /Border [ 0 0 0 ] /Rect [ 60 625.45 227.727 635.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
-58 0 obj
+57 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/deepseek-ai/DeepInfer/pull/144)
 >> /Border [ 0 0 0 ] /Rect [ 60 588.45 227.727 598.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
-59 0 obj
+58 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/deepseek-ai/DeepInfer/pull/246)
 >> /Border [ 0 0 0 ] /Rect [ 60 538.45 227.727 548.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
+59 0 obj
+<<
+/A <<
+/S /URI /Type /Action /URI (https://github.com/OpenAI-Insights/deepinfer-h20-release)
+>> /Border [ 0 0 0 ] /Rect [ 60 462.45 253.0652 472.45 ] /Subtype /Link /Type /Annot
+>>
+endobj
 60 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/kabishou11/deepinfer-hopper)
->> /Border [ 0 0 0 ] /Rect [ 60 488.45 220.973 498.45 ] /Subtype /Link /Type /Annot
+>> /Border [ 0 0 0 ] /Rect [ 60 412.45 220.973 422.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
 61 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/deepseek-ai/DeepEP)
->> /Border [ 0 0 0 ] /Rect [ 60 451.45 193.924 461.45 ] /Subtype /Link /Type /Annot
+>> /Border [ 0 0 0 ] /Rect [ 60 375.45 193.924 385.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
 62 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/vllm-project/humming)
->> /Border [ 0 0 0 ] /Rect [ 60 414.45 194.3174 424.45 ] /Subtype /Link /Type /Annot
+>> /Border [ 0 0 0 ] /Rect [ 60 338.45 194.3174 348.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
 63 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/deepseek-ai/DeepInfer/blob/main/examples/sweep/plot_pareto.py)
->> /Border [ 0 0 0 ] /Rect [ 60 377.45 343.0555 387.45 ] /Subtype /Link /Type /Annot
+>> /Border [ 0 0 0 ] /Rect [ 60 301.45 343.0555 311.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
 64 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/deepseek-ai/DeepInfer/discussions/221)
->> /Border [ 0 0 0 ] /Rect [ 60 327.45 255.1805 337.45 ] /Subtype /Link /Type /Annot
+>> /Border [ 0 0 0 ] /Rect [ 60 251.45 255.1805 261.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
 65 0 obj
 <<
 /A <<
 /S /URI /Type /Action /URI (https://github.com/deepseek-ai/deepseek-harness/discussions/5682)
->> /Border [ 0 0 0 ] /Rect [ 60 277.45 288.5604 287.45 ] /Subtype /Link /Type /Annot
+>> /Border [ 0 0 0 ] /Rect [ 60 201.45 288.5604 211.45 ] /Subtype /Link /Type /Annot
 >>
 endobj
 66 0 obj
 <<
-/Annots [ 54 0 R 55 0 R 56 0 R 57 0 R 58 0 R 59 0 R 60 0 R 61 0 R 62 0 R 63 0 R 
-  64 0 R 65 0 R ] /Contents 105 0 R /MediaBox [ 0 0 595.28 841.89 ] /Parent 88 0 R /Resources <<
+/Annots [ 53 0 R 54 0 R 55 0 R 56 0 R 57 0 R 58 0 R 59 0 R 60 0 R 61 0 R 62 0 R 
+  63 0 R 64 0 R 65 0 R ] /Contents 104 0 R /MediaBox [ 0 0 595.28 841.89 ] /Parent 88 0 R /Resources <<
 /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
 >> /Rotate 0 
   /Trans <<
@@ -553,7 +550,7 @@ endobj
 endobj
 77 0 obj
 <<
-/Annots [ 67 0 R 68 0 R 69 0 R 70 0 R 71 0 R 72 0 R 73 0 R 74 0 R 75 0 R 76 0 R ] /Contents 106 0 R /MediaBox [ 0 0 595.28 841.89 ] /Parent 88 0 R /Resources <<
+/Annots [ 67 0 R 68 0 R 69 0 R 70 0 R 71 0 R 72 0 R 73 0 R 74 0 R 75 0 R 76 0 R ] /Contents 105 0 R /MediaBox [ 0 0 595.28 841.89 ] /Parent 88 0 R /Resources <<
 /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
 >> /Rotate 0 
   /Trans <<
@@ -1930,8 +1927,8 @@ endobj
 endobj
 88 0 obj
 <<
-/Count 18 /Kids [ 21 0 R 22 0 R 23 0 R 24 0 R 25 0 R 28 0 R 31 0 R 34 0 R 36 0 R 37 0 R 
-  38 0 R 40 0 R 49 0 R 50 0 R 52 0 R 53 0 R 66 0 R 77 0 R ] /Type /Pages
+/Count 17 /Kids [ 21 0 R 22 0 R 23 0 R 24 0 R 25 0 R 28 0 R 31 0 R 34 0 R 36 0 R 37 0 R 
+  38 0 R 40 0 R 49 0 R 51 0 R 52 0 R 66 0 R 77 0 R ] /Type /Pages
 >>
 endobj
 89 0 obj
@@ -2007,21 +2004,21 @@ Q
 q
 1 0 0 1 0 45 cm
 q
-BT 1 0 0 1 464.9893 6 Tm 0 0 0 rg /F2+0 9 Tf 10.8 TL (16) Tj T* ET
+BT 1 0 0 1 464.9893 6 Tm 0 0 0 rg /F2+0 9 Tf 10.8 TL (15) Tj T* ET
 BT 1 0 0 1 0 6 Tm 15 TL 0 0 0 rg /F2+0 9 Tf 15 TL (7 What vendor guidance supports, and what it does not) Tj  T* ET
 Q
 Q
 q
 1 0 0 1 0 24 cm
 q
-BT 1 0 0 1 464.9893 6 Tm 0 0 0 rg /F2+0 9 Tf 10.8 TL (17) Tj T* ET
+BT 1 0 0 1 464.9893 6 Tm 0 0 0 rg /F2+0 9 Tf 10.8 TL (16) Tj T* ET
 BT 1 0 0 1 0 6 Tm 15 TL 0 0 0 rg /F2+0 9 Tf 15 TL (8 GitHub references and their relation to this setup) Tj  T* ET
 Q
 Q
 q
 1 0 0 1 0 3 cm
 q
-BT 1 0 0 1 464.9893 6 Tm 0 0 0 rg /F2+0 9 Tf 10.8 TL (18) Tj T* ET
+BT 1 0 0 1 464.9893 6 Tm 0 0 0 rg /F2+0 9 Tf 10.8 TL (17) Tj T* ET
 BT 1 0 0 1 0 6 Tm 15 TL 0 0 0 rg /F2+0 9 Tf 15 TL (Reference links for the administrator) Tj  T* ET
 Q
 Q
@@ -5055,7 +5052,7 @@ endstream
 endobj
 95 0 obj
 <<
-/Length 1307
+/Length 1181
 >>
 stream
 1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
@@ -5090,19 +5087,12 @@ q
 BT 1 0 0 1 0 16.8 Tm /F2+0 9.2 Tf 13 TL (Higher is more total work per allocated GPU; farther left is faster per request. Curves show the trade-off across) Tj T* (offered load, not a new benchmark or an upstream Pareto-equivalence claim.) Tj T* ET
 Q
 Q
-q
-1 0 0 1 60 113.7 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 3.4 Tm /F3+0 10.6 Tf 14 TL (Matched one-million-token experiments) Tj T* ET
-Q
-Q
  
 endstream
 endobj
 96 0 obj
 <<
-/Length 931
+/Length 1055
 >>
 stream
 1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
@@ -5110,14 +5100,21 @@ stream
 BT 1 0 0 1 60 29 Tm /F2+0 7.6 Tf 9.12 TL (Measured evidence / conditional estimates / planned changes kept separate) Tj T* ET
 BT 1 0 0 1 530.7732 29 Tm /F2+0 7.6 Tf 9.12 TL (8) Tj T* ET
 q
-1 0 0 1 60 592 cm
+1 0 0 1 60 783 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 3.4 Tm /F3+0 10.6 Tf 14 TL (Matched one-million-token experiments) Tj T* ET
+Q
+Q
+q
+1 0 0 1 60 572 cm
 q
 475 0 0 205 0 0 cm
 /FormXob.1d0d3a70e81ed12c536b0ead361e6a6a Do
 Q
 Q
 q
-1 0 0 1 60 527 cm
+1 0 0 1 60 507 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 55.8 Tm /F2+0 9.2 Tf 13 TL (Each bar is one actual request. The lighter segment is first-token preparation; the full bar is complete-turn time.) Tj T* (Experiment A ends with a nine-token exact response. Experiment B retrieves a middle value and produces 981) Tj T* (tokens on SGLang and 1,024 on DeepInfer, so its decode rates are materially more stable. The graph compares) Tj T* (measured engines only; conditional DeepEP arithmetic remains in the executive-summary tables and is not plotted) Tj T* (as observed performance.) Tj T* ET
@@ -6232,7 +6229,7 @@ endstream
 endobj
 102 0 obj
 <<
-/Length 6617
+/Length 6847
 >>
 stream
 1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
@@ -6253,105 +6250,87 @@ BT 1 0 0 1 0 55.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (Plain meaning:) Tj /F2+0
 Q
 Q
 q
-1 0 0 1 60 678 cm
+1 0 0 1 60 681 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 3.4 Tm /F3+0 10.6 Tf 14 TL (Scope of the conditional rows) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 607 cm
+1 0 0 1 60 612 cm
 q
 BT 1 0 0 1 0 55.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (Executive-summary sensitivity extension:) Tj /F2+0 9.2 Tf 13 TL ( to satisfy complete all-column planning, the third summary row applies) Tj T* (that same 1.32-2.54x multiplier to each current DeepInfer Test 1/Test 3 cell at one, eight and sixteen offered users.) Tj T* (That arithmetic is transparent and complete, but it assumes proportional scaling across workload and concurrency) Tj T* (without validation. It is a sensitivity envelope, not a C8/C16 forecast, and must not be presented as measured or) Tj T* (expected performance.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 561 cm
+1 0 0 1 60 570 cm
 q
 BT 1 0 0 1 0 29.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (Still cannot responsibly predict:) Tj /F2+0 9.2 Tf 13 TL ( actual C8/C16 scaling, first-token improvement, P95/P99 latency, post-change) Tj T* (one-million-token performance, prefix-cache gains or reboot recovery time. Re-measure all cells after integrity,) Tj T* (dispatch/combine and source/binary gates pass.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 539 cm
+1 0 0 1 60 551 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 3.4 Tm /F3+0 10.6 Tf 14 TL (Evidence chain and limits) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 442 cm
+1 0 0 1 60 456 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 81.8 Tm /F2+0 9.2 Tf 13 TL (DeepInfer currently uses NCCL for expert communication; the proposed profile changes only expert transport to) Tj T* (DeepEP. DeepEP requires working Hopper-or-newer GPU communication paths but does not document iommu=pt) Tj T* (as a DeepInfer, DSpark or DeepEP requirement. NVIDIA documents that translated IOMMU can break Linux) Tj T* (bare-metal PCIe GPU peer transfer and affect NCCL. Linux documents passthrough as bypassing IOMMU DMA) Tj T* (translation by default, while NVIDIA has separate generic PCIe multi-GPU guidance that uses iommu=pt when) Tj T* (IOMMU remains enabled. Therefore iommu=pt is a narrow, reversible diagnostic trial for this host, not a certified) Tj T* (stack prerequisite or performance guarantee.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 344 cm
+1 0 0 1 60 362 cm
 q
 BT 1 0 0 1 0 81.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (How DeepEP is related to iommu=pt:) Tj /F2+0 9.2 Tf 13 TL ( DeepEP does not read, set or require this kernel argument. DeepEP) Tj T* (dispatches token and expert data between GPU ranks, so its usable transport depends on correct GPU peer) Tj T* (communication beneath the library. On this Linux bare-metal PCIe topology, translated IOMMU is a documented risk) Tj T* (to peer transfer. The iommu=pt trial changes that lower DMA-translation layer to identity/bypass mapping by default;) Tj T* (it may remove one obstacle to byte-correct peer transfer, after which DeepEP must still pass its own) Tj T* (dispatch/combine, correctness and performance tests. Thus the relationship is indirect and conditional: host DMA) Tj T* (policy -> GPU peer path -> DeepEP transport, not iommu=pt -> automatic DeepEP enablement or speedup.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 285 cm
+1 0 0 1 60 307 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 42.8 Tm /F2+0 9.2 Tf 13 TL (The causal chain being tested is: host trial -> byte-correct peer transfer -> qualified DeepEP dispatch/combine ->) Tj T* (measured model correctness and performance. Start with iommu=pt alone. A failure or insufficient result at a gate) Tj T* (triggers restoration or, only if pre-reviewed, a separately recorded ACS/BIOS combination trial. Each configuration) Tj T* (keeps its own integrity and performance result so the cause is not obscured.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 263 cm
+1 0 0 1 60 288 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 3.4 Tm /F3+0 10.6 Tf 14 TL (Assumptions and derivation) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 205 cm
+1 0 0 1 60 232 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 42.8 Tm /F2+0 9.2 Tf 13 TL (The retained profiler-based scenario starts with a 33 ms step and attributes 29 ms to the expert path. Assuming a) Tj T* (replacement path of 9-21 ms gives a 13-25 ms step. Holding accepted output per step constant at the current Test 1) Tj T* (decode rate multiplied by 0.033 gives the decode range above \(about 1.32-2.54x\). These are model inputs, not) Tj T* (isolated causal measurements or validated hardware limits.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 146 cm
+1 0 0 1 60 177 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 42.8 Tm /F2+0 9.2 Tf 13 TL (TPOT=1000/decode. For this one-request, 512-output-token scenario only, total output=512/\(0.2949+511/decode\),) Tj T* (and per-GPU output=total/4. TTFT is explicitly held at the observed 294.9 ms; no improvement is predicted. Input 18) Tj T* (tokens, output 512 tokens, offered C=1, allocated GPUs=4 and global active cap 8 are fixed assumptions, not) Tj T* (estimated gains.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 100 cm
+1 0 0 1 60 135 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 29.8 Tm /F2+0 9.2 Tf 13 TL (The baseline column uses independently reduced observed metrics, so it need not equal a formula applied to) Tj T* (separately rounded medians. The conditional row uses a single consistent arithmetic model. Different input/output) Tj T* (lengths, acceptance, memory pressure or TTFT would change it.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 54 cm
+1 0 0 1 60 80 cm
 q
-BT 1 0 0 1 0 29.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (Interpretation of the executive-summary ranges:) Tj /F2+0 9.2 Tf 13 TL ( the C8/C16 figures are deliberately labelled sensitivity) Tj T* (estimates, not forecasts. Actual multi-user scaling, first-token improvement, P95/P99 latency, full-1M performance,) Tj T* (prefix-cache gains and reboot recovery time remain unknown until re-measured after the integrity, dispatch/combine) Tj T* ET
-Q
-Q
- 
-endstream
-endobj
-103 0 obj
-<<
-/Length 570
->>
-stream
-1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
-.321569 .427451 .501961 rg
-BT 1 0 0 1 60 29 Tm /F2+0 7.6 Tf 9.12 TL (Measured evidence / conditional estimates / planned changes kept separate) Tj T* ET
-BT 1 0 0 1 526.5465 29 Tm /F2+0 7.6 Tf 9.12 TL (15) Tj T* ET
-q
-1 0 0 1 60 784 cm
-q
-BT 1 0 0 1 0 3.8 Tm 13 TL 0 0 0 rg /F2+0 9.2 Tf 13 TL (and source/binary gates pass.) Tj T* ET
+BT 1 0 0 1 0 42.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (Interpretation of the executive-summary ranges:) Tj /F2+0 9.2 Tf 13 TL ( the C8/C16 figures are deliberately labelled sensitivity) Tj T* (estimates, not forecasts. Actual multi-user scaling, first-token improvement, P95/P99 latency, full-1M performance,) Tj T* (prefix-cache gains and reboot recovery time remain unknown until re-measured after the integrity, dispatch/combine) Tj T* (and source/binary gates pass.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 767 cm
+1 0 0 1 60 67 cm
 q
 .078431 .364706 .52549 rg
 BT 1 0 0 1 0 2.4 Tm /F2+0 7.6 Tf 10 TL (https://github.com/skunpoj/dsh_setup/blob/main/docs/gpu-platform/conditional-scenario.json) Tj T* ET
@@ -6360,7 +6339,7 @@ Q
  
 endstream
 endobj
-104 0 obj
+103 0 obj
 <<
 /Length 4815
 >>
@@ -6368,7 +6347,7 @@ stream
 1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
 .321569 .427451 .501961 rg
 BT 1 0 0 1 60 29 Tm /F2+0 7.6 Tf 9.12 TL (Measured evidence / conditional estimates / planned changes kept separate) Tj T* ET
-BT 1 0 0 1 526.5465 29 Tm /F2+0 7.6 Tf 9.12 TL (16) Tj T* ET
+BT 1 0 0 1 526.5465 29 Tm /F2+0 7.6 Tf 9.12 TL (15) Tj T* ET
 q
 1 0 0 1 60 777 cm
 q
@@ -6543,15 +6522,15 @@ Q
  
 endstream
 endobj
-105 0 obj
+104 0 obj
 <<
-/Length 5426
+/Length 6134
 >>
 stream
 1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
 .321569 .427451 .501961 rg
 BT 1 0 0 1 60 29 Tm /F2+0 7.6 Tf 9.12 TL (Measured evidence / conditional estimates / planned changes kept separate) Tj T* ET
-BT 1 0 0 1 526.5465 29 Tm /F2+0 7.6 Tf 9.12 TL (17) Tj T* ET
+BT 1 0 0 1 526.5465 29 Tm /F2+0 7.6 Tf 9.12 TL (16) Tj T* ET
 q
 1 0 0 1 60 777 cm
 q
@@ -6638,85 +6617,98 @@ BT 1 0 0 1 0 2.4 Tm /F2+0 7.6 Tf 10 TL (https://github.com/deepseek-ai/DeepInfer
 Q
 Q
 q
-1 0 0 1 60 504 cm
+1 0 0 1 60 478 cm
+q
+BT 1 0 0 1 0 42.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (deepinfer-h20-release community repository) Tj /F2+0 9.2 Tf 13 TL ( - Docker-packaged 8 x H20-3e DP4 / CP2 / EP8 integration of) Tj T* (PR92, PR144 and PR147 with a PR246-inspired optional local Engram fallback. It is a useful implementation) Tj T* (reference, but its hardware, topology, parallelism and workload are not comparable evidence for this 4 x H100 NVL) Tj T* (DP4 / EP4 NCCL deployment, nor proof of DeepEP, iommu=pt or peer-copy qualification.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 60 461 cm
+q
+.078431 .364706 .52549 rg
+BT 1 0 0 1 0 2.4 Tm /F2+0 7.6 Tf 10 TL (https://github.com/OpenAI-Insights/deepinfer-h20-release) Tj T* ET
+Q
+Q
+q
+1 0 0 1 60 428 cm
 q
 BT 1 0 0 1 0 16.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (deepinfer-hopper community repository) Tj /F2+0 9.2 Tf 13 TL ( - Related Hopper adaptation with separate pins/qualification; not our) Tj T* (deployed source.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 487 cm
+1 0 0 1 60 411 cm
 q
 .078431 .364706 .52549 rg
 BT 1 0 0 1 0 2.4 Tm /F2+0 7.6 Tf 10 TL (https://github.com/kabishou11/deepinfer-hopper) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 467 cm
+1 0 0 1 60 391 cm
 q
 BT 1 0 0 1 0 3.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (DeepEP) Tj /F2+0 9.2 Tf 13 TL ( - Expert dispatch/combine library for the proposed trial; presence is not a peer-integrity pass.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 450 cm
+1 0 0 1 60 374 cm
 q
 .078431 .364706 .52549 rg
 BT 1 0 0 1 0 2.4 Tm /F2+0 7.6 Tf 10 TL (https://github.com/deepseek-ai/DeepEP) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 430 cm
+1 0 0 1 60 354 cm
 q
 BT 1 0 0 1 0 3.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (humming kernels) Tj /F2+0 9.2 Tf 13 TL ( - MoE kernels under vllm-project; library reuse is distinct from running the vLLM serving engine.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 413 cm
+1 0 0 1 60 337 cm
 q
 .078431 .364706 .52549 rg
 BT 1 0 0 1 0 2.4 Tm /F2+0 7.6 Tf 10 TL (https://github.com/vllm-project/humming) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 393 cm
+1 0 0 1 60 317 cm
 q
 BT 1 0 0 1 0 3.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (Official sweep and plot) Tj /F2+0 9.2 Tf 13 TL ( - Steady-state step/acceptance accounting differs from our client-observed HTTP cohorts.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 376 cm
+1 0 0 1 60 300 cm
 q
 .078431 .364706 .52549 rg
 BT 1 0 0 1 0 2.4 Tm /F2+0 7.6 Tf 10 TL (https://github.com/deepseek-ai/DeepInfer/blob/main/examples/sweep/plot_pareto.py) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 343 cm
+1 0 0 1 60 267 cm
 q
 BT 1 0 0 1 0 16.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (Our DeepInfer discussion221) Tj /F2+0 9.2 Tf 13 TL ( - Deployment observations and benchmark discussion; current report distinguishes) Tj T* (measured facts and proposed changes.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 326 cm
+1 0 0 1 60 250 cm
 q
 .078431 .364706 .52549 rg
 BT 1 0 0 1 0 2.4 Tm /F2+0 7.6 Tf 10 TL (https://github.com/deepseek-ai/DeepInfer/discussions/221) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 293 cm
+1 0 0 1 60 217 cm
 q
 BT 1 0 0 1 0 16.8 Tm 13 TL 0 0 0 rg /F3+0 9.2 Tf 13 TL (Our Harness discussion5682) Tj /F2+0 9.2 Tf 13 TL ( - Gateway/multi-tenancy integration proposal. Engine benchmarks do not qualify) Tj T* (every product feature.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 276 cm
+1 0 0 1 60 200 cm
 q
 .078431 .364706 .52549 rg
 BT 1 0 0 1 0 2.4 Tm /F2+0 7.6 Tf 10 TL (https://github.com/deepseek-ai/deepseek-harness/discussions/5682) Tj T* ET
 Q
 Q
 q
-1 0 0 1 60 230 cm
+1 0 0 1 60 154 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 29.8 Tm /F2+0 9.2 Tf 13 TL (These are the selected related references requested for this review, not an exhaustive inventory of every upstream) Tj T* (PR or fork. Official sweep, SM90 request benchmark and LocalEngram hardware/workloads differ; matching units) Tj T* (alone does not make experiments equivalent.) Tj T* ET
@@ -6725,7 +6717,7 @@ Q
  
 endstream
 endobj
-106 0 obj
+105 0 obj
 <<
 /Length 5649
 >>
@@ -6733,7 +6725,7 @@ stream
 1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
 .321569 .427451 .501961 rg
 BT 1 0 0 1 60 29 Tm /F2+0 7.6 Tf 9.12 TL (Measured evidence / conditional estimates / planned changes kept separate) Tj T* ET
-BT 1 0 0 1 526.5465 29 Tm /F2+0 7.6 Tf 9.12 TL (18) Tj T* ET
+BT 1 0 0 1 526.5465 29 Tm /F2+0 7.6 Tf 9.12 TL (17) Tj T* ET
 q
 1 0 0 1 60 777 cm
 q
@@ -6931,7 +6923,7 @@ Q
 endstream
 endobj
 xref
-0 107
+0 106
 0000000000 65535 f 
 0000000061 00000 n 
 0000000129 00000 n 
@@ -6983,62 +6975,61 @@ xref
 0000298603 00000 n 
 0000298828 00000 n 
 0000299099 00000 n 
-0000299302 00000 n 
-0000299535 00000 n 
-0000299757 00000 n 
-0000299960 00000 n 
-0000300151 00000 n 
-0000300342 00000 n 
-0000300533 00000 n 
-0000300724 00000 n 
-0000300915 00000 n 
-0000301106 00000 n 
-0000301294 00000 n 
-0000301473 00000 n 
-0000301655 00000 n 
-0000301878 00000 n 
-0000302077 00000 n 
-0000302284 00000 n 
-0000302586 00000 n 
-0000302868 00000 n 
-0000303150 00000 n 
-0000303391 00000 n 
-0000303614 00000 n 
-0000303830 00000 n 
-0000304173 00000 n 
-0000304516 00000 n 
-0000304740 00000 n 
-0000304953 00000 n 
-0000305152 00000 n 
-0000305437 00000 n 
-0000307362 00000 n 
-0000373226 00000 n 
-0000373472 00000 n 
-0000374602 00000 n 
-0000376542 00000 n 
-0000425254 00000 n 
-0000425512 00000 n 
-0000426685 00000 n 
-0000426755 00000 n 
-0000427082 00000 n 
-0000427266 00000 n 
-0000429670 00000 n 
-0000443302 00000 n 
-0000445523 00000 n 
-0000453206 00000 n 
-0000474714 00000 n 
-0000482231 00000 n 
-0000483590 00000 n 
-0000484572 00000 n 
-0000492571 00000 n 
-0000497156 00000 n 
-0000503417 00000 n 
-0000507549 00000 n 
-0000511995 00000 n 
-0000518665 00000 n 
-0000519287 00000 n 
-0000524155 00000 n 
-0000529634 00000 n 
+0000299330 00000 n 
+0000299552 00000 n 
+0000299755 00000 n 
+0000299946 00000 n 
+0000300137 00000 n 
+0000300328 00000 n 
+0000300519 00000 n 
+0000300710 00000 n 
+0000300901 00000 n 
+0000301100 00000 n 
+0000301288 00000 n 
+0000301467 00000 n 
+0000301649 00000 n 
+0000301872 00000 n 
+0000302071 00000 n 
+0000302278 00000 n 
+0000302587 00000 n 
+0000302869 00000 n 
+0000303151 00000 n 
+0000303392 00000 n 
+0000303615 00000 n 
+0000303831 00000 n 
+0000304174 00000 n 
+0000304517 00000 n 
+0000304741 00000 n 
+0000304954 00000 n 
+0000305153 00000 n 
+0000305438 00000 n 
+0000307363 00000 n 
+0000373227 00000 n 
+0000373473 00000 n 
+0000374603 00000 n 
+0000376543 00000 n 
+0000425255 00000 n 
+0000425513 00000 n 
+0000426686 00000 n 
+0000426756 00000 n 
+0000427083 00000 n 
+0000427260 00000 n 
+0000429664 00000 n 
+0000443296 00000 n 
+0000445517 00000 n 
+0000453200 00000 n 
+0000474708 00000 n 
+0000482225 00000 n 
+0000483458 00000 n 
+0000484565 00000 n 
+0000492564 00000 n 
+0000497149 00000 n 
+0000503410 00000 n 
+0000507542 00000 n 
+0000511988 00000 n 
+0000518888 00000 n 
+0000523756 00000 n 
+0000529943 00000 n 
 trailer
 <<
 /ID 
@@ -7047,8 +7038,8 @@ trailer
 
 /Info 87 0 R
 /Root 86 0 R
-/Size 107
+/Size 106
 >>
 startxref
-535336
+535645
 %%EOF
