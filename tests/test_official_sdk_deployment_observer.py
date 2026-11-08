@@ -100,7 +100,8 @@ class DeploymentObserverTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "IMAGE_ID"): self.observer()
     def test_only_admitted_exact_image_id_forms_pass(self):
         for value in ("containerd://" + self.digest, "cri-o://" + self.digest,
-                "docker-pullable://registry.example:443/qualified@" + self.digest):
+                "docker-pullable://registry.example:443/qualified@" + self.digest,
+                "registry.example.internal/dsh-runtime@" + self.digest):
             with self.subTest(value=value):
                 self.pod["status"]["containerStatuses"][0]["imageID"] = value
                 self.assertEqual(self.observer()["podUID"], self.pod_uid)

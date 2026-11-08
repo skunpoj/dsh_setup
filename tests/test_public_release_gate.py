@@ -30,5 +30,13 @@ class PublicReleaseGateTests(unittest.TestCase):
   with TemporaryDirectory() as t:
    p=Path(t);(p/'note.txt').write_text('https://workspace.example.com; supplied by the operator')
    self.assertEqual(gate.scan(p),[])
+ def test_exact_invalid_renderer_fixture_is_allowed_only_at_its_bound_path(self):
+  with TemporaryDirectory() as t:
+   p=Path(t);fixture=p/'gpu-stack'/'tests'/'test_portable.py';fixture.parent.mkdir(parents=True)
+   invalid='https'+''.join(['://', 'user', ':', 'password', '@', 'gpu.example.internal'])
+   fixture.write_text("value='"+invalid+"'")
+   self.assertEqual(gate.scan(p),[])
+   (p/'other.py').write_text("value='"+invalid+"'")
+   self.assertEqual(gate.scan(p),[{'path':'other.py','kind':'credential-url'}])
 
 if __name__=='__main__':unittest.main()

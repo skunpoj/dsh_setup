@@ -18,6 +18,9 @@ import os
 from pathlib import Path
 import threading
 import uuid
+import re
+import socket
+import time
 from urllib.parse import urlsplit
 try:
     from .dsh_correlation import operation_correlation_id, validate_correlation_id
@@ -32,7 +35,7 @@ else:
 ALLOWED_PATHS = frozenset({"/v1/chat/completions", "/v1/messages", "/v1/responses"})
 HOP_HEADERS = frozenset({"api-key", "authorization", "connection", "content-length", "host",
                          "transfer-encoding", "x-api-key", "x-litellm-api-key",
-                         "x-dsh-correlation-id"})
+                         "x-dsh-correlation-id", "x-dsh-task-id", "x-dsh-task-correlation-id"})
 MAX_BODY = 8 * 1024 * 1024
 APPROVED_UPSTREAM = "http://litellm-gateway.llm.svc.cluster.local:4000"
 CORRELATION_HEADER = "x-dsh-correlation-id"
@@ -59,7 +62,8 @@ def server_identity(response):
     return {"litellm_call_id": value}
 
 
-def sanitize_internal_request(path: str, body: bytes, operation_id: str | None = None) -> bytes:
+def sanitize_internal_request(path: str, body: bytes, operation_id: str | None = None,
+                              *, task_id=None, task_correlation_id=None) -> bytes:
     """Remove provider-only extensions that the internal route cannot accept."""
     if path not in ALLOWED_PATHS:
         raise ValueError("model path is not allowed")
@@ -76,7 +80,8 @@ def sanitize_internal_request(path: str, body: bytes, operation_id: str | None =
     cleaned.pop("chat_template_kwargs", None)
     supplied_metadata = cleaned.get("metadata")
     if isinstance(supplied_metadata, dict) and any(
-            key in supplied_metadata for key in ("dsh_correlation_id", "litellm_call_id")):
+            key in supplied_metadata for key in ("dsh_correlation_id", "litellm_call_id",
+                                                  'dsh_task_id','dsh_task_correlation_id')):
         raise ValueError("client-supplied DSH correlation is forbidden")
     if operation_id is not None:
         operation_id = validate_correlation_id(operation_id)
@@ -87,7 +92,14 @@ def sanitize_internal_request(path: str, body: bytes, operation_id: str | None =
             raise ValueError("request metadata must be a JSON object")
         metadata = dict(metadata)
         metadata["dsh_correlation_id"] = operation_id
+        if task_id is not None or task_correlation_id is not None:
+            if not isinstance(task_id,str) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,200}',task_id):
+                raise ValueError('server-owned task identity required')
+            metadata['dsh_task_id']=task_id
+            metadata['dsh_task_correlation_id']=validate_correlation_id(task_correlation_id)
         cleaned["metadata"] = metadata
+    elif task_id is not None or task_correlation_id is not None:
+        raise ValueError('reserved operation required before task metadata')
     return json.dumps(cleaned, ensure_ascii=False, separators=(",", ":")).encode()
 
 
@@ -145,6 +157,8 @@ class AdmissionLedger:
             with self.path.open("a+", encoding="utf-8") as stream:
                 stream.seek(0)
                 rows = [json.loads(line) for line in stream if line.strip()]
+                if any(r.get('task_id') == self.task_id and r.get('event') == 'task-fenced' for r in rows):
+                    return False, 'task-fenced', 0, mark, ''
                 starts = [r for r in rows if r.get("task_id") == self.task_id and r.get("event") == "upstream-start-reserved"]
                 if any(r.get("fingerprint") == mark for r in starts):
                     prior = next(r for r in starts if r.get("fingerprint") == mark)
@@ -160,6 +174,20 @@ class AdmissionLedger:
                                       "sequence": sequence, "path": path, "fingerprint": mark,
                                       "utc": datetime.now(timezone.utc).isoformat()})
                 return True, "reserved", sequence, mark, operation_id
+
+    def fence(self, operation_id):
+        operation_id = validate_correlation_id(operation_id)
+        with self._locked():
+            with self.path.open('a+', encoding='utf-8') as stream:
+                stream.seek(0)
+                rows = [json.loads(line) for line in stream if line.strip()]
+                prior = [r for r in rows if r.get('task_id') == self.task_id and r.get('event') == 'task-fenced']
+                if prior:
+                    return False
+                self._append(stream, {'event': 'task-fenced', 'task_id': self.task_id,
+                    'task_correlation_id': self.task_correlation_id, 'operation_id': operation_id,
+                    'utc': datetime.now(timezone.utc).isoformat()})
+                return True
 
     def complete(self, sequence: int, mark: str, operation_id: str, status: int, outcome: str,
                  upstream_identity=None):
@@ -188,7 +216,61 @@ class GuardedServer(ThreadingHTTPServer):
         self.upstream = parsed
         self.token_file = token_file
         self.ledger = ledger
+        self.activity=threading.Condition()
+        self.active={}
+        self.fencing=False
+        self.drain_errors=[]
         super().__init__(address, GuardedHandler)
+
+    def begin_upstream(self,connection,handler,path,body,headers):
+        # TCP establishment sends no model request. If fencing races this
+        # bounded connect, the subsequent check refuses before request bytes.
+        with self.activity:
+            if self.fencing:raise RuntimeError('GUARD_FENCED_BEFORE_UPSTREAM_CONNECT')
+            self.active[id(handler)]=(connection,None,handler.connection)
+        connection.connect()
+        with self.activity:
+            if self.fencing:raise RuntimeError('GUARD_FENCED_BEFORE_UPSTREAM_SEND')
+            # Keep the actual socket even if HTTPConnection detaches it after
+            # HTTP/1.0 response headers while the response body still blocks.
+            self.active[id(handler)]=(connection,connection.sock,handler.connection)
+            # Serialize initial request bytes with the fence. The socket has
+            # a finite send timeout; response streaming does not hold this lock.
+            connection.request('POST',path,body=body,headers=headers)
+
+    def end_upstream(self,handler,error=None):
+        with self.activity:
+            if error is not None:self.drain_errors.append('GUARD_COMPLETION_PERSISTENCE_FAILED')
+            self.active.pop(id(handler),None)
+            self.activity.notify_all()
+
+    def fence_and_drain(self,operation_id,*,timeout=5):
+        if type(timeout) not in (int,float) or not 0<timeout<=5:
+            raise ValueError('BOUNDED_GUARD_DRAIN_REQUIRED')
+        deadline=time.monotonic()+timeout
+        with self.activity:
+            self.fencing=True
+            fence_error=False
+            try:self.ledger.fence(operation_id)
+            except Exception:
+                # A persistence failure cannot leave local transports running
+                # or become an accepted drain receipt.
+                fence_error=True
+            for upstream,captured,downstream in list(self.active.values()):
+                upstream_socket=captured if captured is not None else (upstream.sock if upstream is not None else None)
+                for stream in (upstream_socket,downstream):
+                    if stream is not None:
+                        try:stream.shutdown(socket.SHUT_RDWR)
+                        except OSError:pass
+            while self.active:
+                remaining=deadline-time.monotonic()
+                if remaining<=0:raise TimeoutError('GUARD_INFLIGHT_DRAIN_UNVERIFIED')
+                self.activity.wait(remaining)
+            if fence_error:raise RuntimeError('GUARD_FENCE_PERSISTENCE_FAILED')
+            if self.drain_errors:raise RuntimeError('GUARD_COMPLETION_PERSISTENCE_FAILED')
+        # No claim that a disconnected provider has stopped computation. Its
+        # authoritative request record still requires separate reconciliation.
+        return {'localInflightDrained':True,'providerExecutionStoppedVerified':False}
 
 
 class GuardedHandler(BaseHTTPRequestHandler):
@@ -196,6 +278,21 @@ class GuardedHandler(BaseHTTPRequestHandler):
 
     def log_message(self, *_):
         return
+
+    def do_GET(self):
+        # Loopback-only task identity probe. Does not read a provider token,
+        # reserve a model start, or expose request/response content.
+        if self.path != '/_dsh/task-identity':
+            return self._reject('invalid-identity-path', 404)
+        data = json.dumps({'taskId': self.server.ledger.task_id,
+            'correlationId': self.server.ledger.task_correlation_id,
+            'maximum': self.server.ledger.maximum,
+            'upstream': self.server.upstream.geturl().rstrip('/')}).encode()
+        self.send_response(200)
+        self.send_header('content-type', 'application/json')
+        self.send_header('content-length', str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
     def _reject(self, reason: str, status=422):
         data = json.dumps({"error": {"type": "dsh_admission_refused", "reason": reason, "retryable": False}}).encode()
@@ -237,7 +334,11 @@ class GuardedHandler(BaseHTTPRequestHandler):
         if not token:
             return self._reject("credential-unavailable", 503)
         try:
-            accepted, reason, sequence, mark, operation_id = self.server.ledger.reserve(path, body)
+            with self.server.activity:
+                if self.server.fencing:
+                    return self._reject('task-fenced')
+                accepted, reason, sequence, mark, operation_id = self.server.ledger.reserve(path, body)
+                if accepted:self.server.active[id(self)]=(None,None,self.connection)
         except ValueError:
             return self._reject("invalid-request", 400)
         if not accepted:
@@ -247,20 +348,24 @@ class GuardedHandler(BaseHTTPRequestHandler):
                    if k.lower() not in HOP_HEADERS | SERVER_IDENTITY_REQUEST_HEADERS}
         headers["authorization"] = "Bearer " + token
         headers[CORRELATION_HEADER] = operation_id
+        headers['x-dsh-task-id']=self.server.ledger.task_id
+        headers['x-dsh-task-correlation-id']=self.server.ledger.task_correlation_id
         # The installed LiteLLM proxy explicitly accepts this request ID and
         # returns it in its response header. Derive it from our durable guard
         # operation, after discarding any caller-supplied value. Anthropic
         # request metadata alone is not persisted reliably by that proxy.
         headers["x-litellm-call-id"] = str(uuid.UUID(operation_id))
-        body = sanitize_internal_request(path, body, operation_id)
+        body = sanitize_internal_request(path, body, operation_id,
+            task_id=self.server.ledger.task_id,task_correlation_id=self.server.ledger.task_correlation_id)
         headers["content-length"] = str(len(body))
-        connection = http.client.HTTPConnection(self.server.upstream.hostname, self.server.upstream.port, timeout=3600)
+        connection = http.client.HTTPConnection(self.server.upstream.hostname, self.server.upstream.port, timeout=5)
         status = 502
         outcome = "transport-failed"
         response_started = False
         upstream_identity = {}
         try:
-            connection.request("POST", self.path, body=body, headers=headers)
+            self.server.begin_upstream(connection,self,self.path,body,headers)
+            if connection.sock is not None:connection.sock.settimeout(3600)
             response = connection.getresponse(); status = response.status
             upstream_identity = server_identity(response)
             self.send_response(status)
@@ -281,12 +386,19 @@ class GuardedHandler(BaseHTTPRequestHandler):
                 except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError): pass
         finally:
             connection.close()
-            self.server.ledger.complete(sequence, mark, operation_id, status, outcome,
-                                        upstream_identity=upstream_identity)
+            error=None
+            try:
+                self.server.ledger.complete(sequence, mark, operation_id, status, outcome,
+                                            upstream_identity=upstream_identity)
+            except BaseException as exc:
+                error=exc
+                raise
+            finally:self.server.end_upstream(self,error)
 
 
 @contextlib.contextmanager
-def running_guard(upstream: str, token_file: Path, ledger: AdmissionLedger, *, allow_test_upstream=False, listen_port=0):
+def running_guard(upstream: str, token_file: Path, ledger: AdmissionLedger, *, allow_test_upstream=False, listen_port=0, yield_server=False):
+    if type(yield_server) is not bool:raise ValueError('EXPLICIT_GUARD_CONTROL_MODE_REQUIRED')
     if type(listen_port) is not int or not (listen_port==0 or 1024<=listen_port<=65535):
         raise ValueError('invalid loopback guard port')
     # Binding must succeed before the client starts. Never connect a client to
@@ -294,6 +406,8 @@ def running_guard(upstream: str, token_file: Path, ledger: AdmissionLedger, *, a
     server = GuardedServer(("127.0.0.1", listen_port), upstream, token_file, ledger, allow_test_upstream=allow_test_upstream)
     thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
     try:
-        yield server.server_port
+        yield server if yield_server else server.server_port
     finally:
-        server.shutdown(); server.server_close(); thread.join(timeout=5)
+        try:server.fence_and_drain(uuid.uuid4().hex)
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=5)

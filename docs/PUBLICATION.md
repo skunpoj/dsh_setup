@@ -10,6 +10,11 @@ Keep deployment-specific source and evidence in a separate, access-controlled
 repository. Never merge an old deployment branch or history into the public
 repository. Use a fresh clone after a public-history replacement.
 
+The managed A2A and official-SDK portable source uses the deterministic mapping
+documented in [A2A_SOURCE_MAPPING.md](A2A_SOURCE_MAPPING.md). The mapping removes
+only the private repository prefix; private overlays, identities, endpoints,
+receipts and operational history remain outside this repository.
+
 Before publishing:
 
 1. Inspect source and configuration for real domains, network addresses, user

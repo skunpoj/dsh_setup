@@ -8,6 +8,9 @@ import subprocess
 import sys
 import uuid
 import re
+import time
+import http.client
+import json
 
 sys.path.insert(0, "/opt/dsh/scripts")
 from unattended_model_guard import AdmissionLedger, APPROVED_UPSTREAM, running_guard
@@ -39,6 +42,44 @@ def build_environment(parent, client, base):
     return env
 
 
+def verify_external_guard(port, task_id, correlation_id, maximum):
+    if type(port) is not int or not 1024 <= port <= 65535:
+        raise ValueError('INVALID_EXTERNAL_GUARD_PORT')
+    connection = http.client.HTTPConnection('127.0.0.1', port, timeout=5)
+    try:
+        connection.request('GET', '/_dsh/task-identity')
+        response = connection.getresponse()
+        raw = response.read(4097)
+        if response.status != 200 or len(raw) > 4096:
+            raise ValueError('EXTERNAL_TASK_GUARD_UNVERIFIED')
+        observed = json.loads(raw)
+        if observed != dict(taskId=task_id, correlationId=correlation_id,
+                            maximum=maximum, upstream=APPROVED_UPSTREAM):
+            raise ValueError('EXTERNAL_TASK_GUARD_BINDING_MISMATCH')
+    finally:
+        connection.close()
+    return f'http://127.0.0.1:{port}'
+
+
+def stop_client_group(pgid, timeout=2.0):
+    """Bounded POSIX group cleanup; does not prove cgroup/escaped-child isolation."""
+    if type(pgid) is not int or pgid <= 1:
+        raise ValueError("CLI_GROUP_IDENTITY_REQUIRED")
+    for signum in (signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.killpg(pgid, signum)
+        except ProcessLookupError:
+            return
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            try:
+                os.killpg(pgid, 0)
+            except ProcessLookupError:
+                return
+            time.sleep(.02)
+    raise RuntimeError("CLI_PROCESS_GROUP_STOP_UNVERIFIED")
+
+
 def run_client(command, env, cwd="/workspace"):
     child = subprocess.Popen(command, env=env, cwd=cwd,
                              start_new_session=(os.name != "nt"))
@@ -59,7 +100,12 @@ def run_client(command, env, cwd="/workspace"):
     finally:
         for signum, handler in previous.items():
             signal.signal(signum, handler)
-        if child.poll() is None:
+        if os.name != "nt":
+            # The leader may already have exited while descendants still live.
+            # Cleanup the owned inner session group, not just the wrapper PID.
+            stop_client_group(child.pid)
+            child.wait(timeout=5)
+        elif child.poll() is None:
             child.terminate()
             try:
                 child.wait(timeout=5)
@@ -77,6 +123,7 @@ def main():
     parser.add_argument("--task-id")
     parser.add_argument("--max-model-starts", type=int, default=12)
     parser.add_argument("--guard-port", type=int, default=0)
+    parser.add_argument('--external-guard-port', type=int, default=0)
     parser.add_argument("--cwd", default="/workspace")
     parser.add_argument("--resume", action="store_true")
     options = parser.parse_args(control)
@@ -84,6 +131,21 @@ def main():
         raise ValueError("max model starts must be 1-64")
     task = safe_task(options.task_id)
     task_correlation_id = validate_correlation_id(os.environ.get("DSH_CORRELATION_ID", ""))
+    cwd = Path(options.cwd).resolve()
+    workspace = Path('/workspace').resolve()
+    if cwd != workspace and workspace not in cwd.parents:
+        raise ValueError('cwd must be inside /workspace')
+    if options.external_guard_port:
+        if options.guard_port or options.resume:
+            raise ValueError('EXTERNAL_GUARD_MODE_CONFLICT')
+        # Guard sidecar owns the existing durable ledger and model credential.
+        # This payload mode never mounts/reads credentials or creates a guard.
+        base = verify_external_guard(options.external_guard_port, task,
+                                     task_correlation_id, options.max_model_starts)
+        env = build_environment(os.environ, options.client, base)
+        env['DSH_UNATTENDED_TASK'] = task
+        env['DSH_EXTERNAL_TASK_GUARD'] = 'sidecar'
+        return run_client([*CLIENTS[options.client], *client_args], env, str(cwd))
     state = Path("/state/unattended") / task
     if options.resume:
         if not state.is_dir():
@@ -98,10 +160,6 @@ def main():
         env = build_environment(os.environ, options.client, base)
         env["DSH_UNATTENDED_TASK"] = task
         env["DSH_CORRELATION_ID"] = task_correlation_id
-        cwd = Path(options.cwd).resolve()
-        workspace = Path("/workspace").resolve()
-        if cwd != workspace and workspace not in cwd.parents:
-            raise ValueError("cwd must be inside /workspace")
         return run_client([*CLIENTS[options.client], *client_args], env, str(cwd))
 
 

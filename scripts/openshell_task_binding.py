@@ -322,4 +322,3 @@ class BrokerOpenShellService:
                 task.save()
                 raise
         return results
-

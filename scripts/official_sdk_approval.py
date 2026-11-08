@@ -41,6 +41,8 @@ def verified_terminal_stop(record):
     native = record.get("nativeSdk")
     if (record.get("state") not in {"completed", "failed", "cancelled"}
             or not isinstance(native, dict) or native.get("phase") != "stopped"
+            or native.get('postStopLifecycleFailure')
+            or native.get('guardLifecyclePending')
             or not isinstance(native.get("stopOperationId"), str)
             or not re.fullmatch(r"[a-f0-9]{32}", native["stopOperationId"])
             or native.get("taskId") != record.get("id")
@@ -52,10 +54,12 @@ def verified_terminal_stop(record):
                "operationId": native["stopOperationId"]}
     if any(not isinstance(v, str) or not v for v in context.values()):
         return False
-    expected = {**context, "stopped": True, "processExitVerified": True}
+    expected = {**context, "stopped": True, "processExitVerified": True,
+                'descendantAbsenceVerified': True}
     receipt = native.get("stopReceipt")
     return (isinstance(receipt, dict) and receipt.get("stopped") is True
-            and receipt.get("processExitVerified") is True and receipt == expected)
+            and receipt.get("processExitVerified") is True
+            and receipt.get('descendantAbsenceVerified') is True and receipt == expected)
 
 
 class NativeSDKApprovalBridge:
@@ -284,7 +288,7 @@ class NativeSDKApprovalBridge:
         with self.task.persistence_lock:
             state = self._current(self.subject, self.generation)
             if (not self._stop_call or not self._stop_call.done.is_set()
-                    or state["phase"] != "stop-uncertain"):
+                    or state["phase"] not in {"stop-reserved", "stop-uncertain"}):
                 return False
             operation = state["stopOperationId"]
         try: receipt = self._stop_call.result(0)
@@ -302,17 +306,20 @@ class NativeSDKApprovalBridge:
             if (not isinstance(receipt, dict)
                     or any(receipt.get(k) != v for k, v in context.items())
                     or receipt.get("stopped") is not True
-                    or receipt.get("processExitVerified") is not True):
+                    or receipt.get("processExitVerified") is not True
+                    or receipt.get('descendantAbsenceVerified') is not True):
                 state["phase"] = "stop-uncertain"
                 self.task.state = "interrupted"
                 self.task.save()
                 return False
-            state["phase"] = "stopped"
+            lifecycle_failed=bool(state.get('postStopLifecycleFailure'))
+            state["phase"] = "post-stop-lifecycle-uncertain" if lifecycle_failed else "stopped"
             # Persist only the checked identity/proof fields, never arbitrary
             # callback output, so recovery can distinguish proof from a label.
             state["stopReceipt"] = {**context, "stopped": True,
-                                    "processExitVerified": True}
-            self.task.state = state["desiredTerminalState"]
+                                    "processExitVerified": True, 'descendantAbsenceVerified': True}
+            self.task.state = ('interrupted' if lifecycle_failed else
+                ('finalizing' if state.get('guardLifecyclePending') else state["desiredTerminalState"]))
             self.task.save()
             self.task.emit("state", {"state": self.task.state, "nativeExitVerified": True})
-            return True
+            return not lifecycle_failed

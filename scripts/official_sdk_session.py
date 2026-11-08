@@ -6,6 +6,7 @@ The protected scope must start, identify, stop and reap the exact native process
 and its descendants. Source tests cannot qualify that external implementation.
 """
 import importlib.metadata
+from contextlib import contextmanager
 from pathlib import Path
 import re
 import threading
@@ -86,6 +87,11 @@ class OfficialSDKSessionRunner:
                     or state.get("project") != task.request["project"]
                     or state.get("correlationId") != task.correlation_id):
                 raise ValueError("FOREIGN_NATIVE_RECOVERY_BINDING")
+            if state.get('postStopLifecycleFailure') or state.get('guardLifecyclePending'):
+                # A saved physical exit cannot cure failed guard/accounting
+                # teardown. Never restart or manufacture accepted completion.
+                task.state='interrupted';task.save()
+                return False
             if state["phase"] == "stopped":
                 verified = verified_terminal_stop({"id": task.id, "state": task.state,
                     "project": task.request["project"], "correlationId": task.correlation_id,
@@ -128,6 +134,7 @@ class OfficialSDKSessionRunner:
                     or any(receipt.get(k) != v for k, v in context.items())
                     or receipt.get("stopped") is not True
                     or receipt.get("processExitVerified") is not True
+                    or receipt.get('descendantAbsenceVerified') is not True
                     or receipt.get("launchFenced") is not True
                     or (context["runtimeIdentity"] is None and receipt.get("neverStarted") is not True)
                     or not isinstance(operation, str) or not re.fullmatch(r"[a-f0-9]{32}", operation)
@@ -139,10 +146,54 @@ class OfficialSDKSessionRunner:
             state.update(phase="stopped", stopOperationId=operation,
                 stopReceipt={"taskId": task.id, "sessionId": state["sessionId"],
                     "subject": subject, "generation": state["generation"],
-                    "operationId": operation, "stopped": True, "processExitVerified": True})
+                    "operationId": operation, "stopped": True, "processExitVerified": True,
+                    'descendantAbsenceVerified': True})
             task.state = terminal; task.save()
             task.emit("state", {"state": terminal, "nativeRecoveryExitVerified": True})
             return True
+
+    def _guard_lifecycle_failed(self,task):
+        with task.persistence_lock:
+            if task.native_sdk is not None:
+                task.native_sdk['postStopLifecycleFailure']=True
+                if task.native_sdk.get('phase')=='stopped':
+                    task.native_sdk['phase']='post-stop-lifecycle-uncertain'
+            task.state='interrupted';task.save()
+
+    def _guard_lifecycle_succeeded(self,task):
+        with task.persistence_lock:
+            native=task.native_sdk
+            if native is None or not native.get('guardLifecyclePending'):return
+            native['guardLifecyclePending']=False
+            if native.get('phase')=='stopped' and not native.get('postStopLifecycleFailure'):
+                desired=native.get('desiredTerminalState')
+                record=dict(id=task.id,project=task.request['project'],correlationId=task.correlation_id,
+                    state=desired,nativeSdk=native)
+                task.state=desired if verified_terminal_stop(record) else 'interrupted'
+            task.save()
+            task.emit('state',dict(state=task.state,guardContextExited=True))
+
+    @contextmanager
+    def _guard_lifecycle(self,task):
+        entered=False;body_error=None
+        try:
+            with self.guard_factory(task) as guard:
+                entered=True
+                try:yield guard
+                except BaseException as error:
+                    body_error=error
+                    raise
+        except BaseException as error:
+            # A body exception rethrown unchanged is NOT a guard teardown
+            # failure (in particular, preserve an already verified cancel).
+            if entered:
+                if error is not body_error:self._guard_lifecycle_failed(task)
+                else:self._guard_lifecycle_succeeded(task)
+            raise
+        if body_error is not None:
+            self._guard_lifecycle_failed(task)
+            raise body_error  # A guard cannot silently suppress a task fault.
+        self._guard_lifecycle_succeeded(task)
 
     def run_task(self, subject, task):
         if subject != self.subject: raise ValueError("FOREIGN_NATIVE_SDK_SUBJECT")
@@ -159,6 +210,7 @@ class OfficialSDKSessionRunner:
             raise ValueError("INVALID_NATIVE_SDK_PROMPT")
         task.finished.clear()
         harness = bridge = subscription = None
+        final_output = None
         readers = []
         reader_stop = threading.Event()
         protocol_failed = threading.Event()
@@ -179,15 +231,15 @@ class OfficialSDKSessionRunner:
                     or any(admission.get(k) != v for k, v in context.items())
                     or admission.get("packageAdmissionSha256") != package["admissionSha256"]):
                 raise ValueError("NATIVE_SCOPE_PREFLIGHT_REFUSED")
-            for package in ("deepseek-harness-sdk", "deepseek-harness-runtime-bin"):
-                if self.version(package) != SDK_VERSION:
+            for distribution in ("deepseek-harness-sdk", "deepseek-harness-runtime-bin"):
+                if self.version(distribution) != SDK_VERSION:
                     raise ValueError("MATCHED_APPROVAL_CAPABLE_SDK_PAIR_REQUIRED")
             project = (self.workspace_root / task.request["project"]).resolve(strict=True)
             if not project.is_relative_to(self.workspace_root) or not project.is_dir():
                 raise ValueError("BROKER_RESOLVED_PROJECT_REQUIRED")
             home = task.directory / "official-sdk-home"
             home.mkdir(mode=0o700, exist_ok=False)
-            with self.guard_factory(task) as guard:
+            with self._guard_lifecycle(task) as guard:
                 endpoint = guarded_endpoint(guard.base_url)
                 if getattr(guard, "task_id", None) != task.id or getattr(guard, "correlation_id", None) != task.correlation_id:
                     raise ValueError("NATIVE_MODEL_GUARD_BINDING_MISMATCH")
@@ -244,7 +296,7 @@ class OfficialSDKSessionRunner:
                 with task.persistence_lock:
                     launch = uuid.uuid4().hex
                     task.native_sdk.update(phase="launch-reserved", launchOperationId=launch,
-                                           managedSession=True)
+                                           managedSession=True,guardLifecyclePending=True)
                     task.save()
                 start_context = {**context, "operationId": launch}
                 start = _ReservedCall(lambda: self.scope.start(harness, dict(start_context)))
@@ -300,6 +352,9 @@ class OfficialSDKSessionRunner:
                 if (protocol_failed.is_set() or result.finish_reason != "completed"
                         or not isinstance(result.final_response, str) or not result.final_response.strip()):
                     raise ValueError("NATIVE_SDK_TURN_NOT_COMPLETED")
+                if len(result.final_response.encode("utf-8")) > 262144:
+                    raise ValueError("NATIVE_SDK_RESULT_TOO_LARGE")
+                final_output = result.final_response
                 with task.persistence_lock:
                     settling = task.native_sdk["phase"] == "decision-reserved"
                 if settling and not bridge.wait_decision_settlement(self.operation_timeout):
@@ -333,3 +388,9 @@ class OfficialSDKSessionRunner:
                         task.state = "interrupted"
                         task.save()
             task.save(); task.finished.set()
+        with task.persistence_lock:
+            record = dict(id=task.id, project=task.request["project"],
+                correlationId=task.correlation_id, state=task.state, nativeSdk=task.native_sdk)
+            if task.state == "completed" and verified_terminal_stop(record):
+                return final_output  # Private in-memory handoff, not progress-log text.
+        return None

@@ -1,0 +1,28 @@
+# Test-only successor overlay. The normal Dockerfile and hash lock stay intact.
+# The base MUST first pass independent source-to-image admission. This file
+# does not establish that provenance or grant deployment/runtime admission.
+ARG DSH_TEST_BASE_IMAGE
+FROM ${DSH_TEST_BASE_IMAGE}
+ARG DSH_TEST_BASE_IMAGE
+ARG TRUSTED_SDK_PRODUCER_RECEIPT_SHA256
+USER root
+COPY scripts/official_sdk_release_admission.py scripts/produce_official_sdk_pair.py scripts/prepare_official_sdk_test_install.py /opt/dsh/scripts/
+# Populated only from independently admitted actual producer output. No sample
+# wheels, placeholder hashes, registry bootstrap, or downloaded replacement.
+COPY qualification-input/ /tmp/dsh-sdk-input/
+RUN --network=none /opt/dsh/deepagents/bin/python -I -S -c 'import re,sys; assert re.fullmatch(r"[^\s@]+@sha256:[a-f0-9]{64}",sys.argv[1]) and not sys.argv[1].endswith("0"*64), "IMMUTABLE_BASE_REQUIRED"' "$DSH_TEST_BASE_IMAGE"
+RUN --network=none /opt/dsh/deepagents/bin/python -I -S -c 'import sys; sys.path.insert(0,"/opt/dsh"); from scripts.prepare_official_sdk_test_install import main; main()' --input /tmp/dsh-sdk-input --output /tmp/dsh-sdk-verified --trusted-receipt-sha256 "$TRUSTED_SDK_PRODUCER_RECEIPT_SHA256" \
+ && /opt/dsh/deepagents/bin/python -I -m pip --isolated --disable-pip-version-check install --force-reinstall --no-cache-dir --no-index --no-deps --require-hashes --find-links=/tmp/dsh-sdk-input -r /tmp/dsh-sdk-verified/requirements.txt \
+ && /opt/dsh/deepagents/bin/python -I -m pip --disable-pip-version-check check \
+ && /opt/dsh/deepagents/bin/python -I -c 'from importlib.metadata import version; assert version("deepseek-harness-sdk")==version("deepseek-harness-runtime-bin")=="0.2.2a2"' \
+ && PYTHONPATH=/opt/dsh /opt/dsh/deepagents/bin/python -m unittest discover -s /opt/dsh/tests -p 'test_a2a*.py' \
+ && PYTHONPATH=/opt/dsh /opt/dsh/deepagents/bin/python -m unittest discover -s /opt/dsh/tests -p 'test_official_sdk*.py' \
+ && install -d -m 0755 /etc/dsh-native-admission /opt/dsh/sdk-build-evidence \
+ && install -m 0444 /tmp/dsh-sdk-verified/official-sdk-runtime.json /etc/dsh-native-admission/official-sdk-runtime.json \
+ && install -m 0444 /tmp/dsh-sdk-verified/producer-verified.json /opt/dsh/sdk-build-evidence/producer-verified.json \
+ && chmod -R a-w,a+rX /opt/dsh/deepagents \
+ && rm /tmp/dsh-sdk-input/* /tmp/dsh-sdk-verified/* \
+ && rmdir /tmp/dsh-sdk-input /tmp/dsh-sdk-verified
+USER 10001:10001
+# The final application digest must still be independently observed and bound
+# to the producer receipt; applicationImageBound remains false in this layer.

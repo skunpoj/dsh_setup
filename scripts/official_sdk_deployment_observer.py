@@ -17,7 +17,10 @@ def exact_running_digest(value):
     if not isinstance(value, str): raise ValueError("INVALID_QUALIFICATION_IMAGE_ID")
     direct = re.fullmatch(r"(?:containerd|cri-o)://(sha256:[a-f0-9]{64})", value)
     pulled = re.fullmatch(r"docker-pullable://[A-Za-z0-9][A-Za-z0-9._:/-]*@(sha256:[a-f0-9]{64})", value)
-    match = direct or pulled
+    # RKE2's actual retained Pod readback uses an unprefixed OCI pullable ID.
+    # Require a complete registry/repository@digest, never an arbitrary suffix.
+    oci = re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]*(?:/[A-Za-z0-9._:-]+)+@(sha256:[a-f0-9]{64})", value)
+    match = direct or pulled or oci
     if match is None: raise ValueError("INVALID_QUALIFICATION_IMAGE_ID")
     return match.group(1)
 

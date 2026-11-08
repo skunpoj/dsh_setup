@@ -21,6 +21,7 @@ class Upstream(BaseHTTPRequestHandler):
     payload = b'part-one\npart-two\n'
     received_headers = None
     response_call_id = None
+    body_barrier = None
     def log_message(self, *_): pass
     def do_POST(self):
         type(self).calls += 1
@@ -36,11 +37,85 @@ class Upstream(BaseHTTPRequestHandler):
                              if type(self).response_call_id == "echo-request"
                              else type(self).response_call_id)
         self.end_headers()
-        self.wfile.write(payload[:7]); self.wfile.flush(); self.wfile.write(payload[7:])
+        if type(self).body_barrier:
+            type(self).body_barrier.wait(timeout=3)
+            time.sleep(.4)
+        try:
+            self.wfile.write(payload[:7]); self.wfile.flush(); self.wfile.write(payload[7:])
+        except (BrokenPipeError,ConnectionAbortedError,ConnectionResetError):
+            pass  # Expected when the test intentionally fences its local guard.
 
 
 class GuardCase(unittest.TestCase):
     CORRELATION = "a" * 32
+    def test_fence_closes_local_inflight_transport_and_retains_completion_before_return(self):
+        server,thread=self.guard()
+        Upstream.barrier=threading.Barrier(2);Upstream.delay=.4
+        errors=[]
+        def request():
+            try:self.send(server.server_port,b'{"messages":["synthetic drain"]}')
+            except (OSError,http.client.HTTPException) as exc:errors.append(type(exc).__name__)
+        caller=threading.Thread(target=request);caller.start()
+        try:
+            Upstream.barrier.wait(timeout=3)
+            proof=server.fence_and_drain('d'*32,timeout=3)
+            self.assertTrue(proof['localInflightDrained'])
+            self.assertFalse(proof['providerExecutionStoppedVerified'])
+            self.assertFalse(server.active)
+            rows=[json.loads(line) for line in self.ledger_path.read_text().splitlines()]
+            self.assertEqual([row['event'] for row in rows],
+                             ['upstream-start-reserved','task-fenced','upstream-finished'])
+            self.assertEqual(Upstream.calls,1)
+            status,_=self.send(server.server_port,b'{"messages":["never forwarded"]}')
+            self.assertEqual(status,422);self.assertEqual(Upstream.calls,1)
+        finally:
+            caller.join(timeout=3)
+            server.shutdown();server.server_close();thread.join(timeout=2)
+        self.assertFalse(caller.is_alive())
+
+    def test_failed_completion_persistence_cannot_produce_drained_acceptance(self):
+        from unittest.mock import Mock
+        server,thread=self.guard()
+        try:
+            handler=Mock();connection=Mock()
+            server.active[id(handler)]=(connection,None,handler.connection)
+            server.end_upstream(handler,OSError('synthetic durable completion failure'))
+            with self.assertRaisesRegex(RuntimeError,'PERSISTENCE_FAILED'):
+                server.fence_and_drain('e'*32)
+        finally:server.shutdown();server.server_close();thread.join(timeout=2)
+
+    def test_failed_fence_persistence_still_closes_local_transport_without_acceptance(self):
+        from unittest.mock import Mock,patch
+        server,thread=self.guard()
+        try:
+            handler=Mock();connection=Mock()
+            server.active[id(handler)]=(connection,None,handler.connection)
+            connection.sock.shutdown.side_effect=lambda *_:server.end_upstream(handler)
+            with patch.object(server.ledger,'fence',side_effect=OSError('synthetic fence failure')):
+                with self.assertRaisesRegex(RuntimeError,'FENCE_PERSISTENCE_FAILED'):
+                    server.fence_and_drain('f'*32)
+            connection.sock.shutdown.assert_called_once()
+            handler.connection.shutdown.assert_called_once()
+            self.assertTrue(server.fencing);self.assertFalse(server.active)
+        finally:server.shutdown();server.server_close();thread.join(timeout=2)
+
+    def test_fence_drains_body_read_after_http10_connection_detaches_its_socket(self):
+        server,thread=self.guard();Upstream.body_barrier=threading.Barrier(2)
+        def request():
+            try:self.send(server.server_port,b'{"messages":["synthetic body drain"]}')
+            except (OSError,http.client.HTTPException):pass
+        caller=threading.Thread(target=request);caller.start()
+        try:
+            Upstream.body_barrier.wait(timeout=3)
+            proof=server.fence_and_drain('c'*32,timeout=3)
+            self.assertTrue(proof['localInflightDrained']);self.assertEqual(Upstream.calls,1)
+            rows=[json.loads(line) for line in self.ledger_path.read_text().splitlines()]
+            self.assertEqual(sum(row['event']=='upstream-finished' for row in rows),1)
+        finally:
+            caller.join(timeout=3)
+            server.shutdown();server.server_close();thread.join(timeout=2)
+        self.assertFalse(caller.is_alive())
+
     def test_occupied_fixed_port_fails_before_any_upstream_request(self):
         with socket.socket() as occupied:
             occupied.bind(('127.0.0.1',0));occupied.listen()
@@ -96,6 +171,7 @@ class GuardCase(unittest.TestCase):
         Upstream.calls = 0; Upstream.bodies = []; Upstream.barrier = None; Upstream.delay = 0; Upstream.received_headers = None
         Upstream.payload = b'part-one\npart-two\n'
         Upstream.response_call_id = None
+        Upstream.body_barrier = None
         self.upstream = ThreadingHTTPServer(("127.0.0.1", 0), Upstream)
         self.upstream_thread = threading.Thread(target=self.upstream.serve_forever, daemon=True); self.upstream_thread.start()
 
@@ -122,7 +198,8 @@ class GuardCase(unittest.TestCase):
     def test_stream_and_completion_ledger(self):
         server, thread = self.guard()
         try:
-            status, data = self.send(server.server_port, b'{"messages":[1]}')
+            status, data = self.send(server.server_port, b'{"messages":[1]}',
+                {'x-dsh-task-id':'foreign','x-dsh-task-correlation-id':'foreign'})
             self.assertEqual((status, data), (200, b"part-one\npart-two\n"))
             rows = [json.loads(x) for x in self.ledger_path.read_text().splitlines()]
             self.assertEqual([x["event"] for x in rows], ["upstream-start-reserved", "upstream-finished"])
@@ -132,6 +209,10 @@ class GuardCase(unittest.TestCase):
             self.assertEqual(Upstream.received_headers["x-dsh-correlation-id"], rows[0]["operation_correlation_id"])
             forwarded = json.loads(Upstream.bodies[0])
             self.assertEqual(forwarded["metadata"]["dsh_correlation_id"], rows[0]["operation_correlation_id"])
+            self.assertEqual(forwarded['metadata']['dsh_task_id'],rows[0]['task_id'])
+            self.assertEqual(forwarded['metadata']['dsh_task_correlation_id'],self.CORRELATION)
+            self.assertEqual(Upstream.received_headers['x-dsh-task-id'],rows[0]['task_id'])
+            self.assertEqual(Upstream.received_headers['x-dsh-task-correlation-id'],self.CORRELATION)
         finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
 
     def test_client_credentials_are_replaced_not_forwarded(self):
@@ -265,6 +346,8 @@ class GuardCase(unittest.TestCase):
         try:
             for fields in ({"metadata":{"dsh_correlation_id":"b"*32}},
                            {"metadata":{"litellm_call_id":"b"*32}},
+                           {'metadata':{'dsh_task_id':'foreign'}},
+                           {'metadata':{'dsh_task_correlation_id':'b'*32}},
                            {"litellm_call_id":"b"*32}):
                 with self.subTest(fields=fields):
                     body=json.dumps({"messages":[],**fields}).encode()

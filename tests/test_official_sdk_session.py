@@ -78,7 +78,7 @@ class Scope:
         return {**context, "started": True, "runtimeIdentity": self.identity}
     def stop_and_verify(self, harness, context):
         self.stops += 1; self.fenced = True; harness.client.close()
-        return {**context, "stopped": True, "processExitVerified": True,
+        return {**context, "stopped": True, "processExitVerified": True, "descendantAbsenceVerified": True,
             "launchFenced": True, "neverStarted": not self.started,
             "runtimeIdentity": self.stop_identity or (self.identity if self.started else None)}
 
@@ -131,8 +131,64 @@ class SessionRunnerTests(unittest.TestCase):
             time.sleep(.005)
         self.fail("Native synthetic phase not reached: " + phase)
 
+    def test_completed_state_is_durable_only_after_guard_context_exits(self):
+        from scripts.official_sdk_approval import verified_terminal_stop
+        observed=[]
+        @contextmanager
+        def guard(task):
+            yield SimpleNamespace(base_url='http://127.0.0.1:7777/v1',task_id=task.id,
+                correlation_id=task.correlation_id,temperature=0)
+            saved=self.saved();observed.append(saved)
+            self.assertTrue(saved['nativeSdk']['guardLifecyclePending'])
+            self.assertEqual(saved['state'],'finalizing')
+            self.assertFalse(verified_terminal_stop(saved))
+        self.guard_factory=guard;self.runner=self.make_runner()
+        self.assertEqual(self.runner.run_task('owner',self.task),'SYNTHETIC_NATIVE_RESULT')
+        self.assertEqual(len(observed),1);self.assertEqual(self.saved()['state'],'completed')
+        self.assertFalse(self.saved()['nativeSdk']['guardLifecyclePending'])
+
+    def test_failed_fault_save_still_leaves_saved_guard_pending_record_unaccepted(self):
+        from scripts.official_sdk_approval import verified_terminal_stop
+        from unittest.mock import Mock
+        @contextmanager
+        def guard(task):
+            yield SimpleNamespace(base_url='http://127.0.0.1:7777/v1',task_id=task.id,
+                correlation_id=task.correlation_id,temperature=0)
+            task.save=Mock(side_effect=OSError('synthetic journal unavailable'))
+            raise OSError('synthetic guard teardown failure')
+        self.guard_factory=guard;self.runner=self.make_runner()
+        with self.assertRaises(OSError):self.runner.run_task('owner',self.task)
+        saved=self.saved()
+        self.assertTrue(saved['nativeSdk']['guardLifecyclePending'])
+        self.assertFalse(verified_terminal_stop(saved))
+        restored=self.broker.Task.recover(saved,self.task.directory)
+        self.assertFalse(self.runner.recover_task('owner',restored))
+        self.assertEqual(restored.state,'interrupted');self.assertEqual(self.scope.stops,1)
+
+    def test_guard_teardown_failure_cannot_leave_a_completed_handoff_or_replay_stop(self):
+        @contextmanager
+        def guard(task):
+            yield SimpleNamespace(base_url='http://127.0.0.1:7777/v1',task_id=task.id,
+                correlation_id=task.correlation_id,temperature=0)
+            raise OSError('synthetic guard completion persistence failure')
+        self.guard_factory=guard;self.runner=self.make_runner()
+        result=self.runner.run_task('owner',self.task)
+        self.assertIsNone(result)
+        self.assertEqual(self.task.state,'interrupted')
+        self.assertEqual(self.scope.stops,1)
+        self.assertEqual(self.harness.run_count,1)
+        self.assertTrue(self.task.native_sdk['stopReceipt']['processExitVerified'])
+        self.assertTrue(self.task.native_sdk['postStopLifecycleFailure'])
+        self.assertFalse(self.runner.recover_task('owner',self.task))
+        self.assertEqual(self.scope.stops,1)
+        restored=self.broker.Task.recover(self.saved(),self.task.directory)
+        self.assertTrue(restored.native_sdk['postStopLifecycleFailure'])
+        self.assertFalse(self.runner.recover_task('owner',restored))
+        self.assertEqual(restored.state,'interrupted');self.assertEqual(self.scope.stops,1)
+
     def test_normal_turn_uses_official_shape_guard_and_exact_retirement(self):
-        self.run_task()
+        output = self.runner.run_task("owner", self.task)
+        self.assertEqual(output, "SYNTHETIC_NATIVE_RESULT")
         self.assertEqual(self.task.state, "completed")
         self.assertEqual(self.saved()["nativeSdk"]["phase"], "stopped")
         self.assertEqual(self.scope.starts, 1); self.assertEqual(self.scope.stops, 1)
@@ -142,13 +198,29 @@ class SessionRunnerTests(unittest.TestCase):
         self.assertIn("SYNTHETIC_NATIVE_RESULT", self.task.events.read_text())
         self.assertTrue(self.task.finished.is_set())
 
+    def test_default_control_peer_keeps_package_admission_after_version_checks(self):
+        self.runner.harness_factory = None
+        with patch("scripts.official_sdk_session.SDKControlPeer", return_value=self.harness) as peer:
+            self.run_task()
+        self.assertEqual(self.task.state, "completed", self.task.events.read_text())
+        self.assertEqual(peer.call_args.kwargs["binding"]["packageAdmissionSha256"], "a" * 64)
+        self.assertEqual(self.scope.starts, 1)
+        self.assertEqual(self.scope.stops, 1)
+
     def test_authenticated_http_dispatches_only_configured_native_runner(self):
         token = Path(self.temp.name) / "token"; token.write_text("x" * 32)
         self.broker.TOKEN = token
         server = self.broker.ThreadingHTTPServer(("127.0.0.1", 0), self.broker.Handler)
         server.sdk_service = self.runner
-        threading.Thread(target=server.serve_forever, daemon=True).start()
-        def cleanup(): server.shutdown(); server.server_close()
+        # A timed-out test client does not mean its handler/task has exited.
+        # Join this fixture's handlers and existing task before deleting state.
+        server.daemon_threads=False
+        server_thread=threading.Thread(target=server.serve_forever, daemon=True);server_thread.start()
+        def cleanup():
+            server.shutdown();server.server_close();server_thread.join(timeout=5)
+            self.assertFalse(server_thread.is_alive())
+            for existing in list(self.broker.REGISTRY.tasks.values()):
+                self.assertTrue(existing.finished.wait(5),'synthetic HTTP task cleanup unresolved')
         self.addCleanup(cleanup)
         body = {"runtime": "sdk", "backend": "private", "project": ".",
                 "prompt": "synthetic HTTP input", "writes": False, "approved": True}
@@ -253,6 +325,12 @@ class SessionRunnerTests(unittest.TestCase):
     def test_cancel_during_start_fences_late_start_without_running_prompt(self):
         self.scope.start_hook = lambda: self.task.cancel()
         self.run_task()
+        bridge=self.task.official_sdk_bridge
+        deadline=time.monotonic()+10
+        while time.monotonic()<deadline and self.task.state!='cancelled':
+            call=bridge._stop_call
+            if call is not None and call.done.wait(.05):bridge.resolve_stop()
+            else:time.sleep(.005)
         self.assertEqual(self.task.state, "cancelled")
         self.assertEqual(self.harness.run_count, 0)
         self.assertEqual(self.scope.starts, 1); self.assertEqual(self.scope.stops, 1)
@@ -297,7 +375,7 @@ class SessionRunnerTests(unittest.TestCase):
         def inspect(request):
             seen.append(request)
             return {**request, "operationId": "c" * 32, "stopped": True,
-                    "processExitVerified": True, "launchFenced": True}
+                    "processExitVerified": True, "descendantAbsenceVerified": True, "launchFenced": True}
         self.scope.inspect_exit = inspect
         self.assertTrue(self.runner.recover_task("owner", self.task))
         self.assertEqual(seen, [context])
@@ -311,7 +389,7 @@ class SessionRunnerTests(unittest.TestCase):
         self.recovery_fixture()
         self.scope.inspect_exit = lambda context: {**context, "generation": "foreign",
             "operationId": "c" * 32, "stopped": True,
-            "processExitVerified": True, "launchFenced": True}
+            "processExitVerified": True, "descendantAbsenceVerified": True, "launchFenced": True}
         self.assertFalse(self.runner.recover_task("owner", self.task))
         self.assertEqual(self.task.state, "interrupted")
         self.assertEqual(self.scope.starts, 0)
@@ -322,7 +400,7 @@ class SessionRunnerTests(unittest.TestCase):
         def inspect(context):
             seen.append(context); release.wait(2)
             return {**context, "operationId": "c" * 32, "stopped": True,
-                    "processExitVerified": True, "launchFenced": True}
+                    "processExitVerified": True, "descendantAbsenceVerified": True, "launchFenced": True}
         self.scope.inspect_exit = inspect
         self.assertFalse(self.runner.recover_task("owner", self.task))
         self.assertEqual(self.task.native_sdk["phase"], "recovery-read-uncertain")

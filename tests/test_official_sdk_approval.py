@@ -15,6 +15,28 @@ from scripts.official_sdk_approval import NativeSDKApprovalBridge, NativeOperati
 
 
 class NativeApprovalTests(unittest.TestCase):
+    def test_physical_stop_after_guard_failure_preserves_proof_without_completing_task(self):
+        from scripts.official_sdk_approval import verified_terminal_stop
+        self.task.native_sdk['postStopLifecycleFailure']=True
+        self.bridge.stop_and_verify=Mock(side_effect=lambda context:dict(context,
+            stopped=True,processExitVerified=True,descendantAbsenceVerified=True))
+        self.assertFalse(self.bridge.finalize('completed'))
+        saved=self.saved()
+        self.assertEqual(self.task.state,'interrupted')
+        self.assertTrue(saved['nativeSdk']['stopReceipt']['processExitVerified'])
+        self.assertFalse(verified_terminal_stop(saved))
+        self.assertFalse(self.bridge.finalize('failed'))
+        self.bridge.stop_and_verify.assert_called_once()
+
+    def test_main_process_exit_without_descendant_proof_is_not_accepted(self):
+        self.receive()
+        self.bridge.stop_and_verify = Mock(side_effect=lambda context:
+            dict(context, stopped=True, processExitVerified=True))
+        self.assertFalse(self.task.cancel())
+        self.assertEqual(self.task.state, 'interrupted')
+        self.assertEqual(self.saved()['nativeSdk']['phase'], 'stop-uncertain')
+        self.bridge.stop_and_verify.assert_called_once()
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -127,7 +149,7 @@ class NativeApprovalTests(unittest.TestCase):
         def stop(context):
             self.assertEqual(self.saved()["nativeSdk"]["phase"], "stop-reserved")
             self.assertEqual(self.saved()["nativeSdk"]["stopOperationId"], context["operationId"])
-            return {**context, "stopped": True, "processExitVerified": True}
+            return {**context, "stopped": True, "processExitVerified": True, "descendantAbsenceVerified": True}
         self.bridge.stop_and_verify = Mock(side_effect=stop)
         self.assertTrue(self.task.cancel())
         self.assertEqual(self.task.state, "cancelled")
@@ -148,7 +170,7 @@ class NativeApprovalTests(unittest.TestCase):
     def test_verified_terminal_stop_survives_restart_and_allows_new_admission(self):
         self.receive()
         self.bridge.stop_and_verify = lambda context: {
-            **context, "stopped": True, "processExitVerified": True}
+            **context, "stopped": True, "processExitVerified": True, "descendantAbsenceVerified": True}
         self.assertTrue(self.task.cancel())
         registry = self.broker.Registry()
         recovered = registry.get(self.task.id)
@@ -164,7 +186,7 @@ class NativeApprovalTests(unittest.TestCase):
     def test_stopped_label_or_changed_exit_proof_still_fences_recovery(self):
         self.receive()
         self.bridge.stop_and_verify = lambda context: {
-            **context, "stopped": True, "processExitVerified": True}
+            **context, "stopped": True, "processExitVerified": True, "descendantAbsenceVerified": True}
         self.assertTrue(self.task.cancel())
         original = self.saved()
         import copy
@@ -179,7 +201,7 @@ class NativeApprovalTests(unittest.TestCase):
 
     def natural_exit(self, code):
         self.bridge.stop_and_verify = Mock(side_effect=lambda context: {
-            **context, "stopped": True, "processExitVerified": True})
+            **context, "stopped": True, "processExitVerified": True, "descendantAbsenceVerified": True})
         process = Mock(stdout=iter(["synthetic final result\n"]))
         process.wait.return_value = code
         with patch.object(self.broker.subprocess, "Popen", return_value=process):
@@ -219,7 +241,7 @@ class NativeApprovalTests(unittest.TestCase):
         self.bridge.operation_timeout = 0.1
         self.client.respond.side_effect = lambda *a: (entered.set(), release.wait(3))
         self.bridge.stop_and_verify = Mock(side_effect=lambda context: {
-            **context, "stopped": True, "processExitVerified": True})
+            **context, "stopped": True, "processExitVerified": True, "descendantAbsenceVerified": True})
         errors = []
         def decide():
             try: self.decide(ticket)
@@ -255,7 +277,7 @@ class NativeApprovalTests(unittest.TestCase):
         self.bridge.operation_timeout = 0.03
         def stop(context):
             release.wait(3)
-            return {**context, "stopped": True, "processExitVerified": True}
+            return {**context, "stopped": True, "processExitVerified": True, "descendantAbsenceVerified": True}
         self.bridge.stop_and_verify = Mock(side_effect=stop)
         start = time.monotonic()
         self.assertFalse(self.task.cancel())
@@ -270,16 +292,17 @@ class NativeApprovalTests(unittest.TestCase):
 
     def test_cancel_supersedes_finalization_without_second_stop(self):
         entered = threading.Event(); release = threading.Event(); self.addCleanup(release.set)
-        self.bridge.operation_timeout = 1
         def stop(context):
-            entered.set(); release.wait(3)
-            return {**context, "stopped": True, "processExitVerified": True}
+            entered.set(); release.wait(15)
+            return {**context, "stopped": True, "processExitVerified": True, "descendantAbsenceVerified": True}
         self.bridge.stop_and_verify = Mock(side_effect=stop)
         finishing = threading.Thread(target=lambda: self.bridge.finalize("completed")); finishing.start()
-        self.assertTrue(entered.wait(1))
+        self.assertTrue(entered.wait(10))
         self.assertFalse(self.task.cancel())  # Intent is fenced; existing stop is still pending.
-        release.set(); finishing.join(2)
+        release.set(); finishing.join(10)
         self.assertFalse(finishing.is_alive())
+        self.assertTrue(self.bridge._stop_call.done.wait(10))
+        self.bridge.resolve_stop()  # Observe the SAME completed call; never submit another stop.
         self.assertEqual(self.task.state, "cancelled")
         self.bridge.stop_and_verify.assert_called_once()
 
