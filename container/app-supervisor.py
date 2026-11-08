@@ -16,7 +16,7 @@ def validate(service):
     if type(service.get('enabled')) is not bool or type(service.get('generation')) is not int:
         raise ValueError('Invalid desired state')
     port = service.get('port')
-    if type(port) is not int or not 1024 <= port <= 65535 or port in [3080,3081,4000,4001,7681,7682]:
+    if type(port) is not int or not 1024 <= port <= 65535 or port in [3080,3081,4000,4001,7681]:
         raise ValueError('Invalid port')
     root = Path('/workspace').resolve(strict=True)
     cwd = Path(service.get('cwd', '')).resolve(strict=True)

@@ -15,7 +15,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "DSH internal LiteLLM",
       "options": {
-        "baseURL": "http://litellm-gateway.llm.svc.cluster.local:4000/v1",
+        "baseURL": "http://litellm-gateway.dsh.svc.cluster.local:4000/v1",
         "apiKey": "{file:/harness-credentials/api-key}",
         "timeout": 3600000,
         "chunkTimeout": 3600000

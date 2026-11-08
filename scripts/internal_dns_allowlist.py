@@ -17,7 +17,7 @@ from pathlib import Path
 ALLOWED = {x.lower().rstrip('.') for x in json.loads(Path(os.environ.get('DNS_ALLOWLIST', '/config/allowed.json')).read_text(encoding='utf-8'))}
 # Only fully qualified private runtime Services; never short names or public suffixes.
 # CoreDNS must remain authoritative for cluster.local (no public fallthrough).
-PRIVATE_RUNTIME = re.compile(r'dsh-u-[a-f0-9]{16}-(?:secure|internet)\.llm\.svc\.cluster\.local\Z')
+PRIVATE_RUNTIME = re.compile(r'user-[a-f0-9]{16}-(?:secure|internet)\.' + re.escape(os.environ.get('DNS_RUNTIME_NAMESPACE','ai-workspace')) + r'\.svc\.' + re.escape(os.environ.get('DNS_CLUSTER_DOMAIN','cluster.local')) + r'\Z')
 UPSTREAM = os.environ['DNS_UPSTREAM']
 UPSTREAM_PORT = int(os.environ.get('DNS_UPSTREAM_PORT', '53'))
 LIMIT = threading.BoundedSemaphore(16)

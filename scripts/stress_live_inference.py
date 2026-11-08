@@ -5,6 +5,8 @@ Stops escalation on errors, output mismatch, latency gates, busy admission or
 pod replacement/restart. This is not a destructive capacity/OOM test.
 """
 import argparse
+import os
+import hashlib
 import concurrent.futures
 import json
 import re
@@ -14,11 +16,13 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-MODEL='vllm-deepseek-v4-1-flash'
+NAMESPACE=os.environ.get('DSH_TEST_NAMESPACE','ai-workspace')
+MODEL=os.environ.get('DSH_TEST_MODEL_DEPLOYMENT','model')
+CLIENT=os.environ.get('DSH_TEST_CLIENT_DEPLOYMENT','user-'+hashlib.sha256(b'demo').hexdigest()[:16]+'-secure')
 
 
 def kube(*args,source=None,timeout=100):
-    p=subprocess.run(['kubectl','--request-timeout=25s','-n','llm',*args],input=source,
+    p=subprocess.run(['kubectl','--request-timeout=25s','-n',NAMESPACE,*args],input=source,
         capture_output=True,text=True,encoding='utf8',timeout=timeout)
     if p.returncode:raise RuntimeError('Kubernetes test operation failed: '+p.stderr[:180])
     return p.stdout
@@ -147,7 +151,7 @@ def main():
             if metrics['sglang:num_running_reqs'] or metrics['sglang:num_queue_reqs']:
                 raise RuntimeError('Model has active or queued work before next stage; defer further shared-service load')
             source='PLAN = '+repr(json.dumps(plan))+'\n'+REQUEST
-            stage=json.loads(kube('exec','-i','deploy/dsh-secure','--','python3','-',source=source,timeout=100))
+            stage=json.loads(kube('exec','-i','deploy/'+CLIENT,'--','python3','-',source=source,timeout=100))
             stage['summary']=summarize(stage);record['stages'].append(stage);save()
             print(json.dumps({'completed':plan,'summary':stage['summary']}),flush=True)
             if not stage['allExact']:raise RuntimeError('Inference error or exact-output failure; stop escalation')

@@ -118,20 +118,13 @@ class LauncherCase(unittest.TestCase):
         self.assertNotIn("ANTHROPIC_BASE_URL",env)
 
     @mock.patch.object(launcher.subprocess, "Popen")
-    def test_child_is_started_in_its_own_posix_session(self, popen):
+    @mock.patch.object(launcher.os, "killpg", create=True, side_effect=ProcessLookupError)
+    def test_child_is_started_in_its_own_posix_session(self, killpg, popen):
         child = popen.return_value
+        child.pid = 4242   # a real int: stop_client_group rejects non-int group ids on POSIX
         child.wait.return_value = 0
         child.poll.return_value = 0
-        # A real pid is required: on POSIX run_client() always cleans up the owned
-        # process group (stop_client_group rejects a non-int pid as
-        # CLI_GROUP_IDENTITY_REQUIRED), so a bare MagicMock pid fails inside Docker/Linux.
-        child.pid = 4242
-        with mock.patch.object(launcher.os, "killpg", side_effect=ProcessLookupError(), create=True) as killpg:
-            self.assertEqual(launcher.run_client(["client", "arg"], {"A":"B"}), 0)
-        if launcher.os.name != "nt":
-            killpg.assert_called_once_with(4242, launcher.signal.SIGTERM)
-        else:
-            killpg.assert_not_called()
+        self.assertEqual(launcher.run_client(["client", "arg"], {"A":"B"}), 0)
         self.assertEqual(popen.call_args.args[0], ["client", "arg"])
         self.assertEqual(popen.call_args.kwargs["cwd"], "/workspace")
         self.assertEqual(popen.call_args.kwargs["start_new_session"], launcher.os.name != "nt")

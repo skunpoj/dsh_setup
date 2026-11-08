@@ -1,83 +1,30 @@
-# DSH video course
+# English video guides
 
-Use the English course alongside the [three risk controls](DSH_PLATFORM_GUIDE.html) and [everyday user manual](DSH_USER_MANUAL.html). Start with the boundaries for network access, execution and data, and authorized results. Continue with the feature lessons and worked examples. LLM/GPU setup and measurements are technical references after these controls.
+The deployment provides a normal authenticated user manual and an English video library. Narration uses Google Gemini Fola, with English captions and chapter navigation. Your operator supplies the deployment addresses and publishes only the approved library.
 
-## Open and navigate
+1. Sign in to the deployed DSH site using the team login.
+2. Open the user manual, then the video course guide at `/manual/COURSE_GUIDE.html`.
+3. Choose the DSH or GPU code course, a Jupyter/application-sharing walkthrough, or an Test lesson.
+4. Turn on English captions and use the chapter selector to seek to a topic. Source references open the code; they do not imply that every function has an individually narrated timestamp.
 
-1. Open the DSH course using the site's normal sign-in. The course does not create another account or grant Internet permission.
-2. Choose a chapter from the course index. Its contents list identifies the published lessons. Press Play and enable English captions.
-3. Use the section links to seek, or pause before trying a command. Practice in your own private project and selected environment.
-4. Open the accompanying source view to inspect the implementation explained by that lesson. A lesson's source snapshot is identified independently of the current live configuration.
-5. Download the reproduction ZIP for its examples and setup material. It is a learning package, not a copy of users' files, histories or credentials, and it does not update an existing deployment.
+The reference library includes 71 DSH code lessons, 25 GPU code lessons, a 15-chapter application course, an 18-chapter workshop and a 44-chapter expanded technical guide. The operator may publish different approved selections. All normal DSH users can access these Test documents and videos using their existing DSH sign-in. No separate reviewer approval or documentation password is required. This library is hosted in Test and is separate from your Main workspace. Signed-out visitors must sign in.
 
-Use the package guide, application URL guide and managed-client guide for current task instructions. The captioned course-navigation walkthrough explains the player. GPU-specific lessons are available from the GPU course.
+The 44-chapter technical guide preserves its 19 October source edition. Consult the deployment's current GPU results for later measurements. Original source slides and previous recordings remain preserved; a new narration edition does not upgrade their runtime evidence.
 
-## How the lessons map to the three controls
+## Current and historical editions
 
-| Control | Lessons and practical habits |
-|---|---|
-| Prevent external leakage | Choose No Internet for protected work; keep Internet staging separate; transfer approved dependencies rather than protected workspaces |
-| Prevent damage or excessive access | Work in the assigned non-root runtime, use scoped credentials and mounts, separate originals from writable results, and respect resource budgets |
-| Keep results contained | Use authorized file, history, terminal and notebook routes; choose app audiences explicitly; keep private content separate from administrative access metadata |
+The default **Current** library must contain only lessons reviewed against the current source commit and the deployment edition named by the operator. A source match is not runtime acceptance; deployment provenance and affected behavior need separate verification.
 
-Remote services retain their own permissions and network controls. The course explains these connected responsibilities without treating DSH sign-in or a mounted workspace as authorization to additional data.
+Keep older lessons under **Historical** with their source edition and retained hashes. In particular, `DSH_Three_Risk_Controls_20261028.pptx` and videos derived from its 28 October content are historical: they describe earlier OpenShell, SGLang and DeepInfer qualification status and must not be presented as the current governed-harness design. Do not delete or overwrite those files when publishing a current replacement.
 
-## Protected course delivery
+See [the narration standard](VIDEO_NARRATION_STANDARD.md) for source binding, voice reuse, caption verification and safe publication. Deployment-specific hostnames, private release URLs, credentials and source recordings are not included in this portable guide.
 
-Course media uses a separate read-only mount. A digest-pinned data image supplies approved files; it does not replace the DSH runtime or shared model. The initializer checks the course manifest and content hashes before the gateway serves them.
+## Main walkthroughs
 
-The gateway checks the authenticated session and approved hostname for media access. Bounded file serving and HTTP byte ranges support playback and seeking. Signing out or disabling an account revokes access through these routes. Course directories are not writable user workspaces and do not expose another user's files.
+The reference Main manual has nine walkthrough pages with eleven narrated clips: course navigation, private Python packages, JupyterLab, Jupyter on the additional owner-only sites, application restart settings, application sharing, administrator application controls, signup capacity, and platform capacity and managed clients.
 
-## Operator setup and updates
+Open these pages through your deployed manual. Test-library references point to the same current Main walkthroughs rather than maintaining separate copies. Site-specific pages and recordings are supplied by the operator.
 
-Follow the course-routing setup for the initial deployment. Keep image repositories, registry credentials and site-specific settings private. Publish only approved learning assets and sanitized source views.
+## Agent runtime and execution backend supplement
 
-1. Save a fresh gateway deployment specification and current course references in a private operator directory.
-2. Build the approved course data image and inspect its immutable digest, manifest, actual byte counts and destination quota. Retain the prior data image and references.
-3. Prepare a narrow course-only change. Preserve the complete current gateway source inventory, authentication, routing, package workflow, manual volume, accounts and sessions. Do not apply an older full deployment fixture to publish a video.
-4. Compare against the fresh specification and refuse a concurrent change. Coordinate the handover with the gateway owner; a data-image update may replace the gateway, but must not restart user workspaces or the GPU model.
-5. Read back the installed image identities and every manifest-bound file. Verify actual authenticated playback, captions, section seeking, downloads, valid/invalid ranges and sign-out denial.
-6. Verify account/session preservation and the existing manual root. If recovery is needed, restore only the reviewed course fields against a fresh specification, preserving newer unrelated state and user writes.
-
-Current chapter counts and installed content come from the published course index and its manifest. Use operator release records for image identities and dated qualification details.
-
-## Current DSH guide
-
-Read the current guide. It combines risk controls, daily use, application access and operator guidance in English.
-
-Video lessons retain their own source snapshots.
-
-## English Fola video library
-
-Google Fola narration, English captions and chapter navigation are available in the following courses.
-
-## Code lessons
-
-- DSH course: 71 source lessons with Google Fola narration.
-- GPU course: 25 source lessons with Google Fola narration.
-- [Jupyter walkthrough](JUPYTER_DSH2_DSH3_WALKTHROUGH.html) and [application-sharing walkthrough](AUTHENTICATED_APP_SHARING_WALKTHROUGH.html).
-
-## Video library — Test
-
-All normal DSH users can access these Test documents and videos using their existing DSH sign-in. No separate reviewer approval or documentation password is required. This library is hosted in Test and is separate from your Main workspace. Signed-out visitors must sign in.
-
-- Full English application course: 15 chapters, including the Main/Test application-access explanation.
-- DSH workshop: 18 narrated chapters from the 21 October workshop.
-- Expanded DSH/GPU technical guide: 44 narrated chapters based on the 19 October technical guide. Its source slides retain that edition; the new narration uses Fola. Use the current GPU results for later runtime measurements.
-
-All listed narrated editions include English captions and chapter navigation. Save notebook and project work through the workspace normally; watching a video grants no execution or data permissions.
-
-## Everyday walkthroughs — Main
-
-These nine pages contain eleven narrated clips. Test library references open these same current Main pages.
-
-- Course navigation
-- Private Python packages
-- JupyterLab
-- [Jupyter on DSH2 and DSH3](JUPYTER_DSH2_DSH3_WALKTHROUGH.html)
-- Application restart settings
-- [Application sharing](AUTHENTICATED_APP_SHARING_WALKTHROUGH.html)
-- Administrator application controls
-- Signup capacity
-- Platform capacity and managed clients
-
+The current-edition supplement distinguishes the running `/agent-tasks` control plane from successor behavior awaiting acceptance. It covers **DSH Python SDK**, **Claude Code**, **Deep Agents** and successor **Kilo**, one bounded cross-runtime handoff, and the independent private/OpenShell backend choice. Its reviewed source is [Agent runtime and execution backend](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html). The Fola script and captions under `docs/videos/` describe this exact boundary; no MP4 or live-publication claim is made until narration and spoken-content verification are complete.

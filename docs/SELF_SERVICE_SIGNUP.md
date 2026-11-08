@@ -13,7 +13,7 @@ Successful signup enables your private **No Internet / Internal** workspace imme
 4. Sign in with **No Internet / Internal** selected. Your files, conversations, attachments and credentials belong to this private environment.
 5. If Internet work is needed, ask an administrator for approval. After approval, logout and sign in with **Internet** selected. Its workspace and history remain separate from No Internet.
 
-The login page shows **N new-user slots available**, refreshed every 15 seconds while visible and when returning to the tab. This is unused prepared account capacity, not the number of project folders or app URLs assigned to a user. A failed refresh shows capacity unavailable. When no unused pair remains, signup refuses the request without creating an unusable account or sharing another user's runtime. Automatic replenishment prepares replacement pairs up to the spare target; there is no account limit. The default target is two warm spares. Retry after preparation finishes; ask an administrator if sign-ups stay paused (local storage below the 200 GiB reserve). See the capacity walkthrough.
+The login page shows **N new-user slots available**, refreshed every 15 seconds while visible and when returning to the tab. This is unused prepared account capacity, not the number of project folders or app URLs assigned to a user. A failed refresh shows capacity unavailable. When no unused pair remains, signup refuses the request without creating an unusable account or sharing another user's runtime. Automatic replenishment prepares replacement pairs up to the spare target; there is no account limit. The default target is two warm spares. Retry after preparation finishes; ask an administrator if sign-ups stay paused (local storage below the 200 GiB reserve). See the [capacity walkthrough](PLATFORM_CAPACITY_AND_CLIENTS.md).
 
 ### When the installation is full
 
@@ -43,7 +43,7 @@ The dashboard also supports **Create account**, **Enable**, **Disable** and **Si
 
 ## Capacity administration
 
-Open **Admin overview → Account capacity and automatic provisioning** to set **Warm spare slots** and **Automatic replenishment**, then select **Save capacity settings**. Lowering a target never deletes an existing workspace. See the complete capacity guide.
+Open **Admin overview → Account capacity and automatic provisioning** to set **Warm spare slots** and **Automatic replenishment**, then select **Save capacity settings**. Lowering a target never deletes an existing workspace. See the [complete capacity guide](AUTOMATIC_ACCOUNT_CAPACITY.md).
 
 ## Why prepared private pairs
 
@@ -104,12 +104,6 @@ python scripts/rollout_admin_management.py --apply \
 
 6. Open the actual login page, check the Create account tab and default No Internet choice, and confirm the admin controls and remaining capacity. Compare existing account fingerprints and workload identities with the saved baseline. Retain the old gateway specification for configuration rollback; never restore an older account-store file over newer registrations. On a regression, disable new signup and preserve all assignments and private data while investigating.
 
-## Recorded acceptance
-
-The 19 October 2026 candidate test created two accounts, four native histories and four private workspace/attachment marker pairs. Two actual DSH replies passed. Cross-user and cross-environment history reads were denied; default Internet access was denied. The files, histories and account assignments survived the four test-runtime replacements and candidate-gateway replacement. Admin Internet revocation denied a new Internet login while No Internet remained available. The public catalog reserves four different, empty pairs; capacity decreases as accounts sign up.
-
-
-<a id="capacity-planning"></a>
 
 ## Calculate and adjust shared account capacity
 

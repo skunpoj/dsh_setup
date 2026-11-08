@@ -54,6 +54,6 @@ Deployment overlays preserve the running application image, routing and storage 
 
 Recorded acceptance covers two disposable users in both environments, encrypted entry, reauthentication, origin checks, cross-user denial, environment separation, workspace mismatch, disable/delete, metadata and audit filtering, browser form behavior, restart persistence and isolated encrypted-backup restore. Native connector tests cover TLS, redirection refusal, filtered responses, approvals and resource limits. These are bounded tests of the affected behavior, not a universal safety claim.
 
-The current English supplement is **106 seconds with Fola narration and 27 aligned caption cues**. It explains entry, controlled use, governance and recovery. It supplements the existing presentation.
+The current English supplement is **106 seconds with Fola narration and 27 aligned caption cues**. It explains entry, controlled use, governance and recovery. It supplements the existing presentation rather than replacing its chapters.
 
 [Operator deployment and recovery](CREDENTIAL_OPERATIONS.md).

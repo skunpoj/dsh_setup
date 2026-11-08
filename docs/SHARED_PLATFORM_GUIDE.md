@@ -108,7 +108,7 @@ The main internal-Git startup hook and future provisioning templates were also
 updated after separate startup and persistence qualification. Credentials and
 repository permissions remain separate from TLS trust configuration.
 
-This rollout is a
+Rollout summary. This is
 guide and startup qualification, not a new model-throughput or 1M benchmark.
 
 ## Fresh signup acceptance

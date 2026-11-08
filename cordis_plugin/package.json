@@ -1,7 +1,8 @@
 {
   "name": "cordis-plugin-custom-llm-gateway",
   "version": "1.0.0",
-  "description": "Custom LLM Gateway, Model Router, and Multi-User Workspace Session Management Plugin for DeepSeek Harness (DSH)",
+  "description": "Illustrative sketch (RFC): Custom LLM Gateway, Model Router, and Multi-User Workspace Session Management Plugin for DeepSeek Harness (DSH)",
+  "private": true,
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "keywords": [
@@ -14,8 +15,9 @@
     "vllm",
     "multi-tenancy"
   ],
-  "license": "Apache-2.0",
+  "license": "MIT",
   "peerDependencies": {
-    "cordis": "^3.0.0"
+    "@deepseek-ai/cordis": "~4.0.5",
+    "@deepseek-ai/schemastery": "^3.18.5"
   }
 }

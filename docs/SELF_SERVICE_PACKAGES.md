@@ -105,4 +105,4 @@ The isolated qualification installed a native NumPy wheel for one user and a pur
 
 After rollout, a new main-service request completed through verified HTTPS in **26.94 seconds**. The private package imported in an actual Jupyter kernel and Web Terminal. A held login survived the gateway handover. All 16 other account records stayed unchanged, and the test account's three existing histories/six session files were byte-preserved. The temporary account was restored disabled with its original Internet permission. These are package-workflow checks, not a new LLM performance test. The feature applies to main DSH; the two additional owner-only instances retain their existing package process.
 
-Watch the captioned package walkthrough · [User manual](DSH_USER_MANUAL.html)
+Watch the captioned package walkthrough · [User manual](DSH_USER_MANUAL.html) · Sanitized test summary

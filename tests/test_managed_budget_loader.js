@@ -16,7 +16,7 @@ function run(target, origin, expected) {
     if(result!==${expected})throw new Error('Unexpected budget '+result);`;
   return spawnSync(process.execPath,['--input-type=module','-e',script],{encoding:'utf8',env:{...process.env,DSH_MANAGED_TRANSPORT:'0',NODE_OPTIONS:''}});
 }
-for(const origin of ['http://litellm-gateway.llm.svc.cluster.local:4000','https://external.example','http://litellm.llm.svc.cluster.local:4001']) {
+for(const origin of ['http://litellm-gateway.llm.svc.cluster.local:4000','https://external.example','http://litellm-gateway.llm.svc.cluster.local:4001']) {
   const child=run(sdk,origin,origin==='http://litellm-gateway.llm.svc.cluster.local:4000'?8192:1);
   assert.equal(child.status,0,child.stderr);
 }

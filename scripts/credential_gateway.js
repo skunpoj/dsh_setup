@@ -13,7 +13,7 @@ function createGateway(configFile){
   if(!authorized())return json(res,403,{error:'Sign in again'});
   session.credentialCsrf ||= crypto.randomBytes(32).toString('hex');
   if(req.url==='/credentials'&&req.method==='GET'){
-   const nonce=crypto.randomBytes(16).toString('base64');res.setHeader('Content-Security-Policy',`default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`);
+   const nonce=crypto.randomBytes(16).toString('base64');res.setHeader('Content-Security-Policy',`default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`);
    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});return res.end(renderPage(session.credentialCsrf,nonce,environment));
   }
   if(req.url!=='/api/user-credentials')return json(res,404,{error:'Unknown credential route'});

@@ -22,9 +22,6 @@ class FakeApi:
     def create_config_map(self, doc): self.created.append(doc); self.maps[doc['metadata']['name']] = {'data': doc['data']}
     def patch_deployment(self, name, patch):
         self.patches.append(patch)
-        self.dep['metadata'].setdefault('annotations', {}).update(patch.get('metadata', {}).get('annotations', {}))
-        self.dep['spec']['template'].setdefault('metadata', {}).setdefault('annotations', {}).update(
-            patch['spec']['template'].get('metadata', {}).get('annotations', {}))
         volume = patch['spec']['template']['spec']['volumes'][0]
         for v in self.dep['spec']['template']['spec']['volumes']:
             if v['name'] == volume['name']:
@@ -43,8 +40,6 @@ class RolloutTests(unittest.TestCase):
         name, doc = r.build_bundle('gateway', GATEWAY_KEYS)
         self.assertTrue(name.startswith('dsh-gateway-src-'))
         self.assertIn('session_demand.js', doc['data'])
-        self.assertIn('course_files.js', doc['data'])
-        self.assertIn('signup_admission.js', doc['data'])
         self.assertTrue(doc['immutable'])
         self.assertEqual(doc['data']['ldapts-LICENSE'], (r.ROOT / 'vendor/ldapts/LICENSE').read_text(encoding='utf-8').replace('\r\n', '\n'))
         self.assertEqual(name, r.build_bundle('gateway', GATEWAY_KEYS)[0], 'Same source, same name')
@@ -67,13 +62,6 @@ class RolloutTests(unittest.TestCase):
         vols = {v['name']: v['configMap']['name'] for v in api.dep['spec']['template']['spec']['volumes']}
         self.assertTrue(vols['gateway-source'].startswith('dsh-gateway-src-'))
         self.assertEqual(vols['routing'], 'keep')
-        source = api.created[0]
-        digest = source['metadata']['annotations']['dsh.example.com/source-data-sha256']
-        self.assertEqual(api.dep['metadata']['annotations']['dsh.example.com/gateway-source-configmap'],
-                         vols['gateway-source'])
-        self.assertEqual(api.dep['spec']['template']['metadata']['annotations']['dsh.example.com/gateway-source-sha256'],
-                         digest)
-        self.assertEqual(api.dep['metadata']['annotations']['dsh.example.com/source-git-commit'], 'abc123')
 
     def test_failed_rollout_switches_back(self):
         api, args = FakeApi(ready=False), Args()

@@ -6,7 +6,7 @@ English SMP and DSH instructional videos use **Google Gemini TTS, Fola** with a 
 
 Keep the reviewed teaching script and its source revision together. Check that the script contains no passwords, tokens, private keys or protected datasets before sending it to the speech provider. Use the approved project authentication in place; do not copy credentials into a video bundle or a public repository.
 
-Record a SHA-256 hash of each script. Reuse an existing audio result only when its script hash, provider, model, voice and file hash all match. Preserve original historical editions rather than overwriting their evidence.
+Record a SHA-256 hash of each script. Reuse an existing audio result only when its script hash, provider, model, voice and file hash all match. Keep one current edition; Git history keeps earlier ones.
 
 ## Generate audio
 

@@ -4,14 +4,14 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const port=31998,name=`dsh-browser-${process.pid}`,output=process.env.DSH_CANDIDATE_BROWSER_OUTPUT||'candidate-evidence/upstream-browser';
 const image=process.env.DSH_CANDIDATE_IMAGE||'dsh-upstream-candidate';
 fs.mkdirSync(output,{recursive:true});
-const themeSource=path.resolve(__dirname,'../plugins/custom-theme');
-const args=['run','--rm','--name',name,'--mount',`type=bind,source=${themeSource},target=/opt/dsh/plugins/custom-theme,readonly`,'--network','host','--user','10001:10001','--cap-drop','ALL','--security-opt','no-new-privileges','--read-only','--tmpfs','/tmp:rw,nosuid,nodev,size=256m,mode=1777','--tmpfs','/workspace:rw,nosuid,nodev,size=16m,uid=10001,gid=10001','--tmpfs','/native-cache:rw,exec,nosuid,nodev,size=16m,uid=10001,gid=10001','--entrypoint','node',image,'/opt/dsh/scripts/serve_candidate_browser.js'];
+const themeSource=path.resolve(__dirname,'../plugins/dsh-theme-custom-light');
+const args=['run','--rm','--name',name,'--mount',`type=bind,source=${themeSource},target=/opt/dsh/plugins/dsh-theme-custom-light,readonly`,'--network','host','--user','10001:10001','--cap-drop','ALL','--security-opt','no-new-privileges','--read-only','--tmpfs','/tmp:rw,nosuid,nodev,size=256m,mode=1777','--tmpfs','/workspace:rw,nosuid,nodev,size=16m,uid=10001,gid=10001','--tmpfs','/native-cache:rw,exec,nosuid,nodev,size=16m,uid=10001,gid=10001','--entrypoint','node',image,'/opt/dsh/scripts/serve_candidate_browser.js'];
 const server=spawn('docker',args,{stdio:['ignore','pipe','pipe']});
 let log='',closed=false,spawnError,browser,page,phase='startup';const browserDiagnostics=[];
 server.stdout.on('data',b=>{log=(log+b.toString()).slice(-32000);});server.stderr.on('data',b=>{log=(log+b.toString()).slice(-32000);});server.on('error',e=>spawnError=e);server.on('exit',()=>closed=true);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{try{
- const {THEME_TOKENS:expectedThemeTokens}=await import(require('node:url').pathToFileURL(path.join(themeSource,'src/palette.mjs')).href);
+ const {CUSTOM_LIGHT_TOKENS:expectedThemeTokens}=await import(require('node:url').pathToFileURL(path.join(themeSource,'src/palette.mjs')).href);
  const normalizeToken=value=>value.trim().toLowerCase().replace(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/,'#$1$1$2$2$3$3');
  const assertTokens=(actual,expected)=>{for(const [key,value] of Object.entries(expected))assert.equal(normalizeToken(actual[key]),normalizeToken(value),'Rendered palette differs at '+key);};
  const deadline=Date.now()+90000;let ready;
@@ -19,7 +19,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  assert(!spawnError,spawnError?.message);
  if(!ready){const diagnostic={stage:'disposable-upstream-startup',closed,log:log.replace(/token[=:]\s*[A-Za-z0-9_-]+/gi,'token=[REDACTED]').replace(/synthetic-browser-no-inference/g,'[SYNTHETIC KEY REDACTED]').slice(-16000)};fs.writeFileSync(path.join(output,'startup-failure.json'),JSON.stringify(diagnostic,null,2)+'\n');console.error(JSON.stringify(diagnostic));}
  assert(ready,'Disposable upstream app did not become ready; sanitized startup-failure.json saved');
- assert.equal(ready.themeBundle?.clientSHA256,'ebcb0090971ff99fd9de6d5bd129f54cb48c7f7ed762acf378782fe74c23107d','Actual native profile did not install the qualified theme bundle');
+ assert.equal(ready.themeBundle?.clientSHA256,'7002d9bebced3037c7d38f4ef342e5e6ffccbfc874bed8086b06eccd1480e88b','Actual native profile did not install the qualified theme bundle');
  const {chromium}=require(process.env.DSH_PLAYWRIGHT||'playwright');
  browser=await chromium.launch({headless:true,args:['--host-resolver-rules=MAP dsh-ci.test 127.0.0.1','--no-proxy-server',`--unsafely-treat-insecure-origin-as-secure=http://dsh-ci.test:${port}`]});
  const iterations=[];let rows;
@@ -65,9 +65,9 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  await selector().waitFor({state:'visible'});await selector().click();
  const drill=page.getByRole('menuitem',{name:/^Model/});if(await drill.count())await drill.click();
  const group=page.getByRole('group',{name:'Model and reasoning effort',exact:true});
- const models=group.locator('[data-model-id]');await models.nth(4).waitFor({state:'visible'});
+ const models=group.locator('[data-model-id]');await models.first().waitFor({state:'visible'});
  rows=await models.evaluateAll(nodes=>nodes.map(node=>({provider:node.getAttribute('data-provider-id'),model:node.getAttribute('data-model-id')})));
- assert(rows.length>=5,'Actual DOM model selector lacks managed catalog');assert(rows.every(row=>row.provider==='litellm-cluster'),'External provider rendered in model selector');assert(rows.some(row=>row.model==='deepseek-v4.1-flash'));
+ assert.equal(rows.length,1,'Model selector must list exactly the one served model');assert(rows.every(row=>row.provider==='litellm-cluster'),'External provider rendered in model selector');assert(rows.some(row=>row.model==='deepseek-v4.1-flash'));
  await page.keyboard.press('Escape');await group.waitFor({state:'hidden'});await openSettings();
  const dialog=page.getByRole('dialog');await dialog.waitFor({state:'visible'});
  const modelsNav=dialog.getByRole('button',{name:'Models',exact:true});
@@ -81,7 +81,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const appearance=()=>page.getByRole('dialog').getByRole('combobox',{name:'Appearance',exact:true});
  await appearance().waitFor({state:'visible'});
  assert.deepEqual(await appearance().locator('option').evaluateAll(nodes=>nodes.map(n=>({value:n.value,label:n.textContent}))),[
-  {value:'light',label:'Light'},{value:'dark',label:'Dark'},{value:'system',label:'System'},{value:'bot-custom-light',label:'Custom (BoT Light)'}]);
+  {value:'light',label:'Light'},{value:'dark',label:'Dark'},{value:'system',label:'System'},{value:'custom-light',label:'Custom Light'}]);
  const readAppearance=()=>page.evaluate(keys=>{const css=getComputedStyle(document.body);return{dark:document.body.hasAttribute('data-ds-dark-theme'),background:css.backgroundColor,base:css.getPropertyValue('--dsw-alias-bg-base').trim(),font:parseFloat(css.getPropertyValue('--dsh-content-font-size')),tokens:Object.fromEntries(keys.map(key=>[key,css.getPropertyValue(key).trim()]))};},Object.keys(expectedThemeTokens));
  const settleAppearance=async(id,dark)=>{
   await page.waitForFunction(({id,dark})=>document.querySelector('select[aria-label="Appearance"]')?.value===id&&document.body.hasAttribute('data-ds-dark-theme')===dark,{id,dark},{timeout:8000});
@@ -93,10 +93,10 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  await appearance().selectOption('system');
  await page.emulateMedia({colorScheme:'light'});await settleAppearance('system',false);assert.equal((await readAppearance()).background,themeLight.background);
  await page.emulateMedia({colorScheme:'dark'});await settleAppearance('system',true);assert.equal((await readAppearance()).background,themeDark.background);
- await appearance().selectOption('bot-custom-light');await settleAppearance('bot-custom-light',false);
+ await appearance().selectOption('custom-light');await settleAppearance('custom-light',false);
  await page.waitForFunction(()=>getComputedStyle(document.body).getPropertyValue('--dsw-alias-bg-base').trim().toLowerCase()==='#f4f7fa');
  const themeCustom=await readAppearance();assert.equal(themeCustom.background,'rgb(244, 247, 250)');assertTokens(themeCustom.tokens,expectedThemeTokens);
- if(iteration===0)await page.screenshot({path:path.join(output,'custom-bot-light.png'),fullPage:true});
+ if(iteration===0)await page.screenshot({path:path.join(output,'custom-light.png'),fullPage:true});
  const fontPersistenceReceipts=[];
  const projectThemeSetting=view=>({namespace:view?.ns,fontSize:view?.value?.fontSize,userFontSize:view?.user?.fontSize,revision:view?.revision});
  const readDurableFont=async(label,expected)=>{
@@ -145,7 +145,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const themeFontBefore=themeCustom.font;assert(Number.isFinite(themeFontBefore));
  phase='iteration-'+iteration+':font-increase-ack';
  await changeFontAndVerifySaved('Increase font size',themeFontBefore+1,'increase');
- assert.equal(await appearance().inputValue(),'bot-custom-light','Font adoption reset Custom appearance');assertTokens((await readAppearance()).tokens,expectedThemeTokens);
+ assert.equal(await appearance().inputValue(),'custom-light','Font adoption reset Custom appearance');assertTokens((await readAppearance()).tokens,expectedThemeTokens);
  const coding=()=>page.getByRole('switch',{name:'Show coding view',exact:true}).or(page.getByRole('checkbox',{name:'Show coding view',exact:true}));
  await coding().waitFor({state:'visible'});const before=await coding().isChecked();
  await coding().click();
@@ -162,7 +162,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  // Reload must preserve both the actual Custom palette and the acknowledged font.
  phase='iteration-'+iteration+':theme-after-reload';
  await readDurableFont('after-reload',themeFontBefore+1);
- await appearance().waitFor({state:'visible'});await settleAppearance('bot-custom-light',false);
+ await appearance().waitFor({state:'visible'});await settleAppearance('custom-light',false);
  await page.waitForFunction(expected=>parseFloat(getComputedStyle(document.body).getPropertyValue('--dsh-content-font-size'))===expected,themeFontBefore+1);
  const themeReload=await readAppearance();assert.equal(themeReload.base.toLowerCase(),'#f4f7fa');assert.equal(themeReload.background,'rgb(244, 247, 250)');assertTokens(themeReload.tokens,expectedThemeTokens);
  await appearance().selectOption('light');await settleAppearance('light',false);assert.equal((await readAppearance()).background,themeLight.background,'Leaving Custom retained its palette');assertTokens((await readAppearance()).tokens,themeLight.tokens);

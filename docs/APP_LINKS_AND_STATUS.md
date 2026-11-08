@@ -1,41 +1,32 @@
-# Applications, working links and deployment status
+# Applications, links and Main versus Test
 
-Use the Main DSH site for your private workspace and application settings. Main already provides local application ports, approved external HTTPS targets, authenticated access and Public mappings. RegChat is a configured example of those controls.
+Use the operator-approved Main DSH address for workspaces and application settings. The deployment supports local application ports and approved external HTTPS targets. Each saved mapping chooses authenticated or Public visitor access. RegChat is an example mapping rather than a hardcoded login mechanism.
 
-## Main services
+## Main and Test roles
 
-| Open | Purpose |
+| Surface | Role |
 | --- | --- |
-| Main DSH | Team sign-in and your private workspace. |
-| My applications | Configure an approved local port or external HTTPS target and its visitor access. |
-| RegChat with DSH sign-in | Configured authenticated example. The mapping permits its approved DSH visitors. |
-| RegChat Public alias | Configured Public example. Public skips the DSH gate for this mapping. |
-| [User manual](DSH_USER_MANUAL.html) | Environments, tools, workspaces and administrator controls. |
+| Main workspace and application settings | Daily workspace access and application configuration. |
+| Main gated and Public example aliases | Configured application mappings with their own visitor policies. |
+| Test App5 | Gated fixture for normal DSH sign-in and return to the original application tab. |
+| Test App6 | Public fixture whose separate application login works without a DSH cookie. |
+| Private Test media library | Hosts the deployment's full course and private slides under existing reviewer access. |
 
-Saving an address does not start an application or grant Internet access. Each destination keeps its own data permissions and can require a separate application login. JupyterLab, terminals and management routes remain owner-only. See [application sign-in and return](APP_SIGNIN_AND_RETURN.html) and [managed model login](MANAGED_PROVIDER_LOGIN.html).
+The reference deployment has the Main controls above. The recorded App5/App6 qualification belongs to Test. Test-hosted media does not imply that Main application controls are Test-only. Supply actual deployment addresses through your operator's private guide.
 
-## Test examples
+## Application login
 
-| Open | Verified flow |
-| --- | --- |
-| Gated Test App5 | When signed out, open normal DSH sign-in in a new tab, sign in, then return to the original app tab. The tab resumes the original application and path. |
-| Public Test App6 | Reach the application's own login without a DSH cookie. Its protected content still requires its application session. |
+An app-focused DSH sign-in page verifies your team identity and mapping access. In the Test continuation flow, keep the original app tab open, use its normal DSH sign-in link, sign in in the new tab, then return to the original tab. It checks the session and resumes the requested application. This is original-tab resumption rather than a same-tab callback.
 
-App5 and App6 are controlled Test fixtures. The fresh DSH logout/relogin check resumed App5 and restored normal No Internet DSH sign-in. That browser retained its separate destination session. A separate App6 check verified its own login without DSH and confirmed that its Public session could not bypass App5's gate.
+Public skips only the DSH gate for its explicit mapping. The destination can still require its own account and enforce data permissions. DSH credentials must not be forwarded to that destination. A Public app session must not bypass an authenticated mapping. See [sign-in and return](APP_SIGNIN_AND_RETURN.html).
 
-The Main app-focused sign-in page and the Test continuation page are different interfaces. The Test flow resumes the original tab after normal sign-in. It does not automatically redirect the normal login tab to the app.
+## Sanitized slides and English video
 
-## Slides and English video
+These materials omit private site addresses, user inventories, screenshots and credentials. The full private course remains in the deployment's protected documentation library. Configure site-specific links before distributing a deployment copy.
 
-The updated full course and its media library are hosted in the dedicated Test documentation site under its existing reviewer permissions. Media hosting in Test does not mean Main's application controls are Test-only.
+- [Download the focused PowerPoint](presentations/APP_LOGIN_MAIN_TEST_EN.pptx).
+- [Watch the focused English update](media/APP_LOGIN_MAIN_TEST_EN.html).
+- [Read the user manual](DSH_USER_MANUAL.html).
+- [Read sharing and isolation controls](AUTHENTICATED_APP_SHARING.html).
 
-| Material | Open |
-| --- | --- |
-| Full English course, all previous chapters retained | Watch the full course |
-| Main/Test status and app links | Watch the focused English update |
-| Full course slides | Download the 48-slide PowerPoint |
-| Application-routing slides | Download the 17-slide PowerPoint |
-| Focused Main/Test update | Download the 3-slide PowerPoint |
-| Detailed routing guide in the Test media library | Open the guide |
-
-The separate Main overview guide and course-note library keep their existing addresses and content. This course update preserves those documents, existing users, histories and running workspaces.
+The earlier full-course chapters, the separate Main overview guide and the course-note library remain available in the private deployment. Publishing this documentation does not change user accounts, private histories or active workspaces.

@@ -10,7 +10,7 @@ function rewrite(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true}
  else if(/\.ya?ml$/.test(entry.name))fs.writeFileSync(file,fs.readFileSync(file,'utf8').replace(/http:\/\/litellm\.(?:llm|dsh)\.svc\.cluster\.local:4000/g,`http://127.0.0.1:${mockPort}`));
 }}
 rewrite(home);
-const installedTheme=require('./install_native_theme_profile.cjs').install(home,'/opt/dsh/plugins/custom-theme');
+const installedTheme=require('./install_native_theme_profile.cjs').install(home,'/opt/dsh/plugins/dsh-theme-custom-light');
 const themeBundle={packageName:installedTheme.packageName,packageVersion:installedTheme.packageVersion,clientSHA256:installedTheme.clientSHA256,profileSHA256:installedTheme.profileSHA256};
 let modelRequests=0,child;
 const mock=http.createServer((_req,res)=>{modelRequests++;res.writeHead(503,{'content-type':'application/json'});res.end('{"error":"inference forbidden in browser qualification"}');});

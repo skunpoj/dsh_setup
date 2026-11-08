@@ -45,7 +45,7 @@ llm-pi-ai:
     litellm-cluster:
       displayName: "Cluster LiteLLM Gateway"
       api: "openai-completions"
-      baseURL: "http://litellm-gateway.llm.svc.cluster.local:4000/v1"
+      baseURL: "http://litellm.dsh.svc.cluster.local:4000/v1"
       apiKeyEnv: "DEEPSEEK_API_KEY"
       defaultInput:
         - text
@@ -92,7 +92,7 @@ When you build, develop, or run web applications, APIs, dashboards, or preview s
 - Do not store permanent project data in container-ephemeral root directories.
 
 ## 3. High-Performance Cluster Inference
-- LiteLLM Gateway is available at \`http://litellm-gateway.llm.svc.cluster.local:4000/v1\`.
+- LiteLLM Gateway is available at \`http://litellm.dsh.svc.cluster.local:4000/v1\`.
 - Primary cluster model: \`deepseek-v4.1-flash\` (configured 1M context window).
 
 ## 4. Built-in Interactive Web Terminal
@@ -220,35 +220,18 @@ if (fs.existsSync(alFile)) {
 
   {
     alContent = replaceOnce(alContent, oldReadImage, newReadImage);
-
-    // DSH_HOME may be a managed symlink to a pre-provisioned persistent root
-    // (for example /home/dsh/.dsh -> /state). Upstream's first attachment save
-    // chmods that existing root to 0700. On Kubernetes, the root is owned by the
-    // volume provisioner and the unprivileged DSH process correctly cannot
-    // change it, which rejects the prompt before inference. Treat the existing
-    // managed home as the durable boundary; child attachment directories still
-    // receive the upstream private-mode and fsync guarantees.
-    const oldDurableHome = `async function ensureDurableHome(path) {
-	const home = resolve(path);
-	if (!durableHomes.has(home)) {
-		await ensureDurableDirectory(home, parse(home).root);
-		durableHomes.add(home);
-	}
-	return home;
-}`;
-    const newDurableHome = `async function ensureDurableHome(path) {
-	const home = resolve(path);
-	if (!durableHomes.has(home)) {
-		await mkdir(home, { recursive: true, mode: 448 });
-		durableHomes.add(home);
-	}
-	return home;
-}`;
-    alContent = replaceOnce(alContent, oldDurableHome, newDurableHome);
     fs.writeFileSync(alFile, alContent, "utf8");
-    console.log("[CONFIG] Patched dsh-attachment-local for managed-home durability and explicit unavailable originals");
+    console.log("[CONFIG] Patched dsh-attachment-local to report unavailable originals explicitly");
   }
 }
+
+// 11b. Show the real prompt-admission cause (secrets redacted); the client error code is unchanged.
+const {rewritePromptAdmission} = require('./prompt_admission_diagnostics.cjs');
+for (const file of [`${baseModulesDir}/dsh-api-session-controller/lib/index.js`, `${baseModulesDir}/dsh-api-session-controller/lib/types/commands.js`]) {
+  const result = rewritePromptAdmission(fs.readFileSync(file, "utf8"));
+  if (result.changed) fs.writeFileSync(file, result.source, "utf8");
+}
+console.log("[CONFIG] Patched dsh-api-session-controller to report the real prompt-admission cause");
 
 // 12. Enforce Web Profile cordis.patch.yml with Compaction and 1M Context Window
 try {
@@ -267,11 +250,6 @@ try {
   config:
     provider: litellm-cluster
     model: deepseek-v4.1-flash
-    targetWords: 5
-    targetCjkCharacters: 10
-    maxInputBytes: 4096
-    maxOutputTokens: 4096
-    timeoutMs: 60000
 - id: llm-deepseek
   disabled: true
 - id: llm-deepseek-account
@@ -292,7 +270,7 @@ try {
       litellm-cluster:
         displayName: Cluster LiteLLM Gateway
         api: openai-completions
-        baseURL: http://litellm-gateway.llm.svc.cluster.local:4000/v1
+        baseURL: http://litellm.dsh.svc.cluster.local:4000/v1
         apiKeyEnv: DEEPSEEK_API_KEY
         defaultInput:
           - text

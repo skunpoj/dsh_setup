@@ -15,7 +15,7 @@ ANCHOR = '''            else:
                 trunc_len = chunk_tokens_limit // self.page_size * self.page_size
 '''
 REPLACEMENT = '''            else:
-                # BOT_SINGLE_CHUNK_OWNER_V3
+                # DSH_SINGLE_CHUNK_OWNER_V3
                 # The interactive reservation must not create a second
                 # chunked_req while a resumed long prefill owns that slot.
                 # Return through upstream rejection/cleanup handling.

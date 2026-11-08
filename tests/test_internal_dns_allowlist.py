@@ -13,7 +13,7 @@ from unittest.mock import patch
 class DNSContainment(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();allowed=Path(self.temp.name)/'allowed.json'
-        allowed.write_text(json.dumps(['litellm.llm.svc.cluster.local','_kerberos._tcp.example.invalid']))
+        allowed.write_text(json.dumps(['litellm.ai-workspace.svc.cluster.local','_kerberos._tcp.example.invalid']))
         self.forwarded=[]
         parent=self
         class Upstream(socketserver.BaseRequestHandler):
@@ -34,19 +34,19 @@ class DNSContainment(unittest.TestCase):
         return b'RD'+struct.pack('!5H',0x0100,1,0,0,1 if additional else 0)+wire+additional
 
     def test_unknown_public_and_encoded_names_never_forward(self):
-        for name in ['example.com','sensitive-data.example.com','directory.example.invalid','litellm.llm.svc.cluster.local.attacker.com']:
+        for name in ['example.com','sensitive-data.example.com','directory.example.invalid','litellm.ai-workspace.svc.cluster.local.attacker.com']:
             result=self.module.answer(self.packet(name));self.assertEqual(struct.unpack('!H',result[2:4])[0]&15,3)
         self.assertEqual(self.forwarded,[])
 
     def test_new_private_runtime_fqdn_can_resolve_without_a_public_wildcard(self):
-        name='dsh-u-0123456789abcdef-secure.llm.svc.cluster.local'
+        name='user-0123456789abcdef-secure.ai-workspace.svc.cluster.local'
         self.module.answer(self.packet(name));self.assertEqual(len(self.forwarded),1)
-        for bad in ['dsh-u-0123456789abcdef-secure',name+'.attacker.com','dsh-u-private-secret-secure.llm.svc.cluster.local','dsh-u-0123456789abcdef-secure.other.svc.cluster.local']:
+        for bad in ['user-0123456789abcdef-secure',name+'.attacker.com','user-private-secret-secure.ai-workspace.svc.cluster.local','user-0123456789abcdef-secure.other.svc.cluster.local']:
             response=self.module.answer(self.packet(bad));self.assertEqual(struct.unpack('!H',response[2:4])[0]&15,3)
         self.assertEqual(len(self.forwarded),1)
 
     def test_allowed_query_is_rebuilt_without_client_payload_or_id(self):
-        response=self.module.answer(self.packet('LiteLLM.llm.svc.cluster.local',additional=b'PRIVATE_EDNS_PAYLOAD'))
+        response=self.module.answer(self.packet('LiteLLM.ai-workspace.svc.cluster.local',additional=b'PRIVATE_EDNS_PAYLOAD'))
         self.assertEqual(response[:2],b'RD');self.assertEqual(len(self.forwarded),1)
         upstream=self.forwarded[0]
         self.assertNotIn(b'PRIVATE_EDNS_PAYLOAD',upstream)
@@ -55,7 +55,7 @@ class DNSContainment(unittest.TestCase):
 
     def test_only_supported_internal_query_types(self):
         self.module.answer(self.packet('_kerberos._tcp.example.invalid',33));self.assertEqual(len(self.forwarded),1)
-        result=self.module.answer(self.packet('litellm.llm.svc.cluster.local',16))
+        result=self.module.answer(self.packet('litellm.ai-workspace.svc.cluster.local',16))
         self.assertEqual(struct.unpack('!H',result[2:4])[0]&15,2);self.assertEqual(len(self.forwarded),1)
         self.module.answer(b'RD'+struct.pack('!5H',0x100,1,0,0,0)+b'\xc0\x0c\x00\x01\x00\x01')
         self.assertEqual(len(self.forwarded),1)

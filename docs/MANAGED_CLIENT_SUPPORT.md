@@ -1,10 +1,10 @@
 # Managed coding clients inside DSH
 
-DSH and its clients can use shared inference on another machine through the approved gateway. Current policies use the stable internal LiteLLM alias; moving that service outside the cluster needs an operator-managed relay or coordinated endpoint policy changes. OpenAI clients use `/v1`, while Claude's base origin omits that suffix. Jupyter runs locally in the private runtime and calls inference only when notebook code explicitly requests it. See flexible deployment and client address configuration.
+DSH and its clients can use shared inference on another machine through the approved gateway. Current policies use the stable internal LiteLLM alias; moving that service outside the cluster needs an operator-managed relay or coordinated endpoint policy changes. OpenAI clients use `/v1`, while Claude's base origin omits that suffix. Jupyter runs locally in the private runtime and calls inference only when notebook code explicitly requests it. See [flexible deployment and client address configuration](FLEXIBLE_DEPLOYMENT.md).
 
 ## JupyterLab notebooks
 
-Choose **JupyterLab** at sign-in or open `/proxy/8888/lab` on the same DSH site. Newly provisioned accounts have a managed No Internet notebook service; administrators can Stop or Start automatic recovery. Manual `jupyter lab` remains available in the owner terminal. Python notebooks use that user's workspace and existing network/permission boundary. No Internet notebooks retain central CIFS storage; Internet notebooks stay separate. See JupyterLab usage, security and setup.
+Choose **JupyterLab** at sign-in or open `/proxy/8888/lab` on the same DSH site. Newly provisioned accounts have a managed No Internet notebook service; administrators can Stop or Start automatic recovery. Manual `jupyter lab` remains available in the owner terminal. Python notebooks use that user's workspace and existing network/permission boundary. No Internet notebooks retain central CIFS storage; Internet notebooks stay separate. See [JupyterLab usage, security and setup](JUPYTERLAB.md).
 
 DSH remains the main web interface. Claude Code, TrueForge and Kilo CLI run as optional clients inside the selected private DSH execution environment. They share the internal LiteLLM/model service, not another user's project files, credentials or client histories.
 
@@ -20,7 +20,7 @@ Kilo is included in the qualified prebuilt DSH runtime. The original 19 October 
 
 The actual non-root canary rejected model/sharing overrides, denied writes to the operator policy, ignored hostile project/environment overrides, and failed both public-domain and direct-IP HTTPS probes while internal inference worked. Follow the [managed-client validation procedure](https://github.com/skunpoj/dsh_setup/blob/main/docs/MANAGED_CLIENT_VALIDATION.md) when qualifying another deployment.
 
-These ordinary checks do not substitute for a client-specific near-1M trial. Configuring a 1M client budget is not itself proof of a successful 1M turn in that client. The centralized DSH usage counters do not currently include independent CLI session accounting.
+These ordinary checks do not substitute for a client-specific near-1M trial. The native DSH million-token, substantial-output, tool and concurrency results remain in the checkpoint report. Configuring a 1M client budget is not itself proof of a successful 1M turn in that client. The centralized DSH usage counters do not currently include independent CLI session accounting.
 
 ## Guide and file-tool verification
 
@@ -32,7 +32,7 @@ The full image fixes are active in future-account templates and unassigned warm 
 
 ## Existing workspaces: launch the updated clients
 
-On 22 October 2026, the compatibility layer was installed and verified in **26 existing user/environment workspaces without restarting them**. It enables the qualified Kilo editing policy and TrueForge workspace file tools for newly launched clients. Existing accounts, private storage, histories and running processes stay in place.
+The compatibility layer is installed in existing user/environment workspaces **without restarting them**. It enables the qualified Kilo editing policy and TrueForge workspace file tools for newly launched clients. Existing accounts, private storage, histories and running processes stay in place.
 
 Open a **new interactive Bash terminal** before launching `kilo`, `kilocode` or `trueforge`. In an already-open Bash terminal, load the same launchers explicitly:
 

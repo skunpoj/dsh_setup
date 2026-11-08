@@ -1,7 +1,3 @@
-// DSH institutional presentation overlay v1
-const {platformTheme:applyBOTPlatformTheme}=require('./platform_ui');
-function renderAuthPage(...args){return applyBOTPlatformTheme(unskinned_renderAuthPage(...args));}
-function injectLogoutControl(...args){return unskinned_injectLogoutControl(...args);}
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
@@ -18,117 +14,40 @@ const JUPYTER_DEMAND = process.env.DSH_JUPYTER_ON_DEMAND === 'false' ? null : JU
 const {Directory, DirectoryError, normalizeUsername} = require('./ldap_auth');
 const LDAP_DIRECTORY = process.env.DSH_LDAP_CONFIG_FILE ? new Directory(process.env.DSH_LDAP_CONFIG_FILE) : null;
 const PACKAGE_PORTAL = process.env.DSH_PACKAGES_ROOT ? new (require('./package_portal').PackagePortal)(process.env.DSH_PACKAGES_ROOT) : null;
-// OpenShell is optional and lives in its own folder, which the flat gateway ConfigMap does not carry. The module is loaded only when the flag is set;
-// otherwise a stub gives the same answers as the disabled worker (404 on its two routes, nothing else touched), so a missing file can never stop the gateway.
-const COMPLETE_WORKER = process.env.DSH_OPENSHELL_COMPLETE_WORKER === 'true'
-  ? require('./openshell-native/' + 'complete_worker.cjs').createCompleteWorker() // image-only optional worker; deliberately absent from the flat gateway ConfigMap
-  : Object.freeze({enabled:false,async cancelSession(){},async cancelUser(){},async handle(req,res,ctx){
-      if(!['/api/openshell/session','/api/openshell/complete-worker'].includes(ctx&&ctx.pathname))return false;
-      res.writeHead(404,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify({error:'OPENSHELL_NOT_ENABLED'}));return true;}});
 function projectPackageAccess(){if(PACKAGE_PORTAL)PACKAGE_PORTAL.project(loadUsers(),privateTargetsFor,accountEnabled,internetAllowed);}
 setInterval(()=>{try{projectPackageAccess();}catch{}},5000).unref();
 
 const PROXY_PORT = Number(process.env.PORT || 3080);
 const MANUAL_DIR = process.env.DSH_MANUAL_DIR || '/opt/dsh/manual';
-function readManualFile(root, name, maximumBytes) {
-  const file = path.join(root, name);
-  const checkPath = () => {
-    let current = root;
-    const parts = name.split('/');
-    for (const [index, part] of parts.entries()) {
-      current = path.join(current, part);
-      const info = fs.lstatSync(current);
-      if (info.isSymbolicLink() || (index < parts.length - 1 && !info.isDirectory())) {
-        throw Error('Invalid manual path');
-      }
-    }
-  };
-  checkPath();
-  const descriptor = fs.openSync(file, fs.constants.O_RDONLY |
-    (fs.constants.O_NOFOLLOW || 0) | (fs.constants.O_NONBLOCK || 0));
-  try {
-    const info = fs.fstatSync(descriptor);
-    if (!info.isFile() || info.size > maximumBytes) throw Error('Invalid manual file');
-    const buffer = Buffer.alloc(info.size + 1);
-    let count = 0;
-    while (count < buffer.length) {
-      const received = fs.readSync(descriptor, buffer, count, buffer.length - count, null);
-      if (!received) break;
-      count += received;
-    }
-    checkPath();
-    const current = fs.statSync(file);
-    if (count !== info.size || current.dev !== info.dev || current.ino !== info.ino ||
-        fs.fstatSync(descriptor).size !== info.size) throw Error('Manual changed during read');
-    return buffer.subarray(0, count);
-  } finally {
-    fs.closeSync(descriptor);
-  }
-}
-
 function serveManual(req, res, pathname) {
-  const headers = {
-    'Cache-Control': 'no-cache',
-    'X-Content-Type-Options': 'nosniff',
-    'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
-  };
-  if (!['GET', 'HEAD'].includes(req.method)) {
-    res.writeHead(405, {...headers, Allow: 'GET, HEAD'});
-    return res.end();
-  }
-  if (pathname === '/manual' || pathname === '/manual/') {
-    res.writeHead(302, {...headers, Location: '/manual/DSH_USER_MANUAL.html'});
-    return res.end();
-  }
+  const headers = {'Cache-Control':'no-cache', 'X-Content-Type-Options':'nosniff',
+    'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"};
+  if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405,{...headers,Allow:'GET, HEAD'});return res.end(); }
+  if (pathname === '/manual' || pathname === '/manual/') { res.writeHead(302,{...headers,Location:'/manual/index.html'});return res.end(); }
   try {
-    const name = decodeURIComponent(pathname.slice('/manual/'.length));
-    if (!/^[a-zA-Z0-9_./-]+\.(html|md|json|png|svg|mp4|vtt|pdf|pptx|txt)$/.test(name) ||
-        name.split('/').some(part => !part || part === '.' || part === '..')) {
-      throw Error('Unknown manual');
+    const name=decodeURIComponent(pathname.slice('/manual/'.length));
+    if (!/^[a-zA-Z0-9_./-]+\.(html|md|json|png|svg|mp4|vtt)$/.test(name) || name.split('/').some(x=>!x || x==='.' || x==='..')) throw Error('Unknown manual');
+    const manifest=JSON.parse(fs.readFileSync(path.join(MANUAL_DIR,'manifest.json'),'utf8'));
+    if (!Object.hasOwn(manifest.files,name)) { res.writeHead(404,headers);return res.end('Manual page not found.'); }
+    const entry=manifest.files[name], root=fs.realpathSync(MANUAL_DIR), file=fs.realpathSync(path.join(root,name));
+    if (!file.startsWith(root+path.sep) || entry.bytes>8*1024*1024) throw Error('Invalid manual file');
+    const body=fs.readFileSync(file);
+    if(body.length!==entry.bytes || crypto.createHash('sha256').update(body).digest('hex')!==entry.sha256)throw Error('Manual integrity mismatch');
+    const extension=name.split('.').pop();
+    const types={html:'text/html; charset=utf-8',md:'text/plain; charset=utf-8',json:'application/json; charset=utf-8',png:'image/png',svg:'image/svg+xml',mp4:'video/mp4',vtt:'text/vtt; charset=utf-8'};
+    const range=extension==='mp4' && req.headers.range;
+    if(range){
+      const match=/^bytes=(\d+)-(\d*)$/.exec(range);
+      if(!match)throw Error('Invalid media range');
+      let start=match[1]?Number(match[1]):0,end=match[2]?Number(match[2]):body.length-1;
+      if(!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start<0||end<start||start>=body.length)throw Error('Invalid media range');
+      end=Math.min(end,body.length-1);
+      const part=body.subarray(start,end+1);
+      res.writeHead(206,{...headers,'Content-Type':types[extension],'Accept-Ranges':'bytes','Content-Range':`bytes ${start}-${end}/${body.length}`,'Content-Length':part.length});return res.end(req.method==='HEAD'?undefined:part);
     }
-    const root = fs.realpathSync(MANUAL_DIR);
-    const manifest = JSON.parse(readManualFile(root, 'manifest.json', 4 * 1024 * 1024).toString('utf8'));
-    if (!Object.hasOwn(manifest.files, name)) throw Error('Unknown manual');
-    const entry = manifest.files[name];
-    if (!Number.isSafeInteger(entry.bytes) || entry.bytes < 0 || entry.bytes > 8 * 1024 * 1024 ||
-        typeof entry.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(entry.sha256)) {
-      throw Error('Invalid manual manifest entry');
-    }
-    const body = readManualFile(root, name, 8 * 1024 * 1024);
-    if (body.length !== entry.bytes || crypto.createHash('sha256').update(body).digest('hex') !== entry.sha256) {
-      throw Error('Manual integrity mismatch');
-    }
-    const extension = name.split('.').pop();
-    const types = {
-      html: 'text/html; charset=utf-8', md: 'text/plain; charset=utf-8',
-      json: 'application/json; charset=utf-8', png: 'image/png', svg: 'image/svg+xml',
-      mp4: 'video/mp4', vtt: 'text/vtt; charset=utf-8', pdf: 'application/pdf',
-      pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      txt: 'text/plain; charset=utf-8'
-    };
-    const mediaHeaders = extension === 'mp4' ? {'Accept-Ranges': 'bytes'} : {};
-    const range = extension === 'mp4' && req.headers.range;
-    if (range !== false && range !== undefined) {
-      const match = /^bytes=(\d+)-(\d*)$/.exec(range);
-      const start = match ? Number(match[1]) : NaN;
-      const requestedEnd = match && match[2] ? Number(match[2]) : body.length - 1;
-      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(requestedEnd) ||
-          requestedEnd < start || start >= body.length) {
-        res.writeHead(416, {...headers, ...mediaHeaders, 'Content-Range': `bytes */${body.length}`, 'Content-Length': 0});
-        return res.end();
-      }
-      const end = Math.min(requestedEnd, body.length - 1);
-      const part = body.subarray(start, end + 1);
-      res.writeHead(206, {...headers, ...mediaHeaders, 'Content-Type': types[extension],
-        'Content-Range': `bytes ${start}-${end}/${body.length}`, 'Content-Length': part.length});
-      return res.end(req.method === 'HEAD' ? undefined : part);
-    }
-    res.writeHead(200, {...headers, ...mediaHeaders, 'Content-Type': types[extension], 'Content-Length': body.length});
-    return res.end(req.method === 'HEAD' ? undefined : body);
-  } catch {
-    res.writeHead(404, headers);
-    return res.end(req.method === 'HEAD' ? undefined : 'Manual page unavailable.');
-  }
+    const mediaHeaders=extension==='mp4'?{'Accept-Ranges':'bytes'}:{};
+    res.writeHead(200,{...headers,...mediaHeaders,'Content-Type':types[extension],'Content-Length':body.length});return res.end(req.method==='HEAD'?undefined:body);
+  } catch { res.writeHead(404,headers);return res.end('Manual page unavailable.'); }
 }
 // Kubernetes may inject DSH_PORT=tcp://<service-ip>:3080 for the Service named
 // "dsh". Accept only an explicitly numeric port and otherwise use the internal
@@ -880,10 +799,6 @@ function capacityStatusSnapshot(){
 }
 function sharedResourceStatus(){return require('./session_demand').publicStatus(SESSION_DEMAND?.snapshot(),capacityStatusSnapshot());}
 // Cold start or queue: a self-refreshing page for browsers, 503 + Retry-After for API clients.
-// A just-created or restarting workspace can be Ready as a pod before DSH accepts connections. These errors mean "not yet", never a failure to show as text.
-const DSH_STARTING_ERRORS=new Set(['ECONNREFUSED','ECONNRESET','ETIMEDOUT','EHOSTUNREACH','ENOTFOUND','EAI_AGAIN']);
-const DSH_CONNECT_BACKOFF_MS=Number(process.env.DSH_CONNECT_BACKOFF_MS_UNIT)>0?[1,2,3,5,8,10].map(x=>x*Number(process.env.DSH_CONNECT_BACKOFF_MS_UNIT)):[500,1000,1500,2500,4000,5000];
-const sendDshStarting=(req,res)=>sendRuntimeWait(req,res,{state:'starting',progress:{stage:'starting-dsh',percent:85,detail:''}});
 function sendRuntimeWait(req,res,runtime){
   const status=sharedResourceStatus();
   const message=runtime.state==='waiting'?`All shared resources are in use. You are number ${Number(runtime.position)||1} in the queue; your workspace starts as soon as resources free up.`
@@ -1025,8 +940,7 @@ const cachedDshAuthCookies = new Map();
 const USER_SOCKETS = new Map();
 const SESSION_SOCKETS = new WeakMap();
 function accountEnabled(user) { const users=loadUsers(); return Object.hasOwn(users,user) && users[user].disabled !== true; }
-async function revokeUserSessions(user) {
-  await COMPLETE_WORKER.cancelUser(user);
+function revokeUserSessions(user) {
   SESSIONS.removeUser(user);
   for (const socket of USER_SOCKETS.get(user) || []) socket.destroy();
   USER_SOCKETS.delete(user);
@@ -1341,7 +1255,7 @@ function setUserInternetMode(username, mode) {
   return saveUserSettings(settings);
 }
 
-function unskinned_injectLogoutControl(html, isAdmin = false, sessionUser = '', internetMode = 'off') {
+function injectLogoutControl(html, isAdmin = false, sessionUser = '', internetMode = 'off') {
   if (typeof html !== 'string' || html.includes('id="dsh-enterprise-logout"')) return html;
   const control = `<a id="dsh-enterprise-logout" href="/logout" aria-label="Logout" title="Logout" style="position:fixed;right:18px;top:14px;z-index:2147483647;display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(148,163,184,.42);border-radius:8px;background:rgba(15,23,42,.94);color:#f8fafc;font:600 13px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.28);backdrop-filter:blur(8px)"><span aria-hidden="true">&#x21AA;</span><span>Logout</span></a>`;
   const credentialLink = USER_CREDENTIALS ? '<a id="dsh-user-credentials" href="/credentials" style="position:fixed;right:18px;top:58px;z-index:2147483647;background:#003366;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 13px system-ui">Credentials</a>' : '';
@@ -1376,103 +1290,216 @@ function getDshToken(tokenFile = '/tmp/dsh_token.txt') {
   return '';
 }
 
-function unskinned_renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '', authProvider = LDAP_DIRECTORY ? 'ldap' : 'local' } = {}) {
+function renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '', authProvider = LDAP_DIRECTORY ? 'ldap' : 'local' } = {}) {
   return `<!DOCTYPE html>
-<html lang="th" data-self-themed="governed-harness">
+<html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login · Governed Harness</title>
+  <title>Login · DeepSeek Harness (DSH) — Enterprise AI Platform</title>
   <style>
     :root {
-      color-scheme: light dark;
-      --bg: #f4f6fa; --bg-accent: #e6edf7; --surface: #ffffff; --surface-2: #f1f4f9; --border: #d5dde8;
-      --text: #172033; --muted: #556275; --accent: #2457c5; --accent-strong: #1a46a3; --accent-soft: #e5edfb;
-      --mark-bg: #172033; --mark-fg: #ffffff; --focus: #2f6fed;
-      --success-bg: #e7f6ee; --success-border: #9fd7b6; --success-text: #17643a;
-      --error-bg: #fdecec; --error-border: #f2b0b0; --error-text: #a61b1b;
-      --bar-track: #e4e7eb; --shadow: 0 10px 30px #17203314;
+      --primary-navy: #0F4C81;
+      --primary-deep: #0A2540;
+      --primary-gold: #C5A880;
+      --bg-dark: #0B0F19;
+      --card-bg: #131C2E;
+      --border: #202E49;
+      --text-main: #E2E8F0;
+      --text-muted: #94A3B8;
+      --success-bg: rgba(16, 185, 129, 0.15);
+      --success-border: rgba(16, 185, 129, 0.35);
+      --success-text: #34D399;
+      --error-bg: rgba(239, 68, 68, 0.15);
+      --error-border: rgba(239, 68, 68, 0.35);
+      --error-text: #F87171;
     }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0b0f19; --bg-accent: #111a2c; --surface: #131c2e; --surface-2: #0f1726; --border: #24324d;
-        --text: #e2e8f0; --muted: #9aa8bc; --accent: #6f9cff; --accent-strong: #8db1ff; --accent-soft: #1b2a47;
-        --mark-bg: #e2e8f0; --mark-fg: #0b0f19; --focus: #93c5fd;
-        --success-bg: #10b98126; --success-border: #10b98159; --success-text: #34d399;
-        --error-bg: #ef444426; --error-border: #ef444459; --error-text: #f87171;
-        --bar-track: #26324a; --shadow: 0 20px 40px #00000080;
-      }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Sarabun', -apple-system, sans-serif; }
+    body {
+      background-color: var(--bg-dark);
+      background-image: radial-gradient(circle at top right, #1a2f4d 0%, transparent 60%), radial-gradient(circle at bottom left, #0d1e38 0%, transparent 60%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Sarabun', -apple-system, 'Segoe UI', sans-serif; }
-    body { background: radial-gradient(circle at top right, var(--bg-accent) 0%, transparent 55%), var(--bg); color: var(--text); min-height: 100vh; padding: 24px 20px 32px; line-height: 1.5; }
-    a { color: var(--accent); }
-    :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-    .gh-shell { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "brand" "form" "info"; }
-    @media (min-width: 900px) {
-      body { display: flex; align-items: center; }
-      .gh-shell { width: 100%; grid-template-columns: minmax(0, 1.1fr) minmax(360px, 460px); grid-template-areas: "brand brand" "info form"; align-items: start; gap: 24px 32px; }
+    .login-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 460px;
+      padding: 36px 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      position: relative;
+      overflow: hidden;
     }
-    .brand-header { grid-area: brand; display: flex; align-items: center; gap: 14px; }
-    .brand-mark { flex: none; width: 52px; height: 52px; border-radius: 14px; background: var(--mark-bg); color: var(--mark-fg); display: flex; align-items: center; justify-content: center; }
-    .brand-mark svg { width: 30px; height: auto; }
-    .app-title { font-size: 26px; font-weight: 700; line-height: 1.2; color: var(--text); }
-    .app-subtitle { font-size: 14px; color: var(--muted); }
-    .app-slogan { font-size: 14px; color: var(--muted); margin-top: 2px; }
-    .app-slogan strong { color: var(--text); font-weight: 700; }
-    .gh-form { grid-area: form; }
-    .gh-info { grid-area: info; display: grid; gap: 14px; }
-    .login-card, .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); }
-    .login-card { padding: 28px 26px; position: relative; overflow: hidden; }
-    .login-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-strong)); }
-    .info-card { padding: 18px 20px; font-size: 14px; }
-    .info-card h2 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-    .info-card ul, .info-card ol { padding-left: 20px; display: grid; gap: 4px; }
-    .info-card .gh-sub { font-size: 13px; font-weight: 700; margin: 12px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-    .info-card li { color: var(--text); }
-    .info-card .muted, .rs-note { color: var(--muted); }
-    .auth-tabs { display: flex; background: var(--surface-2); border-radius: 8px; padding: 4px; margin-bottom: 20px; border: 1px solid var(--border); }
-    .auth-tab { flex: 1; text-align: center; padding: 8px 4px; font-size: 13px; font-weight: 500; color: var(--muted); border-radius: 6px; cursor: pointer; border: 0; background: transparent; font-family: inherit; }
-    .auth-tab.active { background: var(--accent); color: #fff; font-weight: 600; box-shadow: 0 2px 6px #0000004d; }
-    .alert-badge { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 18px; line-height: 1.4; }
-    .alert-error { background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
-    .alert-success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
-    .env-note { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
-    .form-group { margin-bottom: 16px; }
-    .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
-    .form-control { width: 100%; padding: 11px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; transition: all 0.2s; }
-    .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-    .radio-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .radio-option { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 13px; }
-    .radio-option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
-    .radio-option:has(input:disabled) { opacity: .55; cursor: not-allowed; }
-    .provider-group { border: 0; padding: 0; min-width: 0; }
-    .provider-group legend { padding: 0; }
-    @media (max-width: 480px) { .radio-group.provider-radios { grid-template-columns: 1fr; } }
-    .form-help { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.4; }
-    .btn-submit { width: 100%; padding: 12px; background: var(--accent); border: 1px solid transparent; border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 6px; }
-    .btn-submit:hover { background: var(--accent-strong); }
-    @media (prefers-color-scheme: dark) { .btn-submit, .auth-tab.active { color: #0b0f19; } }
-    .rs-head { font-weight: 700; margin-bottom: 8px; }
-    .rs-head span { font-weight: 400; color: var(--muted); font-size: .8rem; }
-    .rs-row { display: grid; grid-template-columns: 7.5em 1fr; gap: 6px 10px; align-items: center; margin: 5px 0; }
-    .rs-bar { position: relative; height: 12px; border-radius: 6px; background: var(--bar-track); overflow: hidden; }
-    .rs-bar .rs-res { position: absolute; inset: 0 auto 0 0; background: #9fb3c8; }
-    .rs-bar .rs-use { position: absolute; inset: 0 auto 0 0; background: #2f6fed; }
-    .rs-val { grid-column: 2; font-size: .78rem; color: var(--muted); margin-top: -3px; }
-    .rs-legend { font-size: .75rem; color: var(--muted); margin-top: 4px; }
-    .rs-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin: 0 4px 0 8px; }
-    #resourceNumbers { font-size: .85rem; margin-top: 6px; }
-    .rs-note { font-size: .82rem; margin-top: 6px; }
-    @media (max-width: 899px) { .info-card { font-size: 13px; } .info-card ul { gap: 2px; } }
+    .login-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-gold), #e8d5b5, var(--primary-navy));
+    }
+    .brand-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 12px;
+      background: linear-gradient(135deg, var(--primary-navy), var(--primary-deep));
+      border: 1px solid rgba(197, 168, 128, 0.4);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .brand-logo svg {
+      width: 28px;
+      height: 28px;
+      fill: var(--primary-gold);
+    }
+    .org-title {
+      font-size: 13px;
+      letter-spacing: 1px;
+      color: var(--primary-gold);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .app-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #FFF;
+      margin: 4px 0 2px;
+    }
+    .app-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      background: rgba(11, 15, 25, 0.7);
+      border-radius: 8px;
+      padding: 4px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .auth-tab.active {
+      background: var(--primary-navy);
+      color: #FFF;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .alert-badge {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      line-height: 1.4;
+    }
+    .alert-error {
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      color: var(--error-text);
+    }
+    .alert-success {
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--success-text);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(11, 15, 25, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #FFF;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-navy);
+      box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.25);
+      background: rgba(11, 15, 25, 0.9);
+    }
+    .radio-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(11, 15, 25, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .radio-option:has(input:checked) { border-color: var(--primary-navy); background: rgba(15, 76, 129, 0.2); }
+    .form-help { margin-top: 6px; color: var(--text-muted); font-size: 11px; line-height: 1.4; }
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--primary-navy), #165b99);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(15, 76, 129, 0.4);
+      margin-top: 6px;
+    }
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #165b99, #1b6cb4);
+      transform: translateY(-1px);
+    }
     .manual-fab {
       position: fixed; right: max(24px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom));
       z-index: 20; display: inline-flex; align-items: center; gap: 9px;
-      padding: 13px 19px; border: 1px solid var(--accent); border-radius: 999px;
-      background: var(--surface); color: var(--accent); font-size: 14px; font-weight: 600;
-      text-decoration: none; box-shadow: var(--shadow);
+      padding: 13px 19px; border: 1px solid #5B90C6; border-radius: 999px;
+      background: #12365b; color: #EFF6FF; font-size: 14px; font-weight: 600;
+      text-decoration: none; box-shadow: 0 8px 28px #0006;
     }
-    .manual-fab:hover { background: var(--accent-soft); }
-    @media (max-width: 600px) { .manual-fab { position: static; margin: 20px auto 8px; width: fit-content; box-shadow: none; display: flex; } } /* on phones a floating button covered form fields; keep it in the page flow below the card */
+    .manual-fab:hover { background: #1e4c7c; }
+    .manual-fab:focus-visible { outline: 3px solid #93C5FD; outline-offset: 4px; }
+    @media (max-width: 600px) { body { flex-direction: column; } .manual-fab { position: static; margin: 20px auto 8px; width: fit-content; box-shadow: none; } } /* on phones a floating button covered form fields; keep it in the page flow below the card */
   </style>
   <script>
     function switchTab(name) {
@@ -1484,22 +1511,28 @@ function unskinned_renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '
   </script>
 </head>
 <body>${process.env.DSH_TEST_ISSUER==='true'?'<aside>Isolated Test issuer: synthetic review accounts only. This is not normal DSH.</aside>':''}
-  <main class="gh-shell">
-    <header class="brand-header">
-      <div class="brand-mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none"><path d="M16 3.5 26.5 7.5v7.6c0 6.4-4.4 11.3-10.5 13.4C9.9 26.4 5.5 21.5 5.5 15.1V7.5L16 3.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M11.5 13.5h9M11.5 13.5 16 20.5M20.5 13.5 16 20.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="11.5" cy="13.5" r="2.3" fill="currentColor"/><circle cx="20.5" cy="13.5" r="2.3" fill="currentColor"/><circle cx="16" cy="20.5" r="2.3" fill="currentColor"/></svg></div>
-      <div>
-        <h1 class="app-title">Governed Harness</h1>
-        <p class="app-subtitle">Agentic coding and knowledge work on private GPUs</p>
-        <p class="app-slogan"><strong>Build with AI. Stay in control.</strong></p>
-      </div>
-    </header>
-
-    <div class="gh-form">
   <div class="login-card">
+    <div class="brand-header">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="org-title">Enterprise AI Platform</div>
+      <h1 class="app-title">DeepSeek Harness (DSH)</h1>
+      <p class="app-subtitle">Enterprise Agentic Coding &amp; Knowledge Gateway</p>
+    </div>
+
+    <section id="resourceStatus" class="resource-status" role="status" aria-live="polite" style="margin:0 0 16px;padding:12px 14px;border:1px solid #d9e2ec;border-radius:10px;background:#f8fafc;font-size:.88rem;line-height:1.45">
+      <div style="font-weight:600;margin-bottom:8px">Shared resources now <span id="resourceUpdated" style="font-weight:400;color:#52606d;font-size:.8rem"></span></div>
+      <style>.rs-row{display:grid;grid-template-columns:7.5em 1fr;gap:6px 10px;align-items:center;margin:5px 0}.rs-bar{position:relative;height:12px;border-radius:6px;background:#e4e7eb;overflow:hidden}.rs-bar .rs-res{position:absolute;inset:0 auto 0 0;background:#9fb3c8}.rs-bar .rs-use{position:absolute;inset:0 auto 0 0;background:#2f6fed}.rs-val{grid-column:2;font-size:.78rem;color:#52606d;margin-top:-3px}.rs-legend{font-size:.75rem;color:#52606d;margin-top:4px}.rs-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin:0 4px 0 8px}</style>
+      <div id="resourceBars" aria-label="Shared resource utilisation"></div>
+      <div id="resourceNumbers">Checking…</div>
+      <div style="color:#52606d;margin-top:6px">Resources are shared and not reserved in advance. Your workspace starts when you sign in and resources allow (first come, first served), and stops after a period without activity. Your files are always kept.</div>
+    </section>
+
     <div class="auth-tabs">
-      <button type="button" id="tab-login" class="auth-tab ${tab === 'login' ? 'active' : ''}" onclick="switchTab(\'login\')">เข้าสู่ระบบ</button>
-      ${ALLOW_REGISTRATION ? `<button type="button" id="tab-register" class="auth-tab ${tab === 'register' ? 'active' : ''}" onclick="switchTab(\'register\')">Create account</button>` : ''}
-      <button type="button" id="tab-change" class="auth-tab ${tab === 'change' ? 'active' : ''}" onclick="switchTab(\'change\')">เปลี่ยนรหัสผ่าน</button>
+      <div id="tab-login" class="auth-tab ${tab === 'login' ? 'active' : ''}" onclick="switchTab('login')">เข้าสู่ระบบ</div>
+      ${ALLOW_REGISTRATION ? `<div id="tab-register" class="auth-tab ${tab === 'register' ? 'active' : ''}" onclick="switchTab('register')">Create account</div>` : ''}
+      <div id="tab-change" class="auth-tab ${tab === 'change' ? 'active' : ''}" onclick="switchTab('change')">เปลี่ยนรหัสผ่าน</div>
     </div>
 
     ${errorMsg ? `<div class="alert-badge alert-error">⚠️ ${errorMsg}</div>` : ''}
@@ -1508,14 +1541,7 @@ function unskinned_renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '
     <!-- 1. Form: เข้าสู่ระบบ -->
     <div id="pane-login" class="tab-pane" style="display: ${tab === 'login' ? 'block' : 'none'};">
       <form method="POST" action="/login">
-        <fieldset class="form-group provider-group" aria-describedby="provider_help">
-          <legend class="form-label">Sign in using</legend>
-          <div class="radio-group provider-radios">
-            <label class="radio-option"><input type="radio" name="auth_provider" value="ldap" ${LDAP_DIRECTORY ? (authProvider === 'ldap' ? 'checked' : '') : 'disabled aria-disabled="true"'}> AD / LDAP (corporate directory)</label>
-            <label class="radio-option"><input type="radio" name="auth_provider" value="local" ${LDAP_DIRECTORY ? (authProvider === 'local' ? 'checked' : '') : 'checked'}> Local account</label>
-          </div>
-          <p class="form-help" id="provider_help">${LDAP_DIRECTORY ? 'AD creates a private No Internet workspace on first sign-in. Internet access still requires administrator approval.' : 'AD / LDAP isn&#39;t configured on this deployment.'}</p>
-        </fieldset>
+        ${LDAP_DIRECTORY ? `<div class="form-group"><label class="form-label" for="auth_provider">Sign in using</label><select id="auth_provider" name="auth_provider" class="form-control"><option value="ldap" ${authProvider==='ldap'?'selected':''}>AD / LDAP</option><option value="local" ${authProvider==='local'?'selected':''}>Local DSH account</option></select><p class="form-help">AD creates a private No Internet workspace on first sign-in. Internet access still requires administrator approval.</p></div>` : ''}
         <div class="form-group">
           <label class="form-label" for="login_username">ชื่อผู้ใช้งาน (Username)</label>
           <input type="text" id="login_username" name="username" class="form-control" placeholder="เช่น admin หรือชื่อของคุณ" required autofocus>
@@ -1585,42 +1611,14 @@ function unskinned_renderAuthPage({ tab = 'login', errorMsg = '', successMsg = '
         <button type="submit" class="btn-submit">เปลี่ยนรหัสผ่าน (Update Password)</button>
       </form>
     </div>
-  </div>
-    </div>
 
-    <aside class="gh-info" aria-label="Live resources and how to use this service">
-    <section id="resourceStatus" class="resource-status info-card" role="status" aria-live="polite">
-      <div class="rs-head">Shared resources now <span id="resourceUpdated"></span></div>
-      <div id="resourceBars" aria-label="Shared resource utilisation"></div>
-      <div id="resourceNumbers">Checking…</div>
-      <div class="rs-note">Resources are shared and not reserved in advance. Your workspace starts when you sign in and resources allow (first come, first served), and stops after a period without activity. Your files are always kept.</div>
-    </section>
-      <section class="info-card" aria-labelledby="gh-start">
-        <h2 id="gh-start">Get started with Governed Harness</h2>
-        <ol>
-          <li>Sign in, or create an account. New accounts get a private No Internet workspace right away.</li>
-          <li>Your workspace starts when shared resources allow (first come, first served).</li>
-          <li>Choose a project in the workspace and give the assistant a clear, bounded task.</li>
-        </ol>
-        <h3 class="gh-sub">What you can do</h3>
-        <ul>
-          <li>A private AI coding and analysis assistant; conversations and project files are kept.</li>
-          <li>DeepSeek-V4.1-Flash with up to 1,048,576 tokens (1M) per conversation.</li>
-          <li>Web Terminal, JupyterLab and your own application URLs in the same workspace.</li>
-          <li>Private Python environments without opening your workspace to the Internet.</li>
-          <li>Secrets stay out of chat: the assistant sees only credential aliases.</li>
-        </ul>
-        <p class="muted" style="margin-top:8px">Internet access needs administrator approval. <a href="/manual/DSH_USER_MANUAL.html" target="_blank" rel="noopener">Read the user manual</a></p>
-      </section>
-    </aside>
-  </main>
+  </div>
   <a class="manual-fab" href="/manual/" target="_blank" rel="noopener"><span aria-hidden="true">?</span> User manual</a>
 <script>
 (()=>{const u=document.getElementById('login_username'),p=document.getElementById('login_password'),on=document.getElementById('internet-option');if(!u||!p||!on)return;let generation=0;
-const providerValue=()=>document.querySelector('input[name="auth_provider"]:checked')?.value;
-function reset(){generation++;on.disabled=providerValue()!=='ldap';on.checked=false;const off=document.querySelector('input[name="internet"][value="off"]');if(off&&!off.disabled)off.checked=true;}
-async function check(){reset();if(providerValue()==='ldap'){on.disabled=false;return;}const g=generation;if(!u.value||!p.value)return;try{const r=await fetch('/api/login-environments',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:u.value,password:p.value})});const d=await r.json();if(g===generation)on.disabled=!d.internetAllowed;}catch{}}
-u.addEventListener('input',reset);p.addEventListener('input',reset);u.addEventListener('change',check);p.addEventListener('change',check);document.querySelectorAll('input[name="auth_provider"]').forEach(r=>r.addEventListener('change',check));if(providerValue()==='ldap')on.disabled=false;})();
+function reset(){generation++;on.disabled=document.getElementById('auth_provider')?.value!=='ldap';on.checked=false;const off=document.querySelector('input[name="internet"][value="off"]');if(off&&!off.disabled)off.checked=true;}
+async function check(){reset();const provider=document.getElementById('auth_provider');if(provider&&provider.value==='ldap'){on.disabled=false;return;}const g=generation;if(!u.value||!p.value)return;try{const r=await fetch('/api/login-environments',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:u.value,password:p.value})});const d=await r.json();if(g===generation)on.disabled=!d.internetAllowed;}catch{}}
+u.addEventListener('input',reset);p.addEventListener('input',reset);u.addEventListener('change',check);p.addEventListener('change',check);const provider=document.getElementById('auth_provider');if(provider){provider.addEventListener('change',check);if(provider.value==='ldap')on.disabled=false;}})();
 (()=>{const label=document.getElementById('signupSlots');if(!label)return;let pending=false;
 async function update(){if(pending||document.hidden)return;pending=true;const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),8000);
 try{const response=await fetch('/api/signup-capacity',{cache:'no-store',credentials:'omit',signal:controller.signal});if(!response.ok)throw Error('unavailable');const data=await response.json();
@@ -1663,7 +1661,7 @@ update();setInterval(update,15000);window.addEventListener('focus',update);docum
 </html>`;
 }
 
-const server = http.createServer(async (req, res) => {
+const server = http.createServer((req, res) => {
   try{if(handlePublicAlias(req,res))return;if(handleExternalAlias(req,res))return;}catch{res.writeHead(503);return res.end('External application policy unavailable.');}
   const parsedUrl = url.parse(req.url, true);
   if(APP_SIGNIN && req.method==='GET' && parsedUrl.pathname==='/login' && Object.hasOwn(parsedUrl.query,'app')) {
@@ -1691,18 +1689,6 @@ const server = http.createServer(async (req, res) => {
     if(req.method!=='GET'){res.writeHead(405,{...headers,Allow:'GET'});return res.end(JSON.stringify({error:'Method not allowed'}));}
     try{res.writeHead(200,headers);return res.end(JSON.stringify(sharedResourceStatus()));}
     catch{res.writeHead(503,headers);return res.end(JSON.stringify({error:'Resource status unavailable'}));}
-  }
-  if(parsedUrl.pathname==='/api/theme-default-logo') {
-    // Theme-specific deployment logo links for the optional custom theme: set
-    // on this Deployment, never in the source. The legacy single value remains
-    // a fallback during compatibility rollout.
-    const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
-    if(req.method!=='GET'){res.writeHead(405,{...headers,Allow:'GET'});return res.end(JSON.stringify({error:'Method not allowed'}));}
-    const safeLogo=value=>{try{const u=new URL(value||'');return u.protocol==='https:'&&!u.username&&!u.password&&u.href.length<=2048?u.href:'';}catch{return '';}};
-    const logo=safeLogo(process.env.DSH_THEME_DEFAULT_LOGO_URL);
-    const light=safeLogo(process.env.DSH_THEME_DEFAULT_LOGO_LIGHT_URL)||logo;
-    const dark=safeLogo(process.env.DSH_THEME_DEFAULT_LOGO_DARK_URL)||logo;
-    res.writeHead(200,headers);return res.end(JSON.stringify({light,dark}));
   }
   if(parsedUrl.pathname==='/api/signup-capacity') {
     const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
@@ -1752,7 +1738,7 @@ const server = http.createServer(async (req, res) => {
       const params = new URLSearchParams(body);
       let username = params.get('username') ? params.get('username').trim().toLowerCase() : '';
       const password = params.get('password') || '';
-      const authProvider = LDAP_DIRECTORY ? (params.get('auth_provider') || 'ldap') : 'local';
+      const authProvider = params.get('auth_provider') || (LDAP_DIRECTORY ? 'ldap' : 'local');
       let appContext=null;
       if(params.has('app_login')) {
         try {if(!APP_SIGNIN)throw Error();appContext=APP_SIGNIN.consume(req,params,value=>authProvider==='ldap'&&LDAP_DIRECTORY?normalizeUsername(value,LDAP_DIRECTORY.config.domain):value.trim().toLowerCase());}
@@ -1935,7 +1921,7 @@ const server = http.createServer(async (req, res) => {
       if (forcedChange && !auditEvent('account.password-changed', username, 'off')) { res.writeHead(503); return res.end('Audit storage unavailable.'); }
       if (saveUsers(USERS)) {
         console.log(`[AUTH-PROXY] Successfully changed password for user: ${username}`);
-        try { await revokeUserSessions(username); }
+        try { revokeUserSessions(username); }
         catch(error) { console.error('[AUTH-PROXY] Session revocation failed:',error.code||error.name);res.writeHead(503);return res.end('Password saved; session revocation needs operator review.'); }
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(renderAuthPage({ tab: 'login', successMsg: `เปลี่ยนรหัสผ่านสำหรับผู้ใช้ "${username}" สำเร็จแล้ว กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่` }));
@@ -1954,7 +1940,7 @@ const server = http.createServer(async (req, res) => {
         if (c.startsWith(`${name}=`)) {
           const sid = c.substring(name.length + 1);const s = SESSIONS.get(sid);
           if (s) auditEvent('logout', s.user, s.internet);
-          try { await COMPLETE_WORKER.cancelSession(s,'logout');SESSIONS.delete(sid); }
+          try { SESSIONS.delete(sid); }
           catch { res.writeHead(503);return res.end('Sign-out storage unavailable. Please retry.'); }
           if(s){for(const socket of SESSION_SOCKETS.get(s)||[])socket.destroy();SESSION_SOCKETS.delete(s);}
           // Signing out releases the workspace at once unless another session uses it.
@@ -1974,7 +1960,6 @@ const server = http.createServer(async (req, res) => {
   let authenticated = false;
   let sessionUser = null;
   let activeSession = null;
-  let activeSessionId = null;
   const cookieHeader = req.headers.cookie;
   if (cookieHeader) {
     const cookies = cookieHeader.split(';').map(c => c.trim());
@@ -1984,7 +1969,6 @@ const server = http.createServer(async (req, res) => {
         if (SESSIONS.has(sid)) {
           authenticated = true;
           activeSession = SESSIONS.get(sid);
-          activeSessionId = sid;
           sessionUser = activeSession.user;
           break;
         }
@@ -1994,7 +1978,6 @@ const server = http.createServer(async (req, res) => {
         if (SESSIONS.has(sid)) {
           authenticated = true;
           activeSession = SESSIONS.get(sid);
-          activeSessionId = sid;
           sessionUser = activeSession.user;
           break;
         }
@@ -2002,7 +1985,7 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  if (authenticated && (!accountEnabled(sessionUser) || (activeSession.internet === 'on' && !internetAllowed(sessionUser)))) { await revokeUserSessions(sessionUser); authenticated=false; }
+  if (authenticated && (!accountEnabled(sessionUser) || (activeSession.internet === 'on' && !internetAllowed(sessionUser)))) { revokeUserSessions(sessionUser); authenticated=false; }
   if (!authenticated && APP_SIGNIN && !(courseRoute && courseRoute.hostAllowed) && appHostName(req.headers.host) && req.method==='GET' && !parsedUrl.pathname.startsWith('/api/')) {
     res.writeHead(303,{Location:'https://'+process.env.DSH_TRUSTED_HOST+'/login?app='+encodeURIComponent(appHostName(req.headers.host)), 'Cache-Control':'no-store'});return res.end();
   }
@@ -2020,8 +2003,6 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (courseRoute) return serveCourse(req, res, courseRoute);
-
-  if(await COMPLETE_WORKER.handle(req,res,{pathname:parsedUrl.pathname,session:activeSession,sessionId:activeSessionId,generation:sessionAccountStamp(sessionUser)}))return;
 
   if(PACKAGE_PORTAL && (parsedUrl.pathname==='/packages'||parsedUrl.pathname==='/api/packages')){
     if(parsedUrl.pathname==='/packages'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Frame-Options':'DENY'});return res.end(require('./package_portal').page());}
@@ -2102,7 +2083,7 @@ const server = http.createServer(async (req, res) => {
       if(!String(req.headers['content-type']||'').startsWith('application/x-www-form-urlencoded')) return reply(415,{error:'Form encoding required.'});
       let body='',tooLarge=false;
       req.on('data',chunk=>{if(tooLarge)return;body+=chunk;if(Buffer.byteLength(body)>4096){tooLarge=true;reply(413,{error:'Request too large.'});}});
-      req.on('end',async()=>{
+      req.on('end',()=>{
         if(tooLarge)return;
         try {
           if(!accountEnabled(sessionUser) || ![...SESSIONS.values()].includes(activeSession)) return reply(403,{error:'Session expired.'});
@@ -2132,7 +2113,7 @@ const server = http.createServer(async (req, res) => {
           }
           if(!auditEvent('account.'+action,sessionUser,activeSession.internet,user))return reply(503,{error:'Audit storage unavailable.'});
           if(action!=='revoke'&&!saveUsers(users))return reply(500,{error:'Account update could not be saved.'});
-          if(['disable','revoke','deny-internet','reset-password'].includes(action))await revokeUserSessions(user);
+          if(['disable','revoke','deny-internet','reset-password'].includes(action))revokeUserSessions(user);
           return reply(200,{updated:true,user,action});
         } catch {return reply(500,{error:'Account management unavailable.'});}
       });
@@ -2210,6 +2191,15 @@ const server = http.createServer(async (req, res) => {
     JUPYTER_DEMAND.start(req,res,jupyterContext).catch(()=>{if(!res.destroyed&&!res.headersSent){res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:'JUPYTER_START_UNAVAILABLE'}));}});return;
   }
 
+  const agentAuthorized=()=>accountEnabled(sessionUser)&&(internetMode==='off'||internetAllowed(sessionUser))&&
+    Date.now()<activeSession.created+SESSION_TTL_MS&&activeSession.accountStamp===sessionAccountStamp(sessionUser)&&
+    [...SESSIONS.values()].includes(activeSession)&&getEnvironmentTarget(internetMode,sessionUser)?.host===environmentTarget.host;
+  if(parsedUrl.pathname==='/agent-tasks'||parsedUrl.pathname.startsWith('/api/agent-tasks')){
+    let runtimeToken;try{runtimeToken=getDshToken(environmentTarget.tokenFile);}catch{}
+    if(!runtimeToken){res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify({error:'RUNTIME_AUTHENTICATION_UNAVAILABLE'}));}
+    AGENT_TASKS.handle(req,res,{pathname:parsedUrl.pathname,query:parsedUrl.search||'',target:environmentTarget,token:runtimeToken,user:sessionUser,session:activeSession,trustedHost:process.env.DSH_TRUSTED_HOST,authorized:agentAuthorized}).catch(()=>{if(!res.headersSent){res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:'TASK_GATEWAY_UNAVAILABLE'}));}});return;
+  }
+
   if (parsedUrl.pathname === '/applications') {
     res.writeHead(200, {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'});
     return res.end(renderApplications());
@@ -2240,7 +2230,7 @@ const server = http.createServer(async (req, res) => {
           let allowedUsers=[];if(shared&&['selected-users','selected-local-users'].includes(visitorPolicy)){try{allowedUsers=JSON.parse(f.get('allowedUsers')||'[]');if(!Array.isArray(allowedUsers)||!allowedUsers.length||allowedUsers.length>128||allowedUsers.some(u=>typeof u!=='string'||!/^[a-z0-9_.-]{1,64}$/.test(u)||u===sessionUser||!accountEnabled(u)||(visitorPolicy==='selected-local-users'&&loadUsers()[u]?.authProvider==='ldap'))||new Set(allowedUsers).size!==allowedUsers.length)throw Error();allowedUsers.sort();}catch{return reply(400,{error:'Choose 1–128 distinct enabled accounts other than yourself.'});}}
           if(shared&&type==='port'&&(privateLocalPort(port)||!validAppPort(port)))return reply(400,{error:'JupyterLab, terminals and management ports remain owner-only.'});
           if(shared&&(Object.keys(all[name]?.ports||{}).some(mode=>mode!==internetMode)||(type==='port'&&Object.keys(all[name]?.targets||{}).length)||(type==='external'&&Object.keys(all[name]?.ports||{}).length)))return reply(400,{error:'Use a separate alias with one target environment for a shared application.'});
-          if(accessMode==='public'&&type==='port'&&[7681,7682,8888].includes(port))return reply(400,{error:'Terminal, task broker and notebook management ports cannot be published without DSH authentication.'});
+          if(accessMode==='public'&&type==='port'&&[7681,7682,8888].includes(port))return reply(400,{error:'Terminal, task-broker and notebook management ports cannot be published without DSH authentication.'});
           const host=appHostnameState(name);if(host.error)return reply(503,{error:host.error});if(!host.available)return reply(409,{error:'This name belongs to an existing site. Choose another name.'});
           if(shared&&(!APP_SIGNIN||!APP_DOMAIN||!host.ready))return reply(409,{error:'Authenticated sharing requires an approved application hostname and application sign-in.'});
           if(!['port','external'].includes(type))return reply(400,{error:'Choose a local port or external HTTPS URL.'});
@@ -2267,15 +2257,6 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && parsedUrl.pathname === '/api/auth/session') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({ user: sessionUser, internet: internetMode, environment: environmentTarget.name }));
-  }
-
-  const agentAuthorized=()=>accountEnabled(sessionUser)&&(internetMode==='off'||internetAllowed(sessionUser))&&
-    Date.now()<activeSession.created+SESSION_TTL_MS&&activeSession.accountStamp===sessionAccountStamp(sessionUser)&&
-    [...SESSIONS.values()].includes(activeSession)&&getEnvironmentTarget(internetMode,sessionUser)?.host===environmentTarget.host;
-  if(parsedUrl.pathname==='/agent-tasks'||parsedUrl.pathname.startsWith('/api/agent-tasks')){
-    let runtimeToken;try{runtimeToken=getDshToken(environmentTarget.tokenFile);}catch{}
-    if(!runtimeToken){res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify({error:'RUNTIME_AUTHENTICATION_UNAVAILABLE'}));}
-    AGENT_TASKS.handle(req,res,{pathname:parsedUrl.pathname,query:parsedUrl.search||'',target:environmentTarget,token:runtimeToken,user:sessionUser,session:activeSession,trustedHost:process.env.DSH_TRUSTED_HOST,authorized:agentAuthorized}).catch(()=>{if(!res.headersSent){res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:'TASK_GATEWAY_UNAVAILABLE'}));}});return;
   }
 
   // Convenient Terminal Shortcuts (/terminal, /term)
@@ -2336,9 +2317,6 @@ const server = http.createServer(async (req, res) => {
       proxyHeaders['cookie'] = filtered.join('; ');
     }
 
-    // GET and HEAD carry no body, so a refused connection can be retried with a short backoff; nothing else is ever replayed.
-    const idempotent = req.method === 'GET' || req.method === 'HEAD';
-    const attemptForward = (attempt) => {
     const proxyReq = http.request({
       host: environmentTarget.host,
       port: environmentTarget.port,
@@ -2374,30 +2352,17 @@ const server = http.createServer(async (req, res) => {
 
     proxyReq.on('error', (err) => {
       console.error('[AUTH-PROXY] Forward error:', err.message);
-      if (res.headersSent) return res.destroy();
-      if (DSH_STARTING_ERRORS.has(err.code)) {
-        if (idempotent && attempt < DSH_CONNECT_BACKOFF_MS.length) return void setTimeout(() => { if (!res.writableEnded && !res.destroyed) attemptForward(attempt + 1); }, DSH_CONNECT_BACKOFF_MS[attempt]);
-        return sendDshStarting(req, res);
-      }
       res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('Gateway Error: ไม่สามารถเชื่อมต่อบริการ DSH ภายในได้ กรุณารอสักครู่');
     });
 
-    if (idempotent) { req.resume(); proxyReq.end(); } else req.pipe(proxyReq);
-    };
-    attemptForward(0);
+    req.pipe(proxyReq);
   }
 
   const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
-  // A failed mint is never cached; try it once more shortly, then show the starting page instead of forwarding without a cookie.
-  const mintThenForward = (retried) => getOrMintDshCookie(clientHost, environmentTarget, (err, dshCookie) => {
-    if (err && DSH_STARTING_ERRORS.has(err.code)) {
-      if (!retried) return void setTimeout(() => mintThenForward(true), 400);
-      return sendDshStarting(req, res);
-    }
+  getOrMintDshCookie(clientHost, environmentTarget, (err, dshCookie) => {
     forwardToDsh(dshCookie);
   });
-  mintThenForward(false);
 });
 
 // Handle WebSocket Upgrades
@@ -2515,7 +2480,6 @@ server.on('upgrade', (req, socket, head) => {
 
   const clientHost = req.headers['x-forwarded-host'] || req.headers.host || 'dsh.example.com';
   getOrMintDshCookie(clientHost, environmentTarget, (err, dshCookie) => {
-    if (err && DSH_STARTING_ERRORS.has(err.code)) return rejectUpgrade(socket,503,'RUNTIME_STARTING');
     // Reconstruct HTTP upgrade request buffer to guarantee dsh-auth cookie is included
     const rawHeaders = req.rawHeaders;
     let hasDshAuthInCookie = false;

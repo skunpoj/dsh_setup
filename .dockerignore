@@ -10,10 +10,4 @@ outputs
 node_modules
 .venv
 # The theme installer requires the plugin's README.md as a package member.
-!plugins/custom-theme/README.md
-!tests/fixtures/bot-theme-0.1.0/README.md
-!tests/fixtures/bot-theme-0.2.0/README.md
-!tests/fixtures/bot-theme-0.3.0/README.md
-!tests/fixtures/bot-theme-0.3.1/README.md
-!tests/fixtures/bot-theme-0.3.2/README.md
-!tests/fixtures/bot-theme-0.3.3/README.md
+!plugins/dsh-theme-custom-light/README.md

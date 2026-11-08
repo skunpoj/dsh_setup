@@ -2,7 +2,8 @@
 
 **Discussion Category**: Architecture & Plugins  
 **Target Repository**: `deepseek-ai/deepseek-harness`  
-**Community Plugin**: `cordis-plugin-custom-llm-gateway`  
+**Community Plugin**: `cordis-plugin-custom-llm-gateway` (sketch)  
+**Licence**: MIT, as the rest of dsh_setup  
 
 ---
 
@@ -25,7 +26,7 @@ This RFC outlines field-tested architectural patterns and proposes a modular **C
 - **Solution**: Container launcher environments specify `--expose-internals` in their Node process arguments.
 
 ### C. Custom In-Cluster Model Routing & Token Bounding
-- **Observation**: Deployments routing through private OpenAI-compatible endpoints running local weights (e.g., `glm-5.3-flash`, `qwen3.8-27b`, `deepseek-v4-flash`) need consistent model discovery and proper `maxTokens` bounding to align with backend KV-cache constraints.
+- **Observation**: Deployments routing through private OpenAI-compatible endpoints running locally hosted open-weight models need consistent model discovery and proper `maxTokens` bounding to align with backend KV-cache constraints.
 - **Solution**: Provide a plugin configuration hook that registers custom models into DSH's settings catalog and enforces `maxTokens` bounding dynamically.
 
 ### D. Multi-User Workspace Isolation & Persistence Mode
@@ -36,10 +37,25 @@ This RFC outlines field-tested architectural patterns and proposes a modular **C
 
 ## 3. Cordis Plugin Specification
 
-Instead of modifying core packages, gateway and multi-tenancy logic is packaged as a standard Cordis plugin (`cordis_plugin/index.ts`):
+Instead of modifying core packages, gateway and multi-tenancy logic is packaged as a Cordis plugin (`cordis_plugin/index.ts`). **Status: a sketch.** It uses DSH's vendored `@deepseek-ai/cordis` ~4.0.5 and schemastery, and DSH's `ctx.effect` teardown pattern, but it was not compiled or run against a DSH release, and the two registration events are proposed extension points, not existing APIs. The multi-user and reverse-proxy toggles of an earlier draft only wrote log lines and were removed from the sketch; the requirements above still describe what a real plugin would have to provide:
 
 ```typescript
-import { Context, Schema } from 'cordis'
+/**
+ * Illustrative sketch for upstream_rfc/RFC_ENTERPRISE_CORDIS_PLUGIN_AND_GATEWAY.md.
+ * Nothing in DSH loads this file.
+ *
+ * Checked against the @deepseek-ai/dsh 0.2.1-rc.3 packages (not compiled here):
+ *   - DSH vendors its own cordis, @deepseek-ai/cordis ~4.0.5, and schemas come from
+ *     @deepseek-ai/schemastery; the plain `cordis` package is not what DSH runs.
+ *   - Provider and default-model registration events named below do NOT exist in
+ *     those packages. They are PROPOSED extension points. Today DSH takes providers
+ *     from settings.yaml (llm-pi-ai.providers) and the default model from the
+ *     dsh-agent-default-model config entry; see scripts/configure_models.js.
+ *   - Teardown follows DSH's own pattern: register inside ctx.effect(() => dispose).
+ * Defaults are site values: set them in the plugin config, not in code.
+ */
+import { Context } from '@deepseek-ai/cordis'
+import z from '@deepseek-ai/schemastery'
 
 export interface CustomGatewayModel {
   id: string
@@ -54,59 +70,58 @@ export interface CustomGatewayConfig {
   defaultProvider: string
   defaultModel: string
   models: CustomGatewayModel[]
-  workspaceRoot: string
-  multiUserIsolation: boolean
-  loopbackProxyBypass: boolean
 }
 
-export const Config: Schema<CustomGatewayConfig> = Schema.object({
-  baseUrl: Schema.string().default('http://litellm.llm.svc.cluster.local:4000/v1'),
-  apiKey: Schema.string().role('secret').default(''),
-  defaultProvider: Schema.string().default('custom-gateway'),
-  defaultModel: Schema.string().default('glm-5.3-flash'),
-  models: Schema.array(Schema.object({
-    id: Schema.string().required(),
-    name: Schema.string().required(),
-    contextWindow: Schema.number().default(4096),
-    maxTokens: Schema.number().default(2048),
+export const Config = z.object({
+  baseUrl: z.string().default(process.env.DSH_LLM_BASE_URL ?? 'http://litellm.example.invalid:4000/v1'),
+  apiKey: z.string().role('secret').default(''),
+  defaultProvider: z.string().default('litellm-cluster'),
+  defaultModel: z.string().default('deepseek-v4.1-flash'),
+  models: z.array(z.object({
+    id: z.string().required(),
+    name: z.string().required(),
+    contextWindow: z.number().default(1048576),
+    maxTokens: z.number().default(8192),
   })).default([
-    { id: 'glm-5.3-flash', name: 'GLM-5.3-Flash BF16 (4-GPU TP=4)', contextWindow: 4096, maxTokens: 2048 },
-    { id: 'glm-5.3-flash-awq', name: 'GLM-5.3-Flash AWQ W4A16 (2-GPU TP=2)', contextWindow: 2048, maxTokens: 1024 },
-    { id: 'qwen3.8-flash-next', name: 'Qwen 3.8-Flash-Next (Mode 2 Standby 2-GPU)', contextWindow: 32768, maxTokens: 4096 }
+    { id: 'deepseek-v4.1-flash', name: 'DeepSeek-V4.1-Flash (1M context)', contextWindow: 1048576, maxTokens: 8192 },
   ]),
-  workspaceRoot: Schema.string().default('/workspace/users'),
-  multiUserIsolation: Schema.boolean().default(true),
-  loopbackProxyBypass: Schema.boolean().default(true),
 })
+
+// Proposed extension points; they do not exist in DSH 0.2.1-rc.x.
+interface ProposedGatewayEvents {
+  'model/register-provider'(provider: {
+    type: 'openai-compatible'
+    name: string
+    baseUrl: string
+    apiKey?: string
+    models: CustomGatewayModel[]
+  }): () => void
+  'settings/set-default-model'(selection: { provider: string; model: string }): () => void
+}
 
 export function apply(ctx: Context, config: CustomGatewayConfig) {
   const logger = ctx.logger('custom-llm-gateway')
-  logger.info('Initializing Custom LLM Gateway & Multi-User Management Plugin...')
+  const bus = ctx as unknown as { emit: <K extends keyof ProposedGatewayEvents>(name: K, ...args: Parameters<ProposedGatewayEvents[K]>) => ReturnType<ProposedGatewayEvents[K]> }
 
-  ctx.on('ready', async () => {
-    // 1. Register custom OpenAI-compatible gateway provider into DSH
-    ctx.emit('model/register-provider', {
+  // One effect, so provider and default model are removed together, in reverse order,
+  // when the plugin is reloaded or disposed. Registering twice on reload is what
+  // an effect-less registration would cause.
+  ctx.effect(() => {
+    const unregisterProvider = bus.emit('model/register-provider', {
       type: 'openai-compatible',
       name: config.defaultProvider,
       baseUrl: config.baseUrl,
       apiKey: config.apiKey,
       models: config.models,
     })
-
-    // 2. Set default agent model selection
-    ctx.emit('settings/set-default-model', {
+    const unsetDefault = bus.emit('settings/set-default-model', {
       provider: config.defaultProvider,
       model: config.defaultModel,
     })
-
-    // 3. Multi-user workspace provisioning and session boundary enforcement
-    if (config.multiUserIsolation) {
-      logger.info(`Multi-user workspace isolation active at: ${config.workspaceRoot}`)
-    }
-
-    // 4. Proxied reverse-proxy origin & settings persistence enablement
-    if (config.loopbackProxyBypass) {
-      logger.info('Reverse-proxy browser settings bypass enabled (host persistence mode).')
+    logger.info(`Gateway provider ${config.defaultProvider} registered (${config.models.length} model(s))`)
+    return () => {
+      unsetDefault()
+      unregisterProvider()
     }
   })
 }
@@ -118,9 +133,9 @@ export function apply(ctx: Context, config: CustomGatewayConfig) {
 
 | Capability | Local Standalone DSH | Containerized DSH + Plugin |
 | :--- | :--- | :--- |
-| **Custom OpenAI Gateway** | Manual YAML / UI config | Auto-registered via plugin schema |
+| **Custom OpenAI Gateway** | Manual YAML / UI config | Proposed: registered by the plugin through a new extension point |
 | **Model Discovery** | Static loopback defaults | Dynamic cluster / custom discovery |
 | **Multi-Tenancy** | Single-user loopback | Isolated user folders & auth gateway |
 | **Reverse-Proxy Support**| Localhost only | Fully compatible behind NGINX / K8s Ingress |
-| **Zero Core Fork** | Upstream code unchanged | 100% Cordis plugin lifecycle compliant |
+| **Zero Core Fork** | Upstream code unchanged | Plugin-only change (proposal; not verified against a DSH release) |
 

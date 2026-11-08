@@ -6,7 +6,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from gateway_sources import gateway_sources, gateway_sources_sha256
-from generate_user_runtimes import generate
 
 class GatewaySourceTests(unittest.TestCase):
     def test_on_demand_launcher_is_packaged_and_changes_identity(self):
@@ -31,11 +30,9 @@ class GatewaySourceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'jupyter_launcher.py'):
                 gateway_sources(Path(tmp))
 
-    def test_fresh_private_runtimes_include_proxy_dependencies(self):
-        rows = generate(["alice", "bob"], "registry.example.com/dsh@sha256:" + "1" * 64)
-        source = next(r["data"] for r in rows if r["kind"] == "ConfigMap" and r["metadata"]["name"].startswith("dsh-gateway-source-"))
-        self.assertTrue({"app_signin.js", "external_upstream.js", "external_dns.js", "gradio_alias.js", "signup_admission.js"} <= source.keys())
-        self.assertEqual(source, gateway_sources(ROOT))
+    def test_public_gateway_includes_fixed_launcher(self):
+        source = gateway_sources(ROOT)
+        self.assertTrue({'jupyter_on_demand.js', 'jupyter_launcher.py'} <= source.keys())
 
     def test_missing_dependency_refuses_before_render(self):
         with tempfile.TemporaryDirectory() as tmp:

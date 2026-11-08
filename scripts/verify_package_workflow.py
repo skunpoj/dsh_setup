@@ -7,12 +7,13 @@ running this command. This is functional/provenance testing, not malware proof.
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-IMAGE='registry.example.internal/dsh-runtime@sha256:c10f792b1516813fb2d5c4b4de0bfe816931dfcf71caeab8cd161cb13c5a8ca6'
+IMAGE=os.environ.get('DSH_RUNTIME_IMAGE','registry.example.com/dsh-runtime@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
 
 
 def kube(*args,data=None):

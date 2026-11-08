@@ -1,4 +1,4 @@
 {
   "model": "deepseek-v4.1-flash",
-  "base_url": "http://litellm-gateway.llm.svc.cluster.local:4000/v1"
+  "base_url": "http://litellm-gateway.dsh.svc.cluster.local:4000/v1"
 }

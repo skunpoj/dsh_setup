@@ -1,25 +1,37 @@
-# English DSH videos and presentations
+# English videos and presentations
 
-Use the current user and administrator guide for the current interface and controls. The video course guide explains how to navigate English narration, captions, chapters and source views.
+The deployment provides a normal authenticated user manual and an English video library. Narration uses Google Gemini Fola, with English captions and chapter navigation. Your operator supplies the deployment addresses and publishes only the approved library.
 
-## Code lessons
+1. Sign in to the deployed DSH site using the team login.
+2. Open the user manual, then the video course guide at `/manual/COURSE_GUIDE.html`.
+3. Choose the DSH or GPU code course, a Jupyter/application-sharing walkthrough, or an Test lesson.
+4. Turn on English captions and use the chapter selector to seek to a topic. Source references open the code; they do not imply that every function has an individually narrated timestamp.
 
-- DSH course: 71 source lessons with Google Fola narration.
-- GPU course: 25 source lessons with Google Fola narration.
-- [Jupyter walkthrough](JUPYTER_DSH2_DSH3_WALKTHROUGH.html) and [application-sharing walkthrough](AUTHENTICATED_APP_SHARING_WALKTHROUGH.html).
+The reference library includes 71 DSH code lessons, 25 GPU code lessons, a 15-chapter application course, an 18-chapter workshop and a 44-chapter expanded technical guide. The operator may publish different approved selections. All normal DSH users can access these Test documents and videos using their existing DSH sign-in. No separate reviewer approval or documentation password is required. This library is hosted in Test and is separate from your Main workspace. Signed-out visitors must sign in.
 
-Browse all nine everyday walkthroughs, including packages, notebooks, restart settings, sharing and administrator controls. Test references use these same Main pages.
+The 44-chapter technical guide preserves its earlier source edition and is
+historical. Consult the [current GPU report](gpu-platform/GPU_PLATFORM_REVIEW.pdf)
+and [source ownership map](GPU_SOURCE_OWNERSHIP.md) for the current measured
+configuration and provenance limits. Original source slides and previous
+recordings remain preserved; a new narration edition does not upgrade their
+runtime evidence.
 
-## Video library — Test
+There is currently no current-edition GPU video or PowerPoint bound to the
+latest report and source map. Older GPU decks and recordings must remain under
+**Historical**, not the Current library. A replacement may be published only
+after its script, slides, captions, spoken content and source pins are verified
+against the same report edition.
 
-All normal DSH users can access these Test documents and videos using their existing DSH sign-in. No separate reviewer approval or documentation password is required. This library is hosted in Test and is separate from your Main workspace. Signed-out visitors must sign in.
+See [the narration standard](VIDEO_NARRATION_STANDARD.md) for source binding, voice reuse, caption verification and safe publication. Deployment-specific hostnames, private release URLs, credentials and source recordings are not included in this portable guide.
 
-- Full English application course: 15 chapters, including the Main/Test application-access explanation.
-- DSH workshop: 18 narrated chapters from the 21 October workshop.
-- Expanded DSH/GPU technical guide: 44 narrated chapters based on the 19 October technical guide. Its source slides retain that edition; the new narration uses Fola. Use the current GPU results for later runtime measurements.
+[Browse the Main walkthrough overview](COURSE_GUIDE.md#main-walkthroughs). The deployed manual provides one current home for these pages; Test references use that same home.
 
-All listed narrated editions include English captions and chapter navigation. Save notebook and project work through the workspace normally; watching a video grants no execution or data permissions.
+## User credential management supplement
 
-## Preserved source editions
+[User-managed credentials](USER_CREDENTIAL_MANAGEMENT.html) explains the API-token/PAT implementation, private entry, per-user scopes, approvals, audit and recovery. Its current English Fola-narrated lesson runs 106 seconds with 27 aligned captions.
 
-The [original editable 44-slide PowerPoint](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019.pptx) and [original HTML slide companion](https://github.com/skunpoj/fastco-workspace/releases/download/technical-tutorials-20261019-r3e0b48f/DSH_GPU_Expanded_Technical_Guide_EN_20261019.html) remain in the authorized private source release. That release also retains the earlier David-voice video unchanged. 
+[Download narrated video](videos/credential-management-fola.mp4) · [English captions](videos/credential-management-fola.vtt) · [Transcript](videos/credential-management-fola-transcript.txt).
+
+## Agent runtime and execution backend supplement
+
+[Current guide](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) distinguishes Web DSH's deployed authenticated control surface from successor behavior awaiting live acceptance: checkpointed DSH Python SDK, Claude Code, Deep Agents and Kilo, plus one bounded cross-runtime handoff. Private workspace is the deployed backend; OpenShell remains disabled. The reviewed narration source is 60 seconds with six caption cues: [captions](videos/agent-runtime-backend-fola.vtt) · [transcript](videos/agent-runtime-backend-fola-transcript.txt). The MP4 is not yet generated or published; do not present the successor or OpenShell as live accepted.

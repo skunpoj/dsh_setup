@@ -20,7 +20,7 @@ ready private pairs automatically; the default target is two spares. Existing
 extra spares and assigned storage are retained. Remaining slots do not promise worker health;
 runtime availability is shown separately in the admin dashboard.
 
-See automatic account capacity, architecture and setup
+See [automatic account capacity, architecture and setup](AUTOMATIC_ACCOUNT_CAPACITY.md)
 for the admin workflow, preparation checks and rollback.
 
 ## Admin capacity and monitoring

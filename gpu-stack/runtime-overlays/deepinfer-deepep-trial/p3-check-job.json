@@ -21,7 +21,7 @@
    "spec": {
     "restartPolicy": "Never",
     "nodeSelector": {
-     "kubernetes.io/hostname": "dagpu-gn-p1"
+     "kubernetes.io/hostname": "<GPU_NODE_HOSTNAME>"
     },
     "automountServiceAccountToken": false,
     "containers": [

@@ -1,6 +1,6 @@
 # DSH, LiteLLM and GPU deployment across machines
 
-DSH is the user workspace and tool-execution layer. LiteLLM is the authenticated model API and policy layer. SGLang is the GPU inference layer. They communicate over network APIs and do not have to run on the same machine. A local/on-premises model means the organization operates it; it does not mean every component calls `localhost`.
+DSH is the user workspace and tool-execution layer. LiteLLM is the authenticated model API and policy layer. The GPU inference layer is DeepInfer v4 + DSpark, with SGLang kept switched off as the rollback engine. They communicate over network APIs and do not have to run on the same machine. A local/on-premises model means the organization operates it; it does not mean every component calls `localhost`.
 
 ## Deployment choices
 
@@ -23,7 +23,7 @@ flowchart TB
   J -->|Explicit model API calls| A
   A --> L[LiteLLM authentication and model policy]
   L --> F[Private loopback context forwarder]
-  F -->|Private FQDN / exact tokenization and inference| M[GPU SGLang server]
+  F -->|Private FQDN / exact tokenization and inference| M[GPU inference server: DeepInfer, SGLang rollback]
 ```
 
 The GPU server may be on another node or machine. Private user files, credentials, notebooks and histories remain on their configured DSH storage; moving inference does not copy those volumes. The model receives the request content selected by the client, including supplied documents and tool results. Only approved inference destinations may receive that content.
@@ -42,7 +42,7 @@ The GPU server may be on another node or machine. Private user files, credential
 
 ## Preserve managed-client endpoint policy
 
-The current worker image, profiles and managed clients use the stable logical gateway `http://litellm.llm.svc.cluster.local:4000`. Several defaults deliberately contain that address, including the scoped long-context transport hook. This release does not claim that changing a single environment variable retargets every client.
+The current worker image, profiles and managed clients use the canonical functional Service `litellm-gateway`, addressed inside the cluster as `http://litellm-gateway.llm.svc.cluster.local:4000`. Several defaults deliberately contain that address, including the scoped long-context transport hook. This release does not claim that changing a single environment variable retargets every client.
 
 When LiteLLM moves outside the cluster, the recommended compatibility route is to keep that logical address and place an internal reverse proxy behind it. The proxy forwards to the operator-approved LiteLLM FQDN, verifies its TLS certificate/SNI and preserves API paths, Authorization, streaming and long-request timeouts. DSH, Claude, Kilo, TrueForge and the 1M transport hook retain the same trusted logical origin.
 
@@ -81,7 +81,7 @@ No Internet means public egress is denied while explicitly required internal ser
 
 Review the additive policy behavior and destination constraints in the [Kubernetes NetworkPolicy documentation](https://kubernetes.io/docs/concepts/services-networking/network-policies/).
 
-DSH access remains authenticated and user/environment-bound. Workspace, notebook and history isolation is independent of model location. Credentials stay in protected Secrets/files; endpoint origins contain no credentials. Use existing database and storage permissions. Central storage remains DA_WORKSPACE/CIFS where configured, with separate Internet storage; moving inference does not mount that share on the GPU host.
+DSH access remains authenticated and user/environment-bound. Workspace, notebook and history isolation is independent of model location. Credentials stay in protected Secrets/files; endpoint origins contain no credentials. Use existing database and storage permissions. Central storage remains a central CIFS share where configured, with separate Internet storage; moving inference does not mount that share on the GPU host.
 
 The shared GPU still imposes the same memory and concurrency limits. More network separation does not add model capacity or guarantee faster token generation. One expensive long request, queued admission and ordinary-request concurrency remain model/gateway policy responsibilities. The datalake platform's previously accepted remote-worker exception is unchanged by this topology option.
 

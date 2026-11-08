@@ -1,6 +1,6 @@
 # Risk-first course delivery
 
-Where a learning library is configured, the authenticated `/manual/course/` route provides English videos, captions, chapter navigation and accompanying source views. Begin with the [three risk controls](DSH_PLATFORM_GUIDE.html); keep feature lessons and worked examples separate from technical GPU setup and measured results.
+Where a learning library is configured, the authenticated `/manual/course/` route provides English videos, captions, chapter navigation and accompanying source views. Begin with the [three risk controls](THREE_RISK_CONTROLS.md); keep feature lessons and worked examples separate from technical GPU setup and measured results.
 
 Use the published contents list for available lessons. Do not hardcode chapter counts, image digests or module counts into everyday instructions. Each lesson identifies its source snapshot; it does not silently redefine the current deployment.
 
@@ -28,14 +28,14 @@ The authenticated gateway checks the session and approved hostname before bounde
 5. Verify the installed image identities and every manifest-bound file, then test authenticated playback, captions, seeking, downloads and sign-out denial.
 6. Check existing users and durable history. Restore only the reviewed course fields on regression; preserve newer unrelated state and user writes.
 
-The reference repository supplies gateway integration code. Operators supply approved learning assets, image repositories, registry authentication and site routing privately, then qualify their installation. See [installation](INSTALLATION_WALKTHROUGH.md), [route acceptance checks](../tests/test_course_routes.js), publication boundaries and [GPU setup](../gpu-stack/README.md).
+The reference repository supplies gateway integration code. Operators supply approved learning assets, image repositories, registry authentication and site routing privately, then qualify their installation. See [installation](INSTALL.md), [acceptance](ACCEPTANCE.md), [publication boundaries](PUBLICATION.md) and [GPU setup](../gpu-stack/README.md).
 
 ## Slide companions
 
-PowerPoint downloads from the manual were retired on 30 Oct 2026, together with the `dsh-slide-downloads` service and its `/manual/downloads/*.pptx` routes (see [SLIDE_DOWNLOADS.md](SLIDE_DOWNLOADS.md)). The HTML companion pages are now the delivery format. Keep original editions as dated HTML archives with their exact source hashes. Keep site-specific decks in the private deployment repository. Updating the manual does not require recutting or replacing an in-flight video package.
+PowerPoint downloads from the manual were retired on 30 Oct 2026, together with the bounded slide download service and its `/manual/downloads/*.pptx` routes (see [SLIDE_DOWNLOADS.md](SLIDE_DOWNLOADS.md)). The HTML companion pages are now the delivery format. Keep original editions as dated HTML archives with their exact source hashes. Keep site-specific decks out of this repository.
 
 Promote the current guide's description and content together as one atomic manual edition, and retain the prior edition for rollback. Slide publication does not establish that a matching video has been deployed. Publishing ordinary manual files must not restart active workspaces.
 
 ## One current guide
 
-Use the current DSH guide as the primary entry. Its HTML and Markdown share one reviewed source with the internal deck.  Site-specific access and storage settings remain distinct.
+Use the [canonical guide and archive policy](CURRENT_GUIDE.md) for the shared HTML and Markdown source, historical-edition handling and publication checks. Keep one primary current guide per deployment; site-specific settings remain private.

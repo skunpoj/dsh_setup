@@ -1,10 +1,7 @@
 // Explicit runtime policy; leaves credentials, sessions and workspace paths alone.
 const fs = require('fs');
 const path = require('path');
-// The canonical model is required; the old alias is configured only where a profile still lists it (the single-model profile does not).
-const PRIMARY = 'deepseek-v4.1-flash';
-const OPTIONAL_ALIASES = ['deepseek-flash'];
-const presentAliases = provider => [PRIMARY, ...OPTIONAL_ALIASES.filter(id => provider.models.some(x => x.id === id))];
+const aliases = ['deepseek-v4.1-flash', 'deepseek-flash'];
 
 function configure(document, context) {
   if (![131072, 1048576].includes(context)) throw new Error('Unsupported context policy');
@@ -12,7 +9,7 @@ function configure(document, context) {
   const llm = document.find(x => x.id === 'llm-pi-ai');
   const provider = llm?.config?.providers?.['litellm-cluster'];
   if (!provider || !Array.isArray(provider.models)) throw new Error('Internal provider absent');
-  const aliases = presentAliases(provider);
+  provider.models = provider.models.filter(model => aliases.includes(model.id));
   for (const id of aliases) {
     const model = provider.models.find(x => x.id === id);
     if (!model) throw new Error('Expected internal model absent: '+id);
@@ -55,7 +52,7 @@ if (require.main === module) {
   }
   const readback = YAML.parse(fs.readFileSync(file, 'utf8'));
   const models = readback.find(x => x.id === 'llm-pi-ai').config.providers['litellm-cluster'].models;
-  if ([PRIMARY, ...OPTIONAL_ALIASES.filter(id => models.some(x => x.id === id))].some(id => models.find(x => x.id === id)?.contextWindow !== context)) throw new Error('Context readback failed');
+  if (aliases.some(id => models.find(x => x.id === id)?.contextWindow !== context)) throw new Error('Context readback failed');
   console.log(JSON.stringify({runtimeContextPolicy: context, outputCeiling: 8192, profilesReadBack: true}));
 }
 module.exports = {configure};
