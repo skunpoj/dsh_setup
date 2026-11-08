@@ -1,6 +1,6 @@
 --- a/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js
 +++ b/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js
-@@ -958,7 +958,7 @@
+@@ -866,7 +866,7 @@
  			} catch (error) {
  				if (remoteErrorOf(error) !== void 0) throw error;
  				if (error instanceof AttachmentError) throw new RemoteError("session/attachment-invalid", error.message, { reason: error.code });
@@ -11,7 +11,7 @@
  		};
 --- a/node_modules/@deepseek-ai/dsh-api-session-controller/lib/types/commands.js
 +++ b/node_modules/@deepseek-ai/dsh-api-session-controller/lib/types/commands.js
-@@ -342,7 +342,7 @@
+@@ -338,7 +338,7 @@
                  if (error instanceof AttachmentError) {
                      throw new RemoteError('session/attachment-invalid', error.message, { reason: error.code });
                  }
@@ -33,7 +33,7 @@
  	signal?.throwIfAborted();
 --- a/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js
 +++ b/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js
-@@ -1228,6 +1228,13 @@
+@@ -1237,6 +1237,13 @@
  			break;
  		case "image": {
  			const version = requestImages.get(block.attachment.attachmentId);
@@ -47,7 +47,7 @@
  			content.push({
  				type: "text",
  				text: requestImageHandleText(block.attachment, version, resolveImageAccess(block.attachment))
-@@ -1253,9 +1260,18 @@
+@@ -1262,9 +1269,18 @@
  	const refs = /* @__PURE__ */ new Map();
  	for (const message of messages) collectImageRefs(message.content, refs);
  	const orderedRefs = [...refs.values()];
@@ -68,15 +68,15 @@
  	return versions;
  }
  /** Convert a projected declaration without its harness-owned activation marker. */
-@@ -1398,7 +1414,7 @@
- 		const offloadImages = requiredImageOffload(split.messages, {
- 			representation: "base64",
- 			maxBytes: maxRequestImageBytes
--		}, (block) => requestImages.get(block.attachment.attachmentId).bytes);
-+		}, (block) => requestImages.get(block.attachment.attachmentId)?.bytes ?? 0);
- 		if (offloadImages > 0) throw new LlmError(`pi-ai request images exceed the ${maxRequestImageBytes}-byte base64 bound; ${offloadImages} more oldest occurrence(s) must be offloaded.`, IMAGE_OFFLOAD_REQUIRED_CODE, { offloadImages });
- 	}
+@@ -1416,7 +1432,7 @@
+ 		...maxRequestImageBytes === void 0 ? {} : { maxBytes: maxRequestImageBytes },
+ 		...maxRequestImages === void 0 ? {} : { maxImages: maxRequestImages },
+ 		...imageOffloadCountQuantum === void 0 ? {} : { countQuantum: imageOffloadCountQuantum }
+-	}, (block) => requestImages.get(block.attachment.attachmentId).bytes);
++	}, (block) => requestImages.get(block.attachment.attachmentId)?.bytes ?? 0);
+ 	if (offloadImages > 0) throw new LlmError(`pi-ai request images exceed the route image budget; ${offloadImages} more oldest occurrence(s) must be offloaded.`, IMAGE_OFFLOAD_REQUIRED_CODE, { offloadImages });
  	const exactMessages = projectOffloadedImages(split.messages, (ref) => offloadedImageText(ref, resolveImageAccess(ref)));
+ 	const toolNames = /* @__PURE__ */ new Map();
 --- a/node_modules/@deepseek-ai/dsh-compaction-basic/lib/index.js
 +++ b/node_modules/@deepseek-ai/dsh-compaction-basic/lib/index.js
 @@ -1,3 +1,4 @@

@@ -1,0 +1,80 @@
+{
+  "baselineVersion": "0.2.2-rc.1",
+  "patchSHA256": "e5a186ffffd74ca480ab97456815d9f1db5aa47d1f12c47ee32381b1990b6e75",
+  "targets": [
+    {
+      "path": "dsh-api-session-controller/lib/index.js",
+      "upstreamSHA256": "4cf6c66e65cce865d270fa89405b96d048ffa62e493e4ffbd1a826be2207a4cd",
+      "patchedSHA256": "a2cf097204b6acead2bb2009a663be671c9469ada30f7e960b25b20ca4d781db",
+      "patched": true
+    },
+    {
+      "path": "dsh-api-session-controller/lib/types/commands.js",
+      "upstreamSHA256": "22a873ee9b1d4ea78ae6327f265ff9d7e0383250ad017b1eb580765fdf6cbb1c",
+      "patchedSHA256": "782ecfdc0d3f5ba9c497068230902255d59b7716ae82f5b26bd42cdbe6d7a080",
+      "patched": true
+    },
+    {
+      "path": "dsh-attachment-local/lib/index.js",
+      "upstreamSHA256": "ff717f87226b59d6224aff67796b43d5fd72b98d0e74fa91a952affaf3285f9d",
+      "patchedSHA256": "a5e2fd4ef4e7aa7378ebec11fe0955fdf0c3ab5e4f6c471fd6a51ee7b303cf86",
+      "patched": true
+    },
+    {
+      "path": "dsh-base/cordis.patch.yml",
+      "upstreamSHA256": "b65a86e55f02d863286bb6faac8ae292c18fffca3c8aa4491b600fa4dd6b48d0",
+      "patchedSHA256": "b65a86e55f02d863286bb6faac8ae292c18fffca3c8aa4491b600fa4dd6b48d0",
+      "patched": false
+    },
+    {
+      "path": "dsh-client-connection/lib/client.browser.js",
+      "upstreamSHA256": "dfc3544eb894c74b340a4c4c63a8c125fd2e983df9efed5885712574af994e62",
+      "patchedSHA256": "dfc3544eb894c74b340a4c4c63a8c125fd2e983df9efed5885712574af994e62",
+      "patched": false
+    },
+    {
+      "path": "dsh-client-ui-model-selection/lib/client.js",
+      "upstreamSHA256": "124c4f0fe80bb7d0c5b2da9bbc071534bfc9a3e96825980c447525eb40f87855",
+      "patchedSHA256": "124c4f0fe80bb7d0c5b2da9bbc071534bfc9a3e96825980c447525eb40f87855",
+      "patched": false
+    },
+    {
+      "path": "dsh-client-ui-settings-models/lib/client.js",
+      "upstreamSHA256": "e111ecefea8262e0426f528864b9681d818068042e93d053bcb0b6884b317278",
+      "patchedSHA256": "e111ecefea8262e0426f528864b9681d818068042e93d053bcb0b6884b317278",
+      "patched": false
+    },
+    {
+      "path": "dsh-client-ui-settings/lib/client.js",
+      "upstreamSHA256": "0555eec2df1ca392a1167e637f287ac9963dbd2b0a230089c2a41be079c490e3",
+      "patchedSHA256": "0555eec2df1ca392a1167e637f287ac9963dbd2b0a230089c2a41be079c490e3",
+      "patched": false
+    },
+    {
+      "path": "dsh-llm-deepseek/lib/index.js",
+      "upstreamSHA256": "955dc7bc7ca6c857ff4a7e373b87c143b96a4c43fc80325b67dc0982600dcc75",
+      "patchedSHA256": "955dc7bc7ca6c857ff4a7e373b87c143b96a4c43fc80325b67dc0982600dcc75",
+      "patched": false
+    },
+    {
+      "path": "dsh-llm-pi-ai/lib/index.js",
+      "upstreamSHA256": "1a3ae58f9b4493e15459cc5000ec80f21b5d3f4a9dea6ffb6bc28e5b8817ae8a",
+      "patchedSHA256": "a3e843e437d7dfd9eba99b6237fc2b44d14d2d2dc8d260a006bb4b46ac34a2ae",
+      "patched": true
+    },
+    {
+      "path": "dsh-system-prompt/lib/index.js",
+      "upstreamSHA256": "18b692b03bbb717589085f63b126cbcf22963763c5a0565bb3a7a5d254e8e4a7",
+      "patchedSHA256": "18b692b03bbb717589085f63b126cbcf22963763c5a0565bb3a7a5d254e8e4a7",
+      "patched": false
+    },
+    {
+      "path": "dsh-compaction-basic/lib/index.js",
+      "upstreamSHA256": "eafe4adbccc2b87377e4839f1a6093ebe1a0858caadc6c3dbffef19cb1dbc54b",
+      "patchedSHA256": "ff3d8dde026935e9321081ea29ffaf9f3589eaf5b7e90417d2a7a5548e5eba29",
+      "patched": true
+    }
+  ],
+  "configuratorSHA256": "dcd8e40ea580e55bb10ab9135e2123ed5eaa70b82c9e29dd263801c10deb7313",
+  "purpose": "Review artifact, normalized dsh.example.com host; generated from official integrity-verified package targets. Runtime application uses guarded configure_models.js, not this example-host diff."
+}

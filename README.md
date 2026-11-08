@@ -220,7 +220,7 @@ Jupyter status transitions are verified using disposable users: Internet approva
 
 ## Three-site code and maintenance
 
-The approved DSH application is 0.2.1-rc.5 with pi-ai 1.3.0; sites still running 0.2.1-rc.2 move to it when redeployed. Main DSH, DSH2 and DSH3 share the core build and inspected transport/supervisor code while retaining distinct authentication and environment policies. Use the managed LiteLLM model and choose the correct local or AD sign-in provider. New releases are ported automatically when no reviewed file changed: [automatic pin ports](docs/UPSTREAM_AUTO_PORT.md).
+The approved DSH application is 0.2.2-rc.1 with pi-ai 1.3.0; sites still running 0.2.1-rc.2 move to it when redeployed. Main DSH, DSH2 and DSH3 share the core build and inspected transport/supervisor code while retaining distinct authentication and environment policies. Use the managed LiteLLM model and choose the correct local or AD sign-in provider. New releases are ported automatically when no reviewed file changed: [automatic pin ports](docs/UPSTREAM_AUTO_PORT.md).
 
 ## User-managed credentials
 

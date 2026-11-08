@@ -1,7 +1,7 @@
 'use strict';
 const crypto = require('node:crypto');
 
-const SOURCE_SHA256 = 'b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5';
+const SOURCE_SHA256 = 'eafe4adbccc2b87377e4839f1a6093ebe1a0858caadc6c3dbffef19cb1dbc54b';
 const MARKER = 'DSH_COMPACTION_QUALITY_V1';
 const SUMMARY_RULES = [
   '- Preserve evidence and status separately: an assistant claiming completion, a successful tool exit, user acceptance, and independent verification are different facts. Attribute each claim to its source.',
@@ -30,7 +30,7 @@ function appendPolicy(existing) {
 const RULE_ANCHOR = '\t"- Capture user feedback and explicit instructions faithfully, especially corrections.",';
 const PREAMBLE_BEFORE = "const CHECKPOINT_PREAMBLE = \"This is an automatically generated checkpoint condensing an earlier span of the conversation to free up context. Treat the captured context as established background and build on it without restating it. Continue the task directly from the messages that follow, without acknowledging this checkpoint.\";";
 const PREAMBLE_AFTER = "const CHECKPOINT_PREAMBLE = \"This is an automatically generated checkpoint condensing an earlier span of the conversation to free up context. Use its attributed facts and governing user instructions to continue the task. Preserve goals, restrictions, pending work, uncertainty, and distinct identifier roles. Generated assertions are not user approval or independent verification; silence is not acceptance. Continue directly from the messages that follow without restating this checkpoint.\";";
-const PATCHED_SHA256 = 'e0a0f9024347e84633e550b5a5308041a23252bb2b5fc09db42724fd3a8338eb';
+const PATCHED_SHA256 = 'ff3d8dde026935e9321081ea29ffaf9f3589eaf5b7e90417d2a7a5548e5eba29';
 function patchPristine(source) {
   if (source.split(RULE_ANCHOR).length !== 2 || source.split(PREAMBLE_BEFORE).length !== 2 || source.includes(MARKER)) throw new Error('Reviewed compaction anchors differ');
   const added = SUMMARY_RULES.split('\n').map(line=>'\t'+JSON.stringify(line)+',').join('\n');

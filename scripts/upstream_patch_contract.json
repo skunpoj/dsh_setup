@@ -1,89 +1,89 @@
 {
-  "baselineVersion": "0.2.1-rc.5",
+  "baselineVersion": "0.2.2-rc.1",
   "policy": "Refuse any changed patch target; hashes must be source-reviewed before accepting a new contract.",
   "targets": [
     {
       "path": "dsh-api-session-controller/lib/index.js",
-      "packageVersion": "0.2.1-rc.5",
-      "sha256": "a9801acb577b03053c5d5a3191ff555c5f1d791d0acddec113bea4511e33b386",
-      "registryIntegrity": "sha512-9kcolv2E00fuMMXWDbMn4K2JRMdAf8Ql5wME1CaGxgManvLjPM2Ymc46o2TJnwH4kO2gUtVKUrP9hcreHd148g==",
+      "packageVersion": "0.2.2-rc.1",
+      "sha256": "4cf6c66e65cce865d270fa89405b96d048ffa62e493e4ffbd1a826be2207a4cd",
+      "registryIntegrity": "sha512-BtAWPuxMzaEKTQWR2D4vNbZf+3eJ9Zi9Y2XFx843SJF/nECakC+QVXeT3WB+YguU0i+9RqEf4Fy/R7nXNfJOyw==",
       "patched": true
     },
     {
       "path": "dsh-api-session-controller/lib/types/commands.js",
-      "packageVersion": "0.2.1-rc.5",
-      "sha256": "2cbc6ede7bd7211917984b5ef2e2fd598db7a21e493333bc8586c528b17ec25b",
-      "registryIntegrity": "sha512-9kcolv2E00fuMMXWDbMn4K2JRMdAf8Ql5wME1CaGxgManvLjPM2Ymc46o2TJnwH4kO2gUtVKUrP9hcreHd148g==",
+      "packageVersion": "0.2.2-rc.1",
+      "sha256": "22a873ee9b1d4ea78ae6327f265ff9d7e0383250ad017b1eb580765fdf6cbb1c",
+      "registryIntegrity": "sha512-BtAWPuxMzaEKTQWR2D4vNbZf+3eJ9Zi9Y2XFx843SJF/nECakC+QVXeT3WB+YguU0i+9RqEf4Fy/R7nXNfJOyw==",
       "patched": true
     },
     {
       "path": "dsh-attachment-local/lib/index.js",
-      "packageVersion": "0.2.1-rc.5",
-      "sha256": "cd39685581b4573a453c6126f8ce73da0bf1257c378827ebb431d6d4064f7662",
-      "registryIntegrity": "sha512-CLh7qhvOhTQ9LMURx+MZEyCiuuYKFfAYbMeB1Unhihs1YBUJQI5VT+uUGrx/XLaR6lmLHam5QMltovJ2Dwzulw==",
+      "packageVersion": "0.2.2-rc.1",
+      "sha256": "ff717f87226b59d6224aff67796b43d5fd72b98d0e74fa91a952affaf3285f9d",
+      "registryIntegrity": "sha512-yPqKOcIkRYSzddwiuVul7PV7wzzlKSkqHqeEcWgSm2uA776bGiTNsrGZ/cyWIUvfyD++dBbcZKC762H86Gw4Lw==",
       "patched": true
     },
     {
       "path": "dsh-base/cordis.patch.yml",
-      "packageVersion": "0.2.1-rc.5",
-      "sha256": "a2cc57868a4d016609801e28781262515483dde29b41c2742d9a3b27a6f52f77",
-      "registryIntegrity": "sha512-VgXPT834zvsXBzt5x2AshlPicFJ2RTE8YqJYWqS/vAhP2sUvD020+F8pWN+KInzYgDE14d3tCbcltFkH3JeHJg==",
+      "packageVersion": "0.2.2-rc.1",
+      "sha256": "b65a86e55f02d863286bb6faac8ae292c18fffca3c8aa4491b600fa4dd6b48d0",
+      "registryIntegrity": "sha512-PZZkUxBaZ8zjyZaAQ4/ZeHMyB8Mv+VSe5KUmRkmPwiuQ1rD5ZNE0DUemV4Eu1jGZ7v9TYHENUWlyzSy9NhDAkA==",
       "patched": false
     },
     {
       "path": "dsh-client-connection/lib/client.browser.js",
-      "packageVersion": "0.2.1-rc.5",
+      "packageVersion": "0.2.2-rc.1",
       "sha256": "dfc3544eb894c74b340a4c4c63a8c125fd2e983df9efed5885712574af994e62",
-      "registryIntegrity": "sha512-X/VUlrtACszgH2HS89MX1olAn7L62JghCit/wBVWK89C0NMSxVaqsyxwJ2OkkAhr6yf0sY9ED7erYT8G26njVw==",
+      "registryIntegrity": "sha512-GuUgWVWP3+ngXcZhU9ctzVxD78owjP1JVIbXNIGJm2RW9avhBg3590x95EJNPD4YIFuOISg72q8pbXT4Nd1UMw==",
       "patched": false
     },
     {
       "path": "dsh-client-ui-model-selection/lib/client.js",
-      "packageVersion": "0.2.1-rc.5",
-      "sha256": "18f6e74e203d50f66c8e30552d52e070d06941514cb0e72b149683c092a3ba2a",
-      "registryIntegrity": "sha512-aL/NDqqDZqLrdWgW80cq33auuaqTF7BOUKaJplP4S1LLAl8DsfKGsiuCNwagjmtoZOxE+3y3FPlg9LrsKgUY7w==",
+      "packageVersion": "0.2.2-rc.1",
+      "sha256": "124c4f0fe80bb7d0c5b2da9bbc071534bfc9a3e96825980c447525eb40f87855",
+      "registryIntegrity": "sha512-F+Unm70Uy/zvRenqBh/pfcvZI2UkOC7UqKseuxpTTNk1Ly0L39qiHHhIOQUNDN0m4U1ocPFzDXD2ybm8GRnk6w==",
       "patched": false
     },
     {
       "path": "dsh-client-ui-settings-models/lib/client.js",
-      "packageVersion": "0.2.1-rc.5",
-      "sha256": "190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28",
-      "registryIntegrity": "sha512-KlgiQvPohimvBNOCvsJ8pjY2Cd4E4BveteaxKUmiwgqt8JQRrGkhTym5J7guihdtgxDEV+PnW8eZ5H8bNJTglQ==",
+      "packageVersion": "0.2.2-rc.1",
+      "sha256": "e111ecefea8262e0426f528864b9681d818068042e93d053bcb0b6884b317278",
+      "registryIntegrity": "sha512-fIcIYmuAuDY9KE+hbWXjUISARBLalViNu7PCtbUsXVjw0nC5uAMLnr377kw6W3Pzgc59C5tOe44Jc6bTNiqdEw==",
       "patched": false
     },
     {
       "path": "dsh-client-ui-settings/lib/client.js",
-      "packageVersion": "0.2.1-rc.5",
+      "packageVersion": "0.2.2-rc.1",
       "sha256": "0555eec2df1ca392a1167e637f287ac9963dbd2b0a230089c2a41be079c490e3",
-      "registryIntegrity": "sha512-RJH+l4oP0eo+eHYHttRxnU1CHirtwnXMyXpFmI9zRcp9HqBW2j3VbN12yR+HMCxEB5pb/yHRL5vqUMMEOsEL5Q==",
+      "registryIntegrity": "sha512-GyFmfYY08ls7uaQwVn7VWs4fJXiRTttI90sLLoGnOfime/RsoNtvFfjV6P9I2zqd+kyhm162/PlZOwxzkkLhLA==",
       "patched": false
     },
     {
       "path": "dsh-llm-deepseek/lib/index.js",
-      "packageVersion": "0.2.1-rc.5",
-      "sha256": "21fedb71f8d9aafea73b35ee13bc73737a8271d7ffa261697d4208e8563196cb",
-      "registryIntegrity": "sha512-y7pqe4z36e4JHqgU52hprH0WZfhcYZT26YBAbTUSiymkAAQZlsVI35I6eFuLtrwk5Dxge372A3+tJ7WeNhiKhg==",
+      "packageVersion": "0.2.2-rc.1",
+      "sha256": "955dc7bc7ca6c857ff4a7e373b87c143b96a4c43fc80325b67dc0982600dcc75",
+      "registryIntegrity": "sha512-2UUrLCg8Hmjr1V06z1dARWMMvTaSIf+mjVUDoG7SQK/oqqMjJggryZhltLUfGPceTvEDN7HPbhYLe5aOBvWzwQ==",
       "patched": false
     },
     {
       "path": "dsh-llm-pi-ai/lib/index.js",
-      "packageVersion": "0.2.1-rc.5",
-      "sha256": "99b5c20830a52f69641df8a18a39206079b0c725201958cce2c4a934f1d4f7cd",
-      "registryIntegrity": "sha512-zpFGj+Wuy737v7IkJYpnRdKCWV6NxACqDOoeO3zjZMd0zMA9KCN68W65/GPg/upXNINkChWCE7mTdVp8REMI/Q==",
+      "packageVersion": "0.2.2-rc.1",
+      "sha256": "1a3ae58f9b4493e15459cc5000ec80f21b5d3f4a9dea6ffb6bc28e5b8817ae8a",
+      "registryIntegrity": "sha512-druY5fR7w3NVBLQ88Jrh19sxOA7KTk5tzv57sCH8Awj9Zr7MzEzUb8XuQPDgCXmsWmZrKlKbKC6JUg9guVi34A==",
       "patched": true
     },
     {
       "path": "dsh-system-prompt/lib/index.js",
-      "packageVersion": "0.2.1-rc.5",
-      "sha256": "7be9f7aafbf345d01ddcc12fd297b16e9a1d41283a6a04073b867becca0bf020",
-      "registryIntegrity": "sha512-HWW0k4Ug4XjRbCghLZYFMpLh8Ywcuh/bS7DAnjWfq4HbwwB+hV0XXJRF3iCf5600uYArfbuv4Ttz+4PHKu7k9w==",
+      "packageVersion": "0.2.2-rc.1",
+      "sha256": "18b692b03bbb717589085f63b126cbcf22963763c5a0565bb3a7a5d254e8e4a7",
+      "registryIntegrity": "sha512-1p9imdrenPnJTkLb6Coq+ELBDjngblM/YGP1Pa/xf1oisjLHcCoK2n9kkOUTIfgvoFtqWfxZJNZeKef71ZmlrA==",
       "patched": false
     },
     {
       "path": "dsh-compaction-basic/lib/index.js",
-      "packageVersion": "0.2.1-rc.5",
-      "sha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
-      "registryIntegrity": "sha512-sIsk3y1hZi3HJEIxb72FBMk+xy9T1eMmeK1mmMcRZTVpQDmEAR8j7H32dTz09nWGxvc0uUj0oWzTBuFechBvcQ==",
+      "packageVersion": "0.2.2-rc.1",
+      "sha256": "eafe4adbccc2b87377e4839f1a6093ebe1a0858caadc6c3dbffef19cb1dbc54b",
+      "registryIntegrity": "sha512-ShIWhiSXhUgIWe+mn9bAXqyPXyFWFIDLl46Z/ZW/TVVjbNd6ClvpDcLnmIJk91aCi3/7HjFDSOff5m9isqvzkg==",
       "patched": true
     }
   ]
