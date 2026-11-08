@@ -1,0 +1,298 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "deepinfer-v4-1-flash-deepep",
+    "namespace": "llm",
+    "labels": {
+      "app": "vllm-deepseek-v4-1-flash",
+      "app.kubernetes.io/part-of": "deepinfer-v41",
+      "engine": "deepinfer",
+      "model": "deepseek-v4-1-flash",
+      "tier": "inference",
+      "variant": "deepep"
+    },
+    "annotations": {
+      "dsh.example/purpose": "iommu=pt trial: DEEPINFER_EP_COMM_BACKEND=deepep. INACTIVE (replicas 0). Never run together with deepinfer-v4-1-flash (shared GPUs, RWO PVC).",
+      "dsh.example/derived-from-generation": "32"
+    }
+  },
+  "spec": {
+    "progressDeadlineSeconds": 600,
+    "replicas": 0,
+    "revisionHistoryLimit": 3,
+    "selector": {
+      "matchLabels": {
+        "app": "vllm-deepseek-v4-1-flash",
+        "engine": "deepinfer",
+        "variant": "deepep"
+      }
+    },
+    "strategy": {
+      "type": "Recreate"
+    },
+    "template": {
+      "metadata": {
+        "annotations": {
+          "dsh.example/tokenizer-privacy-sha256": "66ddf8b307758be6a4523f803cad9c27672e9e9f0d0ac07e2bd1bba698a9000e",
+          "dsh.example/tokenizer-privacy-source": "b4df8657412de7ea8bab8b442c2b8c68f5c1068a"
+        },
+        "labels": {
+          "app": "vllm-deepseek-v4-1-flash",
+          "engine": "deepinfer",
+          "model": "deepseek-v4-1-flash",
+          "tier": "inference",
+          "variant": "deepep"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "sh",
+              "-c",
+              "find /dev/shm -mindepth 1 -delete 2>/dev/null; exec python3 -u serve/openai_server.py --model /models/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash-1017/snapshots/1bae0e1088993b9b82de08f59de5be5a34e42170 --served-model-name deepseek-v4.1-flash --dp 4 --port 8000 --hicache-size-gb 0 --gpu-memory-utilization 0.95 --max-num-batched-tokens 1024 --thinking-mode chat --yoco-keep-tokens 0 --prefill-any-interval 2 --max-model-len 1048576 --max-num-seqs 2 --rank-heartbeat-timeout 120 --routing least-loaded"
+            ],
+            "env": [
+              {
+                "name": "PYTHONPATH",
+                "value": "/work/runtime:/work/dependencies/deep-ep:/work/dependencies/flash-mla-sm90:/work/dependencies/humming012:/work/dependencies/tile-kernels:/work/dependencies/tilelang:/work/dependencies/posix-ipc:/work/dependencies/deep-select:/work/nccl-python-overlay"
+              },
+              {
+                "name": "DEEPINFER_ACCELERATOR",
+                "value": "nvidia"
+              },
+              {
+                "name": "DEEPINFER_CUDA_ARCH",
+                "value": "sm90"
+              },
+              {
+                "name": "DEEPINFER_HF_MODEL_DIR",
+                "value": "/models/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash-1017/snapshots/1bae0e1088993b9b82de08f59de5be5a34e42170"
+              },
+              {
+                "name": "DEEPINFER_SM90_MOE_BACKEND",
+                "value": "humming"
+              },
+              {
+                "name": "DEEPINFER_SM90_COMPACT_ENGRAM",
+                "value": "0"
+              },
+              {
+                "name": "DEEPINFER_EP_COMM_BACKEND",
+                "value": "deepep"
+              },
+              {
+                "name": "DEEPINFER_ENGRAM_UVA_FETCH",
+                "value": "1"
+              },
+              {
+                "name": "DEEPINFER_CP_COMM_BACKEND",
+                "value": "nccl"
+              },
+              {
+                "name": "NCCL_NVLS_ENABLE",
+                "value": "0"
+              },
+              {
+                "name": "NCCL_P2P_LEVEL",
+                "value": "NVL"
+              },
+              {
+                "name": "EP_DISABLE_GIN",
+                "value": "1"
+              },
+              {
+                "name": "DEEPINFER_USE_NEXTN_DECODE",
+                "value": "5"
+              },
+              {
+                "name": "DEEPINFER_ENABLE_MTP_VARLEN",
+                "value": "1"
+              },
+              {
+                "name": "HOME",
+                "value": "/tmp"
+              },
+              {
+                "name": "TRITON_CACHE_DIR",
+                "value": "/tmp/triton"
+              },
+              {
+                "name": "NCCL_DEBUG",
+                "value": "WARN"
+              },
+              {
+                "name": "USER",
+                "value": "deepinfer"
+              },
+              {
+                "name": "LOGNAME",
+                "value": "deepinfer"
+              },
+              {
+                "name": "NCCL_SOCKET_IFNAME",
+                "value": "lo"
+              },
+              {
+                "name": "GLOO_SOCKET_IFNAME",
+                "value": "lo"
+              },
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              }
+            ],
+            "image": "lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+            "imagePullPolicy": "Never",
+            "livenessProbe": {
+              "exec": {
+                "command": [
+                  "sh",
+                  "-c",
+                  "curl -sf -m 80 -H 'Content-Type: application/json' -d '{\"model\":\"deepseek-v4.1-flash\",\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}],\"max_tokens\":1}' http://127.0.0.1:8000/v1/chat/completions > /dev/null"
+                ]
+              },
+              "failureThreshold": 3,
+              "periodSeconds": 60,
+              "successThreshold": 1,
+              "timeoutSeconds": 90
+            },
+            "name": "deepinfer",
+            "ports": [
+              {
+                "containerPort": 8000,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": 8000,
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "timeoutSeconds": 15
+            },
+            "resources": {
+              "limits": {
+                "cpu": "32",
+                "memory": "640Gi",
+                "nvidia.com/gpu": "4"
+              },
+              "requests": {
+                "cpu": "8",
+                "memory": "512Gi",
+                "nvidia.com/gpu": "4"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "startupProbe": {
+              "failureThreshold": 80,
+              "httpGet": {
+                "path": "/health",
+                "port": 8000,
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 15,
+              "successThreshold": 1,
+              "timeoutSeconds": 15
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/work/runtime/serve/prompt_tokenizer.py",
+                "name": "tokenizer-privacy-successor",
+                "readOnly": true,
+                "subPath": "prompt_tokenizer.py"
+              },
+              {
+                "mountPath": "/models",
+                "name": "models",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/work",
+                "name": "work"
+              },
+              {
+                "mountPath": "/dev/shm",
+                "name": "shm"
+              },
+              {
+                "mountPath": "/tmp",
+                "name": "tmp"
+              }
+            ],
+            "workingDir": "/work/runtime"
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": false,
+        "nodeSelector": {
+          "kubernetes.io/hostname": "<GPU_NODE_HOSTNAME>"
+        },
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 10001,
+          "fsGroupChangePolicy": "OnRootMismatch",
+          "runAsGroup": 10001,
+          "runAsNonRoot": true,
+          "runAsUser": 10001,
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
+        "terminationGracePeriodSeconds": 30,
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 292,
+              "name": "deepinfer-tokenizer-privacy-b4df865-66ddf8b3"
+            },
+            "name": "tokenizer-privacy-successor"
+          },
+          {
+            "name": "models",
+            "persistentVolumeClaim": {
+              "claimName": "model-cache-2tb",
+              "readOnly": true
+            }
+          },
+          {
+            "name": "work",
+            "persistentVolumeClaim": {
+              "claimName": "deepinfer-v41-work-v4"
+            }
+          },
+          {
+            "emptyDir": {
+              "medium": "Memory",
+              "sizeLimit": "256Gi"
+            },
+            "name": "shm"
+          },
+          {
+            "emptyDir": {
+              "sizeLimit": "30Gi"
+            },
+            "name": "tmp"
+          }
+        ]
+      }
+    }
+  }
+}

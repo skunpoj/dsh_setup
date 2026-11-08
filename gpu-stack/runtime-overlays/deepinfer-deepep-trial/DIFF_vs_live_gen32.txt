@@ -1,0 +1,4 @@
+spec/replicas | 1 -> 0
+spec/selector/matchLabels/variant | None -> deepep
+spec/template/metadata/labels/variant | None -> deepep
+spec/template/spec/containers/0/env/6/value | nccl -> deepep
