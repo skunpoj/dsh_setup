@@ -1,0 +1,200 @@
+{
+ "apiVersion": "batch/v1",
+ "kind": "Job",
+ "metadata": {
+  "name": "p3-deepep-check",
+  "namespace": "llm",
+  "annotations": {
+   "dsh.example/purpose": "one-off DeepEP dispatch/combine correctness check; run only with both engines at 0 replicas"
+  }
+ },
+ "spec": {
+  "backoffLimit": 0,
+  "activeDeadlineSeconds": 300,
+  "ttlSecondsAfterFinished": 86400,
+  "template": {
+   "metadata": {
+    "labels": {
+     "app": "p3-deepep-check"
+    }
+   },
+   "spec": {
+    "restartPolicy": "Never",
+    "nodeSelector": {
+     "kubernetes.io/hostname": "<GPU_NODE_HOSTNAME>"
+    },
+    "automountServiceAccountToken": false,
+    "containers": [
+     {
+      "name": "p3",
+      "image": "lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860",
+      "env": [
+       {
+        "name": "PYTHONPATH",
+        "value": "/work/runtime:/work/dependencies/deep-ep:/work/dependencies/flash-mla-sm90:/work/dependencies/humming012:/work/dependencies/tile-kernels:/work/dependencies/tilelang:/work/dependencies/posix-ipc:/work/dependencies/deep-select:/work/nccl-python-overlay"
+       },
+       {
+        "name": "DEEPINFER_ACCELERATOR",
+        "value": "nvidia"
+       },
+       {
+        "name": "DEEPINFER_CUDA_ARCH",
+        "value": "sm90"
+       },
+       {
+        "name": "DEEPINFER_HF_MODEL_DIR",
+        "value": "/models/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash-1017/snapshots/1bae0e1088993b9b82de08f59de5be5a34e42170"
+       },
+       {
+        "name": "DEEPINFER_SM90_MOE_BACKEND",
+        "value": "humming"
+       },
+       {
+        "name": "DEEPINFER_SM90_COMPACT_ENGRAM",
+        "value": "0"
+       },
+       {
+        "name": "DEEPINFER_ENGRAM_UVA_FETCH",
+        "value": "1"
+       },
+       {
+        "name": "DEEPINFER_CP_COMM_BACKEND",
+        "value": "nccl"
+       },
+       {
+        "name": "NCCL_NVLS_ENABLE",
+        "value": "0"
+       },
+       {
+        "name": "NCCL_P2P_LEVEL",
+        "value": "NVL"
+       },
+       {
+        "name": "EP_DISABLE_GIN",
+        "value": "1"
+       },
+       {
+        "name": "DEEPINFER_USE_NEXTN_DECODE",
+        "value": "5"
+       },
+       {
+        "name": "DEEPINFER_ENABLE_MTP_VARLEN",
+        "value": "1"
+       },
+       {
+        "name": "HOME",
+        "value": "/tmp"
+       },
+       {
+        "name": "TRITON_CACHE_DIR",
+        "value": "/tmp/triton"
+       },
+       {
+        "name": "NCCL_DEBUG",
+        "value": "WARN"
+       },
+       {
+        "name": "USER",
+        "value": "deepinfer"
+       },
+       {
+        "name": "LOGNAME",
+        "value": "deepinfer"
+       },
+       {
+        "name": "NCCL_SOCKET_IFNAME",
+        "value": "lo"
+       },
+       {
+        "name": "GLOO_SOCKET_IFNAME",
+        "value": "lo"
+       },
+       {
+        "name": "PYTHONDONTWRITEBYTECODE",
+        "value": "1"
+       },
+       {
+        "name": "DEEPINFER_EP_COMM_BACKEND",
+        "value": "deepep"
+       }
+      ],
+      "resources": {
+       "limits": {
+        "cpu": "32",
+        "memory": "640Gi",
+        "nvidia.com/gpu": "4"
+       },
+       "requests": {
+        "cpu": "8",
+        "memory": "512Gi",
+        "nvidia.com/gpu": "4"
+       }
+      },
+      "command": [
+       "sh",
+       "-c",
+       "cd /tmp && exec /opt/sglang/bin/python3 -m torch.distributed.run --standalone --nproc_per_node=4 /check/deepep_dispatch_combine_check.py --rounds 3"
+      ],
+      "volumeMounts": [
+       {
+        "mountPath": "/models",
+        "name": "models",
+        "readOnly": true
+       },
+       {
+        "mountPath": "/work",
+        "name": "work"
+       },
+       {
+        "mountPath": "/dev/shm",
+        "name": "shm"
+       },
+       {
+        "mountPath": "/tmp",
+        "name": "tmp"
+       },
+       {
+        "name": "check",
+        "mountPath": "/check"
+       }
+      ]
+     }
+    ],
+    "volumes": [
+     {
+      "name": "models",
+      "persistentVolumeClaim": {
+       "claimName": "model-cache-2tb",
+       "readOnly": true
+      }
+     },
+     {
+      "name": "work",
+      "persistentVolumeClaim": {
+       "claimName": "deepinfer-v41-work-v4"
+      }
+     },
+     {
+      "emptyDir": {
+       "medium": "Memory",
+       "sizeLimit": "256Gi"
+      },
+      "name": "shm"
+     },
+     {
+      "emptyDir": {
+       "sizeLimit": "30Gi"
+      },
+      "name": "tmp"
+     },
+     {
+      "name": "check",
+      "configMap": {
+       "name": "p3-deepep-check"
+      }
+     }
+    ]
+   }
+  }
+ }
+}
