@@ -1,10 +1,8 @@
 # Managed coding-agent integration candidate
 
-Status: deployed broker and runtime image; native guarded model execution still requires live acceptance.
+Status: deployed broker and runtime image; guarded model execution still requires live acceptance.
 
-The DSH runtime supports DSH, Claude Code, Kilo and TrueForge through their current entry points. The deployed image also includes Deep Agents Code (dcode), friendly aliases for the DSH CLI and an authenticated `/agent-tasks` path for DSH Python SDK, Claude Code and Deep Agents. Reviewed successor source adds Kilo and one bounded cross-runtime handoff. The broker implements private-workspace confinement, explicit approval, persisted event polling, cancellation and interrupted recovery. Broker health and current capability mapping are verified live; the successor source and handoff are not yet deployed or live accepted.
-
-TrueForge remains a separate owner-only web application, not a second DSH and not a CLI runtime. Complete integration requires an HTTP adapter that uses the existing authenticated broker as sole writer and shares its approval, cancellation, correlation and guard ledger. OpenShell is an optional execution backend beneath the broker, not a runtime or interface.
+The DSH runtime supports DSH, Claude Code, Kilo and TrueForge. The deployed image also includes Deep Agents Code (dcode), friendly aliases for the DSH CLI and an authenticated `/agent-tasks` path for DSH Python SDK, Claude Code and Deep Agents. Broker health and capability mapping are verified live. A normal DSH chat prompt is not forwarded to another CLI, and guarded model execution for every broker runtime remains a separate acceptance gate.
 
 ## Interfaces and isolation
 
@@ -12,7 +10,7 @@ TrueForge remains a separate owner-only web application, not a second DSH and no
 - DSH web chat uses DSH's own harness. A prompt is not automatically forwarded to another CLI.
 - DSH's CLI has interactive and headless modes. The inspected SDK uses JSON-RPC over stdio; complete SDK sessions still require qualification.
 - CLI agents in the same workspace container can share files, tools and resources. Their conversations, context, approvals and resumable sessions remain separate.
-- OpenShell can complement the terminal as a controlled execution backend. Neither inherently requires the other. Azure source contains a disabled guarded gateway hook, but this public candidate does not claim a selectable web control or qualified OpenShell runtime. It remains fail-closed until the separately recorded 25-gate Test and rollback qualification passes. See [agent runtime and execution backend](../../docs/AGENT_RUNTIME_AND_EXECUTION_BACKENDS.md).
+- OpenShell can complement the terminal as a controlled execution backend. Neither inherently requires the other. OpenShell is disabled and is not user-selectable until its 25-gate Test and rollback qualification passes.
 
 ## Build and install
 
@@ -64,22 +62,6 @@ python3 -m unittest discover -s integrations/managed-agents/tests -p 'test_manag
 Source validation: 29 JavaScript checks and 17 Linux Python test groups passed. Python tests use synthetic model/client classes; they do not qualify real package APIs, TUI configuration, model behavior or performance.
 
 Before deployment: build and inspect the actual image; verify real package/config loading; test profile migration/idempotence in disposable fixtures; bind an authenticated single-model gateway; qualify outbound restrictions; then test one isolated user, CLI/SDK sessions, tool approvals and recovery. Match the running digest and affected behavior before promotion. Preserve user history, volumes, credentials and active-session recovery.
-
-### Bundled search tool for unattended execution
-
-The managed image build installs `rg` from the already pinned
-`deepseek-harness-runtime-bin` wheel. `scripts/install_bundled_ripgrep.py`
-requires matching SDK/runtime versions, verifies the sidecar against its wheel
-RECORD SHA-256 and size, copies it into `/usr/local/bin/rg`, verifies the copied
-bytes and executes `--version`. It emits `/opt/dsh/bundled-ripgrep.json` during
-the image build. It performs no download or runtime package installation.
-
-This prevents the managed Deep Agents launcher from needing its missing-ripgrep
-bootstrap on the tested PATH. It is not a general network restriction. The
-helper was executed successfully against the installed pinned wheel in a
-credential-free disposable Test Pod: ripgrep 15.0.0, matching RECORD digest,
-zero model starts. That verifies the helper and installed wheel; the successor
-image still needs its immutable build, digest readback and launcher test.
 
 ## References
 

@@ -145,7 +145,7 @@ def build(c):
           claim(name+'-incoming','10Gi');volumes.append({'name':'packages','persistentVolumeClaim':{'claimName':name+'-incoming'}})
           mounts.append({'name':'packages','mountPath':'/packages/incoming'})
         env=[{'name':'DSH_ENVIRONMENT','value':mode},{'name':'DSH_TRUSTED_HOST','value':c['public_hostname']},
-             {'name':'DSH_CONTEXT_TOKENS','value':'1048576'},{'name':'DSH_LLM_TRANSPORT_ORIGIN','value':'http://litellm-gateway.llm.svc.cluster.local:4000'}]
+             {'name':'DSH_CONTEXT_TOKENS','value':'1048576'},{'name':'DSH_LLM_TRANSPORT_ORIGIN','value':'http://litellm:4000'}]
         for key in ['DEEPSEEK_API_KEY','OPENAI_API_KEY','LITELLM_API_KEY']:env.append(envref(key,'key',name+'-inference'))
         runtime={'name':'dsh','image':c['dsh_image'],'env':env,'securityContext':SC,'volumeMounts':mounts,
           'resources':{'requests':{'cpu':'250m','memory':'1Gi'},'limits':{'cpu':'4','memory':'8Gi'}},

@@ -23,7 +23,9 @@ export function lockSettings(input, gateway) {
 export function lockProfile(input,gateway){
  if(!Array.isArray(input)) deny('DSH_PROFILE_ARRAY_REQUIRED');
  const x=structuredClone(input), provider=lockSettings({},gateway)['llm-pi-ai'];
- for(const id of ['agent-default-model','session-title-llm']) {let e=x.find(y=>y.id===id);if(!e){e={id};x.push(e);}e.config={provider:PROVIDER,model:MODEL};}
+ // The title provider requires its length targets and limits; DSH's own base values fill any that are missing and a deliberate value is kept.
+ const TITLE_DEFAULTS={targetWords:5,targetCjkCharacters:10,maxInputBytes:4096,maxOutputTokens:4096,timeoutMs:60000};
+ for(const id of ['agent-default-model','session-title-llm']) {let e=x.find(y=>y.id===id);if(!e){e={id};x.push(e);}e.config={...(id==='session-title-llm'?{...TITLE_DEFAULTS,...(e.config||{})}:{}),provider:PROVIDER,model:MODEL};}
  let e=x.find(y=>y.id==='llm-pi-ai');if(!e){e={id:'llm-pi-ai',name:'@deepseek-ai/dsh-llm-pi-ai'};x.push(e);}e.config=provider;
  for(const id of ['llm-deepseek','llm-deepseek-account','ui-settings-account']){let e=x.find(y=>y.id===id);if(!e){e={id};x.push(e);}e.disabled=true;}
  return x;

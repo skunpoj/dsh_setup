@@ -1,5 +1,7 @@
 # 1M context: architecture, tuning and qualification
 
+The values below describe the fresh-install renderer in `scripts/render_k8s.py` at source revision `b7dd7d5e408644dbda9cc69dc648b9a4d837356c`. The separately retained SGLang + DSpark profile in `gpu-stack/profiles/sglang-dspark-rollback.json` uses static memory fraction 0.922, eight running requests and 1,024 maximum prefill tokens. These are separate source profiles. Select and qualify the intended profile before deployment.
+
 The complete path is DSH → authenticated LiteLLM → loopback context forwarder →
 SGLang. Raising only the model server's context limit does not enable the full
 product. The supplied profile declares 1,048,576 total tokens at all relevant
@@ -72,7 +74,7 @@ sanitized aggregate measurements, not raw prompts, credentials or infrastructure
 metadata. Full-1M stress is opt-in and can affect shared inference users.
 
 For a private test origin, use
-[`build_budget_qualification_overlay.py`](../scripts/build_budget_qualification_overlay.py)
+[`build_budget_qualification_overlay.py`](https://github.com/skunpoj/dsh_setup/blob/b7dd7d5e408644dbda9cc69dc648b9a4d837356c/scripts/build_budget_qualification_overlay.py)
 with the reviewed transport/forwarder source fingerprints and exact canonical
 origins. It never edits its inputs or deploys a workload. The private test gate
 rejects counted inputs of at least 950K with an output reservation below 512

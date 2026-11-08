@@ -1,19 +1,19 @@
 WEBVTT
 
 00:00.000 --> 00:09.000
-Web DSH is the authenticated platform. SDK, Claude Code, Deep Agents, and Kilo are agent runtimes.
+Today, Web DSH, Web Terminal, and installed managed clients operate in the user's private workspace.
 
 00:09.000 --> 00:19.000
-The running broker exposes the first three. Reviewed successor source adds Kilo and one bounded handoff.
+DSH chat does not forward work to another client. The deployed Agent tasks page separates runtime from backend.
 
 00:19.000 --> 00:29.000
-Each handoff stage gets a correlation ID, one model start, persisted state, and guarded cancellation.
+Web DSH controls the task. Python SDK, Claude Code, or Deep Agents runs behind that control surface.
 
 00:29.000 --> 00:40.000
-TrueForge is a separate private interface inside DSH, not another DSH platform.
+Tasks require approval and stream output. The SDK uses a private checkpoint and supports interrupted recovery.
 
 00:40.000 --> 00:50.000
-Private workspace is the normal backend. OpenShell is optional stronger isolation.
+SDK tool interrupts pause for approval. Kubectl has no token or default kubeconfig, so it grants no access alone.
 
 00:50.000 --> 01:00.000
-OpenShell stays disabled until all gates pass. Live handoff, Fola audio, and spoken review remain.
+OpenShell stays disabled until all twenty-five gates pass. Model execution and spoken-content review remain.

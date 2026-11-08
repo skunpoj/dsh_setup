@@ -1,7 +1,7 @@
 """Loopback-only final-wire 1M guard between LiteLLM and internal SGLang.
 
 Bind to 127.0.0.1 in the authenticated LiteLLM pod. Never expose this listener
-as a Service. Prompts and keys are not logged or captured.
+as a Service. Prompts/keys are not logged. Only canaries may enable capture.
 """
 import asyncio
 import contextlib
@@ -238,6 +238,8 @@ async def completion(request: Request):
     for private_field in ('session_id', 'session_params', 'cache_salt'):
         data.pop(private_field, None)
     normalize_conditioning(data)
+    if os.environ.get('DSH_CAPTURE_SYNTHETIC_ENVELOPE') == '1':
+        Path('/tmp/dsh-synthetic-envelope.json').write_text(json.dumps(data))
     tokenize_start = _timing_clock()
     interactive.enter()
     try:

@@ -19,13 +19,13 @@ Use `/applications` to save a friendly `<username>-jupyter` URL or map another a
 
 `jupyter --version` shows the installed Lab version. The image pins JupyterLab 4.6.4, Jupyter Server 2.21.1 and ipykernel 7.4.0. Installation happens during the image build, so notebook startup performs no package download.
 
-
+!JupyterLab notebook executed through the authenticated DSH gateway with synthetic data
 
 The Python kernel runs inside the selected DSH environment. This example uses synthetic content and displays the output saved after executing the cell in the browser.
 
 ## Storage and packages
 
-In Main DSH, notebooks use the environment's existing `/workspace`: the central CIFS share in No Internet and a separate private workspace in Internet. Settings, runtime files and IPython state use private `/state/jupyter`. Switching users or environments does not copy notebooks, sessions, credentials or kernels. DSH2 and DSH3 use their existing private workspace and state volumes.
+In Main DSH, notebooks use the environment's existing `/workspace`: central DA_WORKSPACE/CIFS in No Internet and a separate private workspace in Internet. Settings, runtime files and IPython state use private `/state/jupyter`. Switching users or environments does not copy notebooks, sessions, credentials or kernels. DSH2 and DSH3 use their existing private workspace and state volumes.
 
 The Python kernel uses `/opt/dsh/jupyter`. Explicitly approved private packages can be installed into `/state/jupyter/site-packages`, without modifying the image or another user's environment. No Internet retains its approved offline cache. Internet dependency preparation and operator promotion follow the existing package workflow.
 
@@ -74,13 +74,13 @@ Official references: [Server security](https://jupyter-server.readthedocs.io/en/
 
 ## Optional automatic startup
 
-An administrator may approve the managed **jupyter** service for this user and environment. It then starts automatically with the worker, using the same workspace and persistent notebook state. Admin Stop survives restarts. A new notebook server does not restore unsaved cells, Python variables or an interrupted kernel. Manual `jupyter lab` remains available when no supervised server uses port 8888. See [managed startup and isolation](APP_SERVICE_SUPERVISION.md).
+An administrator may approve the managed **jupyter** service for this user and environment. It then starts automatically with the worker, using the same workspace and persistent notebook state. Admin Stop survives restarts. A new notebook server does not restore unsaved cells, Python variables or an interrupted kernel. Manual `jupyter lab` remains available when no supervised server uses port 8888. See managed startup and isolation.
 
 ### DSH2 and DSH3 managed startup
 
 In the main **Admin overview → Managed startup services**, select **Runtime → DSH2** or **DSH3**. The existing owner and Internet environment are fixed. Save/start **jupyter** for notebooks; save a supported workspace command and explicit app port for a user app. Stop disables automatic restart, including after pod replacement. These instances keep their own owner login, storage and histories; registering a startup target does not grant main-platform login or file access. The owner's existing authenticated Jupyter/app URLs remain in use.
 
-See the [startup architecture and installation guide](APP_SERVICE_SUPERVISION.md) and recorded target-selector workflow. Saved notebook/data files persist; unsaved kernel memory and interrupted computations do not resume automatically.
+See the startup architecture and installation guide and recorded target-selector workflow. Saved notebook/data files persist; unsaved kernel memory and interrupted computations do not resume automatically.
 
 
 ## Jupyter Start controls

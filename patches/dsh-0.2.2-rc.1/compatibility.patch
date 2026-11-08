@@ -1,27 +1,14 @@
---- a/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js
-+++ b/node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js
-@@ -866,7 +866,7 @@
- 			} catch (error) {
- 				if (remoteErrorOf(error) !== void 0) throw error;
- 				if (error instanceof AttachmentError) throw new RemoteError("session/attachment-invalid", error.message, { reason: error.code });
--				throw new RemoteError("session/agent-busy", "prompt rejected", { reason: String(error) });
-+				{ const dshRedact = v => String(v).replace(/((?:token|key|secret|password|authorization)["']?\s*[=:]\s*["']?(?:bearer\s+)?|bearer\s+)[^\s,;"']+/gi, "$1<redacted>").replace(/sk-[A-Za-z0-9_-]{8,}/g, "sk-<redacted>"); const dshDetail = dshRedact(error && error.message || error).slice(0, 240); console.error("[dsh] prompt admission failed: " + (error && error.stack ? dshRedact(error.stack).slice(0, 2000) : dshDetail)); throw new RemoteError("session/agent-busy", "prompt rejected: " + dshDetail, { reason: String(error) }); }
- 			}
- 			return { accepted: true };
- 		};
---- a/node_modules/@deepseek-ai/dsh-api-session-controller/lib/types/commands.js
-+++ b/node_modules/@deepseek-ai/dsh-api-session-controller/lib/types/commands.js
-@@ -338,7 +338,7 @@
-                 if (error instanceof AttachmentError) {
-                     throw new RemoteError('session/attachment-invalid', error.message, { reason: error.code });
-                 }
--                throw new RemoteError('session/agent-busy', 'prompt rejected', { reason: String(error) });
-+                { const dshRedact = v => String(v).replace(/((?:token|key|secret|password|authorization)["']?\s*[=:]\s*["']?(?:bearer\s+)?|bearer\s+)[^\s,;"']+/gi, '$1<redacted>').replace(/sk-[A-Za-z0-9_-]{8,}/g, 'sk-<redacted>'); const dshDetail = dshRedact(error && error.message || error).slice(0, 240); console.error('[dsh] prompt admission failed: ' + (error && error.stack ? dshRedact(error.stack).slice(0, 2000) : dshDetail)); throw new RemoteError('session/agent-busy', 'prompt rejected: ' + dshDetail, { reason: String(error) }); }
-             }
-             return { accepted: true };
-         };
 --- a/node_modules/@deepseek-ai/dsh-attachment-local/lib/index.js
 +++ b/node_modules/@deepseek-ai/dsh-attachment-local/lib/index.js
+@@ -402,7 +402,7 @@
+ async function ensureDurableHome(path) {
+ 	const home = resolve(path);
+ 	if (!durableHomes.has(home)) {
+-		await ensureDurableDirectory(home, parse(home).root);
++		await mkdir(home, { recursive: true, mode: 448 });
+ 		durableHomes.add(home);
+ 	}
+ 	return home;
 @@ -599,7 +599,7 @@
  		data = new Uint8Array(await readFile(normalizedImagePath(root, ref), { signal }));
  	} catch (error) {

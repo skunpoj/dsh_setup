@@ -1,26 +1,16 @@
 'use strict';
-// Operator-selected compatibility for one explicitly pinned Gradio origin/alias.
+// Operator-selected compatibility for the two qualified RegChat aliases.
 // This does not change application authentication or rewrite arbitrary HTML URLs.
 const MAX_BYTES = 2 * 1024 * 1024;
-function originSetting(value) {
-  if (!value) return '';
-  let parsed;
-  try { parsed = new URL(value); } catch { throw Error('Invalid Gradio origin setting'); }
-  if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.pathname !== '/' ||
-      parsed.search || parsed.hash || !parsed.hostname.includes('.') ||
-      require('node:net').isIP(parsed.hostname) || parsed.hostname.startsWith('[') || parsed.hostname.endsWith('.'))
-    throw Error('Gradio settings require named HTTPS origins without credentials, paths or queries');
-  return parsed.origin;
-}
-const UPSTREAM = originSetting(process.env.DSH_GRADIO_UPSTREAM_ORIGIN);
-const ALIAS = originSetting(process.env.DSH_GRADIO_PUBLIC_ORIGIN);
-if (Boolean(UPSTREAM) !== Boolean(ALIAS)) throw Error('Both Gradio origins must be configured');
+const UPSTREAM = 'https://regchat.example.invalid';
+const ALIAS = 'https://regchat.example.invalid';
+const ALIASES = new Set([ALIAS, 'https://regchat-dsh.example.invalid']);
 function refuse(message) { const e = new Error(message); e.status = 502; throw e; }
 function enabled(target, publicOrigin) {
   const adapter = target.policy.frontendAdapter;
   if (adapter === undefined) return false;
-  if (adapter !== 'gradio-root' || !UPSTREAM || !ALIAS || target.url.origin !== UPSTREAM ||
-      target.basePath !== '' || publicOrigin !== ALIAS)
+  if (adapter !== 'regchat-gradio-root' || target.url.origin !== UPSTREAM ||
+      target.basePath !== '' || !ALIASES.has(publicOrigin))
     refuse('Unqualified frontend adapter mapping');
   return true;
 }
@@ -44,12 +34,12 @@ function jsonEnd(text, start) {
   }
   refuse('Incomplete Gradio configuration');
 }
-function rewrittenConfig(text) {
+function rewrittenConfig(text, publicOrigin) {
   let config;
   try { config = JSON.parse(text); } catch { refuse('Invalid Gradio configuration JSON'); }
   if (!config || Array.isArray(config) || typeof config !== 'object' || config.root !== UPSTREAM)
     refuse('Unexpected Gradio configuration root');
-  config.root = ALIAS;
+  config.root = publicOrigin;
   // Safe inside an existing script element, including user-supplied text values.
   return JSON.stringify(config).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 }
@@ -61,7 +51,7 @@ function transform(body, headers, path, target, publicOrigin) {
     refuse('Script hash policy requires separate frontend qualification');
   let text;
   try { text = new TextDecoder('utf-8', {fatal:true}).decode(body); } catch { refuse('Invalid UTF-8 frontend response'); }
-  if (route(path) === '/config') text = rewrittenConfig(text);
+  if (route(path) === '/config') text = rewrittenConfig(text, publicOrigin);
   else {
     const matches = [...text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)]
       .flatMap(script => [...script[1].matchAll(/\bwindow\.gradio_config\s*=\s*/g)]
@@ -70,7 +60,7 @@ function transform(body, headers, path, target, publicOrigin) {
     const {script, start} = matches[0], end = jsonEnd(text, start);
     const scriptEnd = script.index + script[0].lastIndexOf('</');
     if (end > scriptEnd || !/^\s*(?:;|$)/.test(text.slice(end, scriptEnd))) refuse('Unexpected Gradio assignment syntax');
-    text = text.slice(0, start) + rewrittenConfig(text.slice(start, end)) + text.slice(end);
+    text = text.slice(0, start) + rewrittenConfig(text.slice(start, end), publicOrigin) + text.slice(end);
   }
   const result = Buffer.from(text, 'utf8'), resultHeaders = {...headers};
   for (const k of ['content-length','content-encoding','etag','content-md5','digest','content-digest','repr-digest','accept-ranges','last-modified']) delete resultHeaders[k];

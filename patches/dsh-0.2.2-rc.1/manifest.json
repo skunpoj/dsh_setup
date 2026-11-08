@@ -1,23 +1,17 @@
 {
   "baselineVersion": "0.2.2-rc.1",
-  "patchSHA256": "e5a186ffffd74ca480ab97456815d9f1db5aa47d1f12c47ee32381b1990b6e75",
+  "patchSHA256": "0e4f2d62bf5e948c259124029df9521ab6eefb1393436a6b74dc7e9cad19eca4",
   "targets": [
     {
       "path": "dsh-api-session-controller/lib/index.js",
       "upstreamSHA256": "4cf6c66e65cce865d270fa89405b96d048ffa62e493e4ffbd1a826be2207a4cd",
-      "patchedSHA256": "a2cf097204b6acead2bb2009a663be671c9469ada30f7e960b25b20ca4d781db",
-      "patched": true
-    },
-    {
-      "path": "dsh-api-session-controller/lib/types/commands.js",
-      "upstreamSHA256": "22a873ee9b1d4ea78ae6327f265ff9d7e0383250ad017b1eb580765fdf6cbb1c",
-      "patchedSHA256": "782ecfdc0d3f5ba9c497068230902255d59b7716ae82f5b26bd42cdbe6d7a080",
-      "patched": true
+      "patchedSHA256": "4cf6c66e65cce865d270fa89405b96d048ffa62e493e4ffbd1a826be2207a4cd",
+      "patched": false
     },
     {
       "path": "dsh-attachment-local/lib/index.js",
       "upstreamSHA256": "ff717f87226b59d6224aff67796b43d5fd72b98d0e74fa91a952affaf3285f9d",
-      "patchedSHA256": "a5e2fd4ef4e7aa7378ebec11fe0955fdf0c3ab5e4f6c471fd6a51ee7b303cf86",
+      "patchedSHA256": "8264c8b55e9e1b745a57fd88cef3940af2a0abccf734464e61f936db734551cd",
       "patched": true
     },
     {
@@ -75,6 +69,6 @@
       "patched": true
     }
   ],
-  "configuratorSHA256": "35f8825599b2d68207f6c6fa7d9b7e0f246fe7f76f993a92de9a497d0e4f8b25",
+  "configuratorSHA256": "a7a879b657a66f2a7d732845816c0db88b9928664a87422505bee62b0d491a9b",
   "purpose": "Review artifact, normalized dsh.example.com host; generated from official integrity-verified package targets. Runtime application uses guarded configure_models.js, not this example-host diff."
 }

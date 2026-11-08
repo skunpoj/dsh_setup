@@ -1,8 +1,10 @@
 ## How to install DSH
 
+For the consolidated DSpark decisions, failed trials, memory corrections, preparation overhead and accepted measurements, see the inference optimization experience record.
+
 This walkthrough follows the repository's actual build, manifest-generation and inference-rendering interfaces. Run commands from the repository root in a POSIX operator shell. Windows operators can use WSL; Python-only generation also works in PowerShell. The recorded deployment and performance results appear separately under **What is deployed** and **Qualification results**.
 
-Choose the inference topology first. Components in the same cluster can occupy different nodes. For a GPU server on another machine, the portable renderer accepts `backendOrigin` and explicit private host CIDRs; it then omits local GPU/model-storage objects. If LiteLLM itself moves outside the cluster, retain the managed logical gateway through an approved relay or qualify all operator-owned client policies together. Complete the DNS, TLS, firewall and endpoint checks in the [flexible deployment guide](FLEXIBLE_DEPLOYMENT.md); a new FQDN alone does not update client policy or network authorization.
+Choose the inference topology first. Components in the same cluster can occupy different nodes. For a GPU server on another machine, the portable renderer accepts `backendOrigin` and explicit private host CIDRs; it then omits local GPU/model-storage objects. If LiteLLM itself moves outside the cluster, retain the managed logical gateway through an approved relay or qualify all operator-owned client policies together. Complete the DNS, TLS, firewall and endpoint checks in the flexible deployment guide; a new FQDN alone does not update client policy or network authorization.
 
 ### Installation sequence and completion gates
 
@@ -32,7 +34,7 @@ Use **DeepSeek-V4.1-Flash-1017**, pinned to revision `1bae0e1088993b9b82de08f59d
 
 Keep the stable DeepSeek client aliases pointing to the updated checkpoint. Do not change every catalog entry to 1M: aliases, actual checkpoint support and route budgets must agree for each model separately. Verify the loaded model path/revision and an actual answer after rollout. The application image, model weights and model-serving image are independent versions; updating the checkpoint does not upgrade the DSH package.
 
-Use a new test namespace for a new installation. For an existing installation, preserve its current namespace, claims, account store and owner mapping; do not run initial provisioning over live routing. Never apply the entire `k8s` directory: it holds site-specific examples, not a deployable set.
+Use a new test namespace for a new installation. For an existing installation, preserve its current namespace, claims, account store and owner mapping; do not run initial provisioning over live routing. Never apply the entire `k8s` directory: it includes retired deployments and site-specific examples.
 
 | Input | Operator supplies | Used by |
 |---|---|---|
@@ -66,7 +68,7 @@ Record the selected source commit and inspect the context before any write. Inst
 
 The image also preinstalls JupyterLab 4.6.4, Jupyter Server 2.21.1 and ipykernel 7.4.0 into `/opt/dsh/jupyter`. Its build runs a non-root notebook/kernel integration test. Jupyter uses the existing authenticated `/proxy/8888/` route; no new ingress or shared notebook state is required. With the automatic capacity controller and service supervisor installed, fresh pairs contain a fixed Jupyter definition that remains blocked until account/environment permission allows it. Existing Admin Stop choices are never reset. See [Jupyter setup](JUPYTERLAB.md).
 
-The Dockerfile packages DSH, Claude Code, TrueForge, Kilo CLI, terminal and Kerberos tooling plus reviewed overlays. Kilo is pinned with `KILO_VERSION=7.8.12`; its operator policy is installed into `/etc/kilo/kilo.json`. The [managed-client guide](MANAGED_CLIENT_SUPPORT.md) covers endpoint adaptation, private state and acceptance. Read its pinned build arguments before changing versions. The checked-in Azure pipeline is a site-specific example; configure your own registry connection, repository and agent pool rather than copying its private registry settings.
+The Dockerfile packages DSH, Claude Code, TrueForge, Kilo CLI, terminal and Kerberos tooling plus reviewed overlays. Kilo is pinned with `KILO_VERSION=7.8.12`; its operator policy is installed into `/etc/kilo/kilo.json`. The managed-client guide covers endpoint adaptation, private state and acceptance. Read its pinned build arguments before changing versions. The checked-in Azure pipeline is a site-specific example; configure your own registry connection, repository and agent pool rather than copying its private registry settings.
 
 ```sh
 export DSH_IMAGE_TAG='registry.example.net/ai/dsh-runtime:reviewed-build'
@@ -165,7 +167,7 @@ kubectl -n "$APP_NS" apply -f "$PRIVATE_DIR/private-users.site.yaml"
 kubectl -n "$APP_NS" get deployments,pods,pvc,services,networkpolicies
 ```
 
-The two `.site.yaml` bundles are operator-prepared outputs, not files supplied by this repository. Resolve every referenced resource before this step. Configure the gateway's trusted host and TLS, default No Internet selection and private routing. Keep signup disabled until empty private capacity passes the [self-service signup acceptance procedure](SELF_SERVICE_SIGNUP.md), then enable Create account. Grant Internet separately per named account. Seed the administrator through the protected account-store procedure; do not introduce a factory password.
+The two `.site.yaml` bundles are operator-prepared outputs, not files supplied by this repository. Resolve every referenced resource before this step. Configure the gateway's trusted host and TLS, default No Internet selection and private routing. Keep signup disabled until empty private capacity passes the self-service signup acceptance procedure, then enable Create account. Grant Internet separately per named account. Seed the administrator through the protected account-store procedure; do not introduce a factory password.
 
 ### Publish the on-site user manual
 
@@ -179,7 +181,7 @@ python scripts/build_manual_bundle.py --git-ref HEAD --output "$PRIVATE_DIR/manu
 python scripts/publish_manual_bundle.py --bundle "$PRIVATE_DIR/manual-bundle" --namespace "$APP_NS" --deployment dsh-environment-gateway
 ```
 
-The publisher verifies every file hash and returns a versioned `manualDir` under `/auth/manuals/`. Set the gateway's `DSH_MANUAL_DIR` to that returned path in its reviewed Deployment. For an existing site, `rollout_admin_management.py --manual-dir` can combine that setting with a verified gateway-source update and rollback. Only the gateway reloads; execution runtimes and inference do not restart. With the current persistent SessionStore, a valid unexpired browser session can survive that gateway reload when the protected registry and account stamp remain intact. Live WebSocket connections reconnect; an expired, revoked or changed-account session requires sign-in. Historical pre-SessionStore gateway editions had a different persistence contract.
+The publisher verifies every file hash and returns a versioned `manualDir` under `/auth/manuals/`. Set the gateway's `DSH_MANUAL_DIR` to that returned path in its reviewed Deployment. For an existing site, `rollout_admin_management.py --manual-dir` can combine that setting with a verified gateway-source update and rollback. Only the gateway reloads; execution runtimes and inference do not restart. With the current persistent SessionStore, a valid unexpired browser session can survive that gateway reload when the protected registry and account stamp remain intact. Live WebSocket connections reconnect; an expired, revoked or changed-account session requires sign-in. 
 
 Open the login page, follow User manual, verify the expected title/content and test its links and diagrams. The route accepts only catalogued documentation with matching hashes; it does not serve an arbitrary filesystem path. Public manual access does not grant access to user files, terminals, histories or admin routes. Keep prior versioned manual directories for rollback.
 
@@ -223,8 +225,8 @@ After private routing and persistent user volumes are qualified, install the [se
 
 In the main **Admin overview → Managed startup services**, select **Runtime → DSH2** or **DSH3**. The existing owner and Internet environment are fixed. Save/start **jupyter** for notebooks; save a supported workspace command and explicit app port for a user app. Stop disables automatic restart, including after pod replacement. These instances keep their own owner login, storage and histories; registering a startup target does not grant main-platform login or file access. The owner's existing authenticated Jupyter/app URLs remain in use.
 
-See the [startup architecture and installation guide](APP_SERVICE_SUPERVISION.md) and recorded target-selector workflow. Saved notebook/data files persist; unsaved kernel memory and interrupted computations do not resume automatically.
+See the startup architecture and installation guide and recorded target-selector workflow. Saved notebook/data files persist; unsaved kernel memory and interrupted computations do not resume automatically.
 
 ## Configure automatic account capacity
 
-After private routing, storage, the internal inference issuer and self-service signup have passed acceptance, follow [automatic account capacity setup](AUTOMATIC_ACCOUNT_CAPACITY.md). Qualify a separate candidate first, then activate admin capacity controls and a two-spare replenishment target. The controller is a trusted infrastructure component; the login gateway and execution workers retain no Kubernetes management token. Preserve the existing gateway snapshot and every account assignment during rollback.
+After private routing, storage, the internal inference issuer and self-service signup have passed acceptance, follow automatic account capacity setup. Qualify a separate candidate first, then activate admin capacity controls and a two-spare replenishment target. The controller is a trusted infrastructure component; the login gateway and execution workers retain no Kubernetes management token. Preserve the existing gateway snapshot and every account assignment during rollback.

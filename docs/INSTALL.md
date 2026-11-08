@@ -129,7 +129,7 @@ controller's permitted path, then log in with the privately provisioned account.
 No Internet is the login default. Select Internet only for non-sensitive dependency
 preparation. Each environment has a different runtime and persistent claims.
 
-Do not consider a Ready pod sufficient. Run [acceptance](ACCEPTANCE.md), including
+Do not consider a Ready pod sufficient. Run [acceptance](https://github.com/skunpoj/dsh_setup/blob/b7dd7d5e408644dbda9cc69dc648b9a4d837356c/docs/ACCEPTANCE.md), including
 real login, workspace creation, tools, persistence, peer denials and network
 tests. Empty first-use workspaces use an explicit `/workspace` Documents override;
 no desktop `xdg-user-dir` package is required.

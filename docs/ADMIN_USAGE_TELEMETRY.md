@@ -2,7 +2,7 @@
 
 Administrators can use `/admin` to manage accounts and review numeric activity summaries for the main service's configured private runtimes. Account permissions, Internet grants, private routing and conversation ownership remain separate from monitoring.
 
-**New-user slots** shows current remaining capacity, assigned/prepared slots and enabled/disabled accounts. Capacity and DSH activity refresh every 15 seconds while visible. A slot is one new account's private environment pair, not a project folder or application name. Unavailable activity clears old numeric readings; storage samples older than five minutes are marked. [Capacity, monitoring and shared-client walkthrough](PLATFORM_CAPACITY_AND_CLIENTS.md).
+**New-user slots** shows current remaining capacity, assigned/prepared slots and enabled/disabled accounts. Capacity and DSH activity refresh every 15 seconds while visible. A slot is one new account's private environment pair, not a project folder or application name. Unavailable activity clears old numeric readings; storage samples older than five minutes are marked. Capacity, monitoring and shared-client walkthrough.
 
 ![DSH usage panel with synthetic demonstration counters](images/platform/admin-usage-illustration.png)
 
@@ -16,7 +16,7 @@ Successful signup enables your private **No Internet / Internal** workspace imme
 
 Users select **Create account** on the login page. Signup assigns an exclusive qualified runtime pair and denies Internet by default. Open **User management** to create an account from available capacity, enable or disable access, sign out sessions, or select **Allow Internet** / **Disable Internet**. Reload the page to pick up new registrations. The usage collector includes assigned signup pairs alongside explicitly configured accounts; unused pairs are capacity, not user activity.
 
-Disabling an account retains its assignment, files and histories. Internet revocation invalidates gateway sessions and closes tracked connections; it does not terminate detached tools already running inside a runtime. An administrator cannot select arbitrary backend addresses or self-assign the admin role through the signup form. Admins set the warm-spare target (there is no account limit) under **Account capacity and automatic provisioning**. A separate infrastructure provisioner replenishes qualified private pairs automatically, with a default target of two spares. The gateway has no Kubernetes management token. See [capacity controls and setup](AUTOMATIC_ACCOUNT_CAPACITY.md). See the [signup and approval procedure](SELF_SERVICE_SIGNUP.md).
+Disabling an account retains its assignment, files and histories. Internet revocation invalidates gateway sessions and closes tracked connections; it does not terminate detached tools already running inside a runtime. An administrator cannot select arbitrary backend addresses or self-assign the admin role through the signup form. Admins set the warm-spare target (there is no account limit) under **Account capacity and automatic provisioning**. A separate infrastructure provisioner replenishes qualified private pairs automatically, with a default target of two spares. The gateway has no Kubernetes management token. See capacity controls and setup. See the signup and approval procedure.
 
 ## Application names, ports and limits
 
@@ -62,7 +62,7 @@ Use the separate **Managed startup services** section to save and approve Jupyte
 
 Definitions are protected on a dedicated persistent volume, separate from accounts and histories. Each private runtime receives only its own definition directory, read-only, and a constrained non-root supervisor sidecar. No Internet/Internet authorization remains independent. New services are stopped until explicitly approved. Status is supervisor-reported; unknown is not healthy.
 
-Read [startup controls, isolation architecture, credential handling and installation](APP_SERVICE_SUPERVISION.md). Watch the lifecycle walkthrough.
+Read startup controls, isolation architecture, credential handling and installation. Watch the lifecycle walkthrough.
 
 ## Usage panels
 
@@ -121,4 +121,4 @@ These checks cover the native HTTP summary protocol, numeric projection, private
 
 In the main **Admin overview → Managed startup services**, select **Runtime → DSH2** or **DSH3**. The existing owner and Internet environment are fixed. Save/start **jupyter** for notebooks; save a supported workspace command and explicit app port for a user app. Stop disables automatic restart, including after pod replacement. These instances keep their own owner login, storage and histories; registering a startup target does not grant main-platform login or file access. The owner's existing authenticated Jupyter/app URLs remain in use.
 
-See the [startup architecture and installation guide](APP_SERVICE_SUPERVISION.md) and recorded target-selector workflow. Saved notebook/data files persist; unsaved kernel memory and interrupted computations do not resume automatically.
+See the startup architecture and installation guide and recorded target-selector workflow. Saved notebook/data files persist; unsaved kernel memory and interrupted computations do not resume automatically.

@@ -39,9 +39,13 @@ damage but do not prevent every destructive command within the user's own files.
 The authenticated gateway binds identity to fixed server-side routing. Ordinary
 users cannot select a peer backend or mount its files/history. The password store
 and central access audit are mounted only by the gateway, not execution workers.
-Each password uses a random salt and scrypt; accounts are provisioned privately,
-without factory passwords or self-registration. Existing installations should
-not reset owners' passwords without their approved process.
+Each password uses a random salt and scrypt. The fixed-owner fresh-install
+profile uses privately provisioned accounts and disables self-registration.
+Deployments with a separately integrated and qualified capacity collector,
+private-runtime assignment and atomic account-creation path can support
+self-service signup. See [signup admission](SIGNUP_CAPACITY.md) for that
+integration boundary. Factory passwords are excluded. Existing installations
+should preserve owners' passwords through their approved process.
 
 TLS, browser/file/report routes, logout and WebSockets require acceptance tests.
 Access logs exclude password/prompt bodies and are not an immutable command

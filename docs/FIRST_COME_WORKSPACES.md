@@ -1,5 +1,7 @@
 # First-come, first-reserved workspaces
 
+Status: implemented on branch `feat/dsh-first-come-reserve-20261030`. **Not deployed.**
+
 ## What changes for people
 
 | | Before | After |
@@ -55,41 +57,71 @@ Cold start: a stopped workspace takes roughly 30–60 s to start. That is the ac
 - Updated to the new semantics: `test_capacity_planner.py`, `test_capacity_report.py`, `test_capacity_policy.js`,
   `test_admin_capacity.js`, `test_self_registration.js`, `test_signup_capacity.js`.
 
-## Not done yet
+## Not done yet (next steps)
 
 1. **Idle warning:** a notice about 5 min before an idle stop, injected into the workspace UI.
 2. **Retention:** delete a retired account's runtimes, Services and PVCs after a 30-day grace period. This needs a separately reviewed
    delete permission, deliberately not given to the scaling controller.
-3. **Housekeeping:** `ttlSecondsAfterFinished` on the remaining Job creators; a pruning job for old hash-named ConfigMaps.
-4. **Admin dashboard wording:** done 30 Oct (1ce73a5). The form has no account-limit field and states that there is no account limit.
+3. **Housekeeping:** `ttlSecondsAfterFinished` on the remaining Job creators listed in the design review; a pruning job for old
+   hash-named ConfigMaps.
+4. **Admin dashboard wording:** done 30 Oct (1955613). The form has no account-limit field and states that there is no account limit.
+5. **Source parity (from the parity session):**
+   - The live `auth_proxy.js` carries a "platform theme" overlay (4 prepended lines and two function renames, with
+     `platform_ui.js`). **This branch now includes that overlay**, applied from the parity session's diff, so its `auth_proxy.js` equals
+     the live file plus only this feature's edits.
+   - The same scripts exist in GitHub `dsh_setup` main (blob-identical), so this change must land in both repos.
+   - The controller's site `templates.json` pins old runtime images (`4e07fd6f`, `c10f792b`), so newly prepared workspaces start on
+     those images.
+6. **Repo default:** done 30 Oct (1955613). `maxAccounts` is dropped on read and the planner ignores it, so the live policy file's
+   legacy value 32 has no effect.
 
-## Deploying source changes
+## CI/CD: commit to main, deploy by flag
 
-The gateway and controller run code from immutable, hash-named ConfigMaps, not from the image. `scripts/rollout_dsh_sources.py`
-builds that ConfigMap from git, switches only the source volume, waits for the rollout, verifies it, and switches back automatically on
-failure. For the gateway, verification checks that `/login`, `/api/status` and `/api/signup-capacity` return 200.
+Same convention as the LiteLLM repository: build and push to Harbor on main, with deployment gated by a flag in the commit message.
 
-```bash
-python3 scripts/rollout_dsh_sources.py both          # dry run: prints the files that would change
-python3 scripts/rollout_dsh_sources.py both --apply  # deploy: controller, then gateway
-```
+- **Stage `Build`** (unchanged): build, test and push `da-gpu-server/dsh-runtime` to Harbor (`internal.example.invalid`).
+- **New stage `DeployDshSources`** (main only, environment `dsh-production`):
+  - It runs `scripts/rollout_dsh_sources.py`.
+  - The gateway and controller run code from immutable, hash-named ConfigMaps, not from the image. The script builds that ConfigMap
+    from git, switches only the source volume, waits for the rollout, verifies it, and switches back automatically on failure.
+  - For the gateway, verification checks that `/login`, `/api/status` and `/api/signup-capacity` return 200 on the public URL.
+- **Commit-message flags:**
 
-- Targets: `both`, `controller` or `gateway`.
-- The controller rollout also adds the two Role rules it needs (`deployments/scale` get/patch, `deployments` list). It only adds rules
-  and never removes any.
-- Credentials: a Kubernetes token with deploy rights in the DSH namespace, `DSH_K8S_API` (your cluster API URL) and optionally
-  `DSH_K8S_CA_FILE`. TLS verification is never disabled.
-- In CI, run it from a main-branch job and gate it on an explicit flag (for example a `[deploy-dsh]` marker in the commit message), so
-  an ordinary commit only prints the plan.
+  | Flag | Effect |
+  |---|---|
+  | `[deploy-dsh]` | Controller, then gateway |
+  | `[deploy-dsh-controller]` | Controller only |
+  | `[deploy-dsh-gateway]` | Gateway only |
+  | none | Prints the plan only (the files that would change) |
 
-## Rollout order
+  `***NO_CI***` or `[skip ci]` skips the whole pipeline.
+- **The controller rollout also adds the two Role rules it needs.** It only adds rules and never removes any.
+- **Pipeline variables:**
+  - `K8S_TOKEN`: secret, with deploy rights in namespace `llm`;
+  - optional `DSH_K8S_API` (default: the Rancher cluster proxy) and `DSH_K8S_CA_FILE`.
+  - TLS verification is never disabled.
+- **Approvals:** the stage is a plain job, like the LiteLLM pipeline's, and the commit flag is the gate. To also require a person to
+  approve each deploy, first create and authorize an Azure DevOps environment, then switch the job to a `deployment` job. An
+  environment that doesn't exist fails every main build at validation.
+- **Manual equivalent:**
 
-1. Roll the controller first. With no `demand.json` yet, it stops and starts nothing; it only publishes `sessions.json`.
-2. Roll the gateway. It seeds demand from current sessions. After one idle period, unused workspaces stop.
-3. Verify:
+  ```bash
+  python3 scripts/rollout_dsh_sources.py both
+  ```
+
+  This is a dry run. Add `--apply` to deploy.
+
+## Rollout (requires approval; not performed)
+
+1. Build the gateway and controller source ConfigMaps from this branch, using the existing hashed, immutable ConfigMap flow
+   (`deploy_capacity_controller.py`). Keep the deploy-time theme overlay on `auth_proxy.js`.
+2. Apply the controller Role change (`deployments/scale` get/patch, `deployments` list).
+3. Roll the controller first. With no `demand.json` yet, it stops and starts nothing; it only publishes `sessions.json`.
+4. Roll the gateway. It seeds demand from current sessions. After one idle period, unused workspaces stop.
+5. Verify:
    - `/api/status` and the sign-in panel;
-   - a sign-in to a stopped workspace shows the progress page and then reaches the workspace;
+   - a sign-in to a stopped workspace shows the waiting page and then reaches the workspace;
    - sign-out stops the workspace within about 20 s;
    - reserved CPU on the node drops.
-4. Roll back with the previous ConfigMaps and Role. A stopped workspace can be started with
-   `kubectl scale deploy/<name> -n <namespace> --replicas=1`.
+6. Roll back with the previous ConfigMaps and Role. Stopped workspaces can be started with
+   `kubectl scale deploy/<name> -n llm --replicas=1`.

@@ -58,7 +58,7 @@ def main():
         'triggerEvent':args.event,'candidateSelection':selection,
         'candidateRegistryIntegrity':integrity,'candidateSourceGitHead':package.get('gitHead'),
         'candidateLicense':package.get('license'),'productionChanged':False,
-        'automationPolicy':'Detect releases and source drift; qualify reviewed source; a port PR is opened automatically only when every reviewed target is byte-identical, otherwise a human-reviewed complete port PR is required; no automatic merge or deployment'}
+        'automationPolicy':'Detect releases and source drift; qualify reviewed source; human-reviewed complete port PR required; no automatic writes, merge or deployment'}
     contract=json.loads((ROOT/'scripts/upstream_patch_contract.json').read_text(encoding='utf-8')) if args.source_diff or args.prepare_candidate else None
     if args.source_diff:
         try:

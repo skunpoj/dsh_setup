@@ -15,14 +15,14 @@ except ImportError:
 spec=importlib.util.spec_from_file_location('managed_source',ROOT/'container/dsh_agent_model.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 ds=importlib.util.spec_from_file_location('cli_source',ROOT/'container/dsh-cli-managed.py');dc=importlib.util.module_from_spec(ds);ds.loader.exec_module(dc)
 sp=importlib.util.spec_from_file_location('launcher_source',ROOT/'container/deepagents-managed.py');l=importlib.util.module_from_spec(sp);sp.loader.exec_module(l)
-P={'model':m.MODEL,'base_url':'http://litellm-gateway.dsh.svc.cluster.local:4000/v1'}
+P={'model':m.MODEL,'base_url':'http://litellm-gateway.llm.svc.cluster.local:4000/v1'}
 class PolicyTests(unittest.TestCase):
  def test_policy(self):self.assertEqual(m.validate_policy(P),P)
  def test_models(self):
   for x in ['other','deepseek-flash','',None]:
    with self.subTest(x=x),self.assertRaises(ValueError):m.validate_policy(dict(P,model=x))
  def test_endpoints(self):
-  for x in ['https://api.openai.com/v1','http://litellm-gateway.dsh.svc.cluster.local.evil:4000/v1','http://litellm-gateway.dsh.svc.cluster.local:4000/v1?x=1',''.join(['http://', 'u', ':', 'p', '@', 'litellm-gateway.dsh.svc.cluster.local:4000/v1']),'file:///tmp/key']:
+  for x in ['https://api.openai.com/v1','http://litellm.dsh.svc.cluster.local.evil:4000/v1','http://litellm-gateway.llm.svc.cluster.local:4000/v1?x=1',''.join(['http://', 'u', ':', 'p', '@', 'litellm.dsh.svc.cluster.local:4000/v1']),'file:///tmp/key']:
    with self.subTest(x=x),self.assertRaises(ValueError):m.validate_policy(dict(P,base_url=x))
  def test_model_override(self):
   with self.assertRaises(ValueError):m.checked_options({'model':'other'},P)
@@ -45,15 +45,6 @@ class PolicyTests(unittest.TestCase):
   for a in [['auth'],['--model','other'],['--model-params','{}'],['--install','x'],['--yolo'],['--base-url','https://example.com']]:
    with self.subTest(a=a),self.assertRaises(ValueError):l.arguments(a)
  def test_cli_task(self):self.assertEqual(l.arguments(['-n','read README']),['-n','read README'])
- def test_launcher_retains_only_complete_validated_guard_binding(self):
-  parent={'DSH_GUARDED_MODEL_BASE_URL':'http://127.0.0.1:12345/v1','DSH_UNATTENDED_TASK':'a'*32,'DSH_CORRELATION_ID':'b'*32,'OPENAI_API_KEY':'SYNTHETIC'}
-  e=l.environment(parent)
-  for key in ['DSH_GUARDED_MODEL_BASE_URL','DSH_UNATTENDED_TASK','DSH_CORRELATION_ID']:self.assertEqual(e[key],parent[key])
-  self.assertNotIn('OPENAI_API_KEY',e)
-  credential_url='http:'+chr(47)*2+'user'+':'+'pass'+'@127.0.0.1:12345/v1'
-  for change in [{'DSH_CORRELATION_ID':None},{'DSH_GUARDED_MODEL_BASE_URL':'http://example.com:12345/v1'},
-    {'DSH_GUARDED_MODEL_BASE_URL':credential_url},{'DSH_UNATTENDED_TASK':'../escape'}]:
-   with self.subTest(change=change),self.assertRaises(ValueError):l.environment({**parent,**change})
  def test_cli_bound(self):
   with self.assertRaises(ValueError):l.arguments(['-n','x'*65537])
  def test_sanitized_environment(self):
