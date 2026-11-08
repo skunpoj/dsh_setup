@@ -90,10 +90,6 @@
         "value": "/tmp/triton"
        },
        {
-        "name": "NCCL_DEBUG",
-        "value": "WARN"
-       },
-       {
         "name": "USER",
         "value": "deepinfer"
        },
@@ -116,6 +112,14 @@
        {
         "name": "DEEPINFER_EP_COMM_BACKEND",
         "value": "deepep"
+       },
+       {
+        "name": "PYTHONFAULTHANDLER",
+        "value": "1"
+       },
+       {
+        "name": "NCCL_DEBUG",
+        "value": "INFO"
        }
       ],
       "resources": {

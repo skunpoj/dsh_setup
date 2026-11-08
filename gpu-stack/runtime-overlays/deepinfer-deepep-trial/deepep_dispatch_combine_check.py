@@ -101,12 +101,21 @@ def selftest():
     return 0 if all(res.values()) else 1
 
 
+def stage(msg):
+    import os
+    print('STAGE pid=%s %s' % (os.getpid(), msg), flush=True)
+
+
 def gpu_main(a):
+    stage('import torch')
     import torch
     import torch.distributed as dist
+    stage('import deep_ep')
     import deep_ep
     from deep_ep import EPBuffer
+    stage('init_process_group')
     dist.init_process_group("nccl")
+    stage('process group ready')
     rank, R = dist.get_rank(), dist.get_world_size()
     torch.cuda.set_device(rank % torch.cuda.device_count())
     if R != 4:
@@ -120,13 +129,16 @@ def gpu_main(a):
     idx = torch.from_numpy(all_idx[rank]).cuda()
     w = torch.full((T, topk), 1.0 / topk, dtype=torch.float32, device="cuda")
     t0 = time.time()
+    stage('EPBuffer constructor')
     buf = EPBuffer(group=dist.group.WORLD, num_max_tokens_per_rank=T, hidden=H, num_topk=topk,
                    use_fp8_dispatch=False, allow_hybrid_mode=True, explicitly_destroy=True)
     results, ref = [], None
     for rd in range(a.rounds):
+        stage('dispatch round %d' % rd)
         recv_x, recv_idx, recv_w, handle, ev = buf.dispatch(x, topk_idx=idx, topk_weights=w, num_experts=E)
         torch.cuda.synchronize()
         recv_cpu = recv_x.float().cpu().numpy()
+        stage('combine round %d' % rd)
         comb, _, _ = buf.combine(recv_x, handle)       # identity expert
         torch.cuda.synchronize()
         comb_cpu = comb.float().cpu().numpy()
