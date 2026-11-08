@@ -43,6 +43,10 @@ assert(dump.stdout.includes('litellm-cluster') && dump.stdout.includes('contextW
 // Execute actual installed catalog/image pure functions with synthetic providers.
 const port=spawnSync(process.execPath,[path.join(__dirname,'../tests/test_upstream_port.js')],{encoding:'utf8',env:{...process.env,DSH_PACKAGE_DIR:root}});
 assert.equal(port.status,0,'Installed catalog/image semantic checks failed: '+port.stderr);
+// 0.2.2-rc.1 reads a durable image from the supplied reference without a Session-log check;
+// pin the attachment store's own refusal of malformed, missing, corrupt and mismatching references.
+const refusal=spawnSync(process.execPath,[path.join(__dirname,'../tests/test_attachment_reference_refusal.js')],{encoding:'utf8',env:{...process.env,DSH_PACKAGE_DIR:root}});
+assert.equal(refusal.status,0,'Attachment reference refusal checks failed: '+refusal.stdout+refusal.stderr);
 // Exercise the installed storage function, not just a source marker. Missing
 // historical images must never turn into fabricated pixels/evidence.
 (async()=>{
