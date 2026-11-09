@@ -193,7 +193,7 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         class NoTextUpstream:
             status_code=200
             async def aiter_raw(self):
-                clock.now=16.
+                clock.now=181.
                 yield b': heartbeat\n\n'
             async def aclose(self): pass
         class DelayedClient(original_client):
@@ -205,6 +205,52 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.aborted, [self.sent[0]['rid']])
         self.assertNotEqual(self.aborted[0], 'do-not-abort-another-request')
         self.assertFalse(self.scope['guard'].active)
+
+    async def _run_with_first_output_at(self, seconds, env):
+        clock = types.SimpleNamespace(now=0.)
+        self.scope['time'] = types.SimpleNamespace(monotonic=lambda: clock.now)
+        original_client = self.http.AsyncClient
+        class LateTextUpstream:
+            status_code=200
+            async def aiter_raw(self):
+                clock.now=seconds
+                yield b': heartbeat\n\n'
+                yield b'data: {"choices":[{"delta":{"content":"OK"}}]}\n\n'
+                yield b'data: [DONE]\n\n'
+            async def aclose(self): pass
+        class DelayedClient(original_client):
+            async def send(self, request, stream): return LateTextUpstream()
+        self.http.AsyncClient = DelayedClient
+        with patch.dict('os.environ', env, clear=False):
+            response = await self.scope['completion'](self.request())
+            return b''.join([b async for b in response.body_iterator])
+
+    async def test_first_output_deadline_default_is_180_seconds(self):
+        import os
+        with patch.dict('os.environ', {}, clear=False):
+            os.environ.pop('DSH_FIRST_OUTPUT_DEADLINE_SECONDS', None)
+            self.assertEqual(self.scope['first_output_deadline_seconds'](), 180.0)
+        for bad in ('', 'abc', '0', '-5', 'nan', 'inf'):
+            with patch.dict('os.environ', {'DSH_FIRST_OUTPUT_DEADLINE_SECONDS': bad}):
+                self.assertEqual(self.scope['first_output_deadline_seconds'](), 180.0, bad)
+        with patch.dict('os.environ', {'DSH_FIRST_OUTPUT_DEADLINE_SECONDS': '42.5'}):
+            self.assertEqual(self.scope['first_output_deadline_seconds'](), 42.5)
+
+    async def test_small_deadline_still_fails_with_context_cache_handoff_failed(self):
+        content = await self._run_with_first_output_at(16., {'DSH_FIRST_OUTPUT_DEADLINE_SECONDS': '10'})
+        self.assertIn(b'context_cache_handoff_failed', content)
+        self.assertNotIn(b'"content":"OK"', content)
+
+    async def test_larger_deadline_lets_a_slow_first_token_succeed(self):
+        content = await self._run_with_first_output_at(100., {'DSH_FIRST_OUTPUT_DEADLINE_SECONDS': '180'})
+        self.assertNotIn(b'context_cache_handoff_failed', content)
+        self.assertIn(b'"content":"OK"', content)
+
+    async def test_default_deadline_lets_a_100_second_first_token_succeed(self):
+        import os
+        os.environ.pop('DSH_FIRST_OUTPUT_DEADLINE_SECONDS', None)
+        content = await self._run_with_first_output_at(100., {})
+        self.assertNotIn(b'context_cache_handoff_failed', content)
 
     async def test_large_nonstreaming_client_uses_guarded_internal_stream(self):
         captured = []

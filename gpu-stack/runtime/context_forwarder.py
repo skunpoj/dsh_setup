@@ -19,6 +19,25 @@ from starlette.background import BackgroundTask
 from long_context_callbacks import CONTEXT, OUTPUT, RESERVE, TOKENIZER, LongContextGuard, count_request
 from context_envelope import normalize_conditioning
 
+
+FIRST_OUTPUT_DEADLINE_DEFAULT = 180.0
+
+
+def first_output_deadline_seconds():
+    """Seconds a LONG streamed request may wait for its first content/reasoning/tool delta.
+
+    Read on every request from DSH_FIRST_OUTPUT_DEADLINE_SECONDS. A missing, non-numeric,
+    non-finite or non-positive value falls back to the default (180 s). The old fixed value
+    was 15 s, which a full 128K prefill (36-113 s measured) can never meet.
+    """
+    try:
+        value = float(os.environ.get('DSH_FIRST_OUTPUT_DEADLINE_SECONDS', FIRST_OUTPUT_DEADLINE_DEFAULT))
+    except (TypeError, ValueError):
+        return FIRST_OUTPUT_DEADLINE_DEFAULT
+    if not (0 < value < float('inf')):
+        return FIRST_OUTPUT_DEADLINE_DEFAULT
+    return value
+
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 _timing_clock = time.monotonic
@@ -369,7 +388,7 @@ async def completion(request: Request):
         async def stream():
             iterator = upstream.aiter_raw().__aiter__()
             first = not long
-            deadline = time.monotonic()+15
+            deadline = time.monotonic()+first_output_deadline_seconds()
             buffer = b''
             try:
                 while True:
