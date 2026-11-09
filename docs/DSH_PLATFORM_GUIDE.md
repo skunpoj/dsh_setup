@@ -1,11 +1,6 @@
-# DSH platform reference — controlling three security risks
+# DSH — Controlling Three Security Risks
 
-**Status: comprehensive reference, not the canonical current guide.** Use the
-[DSH current guide](current-guide/DSH_CURRENT_GUIDE.html) for the current
-workflow edition. This longer reference preserves detailed design and operator
-context used by that edition; it must not be published or linked as a second
-competing current guide. Runtime claims below retain their stated evidence
-scope and do not replace fresh deployment verification.
+Current DSH guide and PowerPoint
 
 DSH provides private AI workspaces for code, documents and analysis. Its design controls three risks: sending protected information outside its permitted boundary, damaging data or reaching resources beyond the task, and exposing results to unauthorized people.
 
@@ -17,9 +12,7 @@ The Harness, its tools and generated code run within boundaries enforced by infr
 | **2 Prevent damage or excessive access** | Private non-root execution, scoped mounts and credentials, resource limits and bounded inference admission | Use the intended identity; keep protected originals separate from writable working results |
 | **3 Keep results contained** | User-bound file/history/terminal routes, explicit app access choices and protected access auditing | Keep protected reports private; share only with the intended audience |
 
-Follow the three controls below. [Appendix A](#appendix-a) contains features, everyday examples and administration. [Appendix B](#appendix-b) contains LLM/GPU setup and measured results. The [user manual](DSH_USER_MANUAL.html) gives task-by-task instructions, and the English video course explains the implementation.
-
-The [agent-runtime guide](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) separates Web DSH's deployed control plane from successor behavior awaiting live acceptance. Runtime—checkpointed DSH Python SDK, Claude Code, Deep Agents or successor Kilo—is independent from execution backend. Reviewed successor source adds one bounded cross-runtime handoff with per-stage correlation. The private workspace is deployed; optional OpenShell remains disabled pending its 25-gate Test and rollback qualification. TrueForge remains a private application, not another platform boundary.
+Follow the three controls below. [Appendix A](#appendix-a) contains features, everyday examples and administration. [Appendix B](#appendix-b) contains LLM/GPU setup and measured results. The [user manual](DSH_USER_MANUAL.html) gives task-by-task instructions, and the [English video course](/manual/course/) explains the implementation.
 
 ## 1 Prevent external leakage
 
@@ -232,22 +225,22 @@ The main interface is the DSH web workspace. Claude Code, TrueForge and Kilo CLI
 | Claude Code | Run the installed `claude` client from the terminal | Managed internal endpoint/model and persistent private client state. Current default uses the client's 1,000,000-token mode. |
 | TrueForge | Start `trueforge`, then open its authenticated port-3000 app route | Private client state and managed internal model. Optional nested code sandbox is disabled. |
 | JupyterLab | Choose JupyterLab at sign-in or open `/proxy/8888/lab`; use Admin Start when managed startup has been stopped | Python notebooks in the selected private workspace; authenticated gateway, non-root kernel, unchanged environment network restrictions. |
-| Kilo Code CLI | Run `kilo` or `kilo run` from the authenticated terminal | Pinned managed CLI, internal LiteLLM only, private `/state/kilo` state, sharing/telemetry disabled. Qualification is recorded in the [managed-client guide](MANAGED_CLIENT_SUPPORT.md). |
+| Kilo Code CLI | Run `kilo` or `kilo run` from the authenticated terminal | Pinned managed CLI, internal LiteLLM only, private `/state/kilo` state, sharing/telemetry disabled. Qualification is recorded in the managed-client guide. |
 | Offline dependency preparation | Use My Python environments for supported pinned wheels, or operator-reviewed shared-cache promotion for other approved artifacts | Python/npm helpers exist. Native/OS dependencies may need a qualified runtime-image build; the package cache is not a shared writable workspace. |
 | Kerberos and datalake connection | Authenticate privately using the intended principal and configured client | Existing platform permissions remain authoritative. Local DSH login and central storage do not grant data access. |
 | Central dashboard and user management | Admin reviews accounts, private environments, browser sessions and access events; creates accounts from available private capacity, approves/revokes Internet, enables/disables access and signs users out | User files and history remain intact. Replenishing private capacity and granting administrator roles remain operator actions. |
 | Plugins and upstream tools | Use approved installed DSH plugins/tools within the same runtime | The upstream plugin architecture is available; each optional integration needs its own configuration and qualification. |
 | Upstream maintenance | Detect releases, verify patch contracts, build and test candidates | Default follows the official npm latest channel. Reviewed compatibility patches and deployment overlays are separate; no automatic Production merge. |
-| Flexible inference placement | Keep DSH workspaces separate from LiteLLM and GPU compute | Same-cluster node separation uses Service DNS. A remote GPU origin is supported by the portable renderer; remote LiteLLM uses the approved gateway relay or coordinated client policies. See [topology and setup](FLEXIBLE_DEPLOYMENT.md). |
+| Flexible inference placement | Keep DSH workspaces separate from LiteLLM and GPU compute | Same-cluster node separation uses Service DNS. A remote GPU origin is supported by the portable renderer; remote LiteLLM uses the approved gateway relay or coordinated client policies. See topology and setup. |
 | Operations and rollback | Preserve specifications, image/source digests and mounted data before change | Restore compatible configuration on regression; never overwrite newer work with an older history copy. |
 
 ### Managed client compatibility
 
-DSH, Claude Code, TrueForge and Kilo share the selected private project files, while retaining separate client conversations and state. The [managed-client guide](MANAGED_CLIENT_SUPPORT.md) records versions, tested file operations and the current existing-workspace launch procedure. Opening a new client does not grant another user's files, another environment or an external model endpoint.
+DSH, Claude Code, TrueForge and Kilo share the selected private project files, while retaining separate client conversations and state. The managed-client guide records versions, tested file operations and the current existing-workspace launch procedure. Opening a new client does not grant another user's files, another environment or an external model endpoint.
 
 ### Installed clients
 
-Use the [managed-client guide](MANAGED_CLIENT_SUPPORT.md) for the qualified client versions and launch instructions, and the [JupyterLab guide](JUPYTERLAB.md) for notebooks. Runtime package versions and configured context budgets are separate: a model label alone does not verify the full request path.
+Use the managed-client guide for the qualified client versions and launch instructions, and the JupyterLab guide for notebooks. Runtime package versions and configured context budgets are separate: a model label alone does not verify the full request path.
 
 ### Open your workspace
 
@@ -259,7 +252,7 @@ Use the main DSH sign-in page for your assigned workspace. The operator's deploy
 
 ### Supporting services and standby models
 
-The environment gateway handles login, fixed private routing, authenticated app/terminal access and the admin view. The internal DNS service provides the approved name-resolution path. LiteLLM and its final-payload guard handle model authentication, exact budgets and admission; PostgreSQL supports LiteLLM's persistent service state. The shared DeepInfer workload runs the active generative model; SGLang is kept switched off as the rollback engine. A documentation server serves operational guides; the workload-switcher service supports operator-controlled model changes.
+The environment gateway handles login, fixed private routing, authenticated app/terminal access and the admin view. The internal DNS service provides the approved name-resolution path. LiteLLM and its final-payload guard handle model authentication, exact budgets and admission; PostgreSQL supports LiteLLM's persistent service state. The shared SGLang workload runs the active generative model. A documentation server serves operational guides; the workload-switcher service supports operator-controlled model changes.
 
 Alternative GLM/Qwen and earlier model-runtime Deployments are explicitly identified as scaled to zero in the inventory. They do not provide simultaneous GPU capacity, an automatic fallback model or an operational service merely because their configuration exists.
 
@@ -347,7 +340,7 @@ claude -p "Read README.md and list three implementation questions; cite the rele
 
 To use TrueForge, first ensure port 3000 is free, run `trueforge`, wait for its listening message and open the service's authenticated `/proxy/3000/` route or configured port-3000 alias. Its model/provider configuration is operator-managed; private chat state remains in that environment. Do not enable privileged container features to make the optional nested sandbox start.
 
-For Kilo CLI, run `kilo` in the authenticated terminal, or `kilo run --format json "Reply exactly KILO_READY"`. The managed launcher uses only internal LiteLLM, stores private client state under `/state/kilo`, and disables sharing, public-provider selection and background downloads. See the [managed-client guide](MANAGED_CLIENT_SUPPORT.md) for the qualified versions, policy and ordinary-versus-near-1M test scope.
+For Kilo CLI, run `kilo` in the authenticated terminal, or `kilo run --format json "Reply exactly KILO_READY"`. The managed launcher uses only internal LiteLLM, stores private client state under `/state/kilo`, and disables sharing, public-provider selection and background downloads. See the managed-client guide for the qualified versions, policy and ordinary-versus-near-1M test scope.
 
 ### 7 Authenticate to a permitted datalake service
 
@@ -366,7 +359,7 @@ An authorized admin opens `/admin` through the main gateway. Review account/sess
 
 The main gateway now serves authenticated numeric usage panels for the configured private runtimes, including assigned signup pairs: stored sessions, running agents, queued messages, turns, LLM steps, cumulative input/output tokens, all-history and recent recorded decode rates, wall-clock output rate, and workspace/durable-storage sizes. Account and environment filters keep these measures attributable to the selected scope. Stored-history counts are distinct from active browser sessions; decode speed is distinct from total task time, and LLM steps include failed/cancelled steps and may contain retries.
 
-Authorization and actual numeric collection were accepted with a loopback-only disposable hashed-auth process running the exact deployed gateway code. Ordinary and forged-role requests were denied; anonymous/logout requests receive sign-in content rather than counters. This was not a real administrator password/browser login. Existing account bytes, GPU identity and user-runtime identities were unchanged by the gateway rollout. The panels do not include independent Claude/TrueForge accounting or live GPU metrics. See [dashboard definitions](ADMIN_USAGE_TELEMETRY.md).
+Authorization and actual numeric collection were accepted with a loopback-only disposable hashed-auth process running the exact deployed gateway code. Ordinary and forged-role requests were denied; anonymous/logout requests receive sign-in content rather than counters. This was not a real administrator password/browser login. Existing account bytes, GPU identity and user-runtime identities were unchanged by the gateway rollout. The panels do not include independent Claude/TrueForge accounting or live GPU metrics. See dashboard definitions.
 
 ### Interface screenshots
 
@@ -410,7 +403,7 @@ DSH sessions/attachments and managed-client state are distinct stores. Claude us
 
 ### User and audit administration
 
-Operators replenish qualified private runtime capacity. Users can self-register into an exclusive pair, and administrators manage accounts and Internet grants through the dashboard. See the [signup and approval guide](SELF_SERVICE_SIGNUP.md). Account changes require an authenticated administrator session and a session-bound management token; ordinary users and cross-origin requests cannot perform these actions. Passwords are stored as salted scrypt records. Disabling access preserves ownership, files and histories; removing workloads or data is a separate operator procedure.
+Operators replenish qualified private runtime capacity. Users can self-register into an exclusive pair, and administrators manage accounts and Internet grants through the dashboard. See the signup and approval guide. Account changes require an authenticated administrator session and a session-bound management token; ordinary users and cross-origin requests cannot perform these actions. Passwords are stored as salted scrypt records. Disabling access preserves ownership, files and histories; removing workloads or data is a separate operator procedure.
 
 The access audit records bounded metadata such as time, event, user and environment. It is not a terminal-command recorder or an archive of all prompts/responses. Additional-instance access projections and main gateway events are combined under the admin boundary. Retention capacity, off-platform archival and remote-job correlation need the defined operational policy.
 
@@ -446,25 +439,22 @@ Before a rollout, retain the exact image, source ConfigMaps, profile and workloa
 
 ## Appendix B — LLM/GPU setup and measured results
 
-The platform uses one shared four-GPU generative model. Private user runtimes share inference while keeping their own files and state. Production runs DeepInfer v4 + DSpark on 4× H100 NVL with a 1,048,576-token context and up to eight requests at once; SGLang + DSpark is kept switched off as the rollback engine. The portable `gpu-stack` source renders the SGLang rollback profile; supply private site values outside Git.
+Since 29 October 2026 the shared model, **DeepSeek-V4.1-Flash-1017** (revision `1bae0e1088993b9b82de08f59de5be5a34e42170`), is served by **DeepInfer with DSpark** speculative decoding on the existing four H100 NVL GPUs: a **1,048,576-token** context and up to **eight** requests at once (two per GPU), behind LiteLLM. SGLang is kept as the rollback engine. Private user runtimes share it while keeping their own files and state. Use the portable `gpu-stack` source and supply private site values outside Git.
 
 ```mermaid
 flowchart LR
  U[Private DSH runtime] --> L[Authenticated LiteLLM gateway]
  C[Managed Claude Code or TrueForge] --> L
- L --> S[DeepInfer v4 + DSpark on four GPUs; SGLang kept as rollback]
+ L --> F[Loopback final-payload guard]
+ F --> S[Shared DeepInfer model on four GPUs]
  L --> D[Private PostgreSQL]
  W[Pre-staged read-only weights] --> S
  L --> O[Optional CPU embedding service]
 ```
 
-### Served model and configuration
+> **Current speed (30 Oct 2026, one standard).** DeepInfer 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: on 30 Oct SGLang was about 9–17 % faster; same-day 31 Oct–1 Nov: about 7–9 % faster (61.8 vs 58.0 and 69.0 vs 63.1); many users: DeepInfer gives about 3× the total. Definitions, method and every result: LLM speed comparison.
 
-The reviewed serving profile uses DeepSeek-V4.1-Flash-1017 revision `1bae0e1088993b9b82de08f59de5be5a34e42170`. Cross-socket GPU P2P dropped writes in the retained host test, so the qualified profile uses an NCCL all-to-all fallback instead of DeepEP. Confirm the running image, profile and checkpoint before treating this as current runtime state. Configuration, measurements and the administrator change plan are maintained in the [GPU serving comparison](gpu-platform/GPU_PLATFORM_REVIEW.pdf).
-
-### Measured results
-
-The [GPU serving comparison](gpu-platform/GPU_PLATFORM_REVIEW.pdf) is the maintained source for dated measured results, expected outcomes, method and configuration. Measurements describe the saved test setup and workload; they are not an SLA or proof of the current running workload.
+The speed comparison gives every engine-to-engine result, including the SGLang baseline. The GPU node note records the measured cross-socket fault and the host change requested to fix it.
 
 ### 1 Prepare prerequisites and a test environment
 
@@ -545,3 +535,6 @@ Check saved native answers and model health before attributing an operator trans
 Retain the last qualified profile/image/source and state-preservation baseline before a change. Keep sufficient temporary GPU workspace by preserving the qualified memory fraction and bounded prefill settings. Keep the one-long-request admission policy and check answer accuracy against the task’s sources. Roll back on a genuine regression without overwriting newer workspace/history data.
 
 The portable setup and its tests are maintained in `gpu-stack/`; detailed dated performance and acceptance records remain in the separate LLM guide.
+
+
+Technical appendix: 23 October GPU qualification results, including completed concurrency measurements, token-rate definitions and restored operating profile.

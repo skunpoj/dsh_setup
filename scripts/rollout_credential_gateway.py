@@ -31,7 +31,7 @@ def main():
  if data!=json.loads(Path(a.expected_source).read_text(encoding='utf-8')):raise RuntimeError('Live source changed after qualification; requalify that source before rollout')
  if any(e['name']=='DSH_USER_CREDENTIAL_GATEWAY_CONFIG' for e in container.get('env',[])):raise RuntimeError('Credential integration already configured; inspect rather than overwrite')
  data['auth_proxy.js']=integrate(data['auth_proxy.js'])
- for n in ['credential_broker.js','credential_gateway.js','credential_identity.js','platform_ui.js','platform.css']:data[n]=(Path(__file__).parent/n).read_text(encoding='utf-8')
+ for n in ['credential_broker.js','credential_gateway.js','credential_identity.js','platform_ui.js','bot_platform.css']:data[n]=(Path(__file__).parent/n).read_text(encoding='utf-8')
  data['dsh-connection.cjs']=(Path(__file__).resolve().parents[1]/'container/dsh-connection.cjs').read_text(encoding='utf-8')
  data=overlay(data)
  digest=hashlib.sha256(json.dumps(data,sort_keys=True).encode()).hexdigest();source='dsh-credential-gateway-'+digest[:12]
@@ -42,7 +42,7 @@ def main():
  text=json.dumps(config);configname='dsh-credential-gateway-config-'+hashlib.sha256(text.encode()).hexdigest()[:12]
  apply({'apiVersion':'v1','kind':'ConfigMap','metadata':{'name':configname},'immutable':True,'data':{'gateway.json':text}})
  apply({'apiVersion':'networking.k8s.io/v1','kind':'NetworkPolicy','metadata':{'name':'dsh-credential-gateway-brokers'},'spec':{'podSelector':{'matchLabels':{'app':name}},'policyTypes':['Egress'],'egress':[{'to':[{'podSelector':{'matchLabels':{'dsh-credential-broker':'true'}}}],'ports':[{'port':8443,'protocol':'TCP'}]}]}})
- workers={'matchExpressions':[{'key':os.environ.get('DSH_LABEL_PREFIX','dsh.example.org')+'/egress-mode','operator':'In','values':['offline','online']}]}
+ workers={'matchExpressions':[{'key':'dsh.example.com/egress-mode','operator':'In','values':['offline','online']}]}
  apply({'apiVersion':'networking.k8s.io/v1','kind':'NetworkPolicy','metadata':{'name':'dsh-credential-tools-ingress'},'spec':{'podSelector':{'matchLabels':{'app':name}},'policyTypes':['Ingress'],'ingress':[{'from':[{'podSelector':workers}],'ports':[{'port':3443,'protocol':'TCP'}]},{'from':[{'namespaceSelector':{'matchLabels':{'kubernetes.io/metadata.name':'kube-system'}},'podSelector':{'matchLabels':{'app.kubernetes.io/name':'rke2-ingress-nginx','app.kubernetes.io/component':'controller'}}}],'ports':[{'port':3080,'protocol':'TCP'}]}]}})
  apply({'apiVersion':'networking.k8s.io/v1','kind':'NetworkPolicy','metadata':{'name':'dsh-credential-worker-tools'},'spec':{'podSelector':workers,'policyTypes':['Egress'],'egress':[{'to':[{'podSelector':{'matchLabels':{'app':name}}}],'ports':[{'port':3443,'protocol':'TCP'}]}]}})
  external_login(trusted)

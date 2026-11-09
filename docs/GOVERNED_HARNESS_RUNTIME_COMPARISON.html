@@ -1,4 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Governed Harness and managed agent-runtime comparison</title><style>*{box-sizing:border-box}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.65 system-ui,sans-serif}main{max-width:1500px;margin:24px auto;background:#fff;padding:36px;border-radius:12px}h1,h2,h3{color:#075985;line-height:1.3}a{color:#0369a1}code{overflow-wrap:anywhere}pre{white-space:pre-wrap;background:#f3f6f9;padding:14px;overflow:auto}.table-wrap{width:100%;overflow:auto;margin:18px 0 28px}table{border-collapse:collapse;min-width:1100px;width:100%;table-layout:auto}td,th{border:1px solid #c8d5e1;padding:10px;vertical-align:top;text-align:left;overflow-wrap:normal;word-break:normal;hyphens:none}th{background:#e9f3f9;position:sticky;top:0}li{margin:.45em 0}.notice{background:#fff7ed;border-left:5px solid #f59e0b;padding:12px 16px}@media(max-width:700px){main{margin:0;padding:18px}table{min-width:1000px}}</style></head><body><main><nav><a href="THREE_RISK_CONTROLS.html">Three risk controls</a> · <a href="AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html">Agent runtime status</a> · <a href="../README.md">Repository overview</a></nav><h1>Governed Harness and managed agent-runtime comparison</h1>
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Governed Harness and managed agent-runtime comparison</title><style>*{box-sizing:border-box}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.65 system-ui,sans-serif}main{max-width:1500px;margin:24px auto;background:#fff;padding:36px;border-radius:12px}h1,h2,h3{color:#075985;line-height:1.3}a{color:#0369a1}code{overflow-wrap:anywhere}pre{white-space:pre-wrap;background:#f3f6f9;padding:14px;overflow:auto}.table-wrap{width:100%;overflow:auto;margin:18px 0 28px}table{border-collapse:collapse;min-width:1100px;width:100%;table-layout:auto}td,th{border:1px solid #c8d5e1;padding:10px;vertical-align:top;text-align:left;overflow-wrap:normal;word-break:normal;hyphens:none}th{background:#e9f3f9;position:sticky;top:0}li{margin:.45em 0}.notice{background:#fff7ed;border-left:5px solid #f59e0b;padding:12px 16px}@media(max-width:700px){main{margin:0;padding:18px}table{min-width:1000px}}</style></head><body><main><nav><a href="THREE_RISK_CONTROLS.html">Three risk controls</a> · <a href="AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html">Agent runtime status</a> · <a href="reference/DSH_REPOSITORY_README.md">Repository overview</a></nav><h1>Governed Harness and managed agent-runtime comparison</h1>
 <h2>Purpose and decision boundary</h2>
 <p>This document compares the <strong>DSH Governed Harness</strong> with three execution runtimes that it can broker: <strong>DSH Python SDK</strong>, <strong>Claude Code</strong>, and <strong>Deep Agents</strong>. It also compares each runtime with a separately deployed counterpart outside the Governed Harness.</p>
 <p>The enterprise scenario is deliberately strict:</p>
@@ -132,7 +133,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 <tbody><tr>
 <td>Human identity and session ownership</td>
 <td>Prevents a tool or result route from accepting a prompt-supplied identity or an unrelated provider login</td>
-<td>Stops a user or agent from borrowing another user&#39;s authority</td>
+<td>Stops a user or agent from borrowing another user's authority</td>
 <td>Binds task, history, files, result stream and recovery to the authenticated owner and environment</td>
 <td><code>dsh-gateway</code> authenticates the account, resolves the assigned environment and supplies server-side owner context</td>
 <td>All three consume the broker identity; none becomes an identity authority</td>
@@ -161,7 +162,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 </tr>
 <tr>
 <td>Per-user, per-environment workspace</td>
-<td>Prevents one environment or user from supplying another user&#39;s classified files to a task</td>
+<td>Prevents one environment or user from supplying another user's classified files to a task</td>
 <td>Restricts file reads/writes to the assigned project and storage mounts</td>
 <td>Keeps outputs, checkpoints and history within the correct owner/environment</td>
 <td>Private mounts, owner-bound routes and explicit project selection below <code>/workspace</code></td>
@@ -193,7 +194,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 <td>OS/container execution boundary</td>
 <td>Restricts shell/process network and filesystem reach even after prompt injection</td>
 <td>Non-root execution, dropped capabilities, no host socket/path and quotas limit blast radius</td>
-<td>Prevents an execution worker from reading another user&#39;s result store</td>
+<td>Prevents an execution worker from reading another user's result store</td>
 <td>RKE2 Pod security, mounts, quotas and service-account suppression are authoritative</td>
 <td>Runtime sandboxes and permission rules add narrower controls but cannot replace the Pod boundary</td>
 <td>Must reproduce hardened Pod specifications and prove the absence of ambient cluster/host authority</td>
@@ -263,7 +264,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 <td>Recovery, restart and no-replay</td>
 <td>Prevents automatic resend of classified prompts after uncertain transport</td>
 <td>Avoids duplicate writes/model calls and rejects stale checkpoints/replacement identities</td>
-<td>Restores only the correct owner&#39;s state and labels uncertain outcomes honestly</td>
+<td>Restores only the correct owner's state and labels uncertain outcomes honestly</td>
 <td>Durable task state, known-working rollback and guard/server/spend reconciliation</td>
 <td>Native resume is allowed only through broker-bound identity and approval</td>
 <td>Must implement its own durable operation ledger and reconcile every ambiguous execution</td>

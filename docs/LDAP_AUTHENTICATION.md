@@ -143,7 +143,7 @@ all DSH account changes in an isolated fixture. Never commit that file or use a
 human account store as the fixture.
 
 The client version, upstream package and digest are recorded in
-[`vendor/ldapts/PROVENANCE.json`](../vendor/ldapts/PROVENANCE.json); its MIT license
+[`vendor/ldapts/PROVENANCE.json`](https://github.com/skunpoj/dsh_setup/blob/b7dd7d5e408644dbda9cc69dc648b9a4d837356c/vendor/ldapts/PROVENANCE.json); its MIT license
 is included. Review and retest the pinned dependency before updating it.
 
 The main gateway application-login correction was deployed and verified on

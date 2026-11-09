@@ -242,7 +242,7 @@
         "dnsPolicy": "ClusterFirst",
         "enableServiceLinks": false,
         "nodeSelector": {
-          "kubernetes.io/hostname": "<GPU_NODE_HOSTNAME>"
+          "kubernetes.io/hostname": "dagpu-gn-p1"
         },
         "restartPolicy": "Always",
         "schedulerName": "default-scheduler",

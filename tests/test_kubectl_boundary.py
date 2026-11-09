@@ -13,13 +13,13 @@ class KubectlBoundaryTests(unittest.TestCase):
         self.assertIn("sha256sum -c -", dockerfile)
         self.assertIn("kubectl version --client=true", dockerfile)
 
-    def test_workspace_examples_do_not_mount_cluster_identity(self):
-        manifests = list((ROOT / "k8s" / "example").glob("*.yaml"))
+    def test_workspace_manifests_do_not_mount_cluster_identity(self):
+        manifests = list((ROOT / "k8s").glob("*.yaml"))
         self.assertTrue(manifests)
-        private_users = (ROOT / "k8s" / "example" / "50-private-users.yaml").read_text(encoding="utf-8")
-        self.assertIn("automountServiceAccountToken: false", private_users)
-        self.assertNotIn("kind: ClusterRoleBinding", private_users)
-        self.assertNotIn("kind: RoleBinding", private_users)
+        pools = (ROOT / "k8s" / "dsh-environment-pools.yaml").read_text(encoding="utf-8")
+        self.assertIn("automountServiceAccountToken: false", pools)
+        self.assertNotIn("kind: ClusterRoleBinding", pools)
+        self.assertNotIn("kind: RoleBinding", pools)
 
 
 if __name__ == "__main__":

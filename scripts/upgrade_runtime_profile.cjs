@@ -14,7 +14,7 @@ function migrate(original,seed){
  const result=structuredClone(original);
  for(const id of ids){const desired=seed.find(x=>x.id===id);if(!desired)throw Error('Qualified seed entry missing: '+id);
   const old=result.find(x=>x.id===id);
-  if(old){if(id.startsWith('llm-deepseek'))old.disabled=true;else{old.disabled=false;old.config={...old.config,provider:desired.config.provider,model:desired.config.model};}}
+  if(old){if(id.startsWith('llm-deepseek'))old.disabled=true;else{old.disabled=false;old.config={...desired.config,...old.config,provider:desired.config.provider,model:desired.config.model};}}
   else {const added=structuredClone(desired);added.disabled=id.startsWith('llm-deepseek');result.push(added);}
  }
  const model=result.find(x=>x.id==='llm-pi-ai')?.config?.providers?.['litellm-cluster']?.models?.find(x=>x.id==='deepseek-v4.1-flash');

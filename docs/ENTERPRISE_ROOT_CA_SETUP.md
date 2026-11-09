@@ -63,7 +63,7 @@ Create a Kubernetes ConfigMap containing your enterprise certificate(s):
 ```bash
 kubectl create configmap enterprise-ca-certificates \
   --from-file=enterprise-root-ca.crt=./enterprise-root-ca.crt \
-  -n inference
+  -n llm
 ```
 
 Or define it declaratively in YAML:
@@ -73,7 +73,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: enterprise-ca-certificates
-  namespace: inference
+  namespace: llm
 data:
   enterprise-root-ca.crt: |
     -----BEGIN CERTIFICATE-----

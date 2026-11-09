@@ -5,6 +5,14 @@ const before=JSON.stringify(original),result=migrate(original,seed);assert.equal
 assert.deepEqual(migrate(result,seed),result);assert(result.find(x=>x.id==='llm-deepseek').disabled);
 const changed=migrate([...original,{id:'agent-default-model',disabled:true,config:{provider:'deepseek-official',model:'deepseek-flash',other:'keep'}}],seed);
 assert.deepEqual(changed.find(x=>x.id==='agent-default-model'),{id:'agent-default-model',disabled:false,config:{provider:'litellm-cluster',model:'deepseek-v4.1-flash',other:'keep'}});
+// Regression (2026-11-01): the title provider requires targetWords and targetCjkCharacters; an entry with only provider and model fails its config check.
+const titleFull={provider:'litellm-cluster',model:'deepseek-v4.1-flash',targetWords:5,targetCjkCharacters:10,maxInputBytes:4096,maxOutputTokens:4096,timeoutMs:60000};
+const seedFull=seed.map(x=>x.id==='session-title-llm'?{id:x.id,config:titleFull}:x);
+const bare=migrate([...original,{id:'session-title-llm',config:{provider:'litellm-cluster',model:'deepseek-v4.1-flash'}}],seedFull).find(x=>x.id==='session-title-llm');
+assert.deepEqual(bare.config,titleFull,'A title entry without the required fields is completed');
+const custom=migrate([...original,{id:'session-title-llm',config:{provider:'x',model:'y',targetWords:9}}],seedFull).find(x=>x.id==='session-title-llm');
+assert.equal(custom.config.targetWords,9,'A deliberate value is kept');assert.equal(custom.config.provider,'litellm-cluster');assert.equal(custom.config.targetCjkCharacters,10);
+assert.deepEqual(migrate(migrate(original,seedFull),seedFull),migrate(original,seedFull),'Idempotent with the full title config');
 assert.throws(()=>migrate([...original,original[0]],seed),/unique/);assert.throws(()=>migrate(original,[]),/missing/);assert.throws(()=>migrate([],seed),/canonical/);
 // Regression (2026-10-30): DSH insert patches use an empty id and may repeat.
 // Two of them crashed every workspace start; they must be kept unchanged.

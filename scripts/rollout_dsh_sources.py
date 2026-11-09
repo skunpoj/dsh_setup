@@ -25,9 +25,11 @@ ROOT = Path(__file__).resolve().parents[1]
 # ConfigMap key -> repository path. Every key the live ConfigMap carries must be
 # listed; an unknown key fails closed instead of being silently dropped.
 SOURCES = {
+    'agent_task_gateway.js': 'scripts/agent_task_gateway.js',
     'app-supervisor.py': 'container/app-supervisor.py',
     'app_signin.js': 'scripts/app_signin.js',
     'auth_proxy.js': 'scripts/auth_proxy.js',
+    'bot_platform.css': 'scripts/bot_platform.css',
     'capacity-token-exporter.py': 'container/capacity-token-exporter.py',
     'capacity_controller.py': 'scripts/capacity_controller.py',
     'capacity_kube.py': 'scripts/capacity_kube.py',
@@ -56,7 +58,6 @@ SOURCES = {
     'package_portal.js': 'scripts/package_portal.js',
     'package_task.py': 'container/package_task.py',
     'password_store.js': 'scripts/password_store.js',
-    'platform.css': 'scripts/platform.css',
     'platform_ui.js': 'scripts/platform_ui.js',
     'prepare_signup_pool.py': 'scripts/prepare_signup_pool.py',
     'session_demand.js': 'scripts/session_demand.js',
@@ -78,10 +79,90 @@ CONTROLLER_RULES = [
 ]
 
 
+import re as _re
+
+_REQUIRE = _re.compile(r"require\(\s*['\"](\.{1,2}/[^'\"]+)['\"]\s*\)")
+
+
+def unresolved_relative_requires(data, component='gateway'):
+    """A ConfigMap is a flat directory. Return every relative require in its JavaScript files that cannot resolve there.
+
+    A require on a line marked `cm-optional` is allowed: the module is loaded only behind a flag and has a stub.
+    """
+    missing = []
+    for key, text in sorted(data.items()):
+        # Only the gateway ConfigMap runs JavaScript; the controller's copy of auth_proxy.js is read for its hash, never executed.
+        if component != 'gateway' or not key.endswith(('.js', '.cjs', '.mjs')):
+            continue
+        for line in text.split(chr(10)):
+            if 'cm-optional' in line:
+                continue
+            for target in _REQUIRE.findall(line):
+                name = target[2:] if target.startswith('./') else None
+                ok = bool(name) and '/' not in name and any(
+                    c in data for c in (name, name + '.js', name + '.cjs', name + '.mjs', name + '.json'))
+                if not ok:
+                    missing.append(key + ' requires ' + target)
+    return missing
+
+
+_PY_IMPORT = _re.compile(r"^(?:from|import)\s+([A-Za-z_][A-Za-z0-9_]*)", _re.M)
+
+
+def unresolved_python_siblings(data, root=ROOT):
+    """A Python file in a ConfigMap may import only sibling modules that are in the same ConfigMap (names that exist in the repo's scripts or container folders)."""
+    repo_modules = set()
+    for folder in ('scripts', 'container'):
+        repo_modules |= {p.stem for p in (root / folder).glob('*.py')}
+    missing = []
+    for key, text in sorted(data.items()):
+        if not key.endswith('.py'):
+            continue
+        for module in sorted(set(_PY_IMPORT.findall(text))):
+            if module in repo_modules and (module + '.py') not in data and module != key[:-3]:
+                missing.append(key + ' imports ' + module)
+    return missing
+
+
+def expand_dependency_keys(component, keys, root=ROOT):
+    """Add repository-mapped sibling modules required by the selected sources."""
+    expanded = set(keys)
+    while True:
+        added = set()
+        for key in sorted(expanded):
+            if key not in SOURCES:
+                continue
+            path = root / SOURCES[key]
+            if not path.is_file():
+                continue
+            text = path.read_text(encoding='utf-8')
+            if component == 'gateway' and key.endswith(('.js', '.cjs', '.mjs')):
+                for line in text.splitlines():
+                    if 'cm-optional' in line:
+                        continue
+                    for target in _REQUIRE.findall(line):
+                        name = target[2:] if target.startswith('./') else ''
+                        if not name or '/' in name:
+                            continue
+                        for candidate in (name, name + '.js', name + '.cjs', name + '.mjs', name + '.json'):
+                            if candidate in SOURCES:
+                                added.add(candidate)
+                                break
+            elif component == 'controller' and key.endswith('.py'):
+                for module in _PY_IMPORT.findall(text):
+                    candidate = module + '.py'
+                    if candidate in SOURCES:
+                        added.add(candidate)
+        added -= expanded
+        if not added:
+            return expanded
+        expanded |= added
+
+
 def build_bundle(component, live_keys, root=ROOT, commit=''):
     """Return (name, ConfigMap document) built only from repository files."""
     spec = COMPONENTS[component]
-    keys = sorted(set(live_keys) | set(spec['required']))
+    keys = sorted(expand_dependency_keys(component, set(live_keys) | set(spec['required']), root))
     unknown = [k for k in keys if k not in SOURCES]
     if unknown:
         raise ValueError('Live source keys have no repository mapping: ' + ', '.join(unknown))
@@ -91,6 +172,9 @@ def build_bundle(component, live_keys, root=ROOT, commit=''):
         if not path.is_file():
             raise ValueError('Missing repository source: ' + SOURCES[key])
         data[key] = path.read_text(encoding='utf-8').replace('\r\n', '\n')
+    unresolved = unresolved_relative_requires(data, component) + (unresolved_python_siblings(data, root) if component == 'controller' else [])
+    if unresolved:
+        raise ValueError('ConfigMap files with a relative require that is not in the same ConfigMap: ' + '; '.join(unresolved))
     digest = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
     name = spec['prefix'] + digest[:12]
     document = {'apiVersion': 'v1', 'kind': 'ConfigMap', 'immutable': True,
@@ -100,9 +184,24 @@ def build_bundle(component, live_keys, root=ROOT, commit=''):
     return name, document
 
 
-def volume_patch(component, config_map):
+def volume_patch(component, config_map, source_digest='', commit=''):
     spec = COMPONENTS[component]
-    return {'spec': {'template': {'spec': {'volumes': [{'name': spec['volume'], 'configMap': {'name': config_map}}]}}}}
+    prefix = 'gateway' if component == 'gateway' else 'controller'
+    annotations = {
+        f'dsh.example.com/{prefix}-source-configmap': config_map,
+        'dsh.example.com/source-git-commit': commit[:40],
+    }
+    template_annotations = {
+        f'dsh.example.com/{prefix}-source-sha256': source_digest,
+        'dsh.example.com/source-git-commit': commit[:40],
+    }
+    return {
+        'metadata': {'annotations': annotations},
+        'spec': {'template': {
+            'metadata': {'annotations': template_annotations},
+            'spec': {'volumes': [{'name': spec['volume'], 'configMap': {'name': config_map}}]},
+        }},
+    }
 
 
 def merged_rules(rules):
@@ -231,12 +330,18 @@ def rollout(api, component, args, log=print):
         api.create_config_map(document)
     elif existing.get('data') != document['data']:
         raise RuntimeError('A different ConfigMap already uses this name')
-    api.patch_deployment(spec['deployment'], volume_patch(component, name))
+    source_digest = document['metadata']['annotations']['dsh.example.com/source-data-sha256']
+    api.patch_deployment(spec['deployment'], volume_patch(component, name, source_digest, args.commit))
     if wait_ready(api, spec['deployment'], settle=args.settle) and verify(component, args):
         log(f'Rolled out {spec["deployment"]} to {name}. Previous source {previous} is kept for rollback.')
         return 0
     log(f'Rollout failed verification; switching {spec["deployment"]} back to {previous}.')
-    api.patch_deployment(spec['deployment'], volume_patch(component, previous))
+    previous_annotations = live.get('metadata', {}).get('annotations', {})
+    api.patch_deployment(spec['deployment'], volume_patch(
+        component, previous,
+        previous_annotations.get('dsh.example.com/source-data-sha256', ''),
+        previous_annotations.get('dsh.example.com/git-commit', ''),
+    ))
     restored = wait_ready(api, spec['deployment'], settle=args.settle)
     log('Rollback ' + ('completed.' if restored else 'did NOT become ready; investigate now.'))
     return 1
@@ -246,7 +351,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('component', choices=['controller', 'gateway', 'both'])
     parser.add_argument('--apply', action='store_true', help='Change the cluster. Without it, only report the plan.')
-    parser.add_argument('--api', default=os.environ.get('DSH_K8S_API', ''), help='Kubernetes API base URL.')
+    parser.add_argument('--api', default=os.environ.get('DSH_K8S_API', ''), help='Kubernetes API base URL (for example the Rancher cluster proxy).')
     parser.add_argument('--token-file', default=os.environ.get('DSH_K8S_TOKEN_FILE', ''))
     parser.add_argument('--ca-file', default=os.environ.get('DSH_K8S_CA_FILE') or None)
     parser.add_argument('--namespace', default='llm')

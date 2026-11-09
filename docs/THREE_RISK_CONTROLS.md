@@ -37,14 +37,6 @@ Audit bounded access metadata without recording credentials or conversation bodi
 
 ## How the three controls relate to OWASP Agentic Top 10 (2026)
 
-### Multi-agent control path
-
-Web DSH is the platform boundary, not another agent. The authenticated `/agent-tasks` broker is the sole task writer. DSH Python SDK, Claude Code, Deep Agents and Kilo are runtime choices; TrueForge is a separate private interface that may use an adapter. The private workspace is the normal execution backend, while OpenShell is an optional stronger-isolation backend after qualification. Every model start must pass through the same correlation guard, internal LiteLLM route and bounded ledger.
-
-This separation controls three different risks: client identity and lifecycle at Web DSH, tool impact at the selected backend, and model-request duplication or ambiguity at the guard. A source-tested handoff does not establish live agent-to-agent acceptance. OpenShell remains disabled until its 25 live gates and rollback pass, and the TrueForge adapter remains a target rather than a deployed claim.
-
-See [Agent runtime and execution backends](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) for the current deployed-versus-pending status and [OpenShell runtime prerequisites](OPENSHELL_RUNTIME_PREREQUISITES.md) for its separate qualification boundary. OpenShell may provide a narrower task execution boundary after qualification; it does not replace identity, authorization, model-request or audit controls, and it is not a current risk closure.
-
 This is a mapping of documented DSH controls to OWASP risks, not a certification or a new security test. Containment reduces possible harm; it does not prove that a model will reject malicious instructions or that every workflow is safe. Coverage below is partial unless a specific saved acceptance test establishes the stated boundary.
 
 Control 1 limits unauthorized network transmission. Control 2 limits execution and access. Control 3 keeps files and outputs behind explicit authorization. Apply these controls together; review the residual risks below for each pilot.

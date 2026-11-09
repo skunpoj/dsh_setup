@@ -1,9 +1,12 @@
 # PowerPoint companion downloads (retired)
 
-Retired on 30 Oct 2026. The manual no longer serves `.pptx` files: the bounded slide download service (`scripts/slide_downloads.py`), its manifest and its `/manual/downloads/*.pptx` ingress paths are removed. The HTML guide and the archived HTML companion pages are the delivery format.
+Retired on 30 Oct 2026, with the user's approval, during the shared-app cleanup. The operator deleted:
+- the `dsh-slide-downloads` Deployment and Service;
+- the `dsh-slide-downloads` Ingress (the `/manual/downloads/*.pptx` paths);
+- its slide ConfigMap.
 
-The separately hosted `DSH_Three_Risk_Controls_20261028.pptx` is a historical Test-library deck. Preserve it with its original hash, but do not describe it as the current three-risk control guide. The current concise control guide is `THREE_RISK_CONTROLS.html`; a future current deck must be generated from the same reviewed source and published with an explicit edition.
+Backups are kept outside the repository. The service had 0 requests in the preceding 24 hours.
 
-Decks that belong to this repository (for example in `docs/presentations/`) are still linked directly from the documentation; they were never served by this service.
+The manual no longer links to `.pptx` files. The HTML guide and the archived HTML companion pages are the delivery format.
 
-To bring downloads back, restore `scripts/slide_downloads.py` and `tests/test_slide_downloads.py` from Git history before this note, add a manifest of reviewed decks with their byte counts and SHA-256, and re-add the page links in the same manual edition.
+To bring downloads back, restore the server (`scripts/slide_downloads.py`) and manifest (`k8s/dsh-slide-downloads.json`) from Git history before this note, together with their acceptance test, and re-add the page links in the same manual edition.
