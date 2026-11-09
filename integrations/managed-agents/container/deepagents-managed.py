@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Launch only the installed managed coding agent; never invoke a subscription login."""
-import os,sys
+import os,re,sys
 from pathlib import Path
 def arguments(argv):
  if len(argv)>3: raise ValueError('Use deepagents, --help, --version, or -n TASK')
@@ -8,10 +8,19 @@ def arguments(argv):
  if argv and argv[0]=='-n' and (len(argv)!=2 or len(argv[1])>65536): raise ValueError('One bounded task required')
  if argv and argv[0]!='-n' and len(argv)!=1: raise ValueError('Unexpected launch arguments')
  return argv
+def guard_environment(parent):
+ # The unattended task wrapper (dsh-unattended) hands the managed client its per-task model guard. If this launcher drops it, the
+ # model class falls back to the direct gateway route and the guard is bypassed (run of 9 Nov, L7: guard ledger empty). Pass exactly
+ # the two guard variables, validated; refuse a half-set or malformed pair; leave interactive sessions (neither set) unchanged.
+ base=parent.get('DSH_GUARDED_MODEL_BASE_URL','');task=parent.get('DSH_UNATTENDED_TASK','')
+ if not base and not task: return {}
+ if not re.fullmatch(r'http://127\.0\.0\.1:[0-9]{2,5}/v1',base) or not re.fullmatch(r'[A-Za-z0-9_-]{1,128}',task): raise ValueError('Unattended model guard route is invalid')
+ return {'DSH_GUARDED_MODEL_BASE_URL':base,'DSH_UNATTENDED_TASK':task}
 def environment(parent):
  # Do not inherit provider keys, endpoint overrides, proxies, Python hooks or tracing.
  e={k:parent[k] for k in ['TERM','COLORTERM','LANG','LC_ALL','DSH_ENVIRONMENT'] if k in parent}
  e.update({'HOME':'/home/dsh','PATH':'/usr/local/bin:/usr/bin:/bin','DEEPAGENTS_HOME':'/state/deepagents','LANGSMITH_TRACING':'false','LANGCHAIN_TRACING_V2':'false','DO_NOT_TRACK':'1','OTEL_SDK_DISABLED':'true','DEEPAGENTS_CODE_AUTO_UPDATE':'0','DEEPAGENTS_CODE_NO_UPDATE_CHECK':'1'})
+ e.update(guard_environment(parent))
  return e
 def main():
  args=arguments(sys.argv[1:]);cwd=Path.cwd().resolve()

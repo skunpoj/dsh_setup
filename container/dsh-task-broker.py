@@ -700,9 +700,18 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     os.umask(0o077)
-    from scripts.openshell_bootstrap import configure
+    try:
+        from scripts.openshell_bootstrap import configure
+    except ModuleNotFoundError as error:
+        # The OpenShell bootstrap lives on the OpenShell lane's branch. Without it the OpenShell backend stays DISABLED
+        # (fail closed): no openshell_service is installed, so /v1/capabilities reports it disabled and create refuses it.
+        if error.name not in ('scripts.openshell_bootstrap', 'scripts.openshell_broker_transport'):
+            raise
+        configure = None
+        print('OpenShell bootstrap module absent: OpenShell backend disabled', file=sys.stderr, flush=True)
     server=ThreadingHTTPServer((HOST, PORT), Handler)
-    configure(server,REGISTRY,os.environ.get('DSH_OPENSHELL_ADMISSION_FILE'))
+    if configure is not None:
+        configure(server,REGISTRY,os.environ.get('DSH_OPENSHELL_ADMISSION_FILE'))
     from scripts.official_sdk_bootstrap import configure as configure_official_sdk
     configure_official_sdk(server, REGISTRY, os.environ.get('DSH_OFFICIAL_SDK_ADMISSION_FILE'),
         qualification_allowed=os.environ.get('DSH_NATIVE_QUALIFICATION_MODE') == '1',
