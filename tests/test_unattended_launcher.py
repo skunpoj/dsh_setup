@@ -106,11 +106,13 @@ class LauncherCase(unittest.TestCase):
             launcher.run_client = original_run
 
     def test_claude_uses_guard_and_disables_nonessential_traffic(self):
-        env=launcher.build_environment({"KEEP":"yes"},"claude","http://127.0.0.1:1234")
+        env=launcher.build_environment({"KEEP":"yes","HOME":"/home/dsh"},"claude","http://127.0.0.1:1234")
         self.assertEqual(env["ANTHROPIC_BASE_URL"],"http://127.0.0.1:1234")
         self.assertEqual(env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"],"1")
         self.assertEqual(env["DSH_GUARDED_MODEL_BASE_URL"],"http://127.0.0.1:1234/v1")
-        self.assertEqual(env["KEEP"],"yes")
+        # Allowlist contract (scripts/unattended_env.py): an unlisted name no longer reaches the client; an allowed one does.
+        self.assertNotIn("KEEP",env)
+        self.assertEqual(env["HOME"],"/home/dsh")
 
     def test_kilo_exposes_only_guard_url(self):
         env=launcher.build_environment({},"kilo","http://127.0.0.1:2345")

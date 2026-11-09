@@ -13,7 +13,8 @@ import http.client
 import json
 
 sys.path.insert(0, "/opt/dsh/scripts")
-from unattended_model_guard import AdmissionLedger, APPROVED_UPSTREAM, running_guard
+from unattended_model_guard import AdmissionLedger, APPROVED_UPSTREAM, running_guard, validate_proxy_origin
+from unattended_env import minimal_environment
 from dsh_correlation import validate_correlation_id
 
 CLIENTS = {
@@ -31,12 +32,59 @@ def safe_task(value):
     return value
 
 
-def build_environment(parent, client, base):
-    env = dict(parent)
+CLAUDE_MANAGED_SETTINGS = Path("/etc/claude-code/managed-settings.json")
+# One task runs per workspace Pod, so a fixed loopback port cannot collide.
+CLAUDE_GUARD_PORT = 4180
+
+
+def claude_managed_pin(path=None):
+    """The model endpoint the managed Claude policy pins, or None when it pins none.
+
+    Claude Code reads managed settings only from the system path, so a task cannot
+    carry its own policy. The policy's pinned endpoint is the one name Claude will
+    accept, so an unattended Claude task is pointed at that name and reaches the
+    guard through the guard's proxy listener instead of through a different URL.
+    Fail closed: a policy that restricts providers but pins no endpoint cannot be
+    satisfied, and a malformed pin is never repaired.
+    """
+    try:
+        raw = Path(path or CLAUDE_MANAGED_SETTINGS).read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None
+    try:
+        policy = json.loads(raw)
+    except ValueError as exc:
+        raise ValueError("CLAUDE_MANAGED_SETTINGS_UNREADABLE") from exc
+    if not isinstance(policy, dict):
+        raise ValueError("CLAUDE_MANAGED_SETTINGS_UNREADABLE")
+    env = policy.get("env")
+    pin = env.get("ANTHROPIC_BASE_URL") if isinstance(env, dict) else None
+    if pin is None:
+        if policy.get("allowedProviders"):
+            raise ValueError("CLAUDE_MANAGED_PIN_REQUIRED")
+        return None
+    if not isinstance(pin, str):
+        raise ValueError("CLAUDE_MANAGED_PIN_INVALID")
+    try:
+        validate_proxy_origin(pin)
+    except ValueError as exc:
+        raise ValueError("CLAUDE_MANAGED_PIN_INVALID") from exc
+    return pin
+
+
+def build_environment(parent, client, base, claude_pin=None):
+    env = minimal_environment(parent)
     env["DSH_UNATTENDED_TASK"] = env.get("DSH_UNATTENDED_TASK", "")
     env["DSH_GUARDED_MODEL_BASE_URL"] = base + "/v1"
     if client == "claude":
-        env["ANTHROPIC_BASE_URL"] = base
+        if claude_pin is None:
+            env["ANTHROPIC_BASE_URL"] = base
+        else:
+            # The managed pin stays the endpoint; only this process's HTTP proxy is
+            # the guard. No other proxy variable survives the allowlist.
+            env["ANTHROPIC_BASE_URL"] = claude_pin
+            env["HTTP_PROXY"] = base
+            env["http_proxy"] = base
         env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
         env["DISABLE_AUTOUPDATER"] = "1"
     return env
@@ -146,6 +194,9 @@ def main():
         env['DSH_UNATTENDED_TASK'] = task
         env['DSH_EXTERNAL_TASK_GUARD'] = 'sidecar'
         return run_client([*CLIENTS[options.client], *client_args], env, str(cwd))
+    # Read the managed pin before any task state exists so a policy the guard cannot
+    # satisfy fails closed without leaving a half-created task behind.
+    claude_pin = claude_managed_pin() if options.client == "claude" else None
     state = Path("/state/unattended") / task
     if options.resume:
         if not state.is_dir():
@@ -155,9 +206,12 @@ def main():
     ledger = AdmissionLedger(state / "model-starts.jsonl", task, options.max_model_starts,
                              task_correlation_id=task_correlation_id)
     guard_options={"listen_port":options.guard_port} if options.guard_port else {}
+    if claude_pin is not None:
+        guard_options["proxy_origin"] = claude_pin
+        guard_options.setdefault("listen_port", CLAUDE_GUARD_PORT)
     with running_guard(APPROVED_UPSTREAM, Path("/harness-credentials/api-key"), ledger,**guard_options) as port:
         base = f"http://127.0.0.1:{port}"
-        env = build_environment(os.environ, options.client, base)
+        env = build_environment(os.environ, options.client, base, claude_pin)
         env["DSH_UNATTENDED_TASK"] = task
         env["DSH_CORRELATION_ID"] = task_correlation_id
         return run_client([*CLIENTS[options.client], *client_args], env, str(cwd))

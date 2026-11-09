@@ -50,6 +50,47 @@ def canonical_model_path(value):
     raise ValueError('model path is not allowed')
 
 
+def validate_proxy_origin(value):
+    """The one plain-HTTP origin a proxying client may name in absolute-form requests.
+
+    This is the pin the managed client policy already imposes. It is only a NAME the
+    client sends; the guard still forwards to the single approved upstream.
+    """
+    parsed = urlsplit(value)
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError("invalid proxy origin") from exc
+    if (parsed.scheme != "http" or not parsed.hostname or port is None or parsed.username
+            or parsed.password or parsed.path not in ("", "/") or parsed.query or parsed.fragment):
+        raise ValueError("invalid proxy origin")
+    return parsed.hostname.lower(), port
+
+
+def proxy_request_target(raw, proxy_origin):
+    """Origin-form target of an absolute-form proxy request for exactly proxy_origin.
+
+    Origin-form targets (the normal reverse-proxy case) pass through unchanged. An
+    absolute-form target is accepted only when a proxy origin is configured and the
+    request names exactly that origin; anything else is refused, so the guard cannot
+    be used as a general forward proxy.
+    """
+    if raw.startswith("/"):
+        return raw
+    if proxy_origin is None:
+        raise ValueError("absolute-form target is not allowed")
+    parsed = urlsplit(raw)
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError("absolute-form target is not allowed") from exc
+    if (parsed.scheme != "http" or parsed.username or parsed.password or parsed.fragment
+            or (parsed.hostname or "").lower() != proxy_origin[0] or port != proxy_origin[1]
+            or not parsed.path.startswith("/")):
+        raise ValueError("absolute-form target is not allowed")
+    return parsed.path + ("?" + parsed.query if parsed.query else "")
+
+
 def server_identity(response):
     """Retain only a typed, server-issued ID; never copy arbitrary headers."""
     value = response.getheader("x-litellm-call-id")
@@ -207,13 +248,14 @@ class GuardedServer(ThreadingHTTPServer):
     daemon_threads = True
     request_queue_size = 64
 
-    def __init__(self, address, upstream: str, token_file: Path, ledger: AdmissionLedger, *, allow_test_upstream=False):
+    def __init__(self, address, upstream: str, token_file: Path, ledger: AdmissionLedger, *, allow_test_upstream=False, proxy_origin=None):
         parsed = urlsplit(upstream)
         if parsed.scheme != "http" or parsed.path not in ("", "/") or parsed.username or parsed.password:
             raise ValueError("plain approved in-cluster HTTP origin required")
         if not allow_test_upstream and upstream.rstrip("/") != APPROVED_UPSTREAM:
             raise ValueError("unexpected upstream")
         self.upstream = parsed
+        self.proxy_origin = validate_proxy_origin(proxy_origin) if proxy_origin is not None else None
         self.token_file = token_file
         self.ledger = ledger
         self.activity=threading.Condition()
@@ -307,8 +349,15 @@ class GuardedHandler(BaseHTTPRequestHandler):
             pass
 
     def do_POST(self):
-        try:path=canonical_model_path(self.path)
-        except ValueError:return self._reject('invalid-model-path',400)
+        try:
+            target=proxy_request_target(self.path,self.server.proxy_origin)
+            path=canonical_model_path(target)
+        except ValueError:
+            # Consume the (bounded) body first so a refused request is answered
+            # instead of being reset by the unread bytes.
+            try:self.rfile.read(max(0,min(int(self.headers.get("content-length","0")),MAX_BODY)))
+            except (ValueError,OSError):pass
+            return self._reject('invalid-model-path',400)
         try:
             length = int(self.headers.get("content-length", "-1"))
         except ValueError:
@@ -364,7 +413,7 @@ class GuardedHandler(BaseHTTPRequestHandler):
         response_started = False
         upstream_identity = {}
         try:
-            self.server.begin_upstream(connection,self,self.path,body,headers)
+            self.server.begin_upstream(connection,self,target,body,headers)
             if connection.sock is not None:connection.sock.settimeout(3600)
             response = connection.getresponse(); status = response.status
             upstream_identity = server_identity(response)
@@ -397,13 +446,13 @@ class GuardedHandler(BaseHTTPRequestHandler):
 
 
 @contextlib.contextmanager
-def running_guard(upstream: str, token_file: Path, ledger: AdmissionLedger, *, allow_test_upstream=False, listen_port=0, yield_server=False):
+def running_guard(upstream: str, token_file: Path, ledger: AdmissionLedger, *, allow_test_upstream=False, listen_port=0, yield_server=False, proxy_origin=None):
     if type(yield_server) is not bool:raise ValueError('EXPLICIT_GUARD_CONTROL_MODE_REQUIRED')
     if type(listen_port) is not int or not (listen_port==0 or 1024<=listen_port<=65535):
         raise ValueError('invalid loopback guard port')
     # Binding must succeed before the client starts. Never connect a client to
     # an occupied port or silently select another endpoint after bind failure.
-    server = GuardedServer(("127.0.0.1", listen_port), upstream, token_file, ledger, allow_test_upstream=allow_test_upstream)
+    server = GuardedServer(("127.0.0.1", listen_port), upstream, token_file, ledger, allow_test_upstream=allow_test_upstream, proxy_origin=proxy_origin)
     thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
     try:
         yield server if yield_server else server.server_port

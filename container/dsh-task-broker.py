@@ -15,6 +15,7 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 from scripts.agent_runtime_commands import command_for
+from scripts.unattended_env import minimal_environment
 from scripts.official_sdk_approval import verified_terminal_stop
 from scripts import a2a_stage_journal
 from scripts.a2a_factory_budget import recover_allowance,WAL_NAME
@@ -348,7 +349,7 @@ class Task:
         self.finished.clear()
         self.state = "running"; self.emit("state", {"state": self.state}); self.save()
         project = confined_project(self.request["project"])
-        env = dict(os.environ)
+        env = minimal_environment(os.environ)  # explicit allowlist: no provider keys, no Kerberos cache, no node preloads
         env["DSH_UNATTENDED_TASK"] = self.id
         env["DSH_CORRELATION_ID"] = self.correlation_id
         try:
