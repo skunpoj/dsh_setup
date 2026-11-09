@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "comment": "Hashes (LF-normalised sha256) of the two files that the live Deployment litellm (namespace llm, volume config) must mount BEFORE this repository's files are rolled out by stage DeployLitellmSidecar. Update this file in each reviewed change that edits context_forwarder.py or long_context_callbacks.py: put the previous release's hashes here. If the live files differ, the stage refuses to apply (unreviewed source baseline).",
+  "files": {
+    "context_forwarder.py": "a0b169c1a92e8f127758908283f2fbc9633fcc3be426a01826e0e73ec1117dee",
+    "long_context_callbacks.py": "fbc90a7fc58eb53fa2efad073df69d179c06c6805c57496894c8aad6dfb11658"
+  },
+  "reviewed": {
+    "state": "live since the one-off rollout of 9 Nov 2026 13:58Z (ConfigMap litellm-interactive-4ea96bd95cdb, commit 62f6bb2b16b26ce1a3718c0e152d05e9961a5c01)",
+    "source": "OPERATOR-FORWARDER-ROLLOUT-DONE, ledger /home/developer/outputs/COORDINATION.md"
+  }
+}
