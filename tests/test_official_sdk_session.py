@@ -93,6 +93,9 @@ class SessionRunnerTests(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("native_session_broker",
             Path(__file__).resolve().parents[1] / "container/dsh-task-broker.py")
         self.broker = importlib.util.module_from_spec(spec); spec.loader.exec_module(self.broker)
+        # The Linux image bakes /opt/dsh/config/local-sdk-tasks.json (workspace-local SDK switch); these tests exercise the NATIVE
+        # service path, so isolate the flag exactly as tests/test_task_broker.py does.
+        if hasattr(self.broker, "LOCAL_SDK_FLAG"): self.broker.LOCAL_SDK_FLAG = root / "no-local-sdk-flag.json"
         self.task = self.broker.Task("a" * 32, {"runtime": "sdk", "backend": "private",
             "project": ".", "writes": False, "prompt": "synthetic input"})
         self.scope = Scope(); self.harness = Harness(); self.options = None

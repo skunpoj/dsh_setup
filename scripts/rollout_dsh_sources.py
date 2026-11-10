@@ -48,6 +48,8 @@ SOURCES = {
     'credential_identity.js': 'scripts/credential_identity.js',
     'deploy_app_supervision.py': 'scripts/deploy_app_supervision.py',
     'dsh-connection.cjs': 'container/dsh-connection.cjs',
+    'engine_drain_client.js': 'scripts/engine_drain_client.js',
+    'engine_restart_request.js': 'scripts/engine_restart_request.js',
     'external_dns.js': 'scripts/external_dns.js',
     'external_upstream.js': 'scripts/external_upstream.js',
     'gradio_alias.js': 'scripts/gradio_alias.js',

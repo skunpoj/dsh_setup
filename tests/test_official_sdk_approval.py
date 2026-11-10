@@ -47,6 +47,7 @@ class NativeApprovalTests(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("approval_test_broker",
             Path(__file__).resolve().parents[1] / "container/dsh-task-broker.py")
         self.broker = importlib.util.module_from_spec(spec); spec.loader.exec_module(self.broker)
+        if hasattr(self.broker, "LOCAL_SDK_FLAG"): self.broker.LOCAL_SDK_FLAG = root / "no-local-sdk-flag.json"  # the image bakes the flag
         self.task = self.broker.Task("a" * 32, {
             "runtime": "sdk", "project": ".", "writes": False, "backend": "private"})
         self.task.state = "running"; self.task.save()

@@ -38,6 +38,8 @@ spec:
             - { name: DSH_ONLINE_PORT, value: "3081" }
             - { name: DSH_ONLINE_TOKEN_FILE, value: /runtime-tokens/internet/internet }
             - { name: DSH_TRUSTED_HOST, value: dsh.example.invalid }
+            # Live drain snapshot for the admin engine restart request (read-only exporter, k8s/dsh-engine-drain-exporter.yaml).
+            - { name: DSH_ENGINE_DRAIN_URL, value: "http://dsh-engine-drain-exporter.llm.svc.cluster.local:8080/engine-drain.json" }
           ports:
             - { name: http, containerPort: 3080 }
           readinessProbe:
