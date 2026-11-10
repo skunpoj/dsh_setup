@@ -18,6 +18,8 @@ class BrokerTests(unittest.TestCase):
         os.environ.update(DSH_TASK_STATE_ROOT=str(root/'state'),DSH_TASK_WORKSPACE_ROOT=str(cls.workspace),DSH_TASK_TOKEN_FILE=str(cls.token))
         source=Path(__file__).parents[1]/'container'/'dsh-task-broker.py'
         spec=importlib.util.spec_from_file_location('task_broker',source); cls.module=importlib.util.module_from_spec(spec); spec.loader.exec_module(cls.module)
+        # These tests cover the broker WITHOUT the workspace-local SDK flag; pin it off so the in-image run (where the flag is baked) is deterministic.
+        if hasattr(cls.module,'LOCAL_SDK_FLAG'): cls.module.LOCAL_SDK_FLAG=root/'no-local-sdk-flag.json'
         cls.server=cls.module.ThreadingHTTPServer(('127.0.0.1',0),cls.module.Handler)
         threading.Thread(target=cls.server.serve_forever,daemon=True).start(); cls.url='http://127.0.0.1:'+str(cls.server.server_port)
     @classmethod
@@ -421,6 +423,24 @@ class BrokerTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,'TASK_ALREADY_ACTIVE'):
                 self.module.REGISTRY.create(dict(runtime='claude',project='project',writes=False,prompt='new'))
         finally:self.module.REGISTRY.tasks.pop(parent.id,None)
+
+    def test_events_are_paged_from_the_cursor_without_losing_any(self):
+        task=self.module.Task('e0'*16,dict(runtime='claude',project='project',writes=False),authenticated_subject='owner')
+        task.state='completed'
+        for number in range(250):task.emit('output',dict(text='line%d\n'%number,runtime='claude'))
+        self.module.REGISTRY.tasks[task.id]=task
+        try:
+            status,first=self.call('/v1/tasks/'+task.id+'/events?after=0',subject='owner')
+            self.assertEqual(status,200)
+            sequences=[row['sequence'] for row in first['events']]
+            self.assertEqual((sequences[0],sequences[-1],len(sequences)),(1,200,200))
+            self.assertEqual(first['next'],200)
+            status,second=self.call('/v1/tasks/'+task.id+'/events?after='+str(first['next']),subject='owner')
+            self.assertEqual([row['sequence'] for row in second['events']],list(range(201,252)))
+            self.assertEqual(second['next'],251)
+            status,third=self.call('/v1/tasks/'+task.id+'/events?after=251',subject='owner')
+            self.assertEqual((third['events'],third['next']),([],251))
+        finally:self.module.REGISTRY.tasks.pop(task.id,None)
 
     def test_recovered_parent_keeps_owner_boundary_without_live_child(self):
         task=self.module.Task('f2'*16,dict(runtime='claude',project='project',writes=False),authenticated_subject='owner')

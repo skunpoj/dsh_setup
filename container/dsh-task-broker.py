@@ -28,6 +28,23 @@ TOKEN = Path(os.environ.get("DSH_TASK_TOKEN_FILE", str(Path("/runtime-tokens") /
 MAX_BODY = 131072
 MAX_EVENT_BYTES = 8 * 1024 * 1024
 RUNTIMES = {"sdk", "claude", "deepagents", "kilo"}
+# Workspace-local DSH Python SDK tasks (the resumable dsh-sdk-task path behind the per-task guard). OFF unless a root-owned flag file baked
+# into the image enables it; never in qualification mode (the qualification broker allows only native sdk tasks and chains).
+LOCAL_SDK_FLAG = Path("/opt/dsh/config/local-sdk-tasks.json")
+LOCAL_SDK_STAT = os.lstat
+LOCAL_SDK_OWNER_CHECK = os.name == "posix"
+
+
+def local_sdk_enabled():
+    if os.environ.get("DSH_NATIVE_QUALIFICATION_MODE") == "1": return False
+    try:
+        info = LOCAL_SDK_STAT(LOCAL_SDK_FLAG)
+        import stat as stat_module
+        if not stat_module.S_ISREG(info.st_mode): return False
+        if LOCAL_SDK_OWNER_CHECK and (info.st_uid != 0 or info.st_mode & 0o022): return False
+        value = json.loads(Path(LOCAL_SDK_FLAG).read_text(encoding="utf-8"))
+    except (OSError, ValueError): return False
+    return isinstance(value, dict) and set(value) == {"kind", "enabled"} and value["kind"] == "DSH_LOCAL_SDK_TASKS_V1" and value["enabled"] is True
 TASK_ID = re.compile(r"^[a-f0-9]{32}$")
 
 
@@ -507,7 +524,9 @@ class Registry:
                    or (t.request.get("backend")=="openshell" and t.openshell and t.openshell.get("phase")!="stopped")
                    for t in self.tasks.values()):
                 raise RuntimeError("TASK_ALREADY_ACTIVE")
-            if (request.get("backend","private")=="private" and request["runtime"]=="sdk"
+            local_sdk = (sdk_service is None and request["runtime"]=="sdk" and request.get("handoffRuntime") is None
+                         and request.get("backend","private")=="private" and local_sdk_enabled())
+            if (request.get("backend","private")=="private" and request["runtime"]=="sdk" and not local_sdk
                     and (sdk_service is None or sdk_service.qualified is not True)):
                 raise RuntimeError("OFFICIAL_SDK_NOT_QUALIFIED")
             native_chain = (request.get("backend", "private") == "private"
@@ -523,7 +542,7 @@ class Registry:
                     self.tasks.pop(task.id);raise RuntimeError("OPENSHELL_NOT_QUALIFIED")
                 task.execution_service=execution_service
                 threading.Thread(target=execution_service.run_task,args=(execution_service.subject,task),daemon=True).start()
-            elif request["runtime"]=="sdk":
+            elif request["runtime"]=="sdk" and not local_sdk:
                 threading.Thread(target=sdk_service.run_task,args=(sdk_service.subject,task),daemon=True).start()
             else:
                 threading.Thread(target=task.run, daemon=True).start()
@@ -599,7 +618,7 @@ class Handler(BaseHTTPRequestHandler):
                             "toolName":pending["toolName"],"callId":pending["callId"],
                             "allowOnceAdmitted":task.request["writes"] is True}
             ticket = a2a_ticket or ticket
-            return self.reply(200, {"taskId":task.id,"state":"awaiting_approval" if a2a_ticket else task.state,"events":rows[-200:],"next":task.sequence,"nativeApproval":ticket})
+            return self.reply(200, {"taskId":task.id,"state":"awaiting_approval" if a2a_ticket else task.state,"events":rows[:200],"next":(rows[:200][-1]["sequence"] if rows else after),"nativeApproval":ticket})  # first page after the cursor: a client that advances with `next` never skips events
         return self.reply(404, {"error":"NOT_FOUND"})
     def do_POST(self):
         if not self.authorized(): return self.reply(401, {"error":"UNAUTHORIZED"})
@@ -663,6 +682,8 @@ class Handler(BaseHTTPRequestHandler):
                 service=getattr(self.server,"openshell_service",None)
                 if service is None or not service.qualified:raise ValueError("UNAVAILABLE_SELECTION")
                 if self.headers.get("X-DSH-Subject","")!=service.subject:raise ValueError("FOREIGN_SUBJECT")
+            elif value["runtime"]=="sdk" and value["backend"]=="private" and value.get("handoffRuntime") is None and local_sdk_enabled():
+                sdk_service=None  # workspace-local resumable SDK task; the per-task guard still wraps it
             elif value["runtime"]=="sdk":
                 sdk_service=getattr(self.server,"sdk_service",None)
                 if sdk_service is None or sdk_service.qualified is not True:
