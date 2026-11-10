@@ -147,7 +147,7 @@ See the startup architecture and installation guide and recorded target-selector
 
 ## Managed agent tasks and Web Terminal kubectlThe deployed [Agent runtime and execution backend](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) page lets an authenticated user select DSH Python SDK, Claude Code or Deep Agents independently from the execution backend. The private DSH workspace is enabled. OpenShell is visible but remains disabled until all 25 Test gates and rollback qualification pass. Broker health, authentication and capability mapping are verified; guarded model execution for each runtime still requires bounded live acceptance.Web Terminal includes the pinned, checksum-verified `kubectl` v1.32.9 client. The user workspace has no automatic service-account token or default kubeconfig, so the binary grants no cluster access by itself. Cluster access requires a separately approved least-privilege kubeconfig for the specific task.## Quick actions menu
 
-A launcher button at the bottom right of every DSH page opens a small menu with Agent tasks, Admin overview (administrators only), My apps, Credentials (when enabled) and Logout. The menu closes with Esc, with a click elsewhere, or after you choose an item.
+A launcher button at the bottom right of every DSH page (a round gear icon, named Quick actions) opens a small menu with Web Terminal, JupyterLab, Agent tasks, Admin overview (administrators only), My apps, Credentials (when enabled) and Logout. The menu closes with Esc, with a click elsewhere, or after you choose an item.
 
 ## Documentation library
 
