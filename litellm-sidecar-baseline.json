@@ -1,12 +1,13 @@
 {
   "schema": 1,
-  "comment": "Hashes (LF-normalised sha256) of the two files that the live Deployment litellm (namespace llm, volume config) must mount BEFORE this repository's files are rolled out by stage DeployLitellmSidecar. Update this file in each reviewed change that edits context_forwarder.py or long_context_callbacks.py: put the previous release's hashes here. If the live files differ, the stage refuses to apply (unreviewed source baseline).",
+  "comment": "Hashes (LF-normalised sha256) of the three files that the live Deployment litellm (namespace llm, volume config) must mount BEFORE this repository's files are rolled out by stage DeployLitellmSidecar. Update this file in each reviewed change that edits context_forwarder.py, long_context_callbacks.py or gateway_output_guard.py: put the previous release's hashes here. If the live files differ, the stage refuses to apply (unreviewed source baseline).",
   "files": {
     "context_forwarder.py": "7622dc322ea29c03278d048b76d5229e7e52c51ab001806629de5a4bb6d192f5",
-    "long_context_callbacks.py": "fbc90a7fc58eb53fa2efad073df69d179c06c6805c57496894c8aad6dfb11658"
+    "long_context_callbacks.py": "fbc90a7fc58eb53fa2efad073df69d179c06c6805c57496894c8aad6dfb11658",
+    "gateway_output_guard.py": "97f822e003df5f1e9101cc0b02183929131872546cd2c4cc695a09e73399d36d"
   },
   "reviewed": {
-    "state": "live since the one-off rollout of 9 Nov 2026 13:58Z (ConfigMap litellm-interactive-4ea96bd95cdb, commit 62f6bb2b16b26ce1a3718c0e152d05e9961a5c01)",
-    "source": "OPERATOR-FORWARDER-ROLLOUT-DONE, ledger /home/developer/outputs/COORDINATION.md"
+    "state": "context_forwarder.py/long_context_callbacks.py live since the one-off rollout of 9 Nov 2026 13:58Z (ConfigMap litellm-interactive-4ea96bd95cdb, commit 62f6bb2b16b26ce1a3718c0e152d05e9961a5c01); gateway_output_guard.py confirmed live by read-only kubectl inspection 2026-11-10 (ConfigMap litellm-interactive-96f1f9f2c6f9), matching main's pre-fix content -- no separate tracked rollout event is recorded for it before now",
+    "source": "OPERATOR-FORWARDER-ROLLOUT-DONE and LANE6-SAFEGUARDS-FIX-VIA-SIDECAR-READY, ledger /home/developer/outputs/COORDINATION.md"
   }
 }

@@ -20,6 +20,19 @@ class OutputGuard(CustomLogger):
             raise HTTPException(400, 'Managed context route does not accept endpoint/provider overrides.')
         if not isinstance(data.get('messages'), list) or not data['messages']:
             raise HTTPException(400, 'This model route requires Chat Completions messages.')
+        # This route is a plain OpenAI-compatible backend (DeepInfer serving deepseek-v4.1-flash),
+        # not Anthropic. A client calling via the Anthropic Messages bridge (use_chat_completions_
+        # url_for_anthropic_messages) may still send Anthropic's own 'safeguards' field (Claude
+        # Code's auto-mode permission classifier); the bridge does not strip it the way litellm's
+        # native /v1/messages adapter route does for non-Anthropic backends, so it reaches
+        # AsyncCompletions.create(**kwargs) as an unsupported kwarg and 500s, which Claude Code
+        # retries (observed live 2026-11-10, LANE6-SAFEGUARDS-TRACE). Refuse with a clean 4xx
+        # instead of stripping: the same reason unattended_model_guard.py already uses for the
+        # unattended-task path -- stripping would silently drop a safety capability the client
+        # believes was applied, and a 4xx (unlike a 500) is not retried, so the retry loop ends
+        # and the client can negotiate a supported shape.
+        if 'safeguards' in data:
+            raise HTTPException(400, 'unsupported-provider-safeguards')
         limits = [data[k] for k in ['max_tokens', 'max_completion_tokens'] if k in data]
         if any(type(n) is not int or n < 1 for n in limits):
             raise HTTPException(400, 'Output limits must be positive integers.')

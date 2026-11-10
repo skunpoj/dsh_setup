@@ -112,8 +112,11 @@ from unittest import mock
 
 OLD_FORWARDER = 'old forwarder\n'
 OLD_CALLBACKS = 'old callbacks\n'
-LIVE_DATA = {'context_forwarder.py': OLD_FORWARDER, 'long_context_callbacks.py': OLD_CALLBACKS, 'context_envelope.py': 'kept as it is\n'}
-OLD_HASHES = {'context_forwarder.py': r.text_sha256(OLD_FORWARDER), 'long_context_callbacks.py': r.text_sha256(OLD_CALLBACKS)}
+OLD_GUARD = 'old guard\n'
+LIVE_DATA = {'context_forwarder.py': OLD_FORWARDER, 'long_context_callbacks.py': OLD_CALLBACKS,
+             'gateway_output_guard.py': OLD_GUARD, 'context_envelope.py': 'kept as it is\n'}
+OLD_HASHES = {'context_forwarder.py': r.text_sha256(OLD_FORWARDER), 'long_context_callbacks.py': r.text_sha256(OLD_CALLBACKS),
+              'gateway_output_guard.py': r.text_sha256(OLD_GUARD)}
 NOW = calendar.timegm(time.strptime('2026-11-09T12:00:00Z', '%Y-%m-%dT%H:%M:%SZ'))
 QUIET_LOG = '\n'.join([
     '{"event": "dsh_long_admission_started", "requestId": "a", "inputTokens": 128028, "waitBudgetSeconds": 1500}',
@@ -199,7 +202,7 @@ class SidecarTests(unittest.TestCase):
         self.assertEqual(doc['data'], data)
         self.assertEqual(doc['data']['context_envelope.py'], 'kept as it is\n')
         self.assertTrue(doc['immutable'])
-        self.assertEqual(changed, ['context_forwarder.py', 'long_context_callbacks.py'])
+        self.assertEqual(changed, ['context_forwarder.py', 'gateway_output_guard.py', 'long_context_callbacks.py'])
         self.assertEqual(name, r.build_sidecar_bundle(LIVE_DATA)[0], 'Same source, same name')
 
     def test_missing_live_key_fails_closed(self):
@@ -209,6 +212,23 @@ class SidecarTests(unittest.TestCase):
     def test_baseline_file_is_valid(self):
         files = r.load_baseline()
         self.assertEqual(sorted(files), sorted(r.SIDECAR['files']))
+
+    def test_baseline_covers_gateway_output_guard_and_matches_the_confirmed_live_hash(self):
+        # The live ConfigMap was read read-only on 2026-11-10 (LANE6-SAFEGUARDS-DEPLOY-STAGE-GAP-FOUND)
+        # and gateway_output_guard.py's content hashed to exactly this value, matching main's
+        # pre-fix source. The baseline must record that so a real rollout refuses unless the
+        # live file still matches (or is explicitly re-reviewed).
+        files = r.load_baseline()
+        self.assertIn('gateway_output_guard.py', files)
+        self.assertEqual(files['gateway_output_guard.py'],
+                          '97f822e003df5f1e9101cc0b02183929131872546cd2c4cc695a09e73399d36d')
+
+    def test_repository_gateway_output_guard_now_differs_from_the_recorded_baseline(self):
+        # This fix changes gateway_output_guard.py, so a real rollout must see it as changed
+        # (and therefore actually deploy it) rather than silently carrying the old content.
+        live_hash = r.load_baseline()['gateway_output_guard.py']
+        repo_hash = r.text_sha256((r.ROOT / r.SIDECAR['files']['gateway_output_guard.py']).read_text(encoding='utf-8'))
+        self.assertNotEqual(live_hash, repo_hash)
 
     def test_plan_only_changes_nothing_and_reports_the_plan(self):
         api = SidecarApi()

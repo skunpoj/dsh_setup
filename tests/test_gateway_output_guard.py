@@ -43,6 +43,39 @@ class OutputGuardTests(unittest.TestCase):
         self.assertEqual(result['max_tokens'], 8192)
         self.assertNotIn('max_completion_tokens', result)
 
+    def test_safeguards_field_is_refused_for_the_custom_openai_backed_model(self):
+        with self.assertRaises(Rejected) as caught:
+            self.call(safeguards=[{'type': 'synthetic-classifier'}])
+        self.assertEqual(caught.exception.status_code, 400)
+        self.assertEqual(str(caught.exception), 'unsupported-provider-safeguards')
+
+    def test_safeguards_field_is_refused_for_the_sibling_deepseek_flash_alias(self):
+        with self.assertRaises(Rejected) as caught:
+            self.call(model='deepseek-flash', safeguards=[{'type': 'synthetic-classifier'}])
+        self.assertEqual(caught.exception.status_code, 400)
+        self.assertEqual(str(caught.exception), 'unsupported-provider-safeguards')
+
+    def test_safeguards_refusal_does_not_apply_to_a_real_anthropic_backed_alias(self):
+        # claude-sonnet-5 is a genuine Anthropic-backed alias and is delegated to
+        # custom_callbacks.proxy_handler_instance (a different handler, line 16-18)
+        # before this hook's own safeguards check; it must keep seeing 'safeguards'
+        # untouched, since the real Anthropic backend supports it.
+        delegated = types.ModuleType('custom_callbacks')
+        seen = {}
+        async def record(user_api_key_dict, cache, data, call_type):
+            seen.update(data)
+            return data
+        delegated.proxy_handler_instance = types.SimpleNamespace(async_pre_call_hook=record)
+        with patch.dict(sys.modules, {'custom_callbacks': delegated}):
+            result = self.call(model='claude-sonnet-5', safeguards=[{'type': 'synthetic-classifier'}])
+        self.assertIn('safeguards', seen)
+        self.assertIn('safeguards', result)
+
+    def test_request_without_safeguards_is_unaffected(self):
+        result = self.call()
+        self.assertNotIn('safeguards', result)
+        self.assertEqual(result['messages'], [{'role': 'user', 'content': 'test'}])
+
 
 if __name__ == '__main__':
     unittest.main()

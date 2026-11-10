@@ -7,9 +7,10 @@ automatically on any failure. Dry run by default; --apply changes the cluster.
 
 Nothing else is edited: no image, replicas, policy, inventory, users, storage
 or other volume. Old ConfigMaps are kept, so every rollout can be reverted.
-The `litellm-sidecar` component (Deployment litellm, context_forwarder.py and
-long_context_callbacks.py) is checked against litellm-sidecar-baseline.json and
-refuses to apply while long requests run or inside a no-deploy window.
+The `litellm-sidecar` component (Deployment litellm, context_forwarder.py,
+long_context_callbacks.py and gateway_output_guard.py) is checked against
+litellm-sidecar-baseline.json and refuses to apply while long requests run
+or inside a no-deploy window.
 Strict TLS only; the token is read from a file or the environment, never logged.
 """
 import argparse
@@ -380,9 +381,10 @@ def rollout(api, component, args, log=print):
     return 1
 
 # ---------------------------------------------------------------------------
-# LiteLLM sidecar source (context_forwarder.py, long_context_callbacks.py)
+# LiteLLM sidecar source (context_forwarder.py, long_context_callbacks.py,
+# gateway_output_guard.py)
 #
-# Deployment `litellm` mounts these two files from an immutable ConfigMap
+# Deployment `litellm` mounts these three files from an immutable ConfigMap
 # (volume `config`). Same job as scripts/rollout_interactive_scheduling.py (the
 # manual one-off of 9 Nov 2026) and the same ConfigMap name rule, but through
 # the REST API only: there is no pod exec here, so the lock probe, the mounted-
@@ -394,7 +396,8 @@ def rollout(api, component, args, log=print):
 SIDECAR = {
     'deployment': 'litellm', 'volume': 'config', 'prefix': 'litellm-interactive-',
     'files': {'context_forwarder.py': 'scripts/context_forwarder.py',
-              'long_context_callbacks.py': 'scripts/long_context_callbacks.py'},
+              'long_context_callbacks.py': 'scripts/long_context_callbacks.py',
+              'gateway_output_guard.py': 'scripts/gateway_output_guard.py'},
     'containers': ['litellm', 'context-forwarder'], 'forwarder_container': 'context-forwarder',
     'baseline': 'litellm-sidecar-baseline.json',
 }
