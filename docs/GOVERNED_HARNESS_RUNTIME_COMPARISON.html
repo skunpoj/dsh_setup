@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Governed Harness and managed agent-runtime comparison</title><style>*{box-sizing:border-box}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.65 system-ui,sans-serif}main{max-width:1500px;margin:24px auto;background:#fff;padding:36px;border-radius:12px}h1,h2,h3{color:#075985;line-height:1.3}a{color:#0369a1}code{overflow-wrap:anywhere}pre{white-space:pre-wrap;background:#f3f6f9;padding:14px;overflow:auto}.table-wrap{width:100%;overflow:auto;margin:18px 0 28px}table{border-collapse:collapse;min-width:1100px;width:100%;table-layout:auto}td,th{border:1px solid #c8d5e1;padding:10px;vertical-align:top;text-align:left;overflow-wrap:normal;word-break:normal;hyphens:none}th{background:#e9f3f9;position:sticky;top:0}li{margin:.45em 0}.notice{background:#fff7ed;border-left:5px solid #f59e0b;padding:12px 16px}@media(max-width:700px){main{margin:0;padding:18px}table{min-width:1000px}}</style></head><body><main><nav><a href="THREE_RISK_CONTROLS.html">Three risk controls</a> · <a href="AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html">Agent runtime status</a> · <a href="reference/DSH_REPOSITORY_README.md">Repository overview</a></nav><h1>Governed Harness and managed agent-runtime comparison</h1>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Multiharness and managed agent-runtime comparison</title><style>*{box-sizing:border-box}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.65 system-ui,sans-serif}main{max-width:1500px;margin:24px auto;background:#fff;padding:36px;border-radius:12px}h1,h2,h3{color:#075985;line-height:1.3}a{color:#0369a1}code{overflow-wrap:anywhere}pre{white-space:pre-wrap;background:#f3f6f9;padding:14px;overflow:auto}.table-wrap{width:100%;overflow:auto;margin:18px 0 28px}table{border-collapse:collapse;min-width:1100px;width:100%;table-layout:auto}td,th{border:1px solid #c8d5e1;padding:10px;vertical-align:top;text-align:left;overflow-wrap:normal;word-break:normal;hyphens:none}th{background:#e9f3f9;position:sticky;top:0}li{margin:.45em 0}.notice{background:#fff7ed;border-left:5px solid #f59e0b;padding:12px 16px}@media(max-width:700px){main{margin:0;padding:18px}table{min-width:1000px}}</style></head><body><main><nav><a href="THREE_RISK_CONTROLS.html">Three risk controls</a> · <a href="AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html">Agent runtime status</a> · <a href="reference/DSH_REPOSITORY_README.md">Repository overview</a></nav><h1>Multiharness and managed agent-runtime comparison</h1>
 <h2>Purpose and decision boundary</h2>
-<p>This document compares the <strong>DSH Governed Harness</strong> with three execution runtimes that it can broker: <strong>DSH Python SDK</strong>, <strong>Claude Code</strong>, and <strong>Deep Agents</strong>. It also compares each runtime with a separately deployed counterpart outside the Governed Harness.</p>
+<p>This document compares the <strong>DSH Multiharness</strong> with three execution runtimes that it can broker: <strong>DSH Python SDK</strong>, <strong>Claude Code</strong>, and <strong>Deep Agents</strong>. It also compares each runtime with a separately deployed counterpart outside the Multiharness.</p>
 <p>The enterprise scenario is deliberately strict:</p>
 <ul>
 <li>highly classified internal data;</li>
@@ -16,7 +16,7 @@
 <li><strong>Prevent damage or excessive access</strong> — limit what generated code and tools can read, change, execute, consume, or delegate.</li>
 <li><strong>Keep results contained</strong> — bind tasks, persisted state, results, sharing, recovery, and audit evidence to the correct authorized user and environment.</li>
 </ol>
-<p>The Governed Harness is the enterprise <strong>control plane and policy wrapper</strong>. The other three are <strong>execution runtimes</strong>. They are not equivalent layers. A runtime may have useful native permissions, checkpoints, or tool controls, but it does not automatically inherit DSH identity, storage, network, audit, or lifecycle guarantees when deployed on its own.</p>
+<p>The Multiharness is the enterprise <strong>control plane and policy wrapper</strong>. The other three are <strong>execution runtimes</strong>. They are not equivalent layers. A runtime may have useful native permissions, checkpoints, or tool controls, but it does not automatically inherit DSH identity, storage, network, audit, or lifecycle guarantees when deployed on its own.</p>
 <h2>Reference architecture</h2>
 <pre><code class="language-text">AD/LDAP or provisioned local identity
         |
@@ -45,7 +45,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 <thead>
 <tr>
 <th>Dimension</th>
-<th>DSH Governed Harness</th>
+<th>DSH Multiharness</th>
 <th>DSH Python SDK inside it</th>
 <th>Claude Code inside it</th>
 <th>Deep Agents inside it</th>
@@ -124,7 +124,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 <th>Prevent external leakage</th>
 <th>Prevent damage or excessive access</th>
 <th>Keep results contained</th>
-<th>Governed Harness enforcement</th>
+<th>Multiharness enforcement</th>
 <th>SDK / Claude Code / Deep Agents inside the harness</th>
 <th>Same runtime deployed alone without DSH AD/LDAP</th>
 <th>Current evidence and constraint</th>
@@ -299,13 +299,13 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 <li><strong>Standalone counterparts:</strong> placing the same runtime in the same RKE2 cluster and forcing the same LiteLLM endpoint only reproduces part of leakage control. Without DSH AD/LDAP integration and its broker, every standalone service must independently rebuild identity, task authorization, tenant storage, approval, audit, recovery and sharing controls.</li>
 </ul>
 <h2>OWASP Agentic Top 10 crosswalk</h2>
-<p>The OWASP Top 10 for Agentic Applications 2026 adds a useful threat taxonomy to the three enterprise outcomes above. It does not certify this deployment and it does not turn a documented control into a verified runtime control. The table below maps each OWASP risk to the relevant Governed Harness and runtime responsibilities, then states the present evidence boundary.</p>
+<p>The OWASP Top 10 for Agentic Applications 2026 adds a useful threat taxonomy to the three enterprise outcomes above. It does not certify this deployment and it does not turn a documented control into a verified runtime control. The table below maps each OWASP risk to the relevant Multiharness and runtime responsibilities, then states the present evidence boundary.</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
 <th>OWASP risk</th>
 <th>Relationship to the three enterprise risks</th>
-<th>Governed Harness responsibility</th>
+<th>Multiharness responsibility</th>
 <th>Runtime-specific responsibility</th>
 <th>Standalone counterpart requirement</th>
 <th>Current evidence boundary</th>
@@ -394,13 +394,13 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 </tbody></table></div>
 <p>The crosswalk shows why fixed local LiteLLM and an isolated RKE2 network are necessary but insufficient. They mainly reduce external model/network exposure. OWASP ASI01, ASI03, ASI06, ASI07, ASI09 and ASI10 additionally require intent, identity, memory, message, human-trust and behavioral controls that must be implemented and tested above the model route.</p>
 <h2>Detailed integrated feature matrix</h2>
-<p>Legend: <strong>Enforced</strong> means a directly implemented control at the stated layer. <strong>Inherited</strong> means the runtime benefits from the Governed Harness/RKE2 boundary but does not provide it itself. <strong>Native</strong> means the upstream runtime has a relevant mechanism that still requires enterprise configuration. <strong>Pending</strong> means source or partial tests exist but live acceptance is incomplete.</p>
+<p>Legend: <strong>Enforced</strong> means a directly implemented control at the stated layer. <strong>Inherited</strong> means the runtime benefits from the Multiharness/RKE2 boundary but does not provide it itself. <strong>Native</strong> means the upstream runtime has a relevant mechanism that still requires enterprise configuration. <strong>Pending</strong> means source or partial tests exist but live acceptance is incomplete.</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Detailed feature / enterprise requirement</th>
 <th>Risk controlled</th>
-<th>Governed Harness control</th>
+<th>Multiharness control</th>
 <th>DSH Python SDK inside harness</th>
 <th>Claude Code inside harness</th>
 <th>Deep Agents inside harness</th>
@@ -759,7 +759,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 <td><code>0/25</code> live gates at the controlling checkpoint; no current security credit</td>
 </tr>
 </tbody></table></div>
-<h2>Runtime-by-runtime usage examples inside the Governed Harness</h2>
+<h2>Runtime-by-runtime usage examples inside the Multiharness</h2>
 <h3>DSH Python SDK</h3>
 <p><strong>Best fit:</strong> structured workflows requiring durable state, explicit interrupts, deterministic tool registration, and application-controlled resume.</p>
 <p><strong>Example:</strong> An analyst asks for a classified portfolio-quality review. The broker binds the request to the analyst’s No-Internet workspace and a read-only approved dataset tool. The SDK produces an intermediate exception list, pauses before writing the final workbook, and resumes only after the owner approves the exact action. The result stays in the owner’s project and the model call joins the same durable operation ID.</p>
@@ -775,7 +775,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 <p><strong>Example:</strong> A risk team asks for a multi-section internal assessment. The main agent reads only the approved project, delegates independent sections to bounded subagents, and pauses on write/execute operations. All agents use the preconstructed local model and the same task ledger. Final artifacts are written only to the owner’s output directory.</p>
 <p><strong>Strength:</strong> most composable runtime for custom tools, subagents, backends and checkpoint logic.</p>
 <p><strong>Current constraint:</strong> composability is also its primary risk. Tools, middleware, profiles, backends and provider construction must be immutable operator code. One bounded guarded marker has now been accepted in Test after Claude reconciled, but this does not qualify arbitrary tools, subagents, approval/resume, cancellation/recovery or Production behavior.</p>
-<h2>Individually deployed counterparts outside the Governed Harness</h2>
+<h2>Individually deployed counterparts outside the Multiharness</h2>
 <p>The following comparison assumes each counterpart is still pinned in RKE2, has no Internet route, and can reach only the same immutable local LiteLLM model. The difference is the absence of DSH AD/LDAP, owner/session routing, <code>/agent-tasks</code>, per-user DSH history, DSH app-sharing controls, and the central DSH task ledger.</p>
 <div class="table-wrap"><table>
 <thead>
@@ -784,7 +784,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 <th>Standalone DSH Python SDK service</th>
 <th>Standalone Claude Code Pod/service</th>
 <th>Standalone Deep Agents service</th>
-<th>Enterprise implication outside Governed Harness</th>
+<th>Enterprise implication outside Multiharness</th>
 </tr>
 </thead>
 <tbody><tr>
@@ -855,7 +855,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 <td>Implement durable operation and one-start ledger</td>
 <td>Implement wrapper ledger around CLI</td>
 <td>Implement wrapper ledger around graph invocation</td>
-<td>This recreates a central feature of the Governed Harness three times</td>
+<td>This recreates a central feature of the Multiharness three times</td>
 </tr>
 <tr>
 <td>Result storage</td>
@@ -909,17 +909,17 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 </tbody></table></div>
 <h2>Risk-by-risk conclusion</h2>
 <h3>Risk 1 — external leakage</h3>
-<p>The immutable local LiteLLM route and RKE2 No-Internet segment are the strongest common controls. They can be made equivalent for integrated and standalone deployments. The Governed Harness adds consistent identity-to-environment routing, separate Internet preparation, approved package flow, credential aliases, final-wire model correlation, and one place to verify that all runtimes actually use the same route.</p>
+<p>The immutable local LiteLLM route and RKE2 No-Internet segment are the strongest common controls. They can be made equivalent for integrated and standalone deployments. The Multiharness adds consistent identity-to-environment routing, separate Internet preparation, approved package flow, credential aliases, final-wire model correlation, and one place to verify that all runtimes actually use the same route.</p>
 <p><strong>Residual risk:</strong> shell tools, plugins, MCP servers, internal services, mounted files, DNS, logs, and copied outputs can leak data even when model egress is locked. Test the actual running workload and final network path.</p>
 <h3>Risk 2 — damage or excessive access</h3>
-<p>RKE2 security context, mounts, NetworkPolicy, service-account suppression and resource limits are the authoritative boundary. Claude Code permissions and sandboxing, SDK interrupts, and Deep Agents HITL/backends add useful runtime-specific controls. The Governed Harness makes these controls subordinate to a single approved user, project, backend, write mode and task ledger.</p>
+<p>RKE2 security context, mounts, NetworkPolicy, service-account suppression and resource limits are the authoritative boundary. Claude Code permissions and sandboxing, SDK interrupts, and Deep Agents HITL/backends add useful runtime-specific controls. The Multiharness makes these controls subordinate to a single approved user, project, backend, write mode and task ledger.</p>
 <p><strong>Residual risk:</strong> an approved shell or powerful tool can act with every permission of its Pod. Prompts and permission dialogs are not a substitute for least-privilege OS, storage and remote-service entitlements.</p>
 <h3>Risk 3 — result exposure</h3>
-<p>This is where standalone deployments differ most. A locked model and isolated network do not establish who owns a task, checkpoint, CLI session, output file, result stream, or recovery action. The Governed Harness supplies owner-bound sessions, private histories/workspaces, explicit application audiences, task-state routing, and one audit correlation point.</p>
+<p>This is where standalone deployments differ most. A locked model and isolated network do not establish who owns a task, checkpoint, CLI session, output file, result stream, or recovery action. The Multiharness supplies owner-bound sessions, private histories/workspaces, explicit application audiences, task-state routing, and one audit correlation point.</p>
 <p><strong>Residual risk:</strong> authorized users can still view and copy results. Preventing further copying requires a separate information-handling and endpoint-control policy.</p>
 <h2>Recommended enterprise operating model</h2>
 <ol>
-<li>Keep the Governed Harness as the only human-facing control plane.</li>
+<li>Keep the Multiharness as the only human-facing control plane.</li>
 <li>Treat DSH Python SDK, Claude Code and Deep Agents as interchangeable <strong>runtime choices</strong>, never as identity authorities.</li>
 <li>Lock the model at four layers: UI/catalog, runtime launcher/model object, final-wire guard, and RKE2 network policy.</li>
 <li>Give each task one server-derived owner, environment, project, backend, write decision, operation ID and model-start budget.</li>
@@ -940,7 +940,7 @@ litellm-gateway -&gt; context-forwarder -&gt; deepinfer-dspark
 </tr>
 </thead>
 <tbody><tr>
-<td>Governed Harness control surface</td>
+<td>Multiharness control surface</td>
 <td>Deployed authenticated gateway and <code>/agent-tasks</code> capability surface; private workspace is enabled backend; local LiteLLM route is canonical</td>
 <td>Complete live acceptance of successor handoff and every runtime path</td>
 </tr>

@@ -1,0 +1,2739 @@
+{
+ "schema": 1,
+ "source": "GOVERNED_HARNESS_COMPARISON_PHASE_A.html (80 rows) plus lane-5 draft tags",
+ "tags": "asi_primary, risk, layer, cia and control_type are drafts [INFERRED] for owner review; asi_all is the existing PHASE_A OWASP mapping column",
+ "features": [
+  {
+   "n": 1,
+   "kind": "feature",
+   "feature": "Identity source",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI07"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Shared or weak identity breaks attribution and audience control",
+   "recommended": "Authenticate every human and service before task creation; enforcement point: Identity gateway and task broker; authority: Administrator defines identity path; user cannot substitute identity.",
+   "common": "Approved DSH AD/LDAP path and gateway binding - runtime proof pending",
+   "runtimes": {
+    "sdk_governed": "The inspected SDK accepts runtime/profile/provider configuration from its embedding caller; enterprise identity is not established by the SDK source.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone deployment supplies its own identity or enterprise IdP Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Standard Claude Code authenticates to an approved model service; corporate AD/LDAP and task-owner binding require surrounding enterprise integration.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone deployment supplies its own identity or enterprise IdP Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Library composition accepts application-selected model, tools and runtime; application infrastructure supplies enterprise identity.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone deployment supplies its own identity or enterprise IdP Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Shared or weak identity breaks attribution and audience control",
+    "damage": "Material control dimension. Residual exposure: Shared or weak identity breaks attribution and audience control",
+    "exposure": "Material control dimension. Residual exposure: Shared or weak identity breaks attribution and audience control"
+   },
+   "phase_a_owasp": "ASI03;ASI07"
+  },
+  {
+   "n": 2,
+   "kind": "feature",
+   "feature": "AD/LDAP integration",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Incorrect group mapping can overgrant or expose results",
+   "recommended": "Map enterprise users and groups to governed roles; enforcement point: Gateway/identity service; authority: Administrator controlled.",
+   "common": "Shared approved DSH path intended for all three harnesses - pending",
+   "runtimes": {
+    "sdk_governed": "Not native SDK proof; supplied by Multiharness",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Absent in defined standalone scenario unless separately deployed Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Not a standalone Claude Code property; supplied by surrounding enterprise controls",
+    "claude_standalone": "Claude Code outside the Multiharness: Absent in defined standalone scenario unless separately deployed Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Not a native Deep Agents property; application integrates identity",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Absent in defined standalone scenario unless separately deployed Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Incorrect group mapping can overgrant or expose results",
+    "exposure": "Material control dimension. Residual exposure: Incorrect group mapping can overgrant or expose results"
+   },
+   "phase_a_owasp": "ASI03"
+  },
+  {
+   "n": 3,
+   "kind": "feature",
+   "feature": "Account provisioning",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI07"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Shared or weak identity breaks attribution and audience control",
+   "recommended": "Authenticate every human and service before task creation; enforcement point: Identity gateway and task broker; authority: Administrator defines identity path; user cannot substitute identity.",
+   "common": "Approved DSH AD/LDAP path and gateway binding - runtime proof pending",
+   "runtimes": {
+    "sdk_governed": "The inspected SDK accepts runtime/profile/provider configuration from its embedding caller; enterprise identity is not established by the SDK source.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone deployment supplies its own identity or enterprise IdP Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Standard Claude Code authenticates to an approved model service; corporate AD/LDAP and task-owner binding require surrounding enterprise integration.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone deployment supplies its own identity or enterprise IdP Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Library composition accepts application-selected model, tools and runtime; application infrastructure supplies enterprise identity.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone deployment supplies its own identity or enterprise IdP Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Shared or weak identity breaks attribution and audience control",
+    "damage": "Material control dimension. Residual exposure: Shared or weak identity breaks attribution and audience control",
+    "exposure": "Material control dimension. Residual exposure: Shared or weak identity breaks attribution and audience control"
+   },
+   "phase_a_owasp": "ASI03;ASI07"
+  },
+  {
+   "n": 4,
+   "kind": "feature",
+   "feature": "User-to-session binding",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI06",
+    "ASI07"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Reusable workers or shared volumes can leak state",
+   "recommended": "Prevent cross-user file process memory and result access; enforcement point: Workspace provisioner storage and result router; authority: Administrator enforced.",
+   "common": "Per-user/per-task workspace and owner-bound result path - pending",
+   "runtimes": {
+    "sdk_governed": "SDK paths must be rooted to task workspace - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone administrator supplies tenancy/isolation Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Workspace/filesystem scope must be constrained by wrapper - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone administrator supplies tenancy/isolation Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "State/checkpoint namespace must be owner/task scoped - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone administrator supplies tenancy/isolation Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Reusable workers or shared volumes can leak state",
+    "damage": "Material control dimension. Residual exposure: Reusable workers or shared volumes can leak state",
+    "exposure": "Material control dimension. Residual exposure: Reusable workers or shared volumes can leak state"
+   },
+   "phase_a_owasp": "ASI03;ASI06;ASI07"
+  },
+  {
+   "n": 5,
+   "kind": "feature",
+   "feature": "Task ownership",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI07",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "A2A source reviewed; deployed behavior pending",
+   "limitation": "Stale worker can submit to new generation",
+   "recommended": "Bind every worker event result and side effect to exact task generation; enforcement point: Task broker adapters queue and result router; authority: Administrator enforced.",
+   "common": "Immutable task ID generation owner and expiry intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK call carries binding - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone application must implement Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI adapter carries binding - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone application must implement Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent state/checkpoint carries binding - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone application must implement Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Stale worker can submit to new generation",
+    "exposure": "Material control dimension. Residual exposure: Stale worker can submit to new generation"
+   },
+   "phase_a_owasp": "ASI03;ASI07;ASI08;ASI10"
+  },
+  {
+   "n": 6,
+   "kind": "feature",
+   "feature": "Authentication",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI07"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Shared or weak identity breaks attribution and audience control",
+   "recommended": "Authenticate every human and service before task creation; enforcement point: Identity gateway and task broker; authority: Administrator defines identity path; user cannot substitute identity.",
+   "common": "Approved DSH AD/LDAP path and gateway binding - runtime proof pending",
+   "runtimes": {
+    "sdk_governed": "The inspected SDK accepts runtime/profile/provider configuration from its embedding caller; enterprise identity is not established by the SDK source.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone deployment supplies its own identity or enterprise IdP Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Standard Claude Code authenticates to an approved model service; corporate AD/LDAP and task-owner binding require surrounding enterprise integration.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone deployment supplies its own identity or enterprise IdP Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Library composition accepts application-selected model, tools and runtime; application infrastructure supplies enterprise identity.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone deployment supplies its own identity or enterprise IdP Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Shared or weak identity breaks attribution and audience control",
+    "damage": "Material control dimension. Residual exposure: Shared or weak identity breaks attribution and audience control",
+    "exposure": "Material control dimension. Residual exposure: Shared or weak identity breaks attribution and audience control"
+   },
+   "phase_a_owasp": "ASI03;ASI07"
+  },
+  {
+   "n": 7,
+   "kind": "feature",
+   "feature": "Authorization",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI02",
+    "ASI03"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Downstream services may accept broader credentials",
+   "recommended": "Enforce least privilege per user group task and operation; enforcement point: Policy engine and downstream services; authority: Administrator defines; user operates within grants.",
+   "common": "Central role/policy decision before model/tool/storage action - pending",
+   "runtimes": {
+    "sdk_governed": "Adapter consumes governed scopes - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone controls depend on product and enterprise infrastructure Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Native permission settings are separate from enterprise role mapping",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone controls depend on product and enterprise infrastructure Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Application-defined middleware and tool policy",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone controls depend on product and enterprise infrastructure Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Downstream services may accept broader credentials",
+    "exposure": "Material control dimension. Residual exposure: Downstream services may accept broader credentials"
+   },
+   "phase_a_owasp": "ASI02;ASI03"
+  },
+  {
+   "n": 8,
+   "kind": "feature",
+   "feature": "Least privilege",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI02",
+    "ASI03"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Downstream services may accept broader credentials",
+   "recommended": "Enforce least privilege per user group task and operation; enforcement point: Policy engine and downstream services; authority: Administrator defines; user operates within grants.",
+   "common": "Central role/policy decision before model/tool/storage action - pending",
+   "runtimes": {
+    "sdk_governed": "Adapter consumes governed scopes - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone controls depend on product and enterprise infrastructure Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Native permission settings are separate from enterprise role mapping",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone controls depend on product and enterprise infrastructure Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Application-defined middleware and tool policy",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone controls depend on product and enterprise infrastructure Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Downstream services may accept broader credentials",
+    "exposure": "Material control dimension. Residual exposure: Downstream services may accept broader credentials"
+   },
+   "phase_a_owasp": "ASI02;ASI03"
+  },
+  {
+   "n": 9,
+   "kind": "feature",
+   "feature": "Workspace isolation",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI03",
+    "ASI05",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Shared kernel/node and side channels remain",
+   "recommended": "Separate users tasks processes and state; enforcement point: Namespace pod container process and workspace; authority: Administrator controlled.",
+   "common": "Isolated RKE2 workspace intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK process runs in task boundary - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone requires container/sandbox/OS controls Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Claude Code process/subprocess boundary pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone requires container/sandbox/OS controls Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Deep Agents worker/subagent boundary pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone requires container/sandbox/OS controls Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Shared kernel/node and side channels remain",
+    "damage": "Material control dimension. Residual exposure: Shared kernel/node and side channels remain",
+    "exposure": "Material control dimension. Residual exposure: Shared kernel/node and side channels remain"
+   },
+   "phase_a_owasp": "ASI03;ASI05;ASI08;ASI10"
+  },
+  {
+   "n": 10,
+   "kind": "feature",
+   "feature": "Namespace isolation",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI03",
+    "ASI05",
+    "ASI08"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Mis-scheduling or privileged node access",
+   "recommended": "Keep workloads in approved isolation and hardware boundary; enforcement point: Kubernetes namespace labels affinity tolerations runtime class; authority: Administrator controlled.",
+   "common": "Same isolated RKE2 placement intended - pending actual scheduling proof",
+   "runtimes": {
+    "sdk_governed": "Adapter deployment placement pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone platform chooses placement Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Adapter deployment placement pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone platform chooses placement Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Adapter deployment placement pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone platform chooses placement Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Mis-scheduling or privileged node access",
+    "damage": "Material control dimension. Residual exposure: Mis-scheduling or privileged node access",
+    "exposure": "Material control dimension. Residual exposure: Mis-scheduling or privileged node access"
+   },
+   "phase_a_owasp": "ASI03;ASI05;ASI08"
+  },
+  {
+   "n": 11,
+   "kind": "feature",
+   "feature": "Pod/process isolation",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI03",
+    "ASI05",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "I",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Shared kernel/node and side channels remain",
+   "recommended": "Separate users tasks processes and state; enforcement point: Namespace pod container process and workspace; authority: Administrator controlled.",
+   "common": "Isolated RKE2 workspace intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK process runs in task boundary - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone requires container/sandbox/OS controls Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Claude Code process/subprocess boundary pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone requires container/sandbox/OS controls Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Deep Agents worker/subagent boundary pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone requires container/sandbox/OS controls Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Shared kernel/node and side channels remain",
+    "damage": "Material control dimension. Residual exposure: Shared kernel/node and side channels remain",
+    "exposure": "Material control dimension. Residual exposure: Shared kernel/node and side channels remain"
+   },
+   "phase_a_owasp": "ASI03;ASI05;ASI08;ASI10"
+  },
+  {
+   "n": 12,
+   "kind": "feature",
+   "feature": "Filesystem read controls",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI02",
+    "ASI05",
+    "ASI06"
+   ],
+   "risk": "3",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Symlink mount or host path escape",
+   "recommended": "Constrain paths ownership mounts and mutation scope; enforcement point: Workspace mount policy tool adapter and OS controls; authority: Administrator controlled.",
+   "common": "Task root and mount policy intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK resolves workspace/runtime directories to absolute paths, but host mounts and runtime permissions determine the reachable filesystem.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone uses host/container permissions Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "File tools and additional directories are native; allow/deny rules and the surrounding container/filesystem must constrain reach.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone uses host/container permissions Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Filesystem access is backend/middleware dependent; state, store, filesystem and sandbox backends have different persistence and reach.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone uses host/container permissions Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Symlink mount or host path escape",
+    "damage": "Material control dimension. Residual exposure: Symlink mount or host path escape",
+    "exposure": "Material control dimension. Residual exposure: Symlink mount or host path escape"
+   },
+   "phase_a_owasp": "ASI02;ASI05;ASI06"
+  },
+  {
+   "n": 13,
+   "kind": "feature",
+   "feature": "Filesystem write controls",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI02",
+    "ASI05",
+    "ASI06"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "I",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Symlink mount or host path escape",
+   "recommended": "Constrain paths ownership mounts and mutation scope; enforcement point: Workspace mount policy tool adapter and OS controls; authority: Administrator controlled.",
+   "common": "Task root and mount policy intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK resolves workspace/runtime directories to absolute paths, but host mounts and runtime permissions determine the reachable filesystem.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone uses host/container permissions Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "File tools and additional directories are native; allow/deny rules and the surrounding container/filesystem must constrain reach.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone uses host/container permissions Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Filesystem access is backend/middleware dependent; state, store, filesystem and sandbox backends have different persistence and reach.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone uses host/container permissions Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Symlink mount or host path escape",
+    "damage": "Material control dimension. Residual exposure: Symlink mount or host path escape",
+    "exposure": "Material control dimension. Residual exposure: Symlink mount or host path escape"
+   },
+   "phase_a_owasp": "ASI02;ASI05;ASI06"
+  },
+  {
+   "n": 14,
+   "kind": "feature",
+   "feature": "Output-path restrictions",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI02",
+    "ASI05",
+    "ASI06"
+   ],
+   "risk": "3",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Symlink mount or host path escape",
+   "recommended": "Constrain paths ownership mounts and mutation scope; enforcement point: Workspace mount policy tool adapter and OS controls; authority: Administrator controlled.",
+   "common": "Task root and mount policy intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK resolves workspace/runtime directories to absolute paths, but host mounts and runtime permissions determine the reachable filesystem.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone uses host/container permissions Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "File tools and additional directories are native; allow/deny rules and the surrounding container/filesystem must constrain reach.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone uses host/container permissions Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Filesystem access is backend/middleware dependent; state, store, filesystem and sandbox backends have different persistence and reach.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone uses host/container permissions Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Symlink mount or host path escape",
+    "damage": "Material control dimension. Residual exposure: Symlink mount or host path escape",
+    "exposure": "Material control dimension. Residual exposure: Symlink mount or host path escape"
+   },
+   "phase_a_owasp": "ASI02;ASI05;ASI06"
+  },
+  {
+   "n": 15,
+   "kind": "feature",
+   "feature": "Secret access",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI04",
+    "ASI05"
+   ],
+   "risk": "1",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Child processes or diagnostics may expose secrets",
+   "recommended": "Use least privilege non-user-readable secrets and prevent forwarding; enforcement point: Secret injection redaction filesystem process and audit; authority: Administrator controlled.",
+   "common": "Task receives only required scoped secrets - pending",
+   "runtimes": {
+    "sdk_governed": "SDK inherits caller environment by default and can set endpoint/key child variables; DSH must control injection, redaction, lifetime and accessible process environment.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone deployment supplies its own secret manager Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Provider/proxy/CA and gateway credentials are configurable; secret custody and redaction remain enterprise deployment responsibilities.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone deployment supplies its own secret manager Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Credentials follow model/tool/backend integrations selected by the application; middleware is not a secret store by itself.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone deployment supplies its own secret manager Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Child processes or diagnostics may expose secrets",
+    "damage": "Material control dimension. Residual exposure: Child processes or diagnostics may expose secrets",
+    "exposure": "Material control dimension. Residual exposure: Child processes or diagnostics may expose secrets"
+   },
+   "phase_a_owasp": "ASI03;ASI04;ASI05"
+  },
+  {
+   "n": 16,
+   "kind": "feature",
+   "feature": "Credential injection",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI04",
+    "ASI05"
+   ],
+   "risk": "1",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Child processes or diagnostics may expose secrets",
+   "recommended": "Use least privilege non-user-readable secrets and prevent forwarding; enforcement point: Secret injection redaction filesystem process and audit; authority: Administrator controlled.",
+   "common": "Task receives only required scoped secrets - pending",
+   "runtimes": {
+    "sdk_governed": "SDK inherits caller environment by default and can set endpoint/key child variables; DSH must control injection, redaction, lifetime and accessible process environment.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone deployment supplies its own secret manager Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Provider/proxy/CA and gateway credentials are configurable; secret custody and redaction remain enterprise deployment responsibilities.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone deployment supplies its own secret manager Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Credentials follow model/tool/backend integrations selected by the application; middleware is not a secret store by itself.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone deployment supplies its own secret manager Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Child processes or diagnostics may expose secrets",
+    "damage": "Material control dimension. Residual exposure: Child processes or diagnostics may expose secrets",
+    "exposure": "Material control dimension. Residual exposure: Child processes or diagnostics may expose secrets"
+   },
+   "phase_a_owasp": "ASI03;ASI04;ASI05"
+  },
+  {
+   "n": 17,
+   "kind": "feature",
+   "feature": "Credential persistence",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI04",
+    "ASI05"
+   ],
+   "risk": "1",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Child processes or diagnostics may expose secrets",
+   "recommended": "Use least privilege non-user-readable secrets and prevent forwarding; enforcement point: Secret injection redaction filesystem process and audit; authority: Administrator controlled.",
+   "common": "Task receives only required scoped secrets - pending",
+   "runtimes": {
+    "sdk_governed": "SDK inherits caller environment by default and can set endpoint/key child variables; DSH must control injection, redaction, lifetime and accessible process environment.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone deployment supplies its own secret manager Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Provider/proxy/CA and gateway credentials are configurable; secret custody and redaction remain enterprise deployment responsibilities.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone deployment supplies its own secret manager Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Credentials follow model/tool/backend integrations selected by the application; middleware is not a secret store by itself.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone deployment supplies its own secret manager Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Child processes or diagnostics may expose secrets",
+    "damage": "Material control dimension. Residual exposure: Child processes or diagnostics may expose secrets",
+    "exposure": "Material control dimension. Residual exposure: Child processes or diagnostics may expose secrets"
+   },
+   "phase_a_owasp": "ASI03;ASI04;ASI05"
+  },
+  {
+   "n": 18,
+   "kind": "feature",
+   "feature": "Local model enforcement",
+   "asi_primary": "ASI02",
+   "asi_all": [
+    "ASI02",
+    "ASI03",
+    "ASI07"
+   ],
+   "risk": "1",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Direct SDK or plugin endpoints may bypass gateway",
+   "recommended": "Force all model requests through approved internal gateway; enforcement point: Adapter network policy DNS/proxy and LiteLLM; authority: Administrator controlled.",
+   "common": "Shared internal route intended - pending network and trace proof",
+   "runtimes": {
+    "sdk_governed": "The inspected SDK can pass endpoint/key overrides to the child process; local LiteLLM-only enforcement is a DSH configuration and network property, not a native SDK guarantee.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone deployment chooses its own endpoint Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "An LLM gateway can be configured, but native CLI capability does not prove that all requests use one internal LiteLLM endpoint.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone deployment chooses its own endpoint Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Model factory/provider is application-defined; routing through LiteLLM must be fixed by the DSH adapter and network policy.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone deployment chooses its own endpoint Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Direct SDK or plugin endpoints may bypass gateway",
+    "damage": "Material control dimension. Residual exposure: Direct SDK or plugin endpoints may bypass gateway",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI02;ASI03;ASI07"
+  },
+  {
+   "n": 19,
+   "kind": "feature",
+   "feature": "Ability to change model",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI01",
+    "ASI03",
+    "ASI10"
+   ],
+   "risk": "1",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Alternate config surfaces can bypass policy",
+   "recommended": "Prevent users from changing model route or credentials; enforcement point: Adapter configuration and admission policy; authority: Administrator fixed; user denied.",
+   "common": "Fixed alias/config intended - pending live refusal",
+   "runtimes": {
+    "sdk_governed": "Provider, model, profile, patches, executable and environment are caller-selectable in the inspected SDK; DSH admission must make the approved composition immutable.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone products may permit administrator/user model configuration Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI exposes model and settings/provider routes. Immutability requires managed configuration, wrapper admission and network enforcement.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone products may permit administrator/user model configuration Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "create_deep_agent resolves caller/profile-selected model and backend. Immutability requires the released application composition and deployment controls.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone products may permit administrator/user model configuration Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Alternate config surfaces can bypass policy",
+    "damage": "Material control dimension. Residual exposure: Alternate config surfaces can bypass policy",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI01;ASI03;ASI10"
+  },
+  {
+   "n": 20,
+   "kind": "feature",
+   "feature": "Ability to change endpoint",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI01",
+    "ASI03",
+    "ASI10"
+   ],
+   "risk": "1",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Alternate config surfaces can bypass policy",
+   "recommended": "Prevent users from changing model route or credentials; enforcement point: Adapter configuration and admission policy; authority: Administrator fixed; user denied.",
+   "common": "Fixed alias/config intended - pending live refusal",
+   "runtimes": {
+    "sdk_governed": "Provider, model, profile, patches, executable and environment are caller-selectable in the inspected SDK; DSH admission must make the approved composition immutable.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone products may permit administrator/user model configuration Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI exposes model and settings/provider routes. Immutability requires managed configuration, wrapper admission and network enforcement.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone products may permit administrator/user model configuration Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "create_deep_agent resolves caller/profile-selected model and backend. Immutability requires the released application composition and deployment controls.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone products may permit administrator/user model configuration Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Alternate config surfaces can bypass policy",
+    "damage": "Material control dimension. Residual exposure: Alternate config surfaces can bypass policy",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI01;ASI03;ASI10"
+  },
+  {
+   "n": 21,
+   "kind": "feature",
+   "feature": "External provider fallback",
+   "asi_primary": "ASI02",
+   "asi_all": [
+    "ASI01",
+    "ASI02",
+    "ASI10"
+   ],
+   "risk": "1",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Library defaults may retry alternate routes",
+   "recommended": "Fail closed when internal model route is unavailable; enforcement point: Egress policy secret policy adapter fail-closed logic; authority: Administrator controlled.",
+   "common": "No implicit fallback and no Internet route intended - pending",
+   "runtimes": {
+    "sdk_governed": "Caller-selectable provider/model/environment means the governed wrapper must deny alternatives and egress; SDK source alone does not deny fallback.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone behavior depends on configuration Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Supports multiple provider/gateway configurations; governed deployment must block alternate settings, credentials, endpoints and bypass invocation.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone behavior depends on configuration Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Supports multiple model/provider integrations; the released DSH composition and egress policy must prevent substitution.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone behavior depends on configuration Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Library defaults may retry alternate routes",
+    "damage": "Material control dimension. Residual exposure: Library defaults may retry alternate routes",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI01;ASI02;ASI10"
+  },
+  {
+   "n": 22,
+   "kind": "feature",
+   "feature": "Outbound network access",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI02",
+    "ASI05",
+    "ASI07",
+    "ASI10"
+   ],
+   "risk": "1",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Host network or approved proxy could create bypass",
+   "recommended": "Deny unauthorized outbound connections and resolution; enforcement point: NetworkPolicy DNS proxy node and runtime; authority: Administrator controlled.",
+   "common": "No-Internet segment intended - pending live DNS/proxy/egress refusal",
+   "runtimes": {
+    "sdk_governed": "Child process inherits caller environment unless constrained. No-Internet behavior belongs to namespace/node/network policy and endpoint admission.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone requires separate firewall/proxy/network policy Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Standard authentication/model processing requires network access; HTTP/HTTPS proxy and custom CA are configurable, while NO_PROXY and SOCKS are documented unsupported.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone requires separate firewall/proxy/network policy Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Egress follows the selected model, tools, backend and application runtime; no universal network boundary is supplied by the library.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone requires separate firewall/proxy/network policy Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Host network or approved proxy could create bypass",
+    "damage": "Material control dimension. Residual exposure: Host network or approved proxy could create bypass",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI02;ASI05;ASI07;ASI10"
+  },
+  {
+   "n": 23,
+   "kind": "feature",
+   "feature": "Internet dependency",
+   "asi_primary": "ASI04",
+   "asi_all": [
+    "ASI04",
+    "ASI05"
+   ],
+   "risk": "1",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Stale or incomplete offline mirrors",
+   "recommended": "Install and update without Internet using verified provenance; enforcement point: Artifact registry package mirror SBOM/signature and rollout; authority: Administrator controlled.",
+   "common": "Curated offline bundle process intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK wheels/packages bundled and pinned",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone admin designs offline supply chain Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI binary/plugins bundled and pinned",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone admin designs offline supply chain Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Python packages/model dependencies bundled and pinned",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone admin designs offline supply chain Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Stale or incomplete offline mirrors",
+    "damage": "Material control dimension. Residual exposure: Stale or incomplete offline mirrors",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI04;ASI05"
+  },
+  {
+   "n": 24,
+   "kind": "feature",
+   "feature": "DNS and proxy controls",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI02",
+    "ASI05",
+    "ASI07",
+    "ASI10"
+   ],
+   "risk": "1",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Host network or approved proxy could create bypass",
+   "recommended": "Deny unauthorized outbound connections and resolution; enforcement point: NetworkPolicy DNS proxy node and runtime; authority: Administrator controlled.",
+   "common": "No-Internet segment intended - pending live DNS/proxy/egress refusal",
+   "runtimes": {
+    "sdk_governed": "Child process inherits caller environment unless constrained. No-Internet behavior belongs to namespace/node/network policy and endpoint admission.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone requires separate firewall/proxy/network policy Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Standard authentication/model processing requires network access; HTTP/HTTPS proxy and custom CA are configurable, while NO_PROXY and SOCKS are documented unsupported.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone requires separate firewall/proxy/network policy Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Egress follows the selected model, tools, backend and application runtime; no universal network boundary is supplied by the library.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone requires separate firewall/proxy/network policy Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Host network or approved proxy could create bypass",
+    "damage": "Material control dimension. Residual exposure: Host network or approved proxy could create bypass",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI02;ASI05;ASI07;ASI10"
+  },
+  {
+   "n": 25,
+   "kind": "feature",
+   "feature": "Package installation",
+   "asi_primary": "ASI04",
+   "asi_all": [
+    "ASI04",
+    "ASI05"
+   ],
+   "risk": "2",
+   "layer": "Verification",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Transitive dependencies and stale mirrors",
+   "recommended": "Use approved offline sources pinned packages and evidence; enforcement point: Package repository admission SBOM signature/hash; authority: Administrator controlled.",
+   "common": "Curated offline repository and privileged gate intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK dependencies pinned/provenanced - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone administrator owns supply chain Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI/plugin/package install constrained - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone administrator owns supply chain Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Python/JS dependencies pinned/provenanced - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone administrator owns supply chain Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Transitive dependencies and stale mirrors",
+    "damage": "Material control dimension. Residual exposure: Transitive dependencies and stale mirrors",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI04;ASI05"
+  },
+  {
+   "n": 26,
+   "kind": "feature",
+   "feature": "Tool installation",
+   "asi_primary": "ASI02",
+   "asi_all": [
+    "ASI01",
+    "ASI02",
+    "ASI05"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Prompt injection can misuse approved tool",
+   "recommended": "Allow only named scoped validated operations; enforcement point: Tool registry semantic validator approval gate; authority: Administrator defines; user requests.",
+   "common": "Central tool policy intended - pending",
+   "runtimes": {
+    "sdk_governed": "Supports permission flows and approval responses; the embedding policy decides allowed operations and must fail closed on lost/invalid approval.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone administrator defines tools and approvals Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Native allowed/disallowed tools, permission modes and permission-prompt MCP tool exist; the dangerous bypass flag means wrapper-level prevention must also be verified.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone administrator defines tools and approvals Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Tools, middleware, profile exclusions and human interrupts are composable; DSH must bind and protect the reviewed tool surface.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone administrator defines tools and approvals Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Prompt injection can misuse approved tool",
+    "damage": "Material control dimension. Residual exposure: Prompt injection can misuse approved tool",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI01;ASI02;ASI05"
+  },
+  {
+   "n": 27,
+   "kind": "feature",
+   "feature": "Shell access",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI01",
+    "ASI02",
+    "ASI05"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Prompt injection can misuse approved tool",
+   "recommended": "Allow only named scoped validated operations; enforcement point: Tool registry semantic validator approval gate; authority: Administrator defines; user requests.",
+   "common": "Central tool policy intended - pending",
+   "runtimes": {
+    "sdk_governed": "Supports permission flows and approval responses; the embedding policy decides allowed operations and must fail closed on lost/invalid approval.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone administrator defines tools and approvals Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Native allowed/disallowed tools, permission modes and permission-prompt MCP tool exist; the dangerous bypass flag means wrapper-level prevention must also be verified.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone administrator defines tools and approvals Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Tools, middleware, profile exclusions and human interrupts are composable; DSH must bind and protect the reviewed tool surface.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone administrator defines tools and approvals Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Prompt injection can misuse approved tool",
+    "damage": "Material control dimension. Residual exposure: Prompt injection can misuse approved tool",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI01;ASI02;ASI05"
+  },
+  {
+   "n": 28,
+   "kind": "feature",
+   "feature": "Command execution",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI01",
+    "ASI02",
+    "ASI05"
+   ],
+   "risk": "2",
+   "layer": "Verification",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Prompt injection can misuse approved tool",
+   "recommended": "Allow only named scoped validated operations; enforcement point: Tool registry semantic validator approval gate; authority: Administrator defines; user requests.",
+   "common": "Central tool policy intended - pending",
+   "runtimes": {
+    "sdk_governed": "Supports permission flows and approval responses; the embedding policy decides allowed operations and must fail closed on lost/invalid approval.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone administrator defines tools and approvals Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Native allowed/disallowed tools, permission modes and permission-prompt MCP tool exist; the dangerous bypass flag means wrapper-level prevention must also be verified.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone administrator defines tools and approvals Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Tools, middleware, profile exclusions and human interrupts are composable; DSH must bind and protect the reviewed tool surface.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone administrator defines tools and approvals Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Prompt injection can misuse approved tool",
+    "damage": "Material control dimension. Residual exposure: Prompt injection can misuse approved tool",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI01;ASI02;ASI05"
+  },
+  {
+   "n": 29,
+   "kind": "feature",
+   "feature": "Code execution",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI01",
+    "ASI02",
+    "ASI05"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "I",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Prompt injection can misuse approved tool",
+   "recommended": "Allow only named scoped validated operations; enforcement point: Tool registry semantic validator approval gate; authority: Administrator defines; user requests.",
+   "common": "Central tool policy intended - pending",
+   "runtimes": {
+    "sdk_governed": "Supports permission flows and approval responses; the embedding policy decides allowed operations and must fail closed on lost/invalid approval.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone administrator defines tools and approvals Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Native allowed/disallowed tools, permission modes and permission-prompt MCP tool exist; the dangerous bypass flag means wrapper-level prevention must also be verified.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone administrator defines tools and approvals Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Tools, middleware, profile exclusions and human interrupts are composable; DSH must bind and protect the reviewed tool surface.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone administrator defines tools and approvals Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Prompt injection can misuse approved tool",
+    "damage": "Material control dimension. Residual exposure: Prompt injection can misuse approved tool",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI01;ASI02;ASI05"
+  },
+  {
+   "n": 30,
+   "kind": "feature",
+   "feature": "Subprocess and descendant control",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI02",
+    "ASI05",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "A",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Detached children can survive cancellation",
+   "recommended": "Track constrain and terminate the full process tree; enforcement point: Execution controller cgroup PID namespace; authority: Administrator controlled.",
+   "common": "Execution backend must own descendants - pending",
+   "runtimes": {
+    "sdk_governed": "SDK launched processes registered - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone requires supervisor/cgroup/job control Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Shell descendants registered - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone requires supervisor/cgroup/job control Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Tool/subagent processes registered - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone requires supervisor/cgroup/job control Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Detached children can survive cancellation",
+    "damage": "Material control dimension. Residual exposure: Detached children can survive cancellation",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI02;ASI05;ASI08;ASI10"
+  },
+  {
+   "n": 31,
+   "kind": "feature",
+   "feature": "MCP/plugin/tool controls",
+   "asi_primary": "ASI02",
+   "asi_all": [
+    "ASI02",
+    "ASI04",
+    "ASI07"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Descriptor poisoning or user-installed plugin",
+   "recommended": "Admit only reviewed endpoints descriptors permissions and versions; enforcement point: Configuration admission tool registry and network policy; authority: Administrator controlled.",
+   "common": "Shared catalogue and immutable user policy intended - pending",
+   "runtimes": {
+    "sdk_governed": "Full and minimal profiles expose different plugin/tool compositions; governed release must pin the selected profile and ordered patches.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone admin configures extensions Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "MCP servers and tool permissions are native and administrator-configurable; DSH must allowlist configuration and prevent user substitution.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone admin configures extensions Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Caller can supply custom or MCP-derived tools; DSH must fix the tool set and permissions in the released composition.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone admin configures extensions Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Descriptor poisoning or user-installed plugin",
+    "damage": "Material control dimension. Residual exposure: Descriptor poisoning or user-installed plugin",
+    "exposure": "Material control dimension. Residual exposure: Descriptor poisoning or user-installed plugin"
+   },
+   "phase_a_owasp": "ASI02;ASI04;ASI07"
+  },
+  {
+   "n": 32,
+   "kind": "feature",
+   "feature": "Prompt/context handling",
+   "asi_primary": "ASI01",
+   "asi_all": [
+    "ASI01",
+    "ASI02",
+    "ASI06",
+    "ASI07",
+    "ASI09"
+   ],
+   "risk": "3",
+   "layer": "Verification",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Debug logs or shared memory may expose content",
+   "recommended": "Limit content to minimum authorized task and audience; enforcement point: Context builder tool adapter and result router; authority: Administrator policy; user sees authorized subset.",
+   "common": "Context assembly and output routing must be owner bound - pending",
+   "runtimes": {
+    "sdk_governed": "SDK inputs/outputs filtered by wrapper - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone app configures exposure boundary Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Terminal/tool/context visibility bounded by workspace and policy - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone app configures exposure boundary Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "State/tool messages filtered by application - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone app configures exposure boundary Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Debug logs or shared memory may expose content",
+    "damage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "exposure": "Material control dimension. Residual exposure: Debug logs or shared memory may expose content"
+   },
+   "phase_a_owasp": "ASI01;ASI02;ASI06;ASI07;ASI09"
+  },
+  {
+   "n": 33,
+   "kind": "feature",
+   "feature": "Sensitive-data minimization",
+   "asi_primary": "ASI06",
+   "asi_all": [
+    "ASI01",
+    "ASI06",
+    "ASI09"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Misclassification or copied output can escape controls",
+   "recommended": "Keep classified content within approved boundary with explicit ownership; enforcement point: Ingress classifier workspace gateway and model route; authority: Administrator policy plus user classification duties.",
+   "common": "Classification gate and controlled processing path - pending",
+   "runtimes": {
+    "sdk_governed": "SDK receives only admitted owner-scoped content",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone administrator owns classification and boundary Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Adapter treats repository/files as data not policy",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone administrator owns classification and boundary Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Application defines loaders and context boundary",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone administrator owns classification and boundary Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Misclassification or copied output can escape controls",
+    "damage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "exposure": "Material control dimension. Residual exposure: Misclassification or copied output can escape controls"
+   },
+   "phase_a_owasp": "ASI01;ASI06;ASI09"
+  },
+  {
+   "n": 34,
+   "kind": "feature",
+   "feature": "Result routing",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI07",
+    "ASI09"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Shared links caches or stale sessions",
+   "recommended": "Return results only to exact authorized owner/task; enforcement point: Broker result store UI/API authorization; authority: Administrator enforced.",
+   "common": "Owner-bound result router intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK response owner binding pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone app defines routing Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI session/result binding pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone app defines routing Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent state/output binding pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone app defines routing Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "exposure": "Material control dimension. Residual exposure: Shared links caches or stale sessions"
+   },
+   "phase_a_owasp": "ASI03;ASI07;ASI09"
+  },
+  {
+   "n": 35,
+   "kind": "feature",
+   "feature": "Result ownership",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI07",
+    "ASI09"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Shared links caches or stale sessions",
+   "recommended": "Return results only to exact authorized owner/task; enforcement point: Broker result store UI/API authorization; authority: Administrator enforced.",
+   "common": "Owner-bound result router intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK response owner binding pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone app defines routing Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI session/result binding pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone app defines routing Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent state/output binding pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone app defines routing Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "exposure": "Material control dimension. Residual exposure: Shared links caches or stale sessions"
+   },
+   "phase_a_owasp": "ASI03;ASI07;ASI09"
+  },
+  {
+   "n": 36,
+   "kind": "feature",
+   "feature": "Result retention",
+   "asi_primary": "ASI06",
+   "asi_all": [
+    "ASI03",
+    "ASI06",
+    "ASI08"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Backups caches and logs may outlive task",
+   "recommended": "Apply approved retention deletion legal hold and tenant isolation; enforcement point: Storage service lifecycle controller and cleanup job; authority: Administrator controlled.",
+   "common": "Task-scoped storage lifecycle intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK persistence must use governed store - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone application defines storage lifecycle Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Session/history/cache locations constrained by wrapper - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone application defines storage lifecycle Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Checkpointer/memory store constrained by wrapper - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone application defines storage lifecycle Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Backups caches and logs may outlive task",
+    "damage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "exposure": "Material control dimension. Residual exposure: Backups caches and logs may outlive task"
+   },
+   "phase_a_owasp": "ASI03;ASI06;ASI08"
+  },
+  {
+   "n": 37,
+   "kind": "feature",
+   "feature": "Result sharing",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI06",
+    "ASI07"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "URLs logs and browser cache can expose results",
+   "recommended": "Deny enumeration guessing sharing or cache leakage across users; enforcement point: Result API storage cache and UI; authority: Administrator enforced.",
+   "common": "Cross-owner read and stale-result refusal required - pending",
+   "runtimes": {
+    "sdk_governed": "SDK API authorization pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone app defines controls Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI session separation pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone app defines controls Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent state-store isolation pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone app defines controls Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "exposure": "Material control dimension. Residual exposure: URLs logs and browser cache can expose results"
+   },
+   "phase_a_owasp": "ASI03;ASI06;ASI07"
+  },
+  {
+   "n": 38,
+   "kind": "feature",
+   "feature": "Logging",
+   "asi_primary": "ASI09",
+   "asi_all": [
+    "ASI03",
+    "ASI07",
+    "ASI08",
+    "ASI09"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "audit / evidence",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Logs may omit downstream actions or expose content",
+   "recommended": "Record identity task route tool result policy and outcome without leaking data; enforcement point: Identity gateway broker adapters LiteLLM tools result router; authority: Administrator controlled.",
+   "common": "End-to-end correlation intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK events normalized - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone application defines telemetry Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI/model/tool events normalized - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone application defines telemetry Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent/subagent events normalized - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone application defines telemetry Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Logs may omit downstream actions or expose content",
+    "damage": "Material control dimension. Residual exposure: Logs may omit downstream actions or expose content",
+    "exposure": "Material control dimension. Residual exposure: Logs may omit downstream actions or expose content"
+   },
+   "phase_a_owasp": "ASI03;ASI07;ASI08;ASI09"
+  },
+  {
+   "n": 39,
+   "kind": "feature",
+   "feature": "Audit attribution",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI07",
+    "ASI09"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "audit / evidence",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Shared service identities may obscure the human actor",
+   "recommended": "Bind every request action and result to an authenticated principal; enforcement point: Task broker audit and result router; authority: Administrator policy; user cannot rewrite attribution.",
+   "common": "Task ID generation owner and correlation must be immutable - pending",
+   "runtimes": {
+    "sdk_governed": "Adapter must preserve owner/task claims - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Application/administrator must implement attribution Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Adapter must prevent local/shared credential ambiguity - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Application/administrator must implement attribution Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Application callback and state must preserve owner/task claims - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Application/administrator must implement attribution Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Shared service identities may obscure the human actor",
+    "exposure": "Material control dimension. Residual exposure: Shared service identities may obscure the human actor"
+   },
+   "phase_a_owasp": "ASI03;ASI07;ASI09"
+  },
+  {
+   "n": 40,
+   "kind": "feature",
+   "feature": "Model-call evidence",
+   "asi_primary": "ASI04",
+   "asi_all": [
+    "ASI04",
+    "ASI06",
+    "ASI08"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "audit / evidence",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Evidence itself can contain sensitive content",
+   "recommended": "Retain sufficient immutable evidence under approved policy; enforcement point: Evidence store hash/provenance and access policy; authority: Administrator controlled.",
+   "common": "Receipt/provenance retention intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK receipts pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone operations define retention Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI receipts pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone operations define retention Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent receipts pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone operations define retention Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Evidence itself can contain sensitive content",
+    "damage": "Material control dimension. Residual exposure: Evidence itself can contain sensitive content",
+    "exposure": "Material control dimension. Residual exposure: Evidence itself can contain sensitive content"
+   },
+   "phase_a_owasp": "ASI04;ASI06;ASI08"
+  },
+  {
+   "n": 41,
+   "kind": "feature",
+   "feature": "Cancellation",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI02",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "A",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "A2A source reviewed; deployed behavior pending",
+   "limitation": "Provider/tool may complete after cancel",
+   "recommended": "Stop model tool subprocess and queued work completely; enforcement point: Broker adapter model client execution controller; authority: Administrator policy and user cancel action.",
+   "common": "Coordinated cancellation intended - pending live proof",
+   "runtimes": {
+    "sdk_governed": "Client bounds initialization/shutdown and reports protocol/lifecycle failures, but does not prove rollback or descendant termination after observer timeout.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone app/runtime must implement Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Session interruption is native user behavior; complete descendant termination and durable cancellation require runtime/process controls.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone app/runtime must implement Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "LangGraph interrupts/pause-resume are state controls; process-tree termination depends on backend/runtime implementation.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone app/runtime must implement Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Provider/tool may complete after cancel",
+    "exposure": "Material control dimension. Residual exposure: Provider/tool may complete after cancel"
+   },
+   "phase_a_owasp": "ASI02;ASI08;ASI10"
+  },
+  {
+   "n": 42,
+   "kind": "feature",
+   "feature": "Timeout",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI06",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "A",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Cleanup may miss external side effects",
+   "recommended": "Expire tasks and remove resources without harming shared state; enforcement point: Task broker TTL controller storage/process cleanup; authority: Administrator policy.",
+   "common": "TTL and owner-scoped cleanup intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK task state cleaned by controller",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone app must implement Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI workspace/process cleaned by controller",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone app must implement Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent state/checkpoint cleaned by controller",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone app must implement Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Cleanup may miss external side effects",
+    "damage": "Material control dimension. Residual exposure: Cleanup may miss external side effects",
+    "exposure": "Material control dimension. Residual exposure: Cleanup may miss external side effects"
+   },
+   "phase_a_owasp": "ASI06;ASI08;ASI10"
+  },
+  {
+   "n": 43,
+   "kind": "feature",
+   "feature": "Expiry",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI06",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "A",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Cleanup may miss external side effects",
+   "recommended": "Expire tasks and remove resources without harming shared state; enforcement point: Task broker TTL controller storage/process cleanup; authority: Administrator policy.",
+   "common": "TTL and owner-scoped cleanup intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK task state cleaned by controller",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone app must implement Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI workspace/process cleaned by controller",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone app must implement Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent state/checkpoint cleaned by controller",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone app must implement Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Cleanup may miss external side effects",
+    "damage": "Material control dimension. Residual exposure: Cleanup may miss external side effects",
+    "exposure": "Material control dimension. Residual exposure: Cleanup may miss external side effects"
+   },
+   "phase_a_owasp": "ASI06;ASI08;ASI10"
+  },
+  {
+   "n": 44,
+   "kind": "feature",
+   "feature": "Cleanup",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI06",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "A",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Cleanup may miss external side effects",
+   "recommended": "Expire tasks and remove resources without harming shared state; enforcement point: Task broker TTL controller storage/process cleanup; authority: Administrator policy.",
+   "common": "TTL and owner-scoped cleanup intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK task state cleaned by controller",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone app must implement Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI workspace/process cleaned by controller",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone app must implement Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent state/checkpoint cleaned by controller",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone app must implement Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Cleanup may miss external side effects",
+    "damage": "Material control dimension. Residual exposure: Cleanup may miss external side effects",
+    "exposure": "Material control dimension. Residual exposure: Cleanup may miss external side effects"
+   },
+   "phase_a_owasp": "ASI06;ASI08;ASI10"
+  },
+  {
+   "n": 45,
+   "kind": "feature",
+   "feature": "Replay protection",
+   "asi_primary": "ASI07",
+   "asi_all": [
+    "ASI07",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Verification",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Retry may repeat irreversible action",
+   "recommended": "Provide idempotency and reject duplicate claims/results; enforcement point: Broker queue ledger tool side-effect key; authority: Administrator controlled.",
+   "common": "Queue claim and generation ledger intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK operation idempotency pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone application must implement Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI request dedupe pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone application must implement Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent/checkpoint replay rules pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone application must implement Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Retry may repeat irreversible action",
+    "exposure": "Material control dimension. Residual exposure: Retry may repeat irreversible action"
+   },
+   "phase_a_owasp": "ASI07;ASI08;ASI10"
+  },
+  {
+   "n": 46,
+   "kind": "feature",
+   "feature": "Duplicate-execution protection",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI07",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Verification",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Retry may repeat irreversible action",
+   "recommended": "Provide idempotency and reject duplicate claims/results; enforcement point: Broker queue ledger tool side-effect key; authority: Administrator controlled.",
+   "common": "Queue claim and generation ledger intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK operation idempotency pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone application must implement Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI request dedupe pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone application must implement Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent/checkpoint replay rules pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone application must implement Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Retry may repeat irreversible action",
+    "exposure": "Material control dimension. Residual exposure: Retry may repeat irreversible action"
+   },
+   "phase_a_owasp": "ASI07;ASI08;ASI10"
+  },
+  {
+   "n": 47,
+   "kind": "feature",
+   "feature": "Recovery after uncertain execution",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI04",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "A2A source reviewed; deployed behavior pending",
+   "limitation": "Rollback may mismatch state/schema or replay work",
+   "recommended": "Recover safely without duplicate work state loss or silent drift; enforcement point: Deployment controller broker queue watcher evidence; authority: Administrator controlled.",
+   "common": "Controlled rollback and watcher preservation required - pending",
+   "runtimes": {
+    "sdk_governed": "SDK task state reconciliation pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone operations own recovery Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI process/session recovery pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone operations own recovery Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent checkpoint/recovery pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone operations own recovery Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Rollback may mismatch state/schema or replay work",
+    "exposure": "Material control dimension. Residual exposure: Rollback may mismatch state/schema or replay work"
+   },
+   "phase_a_owasp": "ASI04;ASI08;ASI10"
+  },
+  {
+   "n": 48,
+   "kind": "feature",
+   "feature": "CPU/GPU resource limits",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI02",
+    "ASI05",
+    "ASI08"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "A",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Limits may not cover shared gateway/model",
+   "recommended": "Bound resource exhaustion and noisy-neighbor impact; enforcement point: Kubernetes cgroup quota storage class and broker budgets; authority: Administrator controlled.",
+   "common": "RKE2 requests/limits and execution budgets intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK runs within assigned budget",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone runtime administrator configures limits Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI/subprocess budget pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone runtime administrator configures limits Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent/subagent budget pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone runtime administrator configures limits Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Limits may not cover shared gateway/model",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI02;ASI05;ASI08"
+  },
+  {
+   "n": 49,
+   "kind": "feature",
+   "feature": "Memory/PID/storage limits",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI02",
+    "ASI05",
+    "ASI08"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "A",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Limits may not cover shared gateway/model",
+   "recommended": "Bound resource exhaustion and noisy-neighbor impact; enforcement point: Kubernetes cgroup quota storage class and broker budgets; authority: Administrator controlled.",
+   "common": "RKE2 requests/limits and execution budgets intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK runs within assigned budget",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone runtime administrator configures limits Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI/subprocess budget pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone runtime administrator configures limits Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent/subagent budget pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone runtime administrator configures limits Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Limits may not cover shared gateway/model",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI02;ASI05;ASI08"
+  },
+  {
+   "n": 50,
+   "kind": "feature",
+   "feature": "Concurrency",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI02",
+    "ASI05",
+    "ASI08"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "A",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Limits may not cover shared gateway/model",
+   "recommended": "Bound resource exhaustion and noisy-neighbor impact; enforcement point: Kubernetes cgroup quota storage class and broker budgets; authority: Administrator controlled.",
+   "common": "RKE2 requests/limits and execution budgets intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK runs within assigned budget",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone runtime administrator configures limits Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI/subprocess budget pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone runtime administrator configures limits Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent/subagent budget pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone runtime administrator configures limits Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Limits may not cover shared gateway/model",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI02;ASI05;ASI08"
+  },
+  {
+   "n": 51,
+   "kind": "feature",
+   "feature": "Quota and budget controls",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI02",
+    "ASI05",
+    "ASI08"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "A",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Limits may not cover shared gateway/model",
+   "recommended": "Bound resource exhaustion and noisy-neighbor impact; enforcement point: Kubernetes cgroup quota storage class and broker budgets; authority: Administrator controlled.",
+   "common": "RKE2 requests/limits and execution budgets intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK runs within assigned budget",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone runtime administrator configures limits Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI/subprocess budget pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone runtime administrator configures limits Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent/subagent budget pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone runtime administrator configures limits Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Limits may not cover shared gateway/model",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI02;ASI05;ASI08"
+  },
+  {
+   "n": 52,
+   "kind": "feature",
+   "feature": "Node placement",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI03",
+    "ASI05",
+    "ASI08"
+   ],
+   "risk": "2",
+   "layer": "Sandbox",
+   "cia": "A",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Mis-scheduling or privileged node access",
+   "recommended": "Keep workloads in approved isolation and hardware boundary; enforcement point: Kubernetes namespace labels affinity tolerations runtime class; authority: Administrator controlled.",
+   "common": "Same isolated RKE2 placement intended - pending actual scheduling proof",
+   "runtimes": {
+    "sdk_governed": "Adapter deployment placement pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone platform chooses placement Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Adapter deployment placement pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone platform chooses placement Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Adapter deployment placement pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone platform chooses placement Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Mis-scheduling or privileged node access",
+    "damage": "Material control dimension. Residual exposure: Mis-scheduling or privileged node access",
+    "exposure": "Material control dimension. Residual exposure: Mis-scheduling or privileged node access"
+   },
+   "phase_a_owasp": "ASI03;ASI05;ASI08"
+  },
+  {
+   "n": 53,
+   "kind": "feature",
+   "feature": "Administrator policy control",
+   "asi_primary": "ASI09",
+   "asi_all": [
+    "ASI02",
+    "ASI03",
+    "ASI09"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Rubber-stamping or ambiguous approval context",
+   "recommended": "Require explicit accountable approval for high-risk actions; enforcement point: Policy engine UI broker and tool adapter; authority: Administrator defines; authorized human approves.",
+   "common": "Shared approval gate intended - pending",
+   "runtimes": {
+    "sdk_governed": "Native approval reception and user-question callbacks exist; the embedding application owns the UI/policy and must bind decisions to the correct task/user.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone product/app configures approval Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Permission prompts, permission modes and external permission-prompt tools are native; bypass prevention and enterprise approver identity are separate controls.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone product/app configures approval Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Human-in-the-loop interrupts can pause selected actions; application defines the approver, persistence and resume policy.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone product/app configures approval Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Rubber-stamping or ambiguous approval context",
+    "exposure": "Material control dimension. Residual exposure: Rubber-stamping or ambiguous approval context"
+   },
+   "phase_a_owasp": "ASI02;ASI03;ASI09"
+  },
+  {
+   "n": 54,
+   "kind": "feature",
+   "feature": "User configurability",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI01",
+    "ASI03",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Alternate config surfaces can bypass policy",
+   "recommended": "Prevent users from changing model route or credentials; enforcement point: Adapter configuration and admission policy; authority: Administrator fixed; user denied.",
+   "common": "Fixed alias/config intended - pending live refusal",
+   "runtimes": {
+    "sdk_governed": "Provider, model, profile, patches, executable and environment are caller-selectable in the inspected SDK; DSH admission must make the approved composition immutable.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone products may permit administrator/user model configuration Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI exposes model and settings/provider routes. Immutability requires managed configuration, wrapper admission and network enforcement.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone products may permit administrator/user model configuration Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "create_deep_agent resolves caller/profile-selected model and backend. Immutability requires the released application composition and deployment controls.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone products may permit administrator/user model configuration Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Alternate config surfaces can bypass policy",
+    "damage": "Material control dimension. Residual exposure: Alternate config surfaces can bypass policy",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI01;ASI03;ASI10"
+  },
+  {
+   "n": 55,
+   "kind": "feature",
+   "feature": "Update and version management",
+   "asi_primary": "ASI04",
+   "asi_all": [
+    "ASI04",
+    "ASI05"
+   ],
+   "risk": "2",
+   "layer": "Verification",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Transitive dependencies and stale mirrors",
+   "recommended": "Use approved offline sources pinned packages and evidence; enforcement point: Package repository admission SBOM signature/hash; authority: Administrator controlled.",
+   "common": "Curated offline repository and privileged gate intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK dependencies pinned/provenanced - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone administrator owns supply chain Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI/plugin/package install constrained - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone administrator owns supply chain Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Python/JS dependencies pinned/provenanced - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone administrator owns supply chain Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Transitive dependencies and stale mirrors",
+    "damage": "Material control dimension. Residual exposure: Transitive dependencies and stale mirrors",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI04;ASI05"
+  },
+  {
+   "n": 56,
+   "kind": "feature",
+   "feature": "Source and artifact provenance",
+   "asi_primary": "ASI04",
+   "asi_all": [
+    "ASI04",
+    "ASI05"
+   ],
+   "risk": "2",
+   "layer": "Verification",
+   "cia": "I",
+   "control_type": "audit / evidence",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Transitive dependencies and stale mirrors",
+   "recommended": "Use approved offline sources pinned packages and evidence; enforcement point: Package repository admission SBOM signature/hash; authority: Administrator controlled.",
+   "common": "Curated offline repository and privileged gate intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK dependencies pinned/provenanced - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone administrator owns supply chain Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI/plugin/package install constrained - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone administrator owns supply chain Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Python/JS dependencies pinned/provenanced - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone administrator owns supply chain Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Transitive dependencies and stale mirrors",
+    "damage": "Material control dimension. Residual exposure: Transitive dependencies and stale mirrors",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI04;ASI05"
+  },
+  {
+   "n": 57,
+   "kind": "feature",
+   "feature": "Image and dependency provenance",
+   "asi_primary": "ASI04",
+   "asi_all": [
+    "ASI04",
+    "ASI05"
+   ],
+   "risk": "2",
+   "layer": "Verification",
+   "cia": "I",
+   "control_type": "audit / evidence",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Transitive dependencies and stale mirrors",
+   "recommended": "Use approved offline sources pinned packages and evidence; enforcement point: Package repository admission SBOM signature/hash; authority: Administrator controlled.",
+   "common": "Curated offline repository and privileged gate intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK dependencies pinned/provenanced - pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone administrator owns supply chain Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI/plugin/package install constrained - pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone administrator owns supply chain Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Python/JS dependencies pinned/provenanced - pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone administrator owns supply chain Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Transitive dependencies and stale mirrors",
+    "damage": "Material control dimension. Residual exposure: Transitive dependencies and stale mirrors",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI04;ASI05"
+  },
+  {
+   "n": 58,
+   "kind": "feature",
+   "feature": "Offline operation",
+   "asi_primary": "ASI04",
+   "asi_all": [
+    "ASI04",
+    "ASI05"
+   ],
+   "risk": "1",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Stale or incomplete offline mirrors",
+   "recommended": "Install and update without Internet using verified provenance; enforcement point: Artifact registry package mirror SBOM/signature and rollout; authority: Administrator controlled.",
+   "common": "Curated offline bundle process intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK wheels/packages bundled and pinned",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone admin designs offline supply chain Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI binary/plugins bundled and pinned",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone admin designs offline supply chain Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Python packages/model dependencies bundled and pinned",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone admin designs offline supply chain Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Stale or incomplete offline mirrors",
+    "damage": "Material control dimension. Residual exposure: Stale or incomplete offline mirrors",
+    "exposure": "Indirect or secondary impact; verify interactions with the primary control dimensions."
+   },
+   "phase_a_owasp": "ASI04;ASI05"
+  },
+  {
+   "n": 59,
+   "kind": "feature",
+   "feature": "Deployment complexity",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI03",
+    "ASI07",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "A",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Metrics may omit child work or expose content",
+   "recommended": "Provide health traces denial reasons capacity and safe support without data leakage; enforcement point: Gateway broker adapters model tool storage and admin UI; authority: Administrator controlled.",
+   "common": "Shared admin observability intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK metrics/events normalized",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone app integrates telemetry Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI process/tool/provider events normalized",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone app integrates telemetry Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent graph/subagent/state events normalized",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone app integrates telemetry Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Metrics may omit child work or expose content",
+    "damage": "Material control dimension. Residual exposure: Metrics may omit child work or expose content",
+    "exposure": "Material control dimension. Residual exposure: Metrics may omit child work or expose content"
+   },
+   "phase_a_owasp": "ASI03;ASI07;ASI08;ASI10"
+  },
+  {
+   "n": 60,
+   "kind": "feature",
+   "feature": "Operational ownership",
+   "asi_primary": "ASI10",
+   "asi_all": [
+    "ASI03",
+    "ASI07",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Metrics may omit child work or expose content",
+   "recommended": "Provide health traces denial reasons capacity and safe support without data leakage; enforcement point: Gateway broker adapters model tool storage and admin UI; authority: Administrator controlled.",
+   "common": "Shared admin observability intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK metrics/events normalized",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone app integrates telemetry Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI process/tool/provider events normalized",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone app integrates telemetry Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent graph/subagent/state events normalized",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone app integrates telemetry Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Metrics may omit child work or expose content",
+    "damage": "Material control dimension. Residual exposure: Metrics may omit child work or expose content",
+    "exposure": "Material control dimension. Residual exposure: Metrics may omit child work or expose content"
+   },
+   "phase_a_owasp": "ASI03;ASI07;ASI08;ASI10"
+  },
+  {
+   "n": 61,
+   "kind": "feature",
+   "feature": "Rollback",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI04",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "A",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Rollback may mismatch state/schema or replay work",
+   "recommended": "Recover safely without duplicate work state loss or silent drift; enforcement point: Deployment controller broker queue watcher evidence; authority: Administrator controlled.",
+   "common": "Controlled rollback and watcher preservation required - pending",
+   "runtimes": {
+    "sdk_governed": "SDK task state reconciliation pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone operations own recovery Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI process/session recovery pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone operations own recovery Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent checkpoint/recovery pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone operations own recovery Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; verify interactions with the primary control dimensions.",
+    "damage": "Material control dimension. Residual exposure: Rollback may mismatch state/schema or replay work",
+    "exposure": "Material control dimension. Residual exposure: Rollback may mismatch state/schema or replay work"
+   },
+   "phase_a_owasp": "ASI04;ASI08;ASI10"
+  },
+  {
+   "n": 62,
+   "kind": "feature",
+   "feature": "Fail-closed operation",
+   "asi_primary": "ASI02",
+   "asi_all": [
+    "ASI01",
+    "ASI02",
+    "ASI03",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Hidden retry or fallback can bypass control",
+   "recommended": "Deny when identity policy model route tool or evidence validation fails; enforcement point: All admission points and adapters; authority: Administrator controlled.",
+   "common": "Shared refusal path intended - pending",
+   "runtimes": {
+    "sdk_governed": "Inspected client rejects malformed lifecycle/protocol results and invalid/lost approvals; broader provider/network/tool fail-closed behavior remains deployment-dependent.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone defaults vary and require configuration Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Permission denial can fail closed, but bypass flags/configuration and surrounding services must be controlled by the deployment.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone defaults vary and require configuration Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Middleware/tool policy can reject actions, but the application must ensure errors, missing policy and unavailable backends do not silently broaden access.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone defaults vary and require configuration Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Hidden retry or fallback can bypass control",
+    "damage": "Material control dimension. Residual exposure: Hidden retry or fallback can bypass control",
+    "exposure": "Material control dimension. Residual exposure: Hidden retry or fallback can bypass control"
+   },
+   "phase_a_owasp": "ASI01;ASI02;ASI03;ASI10"
+  },
+  {
+   "n": 63,
+   "kind": "evidence",
+   "feature": "Current implementation status",
+   "asi_primary": "ALL",
+   "asi_all": [
+    "ALL"
+   ],
+   "risk": "",
+   "layer": "",
+   "cia": "",
+   "control_type": "",
+   "tag_status": "cross-cutting",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Infrastructure cannot guarantee semantic correctness or safe human decisions",
+   "recommended": "Document what controls cannot guarantee and who owns them; enforcement point: Documentation evidence register and risk acceptance; authority: Administrator/risk owner.",
+   "common": "Must be evidence-derived after handoff",
+   "runtimes": {
+    "sdk_governed": "Caller-selectable profile/provider/model/environment and inherited process state mean governance must constrain the embedding boundary.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone risk depends on surrounding infrastructure Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Native permissions are substantial but do not replace enterprise identity, immutable policy, network isolation, tenant controls or audit retention.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone risk depends on surrounding infrastructure Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Composability is powerful but policy strength varies with model, tools, middleware, backend, persistence and sandbox choices.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone risk depends on surrounding infrastructure Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Infrastructure cannot guarantee semantic correctness or safe human decisions",
+    "damage": "Material control dimension. Residual exposure: Infrastructure cannot guarantee semantic correctness or safe human decisions",
+    "exposure": "Material control dimension. Residual exposure: Infrastructure cannot guarantee semantic correctness or safe human decisions"
+   },
+   "phase_a_owasp": "ASI01-ASI10"
+  },
+  {
+   "n": 64,
+   "kind": "evidence",
+   "feature": "Current verified limitations",
+   "asi_primary": "ALL",
+   "asi_all": [
+    "ALL"
+   ],
+   "risk": "",
+   "layer": "",
+   "cia": "",
+   "control_type": "",
+   "tag_status": "cross-cutting",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Infrastructure cannot guarantee semantic correctness or safe human decisions",
+   "recommended": "Document what controls cannot guarantee and who owns them; enforcement point: Documentation evidence register and risk acceptance; authority: Administrator/risk owner.",
+   "common": "Must be evidence-derived after handoff",
+   "runtimes": {
+    "sdk_governed": "Caller-selectable profile/provider/model/environment and inherited process state mean governance must constrain the embedding boundary.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone risk depends on surrounding infrastructure Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Native permissions are substantial but do not replace enterprise identity, immutable policy, network isolation, tenant controls or audit retention.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone risk depends on surrounding infrastructure Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Composability is powerful but policy strength varies with model, tools, middleware, backend, persistence and sandbox choices.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone risk depends on surrounding infrastructure Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Infrastructure cannot guarantee semantic correctness or safe human decisions",
+    "damage": "Material control dimension. Residual exposure: Infrastructure cannot guarantee semantic correctness or safe human decisions",
+    "exposure": "Material control dimension. Residual exposure: Infrastructure cannot guarantee semantic correctness or safe human decisions"
+   },
+   "phase_a_owasp": "ASI01-ASI10"
+  },
+  {
+   "n": 65,
+   "kind": "evidence",
+   "feature": "Residual risk",
+   "asi_primary": "ALL",
+   "asi_all": [
+    "ALL"
+   ],
+   "risk": "",
+   "layer": "",
+   "cia": "",
+   "control_type": "",
+   "tag_status": "cross-cutting",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Infrastructure cannot guarantee semantic correctness or safe human decisions",
+   "recommended": "Document what controls cannot guarantee and who owns them; enforcement point: Documentation evidence register and risk acceptance; authority: Administrator/risk owner.",
+   "common": "Must be evidence-derived after handoff",
+   "runtimes": {
+    "sdk_governed": "Caller-selectable profile/provider/model/environment and inherited process state mean governance must constrain the embedding boundary.",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone risk depends on surrounding infrastructure Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "Native permissions are substantial but do not replace enterprise identity, immutable policy, network isolation, tenant controls or audit retention.",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone risk depends on surrounding infrastructure Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Composability is powerful but policy strength varies with model, tools, middleware, backend, persistence and sandbox choices.",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone risk depends on surrounding infrastructure Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Infrastructure cannot guarantee semantic correctness or safe human decisions",
+    "damage": "Material control dimension. Residual exposure: Infrastructure cannot guarantee semantic correctness or safe human decisions",
+    "exposure": "Material control dimension. Residual exposure: Infrastructure cannot guarantee semantic correctness or safe human decisions"
+   },
+   "phase_a_owasp": "ASI01-ASI10"
+  },
+  {
+   "n": 66,
+   "kind": "evidence",
+   "feature": "Evidence required for acceptance",
+   "asi_primary": "ALL",
+   "asi_all": [
+    "ALL"
+   ],
+   "risk": "",
+   "layer": "",
+   "cia": "",
+   "control_type": "",
+   "tag_status": "cross-cutting",
+   "evidence_status": "Designed but not verified",
+   "limitation": "Evidence itself can contain sensitive content",
+   "recommended": "Retain sufficient immutable evidence under approved policy; enforcement point: Evidence store hash/provenance and access policy; authority: Administrator controlled.",
+   "common": "Receipt/provenance retention intended - pending",
+   "runtimes": {
+    "sdk_governed": "SDK receipts pending",
+    "sdk_standalone": "DSH SDK outside the Multiharness: Standalone operations define retention Application owner supplies identity, policy, tenancy and audit.",
+    "claude_governed": "CLI receipts pending",
+    "claude_standalone": "Claude Code outside the Multiharness: Standalone operations define retention Administrator supplies provider, permissions, tool, workspace, secret and egress controls.",
+    "deepagents_governed": "Agent receipts pending",
+    "deepagents_standalone": "Deep Agents outside the Multiharness: Standalone operations define retention Application owner supplies model, tool, state, subagent, identity and result controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Residual exposure: Evidence itself can contain sensitive content",
+    "damage": "Material control dimension. Residual exposure: Evidence itself can contain sensitive content",
+    "exposure": "Material control dimension. Residual exposure: Evidence itself can contain sensitive content"
+   },
+   "phase_a_owasp": "ASI04;ASI06;ASI08"
+  },
+  {
+   "n": 67,
+   "kind": "feature",
+   "feature": "Event source admission and normalization",
+   "asi_primary": "ASI01",
+   "asi_all": [
+    "ASI01",
+    "ASI03",
+    "ASI06",
+    "ASI08"
+   ],
+   "risk": "3",
+   "layer": "Verification",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "Connector compromise or weak source identity can bypass downstream reasoning safeguards.",
+   "recommended": "Use deterministic source tenant actor thread event and replay checks before semantic filtering; enforcement point: connector and Trigger admission; authority: administrator controlled.",
+   "common": "Authenticated connectors normalize source tenant actor thread event ID and policy version before any model judgment.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker receives an admitted task rather than an untrusted raw channel event.",
+    "sdk_standalone": "Standalone SDK application must implement connector authentication normalization replay control and source policy.",
+    "claude_governed": "Claude Worker receives an admitted task rather than an untrusted raw channel event.",
+    "claude_standalone": "Standalone Claude deployment must implement connector authentication normalization replay control and source policy.",
+    "deepagents_governed": "Deep Agents Worker receives an admitted task rather than an untrusted raw channel event.",
+    "deepagents_standalone": "Standalone Deep Agents application must implement connector authentication normalization replay control and source policy."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Untrusted events can inject or disclose data across connected channels.",
+    "damage": "Material control dimension. Forged or replayed events can start unauthorized work.",
+    "exposure": "Material control dimension. Incorrect source identity can route results to the wrong audience."
+   },
+   "phase_a_owasp": "ASI01;ASI03;ASI06;ASI08"
+  },
+  {
+   "n": 68,
+   "kind": "feature",
+   "feature": "Fast Path and Slow Path policy separation",
+   "asi_primary": "ASI01",
+   "asi_all": [
+    "ASI01",
+    "ASI02",
+    "ASI06",
+    "ASI10"
+   ],
+   "risk": "3",
+   "layer": "Verification",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "Policy drift between code and prompts can produce contradictory admission outcomes.",
+   "recommended": "Version code and semantic policies together and retain decision evidence; enforcement point: Trigger admission service; authority: administrator controlled.",
+   "common": "Deterministic rules reject stable disallowed cases before semantic Slow-Path judgment and record both decisions.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker executes only after both applicable admission stages.",
+    "sdk_standalone": "Standalone SDK application must design and operate both deterministic and semantic policy stages.",
+    "claude_governed": "Claude Worker executes only after both applicable admission stages.",
+    "claude_standalone": "Standalone Claude deployment must design and operate both deterministic and semantic policy stages.",
+    "deepagents_governed": "Deep Agents Worker executes only after both applicable admission stages.",
+    "deepagents_standalone": "Standalone Deep Agents application must design and operate both deterministic and semantic policy stages."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Semantic filtering alone may expose sensitive events to a model.",
+    "damage": "Material control dimension. Model-only policy can be manipulated into starting excessive work.",
+    "exposure": "Indirect or secondary impact; verify interaction with source and audience controls."
+   },
+   "phase_a_owasp": "ASI01;ASI02;ASI06;ASI10"
+  },
+  {
+   "n": 69,
+   "kind": "feature",
+   "feature": "Router global coordination and memory",
+   "asi_primary": "ASI06",
+   "asi_all": [
+    "ASI01",
+    "ASI03",
+    "ASI06",
+    "ASI07",
+    "ASI10"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "The central continuity point is also a high-impact confidentiality and integrity target.",
+   "recommended": "Separate interaction and dispatch from execution; enforce scoped retrieval and audit; enforcement point: Router and global-state service; authority: administrator controlled.",
+   "common": "A long-lived Router handles human interaction cross-task coordination and bounded global memory without executing task tools.",
+   "runtimes": {
+    "sdk_governed": "SDK work runs in an isolated Worker and reports only correlated status or results to the Router.",
+    "sdk_standalone": "Standalone SDK use has no native global Router guarantee; the application supplies coordination and memory boundaries.",
+    "claude_governed": "Claude work runs in an isolated Worker and reports only correlated status or results to the Router.",
+    "claude_standalone": "Standalone Claude use has no native global Router guarantee; surrounding orchestration supplies it.",
+    "deepagents_governed": "Deep Agents work runs in an isolated Worker and reports only correlated status or results to the Router.",
+    "deepagents_standalone": "Standalone Deep Agents use has no native global Router guarantee; the application supplies it."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Global memory can aggregate sensitive information from many tasks and channels.",
+    "damage": "Material control dimension. A tool-enabled Router could amplify compromise across every task.",
+    "exposure": "Material control dimension. Global context can mix owners tenants or audiences."
+   },
+   "phase_a_owasp": "ASI01;ASI03;ASI06;ASI07;ASI10"
+  },
+  {
+   "n": 70,
+   "kind": "feature",
+   "feature": "Thread subscription and pass-through authorization",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI06",
+    "ASI07",
+    "ASI08"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "Pass-through improves efficiency but removes a fresh Router decision from the follow-up path.",
+   "recommended": "Use immutable subscription provenance revocation expiry and replay protection; enforcement point: Thread registry and event router; authority: administrator controlled.",
+   "common": "A subscription registry binds Thread IDs to exact owner task generation and Worker; follow-ups may bypass redispatch but not authorization.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker accepts pass-through events only for its immutable subscription binding.",
+    "sdk_standalone": "Standalone SDK application must implement subscription identity expiry and revocation.",
+    "claude_governed": "Claude Worker accepts pass-through events only for its immutable subscription binding.",
+    "claude_standalone": "Standalone Claude deployment must implement subscription identity expiry and revocation.",
+    "deepagents_governed": "Deep Agents Worker accepts pass-through events only for its immutable subscription binding.",
+    "deepagents_standalone": "Standalone Deep Agents application must implement subscription identity expiry and revocation."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. A forged subscription can inject foreign context into a Worker.",
+    "damage": "Material control dimension. Stale subscriptions can keep triggering side effects after task closure.",
+    "exposure": "Material control dimension. Many-to-many subscriptions can expose results or context across audiences."
+   },
+   "phase_a_owasp": "ASI03;ASI06;ASI07;ASI08"
+  },
+  {
+   "n": 71,
+   "kind": "feature",
+   "feature": "Worker context isolation",
+   "asi_primary": "ASI06",
+   "asi_all": [
+    "ASI03",
+    "ASI06",
+    "ASI07",
+    "ASI08"
+   ],
+   "risk": "3",
+   "layer": "Sandbox",
+   "cia": "C",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "Reusable workers caches or checkpoints can retain foreign state.",
+   "recommended": "Bind context workspace state and cleanup to owner task generation; enforcement point: Worker provisioner and state store; authority: administrator enforced.",
+   "common": "Each Worker has one owner-bound task context and cannot directly interact with humans or inherit unrelated Router memory.",
+   "runtimes": {
+    "sdk_governed": "SDK session state is scoped to the exact Worker task and generation.",
+    "sdk_standalone": "Standalone SDK application must provide task context separation and lifecycle cleanup.",
+    "claude_governed": "Claude session and workspace are scoped to the exact Worker task and generation.",
+    "claude_standalone": "Standalone Claude deployment must provide task context and workspace separation.",
+    "deepagents_governed": "Deep Agents state checkpoints and subagents are scoped to the exact Worker task and generation.",
+    "deepagents_standalone": "Standalone Deep Agents application must provide task state and subagent isolation."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Shared context can leak prompts files or tool results between tasks.",
+    "damage": "Material control dimension. Shared execution state can carry unintended authority across tasks.",
+    "exposure": "Material control dimension. A Worker with mixed context may return another task result."
+   },
+   "phase_a_owasp": "ASI03;ASI06;ASI07;ASI08"
+  },
+  {
+   "n": 72,
+   "kind": "feature",
+   "feature": "Inline and Spill context management",
+   "asi_primary": "ASI06",
+   "asi_all": [
+    "ASI01",
+    "ASI03",
+    "ASI06"
+   ],
+   "risk": "3",
+   "layer": "Verification",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "A compact summary can still leak secrets while an opaque reference can conceal unauthorized reach.",
+   "recommended": "Store only necessary context and authorize every reference resolution; enforcement point: context service and spill store; authority: administrator controlled.",
+   "common": "Context injection uses bounded inline summaries and references while full content remains in an access-controlled spill store.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker resolves references through the governed context service only.",
+    "sdk_standalone": "Standalone SDK application must define context budgets spill storage and access checks.",
+    "claude_governed": "Claude Worker resolves references through the governed context service only.",
+    "claude_standalone": "Standalone Claude deployment must define context budgets spill storage and access checks.",
+    "deepagents_governed": "Deep Agents Worker resolves references through the governed context service only.",
+    "deepagents_standalone": "Standalone Deep Agents application must define context budgets spill storage and access checks."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Spill stores and summaries can expose sensitive content or metadata.",
+    "damage": "Indirect or secondary impact; poisoned context can still influence excessive actions.",
+    "exposure": "Material control dimension. References may resolve to content outside the authorized audience."
+   },
+   "phase_a_owasp": "ASI01;ASI03;ASI06"
+  },
+  {
+   "n": 73,
+   "kind": "feature",
+   "feature": "Chain of Recall reference authorization",
+   "asi_primary": "ASI06",
+   "asi_all": [
+    "ASI01",
+    "ASI03",
+    "ASI06",
+    "ASI07"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "Authorization only at the starting object is insufficient for a multi-hop graph.",
+   "recommended": "Apply per-hop owner tenant classification and purpose checks with immutable provenance; enforcement point: recall service; authority: administrator controlled.",
+   "common": "Multi-hop recall follows explicit object references only after authorization at every hop and preserves provenance.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker may recall only objects authorized for its owner and task.",
+    "sdk_standalone": "Standalone SDK application must implement reference graph authorization and cycle or depth limits.",
+    "claude_governed": "Claude Worker may recall only objects authorized for its owner and task.",
+    "claude_standalone": "Standalone Claude deployment must implement reference graph authorization and cycle or depth limits.",
+    "deepagents_governed": "Deep Agents Worker may recall only objects authorized for its owner and task.",
+    "deepagents_standalone": "Standalone Deep Agents application must implement reference graph authorization and cycle or depth limits."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Multi-hop traversal can cross tenant task or classification boundaries.",
+    "damage": "Material control dimension. Poisoned references can steer tools toward unauthorized objects.",
+    "exposure": "Material control dimension. Recalled content can be delivered to the wrong channel or user."
+   },
+   "phase_a_owasp": "ASI01;ASI03;ASI06;ASI07"
+  },
+  {
+   "n": 74,
+   "kind": "feature",
+   "feature": "Asynchronous and full-duplex task control",
+   "asi_primary": "ASI08",
+   "asi_all": [
+    "ASI03",
+    "ASI07",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "A",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "A started acknowledgement is not proof that cancellation cleanup or final reconciliation works.",
+   "recommended": "Use durable operation identity descendant tracking deadlines and stale-result refusal; enforcement point: task broker and Worker supervisor; authority: administrator enforced.",
+   "common": "Long operations return a started identity immediately while completion cancellation and new instructions arrive as correlated events.",
+   "runtimes": {
+    "sdk_governed": "SDK operation identities and lifecycle events remain bound to the Worker generation.",
+    "sdk_standalone": "Standalone SDK application must implement asynchronous lifecycle identity and reconciliation.",
+    "claude_governed": "Claude operation identities and lifecycle events remain bound to the Worker generation.",
+    "claude_standalone": "Standalone Claude deployment must implement asynchronous lifecycle identity and reconciliation.",
+    "deepagents_governed": "Deep Agents operation identities and lifecycle events remain bound to the Worker generation.",
+    "deepagents_standalone": "Standalone Deep Agents application must implement asynchronous lifecycle identity and reconciliation."
+   },
+   "impacts": {
+    "leakage": "Indirect or secondary impact; background output can outlive the intended data-sharing window.",
+    "damage": "Material control dimension. Background work can continue after cancellation or policy change.",
+    "exposure": "Material control dimension. Late completion can be returned into a newer conversation or wrong channel."
+   },
+   "phase_a_owasp": "ASI03;ASI07;ASI08;ASI10"
+  },
+  {
+   "n": 75,
+   "kind": "feature",
+   "feature": "Speculative execution control",
+   "asi_primary": "ASI10",
+   "asi_all": [
+    "ASI01",
+    "ASI02",
+    "ASI03",
+    "ASI08",
+    "ASI09",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Guardrails",
+   "cia": "I",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "Discarding a result does not undo external reads writes cost or disclosure.",
+   "recommended": "Define side-effect class budget expiry owner and approval before start; enforcement point: Router policy and Worker tool admission; authority: administrator controlled.",
+   "common": "Background work may begin before explicit demand only within a pre-authorized reversible side-effect budget.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker may speculate on read-only or isolated preparation but not external mutation without approval.",
+    "sdk_standalone": "Standalone SDK application must define speculative scope cost and discard policy.",
+    "claude_governed": "Claude Worker may speculate on read-only or isolated preparation but not repository or external mutation without approval.",
+    "claude_standalone": "Standalone Claude deployment must define speculative scope cost and discard policy.",
+    "deepagents_governed": "Deep Agents Worker may speculate on read-only or isolated preparation but not tool side effects without approval.",
+    "deepagents_standalone": "Standalone Deep Agents application must define speculative scope cost and discard policy."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Speculation can read or transmit data that was never needed.",
+    "damage": "Material control dimension. Unrequested actions can consume resources or alter systems.",
+    "exposure": "Material control dimension. A speculative result may be surfaced to an unintended audience."
+   },
+   "phase_a_owasp": "ASI01;ASI02;ASI03;ASI08;ASI09;ASI10"
+  },
+  {
+   "n": 76,
+   "kind": "feature",
+   "feature": "Multi-channel audience policy",
+   "asi_primary": "ASI03",
+   "asi_all": [
+    "ASI03",
+    "ASI06",
+    "ASI07",
+    "ASI09"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "policy / human control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "A correct task owner does not automatically authorize every participant in a group channel.",
+   "recommended": "Apply channel membership purpose classification and content-minimization checks at delivery; enforcement point: Router response service; authority: administrator controlled.",
+   "common": "The Router maps one owner/task result to an explicitly authorized channel audience and channel-specific response form.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker returns structured evidence to the Router rather than posting directly.",
+    "sdk_standalone": "Standalone SDK application owns channel identity audience and delivery policy.",
+    "claude_governed": "Claude Worker returns structured evidence to the Router rather than posting directly.",
+    "claude_standalone": "Standalone Claude deployment owns channel identity audience and delivery policy.",
+    "deepagents_governed": "Deep Agents Worker returns structured evidence to the Router rather than posting directly.",
+    "deepagents_standalone": "Standalone Deep Agents application owns channel identity audience and delivery policy."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Channel formatting or delivery can disclose excessive detail.",
+    "damage": "Indirect or secondary impact; an unsafe channel can trigger follow-on actions.",
+    "exposure": "Material control dimension. The same content may be appropriate in a private terminal but not a group chat."
+   },
+   "phase_a_owasp": "ASI03;ASI06;ASI07;ASI09"
+  },
+  {
+   "n": 77,
+   "kind": "feature",
+   "feature": "Compute and persistent-state separation",
+   "asi_primary": "ASI06",
+   "asi_all": [
+    "ASI03",
+    "ASI06",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "3",
+   "layer": "Sandbox",
+   "cia": "I",
+   "control_type": "infrastructure / resource control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "Persistent availability increases the lifetime and concentration of sensitive state.",
+   "recommended": "Separate stateless compute from protected state and verify exact restoration; enforcement point: state service and Worker supervisor; authority: administrator controlled.",
+   "common": "Stateless Agent Loop compute reads and writes durable versioned task state through a controlled state service.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker compute can be replaced without losing or mixing owner-bound task state.",
+    "sdk_standalone": "Standalone SDK application must supply durable state integrity migration and isolation.",
+    "claude_governed": "Claude Worker compute can be replaced without losing or mixing owner-bound task state.",
+    "claude_standalone": "Standalone Claude deployment must supply durable state integrity migration and isolation.",
+    "deepagents_governed": "Deep Agents Worker compute can be replaced without losing or mixing owner-bound task state.",
+    "deepagents_standalone": "Standalone Deep Agents application must supply durable state integrity migration and isolation."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Central state aggregates prompts credentials metadata and results.",
+    "damage": "Material control dimension. Corrupt or stale state can replay actions after compute replacement.",
+    "exposure": "Material control dimension. Incorrect state restoration can attach one task to another owner."
+   },
+   "phase_a_owasp": "ASI03;ASI06;ASI08;ASI10"
+  },
+  {
+   "n": 78,
+   "kind": "feature",
+   "feature": "Remote endpoint daemon trust",
+   "asi_primary": "ASI05",
+   "asi_all": [
+    "ASI02",
+    "ASI03",
+    "ASI04",
+    "ASI05",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Verification",
+   "cia": "I",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "The article explicitly identifies cloud-to-endpoint trust and credential exposure as open security problems.",
+   "recommended": "Treat the daemon as a high-risk service boundary and never as ambient shell access; enforcement point: execution broker and endpoint policy; authority: endpoint and platform administrators.",
+   "common": "Remote execution uses a mutually authenticated task-scoped daemon with bounded command filesystem network and credential access.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker reaches an endpoint only through the governed execution broker.",
+    "sdk_standalone": "Standalone SDK application must secure endpoint enrollment command policy and revocation.",
+    "claude_governed": "Claude Worker reaches an endpoint only through the governed execution broker.",
+    "claude_standalone": "Standalone Claude deployment must secure endpoint enrollment command policy and revocation.",
+    "deepagents_governed": "Deep Agents Worker reaches an endpoint only through the governed execution broker.",
+    "deepagents_standalone": "Standalone Deep Agents application must secure endpoint enrollment command policy and revocation."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. A compromised Agent Loop or daemon can expose private code data and credentials.",
+    "damage": "Material control dimension. A generic remote shell can take over the endpoint.",
+    "exposure": "Material control dimension. Endpoint outputs may return across the wrong task or tenant."
+   },
+   "phase_a_owasp": "ASI02;ASI03;ASI04;ASI05;ASI08;ASI10"
+  },
+  {
+   "n": 79,
+   "kind": "feature",
+   "feature": "Watchdog independence and remediation authority",
+   "asi_primary": "ASI10",
+   "asi_all": [
+    "ASI01",
+    "ASI03",
+    "ASI08",
+    "ASI09",
+    "ASI10"
+   ],
+   "risk": "2",
+   "layer": "Verification",
+   "cia": "A",
+   "control_type": "audit / evidence",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "An independent agent is not an independent security boundary unless credentials and authority are separated.",
+   "recommended": "Grant read-mostly observation and separately authorize each remediation class; enforcement point: Watchdog policy and operations broker; authority: independent administrator controlled.",
+   "common": "A separately scheduled Watchdog observes liveness and progress but remediation requires scoped policy and independent authorization.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker exposes bounded status and accepts only authorized lifecycle actions.",
+    "sdk_standalone": "Standalone SDK application must supply external monitoring and remediation governance.",
+    "claude_governed": "Claude Worker exposes bounded status and accepts only authorized lifecycle actions.",
+    "claude_standalone": "Standalone Claude deployment must supply external monitoring and remediation governance.",
+    "deepagents_governed": "Deep Agents Worker exposes bounded status and accepts only authorized lifecycle actions.",
+    "deepagents_standalone": "Standalone Deep Agents application must supply external monitoring and remediation governance."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. Watchdog observations and prompts can expose task content.",
+    "damage": "Material control dimension. An over-privileged Watchdog can restart mutate or escalate every task.",
+    "exposure": "Material control dimension. Incorrect anomaly judgment can surface or reroute results."
+   },
+   "phase_a_owasp": "ASI01;ASI03;ASI08;ASI09;ASI10"
+  },
+  {
+   "n": 80,
+   "kind": "feature",
+   "feature": "A2A context and permission boundary",
+   "asi_primary": "ASI07",
+   "asi_all": [
+    "ASI01",
+    "ASI03",
+    "ASI06",
+    "ASI07",
+    "ASI08",
+    "ASI10"
+   ],
+   "risk": "3",
+   "layer": "Guardrails",
+   "cia": "C",
+   "control_type": "harness / deterministic control",
+   "tag_status": "draft-inferred",
+   "evidence_status": "Future roadmap — evidence pending",
+   "limitation": "No shared context means authorization provenance delegation and revocation must be explicit at every boundary.",
+   "recommended": "Use authenticated peers delegated scopes expiry replay protection provenance and owner-authorized delivery; enforcement point: A2A broker and task/result routers; authority: cross-domain administrators.",
+   "common": "Collaboration between isolated Super-agent instances requires explicit peer identity delegated authority context minimization and result ownership.",
+   "runtimes": {
+    "sdk_governed": "SDK Worker communicates only through an admitted A2A broker and scoped task contract.",
+    "sdk_standalone": "Standalone SDK application must implement peer trust protocol replay and audience controls.",
+    "claude_governed": "Claude Worker communicates only through an admitted A2A broker and scoped task contract.",
+    "claude_standalone": "Standalone Claude deployment must implement peer trust protocol replay and audience controls.",
+    "deepagents_governed": "Deep Agents Worker communicates only through an admitted A2A broker and scoped task contract.",
+    "deepagents_standalone": "Standalone Deep Agents application must implement peer trust protocol replay and audience controls."
+   },
+   "impacts": {
+    "leakage": "Material control dimension. A2A can move sensitive context across organizational boundaries.",
+    "damage": "Material control dimension. Delegated agents may exceed the originating authority or create cascading actions.",
+    "exposure": "Material control dimension. Peer results can be returned to a user who lacks the originating context permission."
+   },
+   "phase_a_owasp": "ASI01;ASI03;ASI06;ASI07;ASI08;ASI10"
+  }
+ ]
+}

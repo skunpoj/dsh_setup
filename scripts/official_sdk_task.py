@@ -11,7 +11,7 @@ import re
 from urllib.parse import urlsplit
 
 
-PIN = "0.2.1rc2"
+PIN = "0.2.2a2"
 MODEL = "deepseek-v4.1-flash"
 
 

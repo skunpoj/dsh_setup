@@ -206,6 +206,84 @@ class ForwarderTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotEqual(self.aborted[0], 'do-not-abort-another-request')
         self.assertFalse(self.scope['guard'].active)
 
+    def _engine_gone(self, fail_times=None):
+        calls = []
+        async def close_reference(sid):
+            calls.append(sid)
+            if fail_times is None or len(calls) <= fail_times:
+                print(json.dumps({'event': 'dsh_cache_reference_close_failed', 'sessionId': sid, 'errorType': 'ConnectTimeout'}))
+                raise RuntimeError('Owned cache reference close failed')
+            self.cache_closed.append(sid)
+        self.scope['close_owned_cache_reference'] = close_reference
+        self.scope['CACHE_CLOSE_RETRY_INTERVAL'] = 0
+        return calls
+
+    async def test_failed_cache_close_releases_the_long_lease_after_bounded_retries(self):
+        # 10 Nov 2026: the engine pod was gone, the close failed with ConnectTimeout, the lease stayed held for ~40 min.
+        calls = self._engine_gone()
+        out = io.StringIO()
+        with patch.dict('os.environ', {'DSH_CACHE_CLOSE_RETRY_SECONDS': '0.2'}), contextlib.redirect_stdout(out):
+            response = await self.scope['completion'](self.request())
+            content = b''.join([b async for b in response.body_iterator])
+        self.assertIn(b'OK', content)
+        self.assertGreaterEqual(len(calls), 2)  # retried, not given up at the first failure
+        self.assertFalse(self.scope['guard'].active)  # lease released although the close never succeeded
+        self.assertIn('dsh_cache_reference_close_failed', out.getvalue())
+        self.assertIn('dsh_long_lease_released_after_close_failure', out.getvalue())
+
+    async def test_stream_cut_by_engine_loss_then_failed_close_still_releases_the_lease(self):
+        calls = self._engine_gone()
+        original_client = self.http.AsyncClient
+        class CutUpstream:
+            status_code = 200
+            async def aiter_raw(self):
+                yield b': heartbeat'+bytes([10,10])
+                raise RuntimeError('engine pod terminated mid-stream')
+            async def aclose(self): pass
+        class CutClient(original_client):
+            async def send(self, request, stream): return CutUpstream()
+        self.http.AsyncClient = CutClient
+        with patch.dict('os.environ', {'DSH_CACHE_CLOSE_RETRY_SECONDS': '0'}), contextlib.redirect_stdout(io.StringIO()):
+            response = await self.scope['completion'](self.request())
+            content = b''.join([b async for b in response.body_iterator])
+        self.assertIn(b'context_preparation_failed', content)
+        self.assertTrue(calls)
+        self.assertFalse(self.scope['guard'].active)
+
+    async def test_close_that_succeeds_on_a_retry_is_closed_and_releases(self):
+        calls = self._engine_gone(fail_times=2)
+        out = io.StringIO()
+        with patch.dict('os.environ', {'DSH_CACHE_CLOSE_RETRY_SECONDS': '5'}), contextlib.redirect_stdout(out):
+            response = await self.scope['completion'](self.request())
+            b''.join([b async for b in response.body_iterator])
+        self.assertEqual(len(calls), 3)
+        self.assertEqual(self.cache_opened, self.cache_closed)
+        self.assertFalse(self.scope['guard'].active)
+        self.assertNotIn('dsh_long_lease_released_after_close_failure', out.getvalue())
+
+    async def test_next_long_request_is_admitted_after_a_failed_close(self):
+        calls = self._engine_gone()
+        with patch.dict('os.environ', {'DSH_CACHE_CLOSE_RETRY_SECONDS': '0'}), contextlib.redirect_stdout(io.StringIO()):
+            first = await self.scope['completion'](self.request())
+            b''.join([b async for b in first.body_iterator])
+            self.assertFalse(self.scope['guard'].active)
+            second = await self.scope['completion'](self.request())
+            content = b''.join([b async for b in second.body_iterator])
+        self.assertIn(b'OK', content)
+        self.assertEqual(len(self.cache_opened), 2)
+
+    def test_cache_close_retry_setting_defaults_and_validation(self):
+        import os
+        with patch.dict('os.environ', {}, clear=False):
+            os.environ.pop('DSH_CACHE_CLOSE_RETRY_SECONDS', None)
+            self.assertEqual(self.scope['cache_close_retry_seconds'](), 60.0)
+        for bad in ('', 'abc', '-1', 'nan', 'inf'):
+            with patch.dict('os.environ', {'DSH_CACHE_CLOSE_RETRY_SECONDS': bad}):
+                self.assertEqual(self.scope['cache_close_retry_seconds'](), 60.0, bad)
+        for good, want in (('0', 0.0), ('12.5', 12.5)):
+            with patch.dict('os.environ', {'DSH_CACHE_CLOSE_RETRY_SECONDS': good}):
+                self.assertEqual(self.scope['cache_close_retry_seconds'](), want)
+
     async def _run_with_first_output_at(self, seconds, env):
         clock = types.SimpleNamespace(now=0.)
         self.scope['time'] = types.SimpleNamespace(monotonic=lambda: clock.now)

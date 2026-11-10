@@ -30,7 +30,7 @@ class OfficialSDKTests(unittest.TestCase):
     def run_candidate(self, **overrides):
         kwargs = dict(task_id="sdk-check", project=self.project,
                       state_root=self.root, guard_url="http://127.0.0.1:12345/v1",
-                      harness_factory=self.factory, version=lambda _: "0.2.1rc2")
+                      harness_factory=self.factory, version=lambda _: "0.2.2a2")
         kwargs.update(overrides)
         return qualify("Return CHECKED", **kwargs)
 

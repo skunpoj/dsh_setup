@@ -85,3 +85,5 @@ Application audiences are separate from workspace permissions. The Main gateway 
 ## User-managed credentials
 
 User-managed credentials: users enter secrets through a dedicated settings form, while the harness receives only aliases. A separate broker checks the owner, workspace, environment, destination and action before using the secret. Consequential actions require bound approval; audit logs exclude secret values. Implemented for configured API-token/PAT connectors; OAuth consent and Kerberos acquisition are not included. Read the [credential management guide and Fola video](USER_CREDENTIAL_MANAGEMENT.html).
+
+The same controls grouped by the ten OWASP agentic risks, with the safety layers that enforce them: [Security by OWASP](SECURITY_BY_OWASP.html).

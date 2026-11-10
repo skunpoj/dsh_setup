@@ -178,7 +178,47 @@ async def close_owned_cache_reference(session_id):
             if attempt == 0:
                 await asyncio.sleep(.2)
     print(json.dumps({'event':'dsh_cache_reference_close_failed','sessionId':session_id,'errorType':type(last_error).__name__}), flush=True)
-    raise RuntimeError('Owned cache reference close failed; keep long admission held') from last_error
+    raise RuntimeError('Owned cache reference close failed') from last_error
+
+
+CACHE_CLOSE_RETRY_DEFAULT = 60.0
+CACHE_CLOSE_RETRY_INTERVAL = 1.0
+
+
+def cache_close_retry_seconds():
+    """Seconds the cleanup keeps retrying a failed cache-reference close before it gives up.
+
+    Read from DSH_CACHE_CLOSE_RETRY_SECONDS; missing, non-numeric, negative or non-finite values fall
+    back to 60. 0 means a single round (the two attempts of close_owned_cache_reference).
+    """
+    try:
+        value = float(os.environ.get('DSH_CACHE_CLOSE_RETRY_SECONDS', CACHE_CLOSE_RETRY_DEFAULT))
+    except (TypeError, ValueError):
+        return CACHE_CLOSE_RETRY_DEFAULT
+    if not (0 <= value < float('inf')):
+        return CACHE_CLOSE_RETRY_DEFAULT
+    return value
+
+
+async def close_cache_reference_bounded(session_id):
+    """Close the owned cache reference, retrying for a bounded time; never raises for a failed close.
+
+    A close that cannot succeed (the engine pod is gone, ConnectTimeout) used to keep the long-request
+    lease held for the life of the process, so every later long request waited in admission and then
+    got 429 (10 Nov 2026, about 40 min). The caller releases the lease after this returns. An engine
+    restart drops its cache references anyway.
+    """
+    deadline = time.monotonic()+cache_close_retry_seconds()
+    while True:
+        try:
+            await close_owned_cache_reference(session_id)
+            return True
+        except Exception as error:
+            if time.monotonic()+CACHE_CLOSE_RETRY_INTERVAL > deadline:
+                print(json.dumps({'event':'dsh_long_lease_released_after_close_failure','sessionId':session_id,
+                    'errorType':type(error).__name__}), flush=True)
+                return False
+            await asyncio.sleep(CACHE_CLOSE_RETRY_INTERVAL)
 
 
 def cache_reference_remaining(deadline):
@@ -319,9 +359,11 @@ async def completion(request: Request):
                 await client.aclose()
             await abort(rid)
         finally:
-            if cache_session_id is not None:
-                await close_owned_cache_reference(cache_session_id)
-            guard.release(lease)
+            try:
+                if cache_session_id is not None:
+                    await close_cache_reference_bounded(cache_session_id)
+            finally:
+                guard.release(lease)
     async def cleanup():
         nonlocal cleanup_task
         if cleanup_task is None:

@@ -152,7 +152,7 @@ Use the [three-risk platform guide](DSH_PLATFORM_GUIDE.html) for the design, the
 
 ## 1M context and current speed
 
-> **Current speed (30 Oct 2026, one standard).** DeepInfer 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: on 30 Oct SGLang was about 9–17 % faster; same-day 31 Oct–1 Nov: about 7–9 % faster (61.8 vs 58.0 and 69.0 vs 63.1); many users: DeepInfer gives about 3× the total. Definitions, method and every result: LLM speed comparison.
+> **Current speed (30 Oct 2026, one standard).** DeepInfer 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: on 30 Oct SGLang was about 9–17 % faster; same-day 31 Oct–1 Nov: about 7–9 % faster (61.8 vs 58.0 and 69.0 vs 63.1); many users: DeepInfer gives about 3× the total. Definitions, method and every result: LLM speed comparison. Newer capacity measurements (9 Nov 2026), with decode slots and concurrency: capacity report.
 
 Instructions, tool definitions, history, input and reserved output share one **1,048,576-token** budget. The model serves up to eight requests at once (two per GPU); further requests wait their turn.
 
@@ -177,7 +177,7 @@ Use the [application links and Main/Test guide](APP_LINKS_AND_STATUS.html) to di
 
 ## Site compatibility and everyday use
 
-Main DSH, DSH2 and DSH3 use the same approved DSH 0.2.1-rc.5 application build and managed inference transport. Main DSH provides team accounts and private user/environment routing. DSH2 and DSH3 retain their owner-only authentication and Internet-only site settings. These settings do not require separate forks of the DSH application.
+Main DSH, DSH2 and DSH3 use the same approved DSH application build (0.2.2-rc.1 in the source) and managed inference transport. As of 10 Nov 2026 the private workspaces of Main DSH run that build; the gateway and controllers still run the 30 Oct base image and receive current source through ConfigMaps. Main DSH provides team accounts and private user/environment routing. DSH2 and DSH3 retain their owner-only authentication and Internet-only site settings. These settings do not require separate forks of the DSH application.
 
 1. At sign-in, choose **AD / LDAP** for a corporate account or **Local DSH account** for a provisioned local account. A local account must use the local option.
 2. In a conversation, select **DeepSeek-V4.1-Flash** from the managed **LiteLLM** provider. DSH saves an owner's model choice for subsequent requests. The official DeepSeek provider sign-in is separate from the team's workspace login.
