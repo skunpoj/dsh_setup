@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deepinfer-v4-1-flash
+  namespace: llm
+spec:
+  template:
+    metadata:
+      annotations:
+        dsh.bot.or.th/nccl-ep-contiguous-source: null
+        dsh.bot.or.th/nccl-ep-contiguous-sha256: null
+    spec:
+      containers:
+      - name: deepinfer
+        volumeMounts:
+        - mountPath: /work/runtime/deepinfer/model_executor/parallel_utils/nccl_ep.py
+          $patch: delete
+      volumes:
+      - name: nccl-ep-contiguous-successor
+        $patch: delete

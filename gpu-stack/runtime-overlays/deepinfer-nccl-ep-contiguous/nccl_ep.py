@@ -1,0 +1,295 @@
+"""Expert-parallel dispatch / combine on plain NCCL all-to-all, for nodes where DeepEP's peer load/store path is unsafe.
+
+``deep_ep.EPBuffer`` writes directly into peer GPU memory across the whole NVLink/LSA domain. On hosts where direct
+peer writes between CPU sockets are silently dropped (e.g. IOMMU-translated peer DMA between root complexes), that
+corrupts MoE output. ``NcclEPBuffer`` serves the subset of the ``EPBuffer`` interface used by ``DeepseekMoE`` on SM90
+(``dispatch(do_expand=True)``, ``combine``, ``capture``) with ``all_to_all_single`` over the EP group, so the
+transport is whatever NCCL picks (run with ``NCCL_P2P_LEVEL=NVL`` to keep cross-socket traffic in host memory).
+
+Layout contract (same as DeepEP V2 expand mode, see ``Sm90RoutedExperts.forward``):
+
+- received rows are grouped by local expert; expert ``e`` occupies ``[start[e], psum[e])`` where
+  ``start[0] = 0``, ``start[e] = align(psum[e - 1], expert_alignment)``; rows in alignment gaps and past
+  ``align(psum[-1])`` are unspecified;
+- ``recv_topk_weights`` is FP32 ``[M]`` (one weight per expanded row), ``recv_topk_idx`` is the local expert of
+  each row (``-1`` in gaps);
+- ``combine(y)`` takes the per-row expert outputs (weights already applied) and returns, on the source rank,
+  the sum over each token's selected experts plus ``bias``.
+
+Without ``do_cpu_sync`` every shape depends only on ``num_max_tokens_per_rank``, so dispatch and combine have no
+CPU-GPU sync and can be captured in a CUDA graph. With ``do_cpu_sync`` (prefill) the capacity shrinks to the largest
+token count of any rank and the expanded buffer to the exact number of received rows.
+"""
+
+from __future__ import annotations
+
+import contextlib
+import math
+from dataclasses import dataclass
+
+import torch
+import torch.distributed as dist
+
+_COMBINE_CHUNK_ROWS = 16384
+
+
+def _align(x: torch.Tensor | int, alignment: int) -> torch.Tensor | int:
+    return (x + alignment - 1) // alignment * alignment
+
+
+def _allow_cuda_sync() -> contextlib.AbstractContextManager[None]:
+    """DeepInfer forbids torch-visible CPU syncs during forward; prefill mode syncs on purpose (as DeepEP's
+    `do_cpu_sync` does in C++, which torch cannot see). Outside DeepInfer (standalone tests) this is a no-op."""
+    if not torch.cuda.is_available():
+        return contextlib.nullcontext()  # CPU tests: the guard is a CUDA sync-debug mode, nothing to lift
+    try:
+        from deepinfer.utils import allow_cuda_sync
+    except ImportError:
+        return contextlib.nullcontext()
+    return allow_cuda_sync()
+
+
+def _as_bytes(t: torch.Tensor) -> torch.Tensor:
+    """[N, ...] -> uint8 [N, row_bytes] view of the raw rows (any dtype, including FP8 and packed scales)."""
+    t = t.contiguous()
+    return t.view(t.shape[0], math.prod(t.shape[1:])).view(torch.uint8)
+
+
+@dataclass
+class NcclEPHandle:
+    """Everything ``combine`` needs to undo ``dispatch``; mirrors the fields of ``deep_ep.EPHandle`` callers read."""
+
+    num_experts: int
+    expert_alignment: int
+    num_max_tokens_per_rank: int
+    capacity: int  # rows per peer in the all-to-all buffers
+    num_tokens: int
+    topk_idx: torch.Tensor
+    # Source side: send_slot[d, t] = row index of token t in the block for rank d, or `capacity` (not sent).
+    send_slot: torch.Tensor
+    # Receiver side: dest of every (received row, slot) entry in the expanded layout, `num_expanded_rows` if none.
+    entry_dest: torch.Tensor
+    num_expanded_rows: int
+    psum_num_recv_tokens_per_expert: torch.Tensor
+    num_recv_tokens_per_expert: torch.Tensor
+    exact: bool  # entry_dest holds only valid entries (do_cpu_sync mode)
+    entry_row: torch.Tensor | None = None  # received row of each entry when `exact`
+
+
+class _Done:
+    """Completed operation; ``current_stream_wait()`` mirrors ``deep_ep.EventOverlap`` with ``defer_epilogue=True``."""
+
+    def __init__(self, result: tuple) -> None:
+        self._result = result
+
+    def current_stream_wait(self) -> tuple:
+        return self._result
+
+
+class NcclEPBuffer:
+    def __init__(self, group: dist.ProcessGroup, num_max_tokens_per_rank: int, hidden: int, num_topk: int) -> None:
+        self.group = group
+        self.rank = group.rank()
+        self.num_ranks = group.size()
+        self.num_max_tokens_per_rank = num_max_tokens_per_rank
+        self.hidden = hidden
+        self.num_topk = num_topk
+        # `allocate_ep` compares this against DeepEP's size hint when the buffer is reused; nothing is preallocated.
+        self.num_bytes = 0
+
+    @staticmethod
+    def capture() -> None:
+        # Everything runs on the current stream, so there is no event to order against.
+        return None
+
+    def destroy(self) -> None:
+        pass
+
+    def _all_to_all(self, send: torch.Tensor) -> torch.Tensor:
+        # Callers pass a slice+reshape (dispatch) or a same-dtype .to() (combine, a no-op when
+        # already bfloat16), neither of which guarantees a contiguous result; torch.distributed's
+        # all_to_all_single raises "Tensors must be contiguous" when it isn't, observed live on a
+        # small/irregular batch (topk_idx shape [1, 6]), which killed all 4 ranks
+        # (LANE6-CRASHLOOP-ROOTCAUSE-20261112). .contiguous() is a no-op (same tensor, no copy)
+        # whenever send is already contiguous, so this costs nothing on the common path.
+        send = send.contiguous()
+        recv = torch.empty_like(send)
+        dist.all_to_all_single(recv, send, group=self.group)
+        return recv
+
+    def _capacity(self, num_tokens: int, num_max_tokens_per_rank: int, do_cpu_sync: bool, device: torch.device) -> int:
+        assert num_tokens <= num_max_tokens_per_rank, f"{num_tokens=} exceeds {num_max_tokens_per_rank=}"
+        if not do_cpu_sync:
+            return num_max_tokens_per_rank
+        n = torch.tensor([num_tokens], dtype=torch.int64, device=device)
+        dist.all_reduce(n, op=dist.ReduceOp.MAX, group=self.group)
+        return max(1, int(n.item()))
+
+    def dispatch(self, *args, do_cpu_sync: bool | None = None, **kwargs) -> _Done:
+        do_cpu_sync = True if do_cpu_sync is None else do_cpu_sync
+        # Only the CPU-synced (prefill) mode syncs; the fixed-capacity mode stays under the guard (graph capture).
+        with _allow_cuda_sync() if do_cpu_sync else contextlib.nullcontext():
+            return self._dispatch(*args, do_cpu_sync=do_cpu_sync, **kwargs)
+
+    def _dispatch(
+        self,
+        x: torch.Tensor | tuple[torch.Tensor, torch.Tensor],
+        topk_idx: torch.Tensor,
+        topk_weights: torch.Tensor,
+        num_experts: int,
+        num_max_tokens_per_rank: int | None = None,
+        expert_alignment: int = 1,
+        cumulative_local_expert_recv_stats: torch.Tensor | None = None,
+        do_cpu_sync: bool | None = None,
+        do_expand: bool = True,
+        **_unused,
+    ) -> _Done:
+        assert do_expand, "NcclEPBuffer implements the expanded layout only"
+        num_max_tokens_per_rank = num_max_tokens_per_rank or self.num_max_tokens_per_rank
+        do_cpu_sync = True if do_cpu_sync is None else do_cpu_sync
+        x, sf = x if isinstance(x, tuple) else (x, None)
+        device = x.device
+        num_tokens, num_topk = topk_idx.shape
+        num_ranks = self.num_ranks
+        assert num_experts % num_ranks == 0
+        num_local_experts = num_experts // num_ranks
+        capacity = self._capacity(num_tokens, num_max_tokens_per_rank, do_cpu_sync, device)
+
+        # ---- Pack: each token is sent once to every rank that owns at least one of its experts.
+        idx = topk_idx.long()
+        valid = idx >= 0
+        dst_rank = torch.where(valid, idx // num_local_experts, -1)
+        local_expert = torch.where(valid, idx % num_local_experts, -1).to(torch.int32)
+        ranks = torch.arange(num_ranks, device=device)
+        to_rank = dst_rank.unsqueeze(0) == ranks.view(-1, 1, 1)  # [W, T, k]
+        sent = to_rank.any(dim=-1)  # [W, T]
+        send_slot = torch.where(sent, sent.long().cumsum(dim=1) - 1, capacity)  # [W, T]
+
+        x_bytes = _as_bytes(x)
+        sf_bytes = _as_bytes(sf) if sf is not None else x_bytes[:, :0]
+        meta = torch.where(to_rank, local_expert.unsqueeze(0), -1)  # [W, T, k]
+        weights = torch.where(to_rank, topk_weights.float().unsqueeze(0), 0.0)  # [W, T, k]
+        x_row, sf_row = x_bytes.shape[1], sf_bytes.shape[1]
+        meta_row = num_topk * 4
+        row_bytes = x_row + sf_row + 2 * meta_row
+        token_rows = torch.cat([x_bytes, sf_bytes], dim=1)  # [T, x_row + sf_row]
+
+        # One extra dummy row per peer absorbs tokens that are not sent there.
+        send = torch.zeros((num_ranks, capacity + 1, row_bytes), dtype=torch.uint8, device=device)
+        for d in range(num_ranks):
+            packed = torch.cat(
+                [token_rows, meta[d].contiguous().view(torch.uint8), weights[d].contiguous().view(torch.uint8)], dim=1
+            )
+            send[d].index_copy_(0, send_slot[d], packed)
+        # Rows that were never written must not carry stale expert ids: zero bytes would decode as expert 0.
+        unused = torch.arange(capacity + 1, device=device).view(1, -1) >= sent.sum(dim=1, keepdim=True)
+        meta_view = send[:, :, x_row + sf_row : x_row + sf_row + meta_row]
+        meta_view.masked_fill_(unused.unsqueeze(-1), 0xFF)  # int32 -1
+        recv = self._all_to_all(send[:, :capacity].reshape(num_ranks * capacity, row_bytes))
+
+        # ---- Expand on the receiver: one row per (received token, local expert).
+        num_rows = num_ranks * capacity
+        recv_meta = recv[:, x_row + sf_row : x_row + sf_row + meta_row].contiguous().view(torch.int32)  # [R, k]
+        recv_w = recv[:, x_row + sf_row + meta_row :].contiguous().view(torch.float32)  # [R, k]
+        entry_expert = recv_meta.reshape(-1).long()  # [R * k]
+        entry_valid = entry_expert >= 0
+        key = torch.where(entry_valid, entry_expert, num_local_experts)
+        # Not torch.bincount: on CUDA it syncs with the CPU to size its output, which breaks graph capture.
+        key_counts = torch.zeros(num_local_experts + 1, dtype=torch.int64, device=device)
+        key_counts.scatter_add_(0, key, torch.ones_like(key))
+        counts = key_counts[:num_local_experts]
+        aligned = _align(counts, expert_alignment)
+        start = aligned.cumsum(0) - aligned
+        psum = (start + counts).to(torch.int32)
+        if cumulative_local_expert_recv_stats is not None:
+            cumulative_local_expert_recv_stats.add_(counts.to(cumulative_local_expert_recv_stats.dtype))
+
+        order = torch.sort(key, stable=True).indices
+        first_of_key = key_counts.cumsum(0) - key_counts
+        rank_in_expert = torch.empty_like(order)
+        rank_in_expert[order] = torch.arange(order.numel(), device=device) - first_of_key[key[order]]
+
+        exact = do_cpu_sync
+        if exact:
+            num_expanded_rows = int(_align(psum[-1].item(), expert_alignment)) if num_local_experts else 0
+            entry_ids = entry_valid.nonzero().squeeze(1)
+        else:
+            max_entries = num_rows * min(num_topk, num_local_experts)
+            num_expanded_rows = int(_align(max_entries + num_local_experts * (expert_alignment - 1), expert_alignment))
+            entry_ids = torch.arange(entry_expert.numel(), device=device)
+        entry_key = key[entry_ids]
+        dest = torch.where(
+            entry_key < num_local_experts,
+            start[entry_key.clamp(max=num_local_experts - 1)] + rank_in_expert[entry_ids],
+            num_expanded_rows,
+        )
+        entry_row = entry_ids // num_topk
+
+        expanded = torch.empty((num_expanded_rows + 1, x_row + sf_row), dtype=torch.uint8, device=device)
+        expanded.index_copy_(0, dest, recv[entry_row, : x_row + sf_row])
+        recv_weights = torch.zeros(num_expanded_rows + 1, dtype=torch.float32, device=device)
+        recv_weights.index_copy_(0, dest, recv_w.reshape(-1)[entry_ids])
+        recv_expert = torch.full((num_expanded_rows + 1,), -1, dtype=torch.int32, device=device)
+        recv_expert.index_copy_(0, dest, entry_key.to(torch.int32))
+
+        expanded = expanded[:num_expanded_rows]
+        recv_x = expanded[:, :x_row].contiguous().view(x.dtype).view(num_expanded_rows, *x.shape[1:])
+        if sf is not None:
+            recv_sf = expanded[:, x_row:].contiguous().view(sf.dtype).view(num_expanded_rows, *sf.shape[1:])
+            recv_x = (recv_x, recv_sf)
+
+        handle = NcclEPHandle(
+            num_experts=num_experts,
+            expert_alignment=expert_alignment,
+            num_max_tokens_per_rank=num_max_tokens_per_rank,
+            capacity=capacity,
+            num_tokens=num_tokens,
+            topk_idx=topk_idx,
+            send_slot=send_slot,
+            entry_dest=dest,
+            num_expanded_rows=num_expanded_rows,
+            psum_num_recv_tokens_per_expert=psum,
+            num_recv_tokens_per_expert=counts.to(torch.int32),
+            exact=exact,
+            entry_row=entry_row,
+        )
+        return _Done((recv_x, recv_expert[:num_expanded_rows], recv_weights[:num_expanded_rows], handle))
+
+    def combine(
+        self,
+        x: torch.Tensor,
+        handle: NcclEPHandle,
+        bias: torch.Tensor | None = None,
+        **_unused,
+    ) -> _Done:
+        num_ranks, capacity, hidden = self.num_ranks, handle.capacity, x.shape[1]
+        num_rows = num_ranks * capacity
+        device = x.device
+        assert x.shape[0] == handle.num_expanded_rows, (x.shape, handle.num_expanded_rows)
+
+        # ---- Receiver: reduce the expert outputs of each received token, then send them back to their source.
+        y = torch.cat([x, x.new_zeros(1, hidden)])  # row `num_expanded_rows` is the zero row for empty entries
+        if handle.exact:
+            partial = torch.zeros((num_rows, hidden), dtype=torch.float32, device=device)
+            # Chunked: one fp32 gather of every expanded row is several GiB in a 32K-token prefill.
+            for s in range(0, handle.entry_dest.shape[0], _COMBINE_CHUNK_ROWS):
+                e = slice(s, s + _COMBINE_CHUNK_ROWS)
+                partial.index_add_(0, handle.entry_row[e], y[handle.entry_dest[e]].float())
+        else:
+            # Chunked too: the [rows, slots, H] fp32 gather was 3.75 GiB in the server's 8K-token profile run.
+            dest = handle.entry_dest.view(num_rows, -1)
+            partial = torch.empty((num_rows, hidden), dtype=torch.float32, device=device)
+            step = max(1, _COMBINE_CHUNK_ROWS // dest.shape[1])
+            for s in range(0, num_rows, step):
+                partial[s : s + step] = y[dest[s : s + step]].float().sum(dim=1)
+        back = self._all_to_all(partial.to(torch.bfloat16)).view(num_ranks, capacity, hidden)
+
+        # ---- Source: sum the partial results of every rank the token was sent to.
+        back = torch.cat([back, back.new_zeros(num_ranks, 1, hidden)], dim=1)  # slot `capacity` = not sent
+        # Accumulate one rank at a time instead of materialising [W, T, H] in fp32.
+        out = torch.zeros((handle.send_slot.shape[1], hidden), dtype=torch.float32, device=device)
+        for w in range(num_ranks):
+            out += torch.gather(back[w], 0, handle.send_slot[w].unsqueeze(-1).expand(-1, hidden))
+        if bias is not None:
+            out += bias.float()
+        return _Done((out.to(torch.bfloat16), None))

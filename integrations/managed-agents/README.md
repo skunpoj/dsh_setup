@@ -52,6 +52,10 @@ The request-policy module is a tested helper, not an installed authenticated gat
 
 Application admins should receive the same restricted model credentials as other users. Infrastructure owners who can change the policy cannot be made unable to change it by that same policy.
 
+## Input modalities
+
+The managed model deepseek-v4.1-flash is held to text and image input on every start (`MANAGED_INPUT` in `scripts/managed_agent_policy.mjs`); a text-only entry saved earlier is upgraded at the next workspace start, and the user's other model fields are kept. The engine accepts images because the checkpoint carries a vision encoder; the context forwarder passes image parts through unchanged while the input plus the output budget stays within 131072 tokens. Above 131072 combined tokens a request that contains an image is refused with HTTP 400 ("Above 128K, this warming route supports text and tools; reduce multimodal input"); the image is never silently dropped. Reduce the text or the number of images, or send the image in a separate shorter request. Image input needs a real one-image request after each image roll to be considered qualified.
+
 ## Validation and rollout
 
 ~~~sh

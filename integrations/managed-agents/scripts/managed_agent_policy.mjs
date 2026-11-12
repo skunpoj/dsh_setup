@@ -11,12 +11,15 @@ export function authorizeRequest(method, path, body) {
  if (body.extra_body && ['model',...overrides].some(k=>Object.hasOwn(body.extra_body,k))) deny('DSH_ROUTING_OVERRIDE_DENIED');
  return {model:MODEL};
 }
-// Input modalities are POLICY, not a user preference: the live engine is launched as a text-only server
-// (serve/openai_server.py without any multimodal arguments; lane 6 read-back 10 Nov 2026), so an image block
-// would fail at the engine. Every profile and settings file is held to MANAGED_INPUT on every start; change
-// it here (with a test) only after the engine is relaunched with vision support. configure_models.js's
-// [text, image] is overridden by this lock. Other fields of the user's model entry are kept.
-export const MANAGED_INPUT = Object.freeze(['text']);
+// Input modalities are POLICY, not a user preference: every profile and settings file is held to
+// MANAGED_INPUT on every start (install_single_model_startup.py); the user's other model fields are kept.
+// 12 Nov 2026: text and image. The managed model deepseek-v4.1-flash (DeepSeek-V4.1-Flash-1017 on the deepinfer
+// engine) accepts images: the checkpoint declares vision_config/image_token_id, the engine loads the vision
+// encoder and logs "[server] image input enabled" at start, and the context forwarder passes image parts
+// through unchanged up to 131072 combined tokens (above that it answers 400 for multimodal input). The earlier
+// text-only lock rested on the absence of a multimodal launch argument; image input comes from the checkpoint.
+// This lock covers only the managed model id above; no other model is advertised or changed here.
+export const MANAGED_INPUT = Object.freeze(['text','image']);
 export const DEFAULT_MANAGED_MODEL = {id:MODEL,name:'DeepSeek-V4.1-Flash-1017 (managed alias)',maxTokens:8192,input:[...MANAGED_INPUT]};
 function managedModel(prior) {
  const base = prior ? {...prior, id:MODEL} : structuredClone(DEFAULT_MANAGED_MODEL);

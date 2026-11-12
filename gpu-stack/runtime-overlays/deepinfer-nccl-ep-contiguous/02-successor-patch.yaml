@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deepinfer-v4-1-flash
+  namespace: llm
+spec:
+  template:
+    metadata:
+      annotations:
+        dsh.bot.or.th/nccl-ep-contiguous-source: a06c8ff46d390d462466deac588e24766cd67b97
+        dsh.bot.or.th/nccl-ep-contiguous-sha256: 885c972713d6783862c9cb337ff5b373c095e089d3ec2bb12f5fe780122339df
+    spec:
+      containers:
+      - name: deepinfer
+        volumeMounts:
+        - name: nccl-ep-contiguous-successor
+          mountPath: /work/runtime/deepinfer/model_executor/parallel_utils/nccl_ep.py
+          subPath: nccl_ep.py
+          readOnly: true
+      volumes:
+      - name: nccl-ep-contiguous-successor
+        configMap:
+          name: deepinfer-nccl-ep-contiguous-a06c8ff-885c9727
+          defaultMode: 292
