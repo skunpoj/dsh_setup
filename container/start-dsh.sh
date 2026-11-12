@@ -34,6 +34,8 @@ elif [ "$(readlink "$HOME/.claude" || true)" != /state/claude ]; then
   echo 'Existing Claude directory requires explicit reconciliation' >&2
   exit 65
 fi
+# Platform default for Claude Code: selecting text must not overwrite the clipboard (copyOnSelect=false). Added only when the user has not chosen; never fails start-up.
+python3 /opt/dsh/scripts/seed_claude_defaults.py || true
 chmod 0700 /state/kerberos
 export KRB5CCNAME="${KRB5CCNAME:-FILE:/state/kerberos/ccache}"
 rm -rf "${DSH_HOME:-$HOME/.dsh}"

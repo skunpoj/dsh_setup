@@ -107,11 +107,16 @@ jobs:
           import unittest
           suite = unittest.TestSuite()
           for path in sorted(Path('tests').glob('test_*.py')):
-              if path.name != 'test_live_client_autostart.py':
+              # Root-to-agent-UID launcher tests run inside the candidate image below.
+              if path.name not in ('test_live_client_autostart.py', 'test_unattended_launcher.py', 'test_a2a_cli_linux.py'):
                   suite.addTests(unittest.defaultTestLoader.discover('tests', pattern=path.name))
           result = unittest.TextTestRunner(verbosity=1).run(suite)
           raise SystemExit(not result.wasSuccessful())
           PY
+          # Fixed agent identity (UID 10001) is reached by dropping from root, as in the AzDO image build.
+          for test in test_unattended_launcher.py test_a2a_cli_linux.py; do
+            docker run --rm --network none --user 0:0 --entrypoint python3 -w /opt/dsh dsh-upstream-candidate -m unittest discover -s tests -p "$test" -v 2>&1 | tee "candidate-evidence/root-launcher-${test%.py}.log"
+          done
       - name: Verify admin and upstream browser behavior
         env:
           DSH_PLAYWRIGHT: /tmp/dsh-browser/node_modules/playwright
