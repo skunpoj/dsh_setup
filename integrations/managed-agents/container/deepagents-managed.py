@@ -36,7 +36,9 @@ def shell_allow_list(parent,cwd,now=None,allowance_file=None):
  if document is None: return None
  moment=time.time() if now is None else now
  for grant in document['grants']:
-  if grant['runtime']=='deepagents' and grant['project']==cwd.name and moment<=grant.get('expiresAt',moment): return BANKING_SHELL
+  # A standing grant carries expiresAt: null (no end time; load_allowance validates it), which must mean 'no expiry', never a float<=None comparison (TypeError, uncaught here).
+  expires=grant.get('expiresAt')
+  if grant['runtime']=='deepagents' and grant['project']==cwd.name and (expires is None or moment<=expires): return BANKING_SHELL
  return None
 def main():
  args=arguments(sys.argv[1:]);cwd=Path.cwd().resolve()
