@@ -193,6 +193,56 @@ class Worker:
                                         'ready': int(d.get('status', {}).get('readyReplicas', 0) or 0)}
                 for d in items if RUNTIME.fullmatch(d['metadata']['name'])}
 
+    def slot_names(self, slot):
+        """Exact names of every Kubernetes object that belongs to one signup slot."""
+        if not re.fullmatch(r'cap-[a-f0-9]{16}-01',slot):raise ValueError('Invalid slot')
+        identity=hashlib.sha256(slot.encode()).hexdigest()[:16]
+        documents,_,_=generate(self.template['templates'],self.template['claims'],slot[:-3],1)
+        names={'deployments':[],'services':[],'claims':[],
+               'secrets':['dsh-inference-signup-'+identity,'dsh-harness-signup-'+identity+'-secure','dsh-harness-signup-'+identity+'-internet']}
+        for document in documents:
+            group={'Deployment':'deployments','Service':'services','PersistentVolumeClaim':'claims'}.get(document['kind'])
+            if group is None:raise ValueError('Unexpected generated kind')
+            names[group].append(document['metadata']['name'])
+        names['claims']+=['dsh-app-status-'+service_id for service_id in self.service_ids(slot)]
+        return names
+
+    def service_ids(self, slot):
+        identity=hashlib.sha256(slot.encode()).hexdigest()[:16];namespace=self.config['namespace']
+        return [key('dsh-u-'+identity+'-secure.'+namespace+'.svc.cluster.local','off'),
+                key('dsh-u-'+identity+'-internet.'+namespace+'.svc.cluster.local','on')]
+
+    def revoke_slot_keys(self, slot):
+        """Revoke the slot's restricted inference keys at the issuer, then confirm none is still active."""
+        identity=hashlib.sha256(slot.encode()).hexdigest()[:16]
+        master=Path(self.config['issuerKeyFile']).read_text().strip();base=self.config['litellmBase'].rstrip('/')
+        def call(endpoint,body=None):
+            request=urllib.request.Request(base+endpoint,data=json.dumps(body).encode()if body is not None else None,
+                headers={'Authorization':'Bearer '+master,'Content-Type':'application/json'})
+            try:
+                with urllib.request.urlopen(request,timeout=45)as response:return response.status
+            except urllib.error.HTTPError as error:return error.code
+        for name,field in [('dsh-inference-signup-'+identity,'litellm-api-key'),('dsh-harness-signup-'+identity+'-secure','api-key'),
+                           ('dsh-harness-signup-'+identity+'-internet','api-key')]:
+            secret=self.kube.call('GET','Secret',name)
+            if not secret:continue
+            token=base64.b64decode(secret['data'][field]).decode()
+            if call('/key/delete',{'keys':[token]})not in [200,400,404]:raise RuntimeError('Credential revocation failed')
+            if call('/key/info?key='+hashlib.sha256(token.encode()).hexdigest())==200:raise RuntimeError('Credential is still active')
+
+    def retirement_context(self):
+        from capacity_retirement import Context
+        worker=self
+        class Live(Context):
+            central=worker.central;services=worker.services
+            def names(self,slot):return worker.slot_names(slot)
+            def get(self,kind,name):return worker.kube.call('GET',kind,name)
+            def delete(self,kind,name):worker.kube.delete(kind,name)
+            def scale_zero(self,name):worker.kube.scale(name,0)
+            def pods(self,name):return (worker.kube.call('GET','Pod',selector='app='+name)or{}).get('items',[])
+            def revoke_keys(self,slot):worker.revoke_slot_keys(slot)
+        return Live()
+
     def credential(self, name, field, messages):
         existing=self.kube.call('GET','Secret',name)
         if existing:

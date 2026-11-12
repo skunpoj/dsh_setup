@@ -226,6 +226,13 @@ def main():
                 delay=min(300,delay*2)
                 if args.once:
                     raise SystemExit('Capacity reconciliation paused: ' + type(error).__name__)
+            if config.get('allowSlotRetirement') is True:
+                # Administrator-requested slot wipe. Results are recorded per slot; an error here never pauses provisioning.
+                try:
+                    from capacity_retirement import process_retirements
+                    process_retirements(root, worker.retirement_context(), config, worker.service_ids)
+                except Exception:
+                    pass
             if args.once:
                 break
             # Someone is waiting for a cold start: check again quickly.

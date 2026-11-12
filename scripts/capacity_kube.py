@@ -70,6 +70,24 @@ class Kube:
         except urllib.error.HTTPError as error:
             raise RuntimeError('Kubernetes PATCH scale: HTTP ' + str(error.code)) from None
 
+    def delete(self, kind, name):
+        """Delete one provisioner-owned object. Used only by slot retirement; callers verify the owner label first."""
+        if kind not in ('Deployment', 'Service', 'Secret', 'PersistentVolumeClaim'):
+            raise ValueError('Refusing to delete this kind')
+        if not name.startswith(('dsh-u-', 'dsh-inference-signup-', 'dsh-harness-signup-', 'dsh-app-status-')):
+            raise ValueError('Refusing to delete outside provisioner resource prefixes')
+        prefix, plural = KINDS[kind]
+        url = self.base + prefix + '/namespaces/' + self.namespace + '/' + plural + '/' + name
+        headers = {'Authorization': 'Bearer ' + self.token_file.read_text().strip(), 'Content-Type': 'application/json'}
+        req = urllib.request.Request(url, method='DELETE', headers=headers, data=b'{"propagationPolicy":"Foreground"}')
+        try:
+            with urllib.request.urlopen(req, context=self.tls, timeout=25) as response:
+                response.read()
+        except urllib.error.HTTPError as error:
+            if error.code == 404:
+                return
+            raise RuntimeError('Kubernetes DELETE ' + kind + ': HTTP ' + str(error.code)) from None
+
     def ensure_new(self, document):
         kind, name = document['kind'], document['metadata']['name']
         if not name.startswith(('dsh-cap-', 'dsh-u-', 'dsh-inference-signup-', 'dsh-harness-signup-', 'dsh-app-status-')):

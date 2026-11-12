@@ -41,7 +41,9 @@ function atomicJSON(file,value) {
 }
 function projection(users) {
   return {version:1, observedAt:new Date().toISOString(), registeredAccounts:Object.keys(users).length,
-    assignedSlots:[...new Set(Object.values(users).map(u=>u.runtimeSlot).filter(Boolean))].sort()};
+    assignedSlots:[...new Set(Object.values(users).map(u=>u.runtimeSlot).filter(Boolean))].sort(),
+    // Slots held by accounts an administrator deleted: the only slots the controller may wipe.
+    deletedSlots:[...new Set(Object.values(users).filter(u=>u.deleted===true).map(u=>u.runtimeSlot).filter(Boolean))].sort()};
 }
 class Manager {
   constructor(root,initialPool,namespace='llm') {

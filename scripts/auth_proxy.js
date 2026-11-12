@@ -562,7 +562,7 @@ function projectAppAudit(d) {
   return result;
 }
 function recentAudit() {
-  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket','application.save','application.delete','application.limit','application.disable','application.enable','application.edit','application.lifecycle','account.create','account.enable','account.disable','account.revoke','account.allow-internet','account.deny-internet','account.reset-password','account.password-changed','login.password-change-required','capacity.policy','package.request','credential.identity','credential.save','credential.disable','credential.delete','credential.approve','credential.execute','credential.result','credential.tool.list','credential.tool.profiles','credential.tool.execute','credential.tool.result','engine.restart.request']);
+  const events = new Set(['login.success','login.denied','logout','runtime.http','admin.denied','terminal.open','application.websocket','application.save','application.delete','application.limit','application.disable','application.enable','application.edit','application.lifecycle','account.create','account.enable','account.disable','account.revoke','account.allow-internet','account.deny-internet','account.reset-password','account.delete','account.slot-wipe-requested','account.slot-wiped','account.password-changed','login.password-change-required','capacity.policy','package.request','credential.identity','credential.save','credential.disable','credential.delete','credential.approve','credential.execute','credential.result','credential.tool.list','credential.tool.profiles','credential.tool.execute','credential.tool.result','engine.restart.request']);
   const rows=[];
   for(const file of [`${AUDIT_DIR}/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh2/events.jsonl`,`${AUDIT_DIR}/legacy/legacy-dsh3/events.jsonl`]) {
     try {
@@ -758,8 +758,8 @@ function renderAdminDashboard() {
 <script>
 const put=(id,value)=>document.getElementById(id).textContent=value;
 let managementToken='';
-async function userAction(action,user,password){try{const body=new URLSearchParams({action,user});if(password)body.set('password',password);const r=await fetch('/api/admin/users',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':managementToken},body});const d=await r.json();if(!r.ok)throw Error(d.error||'Account update failed.');put('userMessage',action+' completed for '+user+'.');await refreshUsers();await refresh();}catch(e){put('userMessage',e.message);}}
-async function refreshUsers(){try{const r=await fetch('/api/admin/users',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('User management unavailable.');const d=await r.json();managementToken=d.csrfToken;const root=document.getElementById('users');root.replaceChildren();for(const u of d.users){const tr=document.createElement('tr');for(const value of [u.user,u.userId||'Not assigned',u.role,u.authProvider,(u.enabled?'Enabled':'Disabled')+(u.passwordChangeRequired?' · password change pending':''),u.environments.join(', '),u.sessions]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(u.role!=='Administrator'){for(const action of [u.enabled?'disable':'enable','revoke',u.internetAllowed?'deny-internet':'allow-internet']){const b=document.createElement('button');b.type='button';b.textContent=action==='revoke'?'Sign out':action==='disable'?'Disable':action==='allow-internet'?'Allow Internet':action==='deny-internet'?'Disable Internet':'Enable';b.addEventListener('click',()=>{if(confirm(action==='disable'?'Disable sign-in for account '+u.user+'? Saved files and histories will remain.':b.textContent+' '+u.user+'?'))userAction(action,u.user);});td.append(b);}if(u.authProvider==='Local'){const r=document.createElement('button');r.type='button';r.textContent='Reset password';r.addEventListener('click',()=>openPasswordReset(u.user));td.append(r);}}else td.textContent='Operator-managed';tr.append(td);root.append(tr);}const select=document.getElementById('newUser');if(select.tagName==='SELECT'){select.replaceChildren();for(const user of d.provisionedIdentities){const opt=document.createElement('option');opt.value=user;opt.textContent=user;select.append(opt);}}const capacity=document.getElementById('signupCapacity');if(capacity)capacity.textContent=d.signupWorkspacesAvailable+' new-user slots available';document.getElementById('createButton').disabled=select.tagName==='SELECT'?!d.provisionedIdentities.length:!(d.signupWorkspacesAvailable>0||d.provisionedIdentities.length);}catch(e){put('userMessage',e.message);}}
+async function userAction(action,user,password,confirmName){try{const body=new URLSearchParams({action,user});if(password)body.set('password',password);if(confirmName)body.set('confirm',confirmName);const r=await fetch('/api/admin/users',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':managementToken},body});const d=await r.json();if(!r.ok)throw Error(d.error||'Account update failed.');put('userMessage',action+' completed for '+user+'.');await refreshUsers();await refresh();}catch(e){put('userMessage',e.message);}}
+async function refreshUsers(){try{const r=await fetch('/api/admin/users',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw Error('User management unavailable.');const d=await r.json();managementToken=d.csrfToken;const root=document.getElementById('users');root.replaceChildren();for(const u of d.users){const tr=document.createElement('tr');for(const value of [u.user,u.userId||'Not assigned',u.role,u.authProvider,(u.deleted?'Deleted · '+({pending:'workspace wipe pending',retiring:'workspace wipe running',done:'workspace wiped',quarantined:'wipe failed, slot quarantined',refused:'wipe refused, slot kept','not-requested':'workspace retired, no wipe requested','not-applicable':'workspace retired'}[u.wipe]||'workspace retired'):u.enabled?'Enabled':'Disabled')+(u.passwordChangeRequired?' · password change pending':''),u.environments.join(', '),u.sessions]){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(u.deleted)td.textContent='Retired';else if(u.role!=='Administrator'){for(const action of [u.enabled?'disable':'enable','revoke',u.internetAllowed?'deny-internet':'allow-internet']){const b=document.createElement('button');b.type='button';b.textContent=action==='revoke'?'Sign out':action==='disable'?'Disable':action==='allow-internet'?'Allow Internet':action==='deny-internet'?'Disable Internet':'Enable';b.addEventListener('click',()=>{if(confirm(action==='disable'?'Disable sign-in for account '+u.user+'? Saved files and histories will remain.':b.textContent+' '+u.user+'?'))userAction(action,u.user);});td.append(b);}if(u.authProvider==='Local'){const r=document.createElement('button');r.type='button';r.textContent='Reset password';r.addEventListener('click',()=>openPasswordReset(u.user));td.append(r);}const del=document.createElement('button');del.type='button';del.textContent='Delete';del.addEventListener('click',()=>{const typed=prompt(u.recyclable?'Delete account '+u.user+'? Its sign-in is removed and its private workspace, files and histories are permanently wiped. This cannot be undone. Type the account name to confirm.':'Delete account '+u.user+'? Its sign-in is removed and its workspace slot is retired; files and histories stay. Type the account name to confirm.');if(typed===u.user)userAction('delete',u.user,'',typed);else if(typed!==null)put('userMessage','Account name did not match; nothing was deleted.');});td.append(del);}else td.textContent='Operator-managed';tr.append(td);root.append(tr);}const select=document.getElementById('newUser');if(select.tagName==='SELECT'){select.replaceChildren();for(const user of d.provisionedIdentities){const opt=document.createElement('option');opt.value=user;opt.textContent=user;select.append(opt);}}const capacity=document.getElementById('signupCapacity');if(capacity)capacity.textContent=d.signupWorkspacesAvailable+' new-user slots available';document.getElementById('createButton').disabled=select.tagName==='SELECT'?!d.provisionedIdentities.length:!(d.signupWorkspacesAvailable>0||d.provisionedIdentities.length);}catch(e){put('userMessage',e.message);}}
 let appManagementToken='',appInventory=null;
 async function appAction(fields){try{const r=await fetch('/api/admin/apps',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-DSH-Admin-CSRF':appManagementToken},body:new URLSearchParams(fields)});const d=await r.json();if(!r.ok)throw Error(d.error||'Application change failed.');put('appMessage',d.message);await refreshApps();}catch(e){put('appMessage',e.message);}}
 function appButton(label,fields){const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=!appManagementToken;b.onclick=()=>{if(fields.action==='service-start'||confirm(label+' for '+(fields.name||fields.user)+'?'))appAction(fields);};return b;}
@@ -876,6 +876,43 @@ const CAPACITY_ROOT=process.env.DSH_CAPACITY_ROOT||'';
 const CAPACITY=CAPACITY_ROOT?new (require('./capacity_policy').Manager)(CAPACITY_ROOT,SIGNUP_POOL,process.env.DSH_NAMESPACE||'llm'):null;
 function activeSignupPool(){return CAPACITY?CAPACITY.pool():SIGNUP_POOL;}
 setInterval(()=>{if(CAPACITY)try{CAPACITY.project(loadUsers());}catch{}},5000).unref();
+// Administrator Delete = wipe and recycle. The gateway only records the request and later removes the tombstone; the
+// capacity controller (the one component with cluster rights) stops the slot, revokes its keys, deletes its objects and
+// files, verifies, and answers in inventory/retirements/<slot>.json. A slot is never handed out again by the gateway.
+const RETIRABLE_SLOT=/^cap-[a-f0-9]{16}-01$/;
+function retirementFiles(slot){
+  return CAPACITY_ROOT&&typeof slot==='string'&&RETIRABLE_SLOT.test(slot)?{request:path.join(CAPACITY_ROOT,'policy','retirements',slot+'.json'),result:path.join(CAPACITY_ROOT,'inventory','retirements',slot+'.json')}:null;
+}
+function retirementResult(slot){
+  const files=retirementFiles(slot);if(!files)return null;
+  try{const r=require('./capacity_policy').readJSON(files.result,8192);return r&&typeof r==='object'?r:null;}catch{return null;}
+}
+function retirementState(slot){
+  const files=retirementFiles(slot);if(!files)return 'not-applicable';
+  const r=retirementResult(slot);if(r&&['done','quarantined','refused','retiring'].includes(r.state))return r.state;
+  return fs.existsSync(files.request)?'pending':'not-requested';
+}
+function requestSlotWipe(slot,user,actor){
+  const files=retirementFiles(slot);if(!files)return false;
+  fs.mkdirSync(path.dirname(files.request),{recursive:true,mode:0o700});
+  require('./capacity_policy').atomicJSON(files.request,{version:1,slot,user,requestedBy:actor,requestedAt:new Date().toISOString()});
+  return true;
+}
+function reconcileRetirements(){
+  if(!CAPACITY_ROOT)return;
+  const users=loadUsers();let changed=false;
+  for(const [user,record] of Object.entries(users)){
+    if(record.deleted!==true||!RETIRABLE_SLOT.test(record.runtimeSlot||''))continue;
+    const result=retirementResult(record.runtimeSlot);
+    // Only the controller's own 'done' for exactly this slot and account removes the tombstone; the same person can then sign up again and gets a clean slot.
+    if(result&&result.state==='done'&&result.slot===record.runtimeSlot&&result.account===user){
+      if(!auditEvent('account.slot-wiped',typeof record.deletedBy==='string'?record.deletedBy:'unidentified','off',user))continue;
+      delete users[user];changed=true;
+    }
+  }
+  if(changed)saveUsers(users);
+}
+setInterval(()=>{try{reconcileRetirements();}catch{}},5000).unref();
 // First come, first reserved: publish which private runtimes signed-in users are using.
 // The controller starts them when resources allow and stops them when idle.
 const SESSION_DEMAND=CAPACITY_ROOT&&USER_TARGETS?require('./session_demand').createSessionDemand({root:CAPACITY_ROOT}):null;
@@ -891,6 +928,17 @@ function capacityStatusSnapshot(){
   try{const s=require('./capacity_policy').readJSON(path.join(CAPACITY_ROOT,'inventory','status.json'),65536);const age=Date.now()-Date.parse(s.observedAt);return s.available===true&&Number.isFinite(age)&&age>=-5000&&age<90000?s:null;}catch{return null;}
 }
 function sharedResourceStatus(){return require('./session_demand').publicStatus(SESSION_DEMAND?.snapshot(),capacityStatusSnapshot());}
+// Login-page Accounts bar: how many accounts exist against what the shared resources allow. Aggregate numbers only,
+// taken from the controller's own fresh capacity report (null when it is paused, stale or inconsistent).
+function publicAccountsStatus(){
+  if(!CAPACITY)return null;
+  try{
+    const summary=CAPACITY.summary(loadUsers()),c=summary.controller&&summary.controller.capacity;
+    if(!c||!Number.isSafeInteger(c.totalRegistered)||!Number.isSafeInteger(c.totalPlanningCeiling)||c.totalPlanningCeiling<c.totalRegistered)return null;
+    const names={cpu:'CPU',memoryGiB:'memory',pods:'pod slots',storageGiB:'storage',inventory:'workspace inventory'};
+    return {registered:c.totalRegistered,allowance:c.totalPlanningCeiling,limitedBy:(c.limitingResources||[]).map(x=>names[x]).filter(Boolean)};
+  }catch{return null;}
+}
 // Cold start or queue: a self-refreshing page for browsers, 503 + Retry-After for API clients.
 // A just-created or restarting workspace can be Ready as a pod before DSH accepts connections. These errors mean "not yet", never a failure to show as text.
 const DSH_STARTING_ERRORS=new Set(['ECONNREFUSED','ECONNRESET','ETIMEDOUT','EHOSTUNREACH','ENOTFOUND','EAI_AGAIN']);
@@ -1052,7 +1100,7 @@ function internetAllowed(user) {
 function adminAccounts() {
   const users=loadUsers();
   // userId: the opaque credential subject (u-<32 hex>) the gateway already assigned; never minted on read, never a secret.
-  return Object.keys(users).sort().map(user=>({user, userId:typeof users[user]?.credentialSubject==='string'&&/^u-[a-f0-9]{32}$/.test(users[user].credentialSubject)?users[user].credentialSubject:null, enabled:users[user].disabled!==true,
+  return Object.keys(users).sort().map(user=>({user, userId:typeof users[user]?.credentialSubject==='string'&&/^u-[a-f0-9]{32}$/.test(users[user].credentialSubject)?users[user].credentialSubject:null, enabled:users[user].disabled!==true, deleted:users[user].deleted===true, recyclable:users[user].deleted!==true&&Boolean(retirementFiles(users[user].runtimeSlot)), wipe:users[user].deleted===true?retirementState(users[user].runtimeSlot):null,
     role:ADMIN_USERS.has(user)?'Administrator':'User', authProvider:users[user].authProvider==='ldap'?'AD / LDAP':'Local', internetAllowed:internetAllowed(user), passwordChangeRequired:users[user].mustChangePassword===true,
     environments:USER_TARGETS ? ['secure','internet'].filter(mode=>privateTargetsFor(user,users)?.[mode]) : ['instance'],
     sessions:[...SESSIONS.values()].filter(s=>s.user===user).length}));
@@ -1705,6 +1753,7 @@ if(bars){bars.replaceChildren();
  if(d.memory)row('Memory',d.memory.reservedPercent,d.memory.usedPercent,num(d.memory.usedGiB)+' used · '+num(d.memory.reservedGiB)+' reserved of '+num(d.memory.totalGiB)+' GiB');
  if(d.gpu)row('GPU',d.gpu.allocatedPercent,undefined,num(d.gpu.allocated)+' of '+num(d.gpu.total)+' GPUs allocated (shared model server)');
  if(Number.isSafeInteger(w.capacity)&&w.capacity>0)row('Workspaces',100*((w.running||0)+(w.starting||0))/w.capacity,100*(w.running||0)/w.capacity,n(w.running)+' running · '+n(w.starting)+' starting · '+n(w.waiting)+' waiting · room for '+n(w.capacity)+' now');
+ const a=d.accounts;if(a&&Number.isSafeInteger(a.registered)&&Number.isSafeInteger(a.allowance)&&a.allowance>0)row('Accounts',undefined,100*a.registered/a.allowance,n(a.registered)+' of '+n(a.allowance)+' accounts the shared resources allow'+(Array.isArray(a.limitedBy)&&a.limitedBy.length?' · limited by '+a.limitedBy.join(', '):''));
  const legend=document.createElement('div');legend.className='rs-legend';const swatch=c=>{const i=document.createElement('i');i.style.background=c;return i;};
  legend.append(swatch('#2f6fed'),'used',swatch('#9fb3c8'),'reserved');bars.append(legend);
  const up=document.getElementById('resourceUpdated');if(up)up.textContent='· updated '+new Date().toLocaleTimeString();}
@@ -1742,7 +1791,7 @@ const server = http.createServer(async (req, res) => {
   if(parsedUrl.pathname==='/api/status') {
     const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
     if(req.method!=='GET'){res.writeHead(405,{...headers,Allow:'GET'});return res.end(JSON.stringify({error:'Method not allowed'}));}
-    try{res.writeHead(200,headers);return res.end(JSON.stringify(sharedResourceStatus()));}
+    try{const accounts=publicAccountsStatus();res.writeHead(200,headers);return res.end(JSON.stringify({...sharedResourceStatus(),...(accounts?{accounts}:{})}));}
     catch{res.writeHead(503,headers);return res.end(JSON.stringify({error:'Resource status unavailable'}));}
   }
   if(parsedUrl.pathname==='/api/theme-default-logo') {
@@ -2165,8 +2214,8 @@ const server = http.createServer(async (req, res) => {
         try {
           if(!accountEnabled(sessionUser) || ![...SESSIONS.values()].includes(activeSession)) return reply(403,{error:'Session expired.'});
           const fields=new URLSearchParams(body),user=fields.get('user')||'',action=fields.get('action');
-          if(!/^[a-z0-9_.-]{3,30}$/.test(user)||!['create','enable','disable','revoke','allow-internet','deny-internet','reset-password'].includes(action)) return reply(400,{error:'Invalid account or action.'});
-          const users=loadUsers();
+          if(!/^[a-z0-9_.-]{3,30}$/.test(user)||!['create','enable','disable','revoke','allow-internet','deny-internet','reset-password','delete'].includes(action)) return reply(400,{error:'Invalid account or action.'});
+          const users=loadUsers();let retiredSlot=null;
           if(ADMIN_USERS.has(user)) return reply(409,{error:'Administrator accounts are maintained by the operator.'});
           if(action==='create') {
             if(Object.hasOwn(users,user))return reply(409,{error:'Account already exists.'});
@@ -2176,6 +2225,8 @@ const server = http.createServer(async (req, res) => {
             users[user]=created.record;
           } else {
             if(!Object.hasOwn(users,user))return reply(404,{error:'Account not found.'});
+            if(users[user].deleted===true)return reply(409,{error:'This account was deleted; its workspace slot stays retired.'});
+            if(action==='delete'&&user===sessionUser)return reply(409,{error:'You cannot delete the account you are signed in with.'});
             // The administrator types the new password in their own browser. Only scheme, salt and hash change,
             // plus a flag that makes the account choose its own password at the next sign-in. The password is
             // never logged, audited or echoed. Changing the hash also invalidates every session stamp.
@@ -2186,11 +2237,28 @@ const server = http.createServer(async (req, res) => {
               users[user]={...users[user],...hashPassword(password),mustChangePassword:true};
             }
             if(action==='enable'||action==='disable')users[user]={...users[user],disabled:action==='disable'};
+            // Delete = retire. The record stays as a tombstone: sign-in is impossible (disabled, and the password is replaced by a
+            // hash of random bytes nobody holds), and the workspace slot stays held, so a new sign-up can never inherit this
+            // account's files. Freeing a slot needs its private storage wiped, which this gateway cannot do.
+            if(action==='delete'){
+              if(fields.get('confirm')!==user)return reply(400,{error:'Type the exact account name to confirm deletion.'});
+              const prior=users[user];retiredSlot=prior.runtimeSlot||null;
+              users[user]=Object.fromEntries(Object.entries({...hashPassword(crypto.randomBytes(48).toString('hex')),authProvider:prior.authProvider,ldapSubject:prior.ldapSubject,runtimeSlot:prior.runtimeSlot,credentialSubject:prior.credentialSubject,createdAt:prior.createdAt,internetAllowed:false,disabled:true,deleted:true,deletedAt:new Date().toISOString(),deletedBy:sessionUser}).filter(([,value])=>value!==undefined));
+            }
             if(action==='allow-internet'||action==='deny-internet')users[user]={...users[user],internetAllowed:action==='allow-internet'};
           }
           if(!auditEvent('account.'+action,sessionUser,activeSession.internet,user))return reply(503,{error:'Audit storage unavailable.'});
           if(action!=='revoke'&&!saveUsers(users))return reply(500,{error:'Account update could not be saved.'});
-          if(['disable','revoke','deny-internet','reset-password'].includes(action))await revokeUserSessions(user);
+          if(['disable','revoke','deny-internet','reset-password','delete'].includes(action))await revokeUserSessions(user);
+          if(action==='delete'){
+            // The tombstone is saved first, so a wipe request can never exist for a live account.
+            let wipe='not-applicable';
+            if(retirementFiles(retiredSlot)){
+              wipe='requested';
+              try{if(!auditEvent('account.slot-wipe-requested',sessionUser,activeSession.internet,user)||!requestSlotWipe(retiredSlot,user,sessionUser))wipe='request-failed';}catch{wipe='request-failed';}
+            }
+            return reply(wipe==='request-failed'?500:200,{updated:true,user,action,wipe,...(wipe==='request-failed'?{error:'The account was deleted but its workspace wipe could not be requested; tell the operator.'}:{})});
+          }
           return reply(200,{updated:true,user,action});
         } catch {return reply(500,{error:'Account management unavailable.'});}
       });

@@ -46,6 +46,8 @@ def main():
     parser.add_argument('--expected-source-sha256',help='Required live gateway source digest for an accepted Production handover')
     parser.add_argument('--additional-account-deployment',action='append',default=[],metavar='NAME=LABEL',help='Additional fixed-owner deployment sharing this cluster; repeat for each instance')
     parser.add_argument('--warm-spares',type=int,default=2)
+    parser.add_argument('--allow-slot-retirement',action='store_true',help='Let the controller wipe and retire a signup slot an administrator deleted; adds delete rights on this installation')
+    parser.add_argument('--protected-slot',action='append',default=[],help='Slot the controller must never retire (repeat); required with --allow-slot-retirement')
     parser.add_argument('--manual-dir',help='Previously published immutable manual directory for this handover')
     parser.add_argument('--instance',default='qa',help='Unique disposable canary installation identifier')
     parser.add_argument('--apply',action='store_true');parser.add_argument('--acceptance',type=Path)
@@ -54,6 +56,8 @@ def main():
     for value in [args.namespace,args.gateway,args.template_user]:
         if not re.fullmatch(r'[a-z0-9_.-]{3,63}',value):raise ValueError('Invalid site identifier')
     if args.template_user in protected_template_users():raise ValueError('Use an ordinary private user template')
+    if args.allow_slot_retirement and not args.protected_slot:raise ValueError('Name at least one --protected-slot (the banking and admin slots) before allowing retirement')
+    if any(not re.fullmatch(r'cap-[a-f0-9]{16}-01|signup-[a-z0-9-]{1,40}',slot)for slot in args.protected_slot):raise ValueError('Invalid protected slot')
     args.output.mkdir(parents=True,exist_ok=False)
     def kube(*parts,source=None,timeout=45):
         result=subprocess.run([args.kubectl,'-n',args.namespace,'--request-timeout=30s',*parts],input=source,
@@ -110,6 +114,8 @@ def main():
         'issuerKeyFile':'/issuer/key','litellmBase':'http://litellm.'+args.namespace+'.svc.cluster.local:4000',
         'inventoryPVC':inventory_claim,'serviceControlPVC':control_claim,'storageClass':'topolvm','trustedHost':trusted,
         'reserveCPU':2,'reserveMemoryGiB':32,'reserveStorageGiB':200,'reservePods':10}
+    if args.allow_slot_retirement:config.update(allowSlotRetirement=True,protectedSlots=sorted(set(args.protected_slot)))
+    extra_verbs=['delete']if args.allow_slot_retirement else[]
     site={'apiVersion':'v1','kind':'ConfigMap','immutable':True,'metadata':{'name':prefix+'-site-'+digest[:12]},
         'data':{'site.json':json.dumps(config),'templates.json':json.dumps({'templates':templates,'claims':claims}),
                 'initial-pool.json':json.dumps(initial_pool),'initial-policy.json':json.dumps(policy)}}
@@ -122,8 +128,8 @@ def main():
     sa=prefix+'-controller'
     documents += [{'apiVersion':'v1','kind':'ServiceAccount','metadata':{'name':sa}},
         {'apiVersion':'rbac.authorization.k8s.io/v1','kind':'Role','metadata':{'name':sa},'rules':[
-            {'apiGroups':[''],'resources':['services','secrets','persistentvolumeclaims'],'verbs':['get','create']},
-            {'apiGroups':['apps'],'resources':['deployments'],'verbs':['get','list','create']},
+            {'apiGroups':[''],'resources':['services','secrets','persistentvolumeclaims'],'verbs':['get','create']+extra_verbs},
+            {'apiGroups':['apps'],'resources':['deployments'],'verbs':['get','list','create']+extra_verbs},
             # First-come sessions: start a private runtime on demand, stop it when idle.
             {'apiGroups':['apps'],'resources':['deployments/scale'],'verbs':['get','patch']}]},
         {'apiVersion':'rbac.authorization.k8s.io/v1','kind':'RoleBinding','metadata':{'name':sa},
