@@ -43,6 +43,22 @@ class OutputGuard(CustomLogger):
             if 'stop' in data:
                 raise HTTPException(400, 'Send stop or stop_sequences, not both.')
             data['stop'] = data.pop('stop_sequences')
+        # LiteLLM's custom_openai provider passes unknown top-level fields straight to
+        # AsyncCompletions.create(**kwargs), so 'chat_template_kwargs' (e.g. {'enable_thinking':
+        # False}, sent by the capacity worker's fresh-credential probe and by OpenAI-style
+        # clients) raised TypeError -> 500 and paused account provisioning (observed live
+        # 2026-11-12, OPERATOR-SIGNUP-PAUSE-PINPOINTED-CAUSE-C). The engine does accept it, so
+        # carry it in extra_body (sent to the backend unchanged) instead of dropping it.
+        if 'chat_template_kwargs' in data:
+            extra = data.get('extra_body')
+            if extra is None:
+                extra = {}
+            if not isinstance(extra, dict) or not isinstance(data['chat_template_kwargs'], dict):
+                raise HTTPException(400, 'chat_template_kwargs and extra_body must be objects.')
+            if 'chat_template_kwargs' in extra:
+                raise HTTPException(400, 'Send chat_template_kwargs once, not also in extra_body.')
+            extra['chat_template_kwargs'] = data.pop('chat_template_kwargs')
+            data['extra_body'] = extra
         # This backend's streamed tool_use blocks are merged somewhere in the
         # translation path when the model emits more than one tool call in a
         # single turn: two tool-argument objects land concatenated inside one

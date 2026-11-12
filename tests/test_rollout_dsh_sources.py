@@ -294,7 +294,7 @@ class SidecarTests(unittest.TestCase):
         files = r.load_baseline()
         self.assertIn('gateway_output_guard.py', files)
         self.assertEqual(files['gateway_output_guard.py'],
-                          'c9e6c90ad396a9ab0c833f1020c9ec7dbd15efff3080afc625ae27139f6bd8e6')
+                          '96728751217e4dfd57a3d1c5a2c0b227bda11f9be0323a4eb01379931001033d')
 
     def test_repository_gateway_output_guard_now_differs_from_the_recorded_baseline(self):
         # This fix changes gateway_output_guard.py, so a real rollout must see it as changed

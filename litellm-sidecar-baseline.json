@@ -4,10 +4,10 @@
   "files": {
     "context_forwarder.py": "7622dc322ea29c03278d048b76d5229e7e52c51ab001806629de5a4bb6d192f5",
     "long_context_callbacks.py": "fbc90a7fc58eb53fa2efad073df69d179c06c6805c57496894c8aad6dfb11658",
-    "gateway_output_guard.py": "c9e6c90ad396a9ab0c833f1020c9ec7dbd15efff3080afc625ae27139f6bd8e6"
+    "gateway_output_guard.py": "96728751217e4dfd57a3d1c5a2c0b227bda11f9be0323a4eb01379931001033d"
   },
   "reviewed": {
-    "state": "context_forwarder.py/long_context_callbacks.py live since the one-off rollout of 9 Nov 2026 13:58Z (ConfigMap litellm-interactive-4ea96bd95cdb, commit 62f6bb2b16b26ce1a3718c0e152d05e9961a5c01) -- reconfirmed live 2026-11-11T08:29Z, unchanged. gateway_output_guard.py: this recorded baseline was stale -- read-only kubectl get configmap litellm-interactive-e25cca90f89c (the ConfigMap the live Deployment litellm actually mounts, confirmed via deploy.spec.template.spec.volumes) just now (2026-11-11, LANE6-PARALLEL-TOOLCALL-FIX-20261111) shows gateway_output_guard.py already live at the stop_sequences-fix hash c9e6c90a... (not the previously-recorded safeguards-only bdd659ff...), meaning that fix shipped since the last baseline update without this file being advanced. Set to the confirmed-live c9e6c90a... so the stage's baselineMatch precondition passes before applying this patch's new source (96728751...).",
-    "source": "Fresh read-only kubectl get configmap litellm-interactive-e25cca90f89c -n llm (2026-11-11T08:29Z, this session); OPERATOR-FORWARDER-ROLLOUT-DONE, LANE6-SAFEGUARDS-FIX-VIA-SIDECAR-READY and 1315 run 64484 plan evidence (litellm-sidecar-rollout-evidence), ledger /home/developer/outputs/COORDINATION.md"
+    "state": "gateway_output_guard.py baseline advanced 2026-11-12 to 96728751... = the parallel_tool_calls release (LANE6-PARALLEL-TOOLCALL-FIX-20261111, shipped with 3e96b99f [deploy-litellm-sidecar]); the stage still refuses to apply unless the live file equals this hash. context_forwarder.py/long_context_callbacks.py unchanged since 9 Nov 2026 13:58Z.",
+    "source": "Orchestrator 3812167b, ORCH-SIGNUP-FIX-LITELLM-GUARD-EXTRA-BODY (2026-11-12); previous: Fresh read-only kubectl get configmap litellm-interactive-e25cca90f89c -n llm (2026-11-11T08:29Z, this session); OPERATOR-FORWARDER-ROLLOUT-DONE, LANE6-SAFEGUARDS-FIX-VIA-SIDECAR-READY and 1315 run 64484 plan evidence (litellm-sidecar-rollout-evidence), ledger /home/developer/outputs/COORDINATION.md"
   }
 }

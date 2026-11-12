@@ -43,6 +43,17 @@ class OutputGuardTests(unittest.TestCase):
         self.assertEqual(result['max_tokens'], 8192)
         self.assertNotIn('max_completion_tokens', result)
 
+    def test_chat_template_kwargs_moves_into_extra_body_for_the_custom_openai_route(self):
+        result = self.call(chat_template_kwargs={'enable_thinking': False})
+        self.assertNotIn('chat_template_kwargs', result)
+        self.assertEqual(result['extra_body'], {'chat_template_kwargs': {'enable_thinking': False}})
+        kept = self.call(chat_template_kwargs={'enable_thinking': True}, extra_body={'top_k': 5})
+        self.assertEqual(kept['extra_body'], {'top_k': 5, 'chat_template_kwargs': {'enable_thinking': True}})
+        for bad in [dict(chat_template_kwargs='x'), dict(chat_template_kwargs={}, extra_body='x'),
+                    dict(chat_template_kwargs={}, extra_body={'chat_template_kwargs': {}})]:
+            with self.assertRaises(Rejected) as caught:
+                self.call(**bad)
+            self.assertEqual(caught.exception.status_code, 400)
     def test_safeguards_field_is_refused_for_the_custom_openai_backed_model(self):
         with self.assertRaises(Rejected) as caught:
             self.call(safeguards=[{'type': 'synthetic-classifier'}])
