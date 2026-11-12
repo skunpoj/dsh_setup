@@ -23,6 +23,17 @@ def gateway_sources(root):
         result[name] = source
         for relative in _LOCAL_REQUIRE.findall(source):
             member = relative[2:]
+            if member.endswith(".json"):
+                # A data sibling (e.g. gradio_alias.js -> ./gradio-alias-defaults.json) is shipped
+                # flat beside the scripts in the ConfigMap; the repository keeps it in config/.
+                if not re.fullmatch(r"[A-Za-z0-9_-]+\.json", member):
+                    raise ValueError("Unsupported gateway local require: " + relative)
+                data = next((d / member for d in (directory, Path(root) / "config")
+                             if (d / member).is_file() and not (d / member).is_symlink()), None)
+                if data is None:
+                    raise ValueError("Missing regular gateway source: " + member)
+                result[member] = data.read_text(encoding="utf-8")
+                continue
             if not member.endswith(".js"):
                 member += ".js"
             if not re.fullmatch(r"[A-Za-z0-9_-]+\.js", member):
