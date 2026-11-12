@@ -60,6 +60,7 @@ class LauncherCase(unittest.TestCase):
         child.wait.return_value=0;child.poll.return_value=0
         with mock.patch.object(launcher.subprocess,'Popen',return_value=child), \
                 mock.patch.object(launcher.os,'name','posix'), \
+                mock.patch.object(launcher.os,'geteuid',return_value=10001,create=True), \
                 mock.patch.object(launcher,'stop_client_group') as stop:
             self.assertEqual(launcher.run_client(['synthetic'],{}),0)
         stop.assert_called_once_with(2345)

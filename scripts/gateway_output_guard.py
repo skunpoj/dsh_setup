@@ -33,6 +33,26 @@ class OutputGuard(CustomLogger):
         # and the client can negotiate a supported shape.
         if 'safeguards' in data:
             raise HTTPException(400, 'unsupported-provider-safeguards')
+        # Same bridge leak, different field: Anthropic's Messages API calls this
+        # 'stop_sequences'; this plain OpenAI-compatible backend only knows 'stop'.
+        # Unlike 'safeguards' there IS a direct equivalent here, so translate rather
+        # than refuse -- rejecting would drop real, satisfiable stopping behavior for
+        # no reason. Observed live 2026-11-10, same TypeError shape as the safeguards
+        # case (LANE6-SAFEGUARDS-TRACE).
+        if 'stop_sequences' in data:
+            if 'stop' in data:
+                raise HTTPException(400, 'Send stop or stop_sequences, not both.')
+            data['stop'] = data.pop('stop_sequences')
+        # This backend's streamed tool_use blocks are merged somewhere in the
+        # translation path when the model emits more than one tool call in a
+        # single turn: two tool-argument objects land concatenated inside one
+        # tool_use's input ({"command": ...}{"file_path": ...}), which is not
+        # valid JSON and makes the caller reject the whole call (observed live
+        # 2026-11-10/11, lane 9 retained export, LANE6-PARALLEL-TOOLCALL-MERGE).
+        # Forcing one tool call per turn avoids the merge outright; it costs an
+        # extra round trip per additional tool the model would have batched.
+        if data.get('tools'):
+            data['parallel_tool_calls'] = False
         limits = [data[k] for k in ['max_tokens', 'max_completion_tokens'] if k in data]
         if any(type(n) is not int or n < 1 for n in limits):
             raise HTTPException(400, 'Output limits must be positive integers.')

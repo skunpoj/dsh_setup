@@ -19,9 +19,13 @@ jobs:
         run: python3 -m unittest discover -s tests -p test_governed_harness_comparison.py -v
       - name: Verify documentation rendering contracts
         run: python3 -m unittest discover -s tests -p test_document_rendering_contract.py -v
+      - name: Verify shared manual builder and public roots
+        run: |
+          python3 -m unittest discover -s tests -p test_manual_bundle.py -v
+          python3 -m unittest discover -s tests -p test_public_manual_entrypoints.py -v
       - name: Build exact-commit consolidated manual package
         run: |
-          python3 scripts/build_manual_bundle.py --git-ref "$GITHUB_SHA" --output "$RUNNER_TEMP/dsh-manual"
+          python3 scripts/build_manual_bundle.py --entrypoints-json .github/public-manual-entrypoints.json --git-ref "$GITHUB_SHA" --output "$RUNNER_TEMP/dsh-manual"
           python3 - <<'PY'
           import hashlib, json, os
           from pathlib import Path

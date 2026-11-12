@@ -28,7 +28,7 @@ The authenticated gateway checks the session and approved hostname before bounde
 5. Verify the installed image identities and every manifest-bound file, then test authenticated playback, captions, seeking, downloads and sign-out denial.
 6. Check existing users and durable history. Restore only the reviewed course fields on regression; preserve newer unrelated state and user writes.
 
-The reference repository supplies gateway integration code. Operators supply approved learning assets, image repositories, registry authentication and site routing privately, then qualify their installation. See [installation](INSTALLATION_WALKTHROUGH.md), [route acceptance checks](../tests/test_course_routes.js), publication boundaries and [GPU setup](../gpu-stack/README.md).
+The reference repository supplies gateway integration code. Operators supply approved learning assets, image repositories, registry authentication and site routing privately, then qualify their installation. See installation, [route acceptance checks](../tests/test_course_routes.js), publication boundaries and [GPU setup](../gpu-stack/README.md).
 
 ## Slide companions
 

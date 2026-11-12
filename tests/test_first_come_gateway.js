@@ -51,8 +51,11 @@ let child;
  // Demand is published without user names and keeps the first request time.
  await new Promise(r=>setTimeout(r,5500));
  const demand=read('capacity/policy/demand.json');assert(demand.runtimes[name],'Signed-in use is published as demand');assert(!JSON.stringify(demand).includes('alice'));
- // Running: the gateway proxies as before (the synthetic host does not resolve, so no waiting page).
- sessions('running');const proxied=await request('GET','/','',cookie,{Accept:'text/html'});assert(!proxied.text.includes('Starting your workspace'));
+ // Running: the capacity gate lets the request through to the proxy. The synthetic host does not resolve, and since
+ // 80ce314 an unreachable DSH port answers 'starting-dsh' (never a text 502), so that stage proves the proxy path was taken
+ // instead of the controller's queue/starting gate. POST is used because it is not retried server-side.
+ sessions('running');const proxied=await request('POST','/api/x','{}',cookie,{Accept:'application/json','Content-Type':'application/json'});
+ assert.equal(proxied.status,503);const proxiedBody=JSON.parse(proxied.text);assert.equal(proxiedBody.progress.stage,'starting-dsh','running workspace reached the proxy');assert.equal(proxiedBody.state,'starting');
  // Signing out releases the workspace at once.
  await request('GET','/logout','',cookie);await new Promise(r=>setTimeout(r,5500));
  assert.deepEqual(read('capacity/policy/demand.json').runtimes,{},'Sign-out releases demand');

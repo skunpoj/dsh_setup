@@ -79,7 +79,9 @@ class ProtectedCLIService:
                 and all(receipt.get(k) == v for k,v in dict(context,operationId=operation).items())
                 and receipt.get("stopped") is True and receipt.get("processExitVerified") is True
                 and receipt.get("descendantAbsenceVerified") is True
-                and isinstance(receipt.get("scopeUid"),str) and bool(receipt["scopeUid"]))
+                # a launch that never began has no scope: its receipt says neverStarted instead of carrying a scopeUid
+                and (receipt.get("neverStarted") is True
+                     or (isinstance(receipt.get("scopeUid"),str) and bool(receipt["scopeUid"]))))
         except BaseException:
             verified = False
         with task.persistence_lock:
@@ -105,7 +107,8 @@ class ProtectedCLIService:
                     and retained.get("stopped") is True
                     and retained.get("processExitVerified") is True
                     and retained.get("descendantAbsenceVerified") is True
-                    and isinstance(retained.get("scopeUid"), str) and retained["scopeUid"]):
+                    and (retained.get("neverStarted") is True
+                         or (isinstance(retained.get("scopeUid"), str) and retained["scopeUid"]))):
                 task.finished.set()
                 return True  # Preserve accepted results without another transport call.
         # Observation only: never execute/restart a recovered client or prompt.

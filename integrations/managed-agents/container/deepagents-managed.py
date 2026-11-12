@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Launch only the installed managed coding agent; never invoke a subscription login."""
-import os,re,sys
+import os,re,sys,time
 from pathlib import Path
 def arguments(argv):
  if len(argv)>3: raise ValueError('Use deepagents, --help, --version, or -n TASK')
@@ -22,11 +22,29 @@ def environment(parent):
  e.update({'HOME':'/home/dsh','PATH':'/usr/local/bin:/usr/bin:/bin','DEEPAGENTS_HOME':'/state/deepagents','LANGSMITH_TRACING':'false','LANGCHAIN_TRACING_V2':'false','DO_NOT_TRACK':'1','OTEL_SDK_DISABLED':'true','DEEPAGENTS_CODE_AUTO_UPDATE':'0','DEEPAGENTS_CODE_NO_UPDATE_CHECK':'1'})
  e.update(guard_environment(parent))
  return e
+BANKING_SHELL='dsh-banking-python,dsh-banking-unzip'
+def shell_allow_list(parent,cwd,now=None,allowance_file=None):
+ # The Deep Agents worker has file tools only (no shell, UTF-8 read_file), so a banking task could not unzip its data or run the numeric Python. The ONLY shell commands
+ # ever allowed are the two bounded wrappers, and only for an unattended task whose project has a live deepagents grant in the root-owned banking allowance
+ # (scripts/banking_allowance.py: root-owned, not writable, enabled, validated). Anything else, interactive sessions included, keeps the CLI default: no shell.
+ if not parent.get('DSH_UNATTENDED_TASK'): return None
+ try:
+  if '/opt/dsh/scripts' not in sys.path: sys.path.append('/opt/dsh/scripts')
+  import banking_allowance
+  document=banking_allowance.load_allowance(allowance_file)
+ except Exception: return None
+ if document is None: return None
+ moment=time.time() if now is None else now
+ for grant in document['grants']:
+  if grant['runtime']=='deepagents' and grant['project']==cwd.name and moment<=grant.get('expiresAt',moment): return BANKING_SHELL
+ return None
 def main():
  args=arguments(sys.argv[1:]);cwd=Path.cwd().resolve()
  if not cwd.is_relative_to(Path('/workspace').resolve()): raise ValueError('Start from your project under /workspace')
  p=Path('/state/deepagents');p.mkdir(mode=0o700,parents=True,exist_ok=True)
  if p.is_symlink() or p.stat().st_uid!=os.getuid() or p.stat().st_mode & 0o077: raise ValueError('Private Deep Agents state required')
+ shell=shell_allow_list(os.environ,cwd) if args[:1]==['-n'] else None
+ if shell: args=['-S',shell,*args]
  exe='/opt/dsh/deepagents/bin/python'
  os.execve(exe,[exe,'-I','-m','deepagents_code',*args],environment(os.environ))
 if __name__=='__main__':

@@ -86,12 +86,18 @@ class WorkerAPI:
         status,value=self._request('GET',self.ns_path)
         meta=value.get('metadata',{})
         labels=meta.get('labels',{})
-        if (status!=200 or value.get('kind')!='Namespace' or value.get('apiVersion')!='v1'
-                or meta.get('name')!=self.namespace or meta.get('uid')!=self.namespace_uid
-                or meta.get('deletionTimestamp') or not meta.get('resourceVersion')
-                or labels.get('dsh.example.com/runtime-environment')!='test'
-                or labels.get('dsh.example.com/runtime-purpose')!='qualification'):
-            raise ValueError('WORKER_NAMESPACE_IDENTITY_OR_CLASSIFICATION_REFUSED')
+        # Every refusal is as strict as before; only the code now says WHICH check failed (a fixed word or the numeric HTTP status, never a message,
+        # header, body or token), because the V8/V9 stop failures could not be told apart.
+        if status!=200:why='HTTP_%d'%status if isinstance(status,int) and 100<=status<=599 else 'HTTP'
+        elif value.get('kind')!='Namespace' or value.get('apiVersion')!='v1':why='KIND'
+        elif meta.get('name')!=self.namespace:why='NAME'
+        elif meta.get('uid')!=self.namespace_uid:why='UID'
+        elif meta.get('deletionTimestamp'):why='DELETING'
+        elif not meta.get('resourceVersion'):why='RESOURCE_VERSION'
+        elif labels.get('dsh.example.com/runtime-environment')!='test':why='LABEL_ENVIRONMENT'
+        elif labels.get('dsh.example.com/runtime-purpose')!='qualification':why='LABEL_PURPOSE'
+        else:why=None
+        if why:raise ValueError('WORKER_NAMESPACE_IDENTITY_OR_CLASSIFICATION_REFUSED_'+why)
         return value
 
     def read_pod(self,name):

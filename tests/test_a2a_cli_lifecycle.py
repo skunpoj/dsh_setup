@@ -97,6 +97,35 @@ class CLILifecycleTests(TestCase):
         with self.assertRaisesRegex(ValueError,'RECOVERY_STOP_OPERATION_CHANGED'):
             self.lifecycle.observe_terminal(self.context)
 
+    def test_stop_before_any_launch_returns_a_never_started_receipt_without_a_scope(self):
+        # v7 L3 analogue for the CLI stage of L6/L9: the model gate refuses the launch (zero allowance) before any worker reservation exists.
+        self.api.read_pod.return_value=None
+        self.task.a2a_cli_worker=None
+        self.task.state='cancelling';self.task.a2a_cli_cancel=dict(operationId='d'*32,status='reserved')
+        context={**self.context,'operationId':'d'*32}
+        proof=self.lifecycle.stop_and_verify(context)
+        self.assertEqual({k:proof[k] for k in ('stopped','processExitVerified','descendantAbsenceVerified','neverStarted')},
+            dict(stopped=True,processExitVerified=True,descendantAbsenceVerified=True,neverStarted=True))
+        self.assertNotIn('scopeUid',proof);self.assertEqual(proof['operationId'],'d'*32)
+        self.api.create_pod_once.assert_not_called();self.stream.start.assert_not_called();self.stream.send_line.assert_not_called()
+        with self.assertRaisesRegex(ValueError,'FENCED'):                    # the cancelled task can never launch afterwards
+            self.lifecycle.execute_once(self.context,self.fixture.command,self.fixture.project['brokerPath'])
+        self.api.create_pod_once.assert_not_called()
+
+    def test_an_unreadable_pod_api_keeps_the_stop_uncertain(self):
+        self.task.a2a_cli_worker=None
+        self.task.state='cancelling';self.task.a2a_cli_cancel=dict(operationId='d'*32,status='reserved')
+        self.api.read_pod.side_effect=RuntimeError('WORKER_API_OPERATION_UNCERTAIN_NO_RETRY')
+        with self.assertRaises(RuntimeError):
+            self.lifecycle.stop_and_verify({**self.context,'operationId':'d'*32})
+
+    def test_never_started_stop_refuses_when_a_worker_pod_is_present(self):
+        self.task.a2a_cli_worker=None
+        self.task.state='cancelling';self.task.a2a_cli_cancel=dict(operationId='d'*32,status='reserved')
+        self.api.read_pod.return_value={'metadata':{'name':'present'}}
+        with self.assertRaisesRegex(ValueError,'CLI_NEVER_STARTED_BUT_WORKER_POD_PRESENT'):
+            self.lifecycle.stop_and_verify({**self.context,'operationId':'d'*32})
+
     def test_foreign_binding_and_fenced_launch_refuse_before_api(self):
         with self.assertRaisesRegex(ValueError,'FOREIGN_CLI'):
             self.lifecycle.execute_once({**self.context,'subject':'foreign'},self.fixture.command,self.fixture.project['brokerPath'])

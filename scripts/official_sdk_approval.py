@@ -36,6 +36,12 @@ class _ReservedCall:
         return self.value
 
 
+def failure_code(error):
+    """A fixed refusal code (upper-case word) when the exception carries one, else the exception type name; never a message with paths or payloads."""
+    text = str(error)
+    return text if isinstance(error, (ValueError, RuntimeError)) and re.fullmatch(r"[A-Z][A-Z0-9_]{2,80}", text) else type(error).__name__
+
+
 def verified_terminal_stop(record):
     """Retain an exact saved exit proof; a stopped label alone is insufficient."""
     native = record.get("nativeSdk")
@@ -269,11 +275,12 @@ class NativeSDKApprovalBridge:
                 return False
         try:
             receipt = self._stop_call.result(self.operation_timeout)
-        except BaseException:
+        except BaseException as error:
             with self.task.persistence_lock:
                 state = self._current(self.subject, self.generation)
                 if state.get("stopOperationId") == operation and state["phase"] != "stopped":
                     state["phase"] = "stop-uncertain"
+                    state["stopFailureCode"] = failure_code(error)     # WHY the stop is uncertain (the exception was silently dropped before)
                     self.task.state = "interrupted"
                     self.task.save()
             return False

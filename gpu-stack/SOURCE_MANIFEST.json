@@ -4,7 +4,7 @@
   "sourceContentSha256": {
     "context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
     "context_forwarder.py": "7622dc322ea29c03278d048b76d5229e7e52c51ab001806629de5a4bb6d192f5",
-    "gateway_output_guard.py": "bdd659ff4ab3ad858b59ab25255217e0196026be38513a13719044ef67402bc7",
+    "gateway_output_guard.py": "96728751217e4dfd57a3d1c5a2c0b227bda11f9be0323a4eb01379931001033d",
     "long_context_callbacks.py": "fbc90a7fc58eb53fa2efad073df69d179c06c6805c57496894c8aad6dfb11658",
     "scheduler_chunk_guard_patch.py": "d0dddec3e5f4398c8ba99f83a4ddba4be499af9a814082b2b250276413424904",
     "scheduler_fairness_patch.py": "e8085f7e189f234defb459956a07d16873698a0817b5ed82553ad69b532ca1bd",
@@ -25,7 +25,7 @@
     "render.py": "0d9d1bd016efd1d9d3c7539cb300e5f080ed74d3c40b5539a21c087115e43311",
     "runtime/context_envelope.py": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c",
     "runtime/context_forwarder.py": "7622dc322ea29c03278d048b76d5229e7e52c51ab001806629de5a4bb6d192f5",
-    "runtime/gateway_output_guard.py": "bdd659ff4ab3ad858b59ab25255217e0196026be38513a13719044ef67402bc7",
+    "runtime/gateway_output_guard.py": "96728751217e4dfd57a3d1c5a2c0b227bda11f9be0323a4eb01379931001033d",
     "runtime/indexer_dequant_patch.py": "74a6f94aab5e8306876260b680c76a89baa98aa8887376ac7d3f654b8710a251",
     "runtime/indexer_dequant_reference_gate.py": "ef5a097521f09234a257c098190fe067e7b9636770a97f1a356d2c189021e1a3",
     "runtime/indexer_reference_gate.py": "856eb67dba9366a666b1a14ea8ebed07eb7fd6561f00ce2636758d5fc3325303",

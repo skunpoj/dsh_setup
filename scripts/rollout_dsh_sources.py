@@ -54,6 +54,7 @@ SOURCES = {
     'external_dns.js': 'scripts/external_dns.js',
     'external_upstream.js': 'scripts/external_upstream.js',
     'gradio_alias.js': 'scripts/gradio_alias.js',
+    'gradio-alias-defaults.json': 'config/gradio-alias-defaults.json',   # required by gradio_alias.js (sibling in the flat ConfigMap)
     'identity_auth.js': 'scripts/identity_auth.js',
     'jupyter_launcher.py': 'scripts/jupyter_launcher.py',
     'jupyter_on_demand.js': 'scripts/jupyter_on_demand.js',
@@ -70,6 +71,7 @@ SOURCES = {
     'session_demand.js': 'scripts/session_demand.js',
     'session_store.js': 'scripts/session_store.js',
     'signup_admission.js': 'scripts/signup_admission.js',
+    'ttyd_copy_guard.js': 'scripts/ttyd_copy_guard.js',   # required by auth_proxy.js (inserts the copy-on-select guard into ttyd's page)
 }
 
 COMPONENTS = {
@@ -211,6 +213,60 @@ def volume_patch(component, config_map, source_digest='', commit=''):
     }
 
 
+# Gateway env held in the repository (fix at the source): only the theme default names below are ever set.
+GATEWAY_ENV_FILE = ROOT / 'config' / 'gateway-theme-defaults.json'
+GATEWAY_CONTAINER = 'gateway'
+_GATEWAY_ENV_NAME = _re.compile(r'DSH_THEME_DEFAULT_(LOGO|MARK)(_LIGHT|_DARK)?_URL')
+_HTTPS_LINK = _re.compile(r'https://[A-Za-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9._~/%-]*')
+
+
+def gateway_env(path=None):
+    """The reviewed gateway env from the repository; refuses unknown names and anything but a plain https link."""
+    data = json.loads(Path(path or GATEWAY_ENV_FILE).read_text(encoding='utf-8'))
+    env = data.get('env')
+    if not isinstance(env, dict):
+        raise ValueError('gateway env file needs an "env" object')
+    for name, value in env.items():
+        if not _GATEWAY_ENV_NAME.fullmatch(name):
+            raise ValueError('Unreviewed gateway env name: ' + name)
+        if not isinstance(value, str) or len(value) > 2048 or not _HTTPS_LINK.fullmatch(value):
+            raise ValueError('Gateway env value must be a plain https link: ' + name)
+    return dict(sorted(env.items()))
+
+
+def gateway_container(deployment):
+    containers = deployment.get('spec', {}).get('template', {}).get('spec', {}).get('containers', []) or []
+    match = [c for c in containers if c.get('name') == GATEWAY_CONTAINER]
+    if len(match) != 1:
+        raise RuntimeError('Gateway container not found: ' + GATEWAY_CONTAINER)
+    return match[0]
+
+
+def env_changes(deployment, wanted):
+    """Names whose live value differs: {name: (live value or None, wanted value)}. A valueFrom entry is never overwritten."""
+    live = {e.get('name'): e for e in gateway_container(deployment).get('env', []) or []}
+    changes = {}
+    for name, value in wanted.items():
+        entry = live.get(name)
+        if entry is not None and 'valueFrom' in entry:
+            raise RuntimeError('Gateway env ' + name + ' comes from a reference; refusing to overwrite it')
+        current = entry.get('value') if entry is not None else None
+        if current != value:
+            changes[name] = (current, value)
+    return changes
+
+
+def env_patch_entries(values):
+    """Strategic-merge env entries: a value sets the name; None removes a name this rollout added (rollback)."""
+    return [{'name': n, 'value': v} if v is not None else {'name': n, '$patch': 'delete'} for n, v in sorted(values.items())]
+
+
+def with_env(patch, entries):
+    if entries:
+        patch['spec']['template']['spec']['containers'] = [{'name': GATEWAY_CONTAINER, 'env': entries}]
+    return patch
+
+
 def merged_rules(rules):
     """Add the controller's scaling rules without removing any existing rule."""
     result = [dict(r) for r in rules]
@@ -344,9 +400,11 @@ def rollout(api, component, args, log=print):
         raise RuntimeError('Current source ConfigMap is missing')
     name, document = build_bundle(component, live['data'].keys(), commit=args.commit)
     changed = sorted(k for k in document['data'] if live['data'].get(k, '').replace('\r\n', '\n') != document['data'][k])
+    env = env_changes(deployment, gateway_env()) if component == 'gateway' else {}
     log(json.dumps({'component': component, 'deployment': spec['deployment'], 'from': previous, 'to': name,
-                    'changedFiles': changed, 'apply': args.apply}))
-    if name == previous:
+                    'changedFiles': changed, 'changedEnv': {k: {'from': a, 'to': b} for k, (a, b) in env.items()},
+                    'apply': args.apply}))
+    if name == previous and not env:
         log('Already running this source; nothing to do.')
         return 0
     if not args.apply:
@@ -365,17 +423,18 @@ def rollout(api, component, args, log=print):
     elif existing.get('data') != document['data']:
         raise RuntimeError('A different ConfigMap already uses this name')
     source_digest = document['metadata']['annotations']['dsh.example.com/source-data-sha256']
-    api.patch_deployment(spec['deployment'], volume_patch(component, name, source_digest, args.commit))
+    api.patch_deployment(spec['deployment'], with_env(volume_patch(component, name, source_digest, args.commit),
+                                                      env_patch_entries({k: b for k, (a, b) in env.items()})))
     if wait_ready(api, spec['deployment'], settle=args.settle) and verify(component, args):
         log(f'Rolled out {spec["deployment"]} to {name}. Previous source {previous} is kept for rollback.')
         return 0
     log(f'Rollout failed verification; switching {spec["deployment"]} back to {previous}.')
     previous_annotations = live.get('metadata', {}).get('annotations', {})
-    api.patch_deployment(spec['deployment'], volume_patch(
+    api.patch_deployment(spec['deployment'], with_env(volume_patch(
         component, previous,
         previous_annotations.get('dsh.example.com/source-data-sha256', ''),
         previous_annotations.get('dsh.example.com/git-commit', ''),
-    ))
+    ), env_patch_entries({k: a for k, (a, b) in env.items()})))
     restored = wait_ready(api, spec['deployment'], settle=args.settle)
     log('Rollback ' + ('completed.' if restored else 'did NOT become ready; investigate now.'))
     return 1

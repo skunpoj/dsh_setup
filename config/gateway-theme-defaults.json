@@ -1,0 +1,9 @@
+{
+  "_comment": "Gateway Deployment env for the optional custom theme's deployment defaults (served by /api/theme-default-logo). Applied by scripts/rollout_dsh_sources.py gateway (Pipeline 1315 [deploy-dsh-gateway]); only these names are ever set, https links only. LOGO = the wide logo; MARK = the square emblem for the collapsed rail and the new-chat heading. The two LOGO values codify what the live gateway already serves; the MARK files are published by the documentation release under /manual/brand/. A MARK that fails to load falls back to a crop of the LOGO in the browser.",
+  "env": {
+    "DSH_THEME_DEFAULT_LOGO_LIGHT_URL": "https://internal.example.invalid/content/dam/bot/logo/logo-top-blue.png",
+    "DSH_THEME_DEFAULT_LOGO_DARK_URL": "https://internal.example.invalid/content/dam/bot/logo/logo-top-white.png",
+    "DSH_THEME_DEFAULT_MARK_LIGHT_URL": "https://dsh.example.invalid/manual/brand/seal-light.png",
+    "DSH_THEME_DEFAULT_MARK_DARK_URL": "https://dsh.example.invalid/manual/brand/seal-dark.png"
+  }
+}

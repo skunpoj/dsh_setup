@@ -1,0 +1,3565 @@
+{
+  "schema": "dsh-feature-reference-evidence/v1",
+  "named_source_commit": "eddd150596cc7bca3291c7d7ae3266322ffcaf14",
+  "feature_source_sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7",
+  "owasp_taxonomy": "OWASP Top10 for Agentic Applications2026; ASI01\u2013ASI10",
+  "owasp_categories": {
+    "ASI01": [
+      "Agent Goal Hijack",
+      "Execution and network containment limit consequences; no explicit goal-integrity/injection test matrix."
+    ],
+    "ASI02": [
+      "Tool Misuse and Exploitation",
+      "Restricted workloads and existing service permissions; no complete tool/argument approval assessment."
+    ],
+    "ASI03": [
+      "Identity and Privilege Abuse",
+      "Private identities, routes and mounts; remote entitlements and identity lifecycle remain separately owned."
+    ],
+    "ASI04": [
+      "Agentic Supply Chain Vulnerabilities",
+      "Pinned dependency transfer, offline validation and review of source builds/hooks; no full agent/MCP provenance assessment."
+    ],
+    "ASI05": [
+      "Unexpected Code Execution",
+      "Non-root execution, limited mounts/capabilities and restricted egress constrain execution; they do not prevent all hostile code in writable scope."
+    ],
+    "ASI06": [
+      "Memory and Context Poisoning",
+      "Private history isolation is described; persisted malicious context, provenance and safe reset are not explicitly assessed."
+    ],
+    "ASI07": [
+      "Insecure Inter-Agent Communication",
+      "User routing does not establish authenticated agent messages, replay protection or delegated authority."
+    ],
+    "ASI08": [
+      "Cascading Failures",
+      "Resource admission and local limits; downstream failure propagation, circuit breaking and end-to-end recovery remain workflow-specific."
+    ],
+    "ASI09": [
+      "Human-Agent Trust Exploitation",
+      "Explicit sharing and handling responsibilities; misleading output and meaningful human review require workflow tests."
+    ],
+    "ASI10": [
+      "Rogue Agents",
+      "Runtime restrictions limit blast radius; autonomous scope drift, detection and containment need explicit tests."
+    ]
+  },
+  "three_risk_controls": {
+    "1": "Risk 1 - external leakage",
+    "2": "Risk 2 - damage or excessive access",
+    "3": "Risk 3 - result exposure"
+  },
+  "references": {
+    "dq": {
+      "title": "DQ agent safety design",
+      "public_page": "AGENT_SAFETY_LAYERS.html",
+      "source_sha256": "7fe84d37879b91964349a81a84d34762ebff965930596e93a1ccdd4b7a28115f",
+      "layers": [
+        "Guardrails",
+        "Verification",
+        "Sandbox"
+      ],
+      "limit": "DQ worked-example SQL, data-steward and sandbox controls are not proof all DSH agents enforce them"
+    },
+    "internal": {
+      "title": "Private tool-and-risk assessment",
+      "source_sha256": "214e604a349bf1955171504f4ba42e1f59fb01101fc717a4d9453ef6d860d937",
+      "privacy": "Unserved and unmirrored; safe aggregates only",
+      "compared_subset_tool_rows": 35,
+      "compared_subset_source_fields": 12,
+      "compared_subset_matches_retained_private_data": true,
+      "worksheets": 4,
+      "other_worksheets_semantically_reconciled": false,
+      "unreviewed_other_worksheets": 3,
+      "limit": "35 tool rows are not80 feature identities; full private reference reconciliation and per-feature mappings remain open"
+    }
+  },
+  "evidence_groups": [
+    {
+      "id": "environment-forwarding-unit",
+      "stage": "source-tested",
+      "result": "PASS",
+      "test_ids": [
+        "test_unattended_env_allowlist.MinimalEnvironmentTests.test_guard_variables_pass_when_set",
+        "test_unattended_env_allowlist.MinimalEnvironmentTests.test_managed_transport_trio_is_all_or_nothing_and_nothing",
+        "test_unattended_env_allowlist.MinimalEnvironmentTests.test_module_exists_and_keeps_only_allowed_names",
+        "test_unattended_env_allowlist.MinimalEnvironmentTests.test_secret_looking_names_are_dropped_even_if_someone_allows_them"
+      ],
+      "date_utc": "2026-11-11T02:10:42.035243+00:00",
+      "source_commit": "5a59a97c3f8e37806480649669671dbac32f8920",
+      "image_digest": null,
+      "environment": "Local Windows Python; synthetic environment dictionaries",
+      "owner": "C5 local test executor; no runtime acceptance sign-off",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#evidence-environment-forwarding-unit",
+      "source_log_sha256": "15dcb9cebed0b08b0db404d8bf3f04741c4bb4e501bddd2b558f9a86ec44bc6e",
+      "display_log": "test_guard_variables_pass_when_set (test_unattended_env_allowlist.MinimalEnvironmentTests.test_guard_variables_pass_when_set) ... ok\ntest_managed_transport_trio_is_all_or_nothing_and_nothing (test_unattended_env_allowlist.MinimalEnvironmentTests.test_managed_transport_trio_is_all_or_nothing_and_nothing) ... ok\ntest_module_exists_and_keeps_only_allowed_names (test_unattended_env_allowlist.MinimalEnvironmentTests.test_module_exists_and_keeps_only_allowed_names) ... ok\ntest_secret_looking_names_are_dropped_even_if_someone_allows_them (test_unattended_env_allowlist.MinimalEnvironmentTests.test_secret_looking_names_are_dropped_even_if_someone_allows_them) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.036s\n\nOK\n",
+      "scope": "Credential forwarding filter aspects of15/16 only; not filesystem access, persistence, deployed injection or live redaction",
+      "current_named_source_bytes_match": true
+    },
+    {
+      "id": "sdk-v9-cancellation",
+      "stage": "failed",
+      "result": "FAIL_STRICT_CANCELLATION",
+      "test_ids": [
+        "V9B/L3"
+      ],
+      "date_utc": "2026-11-11T02:26:45.713451+00:00",
+      "date_scope": "Original-artifact readback date, not independently calibrated run time",
+      "source_commit": "5a59a97c3f8e37806480649669671dbac32f8920",
+      "image_digest": "sha256:5d0b9f280cc747a34ed6da664b72bc9e34e713f8342c0b6190d4db9409d03d16",
+      "image_binding": "Retained qualification contract/operator readback; broker record alone does not prove running image identity",
+      "environment": "Isolated SDK lifecycle qualification, not a banking or application deployment",
+      "owner": "Existing cluster operator executed; C5 read original broker evidence",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#evidence-sdk-v9-cancellation",
+      "original_artifact_sha256": "3e6cab9997d8c860d7023cf622a61541d34ddf05cbb0ff3e9eb0348534385f08",
+      "state": "interrupted",
+      "phase": "stop-uncertain",
+      "stopFailureCode": "WORKER_NAMESPACE_IDENTITY_OR_CLASSIFICATION_REFUSED",
+      "scope": "Cancellation41/uncertain recovery47 qualification aspects only; exact failed predicate unresolved",
+      "subsequent_source_changes_retested": false,
+      "follow_on_state": "blocked for the tested SDK acceptance context; subsequent source changes are not a passing retest"
+    },
+    {
+      "id": "credential-policy-unit",
+      "stage": "source-tested",
+      "result": "PASS",
+      "test_ids": [
+        "tests/test_credential_policy.js"
+      ],
+      "date_utc": "2026-11-11T03:43:44.338190+00:00",
+      "source_commit": "acafdf2cccfdac42acca049f008e7abefe524f79",
+      "image_digest": null,
+      "environment": "Local Windows Node v24.22.1; synthetic credential and request descriptors",
+      "owner": "C5 local test executor; no runtime acceptance sign-off",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#evidence-credential-policy-unit",
+      "source_log_sha256": "c816e4d202dedc239f54b7ca5981d08df2af586b6bbc0b667e8416ab1baf97b9",
+      "source_receipt_sha256": "68b04822bbac339d814c930cd4298c6e78593b7ea7ead61a17ac554ff787bdc3",
+      "source_files": [
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb",
+          "bytes": 1796
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c",
+          "bytes": 1691
+        }
+      ],
+      "assertion_case_count": 17,
+      "assertion_case_labels": [
+        {
+          "id": "allow-scoped-owner",
+          "result": "PASS",
+          "expected": "allow"
+        },
+        {
+          "id": "deny-wrong-owner",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-wrong-environment",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-wrong-workspace",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-revoked-credential",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-expired-credential",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-wrong-operation",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-wrong-resource",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-missing-required-approval",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "allow-exact-request-approval",
+          "result": "PASS",
+          "expected": "allow"
+        },
+        {
+          "id": "deny-approval-already-used",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-approval-expired",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-approval-wrong-owner",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-approval-wrong-request-digest",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-approval-wrong-workspace",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "deny-approval-wrong-environment",
+          "result": "PASS",
+          "expected": "deny"
+        },
+        {
+          "id": "audit-identifier-output-no-secret-substring",
+          "result": "PASS",
+          "expected": "stable identifiers only; synthetic fixture assertion"
+        }
+      ],
+      "case_label_scope": "C5 descriptive labels for existing sequential assertions, not native named test-runner cases",
+      "display_log": "Credential policy: owner/environment/workspace/scope/expiry/revocation/approval checks passed\n",
+      "scope": "Credential-use policy contract aspects of7/8/15 only: exact owner/environment/workspace/operation/resource, expiry/revocation and request-bound approval. No live broker or connector wiring, actual secret access or system-wide least privilege tested.",
+      "limits": [
+        "The module is a policy contract; no running broker/connector wiring is exercised.",
+        "No authentication, AD/LDAP, actual data access, real credentials, persistent approval consumption, secret redaction or deployment tested.",
+        "Synthetic output assertion only checks the literal substring secret is absent; it is not general leakage detection.",
+        "Three feature aspects refer to the same17 assertions and must not be counted as51 independent checks."
+      ],
+      "current_named_source_bytes_match": true
+    },
+    {
+      "id": "owned-cache-helper-unit",
+      "stage": "source-tested",
+      "result": "PASS",
+      "test_ids": [
+        "test_owned_cache_cleanup.CleanupCancellationTests.test_two_stops_drain_one_close_and_release_once",
+        "test_owned_cache_cleanup.CleanupCancellationTests.test_open_confirms_identity_and_sets_backend_ttl",
+        "test_owned_cache_deadline.DeadlineTests.test_expired_owner_never_starts_dispatch",
+        "test_owned_cache_deadline.DeadlineTests.test_timeout_drains_cancelled_operation",
+        "test_owned_cache_deadline.DeadlineTests.test_ordinary_calls_unchanged",
+        "test_owned_cache_deadline.DeadlineTests.test_same_deadline_applies_to_warm_send_and_stream"
+      ],
+      "date_utc": "2026-11-11T04:19:26.422624+00:00",
+      "source_commit": "90b6d5ef3f9d23d7ef71d8f17aa07729e03ee63c",
+      "image_digest": null,
+      "environment": "Local Python 3.12.10; selected helper AST bodies with synthetic dependencies",
+      "owner": "C5 local test executor; no runtime acceptance sign-off",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#evidence-owned-cache-helper-unit",
+      "source_log_sha256": "1d35de6fb8095238782e06b4d9131c4f11ad002f7512698d121a6869788d872a",
+      "source_receipt_sha256": "baa5d2116db0554a203d42d62118c8f7d9c6bbb9fb362252f6ea249be1e601cc",
+      "source_files": [
+        {
+          "path": "scripts/context_forwarder.py",
+          "sha256": "7622dc322ea29c03278d048b76d5229e7e52c51ab001806629de5a4bb6d192f5",
+          "bytes": 24334
+        },
+        {
+          "path": "tests/test_owned_cache_cleanup.py",
+          "sha256": "49fea6a2400e82bae4614cbdaf73fbdb0b58818e9d74b9cbf571174c14968b12",
+          "bytes": 3396
+        },
+        {
+          "path": "tests/test_owned_cache_deadline.py",
+          "sha256": "b138789282817bcdbf47d5378c4f10ea4781aaaab4853f3fab814b4c7d4bc462",
+          "bytes": 2156
+        }
+      ],
+      "test_methods": 6,
+      "dynamic_helper_cases": 5,
+      "static_wiring_assertion_cases": 1,
+      "scope": "Forwarder helper aspects of41/42/44 only. Five cases execute synthetic helper behavior; one checks source wiring. This is not native SDK cancellation, actual engine/cache closure or a deployed total cleanup deadline.",
+      "limits": [
+        "These six cases are one group shared by three feature aspects, not18 independent tests.",
+        "Five cases execute helper behavior; one only asserts source wiring strings.",
+        "Fake engine/cache/client/guard do not prove real cancellation, remote close, deployment wiring or a hard total cleanup deadline.",
+        "Does not repair or reclassify the original native SDK stop-uncertain qualification failure.",
+        "No application image, actual backend, model, cluster, browser or provider used."
+      ],
+      "raw_log_publication": "Original log retained locally by SHA256; not embedded because asyncio scheduling diagnostics contain personal filesystem paths. No replacement log is presented as original.",
+      "asyncio_scheduling_diagnostics_present": true
+    }
+  ],
+  "rows": [
+    {
+      "feature_id": 1,
+      "implementation_candidates": [
+        {
+          "path": "scripts/auth_proxy.js",
+          "sha256": "dac6c3111f473440990997a1c273061e553e3bbc1bb820d607348b7da6e40525"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "scripts/official_sdk_executing_identity.py",
+          "sha256": "0892936ff59b58d5429348d862eec520ea70e4d2d4d6487433b5e5229b798821"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_auth_proxy_internet.js",
+          "sha256": "09d86ae1b2aaf2b565ca79f517f45099eb353b6a22c9bcf87a910800cc7c94bc"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_official_sdk_executing_identity.py",
+          "sha256": "6aa544ba25747e67aa3a652f7fc3cbd34493ce8c914cd1ad04898e46e276907a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 2,
+      "implementation_candidates": [
+        {
+          "path": "scripts/auth_proxy.js",
+          "sha256": "dac6c3111f473440990997a1c273061e553e3bbc1bb820d607348b7da6e40525"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "scripts/official_sdk_executing_identity.py",
+          "sha256": "0892936ff59b58d5429348d862eec520ea70e4d2d4d6487433b5e5229b798821"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_auth_proxy_internet.js",
+          "sha256": "09d86ae1b2aaf2b565ca79f517f45099eb353b6a22c9bcf87a910800cc7c94bc"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_official_sdk_executing_identity.py",
+          "sha256": "6aa544ba25747e67aa3a652f7fc3cbd34493ce8c914cd1ad04898e46e276907a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 3,
+      "implementation_candidates": [
+        {
+          "path": "scripts/auth_proxy.js",
+          "sha256": "dac6c3111f473440990997a1c273061e553e3bbc1bb820d607348b7da6e40525"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "scripts/official_sdk_executing_identity.py",
+          "sha256": "0892936ff59b58d5429348d862eec520ea70e4d2d4d6487433b5e5229b798821"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_auth_proxy_internet.js",
+          "sha256": "09d86ae1b2aaf2b565ca79f517f45099eb353b6a22c9bcf87a910800cc7c94bc"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_official_sdk_executing_identity.py",
+          "sha256": "6aa544ba25747e67aa3a652f7fc3cbd34493ce8c914cd1ad04898e46e276907a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 4,
+      "implementation_candidates": [
+        {
+          "path": "scripts/auth_proxy.js",
+          "sha256": "dac6c3111f473440990997a1c273061e553e3bbc1bb820d607348b7da6e40525"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "scripts/official_sdk_executing_identity.py",
+          "sha256": "0892936ff59b58d5429348d862eec520ea70e4d2d4d6487433b5e5229b798821"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_auth_proxy_internet.js",
+          "sha256": "09d86ae1b2aaf2b565ca79f517f45099eb353b6a22c9bcf87a910800cc7c94bc"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_official_sdk_executing_identity.py",
+          "sha256": "6aa544ba25747e67aa3a652f7fc3cbd34493ce8c914cd1ad04898e46e276907a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 5,
+      "implementation_candidates": [
+        {
+          "path": "scripts/auth_proxy.js",
+          "sha256": "dac6c3111f473440990997a1c273061e553e3bbc1bb820d607348b7da6e40525"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "scripts/official_sdk_executing_identity.py",
+          "sha256": "0892936ff59b58d5429348d862eec520ea70e4d2d4d6487433b5e5229b798821"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_auth_proxy_internet.js",
+          "sha256": "09d86ae1b2aaf2b565ca79f517f45099eb353b6a22c9bcf87a910800cc7c94bc"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_official_sdk_executing_identity.py",
+          "sha256": "6aa544ba25747e67aa3a652f7fc3cbd34493ce8c914cd1ad04898e46e276907a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 6,
+      "implementation_candidates": [
+        {
+          "path": "scripts/auth_proxy.js",
+          "sha256": "dac6c3111f473440990997a1c273061e553e3bbc1bb820d607348b7da6e40525"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "scripts/official_sdk_executing_identity.py",
+          "sha256": "0892936ff59b58d5429348d862eec520ea70e4d2d4d6487433b5e5229b798821"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_auth_proxy_internet.js",
+          "sha256": "09d86ae1b2aaf2b565ca79f517f45099eb353b6a22c9bcf87a910800cc7c94bc"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_official_sdk_executing_identity.py",
+          "sha256": "6aa544ba25747e67aa3a652f7fc3cbd34493ce8c914cd1ad04898e46e276907a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 7,
+      "implementation_candidates": [
+        {
+          "path": "scripts/auth_proxy.js",
+          "sha256": "dac6c3111f473440990997a1c273061e553e3bbc1bb820d607348b7da6e40525"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "scripts/official_sdk_executing_identity.py",
+          "sha256": "0892936ff59b58d5429348d862eec520ea70e4d2d4d6487433b5e5229b798821"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_auth_proxy_internet.js",
+          "sha256": "09d86ae1b2aaf2b565ca79f517f45099eb353b6a22c9bcf87a910800cc7c94bc"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_official_sdk_executing_identity.py",
+          "sha256": "6aa544ba25747e67aa3a652f7fc3cbd34493ce8c914cd1ad04898e46e276907a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [
+        "credential-policy-unit"
+      ],
+      "source_evidence_state": "source-tested (narrow aspect)",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 8,
+      "implementation_candidates": [
+        {
+          "path": "scripts/auth_proxy.js",
+          "sha256": "dac6c3111f473440990997a1c273061e553e3bbc1bb820d607348b7da6e40525"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "scripts/official_sdk_executing_identity.py",
+          "sha256": "0892936ff59b58d5429348d862eec520ea70e4d2d4d6487433b5e5229b798821"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_auth_proxy_internet.js",
+          "sha256": "09d86ae1b2aaf2b565ca79f517f45099eb353b6a22c9bcf87a910800cc7c94bc"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_official_sdk_executing_identity.py",
+          "sha256": "6aa544ba25747e67aa3a652f7fc3cbd34493ce8c914cd1ad04898e46e276907a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [
+        "credential-policy-unit"
+      ],
+      "source_evidence_state": "source-tested (narrow aspect)",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 9,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/reconcile_workspace.py",
+          "sha256": "2def6027cb05910bf887019d6c50854230502dffad052004d62c703905e393f0"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_reconciliation.py",
+          "sha256": "1047df89a22d480c9ee02adba8c05127187acb9d975a3c97da9771ab84b81842"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 10,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/reconcile_workspace.py",
+          "sha256": "2def6027cb05910bf887019d6c50854230502dffad052004d62c703905e393f0"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_reconciliation.py",
+          "sha256": "1047df89a22d480c9ee02adba8c05127187acb9d975a3c97da9771ab84b81842"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 11,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/reconcile_workspace.py",
+          "sha256": "2def6027cb05910bf887019d6c50854230502dffad052004d62c703905e393f0"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_reconciliation.py",
+          "sha256": "1047df89a22d480c9ee02adba8c05127187acb9d975a3c97da9771ab84b81842"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 12,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/reconcile_workspace.py",
+          "sha256": "2def6027cb05910bf887019d6c50854230502dffad052004d62c703905e393f0"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_reconciliation.py",
+          "sha256": "1047df89a22d480c9ee02adba8c05127187acb9d975a3c97da9771ab84b81842"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 13,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/reconcile_workspace.py",
+          "sha256": "2def6027cb05910bf887019d6c50854230502dffad052004d62c703905e393f0"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_reconciliation.py",
+          "sha256": "1047df89a22d480c9ee02adba8c05127187acb9d975a3c97da9771ab84b81842"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 14,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/reconcile_workspace.py",
+          "sha256": "2def6027cb05910bf887019d6c50854230502dffad052004d62c703905e393f0"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_reconciliation.py",
+          "sha256": "1047df89a22d480c9ee02adba8c05127187acb9d975a3c97da9771ab84b81842"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 15,
+      "implementation_candidates": [
+        {
+          "path": "scripts/unattended_env.py",
+          "sha256": "7ab238832ead55e97dedd0c6c65f5e77cc142ffe286781003794cbb2f023fc6d"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "container/dsh-task-guard-sidecar.py",
+          "sha256": "44b50c553d9801e7e3e5a3b711343776019aa44b634662844c404d1112668f7b"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_unattended_env_allowlist.py",
+          "sha256": "ddcf0ceab4be1a1ff858e0711c5cd0601fefe79f1dd0a3a53e5422f0384e6792"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_task_guard_sidecar.py",
+          "sha256": "53c71aa66623e3fb835e072a639a7ad09b352c0d809f27af1b88c9d920beb199"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [
+        "environment-forwarding-unit",
+        "credential-policy-unit"
+      ],
+      "source_evidence_state": "source-tested (narrow aspect)",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 16,
+      "implementation_candidates": [
+        {
+          "path": "scripts/unattended_env.py",
+          "sha256": "7ab238832ead55e97dedd0c6c65f5e77cc142ffe286781003794cbb2f023fc6d"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "container/dsh-task-guard-sidecar.py",
+          "sha256": "44b50c553d9801e7e3e5a3b711343776019aa44b634662844c404d1112668f7b"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_unattended_env_allowlist.py",
+          "sha256": "ddcf0ceab4be1a1ff858e0711c5cd0601fefe79f1dd0a3a53e5422f0384e6792"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_task_guard_sidecar.py",
+          "sha256": "53c71aa66623e3fb835e072a639a7ad09b352c0d809f27af1b88c9d920beb199"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [
+        "environment-forwarding-unit"
+      ],
+      "source_evidence_state": "source-tested (narrow aspect)",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 17,
+      "implementation_candidates": [
+        {
+          "path": "scripts/unattended_env.py",
+          "sha256": "7ab238832ead55e97dedd0c6c65f5e77cc142ffe286781003794cbb2f023fc6d"
+        },
+        {
+          "path": "scripts/credential_policy.js",
+          "sha256": "49990a919c6b89abcd011db43d8af9102525cdfeeae44db4efdde8361a1ebecb"
+        },
+        {
+          "path": "container/dsh-task-guard-sidecar.py",
+          "sha256": "44b50c553d9801e7e3e5a3b711343776019aa44b634662844c404d1112668f7b"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_unattended_env_allowlist.py",
+          "sha256": "ddcf0ceab4be1a1ff858e0711c5cd0601fefe79f1dd0a3a53e5422f0384e6792"
+        },
+        {
+          "path": "tests/test_credential_policy.js",
+          "sha256": "c97708b49a447a48f0d49a751f43a77d5eb8af414dc6d9dc8d4acadaa880b89c"
+        },
+        {
+          "path": "tests/test_task_guard_sidecar.py",
+          "sha256": "53c71aa66623e3fb835e072a639a7ad09b352c0d809f27af1b88c9d920beb199"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 18,
+      "implementation_candidates": [
+        {
+          "path": "scripts/unattended_model_guard.py",
+          "sha256": "ad4012d9dc168a0d6180db7278dab5fab6a77a3c7c3a4327b6e25d682529acf9"
+        },
+        {
+          "path": "scripts/a2a_factory_contract.py",
+          "sha256": "e91809daa716c5681d522ae43e5cd875400355dc02e9d66f2eec08eb43b70962"
+        },
+        {
+          "path": "scripts/configure_models.js",
+          "sha256": "a7a879b657a66f2a7d732845816c0db88b9928664a87422505bee62b0d491a9b"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_unattended_model_guard.py",
+          "sha256": "801b059e7bc46a8004c5940a265bce7fad5f767176d7208d1b561407f5fbe074"
+        },
+        {
+          "path": "tests/test_a2a_factory_contract.py",
+          "sha256": "71ec0b09a4e90e8288672ca962dc2f7ee333fc5bac8201c4b0c700365c892145"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 19,
+      "implementation_candidates": [
+        {
+          "path": "scripts/unattended_model_guard.py",
+          "sha256": "ad4012d9dc168a0d6180db7278dab5fab6a77a3c7c3a4327b6e25d682529acf9"
+        },
+        {
+          "path": "scripts/a2a_factory_contract.py",
+          "sha256": "e91809daa716c5681d522ae43e5cd875400355dc02e9d66f2eec08eb43b70962"
+        },
+        {
+          "path": "scripts/configure_models.js",
+          "sha256": "a7a879b657a66f2a7d732845816c0db88b9928664a87422505bee62b0d491a9b"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_unattended_model_guard.py",
+          "sha256": "801b059e7bc46a8004c5940a265bce7fad5f767176d7208d1b561407f5fbe074"
+        },
+        {
+          "path": "tests/test_a2a_factory_contract.py",
+          "sha256": "71ec0b09a4e90e8288672ca962dc2f7ee333fc5bac8201c4b0c700365c892145"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 20,
+      "implementation_candidates": [
+        {
+          "path": "scripts/unattended_model_guard.py",
+          "sha256": "ad4012d9dc168a0d6180db7278dab5fab6a77a3c7c3a4327b6e25d682529acf9"
+        },
+        {
+          "path": "scripts/a2a_factory_contract.py",
+          "sha256": "e91809daa716c5681d522ae43e5cd875400355dc02e9d66f2eec08eb43b70962"
+        },
+        {
+          "path": "scripts/configure_models.js",
+          "sha256": "a7a879b657a66f2a7d732845816c0db88b9928664a87422505bee62b0d491a9b"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_unattended_model_guard.py",
+          "sha256": "801b059e7bc46a8004c5940a265bce7fad5f767176d7208d1b561407f5fbe074"
+        },
+        {
+          "path": "tests/test_a2a_factory_contract.py",
+          "sha256": "71ec0b09a4e90e8288672ca962dc2f7ee333fc5bac8201c4b0c700365c892145"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 21,
+      "implementation_candidates": [
+        {
+          "path": "scripts/unattended_model_guard.py",
+          "sha256": "ad4012d9dc168a0d6180db7278dab5fab6a77a3c7c3a4327b6e25d682529acf9"
+        },
+        {
+          "path": "scripts/a2a_factory_contract.py",
+          "sha256": "e91809daa716c5681d522ae43e5cd875400355dc02e9d66f2eec08eb43b70962"
+        },
+        {
+          "path": "scripts/configure_models.js",
+          "sha256": "a7a879b657a66f2a7d732845816c0db88b9928664a87422505bee62b0d491a9b"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_unattended_model_guard.py",
+          "sha256": "801b059e7bc46a8004c5940a265bce7fad5f767176d7208d1b561407f5fbe074"
+        },
+        {
+          "path": "tests/test_a2a_factory_contract.py",
+          "sha256": "71ec0b09a4e90e8288672ca962dc2f7ee333fc5bac8201c4b0c700365c892145"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 22,
+      "implementation_candidates": [
+        {
+          "path": "scripts/harden_execution_network.py",
+          "sha256": "73717cf4d7ad75a4a21c31dd47238f254dde01d73438ba9256511940d31e3f4c"
+        },
+        {
+          "path": "scripts/capacity_network_guard.py",
+          "sha256": "8c949289b0b3acca7a8eb9d489b77bd8f1a9afce8cad57b0e1715b124c21b04d"
+        },
+        {
+          "path": "scripts/refresh_internal_dns_policy.py",
+          "sha256": "72a4448ae3574ffe77ab60e3ed6f61536750e72cf9887cb55b15c443fc0c9827"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_capacity_network_guard.py",
+          "sha256": "0b19e55e71ffbdb7f73c05bfbbf37c1c96731c9c5440d0bcb3606742ca3eae8b"
+        },
+        {
+          "path": "tests/test_environment_routing.js",
+          "sha256": "bfc9bd9524f5b106a68baf1e13929cfdd8c13f7c281dcc35047d5c85fb86c393"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 23,
+      "implementation_candidates": [
+        {
+          "path": "scripts/harden_execution_network.py",
+          "sha256": "73717cf4d7ad75a4a21c31dd47238f254dde01d73438ba9256511940d31e3f4c"
+        },
+        {
+          "path": "scripts/capacity_network_guard.py",
+          "sha256": "8c949289b0b3acca7a8eb9d489b77bd8f1a9afce8cad57b0e1715b124c21b04d"
+        },
+        {
+          "path": "scripts/refresh_internal_dns_policy.py",
+          "sha256": "72a4448ae3574ffe77ab60e3ed6f61536750e72cf9887cb55b15c443fc0c9827"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_capacity_network_guard.py",
+          "sha256": "0b19e55e71ffbdb7f73c05bfbbf37c1c96731c9c5440d0bcb3606742ca3eae8b"
+        },
+        {
+          "path": "tests/test_environment_routing.js",
+          "sha256": "bfc9bd9524f5b106a68baf1e13929cfdd8c13f7c281dcc35047d5c85fb86c393"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 24,
+      "implementation_candidates": [
+        {
+          "path": "scripts/harden_execution_network.py",
+          "sha256": "73717cf4d7ad75a4a21c31dd47238f254dde01d73438ba9256511940d31e3f4c"
+        },
+        {
+          "path": "scripts/capacity_network_guard.py",
+          "sha256": "8c949289b0b3acca7a8eb9d489b77bd8f1a9afce8cad57b0e1715b124c21b04d"
+        },
+        {
+          "path": "scripts/refresh_internal_dns_policy.py",
+          "sha256": "72a4448ae3574ffe77ab60e3ed6f61536750e72cf9887cb55b15c443fc0c9827"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_capacity_network_guard.py",
+          "sha256": "0b19e55e71ffbdb7f73c05bfbbf37c1c96731c9c5440d0bcb3606742ca3eae8b"
+        },
+        {
+          "path": "tests/test_environment_routing.js",
+          "sha256": "bfc9bd9524f5b106a68baf1e13929cfdd8c13f7c281dcc35047d5c85fb86c393"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 25,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/workspace_tools_overlay.py",
+          "sha256": "824c6f61a25a8cb2b46cce16c4ecc101aff667b40497bf53dc3ed7ebc8428256"
+        },
+        {
+          "path": "scripts/package_controller.py",
+          "sha256": "ed3b76926f7b6da681c04bfff8cef42abc0b6d62537ca5253b2f60212638ab6e"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_tools_overlay.py",
+          "sha256": "356d21cd2a0388ee08dab42c59c06d58f31195eb7a65d5e5fd1f8cd2269c70bd"
+        },
+        {
+          "path": "tests/test_self_service_packages.py",
+          "sha256": "0e0f6c504d6e97f980c3f380923c5fe1034ab91da9526985bd024c151893b5c9"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 26,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/workspace_tools_overlay.py",
+          "sha256": "824c6f61a25a8cb2b46cce16c4ecc101aff667b40497bf53dc3ed7ebc8428256"
+        },
+        {
+          "path": "scripts/package_controller.py",
+          "sha256": "ed3b76926f7b6da681c04bfff8cef42abc0b6d62537ca5253b2f60212638ab6e"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_tools_overlay.py",
+          "sha256": "356d21cd2a0388ee08dab42c59c06d58f31195eb7a65d5e5fd1f8cd2269c70bd"
+        },
+        {
+          "path": "tests/test_self_service_packages.py",
+          "sha256": "0e0f6c504d6e97f980c3f380923c5fe1034ab91da9526985bd024c151893b5c9"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 27,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/workspace_tools_overlay.py",
+          "sha256": "824c6f61a25a8cb2b46cce16c4ecc101aff667b40497bf53dc3ed7ebc8428256"
+        },
+        {
+          "path": "scripts/package_controller.py",
+          "sha256": "ed3b76926f7b6da681c04bfff8cef42abc0b6d62537ca5253b2f60212638ab6e"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_tools_overlay.py",
+          "sha256": "356d21cd2a0388ee08dab42c59c06d58f31195eb7a65d5e5fd1f8cd2269c70bd"
+        },
+        {
+          "path": "tests/test_self_service_packages.py",
+          "sha256": "0e0f6c504d6e97f980c3f380923c5fe1034ab91da9526985bd024c151893b5c9"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 28,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/workspace_tools_overlay.py",
+          "sha256": "824c6f61a25a8cb2b46cce16c4ecc101aff667b40497bf53dc3ed7ebc8428256"
+        },
+        {
+          "path": "scripts/package_controller.py",
+          "sha256": "ed3b76926f7b6da681c04bfff8cef42abc0b6d62537ca5253b2f60212638ab6e"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_tools_overlay.py",
+          "sha256": "356d21cd2a0388ee08dab42c59c06d58f31195eb7a65d5e5fd1f8cd2269c70bd"
+        },
+        {
+          "path": "tests/test_self_service_packages.py",
+          "sha256": "0e0f6c504d6e97f980c3f380923c5fe1034ab91da9526985bd024c151893b5c9"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 29,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/workspace_tools_overlay.py",
+          "sha256": "824c6f61a25a8cb2b46cce16c4ecc101aff667b40497bf53dc3ed7ebc8428256"
+        },
+        {
+          "path": "scripts/package_controller.py",
+          "sha256": "ed3b76926f7b6da681c04bfff8cef42abc0b6d62537ca5253b2f60212638ab6e"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_tools_overlay.py",
+          "sha256": "356d21cd2a0388ee08dab42c59c06d58f31195eb7a65d5e5fd1f8cd2269c70bd"
+        },
+        {
+          "path": "tests/test_self_service_packages.py",
+          "sha256": "0e0f6c504d6e97f980c3f380923c5fe1034ab91da9526985bd024c151893b5c9"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 30,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/workspace_tools_overlay.py",
+          "sha256": "824c6f61a25a8cb2b46cce16c4ecc101aff667b40497bf53dc3ed7ebc8428256"
+        },
+        {
+          "path": "scripts/package_controller.py",
+          "sha256": "ed3b76926f7b6da681c04bfff8cef42abc0b6d62537ca5253b2f60212638ab6e"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_tools_overlay.py",
+          "sha256": "356d21cd2a0388ee08dab42c59c06d58f31195eb7a65d5e5fd1f8cd2269c70bd"
+        },
+        {
+          "path": "tests/test_self_service_packages.py",
+          "sha256": "0e0f6c504d6e97f980c3f380923c5fe1034ab91da9526985bd024c151893b5c9"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 31,
+      "implementation_candidates": [
+        {
+          "path": "container/workspace-file-tools.py",
+          "sha256": "563d092ae028e7d5c823115328dcf62a092f583a17ddeffbc615c492c6caff02"
+        },
+        {
+          "path": "scripts/workspace_tools_overlay.py",
+          "sha256": "824c6f61a25a8cb2b46cce16c4ecc101aff667b40497bf53dc3ed7ebc8428256"
+        },
+        {
+          "path": "scripts/package_controller.py",
+          "sha256": "ed3b76926f7b6da681c04bfff8cef42abc0b6d62537ca5253b2f60212638ab6e"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_workspace_file_tools.py",
+          "sha256": "913c9439fb6bddec2d735c6795291901eb362513ef4aadcb5343e26a1d17f209"
+        },
+        {
+          "path": "tests/test_workspace_tools_overlay.py",
+          "sha256": "356d21cd2a0388ee08dab42c59c06d58f31195eb7a65d5e5fd1f8cd2269c70bd"
+        },
+        {
+          "path": "tests/test_self_service_packages.py",
+          "sha256": "0e0f6c504d6e97f980c3f380923c5fe1034ab91da9526985bd024c151893b5c9"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 32,
+      "implementation_candidates": [
+        {
+          "path": "scripts/context_envelope.py",
+          "sha256": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c"
+        },
+        {
+          "path": "scripts/context_forwarder.py",
+          "sha256": "7622dc322ea29c03278d048b76d5229e7e52c51ab001806629de5a4bb6d192f5"
+        },
+        {
+          "path": "scripts/gateway_output_guard.py",
+          "sha256": "02a6b901e2b6cecb3295ae7125955b04898f5d83ba725dbdd584b14f93c1d21b"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_context_envelope.py",
+          "sha256": "cc822305570dc76499f7e6b016eab39008e1fd044b042b3a72f9d079fcad6e7b"
+        },
+        {
+          "path": "tests/test_context_forwarder.py",
+          "sha256": "5ea8442e40568a2b0b3f3bfa5f1e004dc312e88c16599e57d78a1f66b050e6c1"
+        },
+        {
+          "path": "tests/test_gateway_output_guard.py",
+          "sha256": "08fa0ca8cfe658d89112c38c5886f74c0fce4c52b857fe401ce6dad62b333e38"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 33,
+      "implementation_candidates": [
+        {
+          "path": "scripts/context_envelope.py",
+          "sha256": "fdb97137a04f44422e8569a6c9af714468f885de8eade9ed6690621ef891516c"
+        },
+        {
+          "path": "scripts/context_forwarder.py",
+          "sha256": "7622dc322ea29c03278d048b76d5229e7e52c51ab001806629de5a4bb6d192f5"
+        },
+        {
+          "path": "scripts/gateway_output_guard.py",
+          "sha256": "02a6b901e2b6cecb3295ae7125955b04898f5d83ba725dbdd584b14f93c1d21b"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_context_envelope.py",
+          "sha256": "cc822305570dc76499f7e6b016eab39008e1fd044b042b3a72f9d079fcad6e7b"
+        },
+        {
+          "path": "tests/test_context_forwarder.py",
+          "sha256": "5ea8442e40568a2b0b3f3bfa5f1e004dc312e88c16599e57d78a1f66b050e6c1"
+        },
+        {
+          "path": "tests/test_gateway_output_guard.py",
+          "sha256": "08fa0ca8cfe658d89112c38c5886f74c0fce4c52b857fe401ce6dad62b333e38"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 34,
+      "implementation_candidates": [
+        {
+          "path": "scripts/agent_task_gateway.js",
+          "sha256": "32c8b97ce1860db49f3913b582497c8c8a29591cc260cf341e5aaf9edb1fb74f"
+        },
+        {
+          "path": "scripts/a2a_worker_api.py",
+          "sha256": "13b6ecb731e61fafb14fcc9d1cd1b401821a71957005860a7530f00b1080f56d"
+        },
+        {
+          "path": "scripts/a2a_worker_receipt.py",
+          "sha256": "4b96d1d6d5ee0df8705f7f6b4a0be3faaec3912c3b1f12990a1025f3772929a5"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_a2a_worker_api.py",
+          "sha256": "fb27d633d411b0aafb080e5892f184884d136c7dd9b7c32cb38fa7cc785535cf"
+        },
+        {
+          "path": "tests/test_a2a_worker_receipt.py",
+          "sha256": "3b6c806c1c4140694dcb954166d5eef568859550a624a794746687155f9b96ed"
+        },
+        {
+          "path": "tests/test_native_sdk_approval_ui.cjs",
+          "sha256": "92838e0badc95dee4b4d4828a9dc248de3c3f88eaef18c0a2299d489f076b9d3"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 35,
+      "implementation_candidates": [
+        {
+          "path": "scripts/agent_task_gateway.js",
+          "sha256": "32c8b97ce1860db49f3913b582497c8c8a29591cc260cf341e5aaf9edb1fb74f"
+        },
+        {
+          "path": "scripts/a2a_worker_api.py",
+          "sha256": "13b6ecb731e61fafb14fcc9d1cd1b401821a71957005860a7530f00b1080f56d"
+        },
+        {
+          "path": "scripts/a2a_worker_receipt.py",
+          "sha256": "4b96d1d6d5ee0df8705f7f6b4a0be3faaec3912c3b1f12990a1025f3772929a5"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_a2a_worker_api.py",
+          "sha256": "fb27d633d411b0aafb080e5892f184884d136c7dd9b7c32cb38fa7cc785535cf"
+        },
+        {
+          "path": "tests/test_a2a_worker_receipt.py",
+          "sha256": "3b6c806c1c4140694dcb954166d5eef568859550a624a794746687155f9b96ed"
+        },
+        {
+          "path": "tests/test_native_sdk_approval_ui.cjs",
+          "sha256": "92838e0badc95dee4b4d4828a9dc248de3c3f88eaef18c0a2299d489f076b9d3"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 36,
+      "implementation_candidates": [
+        {
+          "path": "scripts/agent_task_gateway.js",
+          "sha256": "32c8b97ce1860db49f3913b582497c8c8a29591cc260cf341e5aaf9edb1fb74f"
+        },
+        {
+          "path": "scripts/a2a_worker_api.py",
+          "sha256": "13b6ecb731e61fafb14fcc9d1cd1b401821a71957005860a7530f00b1080f56d"
+        },
+        {
+          "path": "scripts/a2a_worker_receipt.py",
+          "sha256": "4b96d1d6d5ee0df8705f7f6b4a0be3faaec3912c3b1f12990a1025f3772929a5"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_a2a_worker_api.py",
+          "sha256": "fb27d633d411b0aafb080e5892f184884d136c7dd9b7c32cb38fa7cc785535cf"
+        },
+        {
+          "path": "tests/test_a2a_worker_receipt.py",
+          "sha256": "3b6c806c1c4140694dcb954166d5eef568859550a624a794746687155f9b96ed"
+        },
+        {
+          "path": "tests/test_native_sdk_approval_ui.cjs",
+          "sha256": "92838e0badc95dee4b4d4828a9dc248de3c3f88eaef18c0a2299d489f076b9d3"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 37,
+      "implementation_candidates": [
+        {
+          "path": "scripts/agent_task_gateway.js",
+          "sha256": "32c8b97ce1860db49f3913b582497c8c8a29591cc260cf341e5aaf9edb1fb74f"
+        },
+        {
+          "path": "scripts/a2a_worker_api.py",
+          "sha256": "13b6ecb731e61fafb14fcc9d1cd1b401821a71957005860a7530f00b1080f56d"
+        },
+        {
+          "path": "scripts/a2a_worker_receipt.py",
+          "sha256": "4b96d1d6d5ee0df8705f7f6b4a0be3faaec3912c3b1f12990a1025f3772929a5"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_a2a_worker_api.py",
+          "sha256": "fb27d633d411b0aafb080e5892f184884d136c7dd9b7c32cb38fa7cc785535cf"
+        },
+        {
+          "path": "tests/test_a2a_worker_receipt.py",
+          "sha256": "3b6c806c1c4140694dcb954166d5eef568859550a624a794746687155f9b96ed"
+        },
+        {
+          "path": "tests/test_native_sdk_approval_ui.cjs",
+          "sha256": "92838e0badc95dee4b4d4828a9dc248de3c3f88eaef18c0a2299d489f076b9d3"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 38,
+      "implementation_candidates": [
+        {
+          "path": "scripts/a2a_worker_journal.py",
+          "sha256": "360e4f18674872aa5dbf1f6bfb84f3160a2dec95419112c4bde4994d0f5e530e"
+        },
+        {
+          "path": "scripts/a2a_stage_journal.py",
+          "sha256": "7280e6e17b76c2b9587dfdf7bc0cfc6ebdf54e0846e0216ffaee176c52079588"
+        },
+        {
+          "path": "scripts/a2a_model_reconciliation.py",
+          "sha256": "ca182a9f371ee72eee6b678db4689f055af2949a12e6a8a1be149bf57ba17cee"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_a2a_worker_journal.py",
+          "sha256": "54e26e555ced21a89c7c1644ac375740be1b3965822dbbe387aea4aedeccdb21"
+        },
+        {
+          "path": "tests/test_a2a_stage_journal.py",
+          "sha256": "910f7edc434731e9f4b2add201013950ca72e7c5fa5d0425d08a0a210079e0e7"
+        },
+        {
+          "path": "tests/test_a2a_model_reconciliation.py",
+          "sha256": "52b7f55592a4651a114c784b772856f6d2e8a0f0571b8da0e326513ff6efe442"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 39,
+      "implementation_candidates": [
+        {
+          "path": "scripts/a2a_worker_journal.py",
+          "sha256": "360e4f18674872aa5dbf1f6bfb84f3160a2dec95419112c4bde4994d0f5e530e"
+        },
+        {
+          "path": "scripts/a2a_stage_journal.py",
+          "sha256": "7280e6e17b76c2b9587dfdf7bc0cfc6ebdf54e0846e0216ffaee176c52079588"
+        },
+        {
+          "path": "scripts/a2a_model_reconciliation.py",
+          "sha256": "ca182a9f371ee72eee6b678db4689f055af2949a12e6a8a1be149bf57ba17cee"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_a2a_worker_journal.py",
+          "sha256": "54e26e555ced21a89c7c1644ac375740be1b3965822dbbe387aea4aedeccdb21"
+        },
+        {
+          "path": "tests/test_a2a_stage_journal.py",
+          "sha256": "910f7edc434731e9f4b2add201013950ca72e7c5fa5d0425d08a0a210079e0e7"
+        },
+        {
+          "path": "tests/test_a2a_model_reconciliation.py",
+          "sha256": "52b7f55592a4651a114c784b772856f6d2e8a0f0571b8da0e326513ff6efe442"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 40,
+      "implementation_candidates": [
+        {
+          "path": "scripts/a2a_worker_journal.py",
+          "sha256": "360e4f18674872aa5dbf1f6bfb84f3160a2dec95419112c4bde4994d0f5e530e"
+        },
+        {
+          "path": "scripts/a2a_stage_journal.py",
+          "sha256": "7280e6e17b76c2b9587dfdf7bc0cfc6ebdf54e0846e0216ffaee176c52079588"
+        },
+        {
+          "path": "scripts/a2a_model_reconciliation.py",
+          "sha256": "ca182a9f371ee72eee6b678db4689f055af2949a12e6a8a1be149bf57ba17cee"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_a2a_worker_journal.py",
+          "sha256": "54e26e555ced21a89c7c1644ac375740be1b3965822dbbe387aea4aedeccdb21"
+        },
+        {
+          "path": "tests/test_a2a_stage_journal.py",
+          "sha256": "910f7edc434731e9f4b2add201013950ca72e7c5fa5d0425d08a0a210079e0e7"
+        },
+        {
+          "path": "tests/test_a2a_model_reconciliation.py",
+          "sha256": "52b7f55592a4651a114c784b772856f6d2e8a0f0571b8da0e326513ff6efe442"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 41,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_session.py",
+          "sha256": "727f7fbae464e14eb4455fdf4a5bf3e1c92b074fb996caa96c97f5bc766809e1"
+        },
+        {
+          "path": "scripts/a2a_sdk_lifecycle.py",
+          "sha256": "1b91b5071c4a708f85e6948655c0ff81e61b5d9254776c80e814e30b627de0b7"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        },
+        {
+          "path": "scripts/a2a_worker_retirement.py",
+          "sha256": "74773e68019b27d421e06cc656a63055c92a1d1682fa240d63e32809b90c4c93"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_session.py",
+          "sha256": "311c0dc801a2d3a5929914f054129eef11c13cfcb7427e3aefda9e8b1b1b6f60"
+        },
+        {
+          "path": "tests/test_a2a_sdk_lifecycle.py",
+          "sha256": "c76fbcb29ca779a346123a0e24f86d9bb9fc05e4db5e19cb3fb5802145b50a0c"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        },
+        {
+          "path": "tests/test_a2a_worker_retirement.py",
+          "sha256": "1d50a58465cabfc6bd6d0beb7f8c861dd2f2d5488bade3958379419ae3784368"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [
+        "sdk-v9-cancellation",
+        "owned-cache-helper-unit"
+      ],
+      "source_evidence_state": "partial local helper PASS; native SDK qualification failure retained",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 42,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_session.py",
+          "sha256": "727f7fbae464e14eb4455fdf4a5bf3e1c92b074fb996caa96c97f5bc766809e1"
+        },
+        {
+          "path": "scripts/a2a_sdk_lifecycle.py",
+          "sha256": "1b91b5071c4a708f85e6948655c0ff81e61b5d9254776c80e814e30b627de0b7"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        },
+        {
+          "path": "scripts/a2a_worker_retirement.py",
+          "sha256": "74773e68019b27d421e06cc656a63055c92a1d1682fa240d63e32809b90c4c93"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_session.py",
+          "sha256": "311c0dc801a2d3a5929914f054129eef11c13cfcb7427e3aefda9e8b1b1b6f60"
+        },
+        {
+          "path": "tests/test_a2a_sdk_lifecycle.py",
+          "sha256": "c76fbcb29ca779a346123a0e24f86d9bb9fc05e4db5e19cb3fb5802145b50a0c"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        },
+        {
+          "path": "tests/test_a2a_worker_retirement.py",
+          "sha256": "1d50a58465cabfc6bd6d0beb7f8c861dd2f2d5488bade3958379419ae3784368"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [
+        "owned-cache-helper-unit"
+      ],
+      "source_evidence_state": "source-tested (narrow helper aspect)",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 43,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_session.py",
+          "sha256": "727f7fbae464e14eb4455fdf4a5bf3e1c92b074fb996caa96c97f5bc766809e1"
+        },
+        {
+          "path": "scripts/a2a_sdk_lifecycle.py",
+          "sha256": "1b91b5071c4a708f85e6948655c0ff81e61b5d9254776c80e814e30b627de0b7"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        },
+        {
+          "path": "scripts/a2a_worker_retirement.py",
+          "sha256": "74773e68019b27d421e06cc656a63055c92a1d1682fa240d63e32809b90c4c93"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_session.py",
+          "sha256": "311c0dc801a2d3a5929914f054129eef11c13cfcb7427e3aefda9e8b1b1b6f60"
+        },
+        {
+          "path": "tests/test_a2a_sdk_lifecycle.py",
+          "sha256": "c76fbcb29ca779a346123a0e24f86d9bb9fc05e4db5e19cb3fb5802145b50a0c"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        },
+        {
+          "path": "tests/test_a2a_worker_retirement.py",
+          "sha256": "1d50a58465cabfc6bd6d0beb7f8c861dd2f2d5488bade3958379419ae3784368"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 44,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_session.py",
+          "sha256": "727f7fbae464e14eb4455fdf4a5bf3e1c92b074fb996caa96c97f5bc766809e1"
+        },
+        {
+          "path": "scripts/a2a_sdk_lifecycle.py",
+          "sha256": "1b91b5071c4a708f85e6948655c0ff81e61b5d9254776c80e814e30b627de0b7"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        },
+        {
+          "path": "scripts/a2a_worker_retirement.py",
+          "sha256": "74773e68019b27d421e06cc656a63055c92a1d1682fa240d63e32809b90c4c93"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_session.py",
+          "sha256": "311c0dc801a2d3a5929914f054129eef11c13cfcb7427e3aefda9e8b1b1b6f60"
+        },
+        {
+          "path": "tests/test_a2a_sdk_lifecycle.py",
+          "sha256": "c76fbcb29ca779a346123a0e24f86d9bb9fc05e4db5e19cb3fb5802145b50a0c"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        },
+        {
+          "path": "tests/test_a2a_worker_retirement.py",
+          "sha256": "1d50a58465cabfc6bd6d0beb7f8c861dd2f2d5488bade3958379419ae3784368"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [
+        "owned-cache-helper-unit"
+      ],
+      "source_evidence_state": "source-tested (narrow helper aspect)",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 45,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_session.py",
+          "sha256": "727f7fbae464e14eb4455fdf4a5bf3e1c92b074fb996caa96c97f5bc766809e1"
+        },
+        {
+          "path": "scripts/a2a_sdk_lifecycle.py",
+          "sha256": "1b91b5071c4a708f85e6948655c0ff81e61b5d9254776c80e814e30b627de0b7"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        },
+        {
+          "path": "scripts/a2a_worker_retirement.py",
+          "sha256": "74773e68019b27d421e06cc656a63055c92a1d1682fa240d63e32809b90c4c93"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_session.py",
+          "sha256": "311c0dc801a2d3a5929914f054129eef11c13cfcb7427e3aefda9e8b1b1b6f60"
+        },
+        {
+          "path": "tests/test_a2a_sdk_lifecycle.py",
+          "sha256": "c76fbcb29ca779a346123a0e24f86d9bb9fc05e4db5e19cb3fb5802145b50a0c"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        },
+        {
+          "path": "tests/test_a2a_worker_retirement.py",
+          "sha256": "1d50a58465cabfc6bd6d0beb7f8c861dd2f2d5488bade3958379419ae3784368"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 46,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_session.py",
+          "sha256": "727f7fbae464e14eb4455fdf4a5bf3e1c92b074fb996caa96c97f5bc766809e1"
+        },
+        {
+          "path": "scripts/a2a_sdk_lifecycle.py",
+          "sha256": "1b91b5071c4a708f85e6948655c0ff81e61b5d9254776c80e814e30b627de0b7"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        },
+        {
+          "path": "scripts/a2a_worker_retirement.py",
+          "sha256": "74773e68019b27d421e06cc656a63055c92a1d1682fa240d63e32809b90c4c93"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_session.py",
+          "sha256": "311c0dc801a2d3a5929914f054129eef11c13cfcb7427e3aefda9e8b1b1b6f60"
+        },
+        {
+          "path": "tests/test_a2a_sdk_lifecycle.py",
+          "sha256": "c76fbcb29ca779a346123a0e24f86d9bb9fc05e4db5e19cb3fb5802145b50a0c"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        },
+        {
+          "path": "tests/test_a2a_worker_retirement.py",
+          "sha256": "1d50a58465cabfc6bd6d0beb7f8c861dd2f2d5488bade3958379419ae3784368"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 47,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_session.py",
+          "sha256": "727f7fbae464e14eb4455fdf4a5bf3e1c92b074fb996caa96c97f5bc766809e1"
+        },
+        {
+          "path": "scripts/a2a_sdk_lifecycle.py",
+          "sha256": "1b91b5071c4a708f85e6948655c0ff81e61b5d9254776c80e814e30b627de0b7"
+        },
+        {
+          "path": "scripts/a2a_cli_lifecycle.py",
+          "sha256": "7362f79a7dc4c005f8f0dfa1ab3dab40a8331dfee642c718cc59e350eb82ce6c"
+        },
+        {
+          "path": "scripts/a2a_worker_retirement.py",
+          "sha256": "74773e68019b27d421e06cc656a63055c92a1d1682fa240d63e32809b90c4c93"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_session.py",
+          "sha256": "311c0dc801a2d3a5929914f054129eef11c13cfcb7427e3aefda9e8b1b1b6f60"
+        },
+        {
+          "path": "tests/test_a2a_sdk_lifecycle.py",
+          "sha256": "c76fbcb29ca779a346123a0e24f86d9bb9fc05e4db5e19cb3fb5802145b50a0c"
+        },
+        {
+          "path": "tests/test_a2a_cli_lifecycle.py",
+          "sha256": "55e2e1af1d690302af8a542e26b5c582478487c0b1054ab6d8d29342ffa03eaf"
+        },
+        {
+          "path": "tests/test_a2a_worker_retirement.py",
+          "sha256": "1d50a58465cabfc6bd6d0beb7f8c861dd2f2d5488bade3958379419ae3784368"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [
+        "sdk-v9-cancellation"
+      ],
+      "source_evidence_state": "failed qualification aspect",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 48,
+      "implementation_candidates": [
+        {
+          "path": "scripts/capacity_planner.py",
+          "sha256": "d94c71e345e0f0a46fc352fef1223278738ec1dcc8cb0359c3d8e9cf4403654d"
+        },
+        {
+          "path": "scripts/a2a_factory_budget.py",
+          "sha256": "50886964a0db230cf1586cbb063be5aff4fdd4724f696aec148c6d36eac66fec"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_capacity_planner.py",
+          "sha256": "3cba0a1a77ac01e6f98f86746e8a7959ccc671ab2bd5a81d46d96bd184e270d6"
+        },
+        {
+          "path": "tests/test_a2a_factory_budget.py",
+          "sha256": "885efe51b6cb7002c596a966388ec9cbffbf4d34407ae8df44b0827f2ccd6d37"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 49,
+      "implementation_candidates": [
+        {
+          "path": "scripts/capacity_planner.py",
+          "sha256": "d94c71e345e0f0a46fc352fef1223278738ec1dcc8cb0359c3d8e9cf4403654d"
+        },
+        {
+          "path": "scripts/a2a_factory_budget.py",
+          "sha256": "50886964a0db230cf1586cbb063be5aff4fdd4724f696aec148c6d36eac66fec"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_capacity_planner.py",
+          "sha256": "3cba0a1a77ac01e6f98f86746e8a7959ccc671ab2bd5a81d46d96bd184e270d6"
+        },
+        {
+          "path": "tests/test_a2a_factory_budget.py",
+          "sha256": "885efe51b6cb7002c596a966388ec9cbffbf4d34407ae8df44b0827f2ccd6d37"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 50,
+      "implementation_candidates": [
+        {
+          "path": "scripts/capacity_planner.py",
+          "sha256": "d94c71e345e0f0a46fc352fef1223278738ec1dcc8cb0359c3d8e9cf4403654d"
+        },
+        {
+          "path": "scripts/a2a_factory_budget.py",
+          "sha256": "50886964a0db230cf1586cbb063be5aff4fdd4724f696aec148c6d36eac66fec"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_capacity_planner.py",
+          "sha256": "3cba0a1a77ac01e6f98f86746e8a7959ccc671ab2bd5a81d46d96bd184e270d6"
+        },
+        {
+          "path": "tests/test_a2a_factory_budget.py",
+          "sha256": "885efe51b6cb7002c596a966388ec9cbffbf4d34407ae8df44b0827f2ccd6d37"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 51,
+      "implementation_candidates": [
+        {
+          "path": "scripts/capacity_planner.py",
+          "sha256": "d94c71e345e0f0a46fc352fef1223278738ec1dcc8cb0359c3d8e9cf4403654d"
+        },
+        {
+          "path": "scripts/a2a_factory_budget.py",
+          "sha256": "50886964a0db230cf1586cbb063be5aff4fdd4724f696aec148c6d36eac66fec"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_capacity_planner.py",
+          "sha256": "3cba0a1a77ac01e6f98f86746e8a7959ccc671ab2bd5a81d46d96bd184e270d6"
+        },
+        {
+          "path": "tests/test_a2a_factory_budget.py",
+          "sha256": "885efe51b6cb7002c596a966388ec9cbffbf4d34407ae8df44b0827f2ccd6d37"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 52,
+      "implementation_candidates": [
+        {
+          "path": "scripts/capacity_planner.py",
+          "sha256": "d94c71e345e0f0a46fc352fef1223278738ec1dcc8cb0359c3d8e9cf4403654d"
+        },
+        {
+          "path": "scripts/a2a_factory_budget.py",
+          "sha256": "50886964a0db230cf1586cbb063be5aff4fdd4724f696aec148c6d36eac66fec"
+        },
+        {
+          "path": "scripts/a2a_private_worker_pod.py",
+          "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_capacity_planner.py",
+          "sha256": "3cba0a1a77ac01e6f98f86746e8a7959ccc671ab2bd5a81d46d96bd184e270d6"
+        },
+        {
+          "path": "tests/test_a2a_factory_budget.py",
+          "sha256": "885efe51b6cb7002c596a966388ec9cbffbf4d34407ae8df44b0827f2ccd6d37"
+        },
+        {
+          "path": "tests/test_a2a_private_worker_pod.py",
+          "sha256": "ae8ed818e989cd73ed28c87a0cc3a738c1dc873ea92eef224612002dddf4ef11"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 53,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_release_admission.py",
+          "sha256": "648ad771c917f42433e29ce98bcf8730533dafc078c8bbbfbea0a2052ffbdd28"
+        },
+        {
+          "path": "scripts/rollout_runtime_successor.py",
+          "sha256": "a4e01737a7f355714d05753e255cd2ca57a4bef2c7c923190608fe44754d3397"
+        },
+        {
+          "path": "scripts/rollout_dsh_sources.py",
+          "sha256": "f6e6c28a34ded081e3e7303939d5a1487dc152f8d7db3bffdae7d15f480e61ca"
+        },
+        {
+          "path": "scripts/configure_workspace_policy.js",
+          "sha256": "a007749ac92b0b7d70e6531ca99dc144121c9516c2e6e7c5f96c5528d6230a50"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_release_admission.py",
+          "sha256": "05408143cf50e077a291a9e7c58ee3f3c120abb9cd9ecadad2cadd014481e8a6"
+        },
+        {
+          "path": "tests/test_rollout_runtime_successor.py",
+          "sha256": "fdbe9db52f5f5fba1c58ba21671232b6c28f9f24fc6b64886f7e9b4c737014ad"
+        },
+        {
+          "path": "tests/test_rollout_dsh_sources.py",
+          "sha256": "7404b01b4967e193ec75be4df21a44627c5095f156e679e0e30f5f80a36b47e7"
+        },
+        {
+          "path": "tests/test_workspace_policy.js",
+          "sha256": "76bb8ce11502b760c02a47bf3562cadf3c3a7711b79997a69ca39089a812538a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 54,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_release_admission.py",
+          "sha256": "648ad771c917f42433e29ce98bcf8730533dafc078c8bbbfbea0a2052ffbdd28"
+        },
+        {
+          "path": "scripts/rollout_runtime_successor.py",
+          "sha256": "a4e01737a7f355714d05753e255cd2ca57a4bef2c7c923190608fe44754d3397"
+        },
+        {
+          "path": "scripts/rollout_dsh_sources.py",
+          "sha256": "f6e6c28a34ded081e3e7303939d5a1487dc152f8d7db3bffdae7d15f480e61ca"
+        },
+        {
+          "path": "scripts/configure_workspace_policy.js",
+          "sha256": "a007749ac92b0b7d70e6531ca99dc144121c9516c2e6e7c5f96c5528d6230a50"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_release_admission.py",
+          "sha256": "05408143cf50e077a291a9e7c58ee3f3c120abb9cd9ecadad2cadd014481e8a6"
+        },
+        {
+          "path": "tests/test_rollout_runtime_successor.py",
+          "sha256": "fdbe9db52f5f5fba1c58ba21671232b6c28f9f24fc6b64886f7e9b4c737014ad"
+        },
+        {
+          "path": "tests/test_rollout_dsh_sources.py",
+          "sha256": "7404b01b4967e193ec75be4df21a44627c5095f156e679e0e30f5f80a36b47e7"
+        },
+        {
+          "path": "tests/test_workspace_policy.js",
+          "sha256": "76bb8ce11502b760c02a47bf3562cadf3c3a7711b79997a69ca39089a812538a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 55,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_release_admission.py",
+          "sha256": "648ad771c917f42433e29ce98bcf8730533dafc078c8bbbfbea0a2052ffbdd28"
+        },
+        {
+          "path": "scripts/rollout_runtime_successor.py",
+          "sha256": "a4e01737a7f355714d05753e255cd2ca57a4bef2c7c923190608fe44754d3397"
+        },
+        {
+          "path": "scripts/rollout_dsh_sources.py",
+          "sha256": "f6e6c28a34ded081e3e7303939d5a1487dc152f8d7db3bffdae7d15f480e61ca"
+        },
+        {
+          "path": "scripts/configure_workspace_policy.js",
+          "sha256": "a007749ac92b0b7d70e6531ca99dc144121c9516c2e6e7c5f96c5528d6230a50"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_release_admission.py",
+          "sha256": "05408143cf50e077a291a9e7c58ee3f3c120abb9cd9ecadad2cadd014481e8a6"
+        },
+        {
+          "path": "tests/test_rollout_runtime_successor.py",
+          "sha256": "fdbe9db52f5f5fba1c58ba21671232b6c28f9f24fc6b64886f7e9b4c737014ad"
+        },
+        {
+          "path": "tests/test_rollout_dsh_sources.py",
+          "sha256": "7404b01b4967e193ec75be4df21a44627c5095f156e679e0e30f5f80a36b47e7"
+        },
+        {
+          "path": "tests/test_workspace_policy.js",
+          "sha256": "76bb8ce11502b760c02a47bf3562cadf3c3a7711b79997a69ca39089a812538a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 56,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_release_admission.py",
+          "sha256": "648ad771c917f42433e29ce98bcf8730533dafc078c8bbbfbea0a2052ffbdd28"
+        },
+        {
+          "path": "scripts/rollout_runtime_successor.py",
+          "sha256": "a4e01737a7f355714d05753e255cd2ca57a4bef2c7c923190608fe44754d3397"
+        },
+        {
+          "path": "scripts/rollout_dsh_sources.py",
+          "sha256": "f6e6c28a34ded081e3e7303939d5a1487dc152f8d7db3bffdae7d15f480e61ca"
+        },
+        {
+          "path": "scripts/configure_workspace_policy.js",
+          "sha256": "a007749ac92b0b7d70e6531ca99dc144121c9516c2e6e7c5f96c5528d6230a50"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_release_admission.py",
+          "sha256": "05408143cf50e077a291a9e7c58ee3f3c120abb9cd9ecadad2cadd014481e8a6"
+        },
+        {
+          "path": "tests/test_rollout_runtime_successor.py",
+          "sha256": "fdbe9db52f5f5fba1c58ba21671232b6c28f9f24fc6b64886f7e9b4c737014ad"
+        },
+        {
+          "path": "tests/test_rollout_dsh_sources.py",
+          "sha256": "7404b01b4967e193ec75be4df21a44627c5095f156e679e0e30f5f80a36b47e7"
+        },
+        {
+          "path": "tests/test_workspace_policy.js",
+          "sha256": "76bb8ce11502b760c02a47bf3562cadf3c3a7711b79997a69ca39089a812538a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 57,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_release_admission.py",
+          "sha256": "648ad771c917f42433e29ce98bcf8730533dafc078c8bbbfbea0a2052ffbdd28"
+        },
+        {
+          "path": "scripts/rollout_runtime_successor.py",
+          "sha256": "a4e01737a7f355714d05753e255cd2ca57a4bef2c7c923190608fe44754d3397"
+        },
+        {
+          "path": "scripts/rollout_dsh_sources.py",
+          "sha256": "f6e6c28a34ded081e3e7303939d5a1487dc152f8d7db3bffdae7d15f480e61ca"
+        },
+        {
+          "path": "scripts/configure_workspace_policy.js",
+          "sha256": "a007749ac92b0b7d70e6531ca99dc144121c9516c2e6e7c5f96c5528d6230a50"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_release_admission.py",
+          "sha256": "05408143cf50e077a291a9e7c58ee3f3c120abb9cd9ecadad2cadd014481e8a6"
+        },
+        {
+          "path": "tests/test_rollout_runtime_successor.py",
+          "sha256": "fdbe9db52f5f5fba1c58ba21671232b6c28f9f24fc6b64886f7e9b4c737014ad"
+        },
+        {
+          "path": "tests/test_rollout_dsh_sources.py",
+          "sha256": "7404b01b4967e193ec75be4df21a44627c5095f156e679e0e30f5f80a36b47e7"
+        },
+        {
+          "path": "tests/test_workspace_policy.js",
+          "sha256": "76bb8ce11502b760c02a47bf3562cadf3c3a7711b79997a69ca39089a812538a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 58,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_release_admission.py",
+          "sha256": "648ad771c917f42433e29ce98bcf8730533dafc078c8bbbfbea0a2052ffbdd28"
+        },
+        {
+          "path": "scripts/rollout_runtime_successor.py",
+          "sha256": "a4e01737a7f355714d05753e255cd2ca57a4bef2c7c923190608fe44754d3397"
+        },
+        {
+          "path": "scripts/rollout_dsh_sources.py",
+          "sha256": "f6e6c28a34ded081e3e7303939d5a1487dc152f8d7db3bffdae7d15f480e61ca"
+        },
+        {
+          "path": "scripts/configure_workspace_policy.js",
+          "sha256": "a007749ac92b0b7d70e6531ca99dc144121c9516c2e6e7c5f96c5528d6230a50"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_release_admission.py",
+          "sha256": "05408143cf50e077a291a9e7c58ee3f3c120abb9cd9ecadad2cadd014481e8a6"
+        },
+        {
+          "path": "tests/test_rollout_runtime_successor.py",
+          "sha256": "fdbe9db52f5f5fba1c58ba21671232b6c28f9f24fc6b64886f7e9b4c737014ad"
+        },
+        {
+          "path": "tests/test_rollout_dsh_sources.py",
+          "sha256": "7404b01b4967e193ec75be4df21a44627c5095f156e679e0e30f5f80a36b47e7"
+        },
+        {
+          "path": "tests/test_workspace_policy.js",
+          "sha256": "76bb8ce11502b760c02a47bf3562cadf3c3a7711b79997a69ca39089a812538a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 59,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_release_admission.py",
+          "sha256": "648ad771c917f42433e29ce98bcf8730533dafc078c8bbbfbea0a2052ffbdd28"
+        },
+        {
+          "path": "scripts/rollout_runtime_successor.py",
+          "sha256": "a4e01737a7f355714d05753e255cd2ca57a4bef2c7c923190608fe44754d3397"
+        },
+        {
+          "path": "scripts/rollout_dsh_sources.py",
+          "sha256": "f6e6c28a34ded081e3e7303939d5a1487dc152f8d7db3bffdae7d15f480e61ca"
+        },
+        {
+          "path": "scripts/configure_workspace_policy.js",
+          "sha256": "a007749ac92b0b7d70e6531ca99dc144121c9516c2e6e7c5f96c5528d6230a50"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_release_admission.py",
+          "sha256": "05408143cf50e077a291a9e7c58ee3f3c120abb9cd9ecadad2cadd014481e8a6"
+        },
+        {
+          "path": "tests/test_rollout_runtime_successor.py",
+          "sha256": "fdbe9db52f5f5fba1c58ba21671232b6c28f9f24fc6b64886f7e9b4c737014ad"
+        },
+        {
+          "path": "tests/test_rollout_dsh_sources.py",
+          "sha256": "7404b01b4967e193ec75be4df21a44627c5095f156e679e0e30f5f80a36b47e7"
+        },
+        {
+          "path": "tests/test_workspace_policy.js",
+          "sha256": "76bb8ce11502b760c02a47bf3562cadf3c3a7711b79997a69ca39089a812538a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 60,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_release_admission.py",
+          "sha256": "648ad771c917f42433e29ce98bcf8730533dafc078c8bbbfbea0a2052ffbdd28"
+        },
+        {
+          "path": "scripts/rollout_runtime_successor.py",
+          "sha256": "a4e01737a7f355714d05753e255cd2ca57a4bef2c7c923190608fe44754d3397"
+        },
+        {
+          "path": "scripts/rollout_dsh_sources.py",
+          "sha256": "f6e6c28a34ded081e3e7303939d5a1487dc152f8d7db3bffdae7d15f480e61ca"
+        },
+        {
+          "path": "scripts/configure_workspace_policy.js",
+          "sha256": "a007749ac92b0b7d70e6531ca99dc144121c9516c2e6e7c5f96c5528d6230a50"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_release_admission.py",
+          "sha256": "05408143cf50e077a291a9e7c58ee3f3c120abb9cd9ecadad2cadd014481e8a6"
+        },
+        {
+          "path": "tests/test_rollout_runtime_successor.py",
+          "sha256": "fdbe9db52f5f5fba1c58ba21671232b6c28f9f24fc6b64886f7e9b4c737014ad"
+        },
+        {
+          "path": "tests/test_rollout_dsh_sources.py",
+          "sha256": "7404b01b4967e193ec75be4df21a44627c5095f156e679e0e30f5f80a36b47e7"
+        },
+        {
+          "path": "tests/test_workspace_policy.js",
+          "sha256": "76bb8ce11502b760c02a47bf3562cadf3c3a7711b79997a69ca39089a812538a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 61,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_release_admission.py",
+          "sha256": "648ad771c917f42433e29ce98bcf8730533dafc078c8bbbfbea0a2052ffbdd28"
+        },
+        {
+          "path": "scripts/rollout_runtime_successor.py",
+          "sha256": "a4e01737a7f355714d05753e255cd2ca57a4bef2c7c923190608fe44754d3397"
+        },
+        {
+          "path": "scripts/rollout_dsh_sources.py",
+          "sha256": "f6e6c28a34ded081e3e7303939d5a1487dc152f8d7db3bffdae7d15f480e61ca"
+        },
+        {
+          "path": "scripts/configure_workspace_policy.js",
+          "sha256": "a007749ac92b0b7d70e6531ca99dc144121c9516c2e6e7c5f96c5528d6230a50"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_release_admission.py",
+          "sha256": "05408143cf50e077a291a9e7c58ee3f3c120abb9cd9ecadad2cadd014481e8a6"
+        },
+        {
+          "path": "tests/test_rollout_runtime_successor.py",
+          "sha256": "fdbe9db52f5f5fba1c58ba21671232b6c28f9f24fc6b64886f7e9b4c737014ad"
+        },
+        {
+          "path": "tests/test_rollout_dsh_sources.py",
+          "sha256": "7404b01b4967e193ec75be4df21a44627c5095f156e679e0e30f5f80a36b47e7"
+        },
+        {
+          "path": "tests/test_workspace_policy.js",
+          "sha256": "76bb8ce11502b760c02a47bf3562cadf3c3a7711b79997a69ca39089a812538a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 62,
+      "implementation_candidates": [
+        {
+          "path": "scripts/official_sdk_release_admission.py",
+          "sha256": "648ad771c917f42433e29ce98bcf8730533dafc078c8bbbfbea0a2052ffbdd28"
+        },
+        {
+          "path": "scripts/rollout_runtime_successor.py",
+          "sha256": "a4e01737a7f355714d05753e255cd2ca57a4bef2c7c923190608fe44754d3397"
+        },
+        {
+          "path": "scripts/rollout_dsh_sources.py",
+          "sha256": "f6e6c28a34ded081e3e7303939d5a1487dc152f8d7db3bffdae7d15f480e61ca"
+        },
+        {
+          "path": "scripts/configure_workspace_policy.js",
+          "sha256": "a007749ac92b0b7d70e6531ca99dc144121c9516c2e6e7c5f96c5528d6230a50"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_official_sdk_release_admission.py",
+          "sha256": "05408143cf50e077a291a9e7c58ee3f3c120abb9cd9ecadad2cadd014481e8a6"
+        },
+        {
+          "path": "tests/test_rollout_runtime_successor.py",
+          "sha256": "fdbe9db52f5f5fba1c58ba21671232b6c28f9f24fc6b64886f7e9b4c737014ad"
+        },
+        {
+          "path": "tests/test_rollout_dsh_sources.py",
+          "sha256": "7404b01b4967e193ec75be4df21a44627c5095f156e679e0e30f5f80a36b47e7"
+        },
+        {
+          "path": "tests/test_workspace_policy.js",
+          "sha256": "76bb8ce11502b760c02a47bf3562cadf3c3a7711b79997a69ca39089a812538a"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Exact candidate source/test blobs exist at this base. Need feature-specific semantic review and named executed-test/result coverage, immutable deployment binding and affected behavior evidence; no live acceptance from file presence."
+    },
+    {
+      "feature_id": 63,
+      "implementation_candidates": [
+        {
+          "path": "docs/THREE_RISK_CONTROLS.md",
+          "sha256": "b80fc4ab96c71c364a00f9fab992b2f6c718e2dc6e6b513640c4865456e17eee"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        },
+        {
+          "path": "tests/test_library_index.py",
+          "sha256": "4b62241c7a7b73a6ded1940ccdc71d8b2516ffa60f527ac95c03f2361fd30b41"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "cross-cutting evidence; no layer assignment",
+      "private_reference_mapping": "cross-cutting evidence; no control-family assignment",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Blank risk/layer/CIA/control-type fields are cross-cutting semantics, not evidence of a missing implementation. Keep ALL and explicit acceptance-evidence scope; obtain design-owner classification before adding tags."
+    },
+    {
+      "feature_id": 64,
+      "implementation_candidates": [
+        {
+          "path": "docs/THREE_RISK_CONTROLS.md",
+          "sha256": "b80fc4ab96c71c364a00f9fab992b2f6c718e2dc6e6b513640c4865456e17eee"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        },
+        {
+          "path": "tests/test_library_index.py",
+          "sha256": "4b62241c7a7b73a6ded1940ccdc71d8b2516ffa60f527ac95c03f2361fd30b41"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "cross-cutting evidence; no layer assignment",
+      "private_reference_mapping": "cross-cutting evidence; no control-family assignment",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Blank risk/layer/CIA/control-type fields are cross-cutting semantics, not evidence of a missing implementation. Keep ALL and explicit acceptance-evidence scope; obtain design-owner classification before adding tags."
+    },
+    {
+      "feature_id": 65,
+      "implementation_candidates": [
+        {
+          "path": "docs/THREE_RISK_CONTROLS.md",
+          "sha256": "b80fc4ab96c71c364a00f9fab992b2f6c718e2dc6e6b513640c4865456e17eee"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        },
+        {
+          "path": "tests/test_library_index.py",
+          "sha256": "4b62241c7a7b73a6ded1940ccdc71d8b2516ffa60f527ac95c03f2361fd30b41"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "cross-cutting evidence; no layer assignment",
+      "private_reference_mapping": "cross-cutting evidence; no control-family assignment",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Blank risk/layer/CIA/control-type fields are cross-cutting semantics, not evidence of a missing implementation. Keep ALL and explicit acceptance-evidence scope; obtain design-owner classification before adding tags."
+    },
+    {
+      "feature_id": 66,
+      "implementation_candidates": [
+        {
+          "path": "docs/THREE_RISK_CONTROLS.md",
+          "sha256": "b80fc4ab96c71c364a00f9fab992b2f6c718e2dc6e6b513640c4865456e17eee"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        },
+        {
+          "path": "tests/test_library_index.py",
+          "sha256": "4b62241c7a7b73a6ded1940ccdc71d8b2516ffa60f527ac95c03f2361fd30b41"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "cross-cutting evidence; no layer assignment",
+      "private_reference_mapping": "cross-cutting evidence; no control-family assignment",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Blank risk/layer/CIA/control-type fields are cross-cutting semantics, not evidence of a missing implementation. Keep ALL and explicit acceptance-evidence scope; obtain design-owner classification before adding tags."
+    },
+    {
+      "feature_id": 67,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 68,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 69,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 70,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 71,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 72,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 73,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 74,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 75,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 76,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 77,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 78,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 79,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    },
+    {
+      "feature_id": 80,
+      "implementation_candidates": [
+        {
+          "path": "docs/GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+          "sha256": "a75134973cfbdf5dac27be87f7bd49a7947cac7c93b95e9a4b74fd95b9cfde11"
+        },
+        {
+          "path": "docs/security-data/features.json",
+          "sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7"
+        }
+      ],
+      "test_source_candidates": [
+        {
+          "path": "tests/test_security_pages.py",
+          "sha256": "7a0916b0da72665566b8ecd7d5ae9520f72b0848f045d00c3939ddd4dc9ce895"
+        }
+      ],
+      "candidate_scope": "Topic-level source/test references only; feature-specific semantic coverage not accepted",
+      "dq_reference_mapping": "draft layer-vocabulary crosswalk",
+      "private_reference_mapping": "draft control-family vocabulary only; exact feature-to-tool mapping unreviewed",
+      "private_tool_row_identity": null,
+      "evidence_ids": [],
+      "source_evidence_state": "untested",
+      "deployment_state": "unverified",
+      "live_acceptance_state": "not established",
+      "acceptance_owner": null,
+      "remaining_gap": "Source matrix labels future roadmap; a page generator/test does not implement or qualify this feature. Need accepted design, actual implementation and enforcement/runtime evidence."
+    }
+  ]
+}

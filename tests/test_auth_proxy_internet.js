@@ -64,9 +64,10 @@ async function waitReady(port) {
     await waitReady(proxyPort);
     const page = await request(proxyPort, 'GET', '/login');
     assert.equal(page.status, 200);
-    assert(page.body.includes('Enterprise AI Platform'));
-    assert(page.body.includes('DeepSeek Harness (DSH)'));
-    assert(page.body.includes('Enterprise Agentic Coding &amp; Knowledge Gateway'));
+    assert(!page.body.includes('Governed AI workspace')&&!page.body.includes('every action governed'));
+    assert(page.body.includes('<h1 class="app-title">Multiharness</h1>'));
+    assert(page.body.includes('Agentic coding and knowledge work on private GPUs</p>'));
+    assert(page.body.includes('Build with AI. Stay in control.'));
     assert(page.body.includes('href="/manual/"'));
     assert(page.body.includes('class="manual-fab"'));
     assert(!page.body.includes('class="footer-note"'));

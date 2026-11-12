@@ -14,8 +14,9 @@ import threading
 
 
 class Controller:
-    def __init__(self, harness, codec, send):
+    def __init__(self, harness, codec, send, *, capture_visible=False):
         self.harness, self.codec, self.send = harness, codec, send
+        self.capture_visible=capture_visible
         self.pending = set(); self.calls = set()
         self.lock = threading.Lock(); self.write_lock = threading.Lock()
         self.started = False; self.running = False
@@ -39,6 +40,34 @@ class Controller:
             # Close the private output to wake the parent; scope must prove
             # process/descendant termination, not infer it from this EOF.
             self.emit({"kind": "fault"})
+
+    def captured_run(self,prompt,session):
+        from scripts.banking_private_capture import visible_notification
+        subscription=self.harness.client.subscribe_session_notifications(session)
+        done=threading.Event();faults=[]
+        def forward(event):
+            if event.payload.get('sessionId')!=session:raise ValueError('FOREIGN_VISIBLE_CAPTURE_SESSION')
+            value=visible_notification(event.method,event.payload)
+            if value is not None:
+                payload={'sessionId':session,'event':{'seq':value['sequence'],'type':value['type'],'data':value['data']}}
+                self.emit(dict(kind='notification',method=event.method,payload=payload))
+        def pump():
+            try:
+                while not done.is_set():
+                    try:event=subscription.next(timeout_seconds=.1)
+                    except TimeoutError:continue
+                    forward(event)
+                subscription.drain(forward)
+            except BaseException as error:faults.append(type(error).__name__)
+        reader=threading.Thread(target=pump,daemon=True);reader.start()
+        try:result=self.harness.run(prompt,session_id=session)
+        finally:
+            done.set();reader.join(timeout=2);subscription.close()
+        if reader.is_alive() or faults:raise ValueError('SDK_VISIBLE_NOTIFICATION_DRAIN_FAILED')
+        # Native SDK wait response follows all session notifications. Joining
+        # and draining its subscription orders this barrier before run reply.
+        self.emit(dict(kind='notification',method='banking.capture.complete',payload={'sessionId':session,'complete':True}))
+        return result
 
     def dispatch(self, frame):
         if (not isinstance(frame, dict) or set(frame) != {"kind", "id", "method", "params"}
@@ -67,7 +96,7 @@ class Controller:
             self.running = True  # One run per child; no replay or retry.
             def run():
                 try:
-                    result = self.harness.run(params["prompt"], session_id=params["sessionId"])
+                    result = self.captured_run(params['prompt'],params['sessionId']) if self.capture_visible else self.harness.run(params["prompt"], session_id=params["sessionId"])
                     respond({"finishReason": result.finish_reason, "finalResponse": result.final_response})
                 except Exception: respond(ok=False)
             threading.Thread(target=run, daemon=True).start()
@@ -111,6 +140,9 @@ def main():
     allowed = {k: env[k] for k in ("PATH", "LANG", "HOME", "PYTHONDONTWRITEBYTECODE",
         "OTEL_SDK_DISABLED", "DO_NOT_TRACK", "LANGSMITH_TRACING", "DSH_UNATTENDED_TASK",
         "DSH_CORRELATION_ID", "DSH_GUARDED_MODEL_BASE_URL")}
+    if options.get('max_tokens')==8192:
+        if env.get('TMPDIR')!='/tmp/user':raise ValueError('FIXED_BANKING_TEMP_ROOT_REQUIRED')
+        allowed['TMPDIR']='/tmp/user'
     os.environ.clear(); os.environ.update(allowed); options["env"] = allowed
     admitted = verify_sdk_admission()
     if admitted["admissionSha256"] != codec.binding.get("packageAdmissionSha256"):
@@ -122,7 +154,7 @@ def main():
     harness = DeepSeekHarness(**options)
     def send(raw):
         sys.stdout.write(raw + "\n"); sys.stdout.flush()
-    controller = Controller(harness, codec, send)
+    controller = Controller(harness, codec, send,capture_visible=options.get("max_tokens")==8192)
     try:
         while not controller.closed.is_set():
             line = sys.stdin.buffer.readline(MAX_FRAME + 1)

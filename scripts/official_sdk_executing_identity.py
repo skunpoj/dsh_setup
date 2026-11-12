@@ -1,9 +1,16 @@
-"""Candidate Linux mount-backed executing-Pod identity reader.
+"""Linux mount-backed executing-Pod identity reader (REDESIGN DRAFT, not reviewed, not merged).
 
 Consumes only three fixed NONSECRET Downward API fields and kernel mountinfo.
 It never uses environment identity, service-account tokens, passwords or keys.
-Real RKE2/kubelet mount-root compatibility and the protected profile require
-physical qualification before wiring; unsupported layouts refuse, not guess.
+Unsupported layouts refuse, not guess.
+
+Layout OBSERVED on this RKE2/containerd node (probe OPERATOR-P3-IDENTITY-PROBE, 10 Nov 2026, Pod identity-probe): the three subPath files are bind mounts of
+files of the kubelet's own tmpfs for the downward-API volume, so their mount ROOT is relative to that tmpfs, e.g.
+    /..2026_11_10_14_37_31.3061124380/pod-uid   mount point /run/dsh-executing-identity/pod-uid   ro,relatime  tmpfs tmpfs  device 0:2391 (the same for all three)
+It has NO pods/<podUID> prefix: the earlier candidate patterns could never match, and no field of these three lines carries the Pod UID. The Pod UID and the
+container name are therefore bound by two KUBELET-OWNED bind mounts of the same mount namespace (K1: /etc/hosts and /dev/termination-log, whose roots carry
+pods/<podUID>/ and, for the termination log, containers/<container>/), and the volume name and field by the exact API spec (volume, items, mounts) plus the layout
+of the three tmpfs mounts (K2). K1 layout is the DOCUMENTED kubelet layout and is PENDING confirmation by a second probe on this node.
 """
 import os
 from pathlib import Path
@@ -43,28 +50,49 @@ def unescape(value):
     return result
 
 
-def verify_mounts(raw, pod_uid, container):
-    found = {str(ROOT / field): [] for field in FIELDS}
+# K2: the kubelet AtomicWriter directory inside the downward-API tmpfs, e.g. ..2026_11_10_14_37_31.3061124380 (observed). Never a pods/<uid> path.
+TMPFS_DIR = re.compile(r"/\.\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\.[0-9]{1,12}")
+KUBELET_POINTS = ("/etc/hosts", "/dev/termination-log")   # K1: kubelet-created bind mounts of THIS container; their roots carry the Pod UID
+
+
+def mount_entries(raw, points):
+    found = {point: [] for point in points}
     for line in raw.decode("utf-8").splitlines():
         parts = line.split(" - ")
         if len(parts) != 2: raise ValueError("INVALID_KERNEL_MOUNTINFO")
         left = parts[0].split(); right = parts[1].split()
         if len(left) < 6 or len(right) < 3: raise ValueError("INVALID_KERNEL_MOUNTINFO")
         point = unescape(left[4])
-        if point in found: found[point].append((unescape(left[3]), left[5].split(",")))
-    for field in FIELDS:
-        entries = found[str(ROOT / field)]
+        if point in found:
+            found[point].append({"device": left[2], "root": unescape(left[3]), "options": left[5].split(","), "fstype": right[0], "source": right[1]})
+    return found
+
+
+def verify_mounts(raw, pod_uid, container):
+    points = {field: ROOT.as_posix() + "/" + field for field in FIELDS}
+    found = mount_entries(raw, list(points.values()) + list(KUBELET_POINTS))
+    directories, devices = set(), set()
+    for field, point in points.items():
+        entries = found[point]
         if len(entries) != 1: raise ValueError("EXECUTING_IDENTITY_MOUNT_AMBIGUOUS")
-        root, options = entries[0]
-        if "ro" not in options or "rw" in options or ".." in Path(root).parts:
+        entry = entries[0]
+        if "ro" not in entry["options"] or "rw" in entry["options"] or ".." in Path(entry["root"]).parts:
             raise ValueError("EXECUTING_IDENTITY_MOUNT_NOT_READONLY")
-        # Only declared kubelet Downward API file/subPath roots. These patterns
-        # are a candidate profile, not evidence that a live node uses them.
-        prefix = r"/(?:[^/]+/)*pods/" + re.escape(pod_uid) + "/"
-        direct = prefix + r"volumes/kubernetes\.io~downward-api/" + VOLUME + r"/(?:\.\.[^/]+/)?" + re.escape(field)
-        subpath = prefix + r"volume-subpaths/" + VOLUME + "/" + re.escape(container) + r"/[0-9]+"
-        if not re.fullmatch(direct, root) and not re.fullmatch(subpath, root):
-            raise ValueError("EXECUTING_IDENTITY_KERNEL_POD_BINDING_MISMATCH")
+        # K2: a file of the kubelet's own tmpfs, inside one AtomicWriter directory, named exactly like its field
+        directory, _, leaf = entry["root"].rpartition("/")
+        if entry["fstype"] != "tmpfs" or entry["source"] != "tmpfs" or leaf != field or not TMPFS_DIR.fullmatch(directory):
+            raise ValueError("EXECUTING_IDENTITY_KERNEL_VOLUME_LAYOUT_MISMATCH")
+        directories.add(directory); devices.add(entry["device"])
+    # one tmpfs instance and one AtomicWriter generation for all three fields (never a mixture of mounts)
+    if len(directories) != 1 or len(devices) != 1: raise ValueError("EXECUTING_IDENTITY_KERNEL_VOLUME_LAYOUT_MISMATCH")
+    # K1: bind this mount namespace to the Pod UID and the container name through the kubelet's own mounts
+    prefix = r"/(?:[^/]+/)*pods/" + re.escape(pod_uid) + "/"
+    expected = {"/etc/hosts": prefix + r"etc-hosts",
+                "/dev/termination-log": prefix + r"containers/" + re.escape(container) + r"/[0-9a-f]{8}"}
+    for point, pattern in expected.items():
+        entries = found[point]
+        if len(entries) != 1: raise ValueError("EXECUTING_POD_BINDING_MOUNT_MISSING_OR_AMBIGUOUS")
+        if not re.fullmatch(pattern, entries[0]["root"]): raise ValueError("EXECUTING_IDENTITY_KERNEL_POD_BINDING_MISMATCH")
 
 
 class ExecutingPodIdentity:

@@ -76,6 +76,78 @@ class OutputGuardTests(unittest.TestCase):
         self.assertNotIn('safeguards', result)
         self.assertEqual(result['messages'], [{'role': 'user', 'content': 'test'}])
 
+    def test_stop_sequences_is_translated_to_stop_for_the_custom_openai_backed_model(self):
+        result = self.call(stop_sequences=['END', 'STOP'])
+        self.assertNotIn('stop_sequences', result)
+        self.assertEqual(result['stop'], ['END', 'STOP'])
+
+    def test_stop_sequences_is_translated_for_the_sibling_deepseek_flash_alias(self):
+        result = self.call(model='deepseek-flash', stop_sequences=['END'])
+        self.assertNotIn('stop_sequences', result)
+        self.assertEqual(result['stop'], ['END'])
+
+    def test_both_stop_and_stop_sequences_together_is_refused(self):
+        with self.assertRaises(Rejected) as caught:
+            self.call(stop=['A'], stop_sequences=['B'])
+        self.assertEqual(caught.exception.status_code, 400)
+
+    def test_stop_translation_does_not_apply_to_a_real_anthropic_backed_alias(self):
+        # Anthropic's own backend understands 'stop_sequences' natively; the
+        # delegated real-Anthropic path (see the safeguards equivalent above)
+        # must see it untouched, not renamed to 'stop'.
+        delegated = types.ModuleType('custom_callbacks')
+        seen = {}
+        async def record(user_api_key_dict, cache, data, call_type):
+            seen.update(data)
+            return data
+        delegated.proxy_handler_instance = types.SimpleNamespace(async_pre_call_hook=record)
+        with patch.dict(sys.modules, {'custom_callbacks': delegated}):
+            result = self.call(model='claude-sonnet-5', stop_sequences=['END'])
+        self.assertIn('stop_sequences', seen)
+        self.assertNotIn('stop', seen)
+        self.assertIn('stop_sequences', result)
+
+    def test_request_without_stop_sequences_is_unaffected(self):
+        result = self.call()
+        self.assertNotIn('stop_sequences', result)
+        self.assertNotIn('stop', result)
+
+    def test_parallel_tool_calls_is_forced_off_when_tools_are_present(self):
+        result = self.call(tools=[{'type': 'function', 'function': {'name': 'Bash'}}])
+        self.assertIs(result['parallel_tool_calls'], False)
+
+    def test_parallel_tool_calls_is_forced_off_for_the_sibling_deepseek_flash_alias(self):
+        result = self.call(model='deepseek-flash', tools=[{'type': 'function', 'function': {'name': 'Bash'}}])
+        self.assertIs(result['parallel_tool_calls'], False)
+
+    def test_parallel_tool_calls_override_replaces_an_explicit_true(self):
+        result = self.call(tools=[{'type': 'function', 'function': {'name': 'Bash'}}], parallel_tool_calls=True)
+        self.assertIs(result['parallel_tool_calls'], False)
+
+    def test_no_tools_field_is_left_untouched(self):
+        result = self.call()
+        self.assertNotIn('tools', result)
+        self.assertNotIn('parallel_tool_calls', result)
+
+    def test_empty_tools_list_is_left_untouched(self):
+        result = self.call(tools=[])
+        self.assertNotIn('parallel_tool_calls', result)
+
+    def test_parallel_tool_calls_override_does_not_apply_to_a_real_anthropic_backed_alias(self):
+        # Anthropic's own backend has its own, unrelated parallel-tool-call
+        # behavior; the delegated real-Anthropic path must not have this
+        # field injected by the custom-OpenAI-backend guard at all.
+        delegated = types.ModuleType('custom_callbacks')
+        seen = {}
+        async def record(user_api_key_dict, cache, data, call_type):
+            seen.update(data)
+            return data
+        delegated.proxy_handler_instance = types.SimpleNamespace(async_pre_call_hook=record)
+        with patch.dict(sys.modules, {'custom_callbacks': delegated}):
+            result = self.call(model='claude-sonnet-5', tools=[{'type': 'function', 'function': {'name': 'Bash'}}])
+        self.assertNotIn('parallel_tool_calls', seen)
+        self.assertNotIn('parallel_tool_calls', result)
+
 
 if __name__ == '__main__':
     unittest.main()

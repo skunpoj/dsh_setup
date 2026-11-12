@@ -106,6 +106,48 @@ class SDKLifecycleTests(TestCase):
         with self.assertRaisesRegex(ValueError,'RECOVERY_STOP_OPERATION_CHANGED'):
             self.lifecycle.inspect_exit(recovery)
 
+    def _never_started_stop_context(self):
+        self.task.state='cancelling'
+        self.task.native_sdk.update(phase='stop-reserved',stopOperationId='b'*32,desiredTerminalState='cancelled')
+        context={k:v for k,v in self.binding.items() if k!='packageAdmissionSha256'}
+        context.update(operationId='b'*32,launchOperationId=self.context['operationId'])
+        return context
+
+    def test_stop_before_any_start_returns_a_never_started_receipt_and_fences_the_launch(self):
+        # v7 Job B (L3): the launch is refused (zero model allowance) before the lifecycle's start(); the stop must prove 'never started', not wait for a worker.
+        self.api.read_pod.return_value=None
+        context=self._never_started_stop_context()
+        proof=self.lifecycle.stop_and_verify(self.harness,context)
+        self.assertEqual({k:proof[k] for k in ('stopped','processExitVerified','descendantAbsenceVerified','launchFenced','neverStarted','runtimeIdentity')},
+            dict(stopped=True,processExitVerified=True,descendantAbsenceVerified=True,launchFenced=True,neverStarted=True,runtimeIdentity=None))
+        self.assertEqual(proof['operationId'],'b'*32)
+        self.api.create_pod_once.assert_not_called();self.stream.start.assert_not_called();self.stream.send_line.assert_not_called()
+        with self.assertRaisesRegex(ValueError,'NO_REPLAY|LAUNCH_FENCED'):    # the launch can never be replayed afterwards
+            self.lifecycle.start(self.harness,self.context)
+        self.api.create_pod_once.assert_not_called()
+
+    def test_an_unreadable_pod_api_keeps_the_stop_uncertain_and_fences_nothing(self):
+        # Option B (strict): no never-started receipt without the observed absence; the cause is surfaced, not tolerated.
+        self.api.read_pod.side_effect=RuntimeError('WORKER_API_OPERATION_UNCERTAIN_NO_RETRY')
+        with self.assertRaises(RuntimeError) as caught:
+            self.lifecycle.stop_and_verify(self.harness,self._never_started_stop_context())
+        self.assertEqual(str(caught.exception),'WORKER_API_OPERATION_UNCERTAIN_NO_RETRY')
+        self.api.create_pod_once.assert_not_called()
+
+    def test_never_started_stop_refuses_when_a_worker_pod_exists(self):
+        context=self._never_started_stop_context()
+        self.api.read_pod.return_value={'metadata':{'name':'present'}}
+        with self.assertRaisesRegex(ValueError,'NEVER_STARTED_BUT_WORKER_POD_PRESENT'):
+            self.lifecycle.stop_and_verify(self.harness,context)
+
+    def test_a_consumed_start_never_takes_the_never_started_path(self):
+        self.api.read_pod.return_value=None
+        self.lifecycle.start(self.harness,self.context)                       # a real start consumed the launch
+        context=self._never_started_stop_context()
+        with self.assertRaises(ValueError) as caught:                         # observed through the normal worker path (no terminal yet), not a never-started receipt
+            self.lifecycle.stop_and_verify(self.harness,context)
+        self.assertNotIn('NEVER_STARTED',str(caught.exception))
+
     def test_closed_inert_handle_cannot_create_worker(self):
         self.transport.close()
         with self.assertRaisesRegex(ValueError,'CLOSED_BEFORE_LAUNCH'):

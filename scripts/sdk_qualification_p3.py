@@ -24,8 +24,13 @@ STAGE_NAMESPACE = ("namespace", "limitrange", "resourcequota")
 STAGE_OBJECTS = ("serviceaccount", "networkpolicy-default-deny", "networkpolicy-broker", "networkpolicy-worker", "configmap-sdk-wheel", "configmap-package-admission",
                  "configmap-workspace-policy", "persistentvolumeclaim-workspace", "role-observer", "role-worker-controller", "clusterrole-read-namespace",
                  "rolebinding-observer", "rolebinding-worker-controller", "clusterrolebinding-read-namespace")
+STAGE_CLIENT = ("networkpolicy-client", "configmap-client-script", "pod-client")   # only when the run carries the A2A lane's pinned driver files
 STAGE_JOB = ("job",)
 STAGES = (("namespace", STAGE_NAMESPACE), ("objects", STAGE_OBJECTS), ("job", STAGE_JOB))
+
+
+def _stages(client):
+    return (("namespace", STAGE_NAMESPACE), ("objects", STAGE_OBJECTS + (STAGE_CLIENT if client else ())), ("job", STAGE_JOB))
 DELIVERY_SAFETY_SECONDS = 15   # each exec must start at least this long before the shared expiry
 EXEC_TIMEOUT_SECONDS = 60
 
@@ -56,25 +61,33 @@ def _load(path):
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------
-def prepare(run_dir, spec, wheel_raw, package_admission_raw):
+def prepare(run_dir, spec, wheel_raw, package_admission_raw, client_files=None):
     """Write inputs/ and objects/ for one run (exclusive creation). Returns {file: sha256} for the contract."""
-    objects = q.build_objects(spec, wheel_raw=wheel_raw, package_admission_raw=package_admission_raw)
-    q.check_objects(objects, spec, wheel_raw=wheel_raw, package_admission_raw=package_admission_raw)
-    listed = [key for _, keys in STAGES for key in keys]
+    objects = q.build_objects(spec, wheel_raw=wheel_raw, package_admission_raw=package_admission_raw, client_files=client_files)
+    q.check_objects(objects, spec, wheel_raw=wheel_raw, package_admission_raw=package_admission_raw, client_files=client_files)
+    stages = _stages(client_files is not None)
+    listed = [key for _, keys in stages for key in keys]
     _require(sorted(listed) == sorted(objects) and len(set(listed)) == len(listed), "STAGES_DO_NOT_COVER_THE_GENERATED_OBJECTS")
     run = Path(run_dir)
     hashes = {}
     hashes["inputs/spec.json"] = _write_exclusive(run / "inputs" / "spec.json", _json_bytes(spec))
     hashes["inputs/sdk-wheel.whl"] = _write_exclusive(run / "inputs" / "sdk-wheel.whl", wheel_raw)
     hashes["inputs/official-sdk-package.json"] = _write_exclusive(run / "inputs" / "official-sdk-package.json", package_admission_raw)
+    for name, raw in sorted((client_files or {}).items()):
+        hashes["inputs/client/" + name] = _write_exclusive(run / "inputs" / "client" / name, raw)
     order = []
-    for number, (stage, keys) in enumerate(STAGES):
+    for number, (stage, keys) in enumerate(stages):
         for index, key in enumerate(keys):
             name = "%d%02d-%s.json" % (number, index, key)
             hashes["objects/" + name] = _write_exclusive(run / "objects" / name, _json_bytes(objects[key]))
             order.append({"stage": stage, "key": key, "file": name})
     hashes["ORDER.json"] = _write_exclusive(run / "ORDER.json", _json_bytes(order))
     return hashes
+
+
+def _client_files(run_dir):
+    folder = Path(run_dir) / "inputs" / "client"
+    return {p.name: p.read_bytes() for p in sorted(folder.iterdir())} if folder.is_dir() else None
 
 
 def _inputs(run_dir):
@@ -89,7 +102,8 @@ def check_live(run_dir, readback_dir, stages=None):
     """The saved `kubectl get -f ... -o json` read-backs (one file per key, <key>.json) must hold everything the admitted spec generates.
     `stages` (default: all) names the stages that exist so far; the keys of later stages are taken from the generated objects, so they cannot fail yet."""
     spec, wheel, package = _inputs(run_dir)
-    generated = q.build_objects(spec, wheel_raw=wheel, package_admission_raw=package)
+    client = _client_files(run_dir)
+    generated = q.build_objects(spec, wheel_raw=wheel, package_admission_raw=package, client_files=client)
     known = {name for name, _ in STAGES}
     _require(stages is None or (stages and set(stages) <= known), "UNKNOWN_STAGE")
     live = {}
@@ -100,13 +114,13 @@ def check_live(run_dir, readback_dir, stages=None):
         path = Path(readback_dir) / (entry["key"] + ".json")
         _require(path.is_file(), "READBACK_MISSING:" + entry["key"])
         live[entry["key"]] = _load(path)
-    return q.check_objects(live, spec, wheel_raw=wheel, package_admission_raw=package)
+    return q.check_objects(live, spec, wheel_raw=wheel, package_admission_raw=package, client_files=client)
 
 
 def check_pod(run_dir, readback_dir):
     """The broker Pod: created by THIS Job, scheduled, running, in the admitted image, with the admitted Pod spec. Returns (pod name, node, binding UIDs)."""
     spec, wheel, package = _inputs(run_dir)
-    objects = q.build_objects(spec, wheel_raw=wheel, package_admission_raw=package)
+    objects = q.build_objects(spec, wheel_raw=wheel, package_admission_raw=package, client_files=_client_files(run_dir))
     read = Path(readback_dir)
     job, pod, namespace = _load(read / "job.json"), _load(read / "pod.json"), _load(read / "namespace.json")
     _require(pod.get("kind") == "Pod" and job.get("kind") == "Job" and namespace.get("kind") == "Namespace", "READBACK_KINDS")

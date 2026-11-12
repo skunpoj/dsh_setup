@@ -156,10 +156,10 @@ def canonical_fingerprint(path: str, body: bytes) -> str:
 
 
 class AdmissionLedger:
-    def __init__(self, path: Path, task_id: str, maximum: int, *, task_correlation_id: str):
+    def __init__(self, path: Path, task_id: str, maximum: int, *, task_correlation_id: str, banking_accounting_only=False):
         if not task_id or len(task_id) > 200 or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_." for c in task_id):
             raise ValueError("safe bounded task id required")
-        if not 1 <= maximum <= 32:
+        if not (maximum is None and banking_accounting_only is True) and (type(maximum) is not int or not 1 <= maximum <= 32):
             raise ValueError("model-start cap must be 1..32")
         self.path = path
         self.lock_path = path.with_name(path.name + ".lock")
@@ -204,7 +204,7 @@ class AdmissionLedger:
                 if any(r.get("fingerprint") == mark for r in starts):
                     prior = next(r for r in starts if r.get("fingerprint") == mark)
                     return False, "duplicate-or-uncertain", prior["sequence"], mark, prior["operation_correlation_id"]
-                if len(starts) >= self.maximum:
+                if self.maximum is not None and len(starts) >= self.maximum:
                     return False, "task-cap", len(starts), mark, ""
                 sequence = len(starts) + 1
                 operation_id = operation_correlation_id(self.task_correlation_id, sequence, mark)

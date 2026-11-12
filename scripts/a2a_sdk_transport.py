@@ -15,10 +15,12 @@ from scripts.official_sdk_package_admission import unique_json
 
 
 class SDKWorkerTransport:
-    def __init__(self,*,stream,context,timeout_seconds,before_start,before_cancel):
+    def __init__(self,*,stream,context,timeout_seconds,before_start,before_cancel,banking=False):
         if not callable(before_start) or not callable(before_cancel):
             raise ValueError('EXISTING_SDK_TASK_JOURNAL_CALLBACKS_REQUIRED')
-        if type(timeout_seconds) not in (int,float) or not 0<timeout_seconds<=120:
+        if type(banking) is not bool:raise ValueError('EXPLICIT_SDK_TRANSPORT_MODE_REQUIRED')
+        self.banking=banking
+        if type(timeout_seconds) not in (int,float) or not 0<timeout_seconds<=(300 if banking else 120):
             raise ValueError('BOUNDED_SDK_TRANSPORT_DEADLINE_REQUIRED')
         self.stream=stream;self.context=copy.deepcopy(context);self.timeout=timeout_seconds
         self.before_start=before_start;self.before_cancel=before_cancel
@@ -33,7 +35,7 @@ class SDKWorkerTransport:
             self.started=True
         try:
             request=dict(context=self.context,bootstrap=bootstrap,timeoutSeconds=self.timeout)
-            _,boot,_=prepare_request(request,pod_uid=self.context['scopeUid'])
+            _,boot,_=prepare_request(request,pod_uid=self.context['scopeUid'],banking=self.banking)
             key=base64.b64decode(boot['key'],validate=True)
             self.outbound=SDKFrameCodec(key,boot['binding']);self.inbound=SDKFrameCodec(key,boot['binding'])
             self.before_start()  # Existing native Task launch reservation must be durable.

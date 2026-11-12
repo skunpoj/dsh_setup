@@ -101,27 +101,6 @@ A service that fails repeatedly uses exponential restart backoff capped at 60 se
 
 The stop operation targets the supervisor's managed process group. It is operational lifecycle management, not a universal sandbox for malicious code. Infrastructure termination of the container/pod remains the stronger containment action for deliberately escaping or uncooperative code.
 
-## Installation and controlled rollout
-
-1. Keep the existing pinned DSH runtime, authenticated gateway, private user routing, persistent workspace/state and network policies. No external package download is required during startup.
-2. Prepare a private target file containing only reviewed `{user, mode, host}` rows. `mode` is `off` or `on`; hosts must be the existing private runtime destinations. Do not place credentials in this file or the public repository.
-3. Render/review installation with the current pinned runtime image and a dedicated service-control PVC. The installer preserves existing application container settings and workspace masks, adds only the supervisor and its separate control mounts, and saves original deployment specifications privately.
-
-```sh
-python scripts/deploy_app_supervision.py \
-  --gateway dsh-environment-gateway \
-  --targets /private/service-targets.json \
-  --control-pvc dsh-app-service-control \
-  --output /private/supervision-plan
-```
-
-4. Qualify disposable users first: approved Jupyter and a real app must start automatically after pod replacement, retain saved notebook/data/settings, obey admin Stop, and reject ordinary-user control requests. Production installation requires the matching supervisor-source acceptance record.
-5. Apply the reviewed installation with `--apply --acceptance /private/lifecycle-acceptance.json` to a new output directory. Use the existing idle-worker/persistence checks and perform a rolling handover. Adding a sidecar replaces a worker pod, so active memory-only computations need a maintenance handover.
-6. The dedicated control PVC is mounted read/write only by the trusted gateway and through each runtime's individual read-only subdirectory. Do not mount the gateway auth volume in workers. Notebook state remains on the original user state volume. Each runtime has a separate small status PVC; only its supervisor writes it, and the gateway mounts it read-only. No worker writes on the shared control volume, so filling an own status volume cannot fill another user's policy store.
-7. Publish the new gateway source only after its matching signup, authorization and persistence tests pass. Keep the saved gateway and worker specifications for rollback. Rollback removes startup functionality; it must never restore older workspace, history, notebook or account bytes.
-
-The present file-based control store assumes one gateway writer and storage accessible to those pods on the current node. A multi-node deployment needs an appropriate shared storage class; a multi-replica gateway needs transactional control storage before enabling multiple writers. Destination FQDN and external GPU/LiteLLM placement remain operator configuration and do not require moving private workspaces to the GPU machine.
-
 ## DSH2 and DSH3 owner-only runtimes
 
 DSH2 and DSH3 use the same managed Jupyter/application supervisor and central admin controls. Each remains one owner-only Internet pod with its existing authenticated proxy, workspace PVC, history/state directory, password store and audit exporter. This feature does not create another login, move histories, add a No Internet environment or change Kerberos grants.
@@ -150,25 +129,6 @@ To approve Jupyter, select the target, use **jupyter**, kind **Jupyter**, and sa
 DSH2/DSH3 account administration stays in their existing owner-only authentication boundary. A main-platform account with a similar name is not the same identity. Stop managed services before an operator disables a local owner account; disabling an unrelated main-platform account does not alter this separate instance. An operator can disable a registered target in the read-only registry, which pauses all its managed services. No password is copied into the registry. Removed or invalid registrations pause their managed services; main-account permission reconciliation continues independently.
 
 The older layout nests private agent state under its workspace volume. The supervisor therefore masks `.legacy-home-v2` and `.legacy-cutover-checkpoint` with empty read-only views, while retaining only the dedicated notebook-state subdirectory at `/state/jupyter`. These masks apply to the supervisor container; the DSH agent's original files and mounts remain unchanged. Apps still share their owner's approved project data, not another user's storage.
-
-### Install the owner-only adapter
-
-Use the existing pinned notebook-capable runtime and qualified supervisor acceptance record. The installer admits only the two explicit owner-only deployments, verifies the single active owner, refuses active agents/manual notebooks, snapshots session IDs and hashes, and saves rollback specifications privately.
-
-```sh
-python scripts/deploy_legacy_app_supervision.py \
-  --phase prepare --output /private/owner-services-prepare \
-  --acceptance /private/lifecycle-acceptance.json --apply
-python scripts/deploy_legacy_app_supervision.py \
-  --phase workers --output /private/owner-services-workers \
-  --acceptance /private/lifecycle-acceptance.json --apply
-```
-
-Prepare provisions the two private status claims, initializes protected control directories and renders a private startup registry. Workers installs the same supervisor without changing existing application images, authentication/audit containers or data mounts. Definitions remain stopped until approved. Publish the qualified gateway source with the generated immutable registry ConfigMap through `rollout_admin_management.py --service-targets-configmap ... --app-services-pvc ... --app-services-status-targets /private/owner-services-prepare/targets.private.json`, retaining the reviewed expected source hash and existing gateway settings. Add the current versioned manual directory during the same gateway handover.
-
-Verify actual owner login, Jupyter save/reopen, app replies and automatic recovery after replacement. Repeat replacement after Stop to verify it remains stopped. Compare original histories, profile files and project-file hashes. Rollback restores the saved deployment specification only; it must never replace current workspace, history or credential data with an older copy.
-
-Before rolling the gateway back to a version without registered owner-only targets, Stop those services first. The saved worker specification removes the supervisor without reverting workspace, history or credentials. Retain the private control definitions for review rather than copying old user data over current files.
 
 ## New upstream runtime: restart qualification
 

@@ -16,10 +16,11 @@ class ExecutingIdentityTests(unittest.TestCase):
         self.files = {identity.ROOT / "pod-uid": self.uid.encode(), identity.ROOT / "pod-name": self.pod_name.encode(),
             identity.ROOT / "namespace": self.namespace.encode()}
         self.lines = []
-        for index, field in enumerate(identity.FIELDS):
-            root = f"/var/lib/kubelet/pods/{self.uid}/volumes/kubernetes.io~downward-api/{identity.VOLUME}/..fixture/{field}"
-            self.lines.append(f"{index+10} 1 8:1 {root} {identity.ROOT / field} ro,relatime - ext4 /dev/synthetic rw")
-        self.files[identity.MOUNTINFO] = ("\n".join(self.lines) + "\n").encode()
+        for index, field in enumerate(identity.FIELDS):   # K2: verbatim shape of the probe on the RKE2 node (OPERATOR-P3-IDENTITY-PROBE, 10 Nov 2026)
+            self.lines.append(f"{27420+index} 27406 0:2391 /..2026_11_10_14_37_31.3061124380/{field} {identity.ROOT / field} ro,relatime - tmpfs tmpfs rw,seclabel,size=131072k,inode64")
+        self.k1 = [f"30 27406 253:1 /var/lib/kubelet/pods/{self.uid}/etc-hosts /etc/hosts rw,relatime - xfs /dev/synthetic rw",
+                   f"31 27406 253:1 /var/lib/kubelet/pods/{self.uid}/containers/broker/a1b2c3d4 /dev/termination-log rw,relatime - xfs /dev/synthetic rw"]
+        self.files[identity.MOUNTINFO] = ("\n".join(self.lines + self.k1) + "\n").encode()
         self.ns = {"apiVersion": "v1", "kind": "Namespace", "metadata": {"name": self.namespace, "uid": self.ns_uid}}
         self.pod = {"apiVersion": "v1", "kind": "Pod", "metadata": {"name": self.pod_name, "namespace": self.namespace, "uid": self.uid},
             "spec": {"containers": [{"name": "broker", "securityContext": {"allowPrivilegeEscalation": False,
@@ -55,13 +56,58 @@ class ExecutingIdentityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "NOT_READONLY"): self.attestor()
         self.files[identity.MOUNTINFO] = original + self.lines[0].encode() + b"\n"
         with self.assertRaisesRegex(ValueError, "AMBIGUOUS"): self.attestor()
-    def test_subpath_kernel_profile_supported_without_guessing_identity(self):
-        lines = []
-        for index, field in enumerate(identity.FIELDS):
-            root = f"/var/lib/kubelet/pods/{self.uid}/volume-subpaths/{identity.VOLUME}/broker/{index}"
-            lines.append(f"{index+10} 1 8:1 {root} {identity.ROOT / field} ro - ext4 /dev/synthetic rw")
-        self.files[identity.MOUNTINFO] = ("\n".join(lines)+"\n").encode()
+    def test_the_old_candidate_layouts_are_no_longer_accepted(self):
+        direct = [f"{i+10} 1 8:1 /var/lib/kubelet/pods/{self.uid}/volumes/kubernetes.io~downward-api/{identity.VOLUME}/..fixture/{f} {identity.ROOT / f} ro,relatime - ext4 /dev/synthetic rw"
+                  for i, f in enumerate(identity.FIELDS)]
+        subpath = [f"{i+10} 1 8:1 /var/lib/kubelet/pods/{self.uid}/volume-subpaths/{identity.VOLUME}/broker/{i} {identity.ROOT / f} ro - ext4 /dev/synthetic rw"
+                   for i, f in enumerate(identity.FIELDS)]
+        for layout in (direct, subpath):
+            self.files[identity.MOUNTINFO] = ("\n".join(layout + self.k1) + "\n").encode()
+            with self.assertRaisesRegex(ValueError, "KERNEL_VOLUME_LAYOUT_MISMATCH"): self.attestor()
+        self.assertEqual(self.calls, [])
+
+    def test_tmpfs_layout_must_be_one_instance_one_generation_and_the_exact_field(self):
+        original = self.files[identity.MOUNTINFO]
+        for old, new in ((b"0:2391 /..2026_11_10_14_37_31.3061124380/pod-name", b"0:2392 /..2026_11_10_14_37_31.3061124380/pod-name"),      # another tmpfs instance
+                         (b"/..2026_11_10_14_37_31.3061124380/namespace", b"/..2026_11_10_14_37_32.3061124380/namespace"),                     # another generation
+                         (b"/..2026_11_10_14_37_31.3061124380/pod-uid", b"/..2026_11_10_14_37_31.3061124380/pod-name"),                       # wrong leaf for the field
+                         (b"/..2026_11_10_14_37_31.3061124380/pod-uid", b"/pod-uid"),                                                          # not inside an AtomicWriter directory
+                         (b"/..2026_11_10_14_37_31.3061124380/pod-uid", b"/..data/pod-uid"),                                                   # the symlink name, not a generation
+                         (b" - tmpfs tmpfs rw,seclabel", b" - ext4 /dev/synthetic rw,seclabel")):                                              # not a tmpfs
+            self.files[identity.MOUNTINFO] = original.replace(old, new, 1)
+            with self.assertRaisesRegex(ValueError, "KERNEL_VOLUME_LAYOUT_MISMATCH|AMBIGUOUS"): self.attestor()
+        self.assertEqual(self.calls, [])
+
+    def test_pod_and_container_are_bound_by_the_kubelet_owned_mounts(self):
+        original = self.files[identity.MOUNTINFO]
+        other = b"44444444-4444-4444-4444-444444444444"
+        for old, new in ((f"pods/{self.uid}/etc-hosts".encode(), b"pods/" + other + b"/etc-hosts"),
+                         (f"pods/{self.uid}/containers/broker/".encode(), b"pods/" + other + b"/containers/broker/"),
+                         (b"containers/broker/", b"containers/worker/"),
+                         (b"containers/broker/a1b2c3d4", b"containers/broker/xyz"),
+                         (b"/var/lib/kubelet/pods/", b"/unsupported/")):
+            self.files[identity.MOUNTINFO] = original.replace(old, new, 1)
+            with self.assertRaisesRegex(ValueError, "POD_BINDING_MISMATCH"): self.attestor()
+        for point in (b"/etc/hosts", b"/dev/termination-log"):   # a missing or doubled kubelet mount is not a binding
+            mine = [line for line in original.split(b"\n") if line and line.split(b" ")[4] == point]
+            others = [line for line in original.split(b"\n") if line and line.split(b" ")[4] != point]
+            self.files[identity.MOUNTINFO] = b"\n".join(others) + b"\n"
+            with self.assertRaisesRegex(ValueError, "MISSING_OR_AMBIGUOUS"): self.attestor()
+            self.files[identity.MOUNTINFO] = original + mine[0] + b"\n"
+            with self.assertRaisesRegex(ValueError, "MISSING_OR_AMBIGUOUS"): self.attestor()
+        self.assertEqual(self.calls, [])
+
+    def test_a_perfect_tmpfs_layout_alone_cannot_pass_without_the_pod_binding(self):
+        self.files[identity.MOUNTINFO] = ("\n".join(self.lines) + "\n").encode()
+        with self.assertRaisesRegex(ValueError, "MISSING_OR_AMBIGUOUS"): self.attestor()
+
+    def test_the_observed_probe_lines_verbatim_are_accepted_with_a_matching_pod_binding(self):
+        probe = ("27420 27406 0:2391 /..2026_11_10_14_37_31.3061124380/pod-uid /run/dsh-executing-identity/pod-uid ro,relatime - tmpfs tmpfs rw,seclabel,size=131072k,inode64\n"
+                 "27421 27406 0:2391 /..2026_11_10_14_37_31.3061124380/pod-name /run/dsh-executing-identity/pod-name ro,relatime - tmpfs tmpfs rw,seclabel,size=131072k,inode64\n"
+                 "27422 27406 0:2391 /..2026_11_10_14_37_31.3061124380/namespace /run/dsh-executing-identity/namespace ro,relatime - tmpfs tmpfs rw,seclabel,size=131072k,inode64\n")
+        self.files[identity.MOUNTINFO] = (probe + "\n".join(self.k1) + "\n").encode()
         self.assertEqual(self.attestor()["podUID"], self.uid)
+
     def test_host_namespace_or_privileged_mount_capability_refused(self):
         self.pod["spec"]["hostPID"] = True
         with self.assertRaisesRegex(ValueError, "HOST_NAMESPACE"): self.attestor()

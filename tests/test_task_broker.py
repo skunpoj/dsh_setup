@@ -280,6 +280,9 @@ class BrokerTests(unittest.TestCase):
         child=self.module.Task('1'*32,dict(runtime='sdk',project='project',writes=False))
         parent.reserve_a2a_stage('sdk',child.id,child.correlation_id)
         parent.attach_a2a_child(child)
+        # A CLAIMED child (a runner owns it and it is running) whose cancel yields no stop receipt is still refused. An UNCLAIMED queued child is a different case,
+        # accepted since the V14 L6/L9 fix: see tests/test_a2a_chain_unclaimed_cancel.py.
+        child.state='running';child.runner_owned=True
         with mock.patch.object(child,'cancel',return_value=True) as cancel:
             self.assertFalse(parent.cancel())
         cancel.assert_called_once_with()

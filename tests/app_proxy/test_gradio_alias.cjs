@@ -50,3 +50,26 @@ test('origin configuration is optional as a pair and rejects unsafe or partial s
  assert.notEqual(check(upstream).status,0);assert.notEqual(check(undefined,alias).status,0);
  for(const bad of ['http://example.test',Object.assign(new URL('https://example.test'),{username:'synthetic-user',password:'synthetic-only'}).href,'https://example.test/path','https://example.test/?q=1','https://example.test/#x','https://127.0.0.1','https://[::1]','https://localhost','https://example.test.','not-a-url'])assert.notEqual(check(bad,alias).status,0);
 });
+
+test('deployment defaults can preserve legacy aliases or disable them without implicit public fallback',()=>{
+ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{spawnSync}=require('node:child_process');
+ const folder=fs.mkdtempSync(path.join(os.tmpdir(),'gradio-defaults-fixture-'));
+ fs.mkdirSync(path.join(folder,'scripts'));fs.mkdirSync(path.join(folder,'config'));
+ const file=path.join(folder,'scripts/gradio_alias.js');fs.writeFileSync(file,fs.readFileSync(require.resolve('../../scripts/gradio_alias')));
+ const env={...process.env};delete env.DSH_GRADIO_UPSTREAM_ORIGIN;delete env.DSH_GRADIO_PUBLIC_ORIGIN;
+ const execute=(profile,policy,configured=false)=>{
+  fs.writeFileSync(path.join(folder,'config/gradio-alias-defaults.json'),JSON.stringify(profile));
+  const selected={...env};if(configured){selected.DSH_GRADIO_UPSTREAM_ORIGIN=upstream;selected.DSH_GRADIO_PUBLIC_ORIGIN=alias;}
+  const code=`const a=require(${JSON.stringify(file)});const t={url:new URL(${JSON.stringify(upstream)}),basePath:'',policy:{frontendAdapter:${JSON.stringify(policy)}}};try{process.stdout.write(JSON.stringify({eligible:a.eligible(t,${JSON.stringify(alias)},'GET','/',200,{'content-type':'text/html'})}));}catch(e){process.stdout.write(JSON.stringify({status:e.status}));}`;
+  return spawnSync(process.execPath,['-e',code],{env:selected,encoding:'utf8'});
+ };
+ try{
+  let r=execute({upstream,aliases:[alias,'https://secondary.apps.example.internal']},'regchat-gradio-root');assert.equal(r.status,0,r.stderr);assert.equal(JSON.parse(r.stdout).eligible,true);
+  r=execute({upstream:'',aliases:[]},'regchat-gradio-root');assert.equal(r.status,0,r.stderr);assert.equal(JSON.parse(r.stdout).status,502);
+  r=execute({upstream:'',aliases:[]},'gradio-root',true);assert.equal(r.status,0,r.stderr);assert.equal(JSON.parse(r.stdout).eligible,true);
+  for(const bad of [{},{upstream,aliases:[]},{upstream:'',aliases:[alias]},{upstream,aliases:[alias,alias]},{upstream,aliases:['http://example.test']},{upstream,aliases:[alias],extra:true}])assert.notEqual(execute(bad,'regchat-gradio-root').status,0);
+ }finally{
+  assert(path.resolve(folder).startsWith(path.join(path.resolve(os.tmpdir()),'gradio-defaults-fixture-')));
+  fs.rmSync(folder,{recursive:true,force:true});
+ }
+});

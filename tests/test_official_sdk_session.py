@@ -338,6 +338,109 @@ class SessionRunnerTests(unittest.TestCase):
         self.assertEqual(self.harness.run_count, 0)
         self.assertEqual(self.scope.starts, 1); self.assertEqual(self.scope.stops, 1)
 
+    def _events(self):
+        return [json.loads(line) for line in (self.task.directory / "events.jsonl").read_text(encoding="utf-8").splitlines()]
+
+    def test_cancel_while_queued_is_not_overwritten_and_no_worker_or_prompt_starts(self):
+        # DELETE before the runner thread reaches its first step: generic Task.cancel marks cancelled (no bridge, no process yet).
+        self.task.cancel()
+        self.assertEqual(self.task.state, "cancelled")
+        self.run_task()
+        self.assertEqual(self.task.state, "cancelled")                      # was: overwritten with running, then completed/failed
+        self.assertEqual((self.scope.starts, self.scope.stops, self.harness.start_count, self.harness.run_count), (0, 0, 0, 0))
+        states = [e["data"].get("state") for e in self._events() if e["type"] == "state"]
+        self.assertEqual(states, ["cancelling", "cancelled"])               # no 'running', no 4th 'failed'/'completed' event
+        self.assertEqual(json.loads((self.task.directory / "task.json").read_text(encoding="utf-8"))["state"], "cancelled")
+        self.assertTrue(self.task.finished.is_set())
+
+    def test_cancel_between_running_and_bridge_goes_through_the_bridge_not_to_failed(self):
+        # The real L3 failure: DELETE arrives when the task is 'running' (driver waits for it) but the runner has not built its bridge yet.
+        @contextmanager
+        def guard(task):
+            self.assertEqual(self.task.cancel(), True)      # DELETE lands inside the window
+            yield SimpleNamespace(base_url="http://127.0.0.1:7777/v1", task_id=task.id, correlation_id=task.correlation_id, temperature=0)
+        self.guard_factory = guard
+        self.runner = self.make_runner()
+        self.run_task()
+        bridge = self.task.official_sdk_bridge
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline and self.task.state not in ("cancelled", "failed", "interrupted"):
+            call = bridge._stop_call if bridge is not None else None
+            if call is not None and call.done.wait(.05): bridge.resolve_stop()
+            else: time.sleep(.005)
+        self.assertEqual(self.task.state, "cancelled")
+        self.assertEqual(self.harness.run_count, 0)                  # the prompt never ran
+        states = [e["data"].get("state") for e in self._events() if e["type"] == "state"]
+        self.assertNotIn("failed", states)
+        self.assertFalse(self.task.cancel_pending)
+        self.assertEqual(self.harness.start_count, 0)                # no native process ever started
+        self.assertGreaterEqual(self.scope.stops, 1)                 # the scope stop path ran: this is where the neverStarted receipt comes from
+        self.assertTrue(self.task.native_sdk.get("nativeNeverStarted") is True, self.task.native_sdk)
+
+    def _fake_site(self, *dists):
+        site = Path(self.temp.name) / "sdk-site" / "lib" / "python3.14" / "site-packages"
+        for name, version in dists:
+            info = site / ("%s-%s.dist-info" % (name.replace("-", "_"), version)); info.mkdir(parents=True)
+            (info / "METADATA").write_text("Metadata-Version: 2.1\nName: %s\nVersion: %s\n" % (name, version), encoding="utf-8")
+        return str(Path(self.temp.name) / "sdk-site" / "lib" / "python3*" / "site-packages")
+
+    def test_version_is_read_from_the_sdk_venv_when_the_broker_python_lacks_the_pair(self):
+        # The real failure (v6 Job B): the broker runs under the system python3, the pair lives only in the SDK venv.
+        import importlib.metadata
+        from unittest.mock import patch as mock_patch
+        from scripts import official_sdk_session as mod
+        def not_installed_here(name): raise importlib.metadata.PackageNotFoundError(name)
+        pattern = self._fake_site(("deepseek-harness-sdk", "0.2.2a2"), ("deepseek-harness-runtime-bin", "0.2.2a2"), ("twice", "1.0"), ("twice", "2.0"))
+        with mock_patch.object(mod.importlib.metadata, "version", not_installed_here), mock_patch.object(mod, "SDK_SITE_PACKAGES", pattern):
+            self.assertEqual(mod.sdk_distribution_version("deepseek-harness-sdk"), "0.2.2a2")
+            self.assertEqual(mod.sdk_distribution_version("deepseek-harness-runtime-bin"), "0.2.2a2")
+            with self.assertRaises(importlib.metadata.PackageNotFoundError): mod.sdk_distribution_version("no-such-distribution-xyz")   # installed nowhere: refused
+            with self.assertRaises(importlib.metadata.PackageNotFoundError): mod.sdk_distribution_version("twice")                      # ambiguous: refused
+        with mock_patch.object(mod.importlib.metadata, "version", not_installed_here), mock_patch.object(mod, "SDK_SITE_PACKAGES", str(Path(self.temp.name) / "nowhere" / "*")):
+            with self.assertRaises(importlib.metadata.PackageNotFoundError): mod.sdk_distribution_version("deepseek-harness-sdk")      # no SDK venv: refused
+        with self.assertRaises(ValueError): mod.sdk_distribution_version("bad name; rm")
+        self.assertIs(OfficialSDKSessionRunner.__init__.__kwdefaults__["version"], mod.sdk_distribution_version)
+
+    def test_runner_default_version_lookup_keeps_the_exact_pair_check(self):
+        import importlib.metadata, sys
+        from unittest.mock import patch as mock_patch
+        from scripts import official_sdk_session as mod
+        def not_installed_here(name): raise importlib.metadata.PackageNotFoundError(name)
+        def factory(**options): return self.harness
+        with mock_patch.object(mod.importlib.metadata, "version", not_installed_here), mock_patch.object(mod, "SDK_SITE_PACKAGES", str(Path(self.temp.name) / "nowhere" / "*")):
+            runner = OfficialSDKSessionRunner(subject="owner", generation="g1", guard_factory=self.guard_factory, runtime_scope=self.scope,
+                harness_factory=factory, admission_check=lambda: {"admissionSha256": "a" * 64}, operation_timeout=.3, workspace_root=self.workspace)
+            runner.run_task("owner", self.task)
+        event = [e for e in self._events() if e["type"] == "state"][-1]["data"]
+        self.assertEqual((event["state"], event["error"], event["distribution"]), ("failed", "PackageNotFoundError", "deepseek-harness-sdk"))
+        self.assertEqual((self.scope.starts, self.harness.run_count), (0, 0))
+
+    def test_failed_event_names_the_missing_distribution(self):
+        import importlib.metadata
+        def missing(name): raise importlib.metadata.PackageNotFoundError(name)
+        self.runner = self.make_runner(version=missing)
+        self.run_task()
+        event = [e for e in self._events() if e["type"] == "state"][-1]["data"]
+        self.assertEqual((event["state"], event["error"], event.get("distribution")), ("failed", "PackageNotFoundError", "deepseek-harness-sdk"))
+
+    def test_a_failed_stop_records_why_it_is_uncertain(self):
+        # v7/v8 Job B ended stop-uncertain with no trace of the cause: the stop's exception is now kept as a fixed code.
+        def broken_stop(harness, context): raise ValueError("SYNTHETIC_STOP_REFUSAL")
+        self.scope.stop_and_verify = broken_stop
+        self.scope.start_hook = lambda: self.task.cancel()
+        self.run_task()
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline and self.task.native_sdk.get("phase") != "stop-uncertain": time.sleep(.01)
+        self.assertEqual(self.task.native_sdk["phase"], "stop-uncertain")
+        self.assertEqual(self.task.native_sdk["stopFailureCode"], "SYNTHETIC_STOP_REFUSAL")
+        self.assertNotIn("neverStarted", json.dumps(self.task.native_sdk))
+
+    def test_failed_event_names_the_refusal_code_for_valueerror_only(self):
+        self.runner = self.make_runner(version=lambda name: "0.0.1")
+        self.run_task()
+        event = [e for e in self._events() if e["type"] == "state"][-1]["data"]
+        self.assertEqual((event["state"], event["error"], event["code"]), ("failed", "ValueError", "MATCHED_APPROVAL_CAPABLE_SDK_PAIR_REQUIRED"))
+
     def test_unqualified_scope_refused_at_construction(self):
         self.scope.qualified = False
         with self.assertRaises(ValueError): self.make_runner()

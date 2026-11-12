@@ -80,7 +80,7 @@ Creation pauses when current assignment state, CPU, memory, pod or storage headr
 
 ## Install and qualify
 
-First complete the [platform installation](INSTALLATION_WALKTHROUGH.md), including private routing, central storage, authenticated ingress, the pinned runtime image, filtered DNS and the internal inference service. The installer uses the existing in-cluster LiteLLM issuer and a reviewed ordinary user's runtime manifests as templates. It rejects the legacy owner/admin as template sources. Site-specific issuer, storage and DNS dependencies must exist before application.
+First complete the platform installation, including private routing, central storage, authenticated ingress, the pinned runtime image, filtered DNS and the internal inference service. The installer uses the existing in-cluster LiteLLM issuer and a reviewed ordinary user's runtime manifests as templates. It rejects the legacy owner/admin as template sources. Site-specific issuer, storage and DNS dependencies must exist before application.
 
 Keep generated manifests, evidence and rollback snapshots in a private operator directory outside the repository. No password or token is supplied through these commands.
 

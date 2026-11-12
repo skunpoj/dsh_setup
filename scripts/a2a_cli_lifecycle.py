@@ -6,6 +6,7 @@ guard/provider accounting/retirement remain required owner integrations.
 """
 import time
 from scripts.a2a_worker_stream import WorkerStream
+from scripts.a2a_private_worker_pod import worker_pod_name
 from scripts.official_sdk_package_admission import unique_json
 
 
@@ -60,8 +61,20 @@ class CLIControllerLifecycle:
             raise ValueError('PHYSICAL_CLI_RESULT_BYTES_UNAVAILABLE')
         return result  # Exact raw output remains private, not in the journal.
 
+    def _never_started(self,task,context):
+        """A stop for a launch that never began: no durable worker reservation exists, so no Pod create was ever submitted.
+
+        Absence AFTER a reservation is ambiguous and stays refused (ABSENCE_IS_NOT_A_STOP_RECEIPT in the controller); absence with NO reservation at all
+        is definitive. The worker Pod name is READ once more, and the reservation is re-checked afterwards so a launch racing the stop is refused."""
+        name=worker_pod_name(task.id)
+        present=self.controller.api.read_pod(name) is not None   # STRICT (Option B): an unreadable pod API propagates; no never-started receipt without the observation
+        if present:raise ValueError('CLI_NEVER_STARTED_BUT_WORKER_POD_PRESENT')
+        if getattr(task,'a2a_cli_worker',None):raise ValueError('CLI_NEVER_STARTED_RACED_WITH_LAUNCH')
+        return {**context,'stopped':True,'processExitVerified':True,'descendantAbsenceVerified':True,'neverStarted':True}
+
     def stop_and_verify(self,context):
         task=self._task(context,stop=True)
+        if not getattr(task,'a2a_cli_worker',None):return self._never_started(task,context)
         self.controller.send_cancel_once(task,operation_id=context['operationId'])
         proof=self._observe(lambda:self.controller.observe_cancel(task,operation_id=context['operationId']))
         self.controller.retain_terminal(task)

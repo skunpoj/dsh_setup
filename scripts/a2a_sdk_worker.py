@@ -24,10 +24,11 @@ from scripts.official_sdk_control_peer import COMMAND,MAX_FRAME
 from scripts.a2a_worker_receipt import TerminationSink
 
 
-def prepare_request(request,*,pod_uid):
+def prepare_request(request,*,pod_uid,banking=False):
+    if type(banking) is not bool:raise ValueError("EXPLICIT_BANKING_WORKER_MODE_REQUIRED")
     if (not isinstance(request,dict) or set(request)!={'context','bootstrap','timeoutSeconds'}
             or type(request['timeoutSeconds']) not in (int,float)
-            or not 0<request['timeoutSeconds']<=120):raise ValueError('BOUNDED_SDK_WORKER_REQUEST_REQUIRED')
+            or not 0<request['timeoutSeconds']<=(300 if banking else 120)):raise ValueError('BOUNDED_SDK_WORKER_REQUEST_REQUIRED')
     context=request['context'];boot=copy.deepcopy(request['bootstrap'])
     if (not isinstance(context,dict) or set(context)!={'subject','stageId','correlationId','project','runtime','scopeUid'}
             or any(not isinstance(value,str) or not value or len(value)>256 for value in context.values())
@@ -48,18 +49,21 @@ def prepare_request(request,*,pod_uid):
     options=boot['options']
     required={'provider','model','profile','cwd','runtime_cwd','dsh_bin','dsh_home','approval_requests',
         'base_url','api_key','max_tokens','initialize_timeout_seconds','request_timeout_seconds','shutdown_timeout_seconds','env'}
+    if banking:required=required|{'patches'}
     if not isinstance(options,dict) or set(options)!=required:
         raise ValueError('FIXED_SDK_WORKER_OPTIONS_REQUIRED')
     fixed=dict(provider='deepseek-official',model='deepseek-v4.1-flash',profile='sdk',
         dsh_bin='/usr/local/bin/dsh-official-sdk-runtime',approval_requests=True,
         base_url='http://127.0.0.1:4001/v1',api_key='local-guard-placeholder',
-        max_tokens=256,initialize_timeout_seconds=15,request_timeout_seconds=120,shutdown_timeout_seconds=2)
+        max_tokens=8192 if banking else 256,initialize_timeout_seconds=15,request_timeout_seconds=300 if banking else 120,shutdown_timeout_seconds=2)
+    if banking and options['patches']!=['/opt/dsh/config/banking-sdk-tool-policy.patch.yml']:raise ValueError('FIXED_PROTECTED_BANKING_PROFILE_PATCH_REQUIRED')
     if any(type(options[k]) is not type(value) or options[k]!=value for k,value in fixed.items()):
         raise ValueError('SDK_FIXED_GUARD_OR_POLICY_CHANGED')
-    env=dict(PATH='/usr/local/bin:/usr/bin:/bin',LANG='C.UTF-8',HOME='/home/dsh/official-sdk',
+    env=dict(PATH='/usr/local/bin:/usr/bin:/bin',LANG='C.UTF-8',HOME='/home/dsh/user/official-sdk' if banking else '/home/dsh/official-sdk',
         PYTHONDONTWRITEBYTECODE='1',OTEL_SDK_DISABLED='true',DO_NOT_TRACK='1',LANGSMITH_TRACING='false',
         DSH_UNATTENDED_TASK=context['stageId'],DSH_CORRELATION_ID=context['correlationId'],
         DSH_GUARDED_MODEL_BASE_URL=fixed['base_url'])
+    if banking:env['TMPDIR']='/tmp/user'
     supplied=options['env']
     if (not isinstance(supplied,dict) or set(supplied)!=set(env)
             or any(supplied.get(k)!=value for k,value in env.items() if k!='HOME')
@@ -68,17 +72,24 @@ def prepare_request(request,*,pod_uid):
         raise ValueError('SDK_WORKER_ENVIRONMENT_REFUSED')
     # The admitted Pod mounts exactly this one project at /workspace. Never
     # carry a broker host path or environment through to the isolated child.
-    options.update(cwd='/workspace',runtime_cwd='/workspace',dsh_home=env['HOME'],env=env)
+    task_cwd='/workspace/banking' if banking else '/workspace'
+    options.update(cwd=task_cwd,runtime_cwd=task_cwd,dsh_home=env['HOME'],env=env)
     return context,boot,env
 
 
-def relay_once(request,*,control,emit):
+def relay_once(request,*,control,emit,banking=False):
     inode=require_private_init()
     pod_uid=Path('/etc/dsh-worker-identity/pod-uid').read_text(encoding='ascii').strip()
-    context,bootstrap,environment=prepare_request(request,pod_uid=pod_uid)
+    context,bootstrap,environment=prepare_request(request,pod_uid=pod_uid,banking=banking)
     if namespace_members():raise ValueError('SDK_WORKER_NOT_EMPTY_BEFORE_START')
-    home=Path('/home/dsh/official-sdk');home.mkdir(mode=0o700)
-    os.chown(home,10001,10001)
+    home=Path('/home/dsh/user/official-sdk' if banking else '/home/dsh/official-sdk')
+    if banking:
+        # Fresh payload-home is initialized for10001; never addCHOWN toPID1.
+        code="import os,stat;from pathlib import Path;p=Path('/home/dsh/user/official-sdk');p.mkdir(mode=0o700,exist_ok=False);s=p.lstat();assert stat.S_ISDIR(s.st_mode) and s.st_uid==10001 and s.st_gid==10001 and stat.S_IMODE(s.st_mode)==0o700"
+        subprocess.run([sys.executable,'-I','-S','-c',code],check=True,timeout=5,user=10001,group=10001,extra_groups=[],umask=0o077,env=environment,cwd='/workspace/banking')
+    else:
+        home.mkdir(mode=0o700)
+        os.chown(home,10001,10001)
     cancel=WorkerCancellation(context);child=None;selector=None;reader=None
     abort=threading.Event();output_frames=0;output_bytes=0
     def send(raw):
@@ -102,7 +113,7 @@ def relay_once(request,*,control,emit):
                 send((value['frame']+'\n').encode())
         except BaseException:cancel.disconnect('SDK_RELAY_CONTROL_REFUSED')
     try:
-        child=subprocess.Popen(COMMAND,cwd='/workspace',env=environment,stdin=subprocess.PIPE,
+        child=subprocess.Popen(COMMAND,cwd='/workspace/banking' if banking else '/workspace',env=environment,stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,stderr=subprocess.PIPE,bufsize=0,close_fds=True,
             start_new_session=True,user=10001,group=10001,extra_groups=[],umask=0o077)
         selector=selectors.DefaultSelector()
@@ -133,7 +144,7 @@ def relay_once(request,*,control,emit):
             stop_namespace()
             if cancel.error:raise ValueError(cancel.error)
             return dict(context,stopped=True,processExitVerified=True,descendantAbsenceVerified=True,
-                pidNamespaceInode=inode,exitCode=None,output='',cancelled=True,operationId=cancel.operation_id)
+                pidNamespaceInode=inode,exitCode=child.wait(timeout=5) if banking else None,output='',cancelled=True,operationId=cancel.operation_id)
         if buffer:raise ValueError('SDK_WORKER_PARTIAL_OUTPUT_FRAME')
         exit_code=child.wait(timeout=max(.01,deadline-time.monotonic()));stop_namespace()
         # Seal the reader before selecting the terminal outcome. An already

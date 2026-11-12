@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Private-runtime broker for bounded, authenticated managed-agent tasks."""
 import hmac
+import hashlib
 import copy
 import json
 import os
@@ -15,6 +16,7 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 from scripts.agent_runtime_commands import command_for
+from scripts import banking_allowance
 from scripts.unattended_env import minimal_environment
 from scripts.official_sdk_approval import verified_terminal_stop
 from scripts import a2a_stage_journal
@@ -108,6 +110,8 @@ class Task:
         self.correlation_id = uuid.uuid4().hex
         self.request = request
         self.directory = ROOT / task_id
+        self.private_capture = None
+        self.capture_terminal_proof = None
         self.events = self.directory / "events.jsonl"
         self.process = None
         self.openshell = None
@@ -125,18 +129,24 @@ class Task:
         self.cli_service = None
         self.native_sdk = None
         self.official_sdk_bridge = None
+        self.runner_owned = False   # set once a runner (generic Task.run or the native SDK runner) owns this task
+        self.cancel_pending = False     # a DELETE that arrived after the runner took the task but before its bridge exists
         self.finished = threading.Event()
         self.lock = threading.Lock()
         self.persistence_lock = threading.RLock()
         self.sequence = 0
         self.state = "queued"
         self.created = time.time()
+        if ROOT.as_posix()=='/state/banking-guard-protected/controller/web-tasks':
+            from scripts.banking_private_capture import capture_for_task
+            self.directory.mkdir(mode=0o700,parents=True,exist_ok=True)
+            self.private_capture=capture_for_task(self,confined_project(self.request['project']))
         self.emit("queued", {"runtime": request["runtime"], "project": request["project"]})
         self.save()
 
     @classmethod
     def recover(cls, value, directory):
-        task=cls.__new__(cls);task.id=value["id"];task.request={"runtime":value["runtime"],"project":value["project"],"writes":value.get("writes",False),"handoffRuntime":value.get("handoffRuntime")}
+        task=cls.__new__(cls);task.private_capture=None;task.capture_terminal_proof=None;task.id=value["id"];task.request={"runtime":value["runtime"],"project":value["project"],"writes":value.get("writes",False),"handoffRuntime":value.get("handoffRuntime")}
         task.correlation_id=value.get("correlationId", value["id"])
         task.authenticated_subject = value.get("authenticatedSubject")
         task.openshell=value.get("openshell")
@@ -330,6 +340,12 @@ class Task:
 
     def save(self):
         with self.persistence_lock:
+            capture=getattr(self,'private_capture',None)
+            if capture is not None and not capture.closed and not capture.failed:
+                try:capture.state(dict(state=self.state,taskId=self.id,correlationId=self.correlation_id,nativeSdk=self.native_sdk))
+                except Exception:
+                    self.state='interrupted'
+                    raise
             atomic_json(self.directory / "task.json", {
                 "id": self.id, "runtime": self.request["runtime"], "project": self.request["project"],
                 "authenticatedSubject": self.authenticated_subject,
@@ -352,6 +368,8 @@ class Task:
             })
 
     def emit(self, kind, data):
+        capture=getattr(self,'private_capture',None)
+        if capture is not None and not capture.closed and not capture.failed:capture.event(kind,data)
         with self.lock:
             if kind == "output" and self.events.exists() and self.events.stat().st_size >= MAX_EVENT_BYTES:
                 return
@@ -364,23 +382,45 @@ class Task:
 
     def run(self, resume=False):
         self.finished.clear()
-        self.state = "running"; self.emit("state", {"state": self.state}); self.save()
+        with self.persistence_lock:
+            if self.state in {"cancelling", "cancelled"}:
+                # A DELETE that arrived while the task was queued: never re-open it and never start the command (no model call after a cancel).
+                self.state = "cancelled"; self.save(); self.finished.set(); return
+            self.state = "running"; self.runner_owned = True
+        self.emit("state", {"state": self.state}); self.save()
         project = confined_project(self.request["project"])
         env = minimal_environment(os.environ)  # explicit allowlist: no provider keys, no Kerberos cache, no node preloads
         env["DSH_UNATTENDED_TASK"] = self.id
         env["DSH_CORRELATION_ID"] = self.correlation_id
         try:
             runtime = self.request["runtime"]
-            command = command_for(runtime, self.request.get("prompt", ""), self.request["writes"], project, self.id, resume)
+            # Ordinary tasks keep cap 1; a named banking project/runtime gets its server-admitted bounded cap (atomic, no replay, refuses before any upstream request).
+            cap = banking_allowance.request_cap(runtime, self.request["project"], self.id, subject=self.authenticated_subject, task_binding=dict(subject=self.authenticated_subject, taskId=self.id, correlationId=self.correlation_id, runtime=runtime, project=self.request["project"], writes=self.request["writes"], promptSha256=hashlib.sha256(self.request.get("prompt", "").encode()).hexdigest())) if runtime in {"claude", "deepagents"} and not resume else 1
+            command = command_for(runtime, self.request.get("prompt", ""), self.request["writes"], project, self.id, resume, max_model_starts=cap,
+                                  **({"banking_accounting_only":True} if cap is None else {}), banking_tools=runtime == "claude" and (cap is None or cap > 1) and self.request["writes"] is True)
+            with self.persistence_lock:
+                pre_cancelled = self.cancel_pending
+                if pre_cancelled: self.cancel_pending = False; self.state = "cancelled"
+            if pre_cancelled:                       # DELETE landed between 'running' and the launch: do not launch
+                self.emit("state", {"state": self.state}); return
             self.process = subprocess.Popen(command, cwd=project, env=env, stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT, text=True, errors="replace", start_new_session=True, bufsize=1)
+                stderr=subprocess.STDOUT, text=self.private_capture is None, errors="replace" if self.private_capture is None else None, start_new_session=True, bufsize=-1 if self.private_capture is not None else 1)
+            if self.cancel_pending:                 # DELETE landed in the last instant before self.process was set: stop it now
+                self.cancel_pending = False; self.cancel()
             captured=[];captured_bytes=0
-            for line in self.process.stdout:
+            for raw_line in self.process.stdout:
+                if self.private_capture is not None:
+                    self.private_capture.stdout(raw_line)
+                    line=raw_line.decode('utf-8',errors='replace')
+                else:line=raw_line
                 self.emit("output", {"text": line[:16384], "runtime": runtime})
                 if captured_bytes < 262144:
                     piece=line.encode("utf-8",errors="replace")[:262144-captured_bytes].decode("utf-8",errors="replace")
                     captured.append(piece);captured_bytes += len(piece.encode("utf-8"))
             code=self.process.wait()
+            if self.private_capture is not None:
+                from scripts.banking_private_capture import cli_terminal
+                self.capture_terminal_proof=cli_terminal(self,code,self.process.pid)
             handoff_runtime=self.request.get("handoffRuntime")
             if self.official_sdk_bridge is not None:
                 if self.state != "cancelled":
@@ -422,15 +462,55 @@ class Task:
                     self.state="completed" if code==0 else "failed"
                 self.emit("state",{"state":self.state,"exitCode":code,"runtime":handoff_runtime})
         except Exception as error:
+            capture=getattr(self,'private_capture',None)
+            if capture is not None:
+                capture.failed=True
+                from scripts.banking_private_capture import stop_cli_after_capture_failure
+                try:stop_cli_after_capture_failure(self.process)
+                finally:self.state='interrupted'
             if self.official_sdk_bridge is not None:
                 self.official_sdk_bridge.finalize("failed")
+            elif self.cancel_pending:
+                self.cancel_pending = False; self.state = "cancelled"
             else:
-                self.state = "failed"
-            self.emit("state", {"state": self.state, "error": type(error).__name__})
+                self.state = "interrupted" if capture is not None else "failed"
+            detail = {"state": self.state, "error": type(error).__name__}
+            if isinstance(error, ValueError) and re.fullmatch(r"[A-Z][A-Z0-9_]{2,80}", str(error)):
+                detail["code"] = str(error)             # fixed refusal codes only (for example BANKING_ALLOWANCE_EXHAUSTED)
+            self.emit("state", detail)
         finally:
             self.process = None
-            try: self.save()
+            try:
+                capture=getattr(self,'private_capture',None)
+                if capture is not None and not capture.closed and not capture.failed and self.capture_terminal_proof is not None:
+                    from scripts.banking_private_capture import agent_inventory
+                    try:capture.finish(terminal=self.capture_terminal_proof,artifacts=agent_inventory(project))
+                    except Exception:self.state='interrupted';raise
+                self.save()
             finally: self.finished.set()
+
+    def cancel_unclaimed(self):
+        """Atomically cancel a task that NO executor has claimed yet (a chain child whose DELETE arrived before the executor took it).
+
+        True only when, under persistence_lock, the task is still 'queued' and nothing owns it: no CLI service, no CLI context/worker/cancel, no native SDK record or
+        bridge, no process, no runner. It is then marked 'cancelled' and finished in the same locked section. Every claim path (ProtectedCLIService.run_task,
+        OfficialSDKSessionRunner.run_task, Task.run) takes this same lock and refuses a task that is no longer queued / is cancelled, so a task cancelled here can never
+        start afterwards. A claimed or running task returns False and keeps the existing proof-bearing cancel paths (CLI terminal receipt, native stop receipt)."""
+        with self.persistence_lock:
+            if (self.state != "queued" or self.cli_service is not None or self.a2a_cli_context is not None or self.a2a_cli_worker is not None
+                    or self.a2a_cli_cancel is not None or self.native_sdk is not None or self.official_sdk_bridge is not None
+                    or self.process is not None or self.runner_owned or self.cancel_pending
+                    or getattr(self, "execution_service", None) is not None or getattr(self, "a2a_terminal_receipt", None) is not None):
+                return False
+            self.state = "cancelling"; self.emit("state", {"state": self.state})
+            # Explicit, persisted retirement receipt (task.json a2aCliTerminal) in the same shape as the supervisor's never-started receipt, issued by the broker itself
+            # because no supervisor was ever involved: nothing can have started (every claim path takes this lock and refuses a non-queued task). 'neverClaimed' and
+            # 'issuer' keep it distinguishable from a supervisor receipt (which carries a scopeUid or neverStarted from stop_and_verify).
+            self.a2a_terminal_receipt = {"stageId": self.id, "correlationId": self.correlation_id, "stopped": True, "processExitVerified": True,
+                                         "descendantAbsenceVerified": True, "neverStarted": True, "neverClaimed": True, "issuer": "broker-unclaimed-cancel"}
+            self.state = "cancelled"; self.emit("state", {"state": self.state}); self.save()
+            self.finished.set()
+            return True
 
     def cancel(self):
         with self.persistence_lock:
@@ -441,7 +521,11 @@ class Task:
                 self.save()  # Fence parent before invoking any child transport.
         if child is not None:
             try:
-                stopped = child.cancel()
+                # A child no executor has claimed yet (the DELETE landed between attach_a2a_child and the executor taking it) never started anything: cancel it
+                # atomically; it records its own neverStarted receipt, which the existing cli_verified check then accepts. Claimed or running children still need
+                # their CLI terminal receipt / native stop receipt.
+                unclaimed = child.cancel_unclaimed()
+                stopped = True if unclaimed else child.cancel()
                 with child.persistence_lock:
                     proof = dict(id=child.id, project=child.request["project"],
                         correlationId=child.correlation_id, state=child.state, nativeSdk=child.native_sdk)
@@ -467,6 +551,12 @@ class Task:
         if self.official_sdk_bridge is not None:
             return self.official_sdk_bridge.cancel()
         if self.state not in {"queued", "running", "handoff", "finalizing", "awaiting_approval"}: return False
+        if self.runner_owned and self.state == "running":
+            # Window between the runner's 'running' and its bridge: marking the task cancelled here would make the bridge constructor refuse
+            # (NATIVE_SDK_TASK_NOT_RUNNING) and persist 'failed' with no stop receipt. Hand the cancel to the runner, which applies it through the bridge.
+            with self.persistence_lock:
+                if self.official_sdk_bridge is None and self.process is None and self.state == "running":
+                    self.cancel_pending = True; self.emit("state", {"state": "cancelling"}); self.save(); return True
         if self.request.get("backend")=="openshell":
             if self.execution_service is None:return False
             return self.execution_service.cancel_task(self.execution_service.subject,self)
@@ -565,8 +655,12 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store"); self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
     def authorized(self):
-        try: expected = TOKEN.read_text(encoding="utf-8").strip()
-        except OSError: return False
+        try:
+            if ROOT.as_posix()=='/state/banking-guard-protected/controller/web-tasks':
+                from scripts.banking_history_view import runtime_token
+                expected=runtime_token(os.environ.get('DSH_ENVIRONMENT','secure'))
+            else:expected = TOKEN.read_text(encoding="utf-8").strip()
+        except (OSError,ValueError,subprocess.SubprocessError): return False
         supplied = self.headers.get("Authorization", "")
         return len(expected) >= 20 and hmac.compare_digest(supplied, "Bearer " + expected)
     def body(self):
@@ -592,7 +686,15 @@ class Handler(BaseHTTPRequestHandler):
         match = re.fullmatch(r"/v1/tasks/([a-f0-9]{32})/events", path)
         if match:
             task = REGISTRY.get(match.group(1))
-            if not task: return self.reply(404, {"error":"TASK_NOT_FOUND"})
+            if not task:
+                if ROOT.as_posix()=='/state/banking-guard-protected/controller/web-tasks':
+                    try:
+                        after=max(0,int(dict(x.split('=',1) for x in urlparse(self.path).query.split('&') if '=' in x).get('after','0')))
+                        from scripts.banking_history_view import legacy_response
+                        status,body=legacy_response(match.group(1),self.headers.get('X-DSH-Subject',''),after)
+                        return self.reply(status,body)
+                    except (ValueError,OSError,subprocess.SubprocessError):return self.reply(503,{'error':'HISTORICAL_READ_ONLY_VIEW_UNAVAILABLE'})
+                return self.reply(404, {"error":"TASK_NOT_FOUND"})
             if task.authenticated_subject is not None and self.headers.get("X-DSH-Subject", "") != task.authenticated_subject:
                 return self.reply(403,{"error":"FOREIGN_TASK_SUBJECT"})
             if task.native_sdk and self.headers.get("X-DSH-Subject","")!=task.native_sdk["subject"]:
@@ -603,11 +705,18 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply(403,{"error":"FOREIGN_NATIVE_SDK_SUBJECT"})
             try: after = max(0, int(dict(x.split("=",1) for x in urlparse(self.path).query.split("&") if "=" in x).get("after","0")))
             except ValueError: return self.reply(400, {"error":"INVALID_CURSOR"})
+            # Read the state BEFORE the rows: every output row is written before a terminal state is set, so a terminal
+            # state here means the rows below are complete. The cursor is the last row actually returned (never the
+            # live sequence, which may already count rows written after this read), and a backlog is paged oldest
+            # first with "more", so a poller never skips or drops answer lines.
+            state_seen=task.state
             rows=[]
             if task.events.exists():
                 for line in task.events.read_text(encoding="utf-8").splitlines():
                     row=json.loads(line)
                     if row["sequence"] > after: rows.append(row)
+            more=len(rows)>200
+            rows=rows[:200]
             ticket=None
             with task.persistence_lock:
                 native=task.native_sdk
@@ -618,7 +727,8 @@ class Handler(BaseHTTPRequestHandler):
                             "toolName":pending["toolName"],"callId":pending["callId"],
                             "allowOnceAdmitted":task.request["writes"] is True}
             ticket = a2a_ticket or ticket
-            return self.reply(200, {"taskId":task.id,"state":"awaiting_approval" if a2a_ticket else task.state,"events":rows[:200],"next":(rows[:200][-1]["sequence"] if rows else after),"nativeApproval":ticket})  # first page after the cursor: a client that advances with `next` never skips events
+            return self.reply(200, {"taskId":task.id,"state":"awaiting_approval" if a2a_ticket else state_seen,"events":rows,
+                                    "next":rows[-1]["sequence"] if rows else after,"more":more,"nativeApproval":ticket})
         return self.reply(404, {"error":"NOT_FOUND"})
     def do_POST(self):
         if not self.authorized(): return self.reply(401, {"error":"UNAUTHORIZED"})
@@ -682,7 +792,7 @@ class Handler(BaseHTTPRequestHandler):
                 service=getattr(self.server,"openshell_service",None)
                 if service is None or not service.qualified:raise ValueError("UNAVAILABLE_SELECTION")
                 if self.headers.get("X-DSH-Subject","")!=service.subject:raise ValueError("FOREIGN_SUBJECT")
-            elif value["runtime"]=="sdk" and value["backend"]=="private" and value.get("handoffRuntime") is None and local_sdk_enabled():
+            elif value["runtime"]=="sdk" and value["backend"]=="private" and value.get("handoffRuntime") is None and getattr(self.server,"sdk_service",None) is None and not getattr(self.server,"sdk_banking_required",False) and local_sdk_enabled():
                 sdk_service=None  # workspace-local resumable SDK task; the per-task guard still wraps it
             elif value["runtime"]=="sdk":
                 sdk_service=getattr(self.server,"sdk_service",None)
@@ -738,4 +848,6 @@ if __name__ == "__main__":
     configure_official_sdk(server, REGISTRY, os.environ.get('DSH_OFFICIAL_SDK_ADMISSION_FILE'),
         qualification_allowed=os.environ.get('DSH_NATIVE_QUALIFICATION_MODE') == '1',
         workspace_root=WORKSPACE)
+    from scripts.banking_sdk_bootstrap import configure as configure_banking_sdk
+    configure_banking_sdk(server, REGISTRY, workspace_root=WORKSPACE)
     server.serve_forever()

@@ -2,12 +2,12 @@
 # Invoked only inside the admitted Linux builder with --network none.
 set -euo pipefail
 cd /work/source
-export HOME=/work/dsh-build-home
+export HOME=/work/home
 export CI=true COREPACK_ENABLE_NETWORK=0 DSH_TELEMETRY_DISABLED=1
-export npm_config_nodedir="/work/dsh-build-home/.cache/node-gyp/$(node --version | sed 's/^v//')"
-mkdir -p /work/out /work/dsh-build-home/.cache /work/dsh-build-home/pnpm-store
-cp -a /deps/node-gyp /work/dsh-build-home/.cache/
-cp -a /deps/pnpm-store/. /work/dsh-build-home/pnpm-store/
+export npm_config_nodedir="/work/home/.cache/node-gyp/$(node --version | sed 's/^v//')"
+mkdir -p /work/out /work/home/.cache /work/home/pnpm-store
+cp -a /deps/node-gyp /work/home/.cache/
+cp -a /deps/pnpm-store/. /work/home/pnpm-store/
 test -f "$npm_config_nodedir/include/node/node.h"
 node_version=$(node --version)
 pnpm_version=$(pnpm --version)
@@ -23,7 +23,7 @@ with open('/work/out/tools.json','x') as f:
     json.dump({'nodeVersion':node,'pnpmVersion':os.environ['pnpm_version'],
                'uvVersion':os.environ['uv_version']},f)
 PY
-pnpm install --frozen-lockfile --offline --store-dir /work/dsh-build-home/pnpm-store
+pnpm install --frozen-lockfile --offline --store-dir /work/home/pnpm-store
 addon=$(realpath packages/subprocess/subprocess-local/node_modules/node-pty)
 case "$addon" in /work/source/*/node_modules/node-pty) ;; *) exit 65 ;; esac
 (cd "$addon" && npm_config_build_from_source=true pnpm --config.verifyDepsBeforeRun=false run install)

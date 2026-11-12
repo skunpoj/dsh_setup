@@ -56,4 +56,4 @@ Recorded acceptance covers two disposable users in both environments, encrypted 
 
 The current English supplement is **106 seconds with Fola narration and 27 aligned caption cues**. It explains entry, controlled use, governance and recovery. It supplements the existing presentation.
 
-[Operator deployment and recovery](CREDENTIAL_OPERATIONS.md).
+Operator deployment and recovery.

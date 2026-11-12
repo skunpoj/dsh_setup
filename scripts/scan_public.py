@@ -16,6 +16,11 @@ PATTERNS = {
 # Mbed TLS v2.28.9 library/certs.c. These are public TLS self-test fixtures.
 # A changed binary must be reviewed again; this exception is digest-bound.
 PUBLIC_TTYD_SHA256 = '8a217c968aba172e0dbf3f34447218dc015bc4d5e59bf51db2f2cd12b7be4f55'
+
+# Exact admitted container-builder scripts; preserve their source hash pins.
+# This exception applies only to the generic build home prefix in these bytes.
+PUBLIC_BUILD_HOME_SHA256 = {'scripts/official-sdk-build/prepare.sh': 'a0fa66f02527c7f77cbb50868bbaa5638f668a20cf043d86b0c7e3821ee254b7', 'scripts/official-sdk-build/compile.sh': '987421a45f0faa44813f88b684a8f45736ec9291c8986cb614e1e29d939b22a8'}
+
 MAX_MEMBER = 8 * 1024 * 1024
 MAX_ARCHIVE = 32 * 1024 * 1024
 
@@ -33,6 +38,10 @@ def scan_bytes(name, data):
                     findings.append((name, kind, data.count(b'\n', 0, uri.start()) + 1))
             continue
         for match in re.finditer(pattern, text, re.IGNORECASE if kind == 'organization-host' else 0):
+            if (kind == 'personal-path' and name in PUBLIC_BUILD_HOME_SHA256
+                    and hashlib.sha256(data).hexdigest() == PUBLIC_BUILD_HOME_SHA256[name]
+                    and text[max(0, match.start()-5):match.start()] == '/work'):
+                continue
             if kind == 'private-key' and name == 'vendor/ttyd' and hashlib.sha256(data).hexdigest() == PUBLIC_TTYD_SHA256:
                 continue
             # Exact deliberately invalid URL used by the public renderer test.

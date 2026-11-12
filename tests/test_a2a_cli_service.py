@@ -50,6 +50,33 @@ class CLIServiceTests(unittest.TestCase):
         self.assertFalse(service.cancel_task('owner',task))
         self.assertEqual(supervisor.stop_and_verify.call_count,1)
 
+    def test_a_never_started_stop_receipt_cancels_the_task_and_is_preserved_on_recovery(self):
+        task=self.task();task.state='running'
+        task.a2a_cli_context=dict(subject='owner',stageId=task.id,correlationId=task.correlation_id,
+            project='project',runtime='claude')
+        task.a2a_cli_cancel=None
+        def stop(context):
+            return dict(context,stopped=True,processExitVerified=True,descendantAbsenceVerified=True,neverStarted=True)
+        supervisor=SimpleNamespace(subject='owner',qualified=True,stop_and_verify=Mock(side_effect=stop),observe_terminal=Mock())
+        service=ProtectedCLIService(subject='owner',supervisor=supervisor,workspace_resolver=lambda _: '/workspace/project')
+        self.assertTrue(service.cancel_task('owner',task))
+        self.assertEqual(task.state,'cancelled');self.assertEqual(task.a2a_cli_cancel['status'],'verified')
+        self.assertTrue(task.a2a_terminal_receipt['neverStarted']);self.assertNotIn('scopeUid',task.a2a_terminal_receipt)
+        self.assertTrue(service.recover_task('owner',task))
+        supervisor.observe_terminal.assert_not_called()
+
+    def test_a_receipt_without_scope_or_never_started_still_fails_the_cancel(self):
+        task=self.task();task.state='running'
+        task.a2a_cli_context=dict(subject='owner',stageId=task.id,correlationId=task.correlation_id,
+            project='project',runtime='claude')
+        task.a2a_cli_cancel=None
+        def stop(context):
+            return dict(context,stopped=True,processExitVerified=True,descendantAbsenceVerified=True)
+        supervisor=SimpleNamespace(subject='owner',qualified=True,stop_and_verify=Mock(side_effect=stop))
+        service=ProtectedCLIService(subject='owner',supervisor=supervisor,workspace_resolver=lambda _: '/workspace/project')
+        self.assertFalse(service.cancel_task('owner',task))
+        self.assertEqual(task.state,'interrupted')
+
     def task(self):
         return SimpleNamespace(id='a'*32,correlation_id='b'*32,state='queued',
             request=dict(runtime='claude',backend='private',project='project',prompt='synthetic',writes=False),

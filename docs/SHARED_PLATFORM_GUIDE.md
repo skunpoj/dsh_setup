@@ -1,5 +1,7 @@
 # Shared platform guide for coding clients
 
+[Terminology: agent, harness and shared platform](HARNESS_TERMINOLOGY.html). Compare agent integration routes while preserving SDK, harness and infrastructure distinctions.
+
 Successful signup enables your private **No Internet / Internal** workspace immediately, without individual administrator approval. **Only Internet access requires a separate administrator grant.** Account capacity controls are not an approval queue.
 
 DSH, Claude Code, Kilo and TrueForge receive the same platform reference:

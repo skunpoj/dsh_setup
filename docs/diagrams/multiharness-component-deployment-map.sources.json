@@ -1,0 +1,91 @@
+{
+  "schema": "multiharness-component-map/v1",
+  "named_source_commit": "43a80bbd003ded8f33614a4f465a0dd3a1382c57",
+  "source_scope": "Source-configured topology with dated retained observations; no fresh cluster query",
+  "sources": [
+    {
+      "path": "k8s/canonical-services.yaml",
+      "sha256": "00b26670a7fd7c802f5c41a8bfb9a7adfc6d2e9c926600fafbe8852449433861"
+    },
+    {
+      "path": "k8s/dsh-environment-gateway.yaml",
+      "sha256": "b9c2760fee2cc1a27f2d920765777256d7810bf99b502a5c33d1bfa03e8b581c"
+    },
+    {
+      "path": "k8s/dsh-environment-pools.yaml",
+      "sha256": "20273b08baab61a0d3bc5e1ab976e3922eca0f25dd76fd603a6012b273c051a4"
+    },
+    {
+      "path": "scripts/render_k8s.py",
+      "sha256": "72fd641b18006655fe50ea6da6c21e697a8ca4d2823db258376adaae39a24565"
+    },
+    {
+      "path": "scripts/auth_proxy.js",
+      "sha256": "dac6c3111f473440990997a1c273061e553e3bbc1bb820d607348b7da6e40525"
+    },
+    {
+      "path": "scripts/agent_task_gateway.js",
+      "sha256": "32c8b97ce1860db49f3913b582497c8c8a29591cc260cf341e5aaf9edb1fb74f"
+    },
+    {
+      "path": "scripts/unattended_model_guard.py",
+      "sha256": "ad4012d9dc168a0d6180db7278dab5fab6a77a3c7c3a4327b6e25d682529acf9"
+    },
+    {
+      "path": "container/dsh-unattended.py",
+      "sha256": "26306743c0bbfbc23cf1d23e7a1ac7244f1b448f2b89073b85d9ad6d33e48aed"
+    },
+    {
+      "path": "scripts/configure_models.js",
+      "sha256": "a7a879b657a66f2a7d732845816c0db88b9928664a87422505bee62b0d491a9b"
+    },
+    {
+      "path": "scripts/a2a_private_worker_pod.py",
+      "sha256": "f3710e30ca6f2a3c1eed5854799b054fbb3c4246b9d1fbf5055bbd0afe1f1d9e"
+    },
+    {
+      "path": "scripts/context_forwarder.py",
+      "sha256": "7622dc322ea29c03278d048b76d5229e7e52c51ab001806629de5a4bb6d192f5"
+    },
+    {
+      "path": "scripts/long_context_callbacks.py",
+      "sha256": "fbc90a7fc58eb53fa2efad073df69d179c06c6805c57496894c8aad6dfb11658"
+    },
+    {
+      "path": "gpu-stack/NAMING.md",
+      "sha256": "cd84821c8d7b57a20946c3e97bf24289596939542edd9730f1530b65da9a407d"
+    }
+  ],
+  "critical_distinctions": [
+    "Interactive clients configured direct to LiteLLM; unattended tasks use per-task guard upstream to LiteLLM.",
+    "LiteLLM and context-forwarder share one pod; forwarder loopback4001 is not a separate Service.",
+    "Isolated native worker model-guard loopback4001 is in a different pod/context.",
+    "DeepInfer and SGLang services select alternative engines; they are not serial hops or aliases.",
+    "Tokenizer URL selects the same engine base used for chat completions; effective environment override needs readback."
+  ],
+  "dated_observations": [
+    {
+      "component": "LiteLLM and context-forwarder",
+      "observed_utc": "2026-11-11T01:01Z",
+      "summary": "Retained operator same-pod sidecar readback; current node/endpoints not refreshed"
+    },
+    {
+      "component": "gateway",
+      "observed_utc": "2026-11-11T02:29Z",
+      "summary": "Retained gateway pod observed; current node placement unbound"
+    },
+    {
+      "component": "workspace fleet",
+      "observed_utc": "2026-11-11T02:28Z",
+      "summary": "B10 across16 templates at that time; later B11 canary observation is not proof all16 advanced"
+    }
+  ],
+  "unknowns": [
+    "Current per-component Pod-to-node placement",
+    "Fresh Service EndpointSlice / active engine identity",
+    "Effective model-origin environment override in current running pod",
+    "Current per-workspace image/replica consistency",
+    "Full SDK/OpenShell operational qualification"
+  ],
+  "private_data_included": false
+}

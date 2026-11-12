@@ -47,6 +47,15 @@ BROKER_TOKEN_SECRET = "dsh-a2a-test-broker-token"   # created by the operator/us
 BROKER_TOKEN_FILE = "/runtime-tokens/token"        # DSH_TASK_TOKEN_FILE of container/dsh-task-broker.py: without it every request is refused (fail closed)
 TASK_STATE_ROOT = TASK_STATE_MOUNT + "/web-tasks"   # DSH_TASK_STATE_ROOT of container/dsh-task-broker.py; Registry.__init__ loads task.json files found here
 WORKSPACE_POLICY_FILE = "a2a-workspace-policy.json"
+# The test client (OpenShell lane, after USER "make it live now"): ONE Pod that only runs the A2A lane's hash-pinned case driver against the broker on 7682.
+# It has no API identity, no workspace, no task credential and no LiteLLM route; its only egress is the broker Pod, its only Secret is the broker token (by name).
+CLIENT_POD = "sdk-qualification-client"
+CLIENT_CONTAINER = "client"
+CLIENT_SCRIPT_CONFIGMAP = "dsh-a2a-qual-client-script"
+CLIENT_FILES = ("a2a_through_openshell_test.py", "native_case_driver.py")   # the A2A lane's files, hash-pinned by the contract
+CLIENT_MOUNT = "/client"
+CLIENT_EVIDENCE = "/evidence"
+CLIENT_DEADLINE_SECONDS = 3600
 DECIDED_NAMESPACE = "dsh-a2a-qual"            # ORCH-DECISION-P2-COMPOSITION
 ENGINE_NODE = "dagpu-gn-p1"                 # the ONLY node of the cluster (survey 10 Nov): GPU/engine node, so nothing can be excluded from it
 STORAGE_CLASS = "topolvm-immediate"           # the only Immediate-binding class (survey); node-local LVM on the single node
@@ -164,7 +173,7 @@ def _mounts_and_volumes(spec):
         {"name": "workspace-policy", "mountPath": ADMISSION_DIR + "/" + WORKSPACE_POLICY_FILE, "subPath": WORKSPACE_POLICY_FILE, "readOnly": True},
     ]
     # exactly the mounts official_sdk_executing_identity compares against
-    container_mounts += [{"name": identity.VOLUME, "mountPath": str(identity.ROOT / field), "subPath": field, "readOnly": True} for field in identity.FIELDS]
+    container_mounts += [{"name": identity.VOLUME, "mountPath": identity.ROOT.as_posix() + "/" + field, "subPath": field, "readOnly": True} for field in identity.FIELDS]
     volumes = [
         {"name": "admission", "emptyDir": {"medium": "Memory", "sizeLimit": "1Mi"}},
         {"name": "package-admission", "configMap": {"name": "sdk-package-admission", "defaultMode": 0o444}},
@@ -188,11 +197,13 @@ def _mounts_and_volumes(spec):
         # route B needs a change to the protected requester module (it refuses tokens today); the projected token is short-lived and audience bound
         container_mounts.append({"name": "kubernetes-token", "mountPath": IDENTITY_DIR + "/token", "subPath": "token", "readOnly": True})
         volumes.append({"name": "kubernetes-token", "projected": {"defaultMode": 0o400, "sources": [{"serviceAccountToken": {
-            "audience": "https://kubernetes.default.svc", "expirationSeconds": 600, "path": "token"}}]}})
+            "expirationSeconds": 600, "path": "token"}}]}})
+    # Omit audience so the API server chooses its accepted default; API URL is not its audience.
+    # Keep projected Pod-bound tokens short-lived, read-only and scoped by the same RBAC.
     # the worker controller's bearer supplier reads this token (A2A lane to confirm the path)
     container_mounts.append({"name": "worker-token", "mountPath": WORKER_TOKEN, "subPath": "token", "readOnly": True})
     volumes.append({"name": "worker-token", "projected": {"defaultMode": 0o400, "sources": [{"serviceAccountToken": {
-        "audience": "https://kubernetes.default.svc", "expirationSeconds": 600, "path": "token"}}]}})
+        "expirationSeconds": 600, "path": "token"}}]}})
     return container_mounts, volumes
 
 
@@ -226,7 +237,48 @@ def workspace_policy_text():
     return json.dumps(policy, sort_keys=True, indent=2) + "\n"
 
 
-def build_objects(spec, *, wheel_raw, package_admission_raw):
+def _client_objects(spec, client_files):
+    _require(isinstance(client_files, dict) and set(client_files) == set(CLIENT_FILES) and all(isinstance(v, bytes) and v for v in client_files.values()), "CLIENT_FILES_EXACT_REQUIRED")
+    labels = _labels(spec, spec["clientPodLabels"])
+    meta = {"name": CLIENT_POD, "namespace": spec["namespace"], "labels": labels}
+    mib = 1024 ** 2
+    pod_spec = {"restartPolicy": "Never", "serviceAccountName": "default", "automountServiceAccountToken": False, "enableServiceLinks": False,
+                "hostNetwork": False, "hostPID": False, "hostIPC": False, "shareProcessNamespace": False, "activeDeadlineSeconds": CLIENT_DEADLINE_SECONDS,
+                "securityContext": {"seccompProfile": {"type": "RuntimeDefault"}},
+                "containers": [{"name": CLIENT_CONTAINER, "image": spec["image"], "imagePullPolicy": "IfNotPresent",
+                                "command": ["python3", "-I", "-c", "import time; time.sleep(%d)" % (CLIENT_DEADLINE_SECONDS - 60)],
+                                "securityContext": {"privileged": False, "allowPrivilegeEscalation": False, "readOnlyRootFilesystem": True, "runAsUser": 0,
+                                                    "capabilities": {"drop": ["ALL"]}, "seccompProfile": {"type": "RuntimeDefault"}},
+                                "resources": {"requests": {"cpu": "100m", "memory": str(256 * mib), "ephemeral-storage": str(64 * mib)},
+                                              "limits": {"cpu": "1", "memory": str(GIB), "ephemeral-storage": str(256 * mib)}},
+                                "volumeMounts": [{"name": "client-script", "mountPath": CLIENT_MOUNT, "readOnly": True},
+                                                 {"name": "broker-token", "mountPath": BROKER_TOKEN_FILE, "subPath": "token", "readOnly": True},
+                                                 {"name": "evidence", "mountPath": CLIENT_EVIDENCE}]}],
+                "volumes": [{"name": "client-script", "configMap": {"name": CLIENT_SCRIPT_CONFIGMAP, "defaultMode": 0o444}},
+                            {"name": "broker-token", "secret": {"secretName": BROKER_TOKEN_SECRET, "defaultMode": 0o400, "items": [{"key": "token", "path": "token", "mode": 0o400}]}},
+                            {"name": "evidence", "emptyDir": {"medium": "Memory", "sizeLimit": "64Mi"}}]}
+    return {
+        "networkpolicy-client": {"apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": _meta(spec, "client"),
+                                 "spec": {"podSelector": {"matchLabels": dict(spec["clientPodLabels"])}, "policyTypes": ["Ingress", "Egress"], "ingress": [],
+                                          "egress": [{"to": [{"podSelector": {"matchLabels": {BROKER_LABEL: BROKER_VALUE}}}],
+                                                      "ports": [{"protocol": "TCP", "port": CLIENT_PORT}]}]}},
+        "configmap-client-script": {"apiVersion": "v1", "kind": "ConfigMap", "metadata": _meta(spec, CLIENT_SCRIPT_CONFIGMAP), "immutable": True,
+                                    "data": {name: client_files[name].decode("utf-8") for name in CLIENT_FILES}},
+        "pod-client": {"apiVersion": "v1", "kind": "Pod", "metadata": meta, "spec": pod_spec},
+    }
+
+
+# The three named qualification Jobs share ONE namespace and ONE observer Role (the Role is a shared object and must be byte-identical in every case folder,
+# otherwise the live re-check of the shared objects at the next case refuses with READBACK_VALUE_MISMATCH role-observer.rules[1].resourceNames[0]).
+# The Role therefore names the union of the three Jobs plus this spec's own Job, sorted: still exact names, never a wildcard, never wider than these Jobs.
+QUALIFICATION_JOBS = ("sdk-qualification-b", "sdk-qualification-c", "sdk-qualification-d")
+
+
+def observer_job_names(job):
+    return sorted(set(QUALIFICATION_JOBS) | {job})
+
+
+def build_objects(spec, *, wheel_raw, package_admission_raw, client_files=None):
     validate_spec(spec)
     _require(_sha(wheel_raw) == spec["wheelSha256"], "WHEEL_NOT_THE_ADMITTED_ONE")
     package = json.loads(package_admission_raw)
@@ -278,7 +330,7 @@ def build_objects(spec, *, wheel_raw, package_admission_raw):
                                        "rules": [{"apiGroups": [""], "resources": ["namespaces"], "resourceNames": [ns], "verbs": ["get"]}]},
         "role-observer": {"apiVersion": "rbac.authorization.k8s.io/v1", "kind": "Role", "metadata": _meta(spec, "sdk-qualification-observer"),
                           "rules": [{"apiGroups": [""], "resources": ["pods"], "verbs": ["get"]},
-                                    {"apiGroups": ["batch"], "resources": ["jobs"], "resourceNames": [job], "verbs": ["get"]}]},
+                                    {"apiGroups": ["batch"], "resources": ["jobs"], "resourceNames": observer_job_names(job), "verbs": ["get"]}]},
         "role-worker-controller": {"apiVersion": "rbac.authorization.k8s.io/v1", "kind": "Role", "metadata": _meta(spec, "sdk-qualification-worker-controller"),
                                    "rules": [{"apiGroups": [""], "resources": ["pods"], "verbs": ["create", "get", "delete"]},
                                                {"apiGroups": [""], "resources": ["pods/attach"], "verbs": ["create"]}]},
@@ -301,6 +353,8 @@ def build_objects(spec, *, wheel_raw, package_admission_raw):
     objects["rolebinding-observer"] = _binding("RoleBinding", "sdk-qualification-observer", "Role", "sdk-qualification-observer", _observer_subjects(spec), spec)
     objects["rolebinding-worker-controller"] = _binding("RoleBinding", "sdk-qualification-worker-controller", "Role", "sdk-qualification-worker-controller",
                                                         _worker_subjects(spec), spec)
+    if client_files is not None:
+        objects.update(_client_objects(spec, client_files))
     return objects
 
 
@@ -333,10 +387,35 @@ def contains(actual, expected, path="$"):
     return True
 
 
-def check_objects(objects, spec, *, wheel_raw, package_admission_raw):
+def check_client_objects(objects, client_files):
+    """The test client may only talk to the broker, holds no API identity and carries exactly the hash-pinned driver files."""
+    pod = objects["pod-client"]["spec"]
+    container = pod["containers"][0]
+    _require(len(pod["containers"]) == 1 and not pod.get("initContainers") and not pod.get("ephemeralContainers"), "CLIENT_ONE_CONTAINER")
+    _require(pod.get("automountServiceAccountToken") is False and pod.get("serviceAccountName") == "default", "CLIENT_HAS_NO_API_IDENTITY")
+    _require(all(pod.get(f, False) is False for f in ("hostNetwork", "hostPID", "hostIPC", "shareProcessNamespace")), "CLIENT_HOST_NAMESPACES_REFUSED")
+    sc = container["securityContext"]
+    _require(sc.get("privileged", False) is False and sc.get("allowPrivilegeEscalation") is False and sc.get("readOnlyRootFilesystem") is True
+             and sc.get("capabilities", {}).get("drop") == ["ALL"] and not sc.get("capabilities", {}).get("add"), "CLIENT_CONTAINER_PROFILE")
+    _require(not container.get("env") and "args" not in container and container["command"][:2] == ["python3", "-I"], "CLIENT_ISOLATED_PYTHON_NO_ENV")
+    kinds = {v["name"]: [k for k in v if k != "name"] for v in pod["volumes"]}
+    _require(kinds == {"client-script": ["configMap"], "broker-token": ["secret"], "evidence": ["emptyDir"]}, "CLIENT_VOLUMES_EXACT")
+    secrets = [v["secret"]["secretName"] for v in pod["volumes"] if "secret" in v]
+    _require(secrets == [BROKER_TOKEN_SECRET], "CLIENT_ONLY_THE_BROKER_TOKEN_SECRET")
+    _require(TASK_CREDENTIAL_SECRET not in json.dumps(pod) and "sdk-qualification-identity" not in json.dumps(pod), "CLIENT_MUST_NOT_REFERENCE_CREDENTIALS")
+    _require(not any(k.startswith(("nvidia.com", "amd.com")) or "gpu" in k.lower() for part in container["resources"].values() for k in part), "CLIENT_NO_GPU")
+    data = objects["configmap-client-script"]["data"]
+    _require(set(data) == set(CLIENT_FILES) and all(data[n].encode("utf-8") == client_files[n] for n in CLIENT_FILES), "CLIENT_SCRIPT_NOT_THE_PINNED_FILES")
+    policy = objects["networkpolicy-client"]["spec"]
+    _require(not policy.get("ingress") and len(policy.get("egress", [])) == 1 and policy["egress"][0]["to"] == [{"podSelector": {"matchLabels": {BROKER_LABEL: BROKER_VALUE}}}]
+             and policy["egress"][0]["ports"] == [{"protocol": "TCP", "port": CLIENT_PORT}], "CLIENT_EGRESS_BROKER_ONLY")
+    return ["test-client-broker-only-no-identity-pinned-files"]
+
+
+def check_objects(objects, spec, *, wheel_raw, package_admission_raw, client_files=None):
     """Independent check of generated objects OR live read-backs against the admitted spec. Returns the list of checks passed."""
     validate_spec(spec)
-    expected = build_objects(spec, wheel_raw=wheel_raw, package_admission_raw=package_admission_raw)
+    expected = build_objects(spec, wheel_raw=wheel_raw, package_admission_raw=package_admission_raw, client_files=client_files)
     _require(set(objects) == set(expected), "OBJECT_SET_MISMATCH")
     passed = []
     for key, value in expected.items():
@@ -405,7 +484,13 @@ def check_objects(objects, spec, *, wheel_raw, package_admission_raw):
     _require(len(token_volumes) == 1 and token_volumes[0].get("secret", {}).get("secretName") == BROKER_TOKEN_SECRET and token_volumes[0]["secret"].get("defaultMode") == 0o400, "BROKER_TOKEN_SECRET_BY_NAME_MODE_0400")
     token_mounts = [m for m in pod["containers"][0]["volumeMounts"] if m["name"] == "broker-token"]
     _require(len(token_mounts) == 1 and token_mounts[0].get("mountPath") == BROKER_TOKEN_FILE and token_mounts[0].get("subPath") == "token" and token_mounts[0].get("readOnly") is True, "BROKER_TOKEN_SUBPATH_FILE_READ_ONLY")
+    for volume in pod["volumes"]:   # contains() tolerates extra live fields, so a Job that still names the refused audience would pass: refuse any explicit audience here
+        for source in (volume.get("projected") or {}).get("sources", []):
+            if "serviceAccountToken" in source:
+                _require("audience" not in source["serviceAccountToken"], "PROJECTED_TOKEN_MUST_NOT_NAME_AN_AUDIENCE")
     passed.append("job-pod-profile-for-observer-and-executing-identity")
+    if client_files is not None:
+        passed += check_client_objects(objects, client_files)
     return passed
 
 

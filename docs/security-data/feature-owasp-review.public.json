@@ -1,0 +1,2354 @@
+{
+  "schema": "dsh-owasp-feature-content-review/v1",
+  "source_basis": "741af6bccd327a877e2aacfc704d64059cc449ff",
+  "reviewed_date": "2026-11-12",
+  "content_owner": "Codex C5; proposed mappings for project owner review",
+  "taxonomy_url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+  "taxonomy_interpretation_source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+  "feature_source_sha256": "a5e026de9ff81fc2ae582c1c127da793720001b5aab12a61bcedd594d8acc7b7",
+  "references": [
+    {
+      "kind": "public-design-reference",
+      "label": "DQ agent safety design",
+      "sha256": "7fe84d37879b91964349a81a84d34762ebff965930596e93a1ccdd4b7a28115f",
+      "public_page": "AGENT_SAFETY_LAYERS.html",
+      "payload_included": false
+    },
+    {
+      "kind": "private-workbook",
+      "label": "Internal tool-and-risk assessment workbook",
+      "sha256": "214e604a349bf1955171504f4ba42e1f59fb01101fc717a4d9453ef6d860d937",
+      "public_page": null,
+      "payload_included": false
+    }
+  ],
+  "categories": {
+    "ASI01": "Agent Goal Hijack",
+    "ASI02": "Tool Misuse and Exploitation",
+    "ASI03": "Identity and Privilege Abuse",
+    "ASI04": "Agentic Supply Chain Vulnerabilities",
+    "ASI05": "Unexpected Code Execution",
+    "ASI06": "Memory and Context Poisoning",
+    "ASI07": "Insecure Inter-Agent Communication",
+    "ASI08": "Cascading Failures",
+    "ASI09": "Human-Agent Trust Exploitation",
+    "ASI10": "Rogue Agents"
+  },
+  "risk_controls": {
+    "1": "Prevent external leakage",
+    "2": "Prevent damage or excessive access",
+    "3": "Keep results contained"
+  },
+  "review_scope": "Row-by-row documentary interpretation of the current eighty feature dimensions. Existing primary/related/draft tags, roadmap status and operational evidence are preserved. No OWASP certification, implemented-control conclusion or live PASS is created.",
+  "remaining_reference_limit": "The internal assessment has a previously reconciled35-row English subset; three other worksheets and exact tool-to-feature identities remain unaccepted. No full workbook integration claim.",
+  "rows": [
+    {
+      "feature_id": 1,
+      "feature_name": "Identity source",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Identity source establishes which principal can exercise agent authority.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-1",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 2,
+      "feature_name": "AD/LDAP integration",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03"
+      ],
+      "applicable_categories": [
+        "ASI03"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "AD/LDAP maps enterprise principals to the identity boundary; it does not itself prove task authorization.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-2",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 3,
+      "feature_name": "Account provisioning",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Provisioning governs creation and removal of principals and their entitlements.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-3",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 4,
+      "feature_name": "User-to-session binding",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI07"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI07"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "User-session binding prevents one principal inheriting another principal's session authority.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-4",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 5,
+      "feature_name": "Task ownership",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Task ownership identifies the principal allowed to control and retrieve an agent task.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-5",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 6,
+      "feature_name": "Authentication",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Authentication establishes the caller before task or result operations.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-6",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 7,
+      "feature_name": "Authorization",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI03"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI03"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Authorization determines which actions an authenticated principal may perform.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-7",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 8,
+      "feature_name": "Least privilege",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI03"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI03"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Least privilege bounds delegated capabilities even when the model asks for more.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-8",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 9,
+      "feature_name": "Workspace isolation",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI05",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI05",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Workspace isolation contains unexpected code inside the assigned execution environment.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-9",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 10,
+      "feature_name": "Namespace isolation",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI05",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI05",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Namespace separation limits the resources unexpected code can discover or alter.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-10",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 11,
+      "feature_name": "Pod/process isolation",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI05",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI05",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Pod and process separation limits descendants and compromise propagation from executable agent output.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-11",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 12,
+      "feature_name": "Filesystem read controls",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI06"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI06"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Filesystem read restrictions constrain what executed code can inspect; identity and data controls also matter.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-12",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 13,
+      "feature_name": "Filesystem write controls",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI06"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI06"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Filesystem write restrictions constrain destructive code and tool-driven mutation within writable scope.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-13",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 14,
+      "feature_name": "Output-path restrictions",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI06"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI06"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Output paths constrain code-generated artifacts; audience authorization is a separate result-access check.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-14",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 15,
+      "feature_name": "Secret access",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI04",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI04",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Secret access concerns which identity may obtain credentials, not whether a secret happens to exist.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-15",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 16,
+      "feature_name": "Credential injection",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI04",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI04",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Credential injection must bind the intended task principal and avoid exposing unrelated authority.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-16",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 17,
+      "feature_name": "Credential persistence",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI04",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI04",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Credential persistence controls how long identity-bearing material remains reusable after the task.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-17",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 18,
+      "feature_name": "Local model enforcement",
+      "primary_category": "ASI02",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI03",
+        "ASI07"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI03",
+        "ASI07"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Local-model enforcement constrains use of model-call capabilities and unauthorized tool routes.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-18",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 19,
+      "feature_name": "Ability to change model",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Model-change permission is an authorization boundary; a changed model can also change goal adherence.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-19",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 20,
+      "feature_name": "Ability to change endpoint",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Endpoint-change permission bounds delegated routing authority and the destinations it can reach.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-20",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 21,
+      "feature_name": "External provider fallback",
+      "primary_category": "ASI02",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "External fallback is a model-call capability that can bypass the intended tool/provider boundary.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-21",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 22,
+      "feature_name": "Outbound network access",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI07",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI07",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Network egress constrains consequences of executed code; DNS and tool paths require their own probes.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-22",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 23,
+      "feature_name": "Internet dependency",
+      "primary_category": "ASI04",
+      "existing_related_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Internet dependency introduces external artifacts and suppliers into the agent execution chain.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-23",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 24,
+      "feature_name": "DNS and proxy controls",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI07",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI07",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "DNS and proxy restrictions must cover executable workloads and indirect network escape paths.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-24",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 25,
+      "feature_name": "Package installation",
+      "primary_category": "ASI04",
+      "existing_related_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Package installation changes dependencies and executable content in the agent supply chain.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-25",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 26,
+      "feature_name": "Tool installation",
+      "primary_category": "ASI02",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Tool installation determines which executable capabilities enter the tool surface.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-26",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 27,
+      "feature_name": "Shell access",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Shell access exposes execution semantics that can turn model instructions into operating-system actions.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-27",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 28,
+      "feature_name": "Command execution",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Command execution needs an enforced boundary between intended actions and unexpected commands.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-28",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 29,
+      "feature_name": "Code execution",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Code execution must contain generated or retrieved programs, not merely ask the model to behave.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-29",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 30,
+      "feature_name": "Subprocess and descendant control",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Descendant control prevents executable children escaping the task's execution and cancellation boundary.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-30",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 31,
+      "feature_name": "MCP/plugin/tool controls",
+      "primary_category": "ASI02",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI04",
+        "ASI07"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI04",
+        "ASI07"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "MCP and plugin controls govern tool discovery, tool invocation and argument-level capability use.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-31",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 32,
+      "feature_name": "Prompt/context handling",
+      "primary_category": "ASI01",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI06",
+        "ASI07",
+        "ASI09"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI06",
+        "ASI07",
+        "ASI09"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Prompt and context handling must separate user goals from instructions embedded in untrusted input.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-32",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 33,
+      "feature_name": "Sensitive-data minimization",
+      "primary_category": "ASI06",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI06",
+        "ASI09"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI06",
+        "ASI09"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Data minimization limits material placed in context; integrity and provenance remain distinct from confidentiality.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-33",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 34,
+      "feature_name": "Result routing",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI09"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI09"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Result routing binds delivered artifacts to authorized recipients rather than trusting model-selected addresses.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-34",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 35,
+      "feature_name": "Result ownership",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI09"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI09"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Result ownership prevents another principal claiming or retrieving the task's output.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-35",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 36,
+      "feature_name": "Result retention",
+      "primary_category": "ASI06",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Result retention governs persistent context and artifacts; poison, reset and deletion behavior need separate tests.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-36",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 37,
+      "feature_name": "Result sharing",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI07"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI07"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Result sharing is an authorization decision over recipients, links and subsequent access.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-37",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 38,
+      "feature_name": "Logging",
+      "primary_category": "ASI09",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI08",
+        "ASI09"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI08",
+        "ASI09"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "audit / evidence",
+      "mapping_rationale": "Logs help people challenge agent claims and distinguish observed execution from plausible explanations.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-38",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 39,
+      "feature_name": "Audit attribution",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI09"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI09"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "audit / evidence",
+      "mapping_rationale": "Audit attribution binds each action to its human, service and delegated task identity.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-39",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 40,
+      "feature_name": "Model-call evidence",
+      "primary_category": "ASI04",
+      "existing_related_categories": [
+        "ASI04",
+        "ASI06",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI04",
+        "ASI06",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "audit / evidence",
+      "mapping_rationale": "Model-call evidence records the actual model/provider/version chain rather than assuming source configuration ran.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-40",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 41,
+      "feature_name": "Cancellation",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Cancellation limits failure propagation by stopping the owned task and its admitted descendants.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-41",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 42,
+      "feature_name": "Timeout",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI06",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI06",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Timeout bounds the duration over which stalled work can exhaust or block shared services.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-42",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 43,
+      "feature_name": "Expiry",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI06",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI06",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Expiry limits the lifetime of task authority and stale work; it is not a substitute for cancellation proof.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-43",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 44,
+      "feature_name": "Cleanup",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI06",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI06",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Cleanup restores owned state after execution so one task's failure does not contaminate later work.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-44",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 45,
+      "feature_name": "Replay protection",
+      "primary_category": "ASI07",
+      "existing_related_categories": [
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Replay protection prevents a previously valid inter-agent message authorizing a second action.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-45",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 46,
+      "feature_name": "Duplicate-execution protection",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Duplicate-execution protection prevents retries and re-deliveries multiplying side effects.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-46",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 47,
+      "feature_name": "Recovery after uncertain execution",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI04",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI04",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Uncertain-execution recovery must reconcile original state before retrying potentially completed actions.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-47",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 48,
+      "feature_name": "CPU/GPU resource limits",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "CPU and GPU limits reduce one task's ability to exhaust a shared execution service.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-48",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 49,
+      "feature_name": "Memory/PID/storage limits",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Memory, PID and storage limits contain resource exhaustion and its effects on other tasks.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-49",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 50,
+      "feature_name": "Concurrency",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Concurrency admission prevents aggregate demand creating a failure cascade across shared workers.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-50",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 51,
+      "feature_name": "Quota and budget controls",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI05",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Quota and budget controls bound aggregate usage; effective accounting must be read back independently.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-51",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 52,
+      "feature_name": "Node placement",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI05",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI05",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Node placement constrains where agent code executes and which host resources it can expose.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-52",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 53,
+      "feature_name": "Administrator policy control",
+      "primary_category": "ASI09",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI03",
+        "ASI09"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI03",
+        "ASI09"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Administrator policy controls reduce reliance on a persuasive agent to authorize its own actions.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-53",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 54,
+      "feature_name": "User configurability",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "User configurability is a privilege boundary around settings that can weaken runtime policy.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-54",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 55,
+      "feature_name": "Update and version management",
+      "primary_category": "ASI04",
+      "existing_related_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Update/version control governs changes to trusted agent, tool and dependency components.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-55",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 56,
+      "feature_name": "Source and artifact provenance",
+      "primary_category": "ASI04",
+      "existing_related_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "audit / evidence",
+      "mapping_rationale": "Source/artifact provenance links executable material to reviewed inputs and build history.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-56",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 57,
+      "feature_name": "Image and dependency provenance",
+      "primary_category": "ASI04",
+      "existing_related_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "audit / evidence",
+      "mapping_rationale": "Image/dependency provenance identifies the actual components inside the runnable agent environment.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-57",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 58,
+      "feature_name": "Offline operation",
+      "primary_category": "ASI04",
+      "existing_related_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "applicable_categories": [
+        "ASI04",
+        "ASI05"
+      ],
+      "three_risk_controls": [
+        "1"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Offline operation reduces external supply-chain dependence; it does not prove complete network isolation.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-58",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 59,
+      "feature_name": "Deployment complexity",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Deployment complexity can create inconsistent boundaries and propagate configuration failures across components.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-59",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 60,
+      "feature_name": "Operational ownership",
+      "primary_category": "ASI10",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Operational ownership assigns authority to identify and contain an agent deviating from its intended function.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-60",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 61,
+      "feature_name": "Rollback",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI04",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI04",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Rollback contains failures by restoring a known source/image/configuration state with retained evidence.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-61",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 62,
+      "feature_name": "Fail-closed operation",
+      "primary_category": "ASI02",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI03",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI03",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Fail-closed behavior prevents tools acting when required identity, policy or admission checks are unavailable.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-62",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 63,
+      "feature_name": "Current implementation status",
+      "primary_category": "ALL",
+      "existing_related_categories": [
+        "ALL"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI03",
+        "ASI04",
+        "ASI05",
+        "ASI06",
+        "ASI07",
+        "ASI08",
+        "ASI09",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "1",
+        "2",
+        "3"
+      ],
+      "dq_design_layer": "Cross-cutting evidence",
+      "control_family": "Cross-cutting evidence",
+      "mapping_rationale": "Implementation status is an evidence obligation shared by all ten domains, not an eleventh OWASP risk.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-63",
+      "original_tag_status": "cross-cutting",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 64,
+      "feature_name": "Current verified limitations",
+      "primary_category": "ALL",
+      "existing_related_categories": [
+        "ALL"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI03",
+        "ASI04",
+        "ASI05",
+        "ASI06",
+        "ASI07",
+        "ASI08",
+        "ASI09",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "1",
+        "2",
+        "3"
+      ],
+      "dq_design_layer": "Cross-cutting evidence",
+      "control_family": "Cross-cutting evidence",
+      "mapping_rationale": "Verified limitations qualify claims in every domain; an absent test cannot be presented as successful enforcement.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-64",
+      "original_tag_status": "cross-cutting",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 65,
+      "feature_name": "Residual risk",
+      "primary_category": "ALL",
+      "existing_related_categories": [
+        "ALL"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI03",
+        "ASI04",
+        "ASI05",
+        "ASI06",
+        "ASI07",
+        "ASI08",
+        "ASI09",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "1",
+        "2",
+        "3"
+      ],
+      "dq_design_layer": "Cross-cutting evidence",
+      "control_family": "Cross-cutting evidence",
+      "mapping_rationale": "Residual risk records exposure remaining across domains after the tested controls are applied.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-65",
+      "original_tag_status": "cross-cutting",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 66,
+      "feature_name": "Evidence required for acceptance",
+      "primary_category": "ALL",
+      "existing_related_categories": [
+        "ALL"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI03",
+        "ASI04",
+        "ASI05",
+        "ASI06",
+        "ASI07",
+        "ASI08",
+        "ASI09",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "1",
+        "2",
+        "3"
+      ],
+      "dq_design_layer": "Cross-cutting evidence",
+      "control_family": "Cross-cutting evidence",
+      "mapping_rationale": "Acceptance evidence must bind exact source, runtime and behavior across all ten domains.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-66",
+      "original_tag_status": "cross-cutting",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 67,
+      "feature_name": "Event source admission and normalization",
+      "primary_category": "ASI01",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI06",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI06",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Event normalization and admission prevent untrusted event content being promoted into an agent instruction.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-67",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 68,
+      "feature_name": "Fast Path and Slow Path policy separation",
+      "primary_category": "ASI01",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI06",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI06",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Fast/slow path separation prevents low-trust input bypassing goal, policy or approval checks.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-68",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 69,
+      "feature_name": "Router global coordination and memory",
+      "primary_category": "ASI06",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI06",
+        "ASI07",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI06",
+        "ASI07",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Router memory coordinates context that can persist malicious or misattributed instructions across tasks.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-69",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 70,
+      "feature_name": "Thread subscription and pass-through authorization",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI07",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI07",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Thread subscription binds who may receive or pass through task context across authorization boundaries.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-70",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 71,
+      "feature_name": "Worker context isolation",
+      "primary_category": "ASI06",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI07",
+        "ASI08"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI07",
+        "ASI08"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Worker context isolation prevents another task's memory or instructions contaminating this worker.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-71",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 72,
+      "feature_name": "Inline and Spill context management",
+      "primary_category": "ASI06",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI06"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI06"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Inline/spill handling preserves context identity and authorization when content moves between storage forms.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-72",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 73,
+      "feature_name": "Chain of Recall reference authorization",
+      "primary_category": "ASI06",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI06",
+        "ASI07"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI06",
+        "ASI07"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Recall references require provenance and permission checks before stored context re-enters a task.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-73",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 74,
+      "feature_name": "Asynchronous and full-duplex task control",
+      "primary_category": "ASI08",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Asynchronous/full-duplex control must reconcile concurrent task states and contain lost or repeated signals.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-74",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 75,
+      "feature_name": "Speculative execution control",
+      "primary_category": "ASI10",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI03",
+        "ASI08",
+        "ASI09",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI02",
+        "ASI03",
+        "ASI08",
+        "ASI09",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Speculative execution can diverge from approved goals before its result is selected or authorized.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-75",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 76,
+      "feature_name": "Multi-channel audience policy",
+      "primary_category": "ASI03",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI07",
+        "ASI09"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI07",
+        "ASI09"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "policy / human control",
+      "mapping_rationale": "Multi-channel audience policy binds context and outputs to recipients across different delivery surfaces.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-76",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 77,
+      "feature_name": "Compute and persistent-state separation",
+      "primary_category": "ASI06",
+      "existing_related_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI03",
+        "ASI06",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Sandbox",
+      "control_family": "infrastructure / resource control",
+      "mapping_rationale": "Compute/state separation limits persistent contamination and gives each task an explicit state lifecycle.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-77",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 78,
+      "feature_name": "Remote endpoint daemon trust",
+      "primary_category": "ASI05",
+      "existing_related_categories": [
+        "ASI02",
+        "ASI03",
+        "ASI04",
+        "ASI05",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI02",
+        "ASI03",
+        "ASI04",
+        "ASI05",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "Remote endpoint trust constrains where executable work runs; endpoint identity and provenance are separate prerequisites.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-78",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 79,
+      "feature_name": "Watchdog independence and remediation authority",
+      "primary_category": "ASI10",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI08",
+        "ASI09",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI08",
+        "ASI09",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "2"
+      ],
+      "dq_design_layer": "Verification",
+      "control_family": "audit / evidence",
+      "mapping_rationale": "An independent watchdog needs bounded authority to detect and contain a deviating agent.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-79",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    },
+    {
+      "feature_id": 80,
+      "feature_name": "A2A context and permission boundary",
+      "primary_category": "ASI07",
+      "existing_related_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI06",
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "applicable_categories": [
+        "ASI01",
+        "ASI03",
+        "ASI06",
+        "ASI07",
+        "ASI08",
+        "ASI10"
+      ],
+      "three_risk_controls": [
+        "3"
+      ],
+      "dq_design_layer": "Guardrails",
+      "control_family": "harness / deterministic control",
+      "mapping_rationale": "A2A context exchange must preserve sender identity, delegated permissions and message integrity.",
+      "review_state": "content-reviewed; proposed mapping, owner acceptance pending",
+      "mapping_limit": "A relevant control dimension is not a claim that this row prevents the OWASP risk. Existing related tags remain historical mapping; no executed test or live acceptance is added.",
+      "dq_reference_scope": "Design-layer vocabulary and control placement only; DQ-specific SQL/database controls are not assumed to implement this feature.",
+      "internal_reference_scope": "Control-family vocabulary only; no private tool-row identity or workbook payload is published.",
+      "evidence_link": "FEATURE_CONTROL_TRACEABILITY.html#feature-80",
+      "original_tag_status": "draft-inferred",
+      "operational_evidence_unchanged": true
+    }
+  ]
+}

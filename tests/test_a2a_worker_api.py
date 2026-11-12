@@ -59,6 +59,27 @@ class WorkerAPITests(TestCase):
             api.read_namespace()
         self.assertEqual(len(self.connections),1)
 
+    def test_namespace_refusal_names_which_check_failed_and_stays_strict(self):
+        # Diagnostic only: V9 stopped with the generic code and nobody could tell a 403 from a label or UID mismatch.
+        good=self.namespace()
+        def bad(mutate):
+            value=json.loads(json.dumps(good));mutate(value);return value
+        cases=[((403,dict(kind='Status',reason='Forbidden')),'_HTTP_403'),
+               ((401,dict(kind='Status')),'_HTTP_401'),
+               ((200,bad(lambda v:v.update(kind='Status'))),'_KIND'),
+               ((200,bad(lambda v:v['metadata'].update(name='other'))),'_NAME'),
+               ((200,bad(lambda v:v['metadata'].update(uid='33333333-3333-4333-8333-333333333333'))),'_UID'),
+               ((200,bad(lambda v:v['metadata'].update(deletionTimestamp='2026-11-11T00:00:00Z'))),'_DELETING'),
+               ((200,bad(lambda v:v['metadata'].update(resourceVersion=''))),'_RESOURCE_VERSION'),
+               ((200,bad(lambda v:v['metadata']['labels'].update({'dsh.example.com/runtime-environment':'prod'}))),'_LABEL_ENVIRONMENT'),
+               ((200,bad(lambda v:v['metadata']['labels'].pop('dsh.example.com/runtime-purpose'))),'_LABEL_PURPOSE')]
+        for response,suffix in cases:
+            with self.subTest(suffix=suffix),self.assertRaises(ValueError) as caught:
+                self.api([response]).read_namespace()
+            self.assertEqual(str(caught.exception),'WORKER_NAMESPACE_IDENTITY_OR_CLASSIFICATION_REFUSED'+suffix)
+            self.assertRegex(str(caught.exception),r'^[A-Z][A-Z0-9_]{2,80}$')       # still a fixed code the stop path can store
+        self.assertEqual(self.api([(200,good)]).read_namespace()['metadata']['uid'],NS_UID)
+
     def test_uncertain_create_has_exactly_one_post_and_no_retry(self):
         api=self.api([(200,self.namespace()),(500,dict(kind='Status',reason='InternalError'))])
         with self.assertRaisesRegex(ValueError,'CREATE_UNCERTAIN_NO_RESEND'):

@@ -54,27 +54,6 @@ The [Kubernetes Service documentation](https://kubernetes.io/docs/concepts/servi
 
 The managed route keeps LiteLLM and the guard between clients and the GPU. A direct DSH-to-GPU route would bypass those authorization, budgeting and admission controls; it is not the qualified managed route simply because the backend exposes an OpenAI-compatible API.
 
-## Separate GPU backend: setup steps
-
-1. Deploy and qualify the model server on the GPU machine. Keep the checkpoint, tokenizer, chat template, scheduler and 1M admission assumptions consistent with the qualified profile. The remote server must support the guard's `/v1/models`, `/v1/tokenize`, `/v1/chat/completions`, `/generate` and `/abort_request` paths. A generic chat-only OpenAI endpoint does not establish 1M compatibility.
-2. Provision private DNS and a fixed ingress/VIP for that backend. Use HTTPS with a trusted certificate, or an approved private encrypted network. Do not expose the unauthenticated model backend publicly. Restrict its firewall to the LiteLLM/forwarder egress identity. If custom CA or mutual TLS is required, qualify a gateway image/trust configuration that supports it; this renderer does not create a new CA, client certificate or backend authentication scheme.
-3. Prepare LiteLLM's credential and database Secrets as described in the [GPU setup guide](https://github.com/skunpoj/dsh_setup/blob/main/gpu-stack/README.md). Do not put passwords, API keys or database URLs in settings JSON.
-4. Copy `gpu-stack/settings.remote-backend.example.json` to a private file. Replace the namespace, image digest, Secret names, backend origin and host addresses. `192.0.2.40/32` is a documentation placeholder. Use actual approved private destination `/32` or `/128` host CIDRs. Omit `modelClaim` in remote mode.
-5. Render and inspect the candidate:
-
-```sh
-python gpu-stack/render.py \
-  --settings /private/remote-backend.json \
-  --output /private/inference-remote-candidate.yaml
-kubectl apply --dry-run=server -f /private/inference-remote-candidate.yaml
-```
-
-Remote mode emits only the gateway configuration, LiteLLM/forwarder Deployment, Service and boundary policy. It does not deploy weights, reserve GPUs, install scheduler patches on the remote machine or change its configuration.
-
-6. Review policy differences before applying anything. The renderer's Service is named `local-inference`, while current managed clients use the logical `litellm` alias. Bind the approved gateway address through the intended Service/relay during a controlled handover; generated manifests alone do not retarget existing workers. Its ingress policy expects approved caller pods labelled `inference-client: allowed`; grant that label and the corresponding caller-side egress only to intended private runtimes. Supply the database selector/policy required by the actual database. Kubernetes NetworkPolicy cannot select an arbitrary FQDN: permit only the resolved private host addresses and required port. Update the approved address set when a backend VIP changes. NetworkPolicy is additive, so review all policies selecting the workload.
-7. From the actual caller environment, verify DNS, certificate validation, authenticated model access, exact tokenization and a synthetic streaming response. Then verify tools, cancellation, a controlled long-context task, short-request responsiveness, browser/terminal behavior and state persistence. Repeat representative egress-denial checks. A dry-run or correct small reply does not prove remote 1M performance.
-8. Preserve existing Service selectors/ports, Deployment specifications, image digests and data mounts for rollback. Change only the intended inference route. Restore routing/configuration on regression; never restore an old history copy over newer user work.
-
 ## DNS, network and data boundaries
 
 No Internet means public egress is denied while explicitly required internal services remain reachable. An approved internal LiteLLM or GPU FQDN can be on another machine without enabling general Internet access. DNS resolution and TCP access are separate controls: both must be permitted narrowly. A relay does not justify allowing arbitrary hosts, wildcard public DNS or `0.0.0.0/0` egress.

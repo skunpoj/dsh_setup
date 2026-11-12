@@ -23,6 +23,11 @@ spec=importlib.util.spec_from_file_location('qualified_launcher',sys.argv[1])
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 assert ctypes.CDLL(None,use_errno=True).prctl(36,1,0,0,0)==0
 with tempfile.TemporaryDirectory() as directory:
+    # The launcher (run as root in the image build) now runs the client as the fixed agent uid 10001 (banking_process_identity.agent_kwargs), so the synthetic client
+    # and its descendant cannot write into this root-created 0700 directory. The qualification is about process-group/descendant tracking, not identity: let ANY uid
+    # create the marker here and keep the real uid drop in place. The fixture (root) still reads the marker and the launcher's stop_client_group still has to kill
+    # the descendant, which is exactly what is asserted below.
+    os.chmod(directory,0o777)
     marker=Path(directory)/'descendant'
     program="import os,time;from pathlib import Path;pid=os.fork();Path(%r).write_text(str(os.getpid())) if pid==0 else None;time.sleep(30) if pid==0 else time.sleep(.2)" % str(marker)
     done=threading.Event()

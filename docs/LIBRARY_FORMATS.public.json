@@ -1,0 +1,267 @@
+{
+  "schema": "multiharness-library-formats/v1",
+  "source_basis": "5cef39b0ca1e9f666fde737e77f1d9ee61646062",
+  "records": [
+    {
+      "path": "DSH_Gateway_and_Registry_Code_Walkthrough_20261026.pptx",
+      "kind": "PowerPoint (.pptx)",
+      "units": 31,
+      "sha256": "83fe510236df22d09765c106d2f186fa8cab8b95a97a8df98295beee59598300",
+      "bytes": 161413,
+      "owner_library": "DSH / MultiHarness",
+      "edition_alignment": "Current-state revision and visual verification pending",
+      "delivery_url": null,
+      "delivery_body_matches_source": false,
+      "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+      "delivery_state": "Not served at checked library URL (404)",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ]
+    },
+    {
+      "path": "DSH_Technical_Code_Companion_59slides_20261026.pptx",
+      "kind": "PowerPoint (.pptx)",
+      "units": 59,
+      "sha256": "a72ab48947a87a72ecae56b8f88d324165ef31a07bd84364fd3e278f5f15afe4",
+      "bytes": 303753,
+      "owner_library": "DSH / MultiHarness",
+      "edition_alignment": "Current-state revision and visual verification pending",
+      "delivery_url": null,
+      "delivery_body_matches_source": false,
+      "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+      "delivery_state": "Not served at checked library URL (404)",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ]
+    },
+    {
+      "path": "gpu-platform/GPU_PLATFORM_REVIEW.pdf",
+      "kind": "PDF",
+      "units": 17,
+      "sha256": "47999676ff7d0a93618ef2599f7235b274c557db6d8106ca0cb68468e84b4763",
+      "bytes": 537984,
+      "owner_library": "GPU / DeepInfer-DSpark (legacy DSH copy)",
+      "edition_alignment": "Current-state revision and visual verification pending",
+      "delivery_url": null,
+      "delivery_body_matches_source": true,
+      "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+      "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ]
+    },
+    {
+      "path": "presentations/APP_LOGIN_MAIN_TEST_EN.pptx",
+      "kind": "PowerPoint (.pptx)",
+      "units": 3,
+      "sha256": "ac948ca909c4934a4b08b9865a1b530a65628a1ae3eba8be2f5a90d7879190ee",
+      "bytes": 28108,
+      "owner_library": "DSH / MultiHarness",
+      "edition_alignment": "Current-state content revised; all three slides rendered and visually inspected. Native PowerPoint verification not performed.",
+      "delivery_url": null,
+      "delivery_body_matches_source": false,
+      "delivery_observed_utc": null,
+      "delivery_state": "Revised edition pending authority integration, release and served-body verification.",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ],
+      "prior_edition_delivery": {
+        "sha256": "854488769b92ca1eb9553a2d4a646ebcbc2268e937cd2904f5f2d6f4a5a6991a",
+        "bytes": 28384,
+        "delivery_url": null,
+        "delivery_body_matches_source": true,
+        "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+        "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending"
+      },
+      "generator": "scripts/revise_app_login_presentation.py",
+      "generation_source_sha256": "854488769b92ca1eb9553a2d4a646ebcbc2268e937cd2904f5f2d6f4a5a6991a",
+      "render_verification": {
+        "slides": 3,
+        "engine": "Artifact Tool local import/render",
+        "visual_inspection": "all three slides individually inspected",
+        "package_layout_font_import": "PASS",
+        "native_powerpoint": false
+      }
+    },
+    {
+      "path": "presentations/DSH_Domain_Routing_English.pptx",
+      "kind": "PowerPoint (.pptx)",
+      "units": 17,
+      "sha256": "cdab6a5fe4e0922bd08f0fdada8d098b98e8be3a4022d2f8ed0c135ae3d25eb8",
+      "bytes": 91168,
+      "owner_library": "DSH / MultiHarness",
+      "edition_alignment": "Current-state content revised; all seventeen slides rendered and visually inspected. Native PowerPoint verification not performed.",
+      "delivery_url": null,
+      "delivery_body_matches_source": false,
+      "delivery_observed_utc": null,
+      "delivery_state": "Revised edition pending authority integration, release and served-body verification.",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ],
+      "prior_edition_delivery": {
+        "sha256": "64e6401994aff11ad727da84877e41595850e8a5f5056a070258c2d1584bb09f",
+        "bytes": 88901,
+        "delivery_url": null,
+        "delivery_body_matches_source": false,
+        "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+        "delivery_state": "Not served at checked library URL (404)"
+      },
+      "generator": "scripts/revise_domain_routing_presentation.py",
+      "generation_source_sha256": "64e6401994aff11ad727da84877e41595850e8a5f5056a070258c2d1584bb09f",
+      "render_verification": {
+        "slides": 17,
+        "engine": "Artifact Tool local import/render",
+        "visual_inspection": "all seventeen slides individually inspected",
+        "package_layout_font_import": "PASS",
+        "native_powerpoint": false
+      }
+    },
+    {
+      "path": "presentations/DSH_Main_Test_Status_English.pptx",
+      "kind": "PowerPoint (.pptx)",
+      "units": 3,
+      "sha256": "27dad38ab6daa3d83af9920b1da3912ca6add4b996b92c357474f6bbc5a81726",
+      "bytes": 28311,
+      "owner_library": "DSH / MultiHarness",
+      "edition_alignment": "Current-state content revised; all three slides rendered and visually inspected. Native PowerPoint verification not performed.",
+      "delivery_url": null,
+      "delivery_body_matches_source": false,
+      "delivery_observed_utc": null,
+      "delivery_state": "Revised edition pending authority integration, release and served-body verification.",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ],
+      "prior_edition_delivery": {
+        "sha256": "a507e0ad411c86d935c653d936396d6523140ff8a0ccf1279633f3da4fdba29a",
+        "bytes": 28628,
+        "delivery_url": null,
+        "delivery_body_matches_source": false,
+        "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+        "delivery_state": "Not served at checked library URL (404)"
+      },
+      "generator": "scripts/revise_main_test_presentation.py",
+      "generation_source_sha256": "a507e0ad411c86d935c653d936396d6523140ff8a0ccf1279633f3da4fdba29a",
+      "render_verification": {
+        "slides": 3,
+        "engine": "Artifact Tool local import/render",
+        "visual_inspection": "all three slides individually inspected",
+        "package_layout_font_import": "PASS",
+        "native_powerpoint": false
+      }
+    },
+    {
+      "path": "presentations/DSH_Pilot_With_Domain_Routing.pptx",
+      "kind": "PowerPoint (.pptx)",
+      "units": 48,
+      "sha256": "a0765caf0abdd1c58bb3f059c1970e5d6fd2c3e7125f5fa9cc7dd5538ea1f948",
+      "bytes": 213133,
+      "owner_library": "DSH / MultiHarness",
+      "edition_alignment": "Current-state revision and visual verification pending",
+      "delivery_url": null,
+      "delivery_body_matches_source": false,
+      "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+      "delivery_state": "Not served at checked library URL (404)",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ]
+    },
+    {
+      "path": "presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pdf",
+      "kind": "PDF",
+      "units": 24,
+      "sha256": "724f64cfafecafc1fbb051c2243d4a2f9f6c24284627333b99d6b962b5a0b095",
+      "bytes": 1073666,
+      "owner_library": "DSH / MultiHarness",
+      "edition_alignment": "Current-state revision and visual verification pending",
+      "delivery_url": null,
+      "delivery_body_matches_source": true,
+      "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+      "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ]
+    },
+    {
+      "path": "presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pptx",
+      "kind": "PowerPoint (.pptx)",
+      "units": 24,
+      "sha256": "3d1855f6277e29d95af0e4c389b7991966d52381390542d6eb3b07e50d13e142",
+      "bytes": 815791,
+      "owner_library": "DSH / MultiHarness",
+      "edition_alignment": "Current-state revision and visual verification pending",
+      "delivery_url": null,
+      "delivery_body_matches_source": true,
+      "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+      "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ]
+    },
+    {
+      "path": "presentations/guarding-the-value-stream/Guarding_the_Value_Stream_Story.pdf",
+      "kind": "PDF",
+      "units": 26,
+      "sha256": "de6f7d061a2393417b2b5a87383b2c73ff59cfcc881d7743cd87306895dbcba2",
+      "bytes": 53347,
+      "owner_library": "DSH / MultiHarness",
+      "edition_alignment": "Current-state revision and visual verification pending",
+      "delivery_url": null,
+      "delivery_body_matches_source": true,
+      "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+      "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ]
+    },
+    {
+      "path": "presentations/trust-is-an-architecture/Trust_Is_an_Architecture.pptx",
+      "kind": "PowerPoint (.pptx)",
+      "units": 27,
+      "sha256": "ffb9bb1530f1af30119774de5541efb1c85a7e6c11b0ac0c25c05cc6e269b44c",
+      "bytes": 908106,
+      "owner_library": "DSH / MultiHarness",
+      "edition_alignment": "Current-state revision and visual verification pending",
+      "delivery_url": null,
+      "delivery_body_matches_source": true,
+      "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
+      "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending",
+      "revision_requirements": [
+        "Current OpenShell/A2A qualification statement",
+        "Relevant mappings to both references and three risk controls",
+        "Links to applicable rows of the canonical 80-row OWASP matrix",
+        "Component/deployment terminology and exact evidence scope"
+      ]
+    }
+  ],
+  "delivery_scope": "Exact delivery receipts refer to the project-owned DSH host. This public source mirror does not publish those binary editions or assert runtime acceptance."
+}

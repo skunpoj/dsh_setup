@@ -42,6 +42,22 @@ class GeneratorTests(unittest.TestCase):
         self.package = package_raw(self.spec)
         self.objects = q.build_objects(self.spec, wheel_raw=WHEEL, package_admission_raw=self.package)
 
+
+    def test_shared_objects_are_byte_identical_across_the_three_cases_except_the_job(self):
+        # V12 case C was refused at NextJob (READBACK_VALUE_MISMATCH role-observer.rules[1].resourceNames[0]): the shared Role named only its own Job.
+        built = {}
+        for name in ("sdk-qualification-b", "sdk-qualification-c", "sdk-qualification-d"):
+            s = spec(jobName=name)
+            built[name] = q.build_objects(s, wheel_raw=WHEEL, package_admission_raw=package_raw(s))
+        reference = built["sdk-qualification-b"]
+        for name, objects in built.items():
+            for key in reference:
+                if key == "job":
+                    continue
+                self.assertEqual(json.dumps(objects[key], sort_keys=True), json.dumps(reference[key], sort_keys=True), name + " " + key)
+        role = reference["role-observer"]["rules"][1]
+        self.assertEqual(role["resourceNames"], ["sdk-qualification-b", "sdk-qualification-c", "sdk-qualification-d"])   # exact names, nothing wider
+        self.assertNotIn("*", json.dumps(role))
     def check(self, objects=None, s=None):
         return q.check_objects(objects or self.objects, s or self.spec, wheel_raw=WHEEL, package_admission_raw=self.package)
 
@@ -357,9 +373,10 @@ class ProtectedModulesAcceptTheObjectsTests(unittest.TestCase):
         files = {identity.ROOT / "pod-uid": UIDS["pod_uid"].encode(), identity.ROOT / "pod-name": self.pod_name.encode(),
                  identity.ROOT / "namespace": self.spec["namespace"].encode()}
         lines = []
-        for index, field in enumerate(identity.FIELDS):
-            root = f"/var/lib/kubelet/pods/{UIDS['pod_uid']}/volume-subpaths/{identity.VOLUME}/{self.spec['containerName']}/{index}"
-            lines.append(f"{index + 10} 1 8:1 {root} {identity.ROOT / field} ro - ext4 /dev/synthetic rw")
+        for index, field in enumerate(identity.FIELDS):   # the layout OBSERVED on the RKE2 node (probe 10 Nov 2026) plus the two kubelet-owned Pod-binding mounts
+            lines.append(f"{index + 10} 1 0:2391 /..2026_11_10_14_37_31.3061124380/{field} {identity.ROOT / field} ro,relatime - tmpfs tmpfs rw,seclabel,size=131072k,inode64")
+        lines.append(f"20 1 253:1 /var/lib/kubelet/pods/{UIDS['pod_uid']}/etc-hosts /etc/hosts rw,relatime - xfs /dev/synthetic rw")
+        lines.append(f"21 1 253:1 /var/lib/kubelet/pods/{UIDS['pod_uid']}/containers/{self.spec['containerName']}/a1b2c3d4 /dev/termination-log rw,relatime - xfs /dev/synthetic rw")
         files[identity.MOUNTINFO] = ("\n".join(lines) + "\n").encode()
 
         def reader(path, limit):

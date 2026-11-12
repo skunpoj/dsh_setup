@@ -7,6 +7,11 @@ No API client, credential lookup or automatic create/retry exists here.
 import re
 
 
+def worker_pod_name(task_id):
+    """The one name a worker Pod for this task can have (also used to prove that none exists)."""
+    return 'a2a-'+task_id
+
+
 def worker_pod(*, namespace, task_id, image, workspace_claim, project_subpath,
                credential_secret, correlation_id, writes=False):
     for value in (namespace, workspace_claim, credential_secret):
@@ -27,7 +32,7 @@ def worker_pod(*, namespace, task_id, image, workspace_claim, project_subpath,
                        'capabilities':{'drop':['ALL'],'add':['KILL','SETGID','SETUID']}}
     guard_security = {**security,'runAsUser':10001,'runAsGroup':10001,'runAsNonRoot':True}
     return {'apiVersion':'v1','kind':'Pod','metadata':{
-        'name':'a2a-'+task_id,'namespace':namespace,
+        'name':worker_pod_name(task_id),'namespace':namespace,
         'labels':{'app.kubernetes.io/part-of':'dsh-a2a-qualification',
                   'dsh.example.com/runtime-environment':'test',
                   'dsh.example.com/runtime-purpose':'qualification',

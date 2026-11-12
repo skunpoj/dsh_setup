@@ -13,7 +13,8 @@ class FakeApi:
         self.ready = ready
         self.maps = {'dsh-login-recovery-old': {'data': {k: 'old' for k in GATEWAY_KEYS}}}
         self.dep = {'metadata': {'generation': 1}, 'spec': {'replicas': 1, 'template': {'spec': {'volumes': [
-            {'name': 'gateway-source', 'configMap': {'name': 'dsh-login-recovery-old'}}, {'name': 'routing', 'configMap': {'name': 'keep'}}]}}},
+            {'name': 'gateway-source', 'configMap': {'name': 'dsh-login-recovery-old'}}, {'name': 'routing', 'configMap': {'name': 'keep'}}],
+            'containers': [{'name': 'gateway', 'env': [{'name': 'PORT', 'value': '3080'}] + [{'name': k, 'value': v} for k, v in r.gateway_env().items()]}]}}},
             'status': {'observedGeneration': 1, 'updatedReplicas': 1, 'readyReplicas': 1, 'replicas': 1}}
         self.patches, self.created = [], []
 
@@ -29,6 +30,12 @@ class FakeApi:
         for v in self.dep['spec']['template']['spec']['volumes']:
             if v['name'] == volume['name']:
                 v['configMap'] = volume['configMap']
+        for c in patch['spec']['template']['spec'].get('containers', []):  # strategic merge of env by name
+            live = next(x for x in self.dep['spec']['template']['spec']['containers'] if x['name'] == c['name'])
+            for e in c.get('env', []):
+                live['env'] = [x for x in live['env'] if x['name'] != e['name']]
+                if e.get('$patch') != 'delete':
+                    live['env'].append(e)
         self.dep['metadata']['generation'] += 1
         self.dep['status'] = {'observedGeneration': self.dep['metadata']['generation'], 'updatedReplicas': 1,
                               'readyReplicas': 1 if self.ready or len(self.patches) > 1 else 0, 'replicas': 1}
@@ -86,6 +93,69 @@ class RolloutTests(unittest.TestCase):
             r.wait_ready = r.wait_ready_original
         self.assertEqual(api.dep['spec']['template']['spec']['volumes'][0]['configMap']['name'], 'dsh-login-recovery-old')
         self.assertIn('dsh-login-recovery-old', api.maps, 'The previous source is never deleted')
+
+    def test_gateway_env_file_is_reviewed_and_https_only(self):
+        env = r.gateway_env()
+        self.assertTrue(env and all(r._GATEWAY_ENV_NAME.fullmatch(k) and v.startswith('https://') for k, v in env.items()))
+        for name in ['DSH_THEME_DEFAULT_MARK_LIGHT_URL', 'DSH_THEME_DEFAULT_MARK_DARK_URL']:
+            self.assertIn(name, env)
+        import json, tempfile, os
+        for bad in [{'env': {'DSH_ADMIN_USERS': 'https://x.example/a'}}, {'env': {'DSH_THEME_DEFAULT_MARK_URL': 'http://x.example/a.png'}},
+                    {'env': {'DSH_THEME_DEFAULT_MARK_URL': 'https://x.example/a.png?u=1'}}, {'env': []}]:
+            with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
+                json.dump(bad, f)
+            try:
+                with self.assertRaises(ValueError):
+                    r.gateway_env(f.name)
+            finally:
+                os.unlink(f.name)
+
+    def test_env_only_drift_is_applied_and_rolled_back_by_name(self):
+        api, args = FakeApi(), Args()
+        args.apply = True
+        self.assertEqual(r.rollout(api, 'gateway', args, log=lambda *_: None), 0)  # bring the source current
+        container = api.dep['spec']['template']['spec']['containers'][0]
+        container['env'] = [e for e in container['env'] if not e['name'].startswith('DSH_THEME_DEFAULT_MARK')]
+        plan = []
+        args.apply = False
+        self.assertEqual(r.rollout(api, 'gateway', args, log=plan.append), 0)
+        self.assertIn('DSH_THEME_DEFAULT_MARK_LIGHT_URL', plan[0], 'the plan names the env change')
+        args.apply = True
+        before = len(api.patches)
+        self.assertEqual(r.rollout(api, 'gateway', args, log=lambda *_: None), 0)
+        self.assertEqual(len(api.patches), before + 1, 'env drift alone triggers one patch')
+        env = {e['name']: e.get('value') for e in container['env']}
+        self.assertEqual({k: env.get(k) for k in r.gateway_env()}, r.gateway_env())
+        self.assertEqual(env['PORT'], '3080', 'other env is untouched')
+        self.assertEqual(r.rollout(api, 'gateway', args, log=lambda *_: None), 0)
+        self.assertEqual(len(api.patches), before + 1, 'idempotent')
+
+    def test_failed_rollout_restores_previous_env(self):
+        api, args = FakeApi(ready=False), Args()
+        args.apply = True
+        container = api.dep['spec']['template']['spec']['containers'][0]
+        container['env'] = [{'name': 'PORT', 'value': '3080'}, {'name': 'DSH_THEME_DEFAULT_LOGO_LIGHT_URL', 'value': 'https://old.example/logo.png'}]
+        r.wait_ready_original = r.wait_ready
+        try:
+            r.wait_ready = lambda api_, name, timeout=0, settle=0: api_.dep['status']['readyReplicas'] == 1
+            self.assertEqual(r.rollout(api, 'gateway', args, log=lambda *_: None), 1)
+        finally:
+            r.wait_ready = r.wait_ready_original
+        env = {e['name']: e.get('value') for e in container['env']}
+        self.assertEqual(env, {'PORT': '3080', 'DSH_THEME_DEFAULT_LOGO_LIGHT_URL': 'https://old.example/logo.png'},
+                         'changed names get their old value back, added names are removed')
+
+    def test_env_from_reference_is_never_overwritten(self):
+        api, args = FakeApi(), Args()
+        api.dep['spec']['template']['spec']['containers'][0]['env'].append(
+            {'name': 'DSH_THEME_DEFAULT_MARK_URL', 'valueFrom': {'configMapKeyRef': {'name': 'x', 'key': 'y'}}})
+        r.gateway_env_original = r.gateway_env
+        try:
+            r.gateway_env = lambda path=None: {'DSH_THEME_DEFAULT_MARK_URL': 'https://x.example/seal.png'}
+            with self.assertRaises(RuntimeError):
+                r.rollout(api, 'gateway', args, log=lambda *_: None)
+        finally:
+            r.gateway_env = r.gateway_env_original
 
     def test_role_rules_are_only_added(self):
         existing = [{'apiGroups': [''], 'resources': ['services'], 'verbs': ['get', 'create']},
@@ -214,14 +284,17 @@ class SidecarTests(unittest.TestCase):
         self.assertEqual(sorted(files), sorted(r.SIDECAR['files']))
 
     def test_baseline_covers_gateway_output_guard_and_matches_the_confirmed_live_hash(self):
-        # The live ConfigMap was read read-only on 2026-11-10 (LANE6-SAFEGUARDS-DEPLOY-STAGE-GAP-FOUND)
-        # and gateway_output_guard.py's content hashed to exactly this value, matching main's
-        # pre-fix source. The baseline must record that so a real rollout refuses unless the
-        # live file still matches (or is explicitly re-reviewed).
+        # Re-reviewed 2026-11-11 (LANE6-PARALLEL-TOOLCALL-FIX-20261111): a fresh read-only
+        # kubectl get configmap litellm-interactive-e25cca90f89c (the ConfigMap the live
+        # Deployment litellm actually mounts) found gateway_output_guard.py already live at
+        # the stop_sequences-fix hash -- the earlier bdd659ff... baseline entry was stale (the
+        # stop_sequences fix had shipped since that entry was last reviewed, without the
+        # baseline being advanced to match). The baseline must record the live hash so a real
+        # rollout refuses unless the live file still matches.
         files = r.load_baseline()
         self.assertIn('gateway_output_guard.py', files)
         self.assertEqual(files['gateway_output_guard.py'],
-                          '97f822e003df5f1e9101cc0b02183929131872546cd2c4cc695a09e73399d36d')
+                          'c9e6c90ad396a9ab0c833f1020c9ec7dbd15efff3080afc625ae27139f6bd8e6')
 
     def test_repository_gateway_output_guard_now_differs_from_the_recorded_baseline(self):
         # This fix changes gateway_output_guard.py, so a real rollout must see it as changed

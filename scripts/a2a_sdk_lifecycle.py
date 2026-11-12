@@ -9,6 +9,7 @@ import threading
 import time
 from scripts.official_sdk_control_peer import COMMAND
 from scripts.a2a_worker_stream import WorkerStream
+from scripts.a2a_private_worker_pod import worker_pod_name
 
 
 class _DeferredTransport:
@@ -113,9 +114,33 @@ class SDKControllerLifecycle:
         if not expected['operationId'] or context!=expected:
             raise ValueError('EXACT_DURABLE_SDK_STOP_REQUIRED')
 
+    def _never_started(self,task,record):
+        """True only when NO physical start was ever attempted for this launch: the start was not consumed and no worker reservation exists.
+
+        start() consumes the launch under self.lock BEFORE any create call, so both facts together prove that no Pod create was submitted.
+        A refused launch (for example a zero model allowance in a strict-cancel case) lands here, not in the worker-observation path below."""
+        with self.lock:
+            if record['startConsumed']:return False
+        return not getattr(task,'a2a_cli_worker',None)
+
+    def _fence_never_started(self,task,record,harness,context):
+        # Absence is READ, not assumed: the exact worker Pod name derived from the bound template must not exist.
+        name=worker_pod_name(task.id)      # same function the Pod template uses; the template itself needs a2a context that start() creates
+        # STRICT (Option B): a read that cannot be made propagates, the stop stays uncertain and stopFailureCode names why. Never a never-started receipt without the observation.
+        present=self.controller.api.read_pod(name) is not None
+        if present:raise ValueError('SDK_NEVER_STARTED_BUT_WORKER_POD_PRESENT')
+        with self.lock:
+            if record['startConsumed']:raise ValueError('SDK_NEVER_STARTED_RACED_WITH_START')
+            record['startConsumed']=True          # a later start() is refused (NO_REPLAY) and the closed transport cannot bind
+        record['transport'].close()
+        harness.close()
+        return {**context,'stopped':True,'processExitVerified':True,'descendantAbsenceVerified':True,
+            'launchFenced':True,'neverStarted':True,'runtimeIdentity':None}
+
     def stop_and_verify(self,harness,context):
         task,record=self._handle(harness)
         with task.persistence_lock:self._stop_context(task,context)
+        if self._never_started(task,record):return self._fence_never_started(task,record,harness,context)
         # No reattach or start if launch is still uncertain. A real saved stop
         # reservation and the original transport are required for this action.
         record['transport'].cancel_once(context['operationId'])
