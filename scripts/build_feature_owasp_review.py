@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from documentation_requirements import public_projection_html, public_projection_markdown
 """Render the public eighty-feature documentary review; never open private inputs."""
 import argparse,collections,hashlib,html,json
 from pathlib import Path
@@ -32,9 +36,9 @@ def render(features,review):
  for ref in review['references']:
   name='<a href="'+E(ref['public_page'])+'">'+E(ref['label'])+'</a>' if ref['public_page'] else E(ref['label'])+' (private; metadata only)'
   parts+=['<li>'+name+'; original SHA256 <code>'+E(ref['sha256'])+'</code></li>']
- parts+=['</ul><h2>Three risk controls</h2><ol>'+''.join('<li>'+E(review['risk_controls'][str(i)])+'</li>' for i in range(1,4))+'</ol><p>Primary groups below count76 controls/roadmap dimensions once. Four shared evidence obligations span all ten domains and appear once at the end. Secondary mappings overlap; they are not additional features.</p><p>Classification basis: <a href="'+E(review['taxonomy_url'])+'">OWASP Agentic Top10 for2026</a>. Row interpretations are project proposals, not OWASP-endorsed assessments.</p>']
+ parts+=['</ul><h2>Three risk controls</h2><ol>'+''.join('<li>'+E(review['control_layers'][str(i)])+'</li>' for i in range(1,4))+'</ol><p>Primary groups below count76 controls/roadmap dimensions once. Four shared evidence obligations span all ten domains and appear once at the end. Secondary mappings overlap; they are not additional features.</p><p>Classification basis: <a href="'+E(review['taxonomy_url'])+'">OWASP Agentic Top10 for2026</a>. Row interpretations are project proposals, not OWASP-endorsed assessments.</p>']
  def table(group):
-  out=['<div class="table"><table><thead><tr><th>Stable feature</th><th>OWASP interpretation and limits</th><th>Three controls</th><th>Both-reference crosswalk</th><th>Evidence</th></tr></thead><tbody>']
+  out=['<div class="table"><table><thead><tr><th>Stable feature</th><th>OWASP interpretation and limits</th><th>Risk objectives (legacy IDs)</th><th>Both-reference crosswalk</th><th>Evidence</th></tr></thead><tbody>']
   for row in group:
    out+=['<tr id="feature-'+str(row['feature_id'])+'"><th>'+str(row['feature_id'])+'. '+E(row['feature_name'])+'</th><td><strong>'+E(row['primary_category'])+'</strong><br>'+E(row['mapping_rationale'])+'<p>'+E(row['mapping_limit'])+'</p><small>'+E(row['review_state'])+'; original tag: '+E(row['original_tag_status'])+'</small></td><td>'+ '<br>'.join(E(review['risk_controls'][risk]) for risk in row['three_risk_controls'])+'</td><td>DQ layer: '+E(row['dq_design_layer'])+'<br>'+E(row['dq_reference_scope'])+'<p>Control family: '+E(row['control_family'])+'<br>'+E(row['internal_reference_scope'])+'</p></td><td><a href="'+E(row['evidence_link'])+'">Source, executed tests and acceptance gaps</a><p>Operational evidence unchanged; this review runs no model or runtime test.</p></td></tr>']
   return ''.join(out)+'</tbody></table></div>'
@@ -46,7 +50,7 @@ def render(features,review):
 def main():
  p=argparse.ArgumentParser();p.add_argument('--check',action='store_true');a=p.parse_args();raw=(ROOT/'docs/security-data/features.json').read_bytes();review=json.loads((ROOT/'docs/security-data/feature-owasp-review.public.json').read_text(encoding='utf-8'))
  if hashlib.sha256(raw).hexdigest()!=review['feature_source_sha256']:raise ValueError('Feature source hash mismatch')
- content=render(json.loads(raw),review).encode();target=ROOT/'docs/FEATURE_OWASP_REVIEW.html'
+ target=ROOT/'docs/FEATURE_OWASP_REVIEW.html';content=public_projection_html(render(json.loads(raw),review),target).encode()
  if a.check:
   if target.read_bytes()!=content:raise ValueError('Review page is stale')
  else:target.write_bytes(content)

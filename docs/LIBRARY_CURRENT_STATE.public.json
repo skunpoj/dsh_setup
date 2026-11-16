@@ -1,17 +1,18 @@
 {
   "schema": "multiharness-library-current-state/v1",
-  "source_basis": "5cef39b0ca1e9f666fde737e77f1d9ee61646062",
-  "reviewed_utc": "2026-11-11T06:05:37.544543+00:00",
+  "source_basis": "9a382324571771ff9ebb37a5d8b8dd6827c28ba5",
+  "reviewed_utc": "2026-11-15T05:39:19.124087+00:00",
   "statement": "OpenShell and A2A remain under active qualification. Source changes, integration, runtime preflight, cancellation/recovery checks and evidence retention are in progress. Full operational acceptance remains incomplete.",
   "reference_sources": [
     {
-      "filename": "dq-agent-safety.html",
-      "sha256": "7fe84d37879b91964349a81a84d34762ebff965930596e93a1ccdd4b7a28115f",
-      "bytes": 29354,
+      "filename": "On_prem_AI_analysis_architecture_draft.pptx",
+      "sha256": "27cd3a8a0008da8186b1e8018872291cad164a6586045e8ff935a1385ca335db",
+      "bytes": 15782938,
       "public_payload": true,
-      "public_rendered_source_path": "AGENT_SAFETY_LAYERS.html",
-      "public_rendered_source_sha256": "2fecab1043b3a2ca61752cc580d9c937b93cade65f0b22367bd83ada2aca08a0",
-      "reference_kind": "public-design-reference"
+      "public_rendered_source_path": "ARCHITECTURE_AND_ISOLATION_AT_A_GLANCE.html",
+      "public_rendered_source_sha256": "76facaaeb1fd14a109fd2a10ac0db9d60e07e816253b2b0a3e4b878e6e8e68c6",
+      "reference_kind": "public-design-reference",
+      "public_payload_scope": "Public derived architecture/control explanation; original PPTX payload not included by this revision"
     },
     {
       "filename": "Internal tool-and-risk assessment workbook",
@@ -22,9 +23,9 @@
     }
   ],
   "three_risk_controls": [
-    "Prevent external leakage",
-    "Prevent damage or excessive access",
-    "Keep results contained"
+    "Policy / human control",
+    "Harness / deterministic control",
+    "Infrastructure / resource control"
   ],
   "owasp_framework": "OWASP Top 10 for Agentic Applications 2026",
   "matrix_rows": 80,
@@ -32,31 +33,31 @@
   "cross_cutting_rows": 4,
   "owasp_domains": 10,
   "feature_ledger_established_live_acceptances": 0,
-  "a2a_scope": "A narrow Claude Code to Deep Agents handoff was re-verified on 10 November 2026. The complete governed track, genuine DSH Python SDK route, approval cases and chat delegation remain being qualified.",
+  "a2a_scope": "Route- and image-specific tests exist; complete fleet and three-route banking acceptance remain incomplete. A source test or successful handoff on one image does not qualify all routes.",
   "openshell_scope": "Native qualification and its acceptance/rollback evidence remain incomplete. Existing source or CPU checks do not establish operational acceptance.",
-  "banking_scope": "Three genuine routes must complete the same full frozen banking exercise and retain their own results. No full three-route PASS is established by the current documentation evidence.",
+  "banking_scope": "The reviewed accepted record contains0/3 genuine completed frozen banking results. SDK qualification with zero model starts is not a banking result. Task ownership, startup and recovery acceptance require fresh proof before execution.",
   "source_formats": {
-    ".html": 79,
-    ".md": 104,
-    ".json": 327,
-    ".csv": 1,
-    ".pptx": 8,
-    ".png": 25,
-    ".svg": 5,
-    ".zip": 1,
-    ".yml": 1,
-    ".js": 3,
-    ".log": 3,
-    ".txt": 12,
+    ".SHA256SUMS": 2,
     ".conf": 1,
-    ".pdf": 3,
-    ".vtt": 5,
-    ".mp4": 4,
-    ".sha256sums": 2,
+    ".csv": 1,
     ".diff": 1,
-    ".py": 4,
+    ".html": 82,
+    ".js": 3,
+    ".json": 328,
+    ".log": 3,
+    ".md": 106,
+    ".mp4": 4,
+    ".pdf": 3,
+    ".png": 25,
+    ".pptx": 8,
     ".ps1": 1,
-    ".webm": 9
+    ".py": 4,
+    ".svg": 5,
+    ".txt": 14,
+    ".vtt": 5,
+    ".webm": 9,
+    ".yml": 1,
+    ".zip": 1
   },
   "powerpoint_decks": 8,
   "powerpoint_slides": 212,
@@ -64,7 +65,7 @@
   "pdf_pages": 67,
   "word_documents": 0,
   "original_editions_preserved": true,
-  "current_edition_publication": "New current-state pages/index are source revisions pending project-owned release and served-body verification.",
+  "current_edition_publication": "Source revision, build validation, published generation, actual served bytes and operational acceptance are distinct. Each published edition requires its project-owned immutable generation and a matching served-body receipt; source integration alone does not establish publication or feature acceptance.",
   "project_libraries": [
     "SMP Core / EDA",
     "Chatapp (Chat1213 / DoctorDebt)",
@@ -95,12 +96,20 @@
     ".ps1": 1,
     ".webm": 9
   },
-  "inventory_scope": "Authority source basis plus the four new documentation files in this prepared revision; the public source mirror remains a filtered subset.",
-  "prepared_revision_basis": "Second coherent presentation packet417f7e30 plus domain-routing revision on authoritydd28930",
+  "inventory_scope": "Exact1d21 exported docs inventory; this successor replaces existing files and regenerates current-state/index pages. Private and historical artifacts remain preserved.",
+  "prepared_revision_basis": "Metadata-only legacy classification on source6554; all178payload members retained and allbinarybytes unchanged from47. APP_LOGIN_MAIN_TEST_EN.pptx is retained legacy/notcurrent; canonical J/K/L and two foundation SVGs govern current guidance.",
   "powerpoint_revision_summary": {
-    "content_and_local_render_verified": 3,
+    "content_and_local_render_verified": 2,
     "remaining_decks": 5,
     "remaining_pdfs": 3,
-    "published_revised_editions": 0
-  }
+    "published_revised_editions": 0,
+    "retained_legacy_decks": 1
+  },
+  "historical_source_basis": "1d211a3cadb89022e55474ff56634ebaf7403fc8",
+  "risk_objectives": [
+    "Prevent external leakage",
+    "Prevent damage or excessive access",
+    "Keep results contained"
+  ],
+  "control_basis": "Private workbook anak_tool&risk_ai_draft J1/K1/L1; M1 audit/evidence spans all; CIA is a separate risk-objective axis. PPTX slide2 separates runtime containment from resource authorization."
 }

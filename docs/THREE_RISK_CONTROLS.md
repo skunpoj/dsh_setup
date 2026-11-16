@@ -1,5 +1,8 @@
 # DSH — Controlling Three Security Risks
 
+Current consolidated guidance: [central index](index.html), [canonical guide](DSH_CURRENT_GUIDE.html#canonical-reading), [architecture and two SVG maps](ARCHITECTURE_AND_ISOLATION_AT_A_GLANCE.html), and [three control layers](THREE_RISK_CONTROLS.html). Older source observations below keep their original dates and are not fresh runtime acceptance.
+
+
 [Terminology: agent, harness and shared platform](HARNESS_TERMINOLOGY.html). Compare agent integration routes while preserving SDK, harness and infrastructure distinctions.
 
 DSH provides private AI workspaces for code, documents and analysis. The deployment design controls three risks: unauthorized external transmission, damage or excessive access, and exposure of results to the wrong people. Infrastructure, execution identities, storage permissions and authenticated routes enforce the boundaries. Model instructions describe the task; they do not replace enforcement.
@@ -25,14 +28,6 @@ Enforce CPU, memory and storage budgets where the work runs. Bound costly model 
 Connected services enforce their own execution identity and existing permissions. A DSH login does not grant database or datalake rights. Use a sandbox-scoped or read-only entitlement when the task requires one. Preserve private credentials; never place passwords, tickets or API keys in prompts, generated reports or public configuration.
 
 Persist durable files and history on appropriately scoped storage. Validate permissions and restart persistence. Central storage is persistence; independent backups and deletion recovery remain storage operations.
-
-### Web Terminal and OpenShell
-
-The DSH Web Terminal and OpenShell serve different purposes. The Web Terminal is the interactive shell in a user's assigned DSH runtime and remains the normal environment for development, investigation and recovery. OpenShell is intended for a bounded agent task that needs a narrower, short-lived execution boundary. It complements the Web Terminal; it does not replace it.
-
-For OpenShell, bind the authenticated DSH user to one recorded task, one expiring worker generation and one exact worker identity. Mount only approved task inputs and a task output area. Keep reusable credentials outside the worker and expose only policy-checked, task-scoped broker operations. Cancellation must revoke the broker operation, fence transport, stop the exact workload and its descendants, and verify absence before completion.
-
-The source integration is not the same as an operational control. OpenShell becomes available to users only after its protected runtime adapter is connected to the task journal, broker, transport and supervisor; all 25 Test gates pass together; owned rollback preserves existing DSH data; and a separate rollout is approved. Until then, the deployed Web Terminal continues to use the existing per-user and per-environment DSH controls.
 
 ## 3 Keep results contained
 
@@ -81,7 +76,7 @@ Source and attribution: [OWASP GenAI Security Project — OWASP Top 10 for Agent
 
 ## Setup, use and technical appendices
 
-Follow the complete installation guide, then the [acceptance checks](ACCEPTANCE.md). Use the [application proxy guide](APP_PROXY.md) for routes and destination boundaries. Consult [managed-client compatibility](LIVE_CLIENT_COMPATIBILITY.md) for existing-workspace launch scope.
+Follow the complete installation guide (not included in this public source projection), then the [acceptance checks](ACCEPTANCE.md). Use the [application proxy guide](APP_PROXY.md) for routes and destination boundaries. Consult [managed-client compatibility](LIVE_CLIENT_COMPATIBILITY.md) for existing-workspace launch scope.
 
 GPU setup is maintained in [gpu-stack](../gpu-stack/README.md). [Context configuration](CONTEXT_1M.md) explains counting, output reserve and admission. Treat any recorded GPU result as specific to its checkpoint, runtime, input size and concurrency: configured capacity, analytical accuracy, cold preparation and streaming speed are distinct measurements.
 

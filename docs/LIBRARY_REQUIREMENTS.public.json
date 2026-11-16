@@ -1,0 +1,352 @@
+{
+  "schema": "dsh-documentation-requirements/v1",
+  "source_commit": "e58ebf00f8a71c492335c74c40d13cd6c0dd267e",
+  "reviewed_date": "2026-11-16",
+  "source_status": "DOCUMENTARY_SOURCE_NOT_RUNTIME_ACCEPTANCE",
+  "sections": [
+    {
+      "id": "canonical-reading",
+      "title": "One library and one reading route",
+      "paragraphs": [
+        "Start at the central library index. Use this guide for common tasks, the architecture page for placement and trust boundaries, the three-control page for enforcement responsibilities, and the OWASP matrix for the 80 stable feature IDs. Older topic pages remain reachable at their original URLs as supporting detail or dated evidence; their pointers identify the canonical explanation.",
+        "The complete category/A–Z source catalog remains available from the index in a collapsed catalog. Consolidation merges current guidance into these canonical routes; it does not delete old bodies, raw evidence, media, or history. Source availability, publication and operational acceptance remain different states."
+      ],
+      "headers": [],
+      "rows": []
+    },
+    {
+      "id": "reference-controls",
+      "title": "Two governing references and three control layers",
+      "paragraphs": [
+        "The architecture PPTX (10 slides, SHA256 27cd3a8a0008da8186b1e8018872291cad164a6586045e8ff935a1385ca335db) and private four-sheet risk workbook (SHA256 214e604a349bf1955171504f4ba42e1f59fb01101fc717a4d9453ef6d860d937) are the governing editions. The workbook payload remains private.",
+        "Workbook anak_tool&risk_ai_draft J1/K1/L1 define policy/human, harness/deterministic and infrastructure/resource controls. M1 is audit across all three. CIA and leakage/damage/result-exposure are risk objectives, not alternative names for the three control layers. PPTX slide 2 separates runtime containment from independent resource authorization within the third layer.",
+        "The 80 feature IDs and ASI01–ASI10 taxonomy remain stable, including four cross-cutting ALL rows. Their current control-family assignments are documentary interpretations, not executed tests. Per-feature implementation, test-source references, executed receipts, deployment identity and live acceptance must remain separately recorded. A source/test filename is not tested evidence.",
+        "The architecture speaker notes also require server-bound user/project/identity fields: the model may propose a named tool/profile, but cannot select its authority. MCP, direct calls and custom RPC are alternative transports, not isolation mechanisms. Delegation must retain the same authorization gate. Protected audit records must bind owner/project/run, approved request, effective identity and result without agent-writable or secret-bearing logs.",
+        "Acceptance must observe termination of actual child processes and underlying database/Spark work after cancellation, not only a wrapper response. Hard deadlines and bounded output/retry/resource profiles are separate from a human cost decision. GPU assignment alone does not prove VRAM isolation; hardware/runtime support and effective limits require evidence."
+      ],
+      "headers": [
+        "Control",
+        "Enforcement responsibility",
+        "Required acceptance evidence"
+      ],
+      "rows": [
+        [
+          "Policy / human (J1)",
+          "Choose purpose, owner, allowed profile and exceptions; approval cannot permit a forbidden operation.",
+          "Recorded owner decision and exact scope."
+        ],
+        [
+          "Harness / deterministic (K1)",
+          "Trusted dispatcher, typed inputs, bounded tools and task budget; test equivalent terminal/Jupyter routes.",
+          "Request/decision/result and exact source revision; observed allow and deny behavior."
+        ],
+        [
+          "Infrastructure / resource (L1)",
+          "OS identity, mounts, network and quota plus SQL/HDFS/service ACLs independent of agent intent.",
+          "Actual workload identity, effective authorization and cross-user/route denial."
+        ],
+        [
+          "Audit across layers (M1)",
+          "Protected attribution and original evidence; never promote a self-reported read-only flag.",
+          "Immutable original outputs, hashes, timestamps and runtime/source binding."
+        ]
+      ]
+    },
+    {
+      "id": "identity-session-persistence",
+      "title": "Identity, kinit, sessions, isolation and persistence",
+      "paragraphs": [
+        "DSH Local or AD/LDAP sign-in identifies the browser owner; it does not create a Kerberos ticket. A Kerberos bootstrap is an explicitly authorized identity operation outside the agent-facing shell. Never pass passwords, tickets, keytabs or a principal's secret through prompts, logs or public examples.",
+        "Historical evidence names FILE:/state/kerberos/ccache and Livy/Spark sessions 631–632. No retained current kinit/klist transcript, ticket expiry/renewal check, cross-user cache isolation test or driver/executor identity proof is established by the library. These remain UNVERIFIED; the existence of a cache pathname is not successful authentication. Same-UID arbitrary Python or terminal code can read the same mounted credentials unless a separate OS/mount/resource boundary prevents it.",
+        "Before claiming Kerberos acceptance, the assigned operator must retain a redacted identity/expiry readback, cache owner/mode and actual mount scope, allowed source read and denied unauthorized access, renewal/expiry behavior, separate-session/cross-user denial, and Spark driver/executor plus HDFS authorization. Public evidence must omit credentials and customer data. This checklist is not a new execution request.",
+        "A browser session, conversation, agent task, Jupyter kernel and Livy/Spark session have different lifecycles. Persisted workspace/history files can survive an image or process replacement when the exact PVC/mount/profile is retained; kernel variables and running processes do not thereby survive. Fresh signup can remove the template supervisor sidecar and initialization containers, using a separate initialization Job. Container placement and shared-UID access must be verified against the actual profile, image and Pod.",
+        "C2's 16 November read-only observation records the managed workspace at zero replicas and no Pod; configured 393216 context and an image pin are not live context, compaction, isolation or persistence acceptance. OpenShell and A2A remain route/image-specific qualification work. Banking accounting and its genuine completion are separately owned.",
+        "Connector design: use dialect-aware complete-statement SQL validation, reject unsupported multiple statements and bind any approval to exact query/targets/profile. SQL AST checks and EXPLAIN are defense in depth; resource-side source SELECT grants and separately scoped scratch writes remain authoritative. Direct HDFS/Spark reads need their own ACL/plugin validation and may bypass SQL row/column/table policy. Delegated credentials may reach driver/executors and therefore submitted code; never claim all credentials stay outside arbitrary cluster code.",
+        "Filesystem and code design: session-fixed roots and safe directory-relative/symlink-resistant access must handle check/use races. Mount retained inputs/artifacts read-only to arbitrary code and use a trusted versioning/publish path for controlled updates; a gateway approval cannot protect a file from equivalent direct Python writes. Do not mount broad host paths, reusable connector keytabs/tokens or container-control sockets into generated-code runtimes.",
+        "Local Git design: fix repository/branch, sanitize configuration/environment, disable exposed hooks/pagers/external diff/filter/helper paths, and reject arbitrary config or identity/endpoint overrides. Agent-editable hooks cannot be the trusted scanner. Direct writable .git access can bypass a Git-tool policy, so retained history/audit needs an independent protected boundary. Remote push and destructive history operations require separately authorized workflows.",
+        "Retrieval and helpers: server-side project/tenant authorization fixes collection scope; ingestion is a separate approved maintenance process, with source IDs/versions, bounded results and independently preserved originals. Prompt labels do not prevent injection or grant permissions. Typed helper operations use fixed executables/argv without shell interpolation, bounded output and process-tree deadlines; credential bootstrap remains outside the agent-facing arbitrary shell. A dedicated filesystem gateway, persistent kernel, local retrieval, Spark and DevOps connector are design choices, not automatically selected or delivered capabilities."
+      ],
+      "headers": [
+        "State or setting",
+        "What is established",
+        "What remains unverified"
+      ],
+      "rows": [
+        [
+          "Gateway",
+          "Fresh metadata/source hash observation; existing login owner routing.",
+          "Complete global quiet/session/task/watcher aggregate; do not infer zero from missing counters."
+        ],
+        [
+          "Managed workspace",
+          "Stopped template with configured context 393216; preserved PVC identities in dated evidence.",
+          "Current startup, effective per-agent context/compaction, application workflow and cross-user denial."
+        ],
+        [
+          "Kerberos / resource access",
+          "Historical cache/session references only.",
+          "Current kinit/klist, cache lifetime/permissions/isolation and effective SQL/HDFS/Spark identity."
+        ],
+        [
+          "Saved work",
+          "File/history persistence is a mount/format property distinct from a live process.",
+          "Current profile-bound restart/reopen evidence; do not restart active owners for documentation."
+        ]
+      ]
+    },
+    {
+      "id": "platform-policy",
+      "title": "Internal and cloud profiles have different policies",
+      "paragraphs": [
+        "Internal on-prem multiharness, including an Internet-enabled enterprise workspace, targets DeepSeek through the managed LiteLLM route only and fixed 393216-token context with the approved compaction/output limits. Internet access is not permission to select an external model provider. Defaults alone do not enforce this policy; user-writable settings, environment overrides, direct HTTPS/proxy relays and terminal/Jupyter paths require actual refusal or network-denial evidence.",
+        "multiharness.cloud and superharness.cloud are separately owned customizable cloud/arena roadmap profiles. Provider choice and credentials are explicit user decisions. A free-model default is an acceptance target, not established by a paid smoke test; there is no automatic paid or BOT-funded fallback. Model calls require verified payer, project and authentication authority. No cloud deployment or model call is requested by this documentation.",
+        "Publish truthful documentation before runtime restriction qualification. Subsequent live 393216/provider tests belong to the sole assigned operator with a bounded owner-approved workload; a stopped template, green pipeline or diagram cannot satisfy them.",
+        "The cloud startup candidate is disabled until an approved free route is configured: unconfigured startup refuses FREE_ROUTE_SETUP_REQUIRED before native runtime spawn. This is source behavior, not a functioning free-model service. Explicit customization requires matching provider configuration and explicit paid/unknown-cost consent, with no automatic fallback. Native compatibility and Linux initializer qualification remain separate. Cloud deployment is not yet qualified."
+      ],
+      "headers": [
+        "Profile",
+        "Provider/context target",
+        "Network and acceptance distinction"
+      ],
+      "rows": [
+        [
+          "On-prem Internal",
+          "Managed DeepSeek/LiteLLM; fixed 393216 context.",
+          "Approved internal routes only; effective policy/compaction and alternate-route denials pending."
+        ],
+        [
+          "On-prem Internet-enabled",
+          "Same enterprise model restriction; Internet grant does not permit provider bypass.",
+          "Current broad HTTPS bypass is unqualified; NetworkPolicy selection and actual traffic must be verified."
+        ],
+        [
+          "Customizable cloud / arena",
+          "Explicit user provider configuration; verified free default target.",
+          "Separate credentials/billing/host ownership and task consent; no implicit paid fallback or enterprise entitlement."
+        ]
+      ]
+    },
+    {
+      "id": "bounded-arena",
+      "title": "Minimal-intervention arena and self-improvement roadmap",
+      "paragraphs": [
+        "Roadmap, not live autonomous acceptance: the user states a bounded goal, permitted inputs/tools, budget and expected evidence once. A harness proposes an execution plan and runs only inside the approved authority. Routine reversible steps may proceed unattended inside that scope; exceptions pause for their exact owner.",
+        "Self-improvement means proposing and evaluating versioned source/configuration changes against frozen offline fixtures and retained real outcomes. Agents cannot approve their own permissions, loosen checks, alter billing, exfiltrate data, delete evidence or deploy their own candidate. A trusted release owner independently reviews the diff, evidence and rollback before activation.",
+        "Arena comparisons hold task inputs, resource budgets and scoring constant across DSH SDK, Claude Code and Deep Agents. Separate candidate source tests, reproducible artifacts, deployment, served content and live task acceptance. A successful HTTP wrapper or winning score alone is not operational acceptance."
+      ],
+      "headers": [
+        "Stage",
+        "Automatic work inside scope",
+        "Owner decision / exit evidence"
+      ],
+      "rows": [
+        [
+          "1 — Observe",
+          "Read allowed source and retained evidence; identify gaps without new provider calls.",
+          "Named task scope, provenance and unchanged originals."
+        ],
+        [
+          "2 — Propose",
+          "Create an isolated candidate and run approved pure/offline fixtures.",
+          "Frozen comparison, no weakened checks, exact diff and failure history retained."
+        ],
+        [
+          "3 — Review and qualify",
+          "Prepare a finite qualification request and rollback evidence.",
+          "Independent owner authorizes exact workload/payer/identity; real allow/deny/cancel/recovery results."
+        ],
+        [
+          "4 — Release",
+          "Existing publisher verifies immutable content and route/source identity.",
+          "Release owner controls activation; verified receipt and affected live behavior."
+        ],
+        [
+          "5 — Learn",
+          "Summarize outcomes and propose the next bounded improvement.",
+          "No self-expansion of authority or automatic restart/retry/deletion; new scope needs its owner."
+        ]
+      ]
+    }
+  ],
+  "planned_public_package_members": [
+    "A2A_TASK_DELEGATION.html",
+    "ADMIN_APPLICATIONS_WALKTHROUGH.html",
+    "ADMIN_USAGE_TELEMETRY.html",
+    "ADMIN_USAGE_TELEMETRY.md",
+    "AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html",
+    "AGENT_RUNTIME_AND_EXECUTION_BACKENDS.md",
+    "AGENT_SAFETY_LAYERS.html",
+    "APP_AUTOSTART_WALKTHROUGH.html",
+    "APP_LINKS_AND_STATUS.html",
+    "APP_LINKS_AND_STATUS.md",
+    "APP_PROXY.md",
+    "APP_SERVICE_SUPERVISION.html",
+    "APP_SERVICE_SUPERVISION.md",
+    "APP_SIGNIN_AND_RETURN.html",
+    "APP_SIGNIN_AND_RETURN.md",
+    "APP_URLS_AND_INGRESS.html",
+    "APP_URLS_AND_INGRESS.md",
+    "ARCHITECTURE_AND_ISOLATION_AT_A_GLANCE.html",
+    "ARCHITECTURE_AND_ISOLATION_AT_A_GLANCE.md",
+    "AUTHENTICATED_APP_SHARING.html",
+    "AUTHENTICATED_APP_SHARING.md",
+    "AUTHENTICATED_APP_SHARING_WALKTHROUGH.html",
+    "AUTOMATIC_ACCOUNT_CAPACITY.html",
+    "AUTOMATIC_ACCOUNT_CAPACITY.md",
+    "AUTOMATIC_CAPACITY_WALKTHROUGH.html",
+    "AUTOMATIC_CLIENT_ACTIVATION.md",
+    "BANKING_AGENT_REVIEW.html",
+    "BANKING_CLAUDE_CODE.html",
+    "BANKING_DEEP_AGENTS.html",
+    "BANKING_DSH_PYTHON_SDK.html",
+    "BROWSERCODE_AND_BOT_DSH_REVIEW.html",
+    "BROWSERCODE_AND_BOT_DSH_REVIEW.md",
+    "CAPACITY_REPORT.md",
+    "CENTRAL_DASHBOARD_SCOPE.md",
+    "CENTRAL_STATE_RESTORATION_20261015.md",
+    "CLIENT_WORKSPACE_FILE_TOOLS.md",
+    "CONTEXT_1M.md",
+    "CONTEXT_OPTIMIZATION_20261015.md",
+    "CORPORATE_GIT_BOOTSTRAP.html",
+    "CORPORATE_GIT_BOOTSTRAP.md",
+    "COURSE_CURRENTNESS.html",
+    "COURSE_DELIVERY.md",
+    "COURSE_GUIDE.html",
+    "COURSE_GUIDE.md",
+    "COURSE_WALKTHROUGH.html",
+    "CREDENTIAL_THEME_QUALIFICATION.md",
+    "DSH_COURSE_NOTES.html",
+    "DSH_COURSE_NOTES.json",
+    "DSH_CURRENT_GUIDE.html",
+    "DSH_CURRENT_GUIDE.md",
+    "DSH_CURRENT_GUIDE.source.json",
+    "DSH_DOCUMENTATION_RELEASE.html",
+    "DSH_GUIDED_TOUR.html",
+    "DSH_NETWORK_ZONES.html",
+    "DSH_NETWORK_ZONES.png",
+    "DSH_NETWORK_ZONES.svg",
+    "DSH_PLATFORM_GUIDE.html",
+    "DSH_PLATFORM_GUIDE.md",
+    "DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.html",
+    "DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT.md",
+    "DSH_SECURITY_ARCHITECTURE_AND_CONTROLS.html",
+    "DSH_SECURITY_ENVIRONMENT_AND_FEATURES.html",
+    "DSH_SECURITY_ENVIRONMENT_AND_FEATURES.md",
+    "DSH_USER_MANUAL.html",
+    "DSH_USER_MANUAL.md",
+    "FEATURE_CONTROL_TRACEABILITY.html",
+    "FEATURE_MATRIX_BY_OWASP.html",
+    "FEATURE_OWASP_REVIEW.html",
+    "FLEXIBLE_DEPLOYMENT.html",
+    "FLEXIBLE_DEPLOYMENT.md",
+    "FRESH_SIGNUP_ACCEPTANCE.html",
+    "FRESH_SIGNUP_ACCEPTANCE.md",
+    "GOVERNED_HARNESS_ARCHITECTURE.html",
+    "GOVERNED_HARNESS_COMPARISON_PHASE_A.html",
+    "GOVERNED_HARNESS_EXECUTIVE.html",
+    "GOVERNED_HARNESS_OWASP.html",
+    "GOVERNED_HARNESS_READING_GUIDE.html",
+    "GOVERNED_HARNESS_ROADMAP.html",
+    "GOVERNED_HARNESS_RUNTIME_COMPARISON.html",
+    "GOVERNED_HARNESS_SCENARIOS.html",
+    "GPU_COURSE_BRIDGE.md",
+    "HARNESS_TERMINOLOGY.html",
+    "HARNESS_TERMINOLOGY.md",
+    "JUPYTERLAB.html",
+    "JUPYTERLAB.md",
+    "JUPYTERLAB_WALKTHROUGH.html",
+    "JUPYTER_APP_LIFECYCLE.html",
+    "JUPYTER_APP_LIFECYCLE.md",
+    "JUPYTER_AUTOSTART_BACKFILL.html",
+    "JUPYTER_AUTOSTART_BACKFILL.md",
+    "JUPYTER_DSH2_DSH3_WALKTHROUGH.html",
+    "JUPYTER_ON_DEMAND.md",
+    "JUPYTER_START_CONTROLS.html",
+    "JUPYTER_START_CONTROLS.md",
+    "LDAP_APP_LOGIN_ACCEPTANCE_20261023.md",
+    "LDAP_AUTHENTICATION.md",
+    "LDAP_DEPLOYMENT_20261022.md",
+    "LEGACY_JUPYTER_GATEWAY.md",
+    "LIBRARY_CURRENT_STATE.html",
+    "LIBRARY_CURRENT_STATE.md",
+    "LIBRARY_CURRENT_STATE.public.json",
+    "LIBRARY_FORMATS.public.json",
+    "LIBRARY_REQUIREMENTS.public.json",
+    "LIVE_CLIENT_COMPATIBILITY.md",
+    "LLM_SPEED_COMPARISON_20261030.html",
+    "MANAGED_CLIENT_SUPPORT.html",
+    "MANAGED_CLIENT_SUPPORT.md",
+    "MANAGED_CLIENT_VALIDATION.md",
+    "MANAGED_PROVIDER_LOGIN.html",
+    "MANAGED_PROVIDER_LOGIN.md",
+    "MANUAL_PUBLICATION.md",
+    "MULTI_TENANT_STORAGE_AND_PERSISTENCE.md",
+    "NATIVE_THEME_INTEGRATION.md",
+    "ONE_M_CANDIDATE_CHECKPOINT_20261016.md",
+    "OPENSHELL_RUNTIME_PREREQUISITES.md",
+    "OPENSHELL_STATUS_AND_USAGE.html",
+    "OPENSHELL_STATUS_AND_USAGE.md",
+    "PER_USER_ISOLATION.md",
+    "PLATFORM_CAPACITY_AND_CLIENTS.html",
+    "PLATFORM_CAPACITY_AND_CLIENTS.md",
+    "PRESENTATION_EDITION.md",
+    "REPOSITORY_REVIEW_CITATION_PROTOCOL.md",
+    "SCHEDULING_FAIRNESS_20261015.md",
+    "SECURITY.md",
+    "SECURITY_BY_OWASP.html",
+    "SELF_SERVICE_PACKAGES.html",
+    "SELF_SERVICE_PACKAGES.md",
+    "SELF_SERVICE_PACKAGES_EXPERIENCE.md",
+    "SELF_SERVICE_PACKAGES_WALKTHROUGH.html",
+    "SELF_SERVICE_SIGNUP.html",
+    "SELF_SERVICE_SIGNUP.md",
+    "SHARED_PLATFORM_GUIDE.html",
+    "SHARED_PLATFORM_GUIDE.md",
+    "SIGNUP_CAPACITY.md",
+    "SLIDE_DOWNLOADS.md",
+    "THREE_RISK_CONTROLS.html",
+    "THREE_RISK_CONTROLS.md",
+    "THREE_SITE_SYNC_20261024.md",
+    "TOOLS_AND_RISKS_REGISTER.html",
+    "UPSTREAM_PATCH_INVENTORY.md",
+    "UPSTREAM_SYNC_AND_INTERNET_POLICY.html",
+    "UPSTREAM_SYNC_AND_INTERNET_POLICY.md",
+    "USER_CREDENTIAL_MANAGEMENT.html",
+    "USER_CREDENTIAL_MANAGEMENT.md",
+    "VIDEO_NARRATION_STANDARD.md",
+    "archive/DSH_RDT_PILOT_SECURITY_CONTROL_ASSESSMENT_1303.md",
+    "assets/PROVENANCE.md",
+    "brand/logo.png",
+    "brand/multiharness-dark.svg",
+    "brand/multiharness-light.svg",
+    "brand/seal-dark.png",
+    "brand/seal-light.png",
+    "diagrams/dsh-deployment-runtime.svg",
+    "diagrams/dsh-network-identity-data.svg",
+    "diagrams/multiharness-component-deployment-map.sources.json",
+    "diagrams/multiharness-component-deployment-map.svg",
+    "diagrams/multiharness-three-risk-control-path.svg",
+    "gpu-platform/GPU_PLATFORM_REVIEW.pdf",
+    "images/platform/self-service-packages.png",
+    "index.html",
+    "media/APP_LOGIN_MAIN_TEST_EN.en.vtt",
+    "media/APP_LOGIN_MAIN_TEST_EN.html",
+    "media/APP_LOGIN_MAIN_TEST_EN.mp4",
+    "presentations/APP_LOGIN_MAIN_TEST_EN.pptx",
+    "presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pdf",
+    "presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pptx",
+    "presentations/guarding-the-value-stream/Guarding_the_Value_Stream_Story.pdf",
+    "presentations/trust-is-an-architecture/Trust_Is_an_Architecture.pptx",
+    "publication.json",
+    "reference/DSH_REPOSITORY_README.md",
+    "reference/GPU_STACK_README.md",
+    "sdk-wheel-0.2.2a2/WHEELS_LOCATION.md",
+    "security-data/feature-owasp-review.public.json",
+    "security-data/feature-reference-evidence.public.json",
+    "security-data/features.json",
+    "videos/credential-management-fola-transcript.txt",
+    "videos/credential-management-fola.mp4",
+    "videos/credential-management-fola.vtt"
+  ],
+  "governing_pptx_speaker_notes_reviewed": 10
+}

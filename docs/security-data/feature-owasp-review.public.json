@@ -9,9 +9,9 @@
   "references": [
     {
       "kind": "public-design-reference",
-      "label": "DQ agent safety design",
-      "sha256": "7fe84d37879b91964349a81a84d34762ebff965930596e93a1ccdd4b7a28115f",
-      "public_page": "AGENT_SAFETY_LAYERS.html",
+      "label": "On-prem AI analysis architecture draft",
+      "sha256": "27cd3a8a0008da8186b1e8018872291cad164a6586045e8ff935a1385ca335db",
+      "public_page": "ARCHITECTURE_AND_ISOLATION_AT_A_GLANCE.html",
       "payload_included": false
     },
     {
@@ -40,7 +40,7 @@
     "3": "Keep results contained"
   },
   "review_scope": "Row-by-row documentary interpretation of the current eighty feature dimensions. Existing primary/related/draft tags, roadmap status and operational evidence are preserved. No OWASP certification, implemented-control conclusion or live PASS is created.",
-  "remaining_reference_limit": "The internal assessment has a previously reconciled35-row English subset; three other worksheets and exact tool-to-feature identities remain unaccepted. No full workbook integration claim.",
+  "remaining_reference_limit": "All four worksheet roles inspected: scope notes, initial tool/risk sketch, expanded J/K/L/M control register and component/login/autonomy questions. No exact tool-row-to-feature identity or runtime acceptance inferred. Original feature mappings remain proposed; no operational acceptance is promoted.",
   "rows": [
     {
       "feature_id": 1,
@@ -2350,5 +2350,18 @@
       "original_tag_status": "draft-inferred",
       "operational_evidence_unchanged": true
     }
-  ]
+  ],
+  "historical_dq_reference": {
+    "kind": "public-design-reference",
+    "label": "DQ agent safety design",
+    "sha256": "7fe84d37879b91964349a81a84d34762ebff965930596e93a1ccdd4b7a28115f",
+    "public_page": "AGENT_SAFETY_LAYERS.html",
+    "payload_included": false
+  },
+  "control_layers": {
+    "1": "Policy / human control",
+    "2": "Harness / deterministic control",
+    "3": "Infrastructure / resource control"
+  },
+  "legacy_field_semantics": "risk_controls and row.three_risk_controls retain original risk-objective IDs for compatibility; control_layers contains the actual J/K/L control families. DQ is historical supporting vocabulary, not a governing attachment."
 }
