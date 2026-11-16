@@ -16,7 +16,7 @@ Sources: [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md), [DSH_PLATFORM_GUIDE.md](DSH_P
 
 ## 2 Three risk controls
 
-Workbook anak_tool&risk_ai_draft J1/K1/L1 define policy/human, harness/deterministic and infrastructure/resource controls. M1 is audit across all three. CIA and leakage/damage/result-exposure are risk objectives, not alternative names for the three control layers. PPTX slide 2 separates runtime containment from independent resource authorization within the third layer.
+Workbook reviewed private risk worksheet J1/K1/L1 define policy/human, harness/deterministic and infrastructure/resource controls. M1 is audit across all three. CIA and leakage/damage/result-exposure are risk objectives, not alternative names for the three control layers. PPTX slide 2 separates runtime containment from independent resource authorization within the third layer.
 
 
 ## 3 A bounded task produces a reviewable result
@@ -340,9 +340,9 @@ The complete category/A–Z source catalog remains available from the index in a
 
 
 
-The architecture PPTX (10 slides, SHA256 27cd3a8a0008da8186b1e8018872291cad164a6586045e8ff935a1385ca335db) and private four-sheet risk workbook (SHA256 214e604a349bf1955171504f4ba42e1f59fb01101fc717a4d9453ef6d860d937) are the governing editions. The workbook payload remains private.
+The architecture PPTX (10 slides, SHA256 27cd3a8a0008da8186b1e8018872291cad164a6586045e8ff935a1385ca335db) and private four-sheet risk workbook (SHA256 214e604a349bf1955171504f4ba42e1f59fb01101fc717a4d9453ef6d860d937) are the governing editions. The original workbook is retained privately; its payload remains private.
 
-Workbook anak_tool&risk_ai_draft J1/K1/L1 define policy/human, harness/deterministic and infrastructure/resource controls. M1 is audit across all three. CIA and leakage/damage/result-exposure are risk objectives, not alternative names for the three control layers. PPTX slide 2 separates runtime containment from independent resource authorization within the third layer.
+Workbook reviewed private risk worksheet J1/K1/L1 define policy/human, harness/deterministic and infrastructure/resource controls. M1 is audit across all three. CIA and leakage/damage/result-exposure are risk objectives, not alternative names for the three control layers. PPTX slide 2 separates runtime containment from independent resource authorization within the third layer.
 
 The 80 feature IDs and ASI01–ASI10 taxonomy remain stable, including four cross-cutting ALL rows. Their current control-family assignments are documentary interpretations, not executed tests. Per-feature implementation, test-source references, executed receipts, deployment identity and live acceptance must remain separately recorded. A source/test filename is not tested evidence.
 
