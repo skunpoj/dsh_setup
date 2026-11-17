@@ -52,8 +52,8 @@ PREDECESSOR_COMMIT = 'a06c8ff46d390d462466deac588e24766cd67b97'
 EXPECTED_SHA256 = '885c972713d6783862c9cb337ff5b373c095e089d3ec2bb12f5fe780122339df'
 EXPECTED_IMAGE = 'lmsysorg/sglang@sha256:4a5d132a06a77c8331e15845f2e925adc788b00105097ad55409afa3f4fa4860'
 CONFIG_MAP_NAME = 'deepinfer-nccl-ep-contiguous-%s-%s' % (PREDECESSOR_COMMIT[:7], EXPECTED_SHA256[:8])
-SOURCE_ANNOTATION = 'dsh.bot.or.th/nccl-ep-contiguous-source'
-SHA_ANNOTATION = 'dsh.bot.or.th/nccl-ep-contiguous-sha256'
+SOURCE_ANNOTATION = 'dsh.example.com/nccl-ep-contiguous-source'
+SHA_ANNOTATION = 'dsh.example.com/nccl-ep-contiguous-sha256'
 
 SECRET_NAME = re.compile(r'TOKEN|SECRET|PASSWORD|KEY|CRED', re.IGNORECASE)
 

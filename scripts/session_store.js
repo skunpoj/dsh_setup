@@ -1,6 +1,8 @@
 'use strict';
 // One protected writer per gateway. Cookie bearer values are never persisted.
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
+const AGENT_RUNTIMES=['claude-code','deep-agents','dsh-python-sdk'];
+const agentFields=r=>AGENT_RUNTIMES.includes(r.runtime)?{runtime:r.runtime,targetKey:r.targetKey}:{};
 const TTL_MS=86400000,MAX_ENTRIES=2048,MAX_BYTES=1048576;
 const tokenHash=token=>typeof token==='string'&&/^[a-f0-9]{48}$/.test(token)?crypto.createHash('sha256').update(token).digest('hex'):null;
 class SessionStore extends Map {
@@ -16,19 +18,27 @@ class SessionStore extends Map {
    const bytes=fs.readFileSync(fd);if(bytes.length>MAX_BYTES)throw Error('Session store too large');
    const value=JSON.parse(bytes);if(value.version!==1||Object.keys(value).sort().join(',')!=='sessions,version'||!Array.isArray(value.sessions)||value.sessions.length>MAX_ENTRIES)throw Error('Invalid session store');
    for(const row of value.sessions){
-    if(!row||Object.keys(row).sort().join(',')!=='accountStamp,created,digest,internet,user'||!this.valid(row)||!/^[a-f0-9]{64}$/.test(row.digest)||super.has(row.digest))throw Error('Invalid session row');
-    if(row.created+TTL_MS>clock())super.set(row.digest,{user:row.user,internet:row.internet,created:row.created,accountStamp:row.accountStamp});
+    if(!row||!['accountStamp,created,digest,internet,user','accountStamp,created,digest,internet,runtime,targetKey,user'].includes(Object.keys(row).sort().join(','))||!this.valid(row)||!/^[a-f0-9]{64}$/.test(row.digest)||super.has(row.digest))throw Error('Invalid session row');
+    if(row.created+TTL_MS>clock())super.set(row.digest,{user:row.user,internet:row.internet,created:row.created,accountStamp:row.accountStamp,...agentFields(row)});
    }
   }catch(e){if(e.code!=='ENOENT')throw Error('Protected session store unavailable; refusing startup');}
   finally{if(fd!==undefined)fs.closeSync(fd);}
  }
- valid(row){return row&&/^[a-z0-9_.-]{1,30}$/.test(row.user)&&['on','off'].includes(row.internet)&&Number.isSafeInteger(row.created)&&row.created>0&&row.created<=this.clock()+30000&&/^[a-f0-9]{64}$/.test(row.accountStamp);}
+ valid(row){return row&&(row.runtime===undefined||row.runtime==='dsh'&&!Object.hasOwn(row,'targetKey')||AGENT_RUNTIMES.includes(row.runtime)&&/^[a-f0-9]{24}$/.test(row.targetKey))&&!(row.runtime===undefined&&Object.hasOwn(row,'targetKey'))&&/^[a-z0-9_.-]{1,30}$/.test(row.user)&&['on','off'].includes(row.internet)&&Number.isSafeInteger(row.created)&&row.created>0&&row.created<=this.clock()+30000&&/^[a-f0-9]{64}$/.test(row.accountStamp);}
  secureParent(){const s=fs.lstatSync(path.dirname(this.file));if(!s.isDirectory()||s.isSymbolicLink()||(process.platform!=='win32'&&((s.mode&0o077)||s.uid!==process.getuid())))throw Error('Session directory must be private and owned by the gateway');}
  prune(){for(const [key,row]of super.entries())if(row.created+TTL_MS<=this.clock())super.delete(key);}
  persist(){
   this.secureParent();
-  const rows=[...super.entries()].map(([digest,r])=>({digest,user:r.user,internet:r.internet,created:r.created,accountStamp:r.accountStamp}));
+  const rows=[...super.entries()].map(([digest,r])=>({digest,user:r.user,internet:r.internet,created:r.created,accountStamp:r.accountStamp,...agentFields(r)}));
   const bytes=JSON.stringify({version:1,sessions:rows});if(Buffer.byteLength(bytes)>MAX_BYTES)throw Error('Session capacity exceeded');
+  // Retain the exact prior v1 file before first standalone-aware write.
+  if(rows.some(r=>r.runtime)&&fs.existsSync(this.file)){
+   const prior=fs.readFileSync(this.file);const old=JSON.parse(prior);
+   if(old.sessions.every(r=>!Object.hasOwn(r,'runtime'))){
+    const backup=this.file+'.before-standalone-'+crypto.createHash('sha256').update(prior).digest('hex')+'.json';let archive;
+    try{archive=fs.openSync(backup,'wx',0o600);fs.writeFileSync(archive,prior);fs.fsyncSync(archive);}catch(e){if(e.code!=='EEXIST'||!fs.readFileSync(backup).equals(prior))throw e;}finally{if(archive!==undefined)fs.closeSync(archive);}
+   }
+  }
   const tmp=path.join(path.dirname(this.file),'.sessions-'+crypto.randomBytes(12).toString('hex'));let fd;
   try{fd=fs.openSync(tmp,'wx',0o600);fs.writeFileSync(fd,bytes);fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.renameSync(tmp,this.file);
    if(process.platform!=='win32'){const dir=fs.openSync(path.dirname(this.file),'r');try{fs.fsyncSync(dir);}finally{fs.closeSync(dir);}}

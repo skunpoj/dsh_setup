@@ -109,7 +109,7 @@ def build(c):
        'resources':{'requests':{'cpu':'250m','memory':'512Mi'},'limits':{'cpu':'2','memory':'2Gi'}}}
     deploy('database',[pg],[{'name':'data','persistentVolumeClaim':{'claimName':'database'}}]);service('database',5432)
     config={'model_list':[{'model_name':name,'litellm_params':{'model':'openai/deepseek-v4.1-flash','api_base':'http://127.0.0.1:4001/v1','api_key':'not-required-internal',
-         'max_tokens':8192,'timeout':3600,'num_retries':0},'model_info':{'max_input_tokens':1048576,'max_output_tokens':8192}} for name in ['deepseek-v4.1-flash','deepseek-flash']],
+         'max_tokens':8192,'timeout':3600,'num_retries':0},'model_info':{'max_input_tokens':384768,'max_output_tokens':8192}} for name in ['deepseek-v4.1-flash','deepseek-flash']],
        'general_settings':{'master_key':'os.environ/LITELLM_MASTER_KEY','database_url':'os.environ/DATABASE_URL'},
        'litellm_settings':{'callbacks':['gateway_output_guard.proxy_handler_instance'],'drop_params':False,'set_verbose':False},'router_settings':{'num_retries':0}}
     sources={n:(ROOT/'scripts'/n).read_text(encoding='utf-8') for n in ['context_forwarder.py','context_envelope.py','long_context_callbacks.py','gateway_output_guard.py','stream_admission_errors.py']}
@@ -145,7 +145,7 @@ def build(c):
           claim(name+'-incoming','10Gi');volumes.append({'name':'packages','persistentVolumeClaim':{'claimName':name+'-incoming'}})
           mounts.append({'name':'packages','mountPath':'/packages/incoming'})
         env=[{'name':'DSH_ENVIRONMENT','value':mode},{'name':'DSH_TRUSTED_HOST','value':c['public_hostname']},
-             {'name':'DSH_CONTEXT_TOKENS','value':'1048576'},{'name':'DSH_LLM_TRANSPORT_ORIGIN','value':'http://litellm:4000'}]
+             {'name':'DSH_CONTEXT_TOKENS','value':'393216'},{'name':'DSH_LLM_TRANSPORT_ORIGIN','value':'http://litellm:4000'}]
         for key in ['DEEPSEEK_API_KEY','OPENAI_API_KEY','LITELLM_API_KEY']:env.append(envref(key,'key',name+'-inference'))
         runtime={'name':'dsh','image':c['dsh_image'],'env':env,'securityContext':SC,'volumeMounts':mounts,
           'resources':{'requests':{'cpu':'250m','memory':'1Gi'},'limits':{'cpu':'4','memory':'8Gi'}},

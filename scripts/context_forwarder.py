@@ -1,4 +1,4 @@
-"""Loopback-only final-wire 1M guard between LiteLLM and internal SGLang.
+"""Loopback-only final-wire 384K guard between LiteLLM and internal SGLang.
 
 Bind to 127.0.0.1 in the authenticated LiteLLM pod. Never expose this listener
 as a Service. Prompts/keys are not logged. Only canaries may enable capture.
@@ -16,7 +16,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.background import BackgroundTask
 
-from long_context_callbacks import CONTEXT, OUTPUT, RESERVE, TOKENIZER, LongContextGuard, count_request
+from long_context_callbacks import (CONTEXT, OUTPUT, RESERVE, TOKENIZER, LongContextGuard,
+    count_request, CONCURRENT_LONG, MAX_WAITERS)
 from context_envelope import normalize_conditioning
 
 
@@ -392,7 +393,8 @@ async def completion(request: Request):
                 timing.record['admissionState'] = 'waiting'
                 print(json.dumps({'event': 'dsh_long_admission_started', 'requestId': rid,
                                   'inputTokens': tokenized['count'], 'waitBudgetSeconds': 1500}), flush=True)
-                admission = await guard.acquire(key, wait_seconds=1500, max_waiters=1)
+                admission = await guard.acquire(key, wait_seconds=1500,
+                    max_waiters=MAX_WAITERS, concurrent=CONCURRENT_LONG)
                 timing.record['admissionState'] = 'acquired'
                 timing.record['admissionQueue'] = admission
                 timing.record['admissionMs'] = round((_timing_clock()-admission_start)*1000, 3)

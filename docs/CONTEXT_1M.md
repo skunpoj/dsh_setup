@@ -1,5 +1,7 @@
 # 1M context: architecture, tuning and qualification
 
+> **History.** This page records the 1,048,576-token configuration of October 2026. The shared model's limit has been 393,216 tokens (384K) since 13 November 2026; the current limit is stated in the [platform guide](DSH_PLATFORM_GUIDE.html).
+
 The values below describe the fresh-install renderer in `scripts/render_k8s.py` at source revision `b7dd7d5e408644dbda9cc69dc648b9a4d837356c`. The separately retained SGLang + DSpark profile in `gpu-stack/profiles/sglang-dspark-rollback.json` uses static memory fraction 0.922, eight running requests and 1,024 maximum prefill tokens. These are separate source profiles. Select and qualify the intended profile before deployment.
 
 The complete path is DSH → authenticated LiteLLM → loopback context forwarder →

@@ -291,17 +291,21 @@ class SidecarTests(unittest.TestCase):
         # stop_sequences fix had shipped since that entry was last reviewed, without the
         # baseline being advanced to match). The baseline must record the live hash so a real
         # rollout refuses unless the live file still matches.
+        # Re-reviewed 2026-11-13 (ORCH-GUARD-PATCH-STAGED-NEEDS-LINUX-TEST): 1315 run 64775's plan
+        # read the live file at 34b2c505... (baselineMatch false against the 96728751 entry), so
+        # the baseline was advanced to the live hash again.
         files = r.load_baseline()
         self.assertIn('gateway_output_guard.py', files)
         self.assertEqual(files['gateway_output_guard.py'],
-                          '96728751217e4dfd57a3d1c5a2c0b227bda11f9be0323a4eb01379931001033d')
+                          '34b2c50560e50981c609acd1d5bfe6f0d7ee907cf15b36b2bfa63112d9cbc9fc')
 
-    def test_repository_gateway_output_guard_now_differs_from_the_recorded_baseline(self):
-        # This fix changes gateway_output_guard.py, so a real rollout must see it as changed
-        # (and therefore actually deploy it) rather than silently carrying the old content.
+    def test_repository_gateway_output_guard_matches_the_recorded_baseline(self):
+        # The 13 Nov long-context guard release does not change gateway_output_guard.py: the
+        # repository copy is the one already live (the earlier 'differs' check belonged to the
+        # parallel_tool_calls release, which has since shipped).
         live_hash = r.load_baseline()['gateway_output_guard.py']
         repo_hash = r.text_sha256((r.ROOT / r.SIDECAR['files']['gateway_output_guard.py']).read_text(encoding='utf-8'))
-        self.assertNotEqual(live_hash, repo_hash)
+        self.assertEqual(live_hash, repo_hash)
 
     def test_plan_only_changes_nothing_and_reports_the_plan(self):
         api = SidecarApi()

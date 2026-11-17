@@ -22,7 +22,7 @@ from scripts.official_sdk_bootstrap import configure as configure_official_sdk
 from scripts.official_sdk_deployment_observer import OfficialSDKDeploymentObserver
 from scripts.official_sdk_executing_identity import ROOT as IDENTITY_ROOT, ExecutingPodIdentity, read_fixed
 from scripts.official_sdk_package_admission import protected_bytes, unique_json
-from scripts.official_sdk_test_api import FixedQualificationReadAPI, ProtectedQualificationRequester
+from scripts.official_sdk_test_api import FixedQualificationReadAPI, ProjectedTokenQualificationRequester
 
 ADMISSION = "/etc/dsh-native-admission/official-sdk-server.json"
 BROKER = "/opt/dsh/container/dsh-task-broker.py"
@@ -44,7 +44,7 @@ def read_downward():
 
 
 def build_observer_for(**kwargs):
-    return compose.build_observer(unique_json=unique_json, requester_factory=ProtectedQualificationRequester,
+    return compose.build_observer(unique_json=unique_json, requester_factory=ProjectedTokenQualificationRequester,
                                   api_factory=FixedQualificationReadAPI, identity_factory=ExecutingPodIdentity,
                                   observer_factory=OfficialSDKDeploymentObserver, **kwargs)
 

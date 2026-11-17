@@ -43,7 +43,7 @@ Current chapter counts and installed content come from the published course inde
 
 ## Current DSH guide
 
-Read the current guide. It combines risk controls, daily use, application access and operator guidance in English.
+[Read the current guide](DSH_CURRENT_GUIDE.html). It combines risk controls, daily use, application access and operator guidance in English.
 
 Video lessons retain their own source snapshots.
 

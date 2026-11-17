@@ -3,10 +3,10 @@ from documentation_requirements import public_projection_html
 
 Inputs (single source of truth):
   docs/security-data/features.json          the 80-feature matrix with its tags (asi_primary, asi_all, risk, layer, cia, control_type)
-  docs/security-data/tools_register.json    the tool-and-risk register (private manual only; never mirrored)
+  Private operator register inputs are excluded from this public generator.
   docs/security-data/dq-agent-safety.source.html   the DQ agent safety layers page, unmodified
 Outputs (docs/): SECURITY_BY_OWASP.html, FEATURE_MATRIX_BY_OWASP.html, AGENT_SAFETY_LAYERS.html,
-                 TOOLS_AND_RISKS_REGISTER.html
+                 Private assessment generation is excluded from this public source.
 Deterministic and stdlib only; `--check` verifies the committed pages equal the generated ones.
 The tags are drafts for owner review; the pages say so. Nothing here certifies OWASP compliance.
 """
@@ -398,7 +398,7 @@ def build_withdrawn():
             '<p><a href="index.html">Back to the library index</a></p></main></body></html>\n')
 
 
-PRIVATE_FULL = 'security-data/private/TOOLS_AND_RISKS_REGISTER_FULL.html'
+PRIVATE_FULL = None  # Private assessment targets are authority-only; generation already refuses them.
 
 
 def generate():

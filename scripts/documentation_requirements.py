@@ -529,6 +529,10 @@ if __name__ == "__main__":
 
 
 # Public-source projection only. Private canonical generators remain unchanged.
+def _private_source_stem(stem, private):
+    import hashlib
+    return stem in private or 'sha256:' + hashlib.sha256(stem.encode('utf-8')).hexdigest() in private
+
 def public_projection_html(text, source, members=None):
     import posixpath
     from urllib.parse import urlsplit, unquote
@@ -538,7 +542,7 @@ def public_projection_html(text, source, members=None):
     if members is None:
         members = {p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file() and '.git' not in p.parts}
     relative = source.relative_to(root).as_posix()
-    private = {'TOOLS_AND_RISKS_REGISTER', 'CREDENTIAL_OPERATIONS', 'ENTERPRISE_ROOT_CA_SETUP', 'INSTALL', 'INSTALLATION_WALKTHROUGH', 'OPERATIONS_AND_TROUBLESHOOTING_MANUAL', 'DSH_SETUP_AND_STRESS_TEST_GUIDE', 'INFRA_ADMIN_P2P_NOTE_20261030'}
+    private = {'sha256:c7486707ae1dccd42d026007804582a7dc2d73018d43e8d65fff480c0c695e24', 'CREDENTIAL_OPERATIONS', 'ENTERPRISE_ROOT_CA_SETUP', 'INSTALL', 'INSTALLATION_WALKTHROUGH', 'OPERATIONS_AND_TROUBLESHOOTING_MANUAL', 'DSH_SETUP_AND_STRESS_TEST_GUIDE', 'INFRA_ADMIN_P2P_NOTE_20261030'}
     def target(href):
         u = urlsplit(unescape(href))
         if u.scheme or u.netloc or not u.path:
@@ -546,7 +550,7 @@ def public_projection_html(text, source, members=None):
         if u.path.startswith('/'):
             return False
         name = posixpath.normpath(posixpath.join(posixpath.dirname(relative), unquote(u.path)))
-        if Path(name).stem in private or 'internal-runbooks' in name or name not in members:
+        if _private_source_stem(Path(name).stem, private) or 'internal-runbooks' in name or name not in members:
             return False
         return name
     anchor_cache = {}

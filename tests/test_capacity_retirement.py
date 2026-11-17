@@ -27,6 +27,8 @@ if os.name == 'nt':
         temp.write_text(json.dumps(value), encoding='utf8')
         os.replace(temp, path)
     cr.read_json, cr.atomic_json = _read_json, _atomic_json
+    import capacity_controller as _cc
+    _cc.read_json, _cc.atomic_json = _read_json, _atomic_json
 
 OWNED = {'metadata': {'labels': {cr.OWNED_LABEL: 'true'}}}
 SLOT_A, SLOT_B, SLOT_BANK = 'cap-' + 'a' * 16 + '-01', 'cap-' + 'b' * 16 + '-01', 'cap-' + 'c' * 16 + '-01'
@@ -315,6 +317,32 @@ class RetirementTests(unittest.TestCase):
         with self.assertRaises(cr.StepFailed):
             cr.remove_tree(self.ctx.central / 'dsh' / 'private', '8c6976e5b5410415/secure')
         self.assertTrue(self.exists(SLOT_BANK))
+
+
+class SourceListTests(unittest.TestCase):
+    """The controller runs from a ConfigMap built from fixed lists: a module that is not in the list is simply absent in the pod."""
+
+    def test_the_controller_configmap_carries_the_retirement_module(self):
+        import rollout_dsh_sources as R
+        keys = json.loads((Path(__file__).resolve().parent / 'fixtures' / 'source_cm_keys.json').read_text())
+        _, document = R.build_bundle('controller', set(keys['controller']))
+        self.assertIn('capacity_retirement.py', document['data'])
+        self.assertIn('capacity_retirement.py', R.SOURCES)
+
+    def test_a_retirement_failure_is_recorded_not_swallowed(self):
+        import capacity_controller as cc
+        tmp = Path(tempfile.mkdtemp(prefix='retire-round-'))
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        (tmp / 'inventory').mkdir()
+        saved = sys.modules.get('capacity_retirement')
+        sys.modules['capacity_retirement'] = None          # makes `import` raise ModuleNotFoundError, like a module missing from the ConfigMap
+        try:
+            outcome = cc.retirement_round(tmp, object(), {})
+        finally:
+            sys.modules['capacity_retirement'] = saved
+        self.assertEqual(outcome, {'ok': False, 'error': 'ModuleNotFoundError'})
+        status = json.loads((tmp / 'inventory' / 'retirement-status.json').read_text())
+        self.assertEqual((status['ok'], status['error']), (False, 'ModuleNotFoundError'))
 
 
 if __name__ == '__main__':

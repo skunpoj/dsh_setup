@@ -42,7 +42,7 @@ const status=cap=>json('capacity/inventory/status.json',{observedAt:new Date().t
  assert.equal(JSON.parse((await request('GET','/api/status')).text).accounts,undefined,'a stale report shows no bar');
  // Browser: the bar renders from that API and the page does not scroll sideways at phone widths.
  status(capacity(2,1,20,['storageGiB']));
- const {chromium}=require(process.env.DSH_PLAYWRIGHT||'C:/Users/skunpojt/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+ const {chromium}=require(process.env.DSH_PLAYWRIGHT||'playwright');
  const browser=await chromium.launch({headless:true,...(process.platform==='win32'?{executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'}:{})});
  try{
   const page=await (await browser.newContext({viewport:{width:1440,height:900}})).newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));

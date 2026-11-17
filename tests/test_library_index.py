@@ -21,7 +21,7 @@ class PublicLibraryProjection(unittest.TestCase):
   for required in ['393216-token context','DeepSeek through the managed LiteLLM route only','multiharness.cloud and superharness.cloud','FREE_ROUTE_SETUP_REQUIRED','not a functioning free-model service','no automatic fallback']:
    self.assertIn(required,guide)
  def test_private_release_and_qa_paths_are_not_links(self):
-  text=(DOCS/'index.html').read_text(encoding='utf-8');self.assertNotRegex(text,r'href=[\"\'][^\"\']*(?:internal-runbooks|TOOLS_AND_RISKS_REGISTER|live_gateway_auth_proxy)')
+  text=(DOCS/'index.html').read_text(encoding='utf-8');self.assertNotRegex(text,r'href=[\"\'][^\"\']*(?:internal-runbooks|live_gateway_auth_proxy)');self.assertFalse(_private_href_marker_present(text,'c7486707ae1dccd42d026007804582a7dc2d73018d43e8d65fff480c0c695e24',24))
 
 
 def visible(text):
@@ -102,9 +102,9 @@ class AdditionalRetainedPublicIndexAssertions(unittest.TestCase):
         for name in names:
             if name!='index.html':self.assertIn('href="'+name+'"',INDEX)
     def test_private_register_is_not_linked_or_promoted(self):
-        self.assertNotIn('TOOLS_AND_RISKS_REGISTER',INDEX)
+        self.assertFalse(_private_marker_present(INDEX,'c7486707ae1dccd42d026007804582a7dc2d73018d43e8d65fff480c0c695e24',24))
         self.assertNotIn('private register',(DOCS/'SECURITY_BY_OWASP.html').read_text(encoding='utf-8'))
-        self.assertNotIn('TOOLS_AND_RISKS_REGISTER',{d['stem'] for d in lib.collect()})
+        self.assertFalse(any(_private_marker_present(d['stem'],'c7486707ae1dccd42d026007804582a7dc2d73018d43e8d65fff480c0c695e24',24) for d in lib.collect()))
 
 
 
@@ -134,5 +134,16 @@ class PublicControlCsp(unittest.TestCase):
   self.assertIn('href="diagrams/multiharness-three-risk-control-path.svg"',index)
   self.assertIn('alt="An authorized user task enters guardrails',index)
   self.assertNotIn('src="diagrams/multiharness-three-risk-control-path.svg"',index)
+
+def _private_marker_present(text, digest, width):
+    """Exact substring privacy assertion without publishing its protected identifier."""
+    import hashlib
+    return any(hashlib.sha256(text[i:i + width].encode('utf-8')).hexdigest() == digest
+               for i in range(max(0, len(text) - width + 1)))
+
+def _private_href_marker_present(text, digest, width):
+    import re
+    return any(_private_marker_present(value, digest, width)
+               for value in re.findall(r"""href=["']([^"']*)""", text))
 
 if __name__=='__main__':unittest.main()

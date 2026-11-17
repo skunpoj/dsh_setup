@@ -184,6 +184,22 @@ def sessions(root, worker, idle_timeout, warm_count=0):
     return decision['summary']
 
 
+def retirement_round(root, worker, config):
+    """Administrator-requested slot wipe, once per controller round. Results are recorded per slot; an error here never
+    pauses provisioning, but it is never silent: inventory/retirement-status.json says whether the last round ran."""
+    try:
+        from capacity_retirement import process_retirements
+        process_retirements(root, worker.retirement_context(), config, worker.service_ids)
+        outcome = {'ok': True}
+    except Exception as error:
+        outcome = {'ok': False, 'error': type(error).__name__}
+    try:
+        atomic_json(Path(root) / 'inventory' / 'retirement-status.json', {'observedAt': utc(), **outcome})
+    except Exception:
+        pass
+    return outcome
+
+
 def utc():
     return datetime.now(timezone.utc).isoformat()
 
@@ -227,12 +243,7 @@ def main():
                 if args.once:
                     raise SystemExit('Capacity reconciliation paused: ' + type(error).__name__)
             if config.get('allowSlotRetirement') is True:
-                # Administrator-requested slot wipe. Results are recorded per slot; an error here never pauses provisioning.
-                try:
-                    from capacity_retirement import process_retirements
-                    process_retirements(root, worker.retirement_context(), config, worker.service_ids)
-                except Exception:
-                    pass
+                retirement_round(root, worker, config)
             if args.once:
                 break
             # Someone is waiting for a cold start: check again quickly.

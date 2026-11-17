@@ -80,6 +80,7 @@ def load():
     tools.CONTEXT, tools.OUTPUT, tools.RESERVE = 1048576, 8192, 256
     tools.TOKENIZER = 'http://internal:8000/v1/tokenize'
     tools.LongContextGuard = FakeGuard
+    tools.CONCURRENT_LONG, tools.MAX_WAITERS = 16, 16
     tools.count_request = lambda d, final: {'count': 200000, 'tokens': [1, 2], 'max_model_len': 1048576}
     http = types.ModuleType('httpx')
     http.Timeout = lambda *a, **kw: None

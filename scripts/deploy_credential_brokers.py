@@ -1,8 +1,46 @@
 """Deploy isolated broker services from reviewed source and operator-owned profile files."""
-import argparse,base64,hashlib,json,os,subprocess
+import argparse,base64,hashlib,json,os,re,subprocess
 from pathlib import Path
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
+
+PUBLIC_EXCEPT=['0.0.0.0/8','10.0.0.0/8','100.64.0.0/10','127.0.0.0/8','169.254.0.0/16','172.16.0.0/12','192.168.0.0/16','224.0.0.0/3']
+
+def validate_owner_lists(profiles):
+    """'allowedOwners' must be a list of account ids u-<32 hex> (at most 200); an empty list means nobody may use the profile."""
+    for name, profile in sorted(profiles.items()):
+        owners = profile.get('allowedOwners')
+        if owners is None:
+            continue
+        if not (isinstance(owners, list) and len(owners) <= 200 and all(isinstance(o, str) and re.fullmatch(r'u-[a-f0-9]{32}', o) for o in owners)):
+            raise ValueError('Profile %s: allowedOwners must be a list of account ids u-<32 hex>' % name)
+
+
+def eda_egress(profiles):
+    """One rule per 'eda-session' profile: plain http to the named in-cluster pods only. A ClusterIP in an ipBlock is not reliable (the CNI sees the pod address
+    after translation), so the destination is a namespace plus ONE pod label, like the workspace policy for the EDA."""
+    rules=[]
+    for name,profile in sorted(profiles.items()):
+        if profile.get('auth')!='eda-session':continue
+        selector=profile.get('egressPods') or {}
+        namespace,labels,port=selector.get('namespace'),selector.get('labels'),profile.get('port')
+        if not(isinstance(namespace,str) and re.fullmatch(r'[a-z0-9]([-a-z0-9]*[a-z0-9])?',namespace) and isinstance(labels,dict) and len(labels)==1
+               and all(isinstance(k,str) and isinstance(v,str) and re.fullmatch(r'[A-Za-z0-9._/-]{1,63}',k) and re.fullmatch(r'[A-Za-z0-9._-]{1,63}',v) for k,v in labels.items())
+               and type(port) is int and 1<=port<=65535):
+            raise ValueError('Profile %s needs egressPods {namespace, one label} and a port' % name)
+        rules.append({'to':[{'namespaceSelector':{'matchLabels':{'kubernetes.io/metadata.name':namespace}},'podSelector':{'matchLabels':labels}}],'ports':[{'port':port,'protocol':'TCP'}]})
+    return rules
+
+def broker_egress(mode,profiles):
+    validate_owner_lists(profiles)
+    egress=[{'to':[{'podSelector':{'matchLabels':{'app':'dsh-credential-vault'}}}],'ports':[{'port':8200,'protocol':'TCP'}]},{'to':[{'namespaceSelector':{'matchLabels':{'kubernetes.io/metadata.name':'kube-system'}},'podSelector':{'matchLabels':{'k8s-app':'kube-dns'}}}],'ports':[{'port':53,'protocol':'UDP'},{'port':53,'protocol':'TCP'}]}]
+    if mode=='on':
+        egress.append({'to':[{'ipBlock':{'cidr':'0.0.0.0/0','except':PUBLIC_EXCEPT}}],'ports':[{'port':443,'protocol':'TCP'}]})
+    else:
+        addresses=sorted({ip for profile in profiles.values() if profile.get('auth')!='eda-session' for ip in profile.get('allowedAddresses',[])})
+        if addresses:egress.append({'to':[{'ipBlock':{'cidr':ip+'/32'}} for ip in addresses],'ports':[{'port':443,'protocol':'TCP'}]})
+        egress.extend(eda_egress(profiles))
+    return egress
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--namespace',default='llm');p.add_argument('--image',required=True);p.add_argument('--profiles-off',required=True);p.add_argument('--profiles-on',required=True);p.add_argument('--enterprise-ca-configmap');a=p.parse_args()
@@ -40,11 +78,7 @@ def main():
         if a.enterprise_ca_configmap:
             volumes.append({'name':'enterprise-ca','configMap':{'name':a.enterprise_ca_configmap,'items':[{'key':'root.pem','path':'root.pem'}]}});mounts.append({'name':'enterprise-ca','mountPath':'/enterprise-ca','readOnly':True})
         apply({'apiVersion':'apps/v1','kind':'Deployment','metadata':{'name':name},'spec':{'replicas':1,'strategy':{'type':'Recreate'},'selector':{'matchLabels':{'app':name}},'template':{'metadata':{'labels':{'app':name,'dsh-credential-broker':'true'},'annotations':{'dsh.credential/source-sha256':digest}},'spec':{'automountServiceAccountToken':False,'securityContext':{'runAsNonRoot':True,'runAsUser':10001,'runAsGroup':10001,'fsGroup':10001,'seccompProfile':{'type':'RuntimeDefault'}},'containers':[{'name':'broker','image':a.image,'command':['node','/broker/credential_broker.js'],'env':[{'name':'DSH_CREDENTIAL_BROKER_CONFIG','value':'/config/broker.json'}],'securityContext':{'allowPrivilegeEscalation':False,'readOnlyRootFilesystem':True,'capabilities':{'drop':['ALL']}},'resources':{'requests':{'cpu':'50m','memory':'64Mi'},'limits':{'cpu':'500m','memory':'192Mi'}},'ports':[{'containerPort':8443}],'readinessProbe':{'httpGet':{'path':'/health','port':8443,'scheme':'HTTPS'},'initialDelaySeconds':2,'periodSeconds':5},'volumeMounts':mounts}],'volumes':volumes}}}})
-        egress=[{'to':[{'podSelector':{'matchLabels':{'app':'dsh-credential-vault'}}}],'ports':[{'port':8200,'protocol':'TCP'}]},{'to':[{'namespaceSelector':{'matchLabels':{'kubernetes.io/metadata.name':'kube-system'}},'podSelector':{'matchLabels':{'k8s-app':'kube-dns'}}}],'ports':[{'port':53,'protocol':'UDP'},{'port':53,'protocol':'TCP'}]}]
-        if mode=='on':egress.append({'to':[{'ipBlock':{'cidr':'0.0.0.0/0','except':['0.0.0.0/8','10.0.0.0/8','100.64.0.0/10','127.0.0.0/8','169.254.0.0/16','172.16.0.0/12','192.168.0.0/16','224.0.0.0/3']}}],'ports':[{'port':443,'protocol':'TCP'}]})
-        else:
-            addresses=sorted({ip for profile in profiles.values() for ip in profile.get('allowedAddresses',[])})
-            if addresses:egress.append({'to':[{'ipBlock':{'cidr':ip+'/32'}} for ip in addresses],'ports':[{'port':443,'protocol':'TCP'}]})
+        egress=broker_egress(mode,profiles)
         apply({'apiVersion':'networking.k8s.io/v1','kind':'NetworkPolicy','metadata':{'name':name+'-isolation'},'spec':{'podSelector':{'matchLabels':{'app':name}},'policyTypes':['Ingress','Egress'],'ingress':[{'from':[{'podSelector':{'matchLabels':{'app':'dsh-environment-gateway'}}},{'podSelector':{'matchLabels':{'app':'dsh-credential-canary'}}}],'ports':[{'port':8443,'protocol':'TCP'}]}],'egress':egress}})
         k('rollout','status','deployment/'+name,'--timeout=90s')
     print(json.dumps({'brokersDeployed':True,'sourceSHA256':digest,'addresses':ips,'newPersistentStorageGiB':3,'newCloudInstances':0}))

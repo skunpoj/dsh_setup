@@ -30,7 +30,7 @@ function patchManagedBudget(source, origin) {
   const route = JSON.stringify(origin + '/v1');
   return source.replace(anchor, `    if (model.provider === "litellm-cluster" && model.api === "openai-completions"
         && ["deepseek-v4.1-flash", "deepseek-flash"].includes(model.id)
-        && model.contextWindow === 1048576 && typeof model.baseUrl === "string"
+        && [393216, 1048576].includes(model.contextWindow) && typeof model.baseUrl === "string"
         && (model.baseUrl === ${route} || model.baseUrl === ${route} + "/")) {
         return Math.max(MIN_MAX_TOKENS, Math.min(maxTokens, model.maxTokens, 8192));
     }

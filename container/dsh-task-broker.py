@@ -21,6 +21,7 @@ from scripts.unattended_env import minimal_environment
 from scripts.official_sdk_approval import verified_terminal_stop
 from scripts import a2a_stage_journal
 from scripts.a2a_factory_budget import recover_allowance,WAL_NAME
+from scripts.task_proposals import PROPOSALS, Refusal as ProposalRefusal
 
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("DSH_TASK_BROKER_PORT", "7682"))
@@ -37,7 +38,14 @@ LOCAL_SDK_STAT = os.lstat
 LOCAL_SDK_OWNER_CHECK = os.name == "posix"
 
 
+def standalone_native_required(server=None):
+    return (os.environ.get('DSH_AGENT_PROFILE') == 'dsh-python-sdk'
+            or os.environ.get('DSH_SDK_STANDALONE_REQUIRED') == '1'
+            or getattr(server, 'sdk_standalone_required', False) is True)
+
+
 def local_sdk_enabled():
+    if standalone_native_required(): return False
     if os.environ.get("DSH_NATIVE_QUALIFICATION_MODE") == "1": return False
     try:
         info = LOCAL_SDK_STAT(LOCAL_SDK_FLAG)
@@ -148,6 +156,7 @@ class Task:
     def recover(cls, value, directory):
         task=cls.__new__(cls);task.private_capture=None;task.capture_terminal_proof=None;task.id=value["id"];task.request={"runtime":value["runtime"],"project":value["project"],"writes":value.get("writes",False),"handoffRuntime":value.get("handoffRuntime")}
         task.correlation_id=value.get("correlationId", value["id"])
+        if value.get("origin") in ("chat","form"): task.request["origin"]=value["origin"]
         task.authenticated_subject = value.get("authenticatedSubject")
         task.openshell=value.get("openshell")
         task.execution_service=None
@@ -362,7 +371,7 @@ class Task:
                 "factoryBudgetFault": self.factory_budget_fault,
                 "nativeSdk": self.native_sdk,
                 "backend": self.request.get("backend","private"),
-                "writes": self.request["writes"], "handoffRuntime": self.request.get("handoffRuntime"),
+                "writes": self.request["writes"], "handoffRuntime": self.request.get("handoffRuntime"), "origin": self.request.get("origin"),
                 "state": self.state, "created": self.created,
                 "updated": time.time(), "sequence": self.sequence,
             })
@@ -600,7 +609,7 @@ class Registry:
             if task is None or getattr(task,'factory_budget_fault',False):
                 self.factory_budget_faults.append(marker.parent.name)
 
-    def create(self, request, execution_service=None, sdk_service=None, a2a_executor=None, authenticated_subject=None):
+    def create(self, request, execution_service=None, sdk_service=None, a2a_executor=None, authenticated_subject=None, require_native_sdk=False):
         with self.lock:
             if self.factory_budget_faults:raise RuntimeError('FACTORY_GRANT_DURABILITY_UNRESOLVED')
             if any(t.state in {"queued", "running", "handoff", "finalizing", "cancelling", "awaiting_approval"}
@@ -614,7 +623,7 @@ class Registry:
                    or (t.request.get("backend")=="openshell" and t.openshell and t.openshell.get("phase")!="stopped")
                    for t in self.tasks.values()):
                 raise RuntimeError("TASK_ALREADY_ACTIVE")
-            local_sdk = (sdk_service is None and request["runtime"]=="sdk" and request.get("handoffRuntime") is None
+            local_sdk = (not require_native_sdk and not standalone_native_required() and sdk_service is None and request["runtime"]=="sdk" and request.get("handoffRuntime") is None
                          and request.get("backend","private")=="private" and local_sdk_enabled())
             if (request.get("backend","private")=="private" and request["runtime"]=="sdk" and not local_sdk
                     and (sdk_service is None or sdk_service.qualified is not True)):
@@ -681,8 +690,15 @@ class Handler(BaseHTTPRequestHandler):
             a2a_enabled=a2a is not None and a2a.qualified is True
             return self.reply(200, {"runtimes":sorted(RUNTIMES),
                 "runtimeDetails":{"sdk":{"enabled":sdk_enabled,"implementation":"official-native",
-                    "handoffEnabled":a2a_enabled,"reason":"Qualified native runner configured" if sdk_enabled else "Official SDK native runtime qualification pending"}},
+                    "approvalReceipts":"ed25519-native-v1" if standalone_native_required(self.server) and getattr(self.server,"native_approval_receipts",None) is not None else None,"handoffEnabled":a2a_enabled,"reason":"Qualified native runner configured" if sdk_enabled else "Official SDK native runtime qualification pending"}},
                 "backends":[{"id":"private","enabled":True},{"id":"openshell","enabled":enabled,"reason":"Qualified native transport" if enabled else "OpenShell requires 25-gate Test and rollback qualification"}]})
+        if path == "/v1/tasks" and "state=proposed" in urlparse(self.path).query.split("&"):
+            return self.reply(200,{"proposals":PROPOSALS.list(self.headers.get("X-DSH-Subject",""))})
+        proposal=re.fullmatch(r"/v1/proposals/([a-f0-9]{32})",path)
+        if proposal:
+            try: view=PROPOSALS.get(proposal.group(1),self.headers.get("X-DSH-Subject",""))
+            except ProposalRefusal as error: return self.reply(error.status,{"error":error.error})
+            return self.reply(200,view) if view is not None else self.reply(404,{"error":"PROPOSAL_NOT_FOUND"})
         match = re.fullmatch(r"/v1/tasks/([a-f0-9]{32})/events", path)
         if match:
             task = REGISTRY.get(match.group(1))
@@ -728,8 +744,66 @@ class Handler(BaseHTTPRequestHandler):
                             "allowOnceAdmitted":task.request["writes"] is True}
             ticket = a2a_ticket or ticket
             return self.reply(200, {"taskId":task.id,"state":"awaiting_approval" if a2a_ticket else state_seen,"events":rows,
-                                    "next":rows[-1]["sequence"] if rows else after,"more":more,"nativeApproval":ticket})
+                                    "next":rows[-1]["sequence"] if rows else after,"more":more,"nativeApproval":ticket,"origin":task.request.get("origin")})
         return self.reply(404, {"error":"NOT_FOUND"})
+    def create_task(self,value,authenticated_subject="header"):
+        required={"runtime","backend","project","prompt","writes","approved"};optional={"handoffRuntime","handoffPrompt","origin"}
+        if not isinstance(value,dict) or not required.issubset(value) or not set(value).issubset(required|optional): raise ValueError("INVALID_REQUEST")
+        if value.get("origin") not in (None,"chat","form"): raise ValueError("INVALID_REQUEST")
+        if standalone_native_required(self.server) and (value['runtime'] != 'sdk' or value['backend'] != 'private'):
+            raise ValueError('STANDALONE_NATIVE_SDK_ONLY')
+        service=None;sdk_service=None
+        a2a_executor=getattr(self.server,"a2a_executor",None)
+        a2a_enabled=a2a_executor is not None and a2a_executor.qualified is True
+        if value["runtime"] not in RUNTIMES or value["backend"] not in {"private","openshell"}: raise ValueError("UNAVAILABLE_SELECTION")
+        if value["runtime"]=="sdk" and value["backend"]=="openshell":
+            raise ValueError("OFFICIAL_SDK_NATIVE_WORKER_NOT_QUALIFIED")
+        if value["backend"]=="openshell":
+            service=getattr(self.server,"openshell_service",None)
+            if service is None or not service.qualified:raise ValueError("UNAVAILABLE_SELECTION")
+            if self.headers.get("X-DSH-Subject","")!=service.subject:raise ValueError("FOREIGN_SUBJECT")
+        elif value["runtime"]=="sdk" and value["backend"]=="private" and value.get("handoffRuntime") is None and getattr(self.server,"sdk_service",None) is None and not getattr(self.server,"sdk_banking_required",False) and not standalone_native_required(self.server) and local_sdk_enabled():
+            sdk_service=None  # workspace-local resumable SDK task; the per-task guard still wraps it
+        elif value["runtime"]=="sdk":
+            sdk_service=getattr(self.server,"sdk_service",None)
+            if sdk_service is None or sdk_service.qualified is not True:
+                return (503,{"error":"OFFICIAL_SDK_NOT_QUALIFIED"})
+            if self.headers.get("X-DSH-Subject","")!=sdk_service.subject:
+                raise ValueError("FOREIGN_NATIVE_SDK_SUBJECT")
+            if value.get("handoffRuntime") and not a2a_enabled:
+                raise ValueError("NATIVE_SDK_HANDOFF_NOT_YET_QUALIFIED")
+        if value.get("handoffRuntime") is not None:
+            if "sdk" in {value["runtime"],value["handoffRuntime"]} and value["backend"] != "private":
+                raise ValueError("NATIVE_SDK_HANDOFF_PRIVATE_ONLY")
+            if value["handoffRuntime"]=="sdk" and not a2a_enabled:raise ValueError("NATIVE_SDK_HANDOFF_NOT_YET_QUALIFIED")
+            if value["handoffRuntime"] not in RUNTIMES or value["handoffRuntime"]==value["runtime"]: raise ValueError("INVALID_HANDOFF_RUNTIME")
+            if not isinstance(value.get("handoffPrompt",""),str) or len(value.get("handoffPrompt",""))>65536: raise ValueError("INVALID_HANDOFF_PROMPT")
+        if value["approved"] is not True or not isinstance(value["writes"],bool): raise ValueError("APPROVAL_REQUIRED")
+        if not isinstance(value["prompt"],str) or not 1<=len(value["prompt"])<=65536: raise ValueError("INVALID_PROMPT")
+        confined_project(value["project"])
+        if (value.get("handoffRuntime") and "sdk" in {value["runtime"],value["handoffRuntime"]}
+                and (not a2a_enabled or self.headers.get("X-DSH-Subject", "") != a2a_executor.subject)):
+            raise ValueError("FOREIGN_NATIVE_SDK_SUBJECT")
+        task=REGISTRY.create(value,execution_service=service,sdk_service=sdk_service,a2a_executor=a2a_executor,require_native_sdk=standalone_native_required(self.server),authenticated_subject=((self.headers.get("X-DSH-Subject") or None) if authenticated_subject=="header" else authenticated_subject)); return (202,{"taskId":task.id,"state":task.state,"correlationId":task.correlation_id})
+
+    def propose(self,value):
+        # A chat-submitted PROPOSAL: no approval claim, nothing starts. Only a signed human confirmation (see scripts/task_proposals.py) turns it into a task.
+        required={"runtime","backend","project","prompt","writes","approved","origin"}
+        if set(value)!=required or value["approved"] is not False or value["origin"]!="chat": raise ValueError("INVALID_PROPOSAL")
+        if value["runtime"] not in {"sdk","claude","deepagents"} or value["backend"]!="private": raise ValueError("UNAVAILABLE_SELECTION")
+        if not isinstance(value["writes"],bool): raise ValueError("INVALID_PROPOSAL")
+        if not isinstance(value["prompt"],str) or not 1<=len(value["prompt"])<=65536: raise ValueError("INVALID_PROMPT")
+        confined_project(value["project"])
+        try: view=PROPOSALS.create(self.headers.get("X-DSH-Subject",""),value)
+        except ProposalRefusal as error: return self.reply(error.status,{"error":error.error})
+        return self.reply(202,{"proposalId":view["id"],"state":"proposed","expiresAt":view["expiresAt"],"promptSha256":view["promptSha256"]})
+    def confirm_proposal(self,proposal_id):
+        subject=self.headers.get("X-DSH-Subject","")
+        try:
+            status,body=PROPOSALS.confirm(proposal_id,subject,self.body(),lambda request,owner:self.create_task(request,owner))
+            return self.reply(status,body)
+        except ProposalRefusal as error: return self.reply(error.status,{"error":error.error})
+        except (ValueError,json.JSONDecodeError): return self.reply(400,{"error":"INVALID_RECEIPT"})
     def do_POST(self):
         if not self.authorized(): return self.reply(401, {"error":"UNAUTHORIZED"})
         path=urlparse(self.path).path
@@ -746,6 +820,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply(400,{"error":str(error)})
             except Exception:
                 return self.reply(503,{"error":"OPENSHELL_OPERATION_UNCERTAIN"})
+        confirm=re.fullmatch(r"/v1/tasks/([a-f0-9]{32})/confirm",path)
+        if confirm: return self.confirm_proposal(confirm.group(1))
         approval=re.fullmatch(r"/v1/tasks/([a-f0-9]{32})/approve",path)
         if approval:
             try:
@@ -756,6 +832,28 @@ class Handler(BaseHTTPRequestHandler):
             if not task:return self.reply(404,{"error":"TASK_NOT_FOUND"})
             if task.authenticated_subject is not None and self.headers.get("X-DSH-Subject", "") != task.authenticated_subject:
                 return self.reply(403,{"error":"FOREIGN_TASK_SUBJECT"})
+            if standalone_native_required(self.server):
+                if set(value)!={'approvalId','generation','outcome','receipt'}:
+                    return self.reply(409,{'error':'SDK_SIGNED_APPROVAL_BINDING_REQUIRED'})
+                receipts=getattr(self.server,'native_approval_receipts',None)
+                if receipts is None:return self.reply(503,{'error':'SDK_SIGNED_APPROVAL_BINDING_REQUIRED'})
+                try:
+                    subject=self.headers.get('X-DSH-Subject','')
+                    if task.active_a2a_child is not None:
+                        ticket=task.a2a_approval_ticket(subject)
+                    else:
+                        with task.persistence_lock:
+                            native=task.native_sdk
+                            if not native or native.get('phase')!='awaiting-approval' or not native.get('pending'):
+                                raise ValueError('NATIVE_APPROVAL_REPLAY_OR_FENCED')
+                            ticket={'generation':native['generation'],'approvalId':native['pending']['approvalId']}
+                    if (not ticket or value['generation']!=ticket['generation'] or value['approvalId']!=ticket['approvalId']):
+                        raise ValueError('FOREIGN_NATIVE_APPROVAL_RECEIPT')
+                    receipts.consume(value['receipt'],task_id=task.id,subject=subject,
+                        generation=ticket['generation'],approval_id=ticket['approvalId'],outcome=value['outcome'])
+                    value={k:v for k,v in value.items() if k!='receipt'}
+                except ValueError as error:return self.reply(409,{'error':str(error)})
+                except Exception:return self.reply(503,{'error':'NATIVE_APPROVAL_RECEIPT_UNCERTAIN_NO_RETRY'})
             if task.active_a2a_child is not None:
                 if set(value)!={"approvalId","generation","outcome"}:
                     return self.reply(409,{"error":"NATIVE_APPROVAL_TICKET_REQUIRED"})
@@ -780,47 +878,18 @@ class Handler(BaseHTTPRequestHandler):
         if path != "/v1/tasks": return self.reply(404,{"error":"NOT_FOUND"})
         try:
             value=self.body()
-            required={"runtime","backend","project","prompt","writes","approved"};optional={"handoffRuntime","handoffPrompt"}
-            if not isinstance(value,dict) or not required.issubset(value) or not set(value).issubset(required|optional): raise ValueError("INVALID_REQUEST")
-            service=None;sdk_service=None
-            a2a_executor=getattr(self.server,"a2a_executor",None)
-            a2a_enabled=a2a_executor is not None and a2a_executor.qualified is True
-            if value["runtime"] not in RUNTIMES or value["backend"] not in {"private","openshell"}: raise ValueError("UNAVAILABLE_SELECTION")
-            if value["runtime"]=="sdk" and value["backend"]=="openshell":
-                raise ValueError("OFFICIAL_SDK_NATIVE_WORKER_NOT_QUALIFIED")
-            if value["backend"]=="openshell":
-                service=getattr(self.server,"openshell_service",None)
-                if service is None or not service.qualified:raise ValueError("UNAVAILABLE_SELECTION")
-                if self.headers.get("X-DSH-Subject","")!=service.subject:raise ValueError("FOREIGN_SUBJECT")
-            elif value["runtime"]=="sdk" and value["backend"]=="private" and value.get("handoffRuntime") is None and getattr(self.server,"sdk_service",None) is None and not getattr(self.server,"sdk_banking_required",False) and local_sdk_enabled():
-                sdk_service=None  # workspace-local resumable SDK task; the per-task guard still wraps it
-            elif value["runtime"]=="sdk":
-                sdk_service=getattr(self.server,"sdk_service",None)
-                if sdk_service is None or sdk_service.qualified is not True:
-                    return self.reply(503,{"error":"OFFICIAL_SDK_NOT_QUALIFIED"})
-                if self.headers.get("X-DSH-Subject","")!=sdk_service.subject:
-                    raise ValueError("FOREIGN_NATIVE_SDK_SUBJECT")
-                if value.get("handoffRuntime") and not a2a_enabled:
-                    raise ValueError("NATIVE_SDK_HANDOFF_NOT_YET_QUALIFIED")
-            if value.get("handoffRuntime") is not None:
-                if "sdk" in {value["runtime"],value["handoffRuntime"]} and value["backend"] != "private":
-                    raise ValueError("NATIVE_SDK_HANDOFF_PRIVATE_ONLY")
-                if value["handoffRuntime"]=="sdk" and not a2a_enabled:raise ValueError("NATIVE_SDK_HANDOFF_NOT_YET_QUALIFIED")
-                if value["handoffRuntime"] not in RUNTIMES or value["handoffRuntime"]==value["runtime"]: raise ValueError("INVALID_HANDOFF_RUNTIME")
-                if not isinstance(value.get("handoffPrompt",""),str) or len(value.get("handoffPrompt",""))>65536: raise ValueError("INVALID_HANDOFF_PROMPT")
-            if value["approved"] is not True or not isinstance(value["writes"],bool): raise ValueError("APPROVAL_REQUIRED")
-            if not isinstance(value["prompt"],str) or not 1<=len(value["prompt"])<=65536: raise ValueError("INVALID_PROMPT")
-            confined_project(value["project"])
-            if (value.get("handoffRuntime") and "sdk" in {value["runtime"],value["handoffRuntime"]}
-                    and (not a2a_enabled or self.headers.get("X-DSH-Subject", "") != a2a_executor.subject)):
-                raise ValueError("FOREIGN_NATIVE_SDK_SUBJECT")
-            task=REGISTRY.create(value,execution_service=service,sdk_service=sdk_service,a2a_executor=a2a_executor,authenticated_subject=self.headers.get("X-DSH-Subject") or None); return self.reply(202,{"taskId":task.id,"state":task.state,"correlationId":task.correlation_id})
+            if isinstance(value,dict) and value.get("approved") is False: return self.propose(value)
+            return self.reply(*self.create_task(value))
         except (ValueError, json.JSONDecodeError) as error: return self.reply(400,{"error":str(error)})
         except RuntimeError as error: return self.reply(409,{"error":str(error)})
     def do_DELETE(self):
         if not self.authorized(): return self.reply(401,{"error":"UNAUTHORIZED"})
         match=re.fullmatch(r"/v1/tasks/([a-f0-9]{32})",urlparse(self.path).path)
         if not match: return self.reply(404,{"error":"NOT_FOUND"})
+        if PROPOSALS.owns(match.group(1)):
+            try: view=PROPOSALS.deny(match.group(1),self.headers.get("X-DSH-Subject",""))
+            except ProposalRefusal as error: return self.reply(error.status,{"error":error.error})
+            return self.reply(202,{"id":view["id"],"state":view["state"]})
         task=REGISTRY.get(match.group(1))
         if not task: return self.reply(404,{"error":"TASK_NOT_FOUND"})
         if task.authenticated_subject is not None and self.headers.get("X-DSH-Subject", "") != task.authenticated_subject:
@@ -850,4 +919,9 @@ if __name__ == "__main__":
         workspace_root=WORKSPACE)
     from scripts.banking_sdk_bootstrap import configure as configure_banking_sdk
     configure_banking_sdk(server, REGISTRY, workspace_root=WORKSPACE)
+    if standalone_native_required(server):
+        from scripts.native_sdk_approval_receipts import NativeApprovalReceipts
+        journal=os.environ.get('DSH_NATIVE_APPROVAL_JOURNAL')
+        if not journal:raise ValueError('PROTECTED_DURABLE_APPROVAL_JOURNAL_REQUIRED')
+        server.native_approval_receipts=NativeApprovalReceipts(journal_file=journal)
     server.serve_forever()

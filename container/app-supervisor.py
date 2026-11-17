@@ -9,6 +9,33 @@ import subprocess
 import time
 
 
+SERVICE_ENV_KEYS = ['PATH', 'HOME', 'LANG', 'DSH_TRUSTED_HOST', 'DSH_ENVIRONMENT', 'PIP_NO_INDEX', 'PIP_FIND_LINKS', 'npm_config_offline', 'npm_config_cache']
+
+
+def service_environment(service, environ, claude_state='/state/claude', notebook_state='/state/jupyter'):
+    """Minimal environment of a supervised service. The managed JupyterLab also gets what its Terminal needs to run Claude Code like the Web Terminal does:
+    bash (terminado falls back to sh when SHELL is unset, and sh never reads /etc/bash.bashrc), TERM, and a PERSISTENT Claude Code configuration folder (HOME is the throw-away
+    /tmp/service-home, so without one every Jupyter terminal shows Claude Code's first-run setup). The folder is the main container's /state/claude when this container mounts it
+    (terminal parity mode of deploy_app_supervision.sidecar), otherwise the terminal's own folder on the mounted notebook state, /state/jupyter/claude. This container does NOT
+    mount /state/claude by default: the supervisor is deliberately isolated from the agent's private state and credentials."""
+    env = {k: v for k, v in environ.items() if k in SERVICE_ENV_KEYS}
+    env['HOME'] = '/tmp/service-home'
+    if service.get('kind') == 'jupyter':
+        env['SHELL'] = '/bin/bash'
+        if environ.get('TERM'):
+            env['TERM'] = environ['TERM']
+        if os.path.isdir(claude_state) and os.access(claude_state, os.W_OK):
+            env['CLAUDE_CONFIG_DIR'] = claude_state
+        elif os.path.isdir(notebook_state) and os.access(notebook_state, os.W_OK):
+            own = os.path.join(notebook_state, 'claude')
+            try:
+                os.makedirs(own, mode=0o700, exist_ok=True)
+                env['CLAUDE_CONFIG_DIR'] = own
+            except OSError:
+                pass
+    return env
+
+
 def validate(service):
     import re
     if not isinstance(service, dict) or not re.fullmatch(r'[a-z][a-z0-9-]{2,39}', service.get('name', '')):
@@ -89,8 +116,8 @@ class Supervisor:
                 else:
                     try:
                         args,cwd=validate(s)
-                        env={k:v for k,v in os.environ.items() if k in ['PATH','HOME','LANG','DSH_TRUSTED_HOST','DSH_ENVIRONMENT','PIP_NO_INDEX','PIP_FIND_LINKS','npm_config_offline','npm_config_cache']}
-                        env['HOME']='/tmp/service-home';Path(env['HOME']).mkdir(exist_ok=True)
+                        env=service_environment(s,os.environ)
+                        Path(env['HOME']).mkdir(exist_ok=True)
                         process=subprocess.Popen(args,cwd=cwd,env=env,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
                         state={'process':process,'signature':hashlib.sha256(json.dumps(s,sort_keys=True).encode()).hexdigest()};self.children[name]=state
                     except Exception:last['failures']+=1;last['next']=time.monotonic()+min(60,2**min(last['failures'],6));phase='start-failed'

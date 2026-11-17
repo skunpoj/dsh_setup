@@ -7,8 +7,8 @@ spec:
   template:
     metadata:
       annotations:
-        dsh.bot.or.th/nccl-ep-contiguous-source: null
-        dsh.bot.or.th/nccl-ep-contiguous-sha256: null
+        dsh.example.com/nccl-ep-contiguous-source: null
+        dsh.example.com/nccl-ep-contiguous-sha256: null
     spec:
       containers:
       - name: deepinfer

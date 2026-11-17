@@ -81,7 +81,7 @@ class ManagedKiloTests(unittest.TestCase):
         self.assertEqual(policy['enabled_providers'], ['dsh-internal'])
         self.assertEqual(policy['share'], 'disabled')
         provider = policy['provider']['dsh-internal']
-        self.assertEqual(provider['models']['deepseek-v4.1-flash']['limit'], {'context': 1048576, 'output': 8192})
+        self.assertEqual(provider['models']['deepseek-v4.1-flash']['limit'], {'context': 393216, 'output': 8192})
         self.assertEqual(provider['options']['apiKey'], '{file:/harness-credentials/api-key}')
 
 

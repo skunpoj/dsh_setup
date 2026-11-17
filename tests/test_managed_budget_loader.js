@@ -11,7 +11,7 @@ function run(target, origin, expected) {
   const script = `import transport from ${JSON.stringify(pathToFileURL(hook).href)};
     transport.registerManagedBudget(${JSON.stringify(origin)},${JSON.stringify(target)});
     const {clampMaxTokensToContext} = await import(${JSON.stringify(pathToFileURL(target).href)});
-    const model={provider:'litellm-cluster',api:'openai-completions',id:'deepseek-flash',baseUrl:'http://litellm-gateway.llm.svc.cluster.local:4000/v1',contextWindow:1048576,maxTokens:8192};
+    const model={provider:'litellm-cluster',api:'openai-completions',id:'deepseek-flash',baseUrl:'http://litellm-gateway.llm.svc.cluster.local:4000/v1',contextWindow:393216,maxTokens:8192};
     const result=clampMaxTokensToContext(model,{messages:[{role:'user',content:'x'.repeat(5600000)}]},8192);
     if(result!==${expected})throw new Error('Unexpected budget '+result);`;
   return spawnSync(process.execPath,['--input-type=module','-e',script],{encoding:'utf8',env:{...process.env,DSH_MANAGED_TRANSPORT:'0',NODE_OPTIONS:''}});

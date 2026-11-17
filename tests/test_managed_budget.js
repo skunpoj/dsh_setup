@@ -14,9 +14,10 @@ function evaluate(text) {
   return sandbox.sdk;
 }
 const api = evaluate(patched), original = evaluate(source);
-const model = {provider:'litellm-cluster',api:'openai-completions',id:'deepseek-v4.1-flash',baseUrl:'http://litellm-gateway.llm.svc.cluster.local:4000/v1',contextWindow:1048576,maxTokens:8192};
+const model = {provider:'litellm-cluster',api:'openai-completions',id:'deepseek-v4.1-flash',baseUrl:'http://litellm-gateway.llm.svc.cluster.local:4000/v1',contextWindow:393216,maxTokens:8192};
 for (const cap of [1,40,8192,16000]) assert.equal(api.clampMaxTokensToContext(model,{},cap),Math.min(cap,8192));
 assert.equal(api.clampMaxTokensToContext({...model,maxTokens:4096},{},8192),4096);
+assert.equal(api.clampMaxTokensToContext({...model,contextWindow:1048576},{},8192),8192); // the retired 1M value is still accepted (history tools)
 assert.equal(api.clampMaxTokensToContext({...model,id:'deepseek-flash'},{},8192),8192);
 assert.equal(api.clampMaxTokensToContext({...model,baseUrl:model.baseUrl+'/'},{},8192),8192);
 for(const change of [{provider:'other'},{baseUrl:'https://external.example/v1'},{baseUrl:model.baseUrl+'?x=1'},{baseUrl:model.baseUrl+'/other'},{baseUrl:undefined},{id:'unrelated'},{contextWindow:131072},{contextWindow:0},{api:'anthropic-messages'}]) {

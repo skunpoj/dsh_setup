@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {authorizeRequest,lockSettings,lockProfile,MODEL,MANAGED_INPUT} from '../scripts/managed_agent_policy.mjs';
+import {authorizeRequest,lockSettings,lockProfile,MODEL,MANAGED_INPUT,MANAGED_CONTEXT,MANAGED_NAME} from '../scripts/managed_agent_policy.mjs';
 const rows=[];function test(name,fn){fn();rows.push({name,passed:true});}
 test('namespace renderer retains canonical gateway',()=>{const source=fs.readFileSync(new URL('../scripts/render_managed_agent_profile.mjs',import.meta.url),'utf8');assert.ok(source.includes("p.base_url='http://litellm-gateway.'+n+'.svc.cluster.local:4000/v1'"));assert.ok(!source.includes("p.base_url='http://litellm.'+n"));});
 for(const path of ['/v1/chat/completions','/v1/messages','/v1/messages/count_tokens'])test(path,()=>assert.equal(authorizeRequest('POST',path,{model:MODEL}).model,MODEL));
@@ -13,7 +13,7 @@ test('nested override',()=>assert.throws(()=>authorizeRequest('POST','/v1/chat/c
 test('settings catalog locked without mutating source',()=>{const x={keep:1,'llm-pi-ai':{providers:{other:{}}}},y=lockSettings(x,'http://litellm-gateway.llm.svc.cluster.local:4000/v1');assert.equal(y.keep,1);assert.deepEqual(Object.keys(y['llm-pi-ai'].providers),['litellm-cluster']);assert.equal(y['llm-pi-ai'].providers['litellm-cluster'].models.length,1);assert.ok(x['llm-pi-ai'].providers.other);});
 test('profile preserves unrelated tool',()=>{const x=lockProfile([{id:'tool',config:{keep:true}}],'http://litellm-gateway.llm.svc.cluster.local:4000/v1');assert.equal(x.find(e=>e.id==='tool').config.keep,true);assert.equal(x.find(e=>e.id==='llm-deepseek-account').disabled,true);});
 for(const u of ['https://example.com/v1','http://litellm.dsh.svc.cluster.local.evil:4000/v1','http://litellm-gateway.llm.svc.cluster.local:4000/v1?x=1'])test('bad endpoint '+u,()=>assert.throws(()=>lockSettings({},u),/GATEWAY_INVALID/));
-test('preserve existing canonical capabilities except input, which is set to the managed input policy',()=>{const m={id:MODEL,input:['text'],contextWindow:1048576};const y=lockSettings({'llm-pi-ai':{providers:{'litellm-cluster':{models:[m]}}}},'http://litellm-gateway.llm.svc.cluster.local:4000/v1');assert.deepEqual(y['llm-pi-ai'].providers['litellm-cluster'].models[0],{id:MODEL,input:['text','image'],contextWindow:1048576});});
+test('preserve existing canonical capabilities except input, which is set to the managed input policy',()=>{const m={id:MODEL,input:['text'],contextWindow:1048576};const y=lockSettings({'llm-pi-ai':{providers:{'litellm-cluster':{models:[m]}}}},'http://litellm-gateway.llm.svc.cluster.local:4000/v1');assert.deepEqual(y['llm-pi-ai'].providers['litellm-cluster'].models[0],{id:MODEL,input:['text','image'],contextWindow:393216,name:MANAGED_NAME,maxTokens:8192});});
 test('nested model override refused',()=>assert.throws(()=>authorizeRequest('POST','/v1/chat/completions',{model:MODEL,extra_body:{model:'other'}}),/OVERRIDE_DENIED/));
 test('title entry keeps the required length fields',()=>{const g='http://litellm-gateway.llm.svc.cluster.local:4000/v1';const fresh=lockProfile([],g).find(e=>e.id==='session-title-llm').config;assert.deepEqual(fresh,{targetWords:5,targetCjkCharacters:10,maxInputBytes:4096,maxOutputTokens:4096,timeoutMs:60000,provider:'litellm-cluster',model:MODEL});const kept=lockProfile([{id:'session-title-llm',config:{targetWords:9,provider:'x',model:'y'}}],g).find(e=>e.id==='session-title-llm').config;assert.equal(kept.targetWords,9);assert.equal(kept.provider,'litellm-cluster');assert.equal(kept.targetCjkCharacters,10);const agent=lockProfile([],g).find(e=>e.id==='agent-default-model').config;assert.deepEqual(agent,{provider:'litellm-cluster',model:MODEL});});
 // Input policy (12 Nov 2026): the lock runs on every workspace start (install_single_model_startup.py). The live
@@ -22,14 +22,34 @@ test('title entry keeps the required length fields',()=>{const g='http://litellm
 {
  const g='http://litellm-gateway.llm.svc.cluster.local:4000/v1';
  const modelOf=profile=>profile.find(e=>e.id==='llm-pi-ai').config.providers['litellm-cluster'].models;
- const legacy={id:MODEL,name:'DeepSeek-V4.1-Flash-1017 (managed alias)',maxTokens:8192,input:['text','image']};
+ const legacy={id:MODEL,name:MANAGED_NAME,contextWindow:393216,maxTokens:8192,input:['text','image']};
  const withModel=m=>[{id:'llm-pi-ai',name:'@deepseek-ai/dsh-llm-pi-ai',config:{providers:{'litellm-cluster':{displayName:'x',api:'openai-completions',baseURL:'http://evil.example/v1',apiKeyEnv:'X',models:[m]}}}}];
  test('MANAGED_INPUT is text and image, and is frozen',()=>{assert.deepEqual([...MANAGED_INPUT],['text','image']);assert.ok(Object.isFrozen(MANAGED_INPUT));});
  test('fresh profile and fresh settings accept text and image',()=>{assert.deepEqual(modelOf(lockProfile([],g))[0],legacy);assert.deepEqual(lockSettings({},g)['llm-pi-ai'].providers['litellm-cluster'].models[0],legacy);});
- test('a text-only entry saved earlier is upgraded to text and image at the next start; other user fields are kept',()=>{const saved={...legacy,input:['text'],maxTokens:4096,contextWindow:1048576};assert.deepEqual(modelOf(lockProfile(withModel(saved),g)),[{...saved,input:['text','image']}]);});
+ test('a text-only entry saved earlier is upgraded to text and image at the next start; other user fields are kept',()=>{const saved={...legacy,input:['text'],maxTokens:4096,contextWindow:1048576};assert.deepEqual(modelOf(lockProfile(withModel(saved),g)),[{...saved,contextWindow:393216,input:['text','image']}]);});
  test('an entry with no input list gets text and image; an image-only entry is normalised to the managed input',()=>{for(const input of [undefined,['image'],[]]){const e={...legacy,maxTokens:2048};if(input===undefined)delete e.input;else e.input=input;assert.deepEqual(modelOf(lockProfile(withModel(e),g)),[{...legacy,maxTokens:2048}]);}});
- test('settings.yaml from configure_models.js ([text, image]) matches the managed input',()=>{const fromConfigure={id:MODEL,name:'DeepSeek-V4.1-Flash (1M CED MoE)',contextWindow:1048576,maxTokens:8192,input:['text','image']};const y=lockSettings({'llm-pi-ai':{providers:{'litellm-cluster':{defaultInput:['text','image'],models:[fromConfigure]}}}},g);const prov=y['llm-pi-ai'].providers['litellm-cluster'];assert.deepEqual(prov.models,[{...fromConfigure,input:['text','image']}]);assert.equal(prov.defaultInput,undefined,'no provider-wide image default survives');});
+ test('settings.yaml from configure_models.js ([text, image]) matches the managed input',()=>{const fromConfigure={id:MODEL,name:'DeepSeek-V4.1-Flash (1M CED MoE)',contextWindow:1048576,maxTokens:8192,input:['text','image']};const y=lockSettings({'llm-pi-ai':{providers:{'litellm-cluster':{defaultInput:['text','image'],models:[fromConfigure]}}}},g);const prov=y['llm-pi-ai'].providers['litellm-cluster'];assert.deepEqual(prov.models,[{...fromConfigure,name:MANAGED_NAME,contextWindow:393216,input:['text','image']}]);assert.equal(prov.defaultInput,undefined,'no provider-wide image default survives');});
  test('the lock still forces provider, gateway and model id; one model entry',()=>{const p=lockProfile(withModel({...legacy,maxTokens:2048}),g).find(e=>e.id==='llm-pi-ai').config.providers;assert.deepEqual(Object.keys(p),['litellm-cluster']);assert.equal(p['litellm-cluster'].baseURL,g);assert.equal(p['litellm-cluster'].apiKeyEnv,'DEEPSEEK_API_KEY');assert.deepEqual(p['litellm-cluster'].models,[{...legacy,maxTokens:2048}]);});
  test('every start is idempotent',()=>{for(const start of [[],withModel(legacy),withModel({...legacy,input:['text']})]){const once=lockProfile(start,g);assert.deepEqual(lockProfile(once,g),once);}});
 }
+test('stale settings and profile compaction converge before context budget',()=>{
+ const gateway='http://litellm-gateway.llm.svc.cluster.local:4000/v1';
+ const stale={auto:false,modelPolicies:[{provider:'other',model:'other',thresholdRatio:.5},{provider:'litellm-cluster',model:MODEL,thresholdRatio:.99},{provider:'litellm-cluster',model:'deepseek-flash',thresholdRatio:.99}]};
+ const settings=lockSettings({'compaction-basic':stale},gateway);
+ const profile=lockProfile([{id:'compaction-basic',disabled:true,config:stale}],gateway);
+ const actual=profile.find(p=>p.id==='compaction-basic');assert.equal(actual.disabled,false);
+ for(const config of [settings['compaction-basic'],actual.config]){
+  assert.equal(config.auto,true);assert.equal(config.modelPolicies.length,2);
+  assert.deepEqual(config.modelPolicies[0],stale.modelPolicies[0]);
+  assert.deepEqual(config.modelPolicies[1],{provider:'litellm-cluster',model:MODEL,thresholdRatio:.88,headroomTokens:65536,maxTokens:8192});
+  assert.ok(393216*config.modelPolicies[1].thresholdRatio < 393216-8192-256);
+ }
+ assert.deepEqual(lockSettings(settings,gateway),settings);assert.deepEqual(lockProfile(profile,gateway),profile);
+});
+test('stale name/context and oversized output cannot survive managed lock',()=>{
+ const gateway='http://litellm-gateway.llm.svc.cluster.local:4000/v1';
+ const original={'llm-pi-ai':{providers:{'litellm-cluster':{models:[{id:MODEL,name:'DeepSeek-V4.1-Flash (1M context)',contextWindow:1048576,maxTokens:99999,customField:'keep'}]}}}};
+ const before=structuredClone(original),fixed=lockSettings(original,gateway)['llm-pi-ai'].providers['litellm-cluster'].models[0];
+ assert.deepEqual(original,before);assert.equal(fixed.contextWindow,393216);assert.equal(fixed.name,'DeepSeek-V4.1-Flash (384K context)');assert.equal(fixed.maxTokens,8192);assert.equal(fixed.customField,'keep');
+});
 export default {scope:'ACTUAL_IN_PROCESS_PURE_POLICY_TESTS',passed:rows.length,total:rows.length,rows,modelCalls:0,clusterWrites:0};

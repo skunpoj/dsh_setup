@@ -1,8 +1,8 @@
 'use strict';
 // ttyd (xterm.js) copies the selection to the clipboard on EVERY selection change (document.execCommand('copy') in its onSelectionChange handler) and has no
 // client option to turn that off. This pure helper inserts a small script into ttyd's HTML page that refuses programmatic 'copy' commands, so selecting text
-// no longer overwrites the clipboard; copying on purpose (Ctrl+Shift+C, right click, Ctrl+Insert) is the browser's own action and still works.
-const GUARD = "<script>(function(){var o=document.execCommand;document.execCommand=function(c){if(String(c).toLowerCase()==='copy')return false;return o.apply(document,arguments)}})()</script>";
+// no longer overwrites the clipboard (it THROWS rather than returning false: ttyd then takes its error path and also skips the scissors overlay it flashes after a copy); copying on purpose (Ctrl+Shift+C, right click, Ctrl+Insert) is the browser's own action and still works.
+const GUARD = "<script>(function(){var o=document.execCommand;document.execCommand=function(c){if(String(c).toLowerCase()==='copy')throw new Error('copy on select is disabled');return o.apply(document,arguments)}})()</script>";
 
 function injectCopyGuard(html) {
   if (typeof html !== 'string' || html.includes('document.execCommand=function(c){if(String(c).toLowerCase()===\'copy\')')) return html;   // already guarded

@@ -50,3 +50,7 @@ class DSHManagedChat(ChatOpenAI):
   fixed['http_client']=Client(trust_env=False)
   fixed['http_async_client']=AsyncClient(trust_env=False)
   super().__init__(**fixed)
+  # Supported BaseChatModel profile surface, read by pinned Deep Agents compaction.
+  # This is constructor policy; final-wire token admission remains authoritative.
+  self.profile={**(self.profile if isinstance(self.profile,dict) else {}),
+                'max_input_tokens':393216,'max_output_tokens':8192}

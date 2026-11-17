@@ -67,11 +67,11 @@ Physical DMZ and VLAN placement has not been confirmed against the enterprise ne
 | Native SDK zero-start qualification: PASS for pair f10b48e3 and for pair 2e0966c2, each for itself only | live (evidence) | `OPENSHELL_STATUS_AND_USAGE.html` |
 | OpenShell backend qualification: the 25 Test gates and rollback receipts have not been run | disabled | `OPENSHELL_RUNTIME_PREREQUISITES.html` |
 
-OpenShell changes where approved tools run. It does not bypass the model guard, select another model, expose credentials or grant cluster rights. The page OpenShell and the native SDK qualification (not included in this public source projection) gives the full digests and the run records.
+OpenShell changes where approved tools run. It does not bypass the model guard, select another model, expose credentials or grant cluster rights. The page OpenShell and the native SDK qualification gives the full digests and the run records.
 
 ## Related pages
 
-- Managed Jupyter and application startup (not included in this public source projection)
+- Managed Jupyter and application startup
 - [DSH network zones](DSH_NETWORK_ZONES.html)
 - [Agent runtime and execution backend](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html)
-- Agent-to-agent task delegation (not included in this public source projection)
+- Agent-to-agent task delegation

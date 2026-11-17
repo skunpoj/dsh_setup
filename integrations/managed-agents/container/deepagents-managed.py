@@ -23,13 +23,16 @@ def environment(parent):
  e.update(guard_environment(parent))
  return e
 BANKING_SHELL='dsh-banking-python,dsh-banking-unzip'
+DSH_SCRIPTS='/opt/dsh/scripts'   # banking_allowance imports 'scripts.banking_standing_authority', so /opt/dsh itself must resolve too (a missing PYTHONPATH must not silently drop the shell)
+DSH_ROOT='/opt/dsh'
 def shell_allow_list(parent,cwd,now=None,allowance_file=None):
  # The Deep Agents worker has file tools only (no shell, UTF-8 read_file), so a banking task could not unzip its data or run the numeric Python. The ONLY shell commands
  # ever allowed are the two bounded wrappers, and only for an unattended task whose project has a live deepagents grant in the root-owned banking allowance
  # (scripts/banking_allowance.py: root-owned, not writable, enabled, validated). Anything else, interactive sessions included, keeps the CLI default: no shell.
  if not parent.get('DSH_UNATTENDED_TASK'): return None
  try:
-  if '/opt/dsh/scripts' not in sys.path: sys.path.append('/opt/dsh/scripts')
+  for entry in (DSH_SCRIPTS,DSH_ROOT):
+   if entry not in sys.path: sys.path.append(entry)
   import banking_allowance
   document=banking_allowance.load_allowance(allowance_file)
  except Exception: return None

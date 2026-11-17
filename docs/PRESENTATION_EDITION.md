@@ -15,7 +15,7 @@ Use the component and deployment map, G00 to follow the configured web, agent, g
 
 ## Current guides and presentation editions
 
-The user and administrator guide describes the interface and controls. The course guide links narration, captions, chapters and source views. The [all-format inventory](LIBRARY_CURRENT_STATE.html#all-formats) registers PowerPoint and PDF editions, source hashes, revision status and delivery evidence.
+The [user and administrator guide](DSH_CURRENT_GUIDE.html) describes the interface and controls. The course guide links narration, captions, chapters and source views. The [all-format inventory](LIBRARY_CURRENT_STATE.html#all-formats) registers PowerPoint and PDF editions, source hashes, revision status and delivery evidence.
 
 PowerPoint content revisions and visual checks are tracked per edition. A revised binary needs a matching catalog record, project-owned release and actual served-body comparison before its publication is accepted. An old download receipt applies only to the old file hash. Original editions remain preserved in source history and their retained release packages.
 

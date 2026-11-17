@@ -7,8 +7,8 @@ spec:
   template:
     metadata:
       annotations:
-        dsh.bot.or.th/nccl-ep-contiguous-source: a06c8ff46d390d462466deac588e24766cd67b97
-        dsh.bot.or.th/nccl-ep-contiguous-sha256: 885c972713d6783862c9cb337ff5b373c095e089d3ec2bb12f5fe780122339df
+        dsh.example.com/nccl-ep-contiguous-source: a06c8ff46d390d462466deac588e24766cd67b97
+        dsh.example.com/nccl-ep-contiguous-sha256: 885c972713d6783862c9cb337ff5b373c095e089d3ec2bb12f5fe780122339df
     spec:
       containers:
       - name: deepinfer

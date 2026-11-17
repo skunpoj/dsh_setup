@@ -104,8 +104,8 @@ class RetainedPublicSecurityAssertions(unittest.TestCase):
             text=(DOCS/name).read_text(encoding='utf-8')
             self.assertNotRegex(text,r'\bBOT\b',name)
             self.assertNotRegex(text,r'[\u0e00-\u0e7f]',name)
-            self.assertNotIn('tools_register',text,name)
-            self.assertNotIn('TOOLS_AND_RISKS_REGISTER',text,name)
+            self.assertFalse(_private_marker_present(text,'0e15d33f741372a57b428c066cf5c683b4df854a51759f7846f10e53fd4a24a2',14),name)
+            self.assertFalse(_private_marker_present(text,'c7486707ae1dccd42d026007804582a7dc2d73018d43e8d65fff480c0c695e24',24),name)
     def test_public_index_routes_to_existing_security_pages(self):
         text=(DOCS/'index.html').read_text(encoding='utf-8')
         for name in PUBLIC:self.assertIn('href="'+name+'"',text)
@@ -119,5 +119,16 @@ class PublicGeneratedSnapshotAssertions(unittest.TestCase):
         from documentation_requirements import public_projection_html
         for name,text in gen.generate().items():
             self.assertEqual((DOCS/name).read_bytes(),public_projection_html(text,DOCS/name).encode('utf-8'),name)
+
+def _private_marker_present(text, digest, width):
+    """Exact substring privacy assertion without publishing its protected identifier."""
+    import hashlib
+    return any(hashlib.sha256(text[i:i + width].encode('utf-8')).hexdigest() == digest
+               for i in range(max(0, len(text) - width + 1)))
+
+def _private_href_marker_present(text, digest, width):
+    import re
+    return any(_private_marker_present(value, digest, width)
+               for value in re.findall(r"""href=["']([^"']*)""", text))
 
 if __name__=='__main__':unittest.main()

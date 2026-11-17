@@ -75,3 +75,8 @@ Cold start: a stopped workspace takes roughly 30–60 s to start. That is the ac
 6. **Repo default:** done 30 Oct (1955613). `maxAccounts` is dropped on read and the planner ignores it, so the live policy file's
    legacy value 32 has no effect.
 
+
+
+## Workspace inactivity and restart
+
+Workspaces stop automatically after inactivity (60 minutes by default, configurable by the administrator). Your files, settings and history are kept. Signing in starts your workspace again when capacity permits; a cold start can take about 30–60 seconds.

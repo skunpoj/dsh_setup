@@ -1,4 +1,6 @@
-# Private AI Workspaces - Kubernetes and 1M Context
+# Private AI Workspaces - Kubernetes and 384K Context
+
+> This page mirrors the dsh_setup README as of 14 November 2026, with the context limit updated to 393,216 tokens (it was 1,048,576 until 13 November 2026).
 
 ## Current GPU setup, measurements and administrator plan
 
@@ -71,12 +73,12 @@ Owners can explicitly share an ordinary local web app with enabled DSH users whi
 - Protected local password records, owner-bound routing and an admin access log.
 - Managed Claude Code and TrueForge configuration using model-only client keys.
 - Four-GPU serving with DeepInfer + DSpark (DP-attention and expert parallelism over four ranks) or
-  SGLang tensor parallelism as the fallback, 1,048,576 total-token capacity,
+  SGLang tensor parallelism as the fallback, 393,216 total-token capacity (1,048,576 until 13 November 2026),
   chunked prefill and fail-closed scheduler compatibility checks.
 - LiteLLM authentication, PostgreSQL-backed virtual keys and a loopback final-wire
   context guard. Text above 32K counted input plus reserved output uses bounded
   managed admission; shorter requests can remain concurrent. Input includes the
-  complete conversation and tool context, not only the latest prompt. That is not two simultaneous full-1M requests or an SLA.
+  complete conversation and tool context, not only the latest prompt. That is not two simultaneous full-context requests or an SLA.
 - Persistent storage and read-only approved packages. Persistence is not backup.
 
 ## Roadmap
@@ -162,7 +164,7 @@ For existing installations that cannot restart immediately, the optional [manage
 ## DeepInfer on four H100 GPUs
 
 The retained measured configuration uses DeepInfer + DSpark with NCCL expert
-exchange, four H100 NVL GPUs, 1M context and least-loaded routing. SGLang +
+exchange, four H100 NVL GPUs, 384K context (393,216 tokens; the speed measurements were taken at 1M) and least-loaded routing. SGLang +
 DSpark is retained stopped as the measured comparison and rollback. DeepEP and
 the proposed host change remain unqualified. See the
 [current GPU report](https://github.com/skunpoj/dsh_setup/blob/b7dd7d5e408644dbda9cc69dc648b9a4d837356c/docs/gpu-platform/GPU_PLATFORM_REVIEW.pdf), the

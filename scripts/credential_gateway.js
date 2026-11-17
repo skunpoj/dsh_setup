@@ -5,7 +5,7 @@ const {httpJson,readBody,json}=require('./credential_broker');
 function createGateway(configFile){
  const config=JSON.parse(fs.readFileSync(configFile,'utf8')),ca=fs.readFileSync(config.caFile);
  const recent=new WeakMap(),attempts=new Map();
- async function rpc(owner,environment,action,input){const endpoint=config.brokers[environment];if(!endpoint)throw Error('Unavailable');const r=await httpJson(new URL('/v1/rpc',endpoint),{method:'POST',ca,headers:{Authorization:'Bearer '+fs.readFileSync(config.gatewayKeyFiles?.[environment]||config.gatewayKeyFile,'utf8').trim()},body:{owner,action,input},limit:65536});if(r.status!==200)throw Object.assign(Error('Credential operation denied or unavailable'),{status:r.status});return r.data.data;}
+ async function rpc(owner,environment,action,input){const endpoint=config.brokers[environment];if(!endpoint)throw Error('Unavailable');const r=await httpJson(new URL('/v1/rpc',endpoint),{method:'POST',ca,headers:{Authorization:'Bearer '+fs.readFileSync(config.gatewayKeyFiles?.[environment]||config.gatewayKeyFile,'utf8').trim()},body:{owner,action,input},limit:65536,timeoutMs:action==='execute'?75000:15000});if(r.status!==200)throw Object.assign(Error('Credential operation denied or unavailable'),{status:r.status});return r.data.data;}
  async function handle(req,res,context){
   const {owner,environment,session,authorized,reauthenticate,audit}=context;
   const headers={'Cache-Control':'no-store','X-Frame-Options':'DENY','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','Permissions-Policy':'camera=(), microphone=(), geolocation=()'};

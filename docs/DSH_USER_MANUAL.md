@@ -17,7 +17,7 @@ Use DSH in your browser to work with code, documents and analysis tools. This ma
 
 
 
-Open the [DSH video course](https://docs.example.invalid/video.html) for English chapters, captions, section navigation and reproduction examples. Its contents page lists the published lessons; the GPU portal hosts its own technical course. See the course guide (not included in this public source projection) and navigation video (not included in this public source projection). Keep using the current package guide for self-service Python environments.
+Open the DSH video course for English chapters, captions, section navigation and reproduction examples. Its contents page lists the published lessons; the GPU portal hosts its own technical course. See the course guide and navigation video. Keep using the current package guide for self-service Python environments.
 
 
 ## 1 Get started
@@ -40,7 +40,7 @@ Successful signup enables your private **No Internet / Internal** workspace imme
 
 
 
-Anyone reaching the login page can create an account while private capacity is available. Signup assigns an exclusive No Internet/Internet runtime pair, but Internet access stays denied until an administrator grants it. A full pool refuses signup without creating an account. See Create an account and approve Internet access (not included in this public source projection) for the complete flow.
+Anyone reaching the login page can create an account while private capacity is available. Signup assigns an exclusive No Internet/Internet runtime pair, but Internet access stays denied until an administrator grants it. A full pool refuses signup without creating an account. See Create an account and approve Internet access for the complete flow.
 
 
 
@@ -48,7 +48,7 @@ Anyone reaching the login page can create an account while private capacity is a
 
 
 
-Save a notebook and text file under `/workspace`, read them in Web Terminal, then ask DSH's file tools to read them and save an output in the same project. Reopen that output in Jupyter. All three use the same private files for your selected account and environment; choose that project separately in each tool. Claude Code, Kilo and TrueForge share the platform guide and project files while keeping separate conversations. An approved internal Git repository can be cloned with verified TLS and your own authorized authentication while public Internet stays off. See the step-by-step workflow and fresh-signup checks (not included in this public source projection).
+Save a notebook and text file under `/workspace`, read them in Web Terminal, then ask DSH's file tools to read them and save an output in the same project. Reopen that output in Jupyter. All three use the same private files for your selected account and environment; choose that project separately in each tool. Claude Code, Kilo and TrueForge share the platform guide and project files while keeping separate conversations. An approved internal Git repository can be cloned with verified TLS and your own authorized authentication while public Internet stays off. See the step-by-step workflow and fresh-signup checks.
 
 
 
@@ -56,7 +56,7 @@ Save a notebook and text file under `/workspace`, read them in Web Terminal, the
 
 
 
-The Create account count means **new-user slots**, not multiple workspaces for one user. It refreshes from current assignments; an unavailable refresh shows no old number. Your project folders and registered app names are separate concepts. See capacity and monitoring (not included in this public source projection).
+The Create account count means **new-user slots**, not multiple workspaces for one user. It refreshes from current assignments; an unavailable refresh shows no old number. Your project folders and registered app names are separate concepts. See capacity and monitoring.
 
 
 
@@ -64,7 +64,7 @@ If the count is zero, the administrator checks **Account capacity and automatic 
 
 
 
-Open `/applications` after signing in to save a friendly name for a port in your private environment. The notebook suggestion is `<username>-jupyter` on port 8888. Other app names/ports are configurable with collision checks. Login and tool navigation from a custom app hostname use the main DSH address. See application URLs and Ingress setup (not included in this public source projection) for path URLs, approved hostnames, TLS/DNS, wildcard behavior and publication commands.
+Open `/applications` after signing in to save a friendly name for a port in your private environment. The notebook suggestion is `<username>-jupyter` on port 8888. Other app names/ports are configurable with collision checks. Login and tool navigation from a custom app hostname use the main DSH address. See application URLs and Ingress setup for path URLs, approved hostnames, TLS/DNS, wildcard behavior and publication commands.
 
 
 
@@ -126,7 +126,7 @@ Approved startup-service placement is profile/image-bound; a template sidecar is
 
 
 
-DSH, Claude Code, Kilo and TrueForge load the same platform guide (not included in this public source projection) for environments, storage, applications and managed inference. Their conversations remain separate. The guide supplies context; the live gateway controls actual account and app permissions.
+DSH, Claude Code, Kilo and TrueForge load the same platform guide for environments, storage, applications and managed inference. Their conversations remain separate. The guide supplies context; the live gateway controls actual account and app permissions.
 
 
 
@@ -134,11 +134,11 @@ Within the same account and environment, DSH, Web Terminal, Jupyter and the inst
 
 
 
-An approved internal Git service can remain available in No Internet. Use its operator-supplied HTTPS address and normal private authentication; keep TLS verification enabled. Internal Git permission does not grant public Internet access. If DNS, trust or repository authorization fails, ask the operator to check that specific service. Do not put passwords or PATs in a clone URL, prompt or notebook. Internal Git setup (not included in this public source projection).
+An approved internal Git service can remain available in No Internet. Use its operator-supplied HTTPS address and normal private authentication; keep TLS verification enabled. Internal Git permission does not grant public Internet access. If DNS, trust or repository authorization fails, ask the operator to check that specific service. Do not put passwords or PATs in a clone URL, prompt or notebook. Internal Git setup.
 
 
 
-For Python notebooks, choose **JupyterLab** at sign-in or open its authenticated notebook link. In Main DSH, DSH2 and DSH3, opening Jupyter starts it when needed and reuses any running server and kernels. DSH2 and DSH3 use their assigned owner account and Internet environment. Internet still needs a separate administrator grant, and administrator service restrictions remain in force. A worker restart ends in-memory kernels; saved notebooks remain in your private workspace. Create a Python 3 notebook and run `print(6 * 7)`. Save it under `/workspace`; stop unused kernels when finished. Jupyter uses the selected environment's private storage, permissions and network controls. See JupyterLab usage and setup (not included in this public source projection).
+For Python notebooks, choose **JupyterLab** at sign-in or open its authenticated notebook link. In Main DSH, DSH2 and DSH3, opening Jupyter starts it when needed and reuses any running server and kernels. DSH2 and DSH3 use their assigned owner account and Internet environment. Internet still needs a separate administrator grant, and administrator service restrictions remain in force. A worker restart ends in-memory kernels; saved notebooks remain in your private workspace. Create a Python 3 notebook and run `print(6 * 7)`. Save it under `/workspace`; stop unused kernels when finished. Jupyter uses the selected environment's private storage, permissions and network controls. See JupyterLab usage and setup.
 
 
 Use the web terminal from the selected environment to inspect files and run commands. The terminal executes inside your assigned runtime, not on the Kubernetes node. Its processes have the same file permissions and network restrictions as the assistant's tools.
@@ -149,7 +149,7 @@ For a generated HTML result, serve only the result directory through an approved
 
 
 
-The [worked examples](DSH_PLATFORM_GUIDE.html) cover repository review, CSV analysis, previews, package transfer, managed clients and private authentication.
+The [worked examples](DSH_PLATFORM_GUIDE.html#example-usage) cover repository review, CSV analysis, previews, package transfer, managed clients and private authentication.
 
 
 
@@ -157,7 +157,7 @@ The [worked examples](DSH_PLATFORM_GUIDE.html) cover repository review, CSV anal
 
 
 
-Open **My apps → My Python environments**. With an existing administrator Internet grant, request pinned Python wheels and receive a new private No Internet environment plus a Jupyter kernel. A separate downloader has no protected workspace; installation runs with no network access. Other users, the opposite environment, histories and existing installations remain unchanged. See the step-by-step package guide (not included in this public source projection) and captioned walkthrough (not included in this public source projection). Unsupported packages still use the operator-reviewed cache/image process.
+Open **My apps → My Python environments**. With an existing administrator Internet grant, request pinned Python wheels and receive a new private No Internet environment plus a Jupyter kernel. A separate downloader has no protected workspace; installation runs with no network access. Other users, the opposite environment, histories and existing installations remain unchanged. See the step-by-step package guide and captioned walkthrough. Unsupported packages still use the operator-reviewed cache/image process.
 
 
 
@@ -175,7 +175,7 @@ For an app-focused DSH sign-in page, use your normal DSH identity. If the app in
 
 
 
-An administrator opens `/admin` to review accounts, enable or disable access, sign out gateway sessions and grant or revoke Internet permission. In **Applications**, view all main users' app names and environment ports, edit ports, disable/re-enable or remove URL mappings, and set each user's **Name limit**. The default is **8**, shared across both environments; there are no approval tiers. Lowering a limit preserves existing URLs, files and histories. **My apps** shows each user's usage and effective limit. See the admin application procedure (not included in this public source projection) and recorded walkthrough (not included in this public source projection). Users can self-register, or an admin can create an account from available private-pair capacity. Use **Allow Internet** or **Disable Internet** beside an account to approve or revoke that separate permission. Revoking gateway access closes tracked connections; it does not cancel a tool already running inside an execution environment.
+An administrator opens `/admin` to review accounts, enable or disable access, sign out gateway sessions and grant or revoke Internet permission. In **Applications**, view all main users' app names and environment ports, edit ports, disable/re-enable or remove URL mappings, and set each user's **Name limit**. The default is **8**, shared across both environments; there are no approval tiers. Lowering a limit preserves existing URLs, files and histories. **My apps** shows each user's usage and effective limit. See the admin application procedure and recorded walkthrough. Users can self-register, or an admin can create an account from available private-pair capacity. Use **Allow Internet** or **Disable Internet** beside an account to approve or revoke that separate permission. Revoking gateway access closes tracked connections; it does not cancel a tool already running inside an execution environment.
 
 
 
@@ -199,7 +199,7 @@ Reload **User management** to see a newly registered account. Unused prepared pa
 
 
 
-Open **Admin overview → Account capacity and automatic provisioning**. Set the desired warm spares, then save; there is no account limit. The default spare target is **two**. A separate provisioner prepares new private pairs after signup consumes capacity; the gateway receives no Kubernetes management token. Pause replenishment for maintenance without deleting accounts, files or histories. Existing extra spares are retained when targets are lowered. See the capacity architecture, setup and walkthrough (not included in this public source projection).
+Open **Admin overview → Account capacity and automatic provisioning**. Set the desired warm spares, then save; there is no account limit. The default spare target is **two**. A separate provisioner prepares new private pairs after signup consumes capacity; the gateway receives no Kubernetes management token. Pause replenishment for maintenance without deleting accounts, files or histories. Existing extra spares are retained when targets are lowered. See the capacity architecture, setup and walkthrough.
 
 
 
@@ -211,7 +211,7 @@ New accounts receive the built-in Jupyter service automatically after No Interne
 
 
 
-See managed startup, architecture, user isolation and credentials (not included in this public source projection) and the recorded lifecycle walkthrough (not included in this public source projection). Each user has separate No Internet and Internet runtime pods; the supervisor role is configured non-root; actual process/container placement is profile-bound. It receives no gateway password store, agent history mount, launch token or model-key environment. Approved apps share their owner's workspace and runtime permissions.
+See managed startup, architecture, user isolation and credentials and the recorded lifecycle walkthrough. Each user has separate No Internet and Internet runtime pods; the supervisor role is configured non-root; actual process/container placement is profile-bound. It receives no gateway password store, agent history mount, launch token or model-key environment. Approved apps share their owner's workspace and runtime permissions.
 
 
 
@@ -253,7 +253,7 @@ Use **Stop** to cancel the active conversation turn, including long preparation 
 
 
 
-Read preparation latency, streaming speed and total throughput separately. A configured concurrency ceiling is not a promise of simultaneous requests of the full context size. Use the [technical appendix](DSH_PLATFORM_GUIDE.html) and LLM results guide (not included in this public source projection) for dated accepted profiles, workload-specific measurements and ongoing trials.
+Read preparation latency, streaming speed and total throughput separately. A configured concurrency ceiling is not a promise of simultaneous requests of the full context size. Use the [technical appendix](DSH_PLATFORM_GUIDE.html#appendix-b) and LLM results guide for dated accepted profiles, workload-specific measurements and ongoing trials.
 
 
 
@@ -265,7 +265,7 @@ Platform installation and recovery procedures are maintained in internal operato
 
 
 
-DSH, LiteLLM and GPU inference need not share a machine. Choose a same-cluster Service route, a separate GPU backend FQDN, or an approved relay to remote LiteLLM. Keep the managed-client policies and No Internet boundaries consistent. See deployment topology, endpoint forms and setup steps (not included in this public source projection).
+DSH, LiteLLM and GPU inference need not share a machine. Choose a same-cluster Service route, a separate GPU backend FQDN, or an approved relay to remote LiteLLM. Keep the managed-client policies and No Internet boundaries consistent. See deployment topology, endpoint forms and setup steps.
 
 
 
@@ -285,13 +285,13 @@ In the main **Admin overview → Managed startup services**, select **Runtime �
 
 
 
-See the startup architecture and installation guide (not included in this public source projection) and recorded target-selector workflow (not included in this public source projection). Saved notebook/data files persist; unsaved kernel memory and interrupted computations do not resume automatically.
+See the startup architecture and installation guide and recorded target-selector workflow. Saved notebook/data files persist; unsaved kernel memory and interrupted computations do not resume automatically.
 
 
 
 ## Managed agent tasks and Web Terminal kubectl
 
-The deployed [Agent runtime and execution backend](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) page lets an authenticated user select DSH Python SDK, Claude Code or Deep Agents independently from the execution backend. The private DSH workspace is enabled. OpenShell is visible but remains disabled until all 25 Test gates and rollback qualification pass. Broker health, authentication and capability mapping are verified; guarded model execution for each runtime still requires bounded live acceptance. The OpenShell and native SDK status (not included in this public source projection) page gives the current qualification state.
+The deployed [Agent runtime and execution backend](AGENT_RUNTIME_AND_EXECUTION_BACKENDS.html) page lets an authenticated user select DSH Python SDK, Claude Code or Deep Agents independently from the execution backend. The private DSH workspace is enabled. OpenShell is visible but remains disabled until all 25 Test gates and rollback qualification pass. Broker health, authentication and capability mapping are verified; guarded model execution for each runtime still requires bounded live acceptance. The OpenShell and native SDK status page gives the current qualification state.
 
 Web Terminal includes the pinned, checksum-verified `kubectl` v1.32.9 client. The user workspace has no automatic service-account token or default kubeconfig, so the binary grants no cluster access by itself. Cluster access requires a separately approved least-privilege kubeconfig for the specific task.
 
@@ -305,19 +305,19 @@ If a DSH page shows "Reconnecting..." or "Loading models..." for more than a min
 
 
 
-Use the [three-risk platform guide](DSH_PLATFORM_GUIDE.html) for the design, the [complete documentation library](index.html) for setup and feature guides, and the English course (not included in this public source projection) for the narrated walkthrough.
+Use the [three-risk platform guide](DSH_PLATFORM_GUIDE.html) for the design, the [complete documentation library](index.html) for setup and feature guides, and the [English course](/manual/course/) for the narrated walkthrough.
 
 
 
 ## Context limit and current speed
 
-> **Speed measured on 30 October 2026 with the earlier 1,048,576-token configuration (one standard).** DeepInfer then ran at 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: on 30 Oct SGLang was about 9–17 % faster; same-day 31 Oct–1 Nov: about 7–9 % faster (61.8 vs 58.0 and 69.0 vs 63.1); many users: DeepInfer gives about 3× the total. Definitions, method and every result: LLM speed comparison (not included in this public source projection). Newer capacity measurements (9 Nov 2026), with decode slots and concurrency: capacity report (not included in this public source projection). These figures were not re-measured for the current 393,216-token configuration.
+> **Speed measured on 30 October 2026 with the earlier 1,048,576-token configuration (one standard).** DeepInfer then ran at 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: on 30 Oct SGLang was about 9–17 % faster; same-day 31 Oct–1 Nov: about 7–9 % faster (61.8 vs 58.0 and 69.0 vs 63.1); many users: DeepInfer gives about 3× the total. Definitions, method and every result: LLM speed comparison. Newer capacity measurements (9 Nov 2026), with decode slots and concurrency: capacity report. These figures were not re-measured for the current 393,216-token configuration.
 
 Instructions, tool definitions, history, input and reserved output share one **393,216-token (384K)** budget (it was 1,048,576 until 13 November 2026). The model serves up to sixteen requests at once (four per GPU; it was two per GPU before the November 2026 engine tuning); further requests wait their turn.
 
 For everyday use, continue a related conversation when its context is useful, start a fresh session for an unrelated short question, and review cited sources and tool outputs. Use Stop to cancel long preparation or queued work. Longer context preserves more material; it does not guarantee a faster or more accurate answer.
 
-Speed comparison, including the SGLang baseline (not included in this public source projection).
+Speed comparison, including the SGLang baseline.
 
 
 ## Jupyter Start controls
@@ -354,6 +354,3 @@ User-managed credentials: users enter secrets through a dedicated settings form,
 ## Workspace inactivity and restart
 
 Workspaces stop automatically after inactivity (60 minutes by default, configurable by the administrator). Your files, settings and history are kept. Signing in starts your workspace again when capacity permits; a cold start can take about 30–60 seconds.
-
-
-Public source edition: example.invalid URLs are deployment examples, not verified live services.

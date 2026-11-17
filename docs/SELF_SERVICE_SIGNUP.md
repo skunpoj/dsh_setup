@@ -15,6 +15,8 @@ Successful signup enables your private **No Internet / Internal** workspace imme
 
 The login page shows **N new-user slots available**, refreshed every 15 seconds while visible and when returning to the tab. This is unused prepared account capacity, not the number of project folders or app URLs assigned to a user. A failed refresh shows capacity unavailable. When no unused pair remains, signup refuses the request without creating an unusable account or sharing another user's runtime. Automatic replenishment prepares replacement pairs up to the spare target; there is no account limit. The default target is two warm spares. Retry after preparation finishes; ask an administrator if sign-ups stay paused (local storage below the 200 GiB reserve). See the capacity walkthrough.
 
+The sign-in page's **Shared resources** panel also shows an **Accounts** bar: how many accounts exist against how many the shared resources (CPU, memory, pod slots and storage) currently allow, with the limiting resource named. It shows totals only, never names, and is hidden while the capacity controller's report is unavailable. The allowance is resource-based only; there is no separate policy account cap.
+
 ### When the installation is full
 
 **0 new-user slots available** is a normal full-capacity result. The capacity endpoint returns HTTP 200 with `remainingSlots: 0`; existing users can still sign in. A new signup is refused without creating an account, changing the limit or reusing another user's workspace.
@@ -151,3 +153,8 @@ The collector includes every workload on the node, including agents, Jupyter ker
 Admission is evaluated again on each request. A fresh complete healthy report automatically reopens remaining warm spares, within the unchanged account limit; the controller normally refreshes every 15 seconds. No restart or administrator action is needed. A recently created account may briefly pause further signup until its assignment count is reflected in the next report. Existing users can still sign in and use their assigned environments; no user, running app, data, history or configured limit is removed or changed. This is sampled admission protection, not a guarantee against instantaneous resource spikes or a GPU inference-concurrency limit.
 
 DSH2 and DSH3 remain fixed-owner instances with self-registration disabled. Their resource consumption contributes to the shared signup gate; they do not gain a new signup route. An additional-instance measurement failure closes new main signup without changing their owner access.
+
+
+## Workspace inactivity and restart
+
+Workspaces stop automatically after inactivity (60 minutes by default, configurable by the administrator). Your files, settings and history are kept. Signing in starts your workspace again when capacity permits; a cold start can take about 30–60 seconds.

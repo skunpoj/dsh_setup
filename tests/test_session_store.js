@@ -25,5 +25,12 @@ try{
   const directoryLink=path.join(root,'directory-link');fs.symlinkSync(root,directoryLink);assert.throws(()=>new SessionStore(path.join(directoryLink,'sessions.json'),{clock}));fs.unlinkSync(directoryLink);
  }
  const parentFile=path.join(root,'not-directory');fs.writeFileSync(parentFile,'fixture');const broken=new SessionStore(path.join(root,'new.json'),{clock});broken.file=path.join(parentFile,'sessions.json');assert.throws(()=>broken.set(token(),row('alice')));assert.equal(broken.size,0);
+ // Old v1 rows survive alongside durable, target-scoped standalone sessions.
+ const legacy=token(),agent=token();s=new SessionStore(file,{clock});s.set(legacy,row('alice'));const originalV1=fs.readFileSync(file);
+ s.set(agent,{...row('alice'),runtime:'claude-code',targetKey:'1'.repeat(24)});
+ const backups=fs.readdirSync(root).filter(n=>n.startsWith('sessions.json.before-standalone-'));assert.equal(backups.length,1);assert.deepEqual(fs.readFileSync(path.join(root,backups[0])),originalV1);
+ s=new SessionStore(file,{clock});assert.equal(s.get(legacy).user,'alice');assert.equal(s.get(agent).runtime,'claude-code');assert.equal(s.get(agent).targetKey,'1'.repeat(24));
+ assert.throws(()=>s.set(token(),{...row('alice'),runtime:'dsh-sdk',targetKey:'1'.repeat(24)}));assert.throws(()=>s.set(token(),{...row('alice'),targetKey:'1'.repeat(24)}));
+ s.delete(agent);assert(s.has(legacy));assert(!new SessionStore(file,{clock}).has(agent));s.removeUser('alice');assert(!new SessionStore(file,{clock}).has(legacy));
  console.log(JSON.stringify({passed:true,hashedTokensOnly:true,serverExpiry:true,durableLogoutAndUserRevocation:true,corruptionRefusedWithoutOverwrite:true,failedWriteNotAuthenticated:true,linuxPermissionsAndLinkChecks:process.platform!=='win32'}));
 }finally{assert(root.startsWith(path.join(os.tmpdir(),'dsh-session-store-')));fs.rmSync(root,{recursive:true,force:true});}

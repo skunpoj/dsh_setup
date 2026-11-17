@@ -37,7 +37,7 @@ Local DSH and corporate AD / LDAP use explicit provider selection.
 - AD / LDAP: use an approved short name, corporate UPN or DOMAIN\username. A Local-name collision is refused.
 - New accounts receive private Internal access. Internet needs a separate grant. DSH sign-in does not create a Kerberos ticket.
 
-Sources: [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md), APP_URLS_AND_INGRESS.md (not included in this public source projection)
+Sources: [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md), APP_URLS_AND_INGRESS.md
 
 ## 5 Choose the environment for the data
 
@@ -47,7 +47,7 @@ Internal and Internet are separate private environments.
 - Internet is for approved public work and dependency preparation. Its workspace, history and credentials remain separate.
 - Log out and sign in to change environments. Files are not copied automatically. A remote job follows its own platform policy.
 
-Sources: [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md), MULTI_TENANT_STORAGE_AND_PERSISTENCE.md (not included in this public source projection)
+Sources: [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md), MULTI_TENANT_STORAGE_AND_PERSISTENCE.md
 
 ## 6 Four clients share files, not conversations
 
@@ -67,7 +67,7 @@ Saved work survives a qualified replacement; in-memory state does not.
 - Credentials and profiles stay in their assigned private state storage. The legacy owner has a separately preserved layout.
 - Saved notebooks, files and supported histories persist. Unsaved edits, kernels and unmanaged processes need separate handling. A live share is not a backup.
 
-Sources: MULTI_TENANT_STORAGE_AND_PERSISTENCE.md (not included in this public source projection)
+Sources: MULTI_TENANT_STORAGE_AND_PERSISTENCE.md
 
 ## 8 Verify tools against the intended project
 
@@ -87,7 +87,7 @@ Network reachability, certificate trust and repository authorization are separat
 - Use your authorized private credential mechanism. Never put a PAT in a clone URL, prompt or notebook.
 - Verify the branch, commit and diff before pushing. Repository access grants neither datalake rights nor public network access.
 
-Sources: CORPORATE_GIT_BOOTSTRAP.md (not included in this public source projection), [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md)
+Sources: CORPORATE_GIT_BOOTSTRAP.md, [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md)
 
 ## 10 Open Jupyter without interrupting work
 
@@ -107,7 +107,7 @@ My apps → My Python environments creates a new offline environment after an In
 - The offline installer verifies wheel hashes and structure, has no network access, and creates a versioned environment and Jupyter kernel.
 - Select the displayed kernel or Python path explicitly. Source builds and system packages use the operator-reviewed process. Existing environments remain intact.
 
-Sources: SELF_SERVICE_PACKAGES.md (not included in this public source projection), [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md)
+Sources: SELF_SERVICE_PACKAGES.md, [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md)
 
 ## 12 An app URL, its audience and its process are separate
 
@@ -117,7 +117,7 @@ Saving or sharing a URL does not start an application.
 - Start leaves an already-enabled service unchanged. New custom service definitions remain stopped until Start; Restart deliberately replaces the managed process.
 - Stop disables managed autostart. A pre-existing unmanaged server stays running; enabled services start after replacement only when environment access is allowed.
 
-Sources: [AUTHENTICATED_APP_SHARING.md](AUTHENTICATED_APP_SHARING.md), APP_URLS_AND_INGRESS.md (not included in this public source projection)
+Sources: [AUTHENTICATED_APP_SHARING.md](AUTHENTICATED_APP_SHARING.md), APP_URLS_AND_INGRESS.md
 
 ## 13 One editable name limit per user
 
@@ -127,7 +127,7 @@ The default remains eight registered names across both environments.
 - Lowering the limit preserves existing mappings and blocks new registrations at or above the limit. There are no approval tiers.
 - App-name quota, recipient-list size, service limits and inference concurrency are separate. Selected local sharing accepts 1–128 enabled local recipients.
 
-Sources: [AUTHENTICATED_APP_SHARING.md](AUTHENTICATED_APP_SHARING.md), APP_URLS_AND_INGRESS.md (not included in this public source projection)
+Sources: [AUTHENTICATED_APP_SHARING.md](AUTHENTICATED_APP_SHARING.md), APP_URLS_AND_INGRESS.md
 
 ## 14 Choose the application’s visitor audience
 
@@ -137,17 +137,17 @@ Main DSH supports explicit app sharing. DSH2/DSH3 legacy entrypoints stay owner-
 - Other audiences: All local DSH users, All AD / LDAP users, Selected local DSH users (checkboxes), or Owner only. Select up to 128 distinct enabled local recipients.
 - Jupyter (8888), Terminal (7681) and management ports cannot be shared. Public access and the destination application’s authentication are separate policies.
 
-Sources: [AUTHENTICATED_APP_SHARING.md](AUTHENTICATED_APP_SHARING.md), APP_URLS_AND_INGRESS.md (not included in this public source projection)
+Sources: [AUTHENTICATED_APP_SHARING.md](AUTHENTICATED_APP_SHARING.md), APP_URLS_AND_INGRESS.md
 
 ## 15 Current application entry points
 
 These aliases illustrate different access policies for existing destinations.
 
-- Example public application: https://public-app.example.invalid/ opens the destination without a DSH gate.
-- Example protected application: https://protected-app.example.invalid/ accepts enabled DSH accounts. Both aliases reach the same destination.
-- Example resource application: https://resource-app.example.invalid/ uses destination-managed authentication. Its SSO may finish at the original application address.
+- RegChat public: https://regchat.example.invalid/ opens the destination without a DSH gate.
+- RegChat protected: https://regchat-dsh.example.invalid/ accepts enabled DSH accounts. Both aliases reach the same destination.
+- Suprisk: https://suprisk.example.invalid/ uses destination-managed authentication. Its SSO may finish at the original MLOps address.
 
-Sources: APP_URLS_AND_INGRESS.md (not included in this public source projection)
+Sources: APP_URLS_AND_INGRESS.md
 
 ## 16 Share an app without sharing a workspace
 
@@ -157,7 +157,7 @@ Use a dedicated application hostname and the intended audience.
 - Edit sharing / URL loads saved settings; the name stays locked. Only Save URL applies changes. New application / cancel edit discards unsaved edits.
 - Share the approved hostname for one owner, target and environment. Untick and save, narrow the audience, or disable the mapping to revoke access.
 
-Sources: [AUTHENTICATED_APP_SHARING.md](AUTHENTICATED_APP_SHARING.md), APP_URLS_AND_INGRESS.md (not included in this public source projection)
+Sources: [AUTHENTICATED_APP_SHARING.md](AUTHENTICATED_APP_SHARING.md), APP_URLS_AND_INGRESS.md
 
 ## 17 Directory sign-in preserves identity boundaries
 
@@ -167,7 +167,7 @@ Corporate authentication does not merge users or grant administrator rights.
 - First sign-in needs the configured account-creation permission. A colliding Local identity is not silently converted.
 - The directory subject identifies the account. The AD password is not saved or forwarded as an app credential; Internet remains separately controlled.
 
-Sources: APP_URLS_AND_INGRESS.md (not included in this public source projection), [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md)
+Sources: APP_URLS_AND_INGRESS.md, [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md)
 
 ## 18 Proxy, redirect, DNS and webhook have distinct roles
 
@@ -177,7 +177,7 @@ The alias can remain visible for proxied traffic; application redirects may navi
 - A redirect asks the browser to visit another URL. A webhook delivers an event or action, not ongoing browser traffic.
 - SSO, absolute links and framework roots need destination-specific qualification. The RegChat adapter is narrowly scoped to approved aliases.
 
-Sources: APP_URLS_AND_INGRESS.md (not included in this public source projection)
+Sources: APP_URLS_AND_INGRESS.md
 
 ## 19 DSH sharing does not replace app authorization
 
@@ -187,7 +187,7 @@ The shared app retains its own login, permissions and responsibilities.
 - Forwarding strips DSH cookies, credentials and caller-supplied identity headers. Application cookies are separate; sharing does not grant the owner’s files or notebook.
 - Visitors can use any write actions the app exposes. Do not share a shell, file browser or management proxy through an ordinary port.
 
-Sources: [AUTHENTICATED_APP_SHARING.md](AUTHENTICATED_APP_SHARING.md), APP_URLS_AND_INGRESS.md (not included in this public source projection)
+Sources: [AUTHENTICATED_APP_SHARING.md](AUTHENTICATED_APP_SHARING.md), APP_URLS_AND_INGRESS.md
 
 ## 20 Recover a browser session without replaying work
 
@@ -255,7 +255,7 @@ Gateway routing, worker processes and capacity reconciliation have separate owne
 - The trimmed Main gateway projects 26 source modules. Its unused planner copy was removed; the corrected capacity planner remains in the controller.
 - Packaging and source-only cleanup do not upgrade the base image. Compare the live image plus mounted source; a newer repository commit is not proof of deployment.
 
-Sources: [JUPYTER_APP_LIFECYCLE.md](JUPYTER_APP_LIFECYCLE.md), AUTOMATIC_ACCOUNT_CAPACITY.md (not included in this public source projection), [DSH_PLATFORM_GUIDE.md](DSH_PLATFORM_GUIDE.md)
+Sources: [JUPYTER_APP_LIFECYCLE.md](JUPYTER_APP_LIFECYCLE.md), AUTOMATIC_ACCOUNT_CAPACITY.md, [DSH_PLATFORM_GUIDE.md](DSH_PLATFORM_GUIDE.md)
 
 ## 27 Operator appendix: shared routing checks
 
@@ -265,7 +265,7 @@ An unchanged Ingress specification does not prove unchanged shared-controller be
 - Wildcard certificate registration can affect other services’ HTTP redirects. Qualify the selected dedicated or controller-default TLS mode.
 - Check no-follow HTTP, normal HTTPS, original Qdrant calls and WebSockets. Keep certificate verification enabled and retain reviewed recovery evidence.
 
-Sources: APP_URLS_AND_INGRESS.md (not included in this public source projection)
+Sources: APP_URLS_AND_INGRESS.md
 
 ## 28 Operator appendix: document publication
 
@@ -293,7 +293,7 @@ A context budget is not a promise of latency or concurrent full-size requests.
 
 - The documented budget is 393,216 tokens (384K; 1,048,576 until 13 November 2026) including instructions, tools, history, output and reserve. Confirm the selected deployment profile.
 - Distinguish preparation latency, streaming rate and end-to-end completion. A small prompt can carry a large existing conversation.
-- Use the speed comparison (not included in this public source projection) for current throughput. Measured speeds are not an SLA.
+- Use the speed comparison for current throughput. Measured speeds are not an SLA.
 
 Sources: [DSH_USER_MANUAL.md](DSH_USER_MANUAL.md), [DSH_PLATFORM_GUIDE.md](DSH_PLATFORM_GUIDE.md)
 
@@ -455,6 +455,3 @@ Arena comparisons hold task inputs, resource budgets and scoring constant across
 | 4 — Release | Existing publisher verifies immutable content and route/source identity. | Release owner controls activation; verified receipt and affected live behavior. |
 
 | 5 — Learn | Summarize outcomes and propose the next bounded improvement. | No self-expansion of authority or automatic restart/retry/deletion; new scope needs its owner. |
-
-
-Public source edition: example.invalid URLs are deployment examples, not verified live services.

@@ -71,7 +71,7 @@ Kilo stores data, local state and cache beneath `/state/kilo`, independently of 
 
 The Dockerfile installs `@kilocode/cli@7.8.12` during the approved image build. No Internet runtime startup performs no package download. The build places root-owned policy in `/etc/kilo/kilo.json` and installs the `kilo`/`kilocode` managed launchers. Credentials are read at runtime from the existing model-scoped `/harness-credentials/api-key` Secret mount, rather than included in the image or report. Generic deployments must adapt the operator-owned LiteLLM URL to their approved internal service.
 
-Retain one-hour provider and stream deadlines to accommodate cold preparation. Context/output budgets are 1,048,576/8,192 tokens; exact final-envelope counting, output reserve and bounded long admission remain enforced by the shared gateway. A long-running client must not bypass those controls by selecting a direct model endpoint.
+Retain one-hour provider and stream deadlines to accommodate cold preparation. Context/output budgets are 393,216/8,192 tokens (the context was 1,048,576 until 13 November 2026); exact final-envelope counting, output reserve and bounded long admission remain enforced by the shared gateway. A long-running client must not bypass those controls by selecting a direct model endpoint.
 
 Before promotion, test the actual built binary as non-root: version, resolved internal provider, refusal of unauthorized provider/sharing options, correct ordinary output, private saved session, a bounded file tool operation, persistence and public-network denial in No Internet. Preserve image digest, private runtime specs and history fingerprints before replacing runtimes. Do not restart the GPU model merely to install a client.
 

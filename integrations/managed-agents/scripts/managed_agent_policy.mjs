@@ -1,6 +1,16 @@
 // Pure policy functions; caller must enforce authentication and network isolation server-side.
 export const MODEL = 'deepseek-v4.1-flash';
 export const PROVIDER = 'litellm-cluster';
+export const MANAGED_CONTEXT = 393216;
+export const MANAGED_NAME = 'DeepSeek-V4.1-Flash (384K context)';
+const OUTPUT_CEILING = 8192;
+function managedCompaction(prior = {}) {
+ const policies = Array.isArray(prior.modelPolicies) ? prior.modelPolicies : [];
+ return {...prior, auto:true, modelPolicies:[
+  ...policies.filter(p => !(p.provider === PROVIDER && [MODEL,'deepseek-flash'].includes(p.model))),
+  {provider:PROVIDER, model:MODEL, thresholdRatio:0.88, headroomTokens:65536, maxTokens:8192},
+ ]};
+}
 const deny = m => { throw new Error(m); };
 const overrides = ['provider','model_name','api_type','api_base','api_key','base_url','baseURL','custom_llm_provider','litellm_params','fallbacks','model_list','deployment_id','azure_endpoint','http_client','http_async_client','extra_headers'];
 export function authorizeRequest(method, path, body) {
@@ -12,7 +22,7 @@ export function authorizeRequest(method, path, body) {
  return {model:MODEL};
 }
 // Input modalities are POLICY, not a user preference: every profile and settings file is held to
-// MANAGED_INPUT on every start (install_single_model_startup.py); the user's other model fields are kept.
+// MANAGED_INPUT on every start; managed name, context and output ceiling are policy too.
 // 12 Nov 2026: text and image. The managed model deepseek-v4.1-flash (DeepSeek-V4.1-Flash-1017 on the deepinfer
 // engine) accepts images: the checkpoint declares vision_config/image_token_id, the engine loads the vision
 // encoder and logs "[server] image input enabled" at start, and the context forwarder passes image parts
@@ -20,10 +30,10 @@ export function authorizeRequest(method, path, body) {
 // text-only lock rested on the absence of a multimodal launch argument; image input comes from the checkpoint.
 // This lock covers only the managed model id above; no other model is advertised or changed here.
 export const MANAGED_INPUT = Object.freeze(['text','image']);
-export const DEFAULT_MANAGED_MODEL = {id:MODEL,name:'DeepSeek-V4.1-Flash-1017 (managed alias)',maxTokens:8192,input:[...MANAGED_INPUT]};
+export const DEFAULT_MANAGED_MODEL = {id:MODEL,name:MANAGED_NAME,contextWindow:MANAGED_CONTEXT,maxTokens:8192,input:[...MANAGED_INPUT]};
 function managedModel(prior) {
  const base = prior ? {...prior, id:MODEL} : structuredClone(DEFAULT_MANAGED_MODEL);
- return {...base, input:[...MANAGED_INPUT]};
+ return {...base, name:MANAGED_NAME, contextWindow:MANAGED_CONTEXT, maxTokens:Number.isInteger(base.maxTokens) && base.maxTokens > 0 ? Math.min(base.maxTokens, OUTPUT_CEILING) : OUTPUT_CEILING, input:[...MANAGED_INPUT]};
 }
 export function lockSettings(input, gateway) {
  const u = new URL(gateway);
@@ -31,20 +41,22 @@ export function lockSettings(input, gateway) {
  const x = structuredClone(input);
  const prior = x['llm-pi-ai']?.providers?.[PROVIDER]?.models?.find(m=>m.id===MODEL);
  x['agent-default-model']={provider:PROVIDER,model:MODEL};
+ x['compaction-basic']=managedCompaction(x['compaction-basic']);
  x['llm-pi-ai']={...(x['llm-pi-ai']||{}),providers:{[PROVIDER]:{displayName:'Managed internal DeepSeek',api:'openai-completions',baseURL:gateway,apiKeyEnv:'DEEPSEEK_API_KEY',models:[managedModel(prior)]}}};
  return x;
 }
 export function lockProfile(input,gateway){
  if(!Array.isArray(input)) deny('DSH_PROFILE_ARRAY_REQUIRED');
  const x=structuredClone(input);
- // Keep the user's existing managed-model entry (e.g. the Image input ticked in Settings) across every start,
- // as lockSettings does; only the provider, gateway and model id are forced.
+ // Preserve unrelated managed-model fields; reapply the provider, name, context,
+ // output ceiling and input policy on every start, as lockSettings does.
  const priorModel=x.find(y=>y.id==='llm-pi-ai')?.config?.providers?.[PROVIDER]?.models?.find(m=>m.id===MODEL);
  const provider=lockSettings(priorModel?{'llm-pi-ai':{providers:{[PROVIDER]:{models:[priorModel]}}}}:{},gateway)['llm-pi-ai'];
  // The title provider requires its length targets and limits; DSH's own base values fill any that are missing and a deliberate value is kept.
  const TITLE_DEFAULTS={targetWords:5,targetCjkCharacters:10,maxInputBytes:4096,maxOutputTokens:4096,timeoutMs:60000};
  for(const id of ['agent-default-model','session-title-llm']) {let e=x.find(y=>y.id===id);if(!e){e={id};x.push(e);}e.config={...(id==='session-title-llm'?{...TITLE_DEFAULTS,...(e.config||{})}:{}),provider:PROVIDER,model:MODEL};}
  let e=x.find(y=>y.id==='llm-pi-ai');if(!e){e={id:'llm-pi-ai',name:'@deepseek-ai/dsh-llm-pi-ai'};x.push(e);}e.config=provider;
+ let compact=x.find(y=>y.id==='compaction-basic');if(!compact){compact={id:'compaction-basic'};x.push(compact);}compact.disabled=false;compact.config=managedCompaction(compact.config);
  for(const id of ['llm-deepseek','llm-deepseek-account','ui-settings-account']){let e=x.find(y=>y.id===id);if(!e){e={id};x.push(e);}e.disabled=true;}
  return x;
 }

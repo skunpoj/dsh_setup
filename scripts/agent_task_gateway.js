@@ -1,5 +1,5 @@
 'use strict';
-const http=require('http'),crypto=require('crypto');
+const http=require('http'),crypto=require('crypto'),CONFIRM=require('./agent_task_confirm');
 const HEADERS={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'};
 
 // Claude Code runs with --output-format stream-json, so each output line is a JSON event. Show the answer, not the JSON:
@@ -32,6 +32,32 @@ function page(token){const data=JSON.stringify({token}).replaceAll('<','\\u003c'
 
 function collect(req,limit=131072){return new Promise((resolve,reject)=>{let size=0,chunks=[];req.on('data',b=>{size+=b.length;if(size>limit){reject(Object.assign(Error('REQUEST_TOO_LARGE'),{status:413}));req.destroy();}else chunks.push(b)});req.on('end',()=>resolve(Buffer.concat(chunks)));req.on('error',reject);});}
 function proxy(req,res,ctx,body){return new Promise(resolve=>{const headers={'Authorization':'Bearer '+ctx.token,'Accept':'application/json','X-DSH-Subject':ctx.user};if(body.length){headers['Content-Type']='application/json';headers['Content-Length']=body.length;}const upstream=http.request({host:ctx.target.host,port:7682,path:ctx.upstreamPath,method:req.method,headers,timeout:10000},reply=>{res.writeHead(reply.statusCode,{...HEADERS,'Content-Type':'application/json; charset=utf-8'});reply.pipe(res);reply.on('end',resolve)});upstream.on('timeout',()=>upstream.destroy());upstream.on('error',()=>{if(!res.headersSent){res.writeHead(503,{...HEADERS,'Content-Type':'application/json'});res.end(JSON.stringify({error:'TASK_BROKER_UNAVAILABLE'}));}resolve()});if(body.length)upstream.write(body);upstream.end();});}
+// One JSON call to the workspace broker (loopback of the workspace pod, runtime token, session subject). Used where the gateway
+// must read an answer itself instead of piping it: the confirmation flow reads the proposal it is about to sign for.
+function brokerJson(ctx,method,path,body,subject=ctx.user){return new Promise(resolve=>{
+ const payload=body===undefined?null:Buffer.from(JSON.stringify(body));
+ const headers={'Authorization':'Bearer '+ctx.token,'Accept':'application/json','X-DSH-Subject':subject};
+ if(payload){headers['Content-Type']='application/json';headers['Content-Length']=payload.length;}
+ const upstream=http.request({host:ctx.target.host,port:7682,path,method,headers,timeout:10000},reply=>{let text='';reply.setEncoding('utf8');reply.on('data',c=>{if(text.length<1048576)text+=c});
+  reply.on('end',()=>{let json=null;try{json=JSON.parse(text)}catch{}resolve({status:reply.statusCode,json})})});
+ upstream.on('timeout',()=>upstream.destroy());upstream.on('error',()=>resolve({status:503,json:{error:'TASK_BROKER_UNAVAILABLE'}}));
+ if(payload)upstream.write(payload);upstream.end();});}
+const send=(res,status,value)=>{res.writeHead(status,{...HEADERS,'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value));return true;};
+// What the browser may show: the proposal as the broker holds it, nothing else (no subject, no receipt material).
+const VIEW=['id','state','runtime','project','writes','backend','prompt','promptSha256','origin','createdAt','expiresAt','taskId','error'];
+const view=item=>Object.fromEntries(VIEW.filter(k=>item&&item[k]!==undefined).map(k=>[k,item[k]]));
+async function confirmProposal(req,res,ctx,id){
+ let shown;try{shown=JSON.parse((await collect(req,4096)).toString('utf8'));}catch{return send(res,400,{error:'INVALID_REQUEST'});}
+ if(!shown||typeof shown.promptSha256!=='string'||!/^[a-f0-9]{64}$/.test(shown.promptSha256))return send(res,400,{error:'INVALID_REQUEST'});
+ if(!CONFIRM.available())return send(res,503,{error:'CONFIRMATION_KEY_UNAVAILABLE'});
+ const current=await brokerJson(ctx,'GET','/v1/proposals/'+id);
+ if(current.status!==200||!current.json)return send(res,current.status===404?404:503,{error:current.status===404?'PROPOSAL_NOT_FOUND':'TASK_BROKER_UNAVAILABLE'});
+ const made=CONFIRM.buildReceipt(current.json,ctx.user,shown);
+ if(made.error)return send(res,made.status,{error:made.error});
+ const answer=await brokerJson(ctx,'POST','/v1/tasks/'+id+'/confirm',made.receipt);
+ if(ctx.audit)ctx.audit(answer.status===202?'agent-task.confirmed':'agent-task.confirm-refused',{taskId:id,runtime:made.receipt.runtime,writes:made.receipt.writes,promptSha256:made.receipt.promptSha256,status:answer.status});
+ return send(res,answer.status,answer.json||{error:'TASK_BROKER_UNAVAILABLE'});
+}
 function safeEqual(a,b){return typeof a==='string'&&typeof b==='string'&&/^[a-f0-9]{64}$/.test(a)&&/^[a-f0-9]{64}$/.test(b)&&crypto.timingSafeEqual(Buffer.from(a),Buffer.from(b));}
 async function handle(req,res,ctx){
  const pathname=ctx.pathname;
@@ -43,11 +69,25 @@ async function handle(req,res,ctx){
  }
  if(!pathname.startsWith('/api/agent-tasks'))return false;
  if(!ctx.authorized()){res.writeHead(401,{...HEADERS,'Content-Type':'application/json'});res.end(JSON.stringify({error:'AUTHENTICATION_REQUIRED'}));return true;}
+ if(pathname==='/api/agent-tasks/csrf'&&req.method==='GET'){
+  // Lets the small card on every page learn the per-session token. Same-origin reads only: a cross-site page cannot read this answer,
+  // and a browser that says the request is cross-site is refused outright.
+  const site=req.headers['sec-fetch-site'];if(site&&site!=='same-origin')return send(res,403,{error:'SAME_ORIGIN_REQUIRED'});
+  ctx.session.agentCsrf ||= crypto.randomBytes(32).toString('hex');return send(res,200,{token:ctx.session.agentCsrf});
+ }
  if(!safeEqual(req.headers['x-dsh-agent-csrf'],ctx.session.agentCsrf)){res.writeHead(403,{...HEADERS,'Content-Type':'application/json'});res.end(JSON.stringify({error:'INVALID_TASK_TOKEN'}));return true;}
  if(['POST','DELETE'].includes(req.method)&&req.headers.origin!=='https://'+ctx.trustedHost){res.writeHead(403,{...HEADERS,'Content-Type':'application/json'});res.end(JSON.stringify({error:'SAME_ORIGIN_REQUIRED'}));return true;}
  const suffix=pathname.slice('/api/agent-tasks'.length);
  if(suffix==='/capabilities'&&req.method==='GET')ctx.upstreamPath='/v1/capabilities';
  else if(suffix===''&&req.method==='POST')ctx.upstreamPath='/v1/tasks';
+ else if(suffix==='/proposed'&&req.method==='GET'){
+  const listed=await brokerJson(ctx,'GET','/v1/tasks?state=proposed');
+  if(listed.status!==200||!listed.json)return send(res,503,{error:'TASK_BROKER_UNAVAILABLE'});
+  return send(res,200,{proposals:(listed.json.proposals||[]).map(view),signing:CONFIRM.available()});
+ }
+ else if(/^\/[a-f0-9]{32}\/confirm$/.test(suffix)&&req.method==='POST')return confirmProposal(req,res,ctx,suffix.slice(1,33));
+ else if(/^\/[a-f0-9]{32}\/deny$/.test(suffix)&&req.method==='POST'){const gone=await brokerJson(ctx,'DELETE','/v1/tasks/'+suffix.slice(1,33));
+  if(ctx.audit&&gone.status<300)ctx.audit('agent-task.denied',{taskId:suffix.slice(1,33)});return send(res,gone.status,gone.json||{error:'TASK_BROKER_UNAVAILABLE'});}
  else if(/^\/[a-f0-9]{32}\/approve$/.test(suffix)&&req.method==='POST')ctx.upstreamPath='/v1/tasks'+suffix;
  else if(/^\/[a-f0-9]{32}\/events$/.test(suffix)&&req.method==='GET')ctx.upstreamPath='/v1/tasks'+suffix+(ctx.query||'');
  else if(/^\/[a-f0-9]{32}$/.test(suffix)&&req.method==='DELETE')ctx.upstreamPath='/v1/tasks'+suffix;

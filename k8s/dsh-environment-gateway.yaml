@@ -13,6 +13,8 @@ spec:
       labels: { app: dsh-environment-gateway }
     spec:
       automountServiceAccountToken: false
+      # Option C: lets the non-root gateway read the 0440 confirmation key Secret below. Applied live by scripts/rollout_gateway_confirm_key.py.
+      securityContext: { fsGroup: 10001, fsGroupChangePolicy: OnRootMismatch }
       containers:
         - name: gateway
           # Reference only, not the live spec. Live (31 Oct 2026) runs dsh-runtime@sha256:3aa7561ff18c1563b0fdff82a8a62e8b13f1e8160a58c9d841c678eda2711752; the image is set by the operator/pipeline, the code by the gateway source ConfigMap.
@@ -52,6 +54,8 @@ spec:
             - { name: auth, mountPath: /auth }
             - { name: secure-token, mountPath: /runtime-tokens/secure, readOnly: true }
             - { name: internet-token, mountPath: /runtime-tokens/internet, readOnly: true }
+            # Option C: the PRIVATE confirmation key, gateway pod only (never mounted into a workspace). Optional: without it the gateway refuses to sign.
+            - { name: confirm-key, mountPath: /etc/dsh-confirm, readOnly: true }
       volumes:
         - name: auth
           persistentVolumeClaim: { claimName: dsh-auth-state }
@@ -59,6 +63,12 @@ spec:
           persistentVolumeClaim: { claimName: dsh-secure-token }
         - name: internet-token
           persistentVolumeClaim: { claimName: dsh-internet-token }
+        - name: confirm-key
+          secret:
+            secretName: dsh-confirm-signing-key
+            optional: true
+            defaultMode: 0440
+            items: [{ key: confirm-receipt-private.pem, path: confirm-receipt-private.pem }]
 ---
 apiVersion: v1
 kind: Service

@@ -25,7 +25,13 @@ spec.loader.exec_module(sec)
 
 EXCLUDE_DIRS = ('context-evidence/', 'security-data/', 'internal-runbooks/')
 # Private pages are NEVER linked or served, even when an earlier generation served them (the manual route is public).
-PRIVATE = {'TOOLS_AND_RISKS_REGISTER': 'private assessment draft, not served (the manual is public)', 'OPERATIONS_AND_TROUBLESHOOTING_MANUAL': 'Legacy mixed manual contains cluster rolling restart, failure recovery and privileged maintenance procedures; end-user workflows have dedicated user guides. Existing C8 denial retained.', 'sdk-qualification-composition/P3_RUNNER_README': 'Disposable operator namespace/quota/Job/admission/observation/cleanup qualification runner procedure. Existing C8 denial retained.', 'INSTALL': 'Complete Kubernetes installation procedure with build/render/apply/rollout commands and cluster prerequisites.', 'INSTALLATION_WALKTHROUGH': 'Operator installation sequence: existing PVC/Secret inputs, server dry-run/diff, supporting controls, private workload startup, manual publication and rollback.', 'ENTERPRISE_ROOT_CA_SETUP': 'Enterprise trust/SSL-inspection operator procedure extracting CA, creating ConfigMaps and rolling out cluster configuration.', 'CREDENTIAL_OPERATIONS': 'Privileged credential-service deployment plus DPAPI custody/unseal, encrypted snapshot/restore and disposable cluster acceptance; distinct from end-user Credentials UI.', 'DSH_SETUP_AND_STRESS_TEST_GUIDE': 'Generated HTML counterpart of the explicitly operator setup/stress guide; public bundle mandatory seed currently exposes its embedded procedures.', 'INFRA_ADMIN_P2P_NOTE_20261030': 'Infrastructure-admin coordination/change plan with operational GPU/network alternatives and privileged command appendices, not an ordinary workspace-use lesson.', 'sdk-qualification-composition/D11_D13_OPENSHELL_PROPOSAL': 'Existing internal qualification lease/policy/rollback-owner protocol proposal; not classified by architecture keywords.', 'sdk-qualification-composition/P0_DESIGN_OPENSHELL_LANE': 'Existing internal Kubernetes qualification design, service-account/admission and Job sequence; preserve internal source/history.', 'sdk-qualification-composition/VERIFY_MOUNTS_REDESIGN': 'Existing unreviewed security redesign draft; preserve explicit publication hold, not a runtime PASS.'}
+PRIVATE = {'sha256:c7486707ae1dccd42d026007804582a7dc2d73018d43e8d65fff480c0c695e24': 'private assessment draft, not served (the manual is public)', 'OPERATIONS_AND_TROUBLESHOOTING_MANUAL': 'Legacy mixed manual contains cluster rolling restart, failure recovery and privileged maintenance procedures; end-user workflows have dedicated user guides. Existing C8 denial retained.', 'sdk-qualification-composition/P3_RUNNER_README': 'Disposable operator namespace/quota/Job/admission/observation/cleanup qualification runner procedure. Existing C8 denial retained.', 'INSTALL': 'Complete Kubernetes installation procedure with build/render/apply/rollout commands and cluster prerequisites.', 'INSTALLATION_WALKTHROUGH': 'Operator installation sequence: existing PVC/Secret inputs, server dry-run/diff, supporting controls, private workload startup, manual publication and rollback.', 'ENTERPRISE_ROOT_CA_SETUP': 'Enterprise trust/SSL-inspection operator procedure extracting CA, creating ConfigMaps and rolling out cluster configuration.', 'CREDENTIAL_OPERATIONS': 'Privileged credential-service deployment plus DPAPI custody/unseal, encrypted snapshot/restore and disposable cluster acceptance; distinct from end-user Credentials UI.', 'DSH_SETUP_AND_STRESS_TEST_GUIDE': 'Generated HTML counterpart of the explicitly operator setup/stress guide; public bundle mandatory seed currently exposes its embedded procedures.', 'INFRA_ADMIN_P2P_NOTE_20261030': 'Infrastructure-admin coordination/change plan with operational GPU/network alternatives and privileged command appendices, not an ordinary workspace-use lesson.', 'sdk-qualification-composition/D11_D13_OPENSHELL_PROPOSAL': 'Existing internal qualification lease/policy/rollback-owner protocol proposal; not classified by architecture keywords.', 'sdk-qualification-composition/P0_DESIGN_OPENSHELL_LANE': 'Existing internal Kubernetes qualification design, service-account/admission and Job sequence; preserve internal source/history.', 'sdk-qualification-composition/VERIFY_MOUNTS_REDESIGN': 'Existing unreviewed security redesign draft; preserve explicit publication hold, not a runtime PASS.'}
+def private_reason(stem):
+    import hashlib
+    if not isinstance(stem, str):
+        return None
+    return PRIVATE.get(stem) or PRIVATE.get('sha256:' + hashlib.sha256(stem.encode('utf-8')).hexdigest())
+
 PUBLICATION_HOLDS = {
     'sdk-qualification-composition/VERIFY_MOUNTS_REDESIGN': 'unreviewed OpenShell security design draft; not approved for public publication',
 }
@@ -112,7 +118,7 @@ def collect():
         stems.setdefault(rel[:-len(p.suffix)], {})[p.suffix] = p
     docs = []
     for stem, forms in sorted(stems.items(), key=lambda kv: kv[0].lower()):
-        if stem == 'index' or stem in PRIVATE:
+        if stem == 'index' or private_reason(stem):
             continue  # private pages are not even listed
         main = forms.get('.html') or forms['.md']
         cat = RECORDS[0]
@@ -124,7 +130,7 @@ def collect():
         if stem.startswith(('archive/', 'sdk-wheel', 'test-course')) or re.search(r'_20261\d{3}$', stem):
             cat = RECORDS[0] if cat not in ('risks',) else cat
         served_now = any((stem + e) in live for e in forms)
-        docs.append({'stem': stem, 'title': title_of(main), 'forms': sorted(forms), 'cat': cat, 'held': PRIVATE.get(stem) or PUBLICATION_HOLDS.get(stem) or (None if served_now else HELD.get(stem))})
+        docs.append({'stem': stem, 'title': title_of(main), 'forms': sorted(forms), 'cat': cat, 'held': private_reason(stem) or PUBLICATION_HOLDS.get(stem) or (None if served_now else HELD.get(stem))})
     # A page that links to a repository-only page would pull it into the served bundle through link traversal: hold it too.
     changed = True
     while changed:
@@ -175,7 +181,7 @@ CANONICAL_REFERENCE_PAGES = ({
 }, {
     'path': 'THREE_RISK_CONTROLS.html',
     'title': 'Private risk-workbook alignment: three control layers and cross-layer audit',
-    'source_filename': '20261109_tools_risks.xlsx',
+    'source_filename': 'retained-private-workbook.xlsx',
     'source_sha256': '214e604a349bf1955171504f4ba42e1f59fb01101fc717a4d9453ef6d860d937',
 })
 
@@ -277,7 +283,7 @@ def build():
         if url.scheme or url.netloc or not url.path:
             return match.group(0)
         stem = str(Path(unquote(url.path)).with_suffix('')).replace('\\', '/').removeprefix('./')
-        return match.group(2) if stem in PRIVATE or stem in PUBLICATION_HOLDS else match.group(0)
+        return match.group(2) if private_reason(stem) or stem in PUBLICATION_HOLDS else match.group(0)
     text = re.sub(r'<a\b[^>]*href="([^"]*)"[^>]*>([\s\S]*?)</a>', public_anchor, text, flags=re.I)
     return requirements_module().public_projection_html(requirements_module().canonical_index(text), DOCS / 'index.html'), docs
 

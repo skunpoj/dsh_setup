@@ -2,7 +2,7 @@ import importlib.util,pathlib,sys,types,unittest,asyncio,os
 from unittest.mock import patch
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 class FakeChat:
- def __init__(self,**kw): self.received=kw;self.model_name=kw['model'];self.openai_api_base=kw['base_url'];self.http_client=kw['http_client'];self.http_async_client=kw['http_async_client']
+ def __init__(self,**kw): self.profile={'tool_calling':True,'max_input_tokens':1048576};self.received=kw;self.model_name=kw['model'];self.openai_api_base=kw['base_url'];self.http_client=kw['http_client'];self.http_async_client=kw['http_async_client']
 class FakeClient:
  def __init__(self,**kw): self.trust_env=kw.get('trust_env');self.options=kw
  def close(self):pass
@@ -51,6 +51,17 @@ class PolicyTests(unittest.TestCase):
   e=l.environment({'ANTHROPIC_API_KEY':'SYNTHETIC','OPENAI_API_KEY':'SYNTHETIC','OPENAI_BASE_URL':'https://example.com','HTTP_PROXY':'http://example.com','PYTHONPATH':'/tmp','LANGSMITH_TRACING':'true','PATH':'/tmp','HOME':'/tmp','LANG':'C.UTF-8'})
   for key in ['ANTHROPIC_API_KEY','OPENAI_API_KEY','OPENAI_BASE_URL','HTTP_PROXY','PYTHONPATH']:self.assertNotIn(key,e)
   self.assertEqual(e['LANGSMITH_TRACING'],'false');self.assertEqual(e['PATH'],'/usr/local/bin:/usr/bin:/bin')
+ def test_native_context_profile_is_explicit_and_not_a_web_label(self):
+  with patch.object(m,'load_policy',return_value=P),patch.object(m,'TOKEN',types.SimpleNamespace(read_text=lambda:'SYNTHETIC_TEST_KEY')):
+   obj=m.DSHManagedChat(max_tokens=64)
+   self.assertEqual(obj.profile,{'tool_calling':True,'max_input_tokens':393216,'max_output_tokens':8192})
+   self.assertEqual(obj.received['max_tokens'],64)
+   obj.http_client.close();asyncio.run(obj.http_async_client.aclose())
+  import tomllib
+  policy=tomllib.loads((ROOT/'container/deepagents-managed.toml').read_text())
+  self.assertEqual(policy['models']['providers']['dsh']['profile'],{'tool_calling':True,'max_input_tokens':393216,'max_output_tokens':8192})
+  self.assertFalse(policy['startup']['read_project_dotenv'])
+  with self.assertRaises(ValueError):m.checked_options({'profile':{'max_input_tokens':1048576}},P)
  def test_constructor_fixed_model_and_proxy_disabled(self):
   with patch.object(m,'load_policy',return_value=P),patch.object(m,'TOKEN',types.SimpleNamespace(read_text=lambda:'SYNTHETIC_TEST_KEY')):
    obj=m.DSHManagedChat();self.assertEqual(obj.model_name,m.MODEL);self.assertEqual(obj.openai_api_base,P['base_url']);self.assertFalse(getattr(obj.http_client,'_trust_env',getattr(obj.http_client,'trust_env',None)));self.assertFalse(getattr(obj.http_async_client,'_trust_env',getattr(obj.http_async_client,'trust_env',None)));obj.http_client.close();asyncio.run(obj.http_async_client.aclose())

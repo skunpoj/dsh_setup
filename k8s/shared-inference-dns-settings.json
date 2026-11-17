@@ -21,5 +21,5 @@
       "cluster.local"
     ]
   },
-  "dnsConfigMap": "dsh-internal-dns-035a18925147"
+  "dnsConfigMap": "dsh-internal-dns-7acf3f35cdc7"
 }

@@ -45,6 +45,23 @@ class DNSContainment(unittest.TestCase):
             response=self.module.answer(self.packet(bad));self.assertEqual(struct.unpack('!H',response[2:4])[0]&15,3)
         self.assertEqual(len(self.forwarded),1)
 
+    def test_the_smp_eda_service_name_resolves_but_nothing_around_it_does(self):
+        name='smp1213eda-svc-prod.smp1213-prod.svc.cluster.local'
+        self.module.answer(self.packet(name));self.assertEqual(len(self.forwarded),1)
+        self.module.answer(self.packet(name.upper()));self.assertEqual(len(self.forwarded),2)   # the relay lowercases: DNS names are case-insensitive
+        for bad in ['smp1213eda-svc-prod','smp1213eda-svc-prod.smp1213-prod','smp1213eda-svc-prod.smp1213-prod.svc','smp1213eda-svc-prod.smp1213-prod.svc.cluster.local.attacker.com',
+                    'smp1213eda-svc.smp1213-prod.svc.cluster.local','smp1213eda-svc-prod.other.svc.cluster.local','x.smp1213eda-svc-prod.smp1213-prod.svc.cluster.local']:
+            response=self.module.answer(self.packet(bad));self.assertEqual(struct.unpack('!H',response[2:4])[0]&15,3,bad)
+        self.assertEqual(len(self.forwarded),2)
+
+    def test_the_asr_typhoon_service_name_resolves_but_nothing_around_it_does(self):
+        name='asr-typhoon.llm.svc.cluster.local'
+        self.module.answer(self.packet(name));self.assertEqual(len(self.forwarded),1)
+        for bad in ['asr-typhoon','asr-typhoon.llm','asr-typhoon.llm.svc','asr-typhoon.llm.svc.cluster.local.attacker.com',
+                    'asr-typhoon.other.svc.cluster.local','x.asr-typhoon.llm.svc.cluster.local','asr-typhoon2.llm.svc.cluster.local']:
+            response=self.module.answer(self.packet(bad));self.assertEqual(struct.unpack('!H',response[2:4])[0]&15,3,bad)
+        self.assertEqual(len(self.forwarded),1)
+
     def test_allowed_query_is_rebuilt_without_client_payload_or_id(self):
         response=self.module.answer(self.packet('LiteLLM.llm.svc.cluster.local',additional=b'PRIVATE_EDNS_PAYLOAD'))
         self.assertEqual(response[:2],b'RD');self.assertEqual(len(self.forwarded),1)

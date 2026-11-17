@@ -17,6 +17,12 @@ from pathlib import Path
 ALLOWED = {x.lower().rstrip('.') for x in json.loads(Path(os.environ.get('DNS_ALLOWLIST', '/config/allowed.json')).read_text(encoding='utf-8'))}
 # Only fully qualified private runtime Services; never short names or public suffixes.
 # CoreDNS must remain authoritative for cluster.local (no public fallthrough).
+# The one SMP EDA prod Service every workspace may resolve (egress to it is a separate NetworkPolicy, k8s/dsh-smp-eda-egress-workspaces.yaml).
+# Exact fully qualified name only: no short forms (the workspace resolver has ndots 1 and no search domains), no wildcard.
+SMP_EDA_SERVICE = 'smp1213eda-svc-prod.smp1213-prod.svc.cluster.local'
+# The in-process ASR workers (typhoon-asr-qwen-1.7b-ctx) behind Service llm/asr-typhoon, reached by LiteLLM
+# (egress is a separate NetworkPolicy: dsh-local-inference-egress ports 8100/8101). Exact FQDN only.
+ASR_TYPHOON_SERVICE = 'asr-typhoon.llm.svc.cluster.local'
 PRIVATE_RUNTIME = re.compile(r'dsh-u-[a-f0-9]{16}-(?:secure|internet)\.llm\.svc\.cluster\.local\Z')
 UPSTREAM = os.environ['DNS_UPSTREAM']
 UPSTREAM_PORT = int(os.environ.get('DNS_UPSTREAM_PORT', '53'))
@@ -57,7 +63,7 @@ def answer(packet):
     identifier=packet[:2] if len(packet)>=2 else b'\0\0'
     try:
         name, wire=question(packet)
-        if name not in ALLOWED and not PRIVATE_RUNTIME.fullmatch(name):
+        if name not in ALLOWED and name not in (SMP_EDA_SERVICE, ASR_TYPHOON_SERVICE) and not PRIVATE_RUNTIME.fullmatch(name):
             COUNTS['denied']+=1
             return identifier+struct.pack('!5H',0x8183,1,0,0,0)+wire
         if not LIMIT.acquire(blocking=False):raise OSError('DNS request capacity')

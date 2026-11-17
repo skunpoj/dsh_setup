@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 
 const name = 'internal-litellm';
 const model = 'deepseek-v4.1-flash';
-const properties = {context_length: 1048576, max_output_tokens: 8192};
+const properties = {context_length: 393216, max_output_tokens: 8192};
 
 export function managedStore() {
   const api_key = readFileSync('/harness-credentials/api-key', 'utf8').trim();

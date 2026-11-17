@@ -24,7 +24,7 @@ from capacity_controller import atomic_json, read_json, utc
 SLOT = re.compile(r'cap-[a-f0-9]{16}-01')
 REQUEST = re.compile(r'(cap-[a-f0-9]{16}-01)\.json')
 ACCOUNT = re.compile(r'[a-z0-9_.-]{3,30}')
-OWNED_LABEL = 'dsh.bot.or.th/capacity-managed'
+OWNED_LABEL = 'dsh.example.com/capacity-managed'
 FINAL = ('done', 'quarantined', 'refused')
 
 

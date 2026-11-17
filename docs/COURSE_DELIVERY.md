@@ -38,4 +38,4 @@ Promote the current guide's description and content together as one atomic manua
 
 ## One current guide
 
-Use the current DSH guide as the primary entry. Its HTML and Markdown share one reviewed source with the internal deck.  Site-specific access and storage settings remain distinct.
+Use the [current DSH guide](DSH_CURRENT_GUIDE.html) as the primary entry. Its HTML and Markdown share one reviewed source with the internal deck.  Site-specific access and storage settings remain distinct.
