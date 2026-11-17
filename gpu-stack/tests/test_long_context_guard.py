@@ -287,12 +287,12 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
 
     @unittest.skipIf(os.name == 'nt', 'POSIX process-shared lease')
     async def test_bounded_queue_waits_once_and_excess_is_rejected_immediately(self):
-        await self.guard.acquire('active')
-        waiting = asyncio.create_task(self.guard.acquire('waiting', wait_seconds=1500))
+        await self.guard.acquire('active', concurrent=1, max_waiters=1)
+        waiting = asyncio.create_task(self.guard.acquire('waiting', wait_seconds=1500, concurrent=1, max_waiters=1))
         await asyncio.sleep(.02)
         self.assertEqual(self.guard.waiters, ['waiting'])
         with self.assertRaises(Rejected) as caught:
-            await self.guard.acquire('excess', wait_seconds=1500)
+            await self.guard.acquire('excess', wait_seconds=1500, concurrent=1, max_waiters=1)
         self.assertEqual(caught.exception.status_code, 429)
         self.guard.release({'metadata': {'dsh_long_lease': 'active'}})
         result = await asyncio.wait_for(waiting, 1)
@@ -302,8 +302,8 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
 
     @unittest.skipIf(os.name == 'nt', 'POSIX process-shared lease')
     async def test_waiter_cancellation_preserves_active_owner_and_frees_queue(self):
-        await self.guard.acquire('active')
-        waiting = asyncio.create_task(self.guard.acquire('cancelled', wait_seconds=1500))
+        await self.guard.acquire('active', concurrent=1, max_waiters=1)
+        waiting = asyncio.create_task(self.guard.acquire('cancelled', wait_seconds=1500, concurrent=1, max_waiters=1))
         await asyncio.sleep(.02)
         waiting.cancel()
         with self.assertRaises(asyncio.CancelledError):
@@ -311,24 +311,24 @@ class LongContextGuardTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.guard.waiters, [])
         self.assertEqual(list(self.guard.leases), ['active'])
         self.guard.release({'metadata': {'dsh_long_lease': 'active'}})
-        await asyncio.wait_for(self.guard.acquire('next'), 1)
+        await asyncio.wait_for(self.guard.acquire('next', concurrent=1, max_waiters=1), 1)
         self.guard.release({'metadata': {'dsh_long_lease': 'next'}})
 
     @unittest.skipIf(os.name == 'nt', 'POSIX process-shared lease')
     async def test_queue_timeout_removes_waiter_without_unlocking_active_request(self):
-        await self.guard.acquire('active')
+        await self.guard.acquire('active', concurrent=1, max_waiters=1)
         with self.assertRaises(Rejected):
-            await self.guard.acquire('expired', wait_seconds=.01)
+            await self.guard.acquire('expired', wait_seconds=.01, concurrent=1, max_waiters=1)
         self.assertEqual(self.guard.waiters, [])
         self.assertEqual(list(self.guard.leases), ['active'])
         self.guard.release({'metadata': {'dsh_long_lease': 'active'}})
 
     @unittest.skipIf(os.name == 'nt', 'POSIX process-shared lease')
     async def test_fifo_waiters_cannot_be_overtaken(self):
-        await self.guard.acquire('active')
-        first = asyncio.create_task(self.guard.acquire('first', max_waiters=2))
+        await self.guard.acquire('active', concurrent=1, max_waiters=1)
+        first = asyncio.create_task(self.guard.acquire('first', max_waiters=2, concurrent=1))
         await asyncio.sleep(.02)
-        second = asyncio.create_task(self.guard.acquire('second', max_waiters=2))
+        second = asyncio.create_task(self.guard.acquire('second', max_waiters=2, concurrent=1))
         await asyncio.sleep(.02)
         self.guard.release({'metadata': {'dsh_long_lease': 'active'}})
         await asyncio.wait_for(first, 1)

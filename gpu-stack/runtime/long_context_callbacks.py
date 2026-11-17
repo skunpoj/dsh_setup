@@ -16,7 +16,9 @@ import uuid
 from fastapi import HTTPException
 from litellm.integrations.custom_logger import CustomLogger
 
-CONTEXT = 1048576
+CONTEXT = 393216  # live engine T5: --max-model-len 393216 (was 1048576 before the T5 tuning change,
+                  # ORCH-ORDER-ALIGN-REPO-TO-T5). Requests between CONTEXT and the old 1048576 now
+                  # get a clean 400 here instead of passing the forwarder and failing at the engine.
 OUTPUT = 8192
 RESERVE = 256
 LONG_THRESHOLD = 32768
@@ -30,7 +32,32 @@ def configured_warm_step():
     return int(value)
 
 
+def configured_positive_int(env_name, default):
+    """A positive integer read once from env_name, defaulting to default.
+
+    Same fail-fast style as configured_warm_step: a present-but-invalid value
+    is a startup error, not a silent fallback.
+    """
+    value = os.environ.get(env_name, str(default))
+    if not value.isdecimal() or int(value) < 1:
+        raise ValueError(f'{env_name} must be a positive integer')
+    return int(value)
+
+
 WARM_STEP = configured_warm_step()
+# How many long requests (prompt + max_tokens > LONG_THRESHOLD) may be ACTIVE
+# at once, and how many more may wait in the FIFO queue before a new one gets
+# 429'd. Default 16/16, matching the T1 engine config's 4 seqs/rank x dp 4 =
+# 16 total slots (KV math in the patch notes: 16 long requests at the longest
+# observed prompt need ~0.49 GiB, trivial against that config's ~15.6 GiB
+# cluster KV) - recompute as seqs x dp if the final engine config differs.
+# Still overridable by env for exactly that reason. Kept separate from
+# WAIT_SECONDS, which the order asked to leave unchanged.
+CONCURRENT_LONG = configured_positive_int('DSH_LONG_CONCURRENT', 16)
+MAX_WAITERS = configured_positive_int('DSH_LONG_MAX_WAITERS', 16)
+# Directory holding the per-slot lock files. Configurable only so tests don't
+# touch the real /tmp path; not meant to be changed in production.
+LOCK_DIR = os.environ.get('DSH_LONG_LOCK_DIR', '/tmp/dsh-long-admission')
 CACHE_PROBE_SECONDS = 2
 # HTTP preparation extensions are separate from GPU prefill chunks. Retain
 # the previously qualified smaller extension above 512K until larger cold
@@ -209,26 +236,39 @@ class LongContextGuard(CustomLogger):
                 'conservativeTailStep': min(WARM_STEP, CONSERVATIVE_TAIL_STEP),
                 'foregroundYieldSeconds': round(yielded_seconds, 3)}
 
-    async def acquire(self, key, wait_seconds=300, max_waiters=1):
-        """One active long request plus a bounded FIFO waiting lane.
+    async def acquire(self, key, wait_seconds=300, max_waiters=MAX_WAITERS,
+                       concurrent=CONCURRENT_LONG):
+        """Up to `concurrent` active long requests plus a bounded FIFO waiting lane.
 
-        Waiting does not occupy the ordinary-request lane or GPU. The final
-        forwarding route supplies a longer budget within its client deadline;
-        legacy callers retain their existing five-minute budget.
+        Each concurrent slot is its own lock file (active-<i>.lock); a key is
+        admitted as soon as ANY slot's lock is free, so this generalizes the
+        original one-slot design without changing its semantics when
+        concurrent=1. Waiting does not occupy the ordinary-request lane or
+        GPU. The final forwarding route supplies a longer budget within its
+        client deadline; legacy callers retain their existing five-minute
+        budget.
         """
-        os.makedirs('/tmp/dsh-long-admission', mode=0o700, exist_ok=True)
-        fd = os.open('/tmp/dsh-long-admission/active.lock', os.O_CREAT | os.O_RDWR, 0o600)
-        transferred = False
+        os.makedirs(LOCK_DIR, mode=0o700, exist_ok=True)
+        fds = [os.open(os.path.join(LOCK_DIR, f'active-{i}.lock'), os.O_CREAT | os.O_RDWR, 0o600)
+               for i in range(concurrent)]
+
+        def try_acquire_any():
+            for fd in fds:
+                try:
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    return fd
+                except BlockingIOError:
+                    continue
+            return None
+
+        acquired_fd = None
         queued = False
         try:
             if not self.waiters:
-                try:
-                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    self.leases[key] = fd
-                    transferred = True
+                acquired_fd = try_acquire_any()
+                if acquired_fd is not None:
+                    self.leases[key] = acquired_fd
                     return {'queued': False, 'waitBudgetSeconds': wait_seconds}
-                except BlockingIOError:
-                    pass
             if len(self.waiters) >= max_waiters:
                 raise HTTPException(429, 'Long-context waiting queue full; retry later.',
                                     headers={'Retry-After': '30'})
@@ -237,13 +277,10 @@ class LongContextGuard(CustomLogger):
             deadline = time.monotonic() + wait_seconds
             while True:
                 if self.waiters[0] == key:
-                    try:
-                        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                        self.leases[key] = fd
-                        transferred = True
+                    acquired_fd = try_acquire_any()
+                    if acquired_fd is not None:
+                        self.leases[key] = acquired_fd
                         return {'queued': True, 'waitBudgetSeconds': wait_seconds}
-                    except BlockingIOError:
-                        pass
                 if time.monotonic() >= deadline:
                     raise HTTPException(429, 'Long-context capacity busy; retry later.',
                                         headers={'Retry-After': '30'})
@@ -251,8 +288,9 @@ class LongContextGuard(CustomLogger):
         finally:
             if queued:
                 self.waiters.remove(key)
-            if not transferred:
-                os.close(fd)
+            for fd in fds:
+                if fd != acquired_fd:
+                    os.close(fd)
 
     def release(self, data):
         if not isinstance(data, dict):
@@ -282,7 +320,7 @@ class LongContextGuard(CustomLogger):
             raise HTTPException(503, 'Backend token budgeting unavailable; request not dispatched.')
         available = min(CONTEXT, tokenized.get('max_model_len', CONTEXT)) - RESERVE - count
         if available < 1:
-            raise HTTPException(400, 'Input exceeds 1M total budget; compact or reduce the input.')
+            raise HTTPException(400, 'Input exceeds the 384K total budget; compact or reduce the input.')
         limits = [data[k] for k in ('max_tokens', 'max_completion_tokens') if k in data]
         if any(type(x) is not int or x < 1 for x in limits):
             raise HTTPException(400, 'Output token limits must be positive integers.')

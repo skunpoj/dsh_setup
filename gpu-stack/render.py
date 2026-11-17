@@ -61,7 +61,7 @@ def render(settings):
       'model_list':[{'model_name':alias,'litellm_params':{
         'model':'custom_openai/deepseek-v4.1-flash','api_base':'http://127.0.0.1:4001/v1',
         'api_key':'os.environ/INTERNAL_ROUTE_KEY','timeout':3600,'stream_timeout':3600},
-        'model_info':{'max_tokens':1048576,'max_input_tokens':1048320,'max_output_tokens':8192}}
+        'model_info':{'max_tokens':393216,'max_input_tokens':384768,'max_output_tokens':8192}}
         for alias in ALIASES],
       'litellm_settings':{'drop_params':True,'modify_params':True,
         'additional_drop_params':['dsh_session_log'],

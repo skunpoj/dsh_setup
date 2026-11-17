@@ -7,7 +7,10 @@ def plan(profile_id,model_path,review_proposed=False):
     if not model_path.startswith('/') or any(c in model_path for c in '\r\n\x00'):raise ValueError('An absolute POSIX model path is required')
     p=json.loads((Path(__file__).parent/(profile_id+'.json')).read_text(encoding='utf8'))
     if p['status']=='PROPOSED-NOT-EXECUTED' and not review_proposed:raise ValueError('Proposed profile: use --review-proposed for inspection only; this does not authorize execution')
-    if p['active_cap_total']!=8 or p['physical_gpus']!=4:raise ValueError('Reference capacity changed; review required')
+    a=[str(x) for x in p.get('command',[])+p.get('args',[])]
+    def arg(k):return int(a[a.index(k)+1]) if k in a else None
+    cap=arg('--dp')*arg('--max-num-seqs') if arg('--dp') and arg('--max-num-seqs') else arg('--max-running-requests')
+    if p['physical_gpus']!=4 or cap is None or p['active_cap_total']!=cap:raise ValueError('Reference capacity changed; review required')
     names=json.loads((Path(__file__).parent.parent/'naming.json').read_text(encoding='utf8'))
     sub=lambda s:s.replace('${MODEL_PATH}',model_path)
     engine_names=names['engines'][p['engine']]
