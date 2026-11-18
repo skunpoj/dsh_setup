@@ -388,6 +388,30 @@ A task owner identifies permitted data, allowed operations, output recipients an
 
 
 
+## Agent runtimes, execution backends and shared inference
+
+This component map describes responsibilities and intended connections. It does not establish that every route, model or backend is deployed or qualified. Use the [current guide](DSH_CURRENT_GUIDE.html) and [feature evidence](FEATURE_CONTROL_TRACEABILITY.html) for the recorded scope and remaining tests.
+
+| Component | Responsibility and connection | Acceptance boundary |
+|---|---|---|
+| DSH Python SDK | Programmatic agent integration through the DSH task broker and route-specific approval/lifecycle controls. | An SDK import or zero-start fixture is not a completed agent task. |
+| Claude Code | A harness integration route running within the assigned execution boundary. | Its permissions and tested image/route remain explicit. |
+| Deep Agents | A harness framework integration route through the broker and approved tools. | Framework availability does not establish three-agent banking completion. |
+| Kilo and TrueForge | Managed alternative client integrations using the platform guide and their own adapter policy. | Client installation does not qualify another route or a different image. |
+| Private workspace | The DSH execution backend with its assigned identity, process limits and mounted input/output boundaries. | Verify the actual Pod/container/mount profile; do not infer cross-user isolation from a UI label. |
+| OpenShell | An alternative governed sandbox backend. Internal native CLI authentication has been observed; governed sandbox qualification remains pending. | Cloud OpenShell is not operational; native CLI evidence does not qualify SDK, Web UI, MCP or DQ execution. |
+| litellm-gateway | Shared model routing and request policy between agent integrations and approved inference services. | A configured alias does not establish model availability, image input or a measured context limit. |
+| context-forwarder | The context forwarding component on the applicable inference path. | It does not expand the actual provider/model token or image limits. |
+| deepinfer-dspark and sglang-dspark | Separate inference serving components with their own model, capacity and deployment ownership. | Current running digests, endpoint contracts and performance belong to the GPU library's evidence. |
+
+The three risks govern these connections:
+
+| Prevent external leakage | Prevent excessive access | Keep results contained |
+|---|---|---|
+| Restrict destinations and context to approved identities, tools and inference routes. | Bind approvals, database entitlements, filesystem mounts and resource budgets to the task. | Keep private inputs, generated artifacts and user history behind the intended access boundary. |
+
+The following three primary diagrams explain these risk controls. The separate [retained GPU inference topology](GPU_INFERENCE_TOPOLOGY_REFERENCE.html) preserves the fourth appendix diagram without treating its historical configuration as current runtime acceptance.
+
 ## Appendix A — Features, use and administration
 
 

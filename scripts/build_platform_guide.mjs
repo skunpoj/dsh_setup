@@ -1,0 +1,55 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+const root=path.resolve(import.meta.dirname,'..');
+const modules=process.env.DSH_DOC_NODE_MODULES || path.join(root,'node_modules');
+const {marked}=await import(pathToFileURL(path.join(modules,'marked/lib/marked.esm.js')));
+const args=process.argv.slice(2);const option=name=>{const i=args.indexOf(name);return i<0?null:args[i+1];};
+const out=path.resolve(option('--output') || path.join(root,'docs/DSH_PLATFORM_GUIDE.html'));
+const privatePath=option('--private-inventory');
+if(privatePath&&out===path.join(root,'docs/DSH_PLATFORM_GUIDE.html'))throw Error('Private inventory must never overwrite the public portable guide');
+const snapshot=null; // No private inventory is loaded for the public portable guide.
+const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+let source=fs.readFileSync(path.join(root,'docs/DSH_PLATFORM_GUIDE.md'),'utf8').replace(/^# [^\r\n]*(?:\r?\n|$)/,'');
+const summary='Historical deployment counts are described in the dated source; current runtime state requires current evidence.';
+const table='Current deployment identities and readiness are not established by this portable guide.';
+let details='Access examples: `https://dsh.example.com`, its `/admin`, `/terminal` and `/proxy/<approved-port>/` routes; separate `https://dsh2.example.com` and `https://dsh3.example.com` instances. These example domains are not live service addresses.';
+if(privatePath){
+ const site=JSON.parse(fs.readFileSync(privatePath,'utf8'));
+ const main=site.ingresses.flatMap(i=>i.hosts).find(h=>h.startsWith('dsh.'));
+ if(!main || !/^[a-zA-Z0-9.-]+$/.test(main))throw Error('Main DSH access hostname missing');
+ details=`Open [DSH](https://${main}) and choose your working environment. Administrators use [Admin overview](https://${main}/admin); the authenticated [web terminal](https://${main}/terminal) opens inside your private environment.`;
+}
+source=source.replace('DEPLOYMENT_SUMMARY',summary).replace('PUBLIC_DEPLOYMENT_TABLE',table).replace('SITE_DEPLOYMENT_DETAILS',details);
+// The primary guide has the three risk-control diagrams; preserve the GPU appendix as a linked reference.
+let diagramSourceCount=0;let gpuDiagramSource=null;
+source=source.replace(/```mermaid\r?\n([\s\S]*?)```/g,(whole,code)=>{
+  diagramSourceCount++;
+  if(diagramSourceCount===4){gpuDiagramSource=code;return '[Retained GPU inference topology and diagram exports](GPU_INFERENCE_TOPOLOGY_REFERENCE.html)';}
+  return whole;
+});
+if(diagramSourceCount!==4 || gpuDiagramSource===null)throw Error('Expected three risk diagrams and one retained GPU appendix');
+let append=marked.parse(source);
+let idx=0;
+const renderDiagrams=input=>input.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,(_,code)=>`<section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture ${++idx}</span><div class="mermaid-toolbar"><button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button><button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button><button onclick="panZoomMermaid(this,'reset')">Reset</button><button onclick="panZoomMermaid(this,'fullscreen')">Fullscreen</button><button onclick="exportMermaid(this,'svg')">Save SVG</button><button onclick="exportMermaid(this,'png')">Save PNG</button><button onclick="exportMermaid(this,'copy')">Copy code</button></div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="${code.replaceAll('"','&quot;')}">${code}</div></div></section>`);
+append=renderDiagrams(append);
+append=append.replace(/<img src="(images\/platform\/[^"\s]+)" alt="([^"]*)">/g,(_,name,alt)=>{
+ const p=path.resolve(root,'docs',name);if(!p.startsWith(path.join(root,'docs/images/platform')+path.sep)||!fs.existsSync(p))throw Error('Missing or unscoped screenshot '+name);
+ return `<img src="data:image/png;base64,${fs.readFileSync(p).toString('base64')}" alt="${alt}" data-source="${esc(name)}">`;
+});
+let shell=fs.readFileSync(path.join(root,'scripts/platform_guide_render_shell.html'),'utf8');
+
+const h1='<p class="meta">Enterprise AI Platform</p><h1>DeepSeek Harness (DSH)</h1><p>Enterprise Agentic Coding &amp; Knowledge Gateway</p>';
+const intro=`<p>This platform reference explains DSH’s security controls, features and architecture, followed by LLM/GPU setup instructions. For task-by-task instructions and the guided tour, open the <a href="DSH_USER_MANUAL.html">User manual</a>.</p>`;
+let content=append;let count=0;const toc=[];
+content=content.replace(/<h2(?:\s[^>]*)?>([\s\S]*?)<\/h2>/g,(_,title)=>{const id='guide-section-'+(++count);toc.push(`<a href="#${id}">${title}</a>`);return `<h2 id="${id}">${title}</h2>`;});
+const head=shell.slice(0,shell.indexOf('<body>')).replace(/<title>.*?<\/title>/,'<title>DSH Platform Guide — Features, Deployments, Usage and LLM/GPU Setup</title>').replace('</style>',`img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} </style>`);
+const scripts=shell.slice(shell.indexOf('</main>')+7);
+fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,(head+'<body><main>'+h1+intro+`<nav aria-label="Contents">${toc.join('')}</nav>`+content+'</main>'+scripts).replace(/\r\n/g,'\n'));
+const primaryDiagramCount=idx;
+if(primaryDiagramCount!==3)throw Error('Primary guide requires the three risk-control diagrams');
+const gpuBody=renderDiagrams(marked.parse('```mermaid\n'+gpuDiagramSource+'```'));
+const gpuTitle='<h1>Retained GPU inference topology</h1><p>This appendix preserves the diagram source from the earlier platform guide. It is historical reference material; current GPU deployment, endpoint, model and capacity acceptance belongs to the separate GPU documentation library.</p><p><a href="DSH_PLATFORM_GUIDE.html">Return to the platform guide and its three risk controls</a></p>';
+fs.writeFileSync(path.join(path.dirname(out),'GPU_INFERENCE_TOPOLOGY_REFERENCE.html'),head.replace('<title>DSH Platform Guide — Features, Deployments, Usage and LLM/GPU Setup</title>','<title>Retained GPU inference topology</title>')+'<body><main>'+gpuTitle+gpuBody+'</main>'+scripts);
+fs.writeFileSync(path.join(path.dirname(out),'GPU_INFERENCE_TOPOLOGY_REFERENCE.md'),'# Retained GPU inference topology\n\nHistorical reference; current GPU runtime acceptance is separate.\n\n```mermaid\n'+gpuDiagramSource+'```\n');
+console.log(JSON.stringify({output:out,sections:count,primaryDiagrams:primaryDiagramCount,retainedGPUReferenceDiagrams:1,embeddedScreenshots:(append.match(/data:image\/png/g)||[]).length,privateSiteEdition:Boolean(privatePath)}));

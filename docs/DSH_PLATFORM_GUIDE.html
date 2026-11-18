@@ -1,6 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DSH Platform Guide — Features, Deployments, Usage and LLM/GPU Setup</title><style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf2f7;color:#193047;font:16px/1.75 'Segoe UI','Leelawadee UI',Tahoma,sans-serif}main{max-width:1280px;margin:28px auto;background:#fff;padding:44px 50px;border-radius:14px}h1{font-size:32px;line-height:1.3;color:#075985}h2{font-size:24px;margin-top:48px;border-top:1px solid #d3e0eb;padding-top:20px;color:#075985}h3{margin-top:30px}a{color:#0369a1}nav{padding:18px 24px;background:#eff6ff;border-radius:10px;columns:2}nav a{display:block;margin:6px 0;break-inside:avoid}p,li{margin-bottom:12px}table{border-collapse:collapse;width:100%;font-size:14px;margin:22px 0}th,td{padding:12px;border:1px solid #cedce8;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#e6f1f8}tr:nth-child(even){background:#f8fafc}code{font:13px Consolas,monospace;overflow-wrap:anywhere;background:#edf2f7;padding:2px 4px}pre{padding:18px;background:#f1f5f9;overflow:auto;white-space:pre-wrap;font:13px/1.6 Consolas,monospace}details{border:1px solid #cddce8;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:600}.mermaid-wrapper{margin:24px 0;background:#0b0f19;border:1px solid #334155;border-radius:10px;overflow:hidden}.mermaid-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;background:#1e293b;color:#f8fafc}.mermaid-toolbar{display:flex;flex-wrap:wrap;gap:6px}.mermaid-toolbar button{border:1px solid #64748b;border-radius:5px;background:#0f172a;color:#e2e8f0;padding:7px 10px;cursor:pointer}.mermaid-toolbar button:hover{background:#334155}.mermaid-container{padding:18px;height:590px;overflow:hidden;position:relative}.mermaid-container .mermaid{width:100%;height:100%}.mermaid-container svg{width:100%;height:100%;max-width:none!important}.mermaid-wrapper:fullscreen{width:100vw;height:100vh;border-radius:0}.mermaid-wrapper:fullscreen .mermaid-container{height:calc(100vh - 80px)}.status{background:#fff7df;border-left:5px solid #d69e2e;padding:14px 20px}.meta{color:#52687a;font-size:13px}@media(max-width:760px){main{margin:0;padding:24px 16px}nav{columns:1}table{font-size:12px}th,td{padding:7px}.mermaid-container{height:480px}}@media print{main{margin:0;padding:0}body{background:#fff}nav,.mermaid-toolbar{display:none}h2{break-after:avoid}tr,.mermaid-wrapper{break-inside:avoid}.mermaid-container{height:480px}details>pre{display:block}}
-img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} </style><style id="dsh-documentation-nav-style">.documentation-navigation{display:flex!important;flex-wrap:wrap;gap:8px 24px;padding:12px 16px!important;margin:0 0 22px!important;line-height:1.6;background:#eef5fb;border-radius:8px}.documentation-navigation a{flex:0 1 auto}</style></head><style>.documentation-navigation{display:flex!important;flex-wrap:wrap;gap:8px 24px;align-items:center;padding:12px 16px!important;margin:0 0 22px!important;line-height:1.6;background:#eef5fb;border-radius:8px}.documentation-navigation a{white-space:normal;flex:0 1 auto}main{overflow-wrap:anywhere}table{display:block;max-width:100%;overflow-x:auto}pre{max-width:100%;overflow:auto}.contents a{display:block;margin:6px 0}h2,h3{scroll-margin-top:20px}</style><body><main><p class="meta">Enterprise AI Platform</p><h1>DeepSeek Harness (DSH)</h1><section id="current-attached-references"><h2>Current reference basis and evidence limits</h2><p>Start with the two attached references and safety-control synthesis, the control model and the source-row crosswalk. The three risk objectives are leakage prevention, damage prevention and result containment; control layers and implementation evidence remain distinct.</p><p>The current workbook SHA-256 is <code>11b8a83854d1841cf4dff77da149ac830f36394460743445f20ccf17b8cbc693</code>. Its 62 source rows include 35 AI-draft control rows; blanks and draft status are preserved. Earlier 80-feature/ten-OWASP mappings remain historical mappings to their recorded source version, not acceptance evidence for this workbook or proof that all controls operate.</p><p>Authenticated original downloads: agent-safety HTML and tools-and-risks workbook. Native CLI/Web UI MCP, OpenShell, A2A, isolated credential service and separate-agent runtime acceptance require their own current test evidence.</p></section><p class="terminology"><a href="HARNESS_TERMINOLOGY.html">Terminology: agent, harness and shared platform</a>. The three comparisons are agent integration routes; an SDK interface, a harness product and a harness framework are different abstractions. Component names and evidence states remain explicit.</p><p>Enterprise Agentic Coding &amp; Knowledge Gateway</p><p>This platform reference explains DSH’s security controls, features and architecture, followed by LLM/GPU setup instructions. For task-by-task instructions and the guided tour, open the <a href="DSH_USER_MANUAL.html">User manual</a>.</p><nav aria-label="Contents"><a href="#guide-section-1">1 Prevent external leakage</a><a href="#guide-section-2">2 Prevent damage or excessive access</a><a href="#guide-section-3">3 Keep results contained</a><a href="#guide-section-4">How the three controls relate to OWASP Agentic Top 10 (2026)</a><a href="#guide-section-5">Responsibilities on connected systems</a><a href="#guide-section-6">Appendix A — Features, use and administration</a><a href="#guide-section-7">Appendix B — LLM/GPU setup and measured results</a></nav><p><a href="DSH_CURRENT_GUIDE.html">Current DSH guide and PowerPoint</a></p>
+img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} </style><style id="dsh-documentation-nav-style">.documentation-navigation{display:flex!important;flex-wrap:wrap;gap:8px 24px;padding:12px 16px!important;margin:0 0 22px!important;line-height:1.6;background:#eef5fb;border-radius:8px}.documentation-navigation a{flex:0 1 auto}</style></head><style>.documentation-navigation{display:flex!important;flex-wrap:wrap;gap:8px 24px;align-items:center;padding:12px 16px!important;margin:0 0 22px!important;line-height:1.6;background:#eef5fb;border-radius:8px}.documentation-navigation a{white-space:normal;flex:0 1 auto}main{overflow-wrap:anywhere}table{display:block;max-width:100%;overflow-x:auto}pre{max-width:100%;overflow:auto}.contents a{display:block;margin:6px 0}h2,h3{scroll-margin-top:20px}</style><body><main><p class="meta">Enterprise AI Platform</p><h1>DeepSeek Harness (DSH)</h1><p>Enterprise Agentic Coding &amp; Knowledge Gateway</p><p>This platform reference explains DSH’s security controls, features and architecture, followed by LLM/GPU setup instructions. For task-by-task instructions and the guided tour, open the <a href="DSH_USER_MANUAL.html">User manual</a>.</p><nav aria-label="Contents"><a href="#guide-section-1">1 Prevent external leakage</a><a href="#guide-section-2">2 Prevent damage or excessive access</a><a href="#guide-section-3">3 Keep results contained</a><a href="#guide-section-4">How the three controls relate to OWASP Agentic Top 10 (2026)</a><a href="#guide-section-5">Responsibilities on connected systems</a><a href="#guide-section-6">Agent runtimes, execution backends and shared inference</a><a href="#guide-section-7">Appendix A — Features, use and administration</a><a href="#guide-section-8">Appendix B — LLM/GPU setup and measured results</a><a href="#guide-section-9">Workspace inactivity and restart</a></nav><p><a href="HARNESS_TERMINOLOGY.html">Terminology: agent, harness and shared platform</a>. Compare agent integration routes while preserving SDK, harness and infrastructure distinctions.</p>
+<p><a href="DSH_CURRENT_GUIDE.html">Current DSH guide and PowerPoint</a></p>
 <p>DSH provides private AI workspaces for code, documents and analysis. Its design controls three risks: sending protected information outside its permitted boundary, damaging data or reaching resources beyond the task, and exposing results to unauthorized people.</p>
 <p>The Harness, its tools and generated code run within boundaries enforced by infrastructure, execution identities, storage permissions and authenticated routes. The model&#39;s instructions help describe the task; they do not replace these controls.</p>
 <p>| Risk | How DSH controls it | How to work within the boundary |</p>
@@ -313,7 +314,79 @@ flowchart TB
 <p>| Audit-service extensions | Current central access logging and dashboard oversight are included. Complete command/body capture, remote-job correlation and independently retained audit archives require additional collectors and an operating policy. |</p>
 <p>| Deliberately Internet-capable environments | Internet staging and the additional Internet instances retain their intended public connectivity. They are not protected No Internet environments and must not be used as an automatic bridge for protected content. |</p>
 <p>A task owner identifies permitted data, allowed operations, output recipients and review requirements before the work starts. Source permissions and output-sharing choices must match that task.</p>
-<h2 id="guide-section-6">Appendix A — Features, use and administration</h2>
+<h2 id="guide-section-6">Agent runtimes, execution backends and shared inference</h2>
+<p>This component map describes responsibilities and intended connections. It does not establish that every route, model or backend is deployed or qualified. Use the <a href="DSH_CURRENT_GUIDE.html">current guide</a> and <a href="FEATURE_CONTROL_TRACEABILITY.html">feature evidence</a> for the recorded scope and remaining tests.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Responsibility and connection</th>
+<th>Acceptance boundary</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DSH Python SDK</td>
+<td>Programmatic agent integration through the DSH task broker and route-specific approval/lifecycle controls.</td>
+<td>An SDK import or zero-start fixture is not a completed agent task.</td>
+</tr>
+<tr>
+<td>Claude Code</td>
+<td>A harness integration route running within the assigned execution boundary.</td>
+<td>Its permissions and tested image/route remain explicit.</td>
+</tr>
+<tr>
+<td>Deep Agents</td>
+<td>A harness framework integration route through the broker and approved tools.</td>
+<td>Framework availability does not establish three-agent banking completion.</td>
+</tr>
+<tr>
+<td>Kilo and TrueForge</td>
+<td>Managed alternative client integrations using the platform guide and their own adapter policy.</td>
+<td>Client installation does not qualify another route or a different image.</td>
+</tr>
+<tr>
+<td>Private workspace</td>
+<td>The DSH execution backend with its assigned identity, process limits and mounted input/output boundaries.</td>
+<td>Verify the actual Pod/container/mount profile; do not infer cross-user isolation from a UI label.</td>
+</tr>
+<tr>
+<td>OpenShell</td>
+<td>An alternative governed sandbox backend. Internal native CLI authentication has been observed; governed sandbox qualification remains pending.</td>
+<td>Cloud OpenShell is not operational; native CLI evidence does not qualify SDK, Web UI, MCP or DQ execution.</td>
+</tr>
+<tr>
+<td>litellm-gateway</td>
+<td>Shared model routing and request policy between agent integrations and approved inference services.</td>
+<td>A configured alias does not establish model availability, image input or a measured context limit.</td>
+</tr>
+<tr>
+<td>context-forwarder</td>
+<td>The context forwarding component on the applicable inference path.</td>
+<td>It does not expand the actual provider/model token or image limits.</td>
+</tr>
+<tr>
+<td>deepinfer-dspark and sglang-dspark</td>
+<td>Separate inference serving components with their own model, capacity and deployment ownership.</td>
+<td>Current running digests, endpoint contracts and performance belong to the GPU library&#39;s evidence.</td>
+</tr>
+</tbody></table>
+<p>The three risks govern these connections:</p>
+<table>
+<thead>
+<tr>
+<th>Prevent external leakage</th>
+<th>Prevent excessive access</th>
+<th>Keep results contained</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Restrict destinations and context to approved identities, tools and inference routes.</td>
+<td>Bind approvals, database entitlements, filesystem mounts and resource budgets to the task.</td>
+<td>Keep private inputs, generated artifacts and user history behind the intended access boundary.</td>
+</tr>
+</tbody></table>
+<p>The following three primary diagrams explain these risk controls. The separate <a href="GPU_INFERENCE_TOPOLOGY_REFERENCE.html">retained GPU inference topology</a> preserves the fourth appendix diagram without treating its historical configuration as current runtime acceptance.</p>
+<h2 id="guide-section-7">Appendix A — Features, use and administration</h2>
 <p>The main interface is the DSH web workspace. Claude Code, TrueForge and Kilo CLI are optional clients available inside its private execution environment; they do not replace the DSH web interface. One shared local model serves these clients without sharing their working files.</p>
 <p>| Capability | How it is used | Implemented boundary or limitation |</p>
 <p>|---|---|---|</p>
@@ -463,47 +536,16 @@ klist
 <h3>User and audit administration</h3>
 <p>Operators replenish qualified private runtime capacity. Users can self-register into an exclusive pair, and administrators manage accounts and Internet grants through the dashboard. See the signup and approval guide. Account changes require an authenticated administrator session and a session-bound management token; ordinary users and cross-origin requests cannot perform these actions. Passwords are stored as salted scrypt records. Disabling access preserves ownership, files and histories; removing workloads or data is a separate operator procedure.</p>
 <p>The access audit records bounded metadata such as time, event, user and environment. It is not a terminal-command recorder or an archive of all prompts/responses. Additional-instance access projections and main gateway events are combined under the admin boundary. Retention capacity, off-platform archival and remote-job correlation need the defined operational policy.</p>
-<h2 id="guide-section-7">Appendix B — LLM/GPU setup and measured results</h2>
+<h2 id="guide-section-8">Appendix B — LLM/GPU setup and measured results</h2>
 <p>Since 29 October 2026 the shared model, <strong>DeepSeek-V4.1-Flash-1017</strong> (revision <code>1bae0e1088993b9b82de08f59de5be5a34e42170</code>), is served by <strong>DeepInfer with DSpark</strong> speculative decoding on the existing four H100 NVL GPUs: a <strong>393,216-token (384K)</strong> context (1,048,576 until 13 November 2026) and up to <strong>sixteen</strong> requests at once (four per GPU; two per GPU before the November 2026 engine tuning), behind LiteLLM. SGLang is kept as the rollback engine. Private user runtimes share it while keeping their own files and state. Use the portable <code>gpu-stack</code> source and supply private site values outside Git.</p>
-<section class="mermaid-wrapper"><div class="mermaid-header"><span>Architecture 4</span><div class="mermaid-toolbar"><button onclick="panZoomMermaid(this,'zoomIn')" aria-label="Zoom in">+</button><button onclick="panZoomMermaid(this,'zoomOut')" aria-label="Zoom out">−</button><button onclick="panZoomMermaid(this,'reset')">Reset</button><button onclick="panZoomMermaid(this,'fullscreen')">Fullscreen</button><button onclick="exportMermaid(this,'svg')">Save SVG</button><button onclick="exportMermaid(this,'png')">Save PNG</button><button onclick="exportMermaid(this,'copy')">Copy code</button></div></div><div class="mermaid-container"><div class="mermaid" data-raw-code="
-flowchart LR
-
- U[Private DSH runtime] --&gt; L[Authenticated LiteLLM gateway]
-
- C[Managed Claude Code or TrueForge] --&gt; L
-
- L --&gt; F[Loopback final-payload guard]
-
- F --&gt; S[Shared DeepInfer model on four GPUs]
-
- L --&gt; D[Private PostgreSQL]
-
- W[Pre-staged read-only weights] --&gt; S
-
- L --&gt; O[Optional CPU embedding service]
-">
-flowchart LR
-
- U[Private DSH runtime] --&gt; L[Authenticated LiteLLM gateway]
-
- C[Managed Claude Code or TrueForge] --&gt; L
-
- L --&gt; F[Loopback final-payload guard]
-
- F --&gt; S[Shared DeepInfer model on four GPUs]
-
- L --&gt; D[Private PostgreSQL]
-
- W[Pre-staged read-only weights] --&gt; S
-
- L --&gt; O[Optional CPU embedding service]
-</div></div></section>
+<p><a href="GPU_INFERENCE_TOPOLOGY_REFERENCE.html">Retained GPU inference topology and diagram exports</a></p>
 <blockquote>
 <p><strong>Current speed (30 Oct 2026, one standard).</strong> DeepInfer 1M in production, decode rate D per user: 57.8 tok/s on a fixed 512-token essay (W1) and 62.1 on free text (W4) for one user; at 16 clients 384 (W1) and 421 (W4) tok/s in total. SGLang (rollback engine): 67.6 (W1) and 68.0 (W4) for one user, 126 and 145 in total at 16 clients. One user: on 30 Oct SGLang was about 9–17 % faster; same-day 31 Oct–1 Nov: about 7–9 % faster (61.8 vs 58.0 and 69.0 vs 63.1); many users: DeepInfer gives about 3× the total. Definitions, method and every result: LLM speed comparison. Newer capacity measurements (9 Nov 2026), with decode slots and concurrency: capacity report.</p>
 </blockquote>
 <p>The speed comparison gives every engine-to-engine result, including the SGLang baseline. The GPU node note records the measured cross-socket fault and the host change requested to fix it.</p>
-</main>
-<script>(function(BL,Z0){typeof exports=="object"&&typeof module<"u"?module.exports=Z0():typeof define=="function"&&define.amd?define(Z0):(BL=typeof globalThis<"u"?globalThis:BL||self,BL.mermaid=Z0())})(this,function(){var mVt,vVt;"use strict";function BL(i){for(var a=[],f=1;f<arguments.length;f++)a[f-1]=arguments[f];var g=Array.from(typeof i=="string"?[i]:i);g[g.length-1]=g[g.length-1].replace(/\r?\n([\t ]*)$/,"");var w=g.reduce(function(E,S){var _=S.match(/\n([\t ]+|(?!\s).)/g);return _?E.concat(_.map(function(M){var F,R;return(R=(F=M.match(/[\t ]/g))===null||F===void 0?void 0:F.length)!==null&&R!==void 0?R:0})):E},[]);if(w.length){var v=new RegExp(`
+<h2 id="guide-section-9">Workspace inactivity and restart</h2>
+<p>Workspaces stop automatically after inactivity (60 minutes by default, configurable by the administrator). Your files, settings and history are kept. Signing in starts your workspace again when capacity permits; a cold start can take about 30–60 seconds.</p>
+</main><script>(function(BL,Z0){typeof exports=="object"&&typeof module<"u"?module.exports=Z0():typeof define=="function"&&define.amd?define(Z0):(BL=typeof globalThis<"u"?globalThis:BL||self,BL.mermaid=Z0())})(this,function(){var mVt,vVt;"use strict";function BL(i){for(var a=[],f=1;f<arguments.length;f++)a[f-1]=arguments[f];var g=Array.from(typeof i=="string"?[i]:i);g[g.length-1]=g[g.length-1].replace(/\r?\n([\t ]*)$/,"");var w=g.reduce(function(E,S){var _=S.match(/\n([\t ]+|(?!\s).)/g);return _?E.concat(_.map(function(M){var F,R;return(R=(F=M.match(/[\t ]/g))===null||F===void 0?void 0:F.length)!==null&&R!==void 0?R:0})):E},[]);if(w.length){var v=new RegExp(`
 [	 ]{`+Math.min.apply(Math,w)+"}","g");g=g.map(function(E){return E.replace(v,`
 `)})}g[0]=g[0].replace(/^\r?\n/,"");var b=g[0];return a.forEach(function(E,S){var _=b.match(/(?:^|\n)( *)$/),M=_?_[1]:"",F=E;typeof E=="string"&&E.includes(`
 `)&&(F=String(E).split(`
@@ -2508,4 +2550,4 @@ Expecting `+Xt.join(", ")+", got '"+(this.terminals_[Mt]||Mt)+"'":_e="Parse erro
 window.__reportReady=false;window.__reportErrors=[];
 mermaid.initialize({startOnLoad:false,theme:'dark',securityLevel:'strict',flowchart:{htmlLabels:false},themeVariables:{background:'#0b0f19',mainBkg:'#1e293b',primaryColor:'#1e40af',primaryTextColor:'#f8fafc',lineColor:'#94a3b8'}});
 (async()=>{try{await mermaid.run({querySelector:'.mermaid'});initMermaidPanZoom();window.__reportReady=true;}catch(error){window.__reportErrors.push(error.message);console.error(error);}})();
-</script><section id="workspace-auto-stop"><h2>Workspace inactivity and restart</h2><p>Workspaces stop automatically after inactivity (60 minutes by default, configurable by the administrator). Your files, settings and history are kept. Signing in starts your workspace again when capacity permits; a cold start can take about 30–60 seconds.</p></section></body></html>
+</script></body></html>
