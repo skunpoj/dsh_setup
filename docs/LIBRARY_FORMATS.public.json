@@ -48,7 +48,7 @@
       "bytes": 537984,
       "owner_library": "GPU / DeepInfer-DSpark (legacy DSH copy)",
       "edition_alignment": "Current-state revision and visual verification pending",
-      "delivery_url": "https://dsh.example.invalid/manual/gpu-platform/GPU_PLATFORM_REVIEW.pdf",
+      "delivery_url": null,
       "delivery_body_matches_source": true,
       "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
       "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending",
@@ -80,7 +80,7 @@
       "prior_edition_delivery": {
         "sha256": "854488769b92ca1eb9553a2d4a646ebcbc2268e937cd2904f5f2d6f4a5a6991a",
         "bytes": 28384,
-        "delivery_url": "https://dsh.example.invalid/manual/presentations/APP_LOGIN_MAIN_TEST_EN.pptx",
+        "delivery_url": null,
         "delivery_body_matches_source": true,
         "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
         "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending"
@@ -200,7 +200,7 @@
       "bytes": 1073666,
       "owner_library": "DSH / MultiHarness",
       "edition_alignment": "Current-state revision and visual verification pending",
-      "delivery_url": "https://dsh.example.invalid/manual/presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pdf",
+      "delivery_url": null,
       "delivery_body_matches_source": true,
       "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
       "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending",
@@ -219,7 +219,7 @@
       "bytes": 815791,
       "owner_library": "DSH / MultiHarness",
       "edition_alignment": "Current-state revision and visual verification pending",
-      "delivery_url": "https://dsh.example.invalid/manual/presentations/guarding-the-value-stream/Guarding_the_Value_Stream.pptx",
+      "delivery_url": null,
       "delivery_body_matches_source": true,
       "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
       "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending",
@@ -238,7 +238,7 @@
       "bytes": 53347,
       "owner_library": "DSH / MultiHarness",
       "edition_alignment": "Current-state revision and visual verification pending",
-      "delivery_url": "https://dsh.example.invalid/manual/presentations/guarding-the-value-stream/Guarding_the_Value_Stream_Story.pdf",
+      "delivery_url": null,
       "delivery_body_matches_source": true,
       "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
       "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending",
@@ -257,7 +257,7 @@
       "bytes": 908106,
       "owner_library": "DSH / MultiHarness",
       "edition_alignment": "Current-state revision and visual verification pending",
-      "delivery_url": "https://dsh.example.invalid/manual/presentations/trust-is-an-architecture/Trust_Is_an_Architecture.pptx",
+      "delivery_url": null,
       "delivery_body_matches_source": true,
       "delivery_observed_utc": "2026-11-11T06:05:37.544543+00:00",
       "delivery_state": "Exact existing source edition served at the DSH project host; current-state revision pending",
@@ -268,5 +268,6 @@
         "Component/deployment terminology and exact evidence scope"
       ]
     }
-  ]
+  ],
+  "delivery_scope": "Exact delivery receipts refer to the project-owned DSH host. This public source mirror does not publish those binary editions or assert runtime acceptance."
 }
