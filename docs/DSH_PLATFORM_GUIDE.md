@@ -1,5 +1,7 @@
 # DSH — Controlling Three Security Risks
 
+<section id="current-attached-references"><h2>Current reference basis and evidence limits</h2><p>Start with the two attached references and safety-control synthesis, the control model and the source-row crosswalk. The three risk objectives are leakage prevention, damage prevention and result containment; control layers and implementation evidence remain distinct.</p><p>The current workbook SHA-256 is <code>11b8a83854d1841cf4dff77da149ac830f36394460743445f20ccf17b8cbc693</code>. Its 62 source rows include 35 AI-draft control rows; blanks and draft status are preserved. Earlier 80-feature/ten-OWASP mappings remain historical mappings to their recorded source version, not acceptance evidence for this workbook or proof that all controls operate.</p><p>Authenticated original downloads: agent-safety HTML and tools-and-risks workbook. Native CLI/Web UI MCP, OpenShell, A2A, isolated credential service and separate-agent runtime acceptance require their own current test evidence.</p></section>
+
 [Terminology: agent, harness and shared platform](HARNESS_TERMINOLOGY.html). Compare agent integration routes while preserving SDK, harness and infrastructure distinctions.
 
 

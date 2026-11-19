@@ -1,0 +1,239 @@
+{
+  "observedAtUTC": "2026-10-17T09:28:22.131490+00:00",
+  "namespaceScope": "DSH and inference namespace; optional embedding workload separately identified",
+  "mainRuntimes": 20,
+  "noInternetRuntimes": 10,
+  "internetRuntimes": 10,
+  "legacyRuntimes": 2,
+  "deploymentsInMainNamespace": 35,
+  "activeDeployments": 29,
+  "scaledToZeroDeployments": 6,
+  "workloads": [
+    {
+      "workload": "dsh",
+      "desired": 0,
+      "ready": 0,
+      "state": "Scaled to zero"
+    },
+    {
+      "workload": "dsh-environment-gateway",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "dsh-internal-dns",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "dsh-internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "dsh-secure",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 01 / Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 01 / No Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 02 / Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 02 / No Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 03 / Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 03 / No Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 04 / Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 04 / No Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 05 / Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 05 / No Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 06 / Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 06 / No Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 07 / Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 07 / No Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 08 / Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 08 / No Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 09 / Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "Private identity 09 / No Internet",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "dsh-user2",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "dsh3",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "litellm",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "litellm-postgres",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "llm-docs-server",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "llm-workload-switcher",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "sglang-glm-5-3-flash-tp4",
+      "desired": 0,
+      "ready": 0,
+      "state": "Scaled to zero"
+    },
+    {
+      "workload": "vllm-deepseek-v4-1-flash",
+      "desired": 1,
+      "ready": 1,
+      "state": "Ready at observation"
+    },
+    {
+      "workload": "vllm-deepseek-v4-flash",
+      "desired": 0,
+      "ready": 0,
+      "state": "Scaled to zero"
+    },
+    {
+      "workload": "vllm-glm-5-3-flash-tp4",
+      "desired": 0,
+      "ready": 0,
+      "state": "Scaled to zero"
+    },
+    {
+      "workload": "vllm-qwen3-8-27b",
+      "desired": 0,
+      "ready": 0,
+      "state": "Scaled to zero"
+    },
+    {
+      "workload": "vllm-qwen3-8-flash-next",
+      "desired": 0,
+      "ready": 0,
+      "state": "Scaled to zero"
+    }
+  ],
+  "embedding": {
+    "deployment": "Ollama CPU embedding service",
+    "desired": 1,
+    "ready": 1,
+    "gpuRequested": false,
+    "loadedModelReadbackCount": 0,
+    "inferenceRetested": false
+  },
+  "installedPackages": {
+    "@deepseek-ai/dsh": "0.2.0-rc.2",
+    "@anthropic-ai/claude-code": "2.1.301",
+    "@truefoundry/trueforge": "0.179.2"
+  },
+  "identitiesAnonymized": true,
+  "secretsIncluded": false,
+  "readinessIsNotFunctionalAcceptance": true
+}

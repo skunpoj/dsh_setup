@@ -12,6 +12,8 @@ import contextlib
 from datetime import datetime, timezone
 import hashlib
 import http.client
+import io
+import select
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
@@ -244,6 +246,67 @@ class AdmissionLedger:
                                       "utc": datetime.now(timezone.utc).isoformat()})
 
 
+class FenceAwareSocketReader(io.RawIOBase):
+    """Single-reader upstream socket; polls the original local fence only."""
+    def __init__(self, sock, cancelled):
+        super().__init__()
+        self.sock = sock.dup()
+        self.cancelled = cancelled
+        self.read_timeout = sock.gettimeout()
+
+    def readable(self):
+        return True
+
+    def readinto(self, buffer):
+        if self.closed:
+            raise ValueError('UPSTREAM_READER_CLOSED')
+        if not len(buffer):
+            return 0
+        deadline = None if self.read_timeout is None else time.monotonic() + self.read_timeout
+        while True:
+            if self.cancelled():
+                raise ConnectionAbortedError('ORIGINAL_GUARD_FENCED_DURING_READ')
+            wait = 0.1 if deadline is None else min(0.1, max(0, deadline - time.monotonic()))
+            if deadline is not None and wait <= 0:
+                raise socket.timeout('ORIGINAL_UPSTREAM_READ_TIMEOUT')
+            ready, _, _ = select.select([self.sock], [], [], wait)
+            if self.cancelled():
+                raise ConnectionAbortedError('ORIGINAL_GUARD_FENCED_DURING_READ')
+            if ready:
+                return self.sock.recv_into(buffer)
+
+    def close(self):
+        try:
+            if not self.closed:
+                self.sock.close()
+        finally:
+            super().close()
+
+
+def fence_aware_response_class(server):
+    class FenceAwareResponse(http.client.HTTPResponse):
+        def _read_and_discard_trailer(self):
+            # EOF is not the final blank trailer line. Keep cancellation active
+            # through trailer reads and refuse an unterminated chunked message.
+            while True:
+                line = self.fp.readline(http.client._MAXLINE + 1)
+                if len(line) > http.client._MAXLINE:
+                    raise http.client.LineTooLong('trailer line')
+                if line == b'\r\n':
+                    return
+                if not line.endswith(b'\r\n'):
+                    raise http.client.IncompleteRead(b'')
+
+        def __init__(self, sock, *args, **kwargs):
+            super().__init__(sock, *args, **kwargs)
+            # Replace the as-yet unread makefile, not any parsed response bytes.
+            # Own the socket until response.close even for HTTP/1.0 will-close.
+            reader = FenceAwareSocketReader(sock, lambda: server.fencing)
+            self.fp.close()
+            self.fp = io.BufferedReader(reader)
+    return FenceAwareResponse
+
+
 class GuardedServer(ThreadingHTTPServer):
     daemon_threads = True
     request_queue_size = 64
@@ -408,9 +471,11 @@ class GuardedHandler(BaseHTTPRequestHandler):
             task_id=self.server.ledger.task_id,task_correlation_id=self.server.ledger.task_correlation_id)
         headers["content-length"] = str(len(body))
         connection = http.client.HTTPConnection(self.server.upstream.hostname, self.server.upstream.port, timeout=5)
+        connection.response_class = fence_aware_response_class(self.server)
         status = 502
         outcome = "transport-failed"
         response_started = False
+        response = None
         upstream_identity = {}
         try:
             self.server.begin_upstream(connection,self,target,body,headers)
@@ -423,8 +488,10 @@ class GuardedHandler(BaseHTTPRequestHandler):
                     self.send_header(key, value)
             self.end_headers()
             response_started = True
-            while chunk := response.read(64 * 1024):
+            while chunk := response.read1(64 * 1024):
                 self.wfile.write(chunk); self.wfile.flush()
+            if response.length is not None and response.length > 0:
+                raise http.client.IncompleteRead(b'', response.length)
             outcome = "response-complete"
         except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
             outcome = "caller-cancelled-or-disconnected"
@@ -434,15 +501,23 @@ class GuardedHandler(BaseHTTPRequestHandler):
                 try: self._reject("upstream-transport-failed", 502)
                 except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError): pass
         finally:
-            connection.close()
+            # A will-close response owns a detached socket. Close that response
+            # explicitly before removing the active entry or reporting drain.
+            # Cleanup failure must not skip original completion finalization.
             error=None
+            for transport in (response, connection):
+                if transport is not None:
+                    try:transport.close()
+                    except BaseException as exc:
+                        error=exc
+                        outcome='transport-failed'
             try:
                 self.server.ledger.complete(sequence, mark, operation_id, status, outcome,
                                             upstream_identity=upstream_identity)
             except BaseException as exc:
                 error=exc
-                raise
             finally:self.server.end_upstream(self,error)
+            if error is not None:raise error
 
 
 @contextlib.contextmanager

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Launch only the installed managed coding agent; never invoke a subscription login."""
-import os,re,sys,time
+import hashlib,os,re,stat,sys,time
 from pathlib import Path
 def arguments(argv):
  if len(argv)>3: raise ValueError('Use deepagents, --help, --version, or -n TASK')
@@ -43,6 +43,25 @@ def shell_allow_list(parent,cwd,now=None,allowance_file=None):
   expires=grant.get('expiresAt')
   if grant['runtime']=='deepagents' and grant['project']==cwd.name and (expires is None or moment<=expires): return BANKING_SHELL
  return None
+# Install these reviewed files in root-owned, non-writable image directories.
+_MANAGED_MCP = Path('/opt/dsh/config/managed-mcp.json')
+_MANAGED_MCP_BRIDGE = Path('/opt/dsh/container/dsh-mcp-broker-stdio.py')
+_MANAGED_MCP_PINS = (
+ (_MANAGED_MCP, 'b86499b7b3c39d82ff2037a8dc9b24b97763a7d162528cecd9e13f803073a1d4'),
+ (_MANAGED_MCP_BRIDGE, '67c9f3bcf31127bc6493435aa4d620a0997844cf70979b05e2363f36d29dc4dc'),
+)
+
+def managed_mcp_arguments(args):
+ if args in (['--help'], ['--version']):
+  return args
+ for path, expected in _MANAGED_MCP_PINS:
+  info = path.lstat()
+  if not stat.S_ISREG(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022 or info.st_size > 65536:
+   raise ValueError('Managed MCP files must be operator owned and read-only to the workspace')
+  if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+   raise ValueError('Managed MCP file digest mismatch')
+ return ['--mcp-config', _MANAGED_MCP.as_posix(), *args]
+
 def main():
  args=arguments(sys.argv[1:]);cwd=Path.cwd().resolve()
  if not cwd.is_relative_to(Path('/workspace').resolve()): raise ValueError('Start from your project under /workspace')
@@ -51,7 +70,7 @@ def main():
  shell=shell_allow_list(os.environ,cwd) if args[:1]==['-n'] else None
  if shell: args=['-S',shell,*args]
  exe='/opt/dsh/deepagents/bin/python'
- os.execve(exe,[exe,'-I','-m','deepagents_code',*args],environment(os.environ))
+ os.execve(exe,[exe,'-I','-m','deepagents_code',*managed_mcp_arguments(args)],environment(os.environ))
 if __name__=='__main__':
  try:main()
  except (ValueError,OSError):

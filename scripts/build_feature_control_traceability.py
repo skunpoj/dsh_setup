@@ -1,10 +1,14 @@
-import sys
-from pathlib import Path
-sys.path.insert(0,str(Path(__file__).resolve().parent))
-from documentation_requirements import public_projection_html, public_projection_markdown
 """Render public feature crosswalk/evidence; never read private workbook or register payloads."""
 import argparse,html,json,hashlib,re,datetime
 from pathlib import Path
+import sys,re
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from documentation_requirements import public_projection_html,public_projection_markdown
+
+def plain_public_html(text,source):
+ text=public_projection_html(text,source)
+ return re.sub(r'<span class="public-reference-unavailable" title="Not included in this public source projection">([\s\S]*?)</span>',r'\1',text)
+
 ROOT=Path(__file__).resolve().parents[1]
 esc=lambda v:html.escape(str(v if v is not None else 'Not recorded'),quote=True)
 def validate(features,data):
@@ -36,14 +40,14 @@ def validate(features,data):
    if not any(groups[key].get('stage')=='live-verified' and groups[key].get('result')=='PASS' and row['feature_id'] in groups[key]['feature_ids'] for key in row['evidence_ids']):raise ValueError('Live row needs feature-scoped live evidence')
  # Metadata consistency is not a substitute for reading actual runtime receipts.
  return True
-def render(features,data):
+def _render_source(features,data):
  validate(features,data)
  live_count=sum(r.get('live_acceptance_state')=='live-verified' for r in data['rows'])
  live_summary='No row currently has established live acceptance.' if not live_count else f'Recorded live-acceptance metadata: {live_count} row(s). Inspect linked receipts; schema validation does not establish runtime behavior.'
  groups={g['id']:g for g in data['evidence_groups']};mapped={r['feature_id']:r for r in data['rows']};parts=[]
  parts.append('<p><a href="FEATURE_OWASP_REVIEW.html">12 Nov row-by-row classification review</a> links all80 stable feature dimensions to both governing references and the three risk controls. Documentary review leaves original draft tags, roadmap items and recorded operational evidence unchanged.</p>')
  parts.append('<p>OWASP ASI01–ASI10 is the primary grouping; the three risk controls are the secondary crosswalk. All80 original rows remain:76 controls/roadmap items and4 cross-cutting evidence obligations. Primary category, layer, risk, C/I/A and control-family tags remain draft-inferred. The existing asi_all mapping is retained; no OWASP certification or all-feature operational PASS is claimed.</p>')
- parts.append('<h2>Governing references and historical supporting vocabulary</h2><p>The governing references are the original architecture PPTX (27cd3a8a…) and private risk workbook (214e604a…). Read the canonical architecture and three-control pages. All four worksheet roles were inspected; exact private tool-row-to-feature identity remains unreviewed.</p><p><a href="AGENT_SAFETY_LAYERS.html">DQ safety design</a> supplies the Guardrails, Verification and Sandbox vocabulary. It is a DQ worked example, not proof its specific SQL/database controls apply to every DSH agent. The companion private assessment supplies control-family vocabulary. Its retained35-row draft subset is historical comparison evidence. This revision additionally reviewed the roles and governing headers of all four worksheets; a complete private tool-to-feature semantic mapping is not claimed. No exact35-to80 feature/tool identity is inferred. The workbook, private rows and payloads are not served or mirrored.</p><p><a href="THREE_RISK_CONTROLS.html">Three risk controls</a>: '+esc(' · '.join(data['three_risk_controls'].values()))+'. <a href="security-data/feature-reference-evidence.public.json">Public mapping and evidence metadata</a>.</p>')
+ parts.append('<h2>Current references and historical mapping basis</h2><p>Current governing references are the safety-design HTML and private tool-and-risk workbook identified in the current library state. The original architecture PPTX (27cd3a8a…) and earlier private risk workbook (214e604a…) remain the historical basis of this retained mapping; their presence here does not establish current-reference applicability. Read <a href="LIBRARY_CURRENT_STATE.html">current reference and qualification status</a>, the canonical architecture and three-control pages. All four worksheet roles were inspected; exact private tool-row-to-feature identity remains unreviewed.</p><p><a href="AGENT_SAFETY_LAYERS.html">DQ safety design</a> supplies the Guardrails, Verification and Sandbox vocabulary. It is a DQ worked example, not proof its specific SQL/database controls apply to every DSH agent. The companion private assessment supplies control-family vocabulary. Its retained35-row draft subset is historical comparison evidence. This revision additionally reviewed the roles and governing headers of all four worksheets; a complete private tool-to-feature semantic mapping is not claimed. No exact35-to80 feature/tool identity is inferred. Historical mapping metadata contains no workbook payload. Current protected originals and private applicability proposals belong to the authenticated library; they are excluded from the public mirror.</p><p><a href="THREE_RISK_CONTROLS.html">Three risk controls</a>: '+esc(' · '.join(data['three_risk_controls'].values()))+'. <a href="security-data/feature-reference-evidence.public.json">Public mapping and evidence metadata</a>.</p>')
  parts.append('<p>State meanings: source-tested means only the recorded local aspect passed; deployed needs an exact application digest/environment binding; live-verified needs affected positive and negative behavior. Failed describes its recorded test context. Untested, unverified, blocked and missing ownership remain explicit. '+esc(live_summary)+' Topic source/test filenames are not executed tests.</p>')
  for category in list(sorted(data['owasp_categories']))+['ALL']:
   fs=[f for f in features['features'] if f['asi_primary']==category]
@@ -65,11 +69,16 @@ def render(features,data):
   parts.append('</dl>')
   if g.get('display_log'):parts.append('<details><summary>Recorded local unit log; display line endings normalized</summary><pre>'+esc(g['display_log'])+'</pre></details>')
   parts.append('</section>')
+ current=json.loads((ROOT/'docs/LIBRARY_CURRENT_STATE.public.json').read_text(encoding='utf-8'))
+ parts.insert(0,'<section id="current-openshell-qualification"><h2>Current OpenShell qualification</h2><p>'+html.escape(current['openshell_scope'])+'</p><p><a href="OPENSHELL_STATUS_AND_USAGE.html#current-openshell-evidence">Retained OpenShell qualification evidence and limits</a>. Feature IDs, mappings and acceptance ledger below remain unchanged.</p></section>')
  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>80-feature control traceability</title><style>body{font:16px/1.5 system-ui;color:#173047;margin:24px}main{max-width:1600px;margin:auto}.table{overflow:auto}table{border-collapse:collapse;width:100%;min-width:1000px}td,th{padding:12px;border:1px solid #bbc8d5;text-align:left;vertical-align:top;overflow-wrap:anywhere}code,dd,pre{overflow-wrap:anywhere}pre{white-space:pre-wrap}dd{margin:0 0 12px}section{border-top:1px solid #bbc8d5}</style></head><body><main><nav><a href="index.html">Library</a> · <a href="FEATURE_MATRIX_BY_OWASP.html">OWASP matrix</a> · <a href="THREE_RISK_CONTROLS.html">Three risk controls</a> · <a href="HARNESS_TERMINOLOGY.html">Agent and harness terminology</a></nav><h1>80-feature control traceability</h1>'+''.join(parts)+'</main></body></html>\n'
+def render(features,data):
+ return plain_public_html(_render_source(features,data),ROOT/'docs/FEATURE_CONTROL_TRACEABILITY.html')
+
 def main():
  p=argparse.ArgumentParser();p.add_argument('--check',action='store_true');a=p.parse_args();fp=ROOT/'docs/security-data/features.json';data=json.loads((ROOT/'docs/security-data/feature-reference-evidence.public.json').read_text(encoding='utf-8'))
  if hashlib.sha256(fp.read_bytes()).hexdigest()!=data['feature_source_sha256']:raise ValueError('Feature data changed; refresh source mapping explicitly')
- dest=ROOT/'docs/FEATURE_CONTROL_TRACEABILITY.html';result=public_projection_html(render(json.loads(fp.read_text(encoding='utf-8')),data),dest).encode()
+ result=render(json.loads(fp.read_text(encoding='utf-8')),data).encode();dest=ROOT/'docs/FEATURE_CONTROL_TRACEABILITY.html'
  if a.check:
   if dest.read_bytes()!=result:raise SystemExit('Traceability page is stale')
  else:dest.write_bytes(result)

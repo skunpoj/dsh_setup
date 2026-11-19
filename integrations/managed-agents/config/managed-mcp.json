@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "pc140032646": {
+      "command": "/opt/dsh/deepagents/bin/python",
+      "args": ["-I", "-B", "/opt/dsh/container/dsh-mcp-broker-stdio.py"],
+      "env": {"DSH_ENVIRONMENT": "${DSH_ENVIRONMENT}"},
+      "allowedTools": ["run_python", "download_file", "verify_base64"]
+    }
+  }
+}

@@ -1,5 +1,7 @@
 'use strict';
 const http=require('http'),crypto=require('crypto'),CONFIRM=require('./agent_task_confirm');
+// Private server-context selection; never enabled by HTTP fields.
+const BANKING_CONFIRMATIONS=new WeakMap();
 const HEADERS={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'};
 
 // Claude Code runs with --output-format stream-json, so each output line is a JSON event. Show the answer, not the JSON:
@@ -54,7 +56,21 @@ async function confirmProposal(req,res,ctx,id){
  if(current.status!==200||!current.json)return send(res,current.status===404?404:503,{error:current.status===404?'PROPOSAL_NOT_FOUND':'TASK_BROKER_UNAVAILABLE'});
  const made=CONFIRM.buildReceipt(current.json,ctx.user,shown);
  if(made.error)return send(res,made.status,{error:made.error});
- const answer=await brokerJson(ctx,'POST','/v1/tasks/'+id+'/confirm',made.receipt);
+ let answer;
+ const factory=BANKING_CONFIRMATIONS.get(ctx);
+ if(factory){
+  try{
+   const adapter=await factory({serverContext:ctx,originalBrokerConfirm:async q=>{
+    if(q.subject!==ctx.user||q.proposalId!==id||JSON.stringify(q.receipt)!==JSON.stringify(made.receipt))throw Error('EXISTING_CONFIRMATION_CHANGED');
+    const actual=await brokerJson(ctx,'POST','/v1/tasks/'+id+'/confirm',made.receipt);
+    return {status:actual.status,body:actual.json};
+   }});
+   if(!adapter||typeof adapter.confirm!=='function')throw Error();
+   const result=await adapter.confirm({serverContext:ctx,proposal:current.json,receipt:made.receipt});
+   if(result?.state!=='accepted'||result.proposalId!==id||!/^[a-f0-9]{32}$/.test(result.taskId))throw Error();
+   answer={status:202,json:{id,state:'approved',taskId:result.taskId}};
+  }catch{return send(res,503,{error:'BANKING_CONFIRMATION_UNKNOWN_NO_RETRY'});}
+ }else answer=await brokerJson(ctx,'POST','/v1/tasks/'+id+'/confirm',made.receipt);
  if(ctx.audit)ctx.audit(answer.status===202?'agent-task.confirmed':'agent-task.confirm-refused',{taskId:id,runtime:made.receipt.runtime,writes:made.receipt.writes,promptSha256:made.receipt.promptSha256,status:answer.status});
  return send(res,answer.status,answer.json||{error:'TASK_BROKER_UNAVAILABLE'});
 }
@@ -79,7 +95,7 @@ async function handle(req,res,ctx){
  if(['POST','DELETE'].includes(req.method)&&req.headers.origin!=='https://'+ctx.trustedHost){res.writeHead(403,{...HEADERS,'Content-Type':'application/json'});res.end(JSON.stringify({error:'SAME_ORIGIN_REQUIRED'}));return true;}
  const suffix=pathname.slice('/api/agent-tasks'.length);
  if(suffix==='/capabilities'&&req.method==='GET')ctx.upstreamPath='/v1/capabilities';
- else if(suffix===''&&req.method==='POST')ctx.upstreamPath='/v1/tasks';
+ else if(suffix===''&&req.method==='POST'){if(BANKING_CONFIRMATIONS.has(ctx))return send(res,403,{error:'BANKING_SIGNED_CONFIRMATION_REQUIRED'});ctx.upstreamPath='/v1/tasks';}
  else if(suffix==='/proposed'&&req.method==='GET'){
   const listed=await brokerJson(ctx,'GET','/v1/tasks?state=proposed');
   if(listed.status!==200||!listed.json)return send(res,503,{error:'TASK_BROKER_UNAVAILABLE'});
@@ -95,4 +111,11 @@ async function handle(req,res,ctx){
  let body=Buffer.alloc(0);try{if(req.method==='POST')body=await collect(req);}catch(error){res.writeHead(error.status||400,{...HEADERS,'Content-Type':'application/json'});res.end(JSON.stringify({error:error.message}));return true;}
  await proxy(req,res,ctx,body);return true;
 }
-module.exports={handle,page,renderTaskOutput};
+function createBankingGateway({confirmationFactory}){
+ if(typeof confirmationFactory!=='function')throw Error('BOUND_BANKING_CONFIRMATION_FACTORY_REQUIRED');
+ return Object.freeze({async handle(req,res,ctx){
+  const ownedContext={...ctx};BANKING_CONFIRMATIONS.set(ownedContext,confirmationFactory);
+  try{return await handle(req,res,ownedContext);}finally{BANKING_CONFIRMATIONS.delete(ownedContext);}
+ }});
+}
+module.exports={handle,page,renderTaskOutput,createBankingGateway};

@@ -1,0 +1,17 @@
+# Retained exact managed runtime; no dependency download or provider request.
+FROM registry.example.internal/dsh-runtime@sha256:cb830de5efc9bb51e1a9d38e490ac49a1302bdaba703e14ae753ac7f47ee6c59
+USER root
+COPY container/deepagents-managed.py /usr/local/bin/deepagents
+COPY container/dsh_deepagents_sdk.py /opt/dsh/deepagents/lib/python3.14/site-packages/dsh_deepagents_sdk.py
+COPY config/managed-mcp.json /opt/dsh/config/managed-mcp.json
+COPY container/dsh-mcp-broker-stdio.py /opt/dsh/container/dsh-mcp-broker-stdio.py
+RUN chown root:root /usr/local/bin/deepagents /opt/dsh/config/managed-mcp.json /opt/dsh/container/dsh-mcp-broker-stdio.py \
+ && chmod 0555 /usr/local/bin/deepagents /opt/dsh/container/dsh-mcp-broker-stdio.py \
+ && chmod 0444 /opt/dsh/config/managed-mcp.json \
+ && printf '%s  %s\n' '03b0758eaceebe1d04d093a616f2ced1e766d74263a5e5d68e0a19cd58b16590' '/usr/local/bin/deepagents' 'b86499b7b3c39d82ff2037a8dc9b24b97763a7d162528cecd9e13f803073a1d4' '/opt/dsh/config/managed-mcp.json' '67c9f3bcf31127bc6493435aa4d620a0997844cf70979b05e2363f36d29dc4dc' '/opt/dsh/container/dsh-mcp-broker-stdio.py' | sha256sum -c -
+RUN chown root:root /opt/dsh/deepagents/lib/python3.14/site-packages/dsh_deepagents_sdk.py && chmod 0444 /opt/dsh/deepagents/lib/python3.14/site-packages/dsh_deepagents_sdk.py && test -x /opt/dsh/deepagents/bin/python \
+ && /opt/dsh/deepagents/bin/python -I -B -c "import ast,pathlib; [ast.parse(pathlib.Path(p).read_text()) for p in ['/usr/local/bin/deepagents','/opt/dsh/container/dsh-mcp-broker-stdio.py','/opt/dsh/deepagents/lib/python3.14/site-packages/dsh_deepagents_sdk.py']]"
+# No model or broker operation: validate installed APIs and the fixed local bridge inventory under network-none.
+RUN install -d -m 0700 -o 10001 -g 10001 /workspace/__managed_mcp_build_fixture__
+USER 10001:10001
+RUN DSH_ENVIRONMENT=secure /opt/dsh/deepagents/bin/python -I -B -c "import asyncio,importlib.metadata,json; from dsh_deepagents_sdk import list_dsh_mcp_tools; assert importlib.metadata.version('deepagents-code')=='0.2.2'; print(json.dumps({'scope':'BUILD_LOCAL_STDIO_INVENTORY_NO_MODEL_NO_BROKER_OPERATION','tools':asyncio.run(list_dsh_mcp_tools('/workspace/__managed_mcp_build_fixture__'))}))"

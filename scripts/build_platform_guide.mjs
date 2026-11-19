@@ -8,11 +8,11 @@ const args=process.argv.slice(2);const option=name=>{const i=args.indexOf(name);
 const out=path.resolve(option('--output') || path.join(root,'docs/DSH_PLATFORM_GUIDE.html'));
 const privatePath=option('--private-inventory');
 if(privatePath&&out===path.join(root,'docs/DSH_PLATFORM_GUIDE.html'))throw Error('Private inventory must never overwrite the public portable guide');
-const snapshot=null; // No private inventory is loaded for the public portable guide.
+const snapshot=JSON.parse(fs.readFileSync(path.join(root,'docs/context-evidence/platform-deployment-inventory-20261017.json'),'utf8'));
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 let source=fs.readFileSync(path.join(root,'docs/DSH_PLATFORM_GUIDE.md'),'utf8').replace(/^# [^\r\n]*(?:\r?\n|$)/,'');
-const summary='Historical deployment counts are described in the dated source; current runtime state requires current evidence.';
-const table='Current deployment identities and readiness are not established by this portable guide.';
+const summary=`Inventory observed at **${snapshot.observedAtUTC}**: **${snapshot.deploymentsInMainNamespace} Deployments** in the DSH/inference namespace — **${snapshot.activeDeployments} active and ${snapshot.scaledToZeroDeployments} scaled to zero**. The active application layer includes **20 main runtimes (10 No Internet + 10 Internet)** and **2 additional owner-only runtimes**, plus shared supporting workloads. A separate CPU Ollama workload is also deployed.`;
+const table='| Workload / private runtime role | Desired | Ready | Observed state |\n|---|---:|---:|---|\n'+snapshot.workloads.map(x=>`| ${x.workload} | ${x.desired} | ${x.ready} | ${x.state} |`).join('\n');
 let details='Access examples: `https://dsh.example.com`, its `/admin`, `/terminal` and `/proxy/<approved-port>/` routes; separate `https://dsh2.example.com` and `https://dsh3.example.com` instances. These example domains are not live service addresses.';
 if(privatePath){
  const site=JSON.parse(fs.readFileSync(privatePath,'utf8'));
@@ -38,11 +38,14 @@ append=append.replace(/<img src="(images\/platform\/[^"\s]+)" alt="([^"]*)">/g,(
  return `<img src="data:image/png;base64,${fs.readFileSync(p).toString('base64')}" alt="${alt}" data-source="${esc(name)}">`;
 });
 let shell=fs.readFileSync(path.join(root,'scripts/platform_guide_render_shell.html'),'utf8');
+const mermaidSource=fs.readFileSync(path.join(root,'docs/assets/mermaid-10.8.0.min.js'),'utf8').replaceAll('\r\n','\n');
+if(shell.split('DSH_EMBED_EXISTING_MERMAID_10_8_0').length!==2)throw Error('Expected exactly one local Mermaid embedding marker');
+shell=shell.replace('DSH_EMBED_EXISTING_MERMAID_10_8_0',()=>mermaidSource);
 
 const h1='<p class="meta">Enterprise AI Platform</p><h1>DeepSeek Harness (DSH)</h1><p>Enterprise Agentic Coding &amp; Knowledge Gateway</p>';
 const intro=`<p>This platform reference explains DSH’s security controls, features and architecture, followed by LLM/GPU setup instructions. For task-by-task instructions and the guided tour, open the <a href="DSH_USER_MANUAL.html">User manual</a>.</p>`;
 let content=append;let count=0;const toc=[];
-content=content.replace(/<h2(?:\s[^>]*)?>([\s\S]*?)<\/h2>/g,(_,title)=>{const id='guide-section-'+(++count);toc.push(`<a href="#${id}">${title}</a>`);return `<h2 id="${id}">${title}</h2>`;});
+content=content.replace(/<h2(?:\s[^>]*)?>([\s\S]*?)<\/h2>/g,(_,title)=>{const ordinal=++count;const id=title==='Workspace inactivity and restart'?'workspace-auto-stop':title.startsWith('Appendix A')?'appendix-a':title.startsWith('Appendix B')?'appendix-b':'guide-section-'+ordinal;toc.push(`<a href="#${id}">${title}</a>`);return `<h2 id="${id}">${title}</h2>`;});
 const head=shell.slice(0,shell.indexOf('<body>')).replace(/<title>.*?<\/title>/,'<title>DSH Platform Guide — Features, Deployments, Usage and LLM/GPU Setup</title>').replace('</style>',`img{display:block;max-width:100%;height:auto;margin:20px auto;border:1px solid #cbd5e1;border-radius:10px} main>p:has(img){margin-top:24px}.meta{overflow-wrap:anywhere}table{table-layout:fixed}h2{scroll-margin-top:20px}@media print{img{max-height:220mm;object-fit:contain}.mermaid-wrapper{break-inside:avoid}} </style>`);
 const scripts=shell.slice(shell.indexOf('</main>')+7);
 fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,(head+'<body><main>'+h1+intro+`<nav aria-label="Contents">${toc.join('')}</nav>`+content+'</main>'+scripts).replace(/\r\n/g,'\n'));

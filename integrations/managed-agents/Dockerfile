@@ -36,6 +36,12 @@ COPY container/dsh-banking-tools.py /usr/local/bin/dsh-banking-python
 COPY container/dsh-banking-tools.py /usr/local/bin/dsh-banking-unzip
 COPY container/deepagents-managed.toml /etc/dcode/managed_config.toml
 COPY config/managed-agents.json /opt/dsh/config/managed-agents.json
+COPY config/managed-mcp.json /opt/dsh/config/managed-mcp.json
+COPY container/dsh-mcp-broker-stdio.py /opt/dsh/container/dsh-mcp-broker-stdio.py
+RUN chown root:root /usr/local/bin/deepagents /opt/dsh/config/managed-mcp.json /opt/dsh/container/dsh-mcp-broker-stdio.py \
+ && chmod 0555 /usr/local/bin/deepagents /opt/dsh/container/dsh-mcp-broker-stdio.py \
+ && chmod 0444 /opt/dsh/config/managed-mcp.json \
+ && printf '%s  %s\n' '03b0758eaceebe1d04d093a616f2ced1e766d74263a5e5d68e0a19cd58b16590' '/usr/local/bin/deepagents' 'b86499b7b3c39d82ff2037a8dc9b24b97763a7d162528cecd9e13f803073a1d4' '/opt/dsh/config/managed-mcp.json' '67c9f3bcf31127bc6493435aa4d620a0997844cf70979b05e2363f36d29dc4dc' '/opt/dsh/container/dsh-mcp-broker-stdio.py' | sha256sum -c -
 COPY scripts/managed_agent_policy.mjs scripts/render_managed_agent_profile.mjs scripts/enforce_single_model_profiles.mjs scripts/install_single_model_startup.py /opt/dsh/scripts/
 RUN node /opt/dsh/scripts/render_managed_agent_profile.mjs && node /opt/dsh/scripts/enforce_single_model_profiles.mjs /opt/dsh/seed/dsh-home && chown -R 10001:10001 /opt/dsh/seed/dsh-home && python3 /opt/dsh/scripts/install_single_model_startup.py && chmod 0755 /usr/local/bin/deepagents /usr/local/bin/dsh-cli /usr/local/bin/dsh-banking-python /usr/local/bin/dsh-banking-unzip && ln -s /usr/local/bin/dsh-cli /usr/local/bin/dsh-run && ln -s /usr/local/bin/dsh-cli /usr/local/bin/dsh-sdk && ln -s /usr/local/bin/deepagents /usr/local/bin/dcode && chown -R root:root /etc/dcode /opt/dsh/deepagents /opt/dsh/config/managed-agents.json && chmod -R a-w,a+rX /etc/dcode /opt/dsh/deepagents && chmod 0644 /opt/dsh/config/managed-agents.json
 RUN /opt/dsh/deepagents/bin/python -I -c 'from deepagents import create_deep_agent; from dsh_agent_model import DSHManagedChat; from dsh_deepagents_sdk import create_dsh_agent'

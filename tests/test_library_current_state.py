@@ -1,8 +1,6 @@
 import copy,importlib.util,json,re,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-import sys
-sys.path.insert(0,str(ROOT/'scripts'))
 spec=importlib.util.spec_from_file_location('current_state',ROOT/'scripts/build_library_current_state.py');current=importlib.util.module_from_spec(spec);spec.loader.exec_module(current)
 def load(path):return json.loads((ROOT/'docs'/path).read_text(encoding='utf-8'))
 class CurrentLibraryStateTests(unittest.TestCase):

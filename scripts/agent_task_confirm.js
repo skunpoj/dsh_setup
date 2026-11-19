@@ -61,7 +61,7 @@ function verify(receipt,publicKey){
 const SECRET_NAME='dsh-confirm-signing-key',SECRET_KEY='confirm-receipt-private.pem';
 function secretManifest(name=SECRET_NAME,namespace='llm'){
  const pem=crypto.generateKeyPairSync('ed25519').privateKey.export({type:'pkcs8',format:'pem'});
- return {apiVersion:'v1',kind:'Secret',metadata:{name,namespace,labels:{'app.kubernetes.io/managed-by':'dsh-orchestrator','dsh.example.com/purpose':'agent-task-confirmation'}},type:'Opaque',stringData:{[SECRET_KEY]:pem}};
+ return {apiVersion:'v1',kind:'Secret',metadata:{name,namespace,labels:{'app.kubernetes.io/managed-by':'dsh-orchestrator','dsh.example/purpose':'agent-task-confirmation'}},type:'Opaque',stringData:{[SECRET_KEY]:pem}};
 }
 // The PUBLIC half, derived from the key the gateway actually loaded: this is what is committed as config/confirm-receipt-public.pem.
 const publicPem=key=>crypto.createPublicKey(key).export({type:'spki',format:'pem'});

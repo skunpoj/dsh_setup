@@ -1,10 +1,14 @@
-import sys
-from pathlib import Path
-sys.path.insert(0,str(Path(__file__).resolve().parent))
-from documentation_requirements import public_projection_html, public_projection_markdown
 """Render the public eighty-feature documentary review; never open private inputs."""
 import argparse,collections,hashlib,html,json
 from pathlib import Path
+import sys,re
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from documentation_requirements import public_projection_html,public_projection_markdown
+
+def plain_public_html(text,source):
+ text=public_projection_html(text,source)
+ return re.sub(r'<span class="public-reference-unavailable" title="Not included in this public source projection">([\s\S]*?)</span>',r'\1',text)
+
 ROOT=Path(__file__).resolve().parents[1]
 E=lambda value:html.escape(str(value),quote=True)
 
@@ -29,10 +33,10 @@ def validate(features,review):
   if row.get('private_tool_row_identity') is not None or row.get('private_payload') is not None:raise ValueError('Private payload is not public review metadata')
  return True
 
-def render(features,review):
+def _render_source(features,review):
  validate(features,review);rows=review['rows'];parts=['<nav><a href="index.html">Library</a> / <a href="FEATURE_MATRIX_BY_OWASP.html">Complete matrix</a> / <a href="FEATURE_CONTROL_TRACEABILITY.html">Tests and acceptance gaps</a> / <a href="LIBRARY_CURRENT_STATE.html">Current qualification</a></nav><h1>80-feature OWASP and control review</h1>']
  parts+=['<p>Reviewed '+E(review['reviewed_date'])+' against source '+E(review['source_basis'])+'. '+E(review['review_scope'])+'</p><p>'+E(review['remaining_reference_limit'])+'</p>']
- parts+=['<h2>Two governing references</h2><ul>']
+ parts+=['<h2>Historical reference basis for this retained mapping</h2><p>The current governing safety-design HTML and private tool-and-risk workbook are identified in <a href="LIBRARY_CURRENT_STATE.html">current library state</a>. The two records below preserve the earlier mapping basis; current-reference applicability review and cloud-edition proposals do not promote operational acceptance or change this historical record.</p><ul>']
  for ref in review['references']:
   name='<a href="'+E(ref['public_page'])+'">'+E(ref['label'])+'</a>' if ref['public_page'] else E(ref['label'])+' (private; metadata only)'
   parts+=['<li>'+name+'; original SHA256 <code>'+E(ref['sha256'])+'</code></li>']
@@ -45,12 +49,17 @@ def render(features,review):
  for i in range(1,11):
   category='ASI%02d'%i;group=[row for row in rows if row['primary_category']==category];parts+=['<h2 id="'+category.lower()+'">'+category+' / '+E(review['categories'][category])+' / '+str(len(group))+' primary rows</h2>'+table(group)]
  parts+=['<h2>Shared evidence obligations across all ten domains</h2>'+table([r for r in rows if r['primary_category']=='ALL'])]
+ current=json.loads((ROOT/'docs/LIBRARY_CURRENT_STATE.public.json').read_text(encoding='utf-8'))
+ parts.insert(0,'<section id="current-openshell-qualification"><h2>Current OpenShell qualification</h2><p>'+html.escape(current['openshell_scope'])+'</p><p><a href="OPENSHELL_STATUS_AND_USAGE.html#current-openshell-evidence">Retained OpenShell qualification evidence and limits</a>. Feature IDs, mappings and acceptance ledger below remain unchanged.</p></section>')
  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>80-feature OWASP and control review</title><style>body{font:16px/1.5 system-ui;color:#173047;margin:24px}main{max-width:1600px;margin:auto}.table{overflow:auto}table{border-collapse:collapse;width:100%;min-width:1250px;table-layout:fixed}th:nth-child(1){width:13%}th:nth-child(2){width:30%}th:nth-child(3){width:14%}th:nth-child(4){width:27%}th:nth-child(5){width:16%}td,th{border:1px solid #bbc8d5;padding:12px;vertical-align:top;text-align:left;overflow-wrap:anywhere}code{overflow-wrap:anywhere}</style></head><body><main>'+''.join(parts)+'</main></body></html>\n'
+
+def render(features,review):
+ return plain_public_html(_render_source(features,review),ROOT/'docs/FEATURE_OWASP_REVIEW.html')
 
 def main():
  p=argparse.ArgumentParser();p.add_argument('--check',action='store_true');a=p.parse_args();raw=(ROOT/'docs/security-data/features.json').read_bytes();review=json.loads((ROOT/'docs/security-data/feature-owasp-review.public.json').read_text(encoding='utf-8'))
  if hashlib.sha256(raw).hexdigest()!=review['feature_source_sha256']:raise ValueError('Feature source hash mismatch')
- target=ROOT/'docs/FEATURE_OWASP_REVIEW.html';content=public_projection_html(render(json.loads(raw),review),target).encode()
+ content=render(json.loads(raw),review).encode();target=ROOT/'docs/FEATURE_OWASP_REVIEW.html'
  if a.check:
   if target.read_bytes()!=content:raise ValueError('Review page is stale')
  else:target.write_bytes(content)
