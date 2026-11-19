@@ -1,5 +1,11 @@
 # DSH — Controlling Three Security Risks
 
+## Current control definitions
+
+The current safety-design HTML and private tool-and-risk workbook define three control layers: **policy/human**, **harness/deterministic**, and **infrastructure/resource**. Audit spans all three. The infrastructure/resource layer includes runtime containment and independently authorized resource access. See the [current governing-reference catalog](LIBRARY_CURRENT_STATE.html) and [canonical definitions](DSH_CURRENT_GUIDE.html#reference-controls).
+
+The retained explanation below is organized by risk objectives: preventing external leakage, preventing damage or excessive access, and containing results. Those objectives apply across the three layers. Its operational examples retain their original evidence limits and do not establish current runtime acceptance.
+
 Current consolidated guidance: [central index](index.html), [canonical guide](DSH_CURRENT_GUIDE.html#canonical-reading), [architecture and two SVG maps](ARCHITECTURE_AND_ISOLATION_AT_A_GLANCE.html), and [three control layers](THREE_RISK_CONTROLS.html). Older source observations below keep their original dates and are not fresh runtime acceptance.
 
 

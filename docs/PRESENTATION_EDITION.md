@@ -4,12 +4,11 @@ Start with the [current documentation state](LIBRARY_CURRENT_STATE.html). OpenSh
 
 ## Reference and control basis
 
-Read the two governing references together:
+Read the current safety-design HTML and private tool-and-risk assessment workbook together, using the [current reference catalog](LIBRARY_CURRENT_STATE.html). The original payloads and exact current source identities remain in the authenticated library. Public pages retain their qualified interpretations and reference boundaries.
 
-- [DQ agent safety: Guardrails, Verification and Sandbox](AGENT_SAFETY_LAYERS.html). Original design reference `dq-agent-safety.html`, SHA256 `7fe84d37879b91964349a81a84d34762ebff965930596e93a1ccdd4b7a28115f`.
-- Internal tool-and-risk assessment workbook, SHA256 `214e604a349bf1955171504f4ba42e1f59fb01101fc717a4d9453ef6d860d937`. The workbook payload stays private. Public documentation records its fingerprint and qualified topic mappings.
+Earlier architecture and risk-workbook editions remain preserved as historical design and mapping evidence in that catalog. Their fingerprints identify those editions; they do not replace the current governing references.
 
-The [three risk controls](THREE_RISK_CONTROLS.html) are to prevent external leakage, prevent damage or excessive access, and keep results contained. The [80-feature traceability matrix](FEATURE_CONTROL_TRACEABILITY.html) assigns 76 rows primarily to the ten OWASP Agentic domains and keeps four shared evidence rows across those domains. The mapping preserves every feature ID. It does not establish feature-wide live acceptance.
+The [three control layers](THREE_RISK_CONTROLS.html) are policy/human decisions, harness/deterministic enforcement, and infrastructure/resource enforcement. Audit spans all three. Preventing leakage, damage or excessive access, and unwanted result exposure are risk objectives addressed across these layers. The [80-feature traceability matrix](FEATURE_CONTROL_TRACEABILITY.html) assigns 76 rows primarily to the ten OWASP Agentic domains and keeps four shared evidence rows across those domains. The mapping preserves every feature ID. It does not establish feature-wide live acceptance.
 
 Use the component and deployment map, G00 to follow the configured web, agent, gateway and model-service connections. Its source/configuration evidence must be distinguished from current running workload and image verification. The [terminology guide](HARNESS_TERMINOLOGY.html) defines agents, harnesses, tools and execution boundaries.
 
