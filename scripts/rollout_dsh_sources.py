@@ -30,6 +30,8 @@ ROOT = Path(__file__).resolve().parents[1]
 # ConfigMap key -> repository path. Every key the live ConfigMap carries must be
 # listed; an unknown key fails closed instead of being silently dropped.
 SOURCES = {
+    'agent_task_confirm.js': 'scripts/agent_task_confirm.js',
+    'agent_task_confirm_card.js': 'scripts/agent_task_confirm_card.js',
     'agent_task_gateway.js': 'scripts/agent_task_gateway.js',
     'app-supervisor.py': 'container/app-supervisor.py',
     'app_signin.js': 'scripts/app_signin.js',
@@ -41,6 +43,7 @@ SOURCES = {
     'capacity_planner.py': 'scripts/capacity_planner.py',
     'capacity_policy.js': 'scripts/capacity_policy.js',
     'capacity_report.py': 'scripts/capacity_report.py',
+    'capacity_retirement.py': 'scripts/capacity_retirement.py',
     'capacity_session.py': 'scripts/capacity_session.py',
     'capacity_worker.py': 'scripts/capacity_worker.py',
     'course_files.js': 'scripts/course_files.js',
@@ -78,7 +81,7 @@ COMPONENTS = {
     'gateway': {'deployment': 'dsh-environment-gateway', 'volume': 'gateway-source', 'prefix': 'dsh-gateway-src-',
                 'required': ['session_demand.js']},
     'controller': {'deployment': 'dsh-cap-live-controller', 'volume': 'source', 'prefix': 'dsh-cap-src-',
-                   'required': ['capacity_session.py']},
+                   'required': ['capacity_session.py', 'capacity_retirement.py']},
 }
 
 # First-come sessions: the controller starts and stops private runtimes.

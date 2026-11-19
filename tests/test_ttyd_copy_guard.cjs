@@ -17,8 +17,11 @@ assert.equal(injectCopyGuard(null), null);
 const calls = [];
 const sandbox = { document: { execCommand: (command) => { calls.push(command); return true; } } };
 vm.runInNewContext(GUARD.replace(/^<script>|<\/script>$/g, ''), sandbox);
-assert.equal(sandbox.document.execCommand('copy'), false);
-assert.equal(sandbox.document.execCommand('COPY'), false);
+assert.throws(() => sandbox.document.execCommand('copy'), /disabled/);
+assert.throws(() => sandbox.document.execCommand('COPY'), /disabled/);
+// ttyd's handler: try { execCommand('copy') } catch { return } showOverlay(scissors): the overlay must not be reached.
+let overlay = 0; (() => { try { sandbox.document.execCommand('copy'); } catch (e) { return; } overlay++; })();
+assert.equal(overlay, 0, 'no scissors overlay after a refused copy');
 assert.equal(sandbox.document.execCommand('paste'), true);
 assert.deepEqual(calls, ['paste']);
 
